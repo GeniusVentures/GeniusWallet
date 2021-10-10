@@ -1,6 +1,0 @@
-[submodule "rnWallet"]
-	path = rnWallet
-	url = https://github.com/c-block/rnWallet.git
-[submodule "proton-native"]
-	path = proton-native
-	url = https://github.com/kusti8/proton-native.git
