@@ -1,12 +1,18 @@
 # GeniusWallet
 
-A new Flutter project.
+GeniusWallet Parabeac/Flutter generated walletA new Flutter project.
 
 
-This generates the dart files for rpc to Genius contracts in GeniusWallet
+## Setup Parabeac
 
-protoc --proto_path=../thirdparty/grpc/third_party/googleapis/ --proto_path=../pay-channel-eth/contracts/lib/data/proto/ --dart_out=json-./lib/GeniusContract/ ../pay-channel-eth/contracts/lib/data/proto/chain.proto
-protoc --proto_path=../thirdparty/grpc/third_party/googleapis/ --proto_path=../pay-channel-eth/contracts/lib/data/proto/ --dart_out=./lib/GeniusContract/ ../pay-channel-eth/contracts/lib/data/proto/entity.proto
+cd ../thirdparty/Parabeac-core
+git fetch upstream
+git checkout upstream dev
+git submodule init
+git submodule update
+pub get
 
-
-
+## Run code generator
+pushd ../thirdparty/Parabeac-Core
+dart parabeac.dart -f Kqa6zYh2Qk1oTkWQtC1ueP -k 251430-45702049-022d-4e3f-b049-33633ec1f3e1 -o ../../ -n geniuswallet  
+popd
