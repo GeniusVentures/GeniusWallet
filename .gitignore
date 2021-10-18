@@ -44,3 +44,5 @@ ios
 macos
 web
 .metadata
+
+pubspec.lock
