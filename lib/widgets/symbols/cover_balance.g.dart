@@ -4,11 +4,11 @@ import 'package:geniuswallet/widgets/symbols/receive.g.dart';
 import 'package:geniuswallet/widgets/symbols/send.g.dart';
 import 'package:geniuswallet/egg/menu.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/egg/amount.dart';
-import 'package:geniuswallet/egg/subtext.dart';
 import 'package:geniuswallet/egg/buybuttoncustom.dart';
 import 'package:geniuswallet/egg/recievebuttoncustom.dart';
 import 'package:geniuswallet/egg/sendbuttoncustom.dart';
+import 'package:geniuswallet/egg/amountandsubtextcustom.dart';
+import 'package:geniuswallet/widgets/symbols/amount_and_subtext.g.dart';
 
 class CoverBalance extends StatelessWidget {
   final constraints;
@@ -16,8 +16,6 @@ class CoverBalance extends StatelessWidget {
   final ovrFinance;
   final ovrLine;
   final ovrTokens;
-  final ovrAmount;
-  final ovrText;
   CoverBalance(
     this.constraints, {
     Key key,
@@ -25,8 +23,6 @@ class CoverBalance extends StatelessWidget {
     this.ovrFinance,
     this.ovrLine,
     this.ovrTokens,
-    this.ovrAmount,
-    this.ovrText,
   }) : super(key: key);
 
   @override
@@ -171,98 +167,6 @@ class CoverBalance extends StatelessWidget {
                 ])))),
       ),
       Positioned(
-        left: constraints.maxWidth * 0.055,
-        width: constraints.maxWidth * 0.893,
-        top: constraints.maxHeight * 0.287,
-        height: constraints.maxHeight * 0.193,
-        child: Amount(
-            child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: 0,
-            height: constraints.maxHeight * 0.193,
-            child: Container(
-              width: constraints.maxWidth * 335.000,
-              height: constraints.maxHeight * 54.000,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(0)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: 0,
-            height: constraints.maxHeight * 0.193,
-            child: Center(
-                child: Container(
-                    width: 335.0,
-                    child: Container(
-                        width: constraints.maxWidth * 335.000,
-                        height: constraints.maxHeight * 54.000,
-                        child: AutoSizeText(
-                          ovrAmount ?? 'Amount',
-                          style: TextStyle(
-                            fontFamily: 'Prompt',
-                            fontSize: 36.0,
-                            fontWeight: FontWeight.w700,
-                            fontStyle: FontStyle.normal,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )))),
-          ),
-        ])),
-      ),
-      Positioned(
-        left: constraints.maxWidth * 0.055,
-        width: constraints.maxWidth * 0.893,
-        top: constraints.maxHeight * 0.434,
-        height: constraints.maxHeight * 0.075,
-        child: Subtext(
-            child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: 0,
-            height: constraints.maxHeight * 0.075,
-            child: Container(
-              width: constraints.maxWidth * 335.000,
-              height: constraints.maxHeight * 21.000,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(0)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: 0,
-            height: constraints.maxHeight * 0.075,
-            child: Center(
-                child: Container(
-                    width: 335.0,
-                    child: Container(
-                        width: constraints.maxWidth * 335.000,
-                        height: constraints.maxHeight * 21.000,
-                        child: AutoSizeText(
-                          ovrText ?? 'Text',
-                          style: TextStyle(
-                            fontFamily: 'Prompt',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w100,
-                            fontStyle: FontStyle.normal,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )))),
-          ),
-        ])),
-      ),
-      Positioned(
         left: constraints.maxWidth * 0.676,
         width: constraints.maxWidth * 0.149,
         top: constraints.maxHeight * 0.72,
@@ -314,6 +218,20 @@ class CoverBalance extends StatelessWidget {
                     ovrSend: 'Send',
                   );
                 })))),
+      ),
+      Positioned(
+        left: constraints.maxWidth * 0.055,
+        width: constraints.maxWidth * 0.893,
+        top: constraints.maxHeight * 0.287,
+        height: constraints.maxHeight * 0.268,
+        child: AmountAndSubtextCustom(
+            child: LayoutBuilder(builder: (context, constraints) {
+          return AmountAndSubtext(
+            constraints,
+            ovrAmount: 'Amount',
+            ovrText: 'Text',
+          );
+        })),
       ),
     ]);
   }

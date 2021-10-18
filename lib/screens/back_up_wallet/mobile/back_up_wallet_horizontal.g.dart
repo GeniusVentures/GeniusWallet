@@ -4,8 +4,8 @@ import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_text_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/genius_checkbox.g.dart';
-import 'package:geniuswallet/widgets/symbols/button_inactive_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';
+import 'package:geniuswallet/widgets/symbols/button_inactive_desktop.g.dart';
 
 class BackUpWalletHorizontal extends StatefulWidget {
   const BackUpWalletHorizontal() : super();

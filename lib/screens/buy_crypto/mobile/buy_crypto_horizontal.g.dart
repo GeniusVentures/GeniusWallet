@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:geniuswallet/widgets/symbols/dial_pad.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
-import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
-import 'package:geniuswallet/widgets/symbols/price_chart.g.dart';
-import 'package:geniuswallet/widgets/symbols/transaction_history.g.dart';
 import 'package:geniuswallet/widgets/symbols/double_info.g.dart';
+import 'package:geniuswallet/widgets/symbols/price_chart.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_buy_crypto_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
+import 'package:geniuswallet/widgets/symbols/transaction_history.g.dart';
 
 class BuyCryptoHorizontal extends StatefulWidget {
   const BuyCryptoHorizontal() : super();

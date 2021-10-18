@@ -5,8 +5,8 @@ import 'package:geniuswallet/egg/buttonactivecustom.dart';
 import 'package:geniuswallet/widgets/symbols/dial_pad.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_buy_crypto.g.dart';
-import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 import 'package:geniuswallet/widgets/symbols/double_info.g.dart';
+import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 
 class BuyCryptoVertical extends StatefulWidget {
   const BuyCryptoVertical() : super();

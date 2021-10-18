@@ -50,8 +50,8 @@ class _CryptoDetailsHorizontal extends State<CryptoDetailsHorizontal> {
         Positioned(
           left: MediaQuery.of(context).size.width * 0.52,
           width: MediaQuery.of(context).size.width * 0.353,
-          top: MediaQuery.of(context).size.height * 0.114,
-          height: MediaQuery.of(context).size.height * 0.489,
+          top: 123.0,
+          height: 528.0,
           child: LayoutBuilder(builder: (context, constraints) {
             return CoverCryptoDesktop(
               constraints,

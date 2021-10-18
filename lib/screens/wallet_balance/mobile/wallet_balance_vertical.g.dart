@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/crypto_item.g.dart';
+import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_menu.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_balance.g.dart';
 
@@ -26,8 +26,6 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
           child: LayoutBuilder(builder: (context, constraints) {
             return CoverBalance(
               constraints,
-              ovrAmount: '\$20.99',
-              ovrText: 'Main Wallet1',
               ovrCollectibles: 'Collectibles',
               ovrFinance: 'Finance',
               ovrLine: 'assets/images/I0_52;0_12248.png',
