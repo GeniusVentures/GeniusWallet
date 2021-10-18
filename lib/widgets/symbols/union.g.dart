@@ -1,1 +1,0 @@
-Image.asset('assets/images/82_1719.png', width: 90.000,height: 23.000,)

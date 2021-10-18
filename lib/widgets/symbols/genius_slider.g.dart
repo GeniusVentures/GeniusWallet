@@ -7,9 +7,6 @@ class GeniusSlider extends StatelessWidget {
   final ovrTypeCopy3;
   final ovrTypeCopy;
   final ovrTypeCopy2;
-  final ovrEllipse;
-  final ovrLine;
-  final ovrLineCopy;
   GeniusSlider(
     this.constraints, {
     Key key,
@@ -17,9 +14,6 @@ class GeniusSlider extends StatelessWidget {
     this.ovrTypeCopy3,
     this.ovrTypeCopy,
     this.ovrTypeCopy2,
-    this.ovrEllipse,
-    this.ovrLine,
-    this.ovrLineCopy,
   }) : super(key: key);
 
   @override
@@ -47,10 +41,10 @@ class GeniusSlider extends StatelessWidget {
             )),
       ),
       Positioned(
-        left: 133.5,
-        right: 134.5,
-        top: 57.0,
-        bottom: 0,
+        left: constraints.maxWidth * 0.431,
+        width: constraints.maxWidth * 0.135,
+        top: constraints.maxHeight * 0.695,
+        height: constraints.maxHeight * 0.329,
         child: Container(
             width: constraints.maxWidth * 42.000,
             height: constraints.maxHeight * 27.000,
@@ -69,7 +63,7 @@ class GeniusSlider extends StatelessWidget {
       ),
       Positioned(
         left: 0,
-        width: 23.0,
+        width: constraints.maxWidth * 0.074,
         top: constraints.maxHeight * 0.762,
         height: constraints.maxHeight * 0.183,
         child: Container(
@@ -89,8 +83,8 @@ class GeniusSlider extends StatelessWidget {
             )),
       ),
       Positioned(
-        right: 0,
-        width: 23.0,
+        left: constraints.maxWidth * 0.926,
+        width: constraints.maxWidth * 0.074,
         top: constraints.maxHeight * 0.762,
         height: constraints.maxHeight * 0.183,
         child: Container(
@@ -111,63 +105,13 @@ class GeniusSlider extends StatelessWidget {
       ),
       Positioned(
         left: 0,
-        right: 0,
-        top: 44.0,
-        height: 6.0,
-        child: Container(
+        width: constraints.maxWidth * 1.0,
+        top: constraints.maxHeight * 0.5,
+        height: constraints.maxHeight * 0.213,
+        child: Image.asset(
+          'assets/images/218_3916.png',
           width: constraints.maxWidth * 310.000,
-          height: constraints.maxHeight * 6.000,
-          decoration: BoxDecoration(
-            color: Color(0xff0068ef),
-            borderRadius: BorderRadius.all(Radius.circular(154.0)),
-          ),
-        ),
-      ),
-      Positioned(
-        left: 0,
-        right: 171.0,
-        top: 44.0,
-        height: 6.0,
-        child: Container(
-          width: constraints.maxWidth * 139.000,
-          height: constraints.maxHeight * 6.000,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(154.0)),
-          ),
-        ),
-      ),
-      Positioned(
-        right: 167.0,
-        width: 12.0,
-        top: 41.0,
-        height: 12.0,
-        child: Image.asset(
-          ovrEllipse ?? 'assets/images/0_12538.png',
-          width: constraints.maxWidth * 12.000,
-          height: constraints.maxHeight * 12.000,
-        ),
-      ),
-      Positioned(
-        left: 2.0,
-        width: 2.0,
-        top: 53.0,
-        height: 5.5,
-        child: Image.asset(
-          ovrLine ?? 'assets/images/0_12539.png',
-          width: constraints.maxWidth * 2.000,
-          height: constraints.maxHeight * 5.500,
-        ),
-      ),
-      Positioned(
-        right: 2.0,
-        width: 2.0,
-        top: 53.0,
-        height: 5.5,
-        child: Image.asset(
-          ovrLineCopy ?? 'assets/images/0_12540.png',
-          width: constraints.maxWidth * 2.000,
-          height: constraints.maxHeight * 5.500,
+          height: constraints.maxHeight * 17.500,
         ),
       ),
     ]);

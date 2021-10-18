@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:geniuswallet/widgets/symbols/buy.g.dart';
 import 'package:geniuswallet/widgets/symbols/receive.g.dart';
 import 'package:geniuswallet/widgets/symbols/send.g.dart';
+import 'package:geniuswallet/egg/menu.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:geniuswallet/egg/amount.dart';
+import 'package:geniuswallet/egg/subtext.dart';
+import 'package:geniuswallet/egg/buybuttoncustom.dart';
+import 'package:geniuswallet/egg/recievebuttoncustom.dart';
+import 'package:geniuswallet/egg/sendbuttoncustom.dart';
 
 class CoverBalance extends StatelessWidget {
   final constraints;
@@ -10,11 +16,8 @@ class CoverBalance extends StatelessWidget {
   final ovrFinance;
   final ovrLine;
   final ovrTokens;
-  final ovrText;
   final ovrAmount;
-  final ovrBuy;
-  final ovrBuyCopy;
-  final ovrBuyCopy2;
+  final ovrText;
   CoverBalance(
     this.constraints, {
     Key key,
@@ -22,11 +25,8 @@ class CoverBalance extends StatelessWidget {
     this.ovrFinance,
     this.ovrLine,
     this.ovrTokens,
-    this.ovrText,
     this.ovrAmount,
-    this.ovrBuy,
-    this.ovrBuyCopy,
-    this.ovrBuyCopy2,
+    this.ovrText,
   }) : super(key: key);
 
   @override
@@ -44,108 +44,6 @@ class CoverBalance extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 20.6,
-        right: 20.4,
-        top: 80.45,
-        bottom: 144.085,
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: 0,
-            height: constraints.maxHeight * 0.221,
-            child: Container(
-              width: constraints.maxWidth * 335.000,
-              height: constraints.maxHeight * 62.000,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(0)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: 0,
-            height: constraints.maxHeight * 0.193,
-            child: Center(
-                child: Container(
-                    width: 335.0,
-                    child: Container(
-                        width: constraints.maxWidth * 335.000,
-                        height: constraints.maxHeight * 54.000,
-                        child: AutoSizeText(
-                          ovrAmount ?? 'Amount',
-                          style: TextStyle(
-                            fontFamily: 'Prompt',
-                            fontSize: 36.0,
-                            fontWeight: FontWeight.w700,
-                            fontStyle: FontStyle.normal,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )))),
-          ),
-          Positioned(
-            left: 0,
-            width: constraints.maxWidth * 0.893,
-            top: constraints.maxHeight * 0.146,
-            height: constraints.maxHeight * 0.075,
-            child: Center(
-                child: Container(
-                    width: 335.0,
-                    child: Container(
-                        width: constraints.maxWidth * 335.000,
-                        height: constraints.maxHeight * 21.000,
-                        child: AutoSizeText(
-                          ovrText ?? 'Text',
-                          style: TextStyle(
-                            fontFamily: 'Prompt',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w100,
-                            fontStyle: FontStyle.normal,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )))),
-          ),
-        ]),
-      ),
-      Positioned(
-        left: constraints.maxWidth * 0.676,
-        width: constraints.maxWidth * 0.149,
-        top: constraints.maxHeight * 0.72,
-        height: constraints.maxHeight * 0.303,
-        child: Center(
-            child: Container(
-                height: 84.79998779296875,
-                width: 56.0,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return Buy(
-                    constraints,
-                    ovrBuy: 'Buy',
-                  );
-                }))),
-      ),
-      Positioned(
-        left: constraints.maxWidth * 0.426,
-        width: constraints.maxWidth * 0.149,
-        top: constraints.maxHeight * 0.717,
-        height: constraints.maxHeight * 0.303,
-        child: Center(
-            child: Container(
-                height: 84.79998779296875,
-                width: 56.0,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return Receive(
-                    constraints,
-                    ovrReceive: 'Receive',
-                    ovrVector: 'assets/images/I0_12256;110_3428.png',
-                  );
-                }))),
-      ),
-      Positioned(
         left: constraints.maxWidth * 0.151,
         width: constraints.maxWidth * 0.701,
         top: 20.45,
@@ -153,7 +51,8 @@ class CoverBalance extends StatelessWidget {
         child: Center(
             child: Container(
                 width: 263.0,
-                child: Stack(children: [
+                child: Menu(
+                    child: Stack(children: [
                   Positioned(
                     left: 0,
                     width: 263.0,
@@ -269,7 +168,135 @@ class CoverBalance extends StatelessWidget {
                           textAlign: TextAlign.center,
                         )),
                   ),
-                ]))),
+                ])))),
+      ),
+      Positioned(
+        left: constraints.maxWidth * 0.055,
+        width: constraints.maxWidth * 0.893,
+        top: constraints.maxHeight * 0.287,
+        height: constraints.maxHeight * 0.193,
+        child: Amount(
+            child: Stack(children: [
+          Positioned(
+            left: 0,
+            width: constraints.maxWidth * 0.893,
+            top: 0,
+            height: constraints.maxHeight * 0.193,
+            child: Container(
+              width: constraints.maxWidth * 335.000,
+              height: constraints.maxHeight * 54.000,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            width: constraints.maxWidth * 0.893,
+            top: 0,
+            height: constraints.maxHeight * 0.193,
+            child: Center(
+                child: Container(
+                    width: 335.0,
+                    child: Container(
+                        width: constraints.maxWidth * 335.000,
+                        height: constraints.maxHeight * 54.000,
+                        child: AutoSizeText(
+                          ovrAmount ?? 'Amount',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 36.0,
+                            fontWeight: FontWeight.w700,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )))),
+          ),
+        ])),
+      ),
+      Positioned(
+        left: constraints.maxWidth * 0.055,
+        width: constraints.maxWidth * 0.893,
+        top: constraints.maxHeight * 0.434,
+        height: constraints.maxHeight * 0.075,
+        child: Subtext(
+            child: Stack(children: [
+          Positioned(
+            left: 0,
+            width: constraints.maxWidth * 0.893,
+            top: 0,
+            height: constraints.maxHeight * 0.075,
+            child: Container(
+              width: constraints.maxWidth * 335.000,
+              height: constraints.maxHeight * 21.000,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            width: constraints.maxWidth * 0.893,
+            top: 0,
+            height: constraints.maxHeight * 0.075,
+            child: Center(
+                child: Container(
+                    width: 335.0,
+                    child: Container(
+                        width: constraints.maxWidth * 335.000,
+                        height: constraints.maxHeight * 21.000,
+                        child: AutoSizeText(
+                          ovrText ?? 'Text',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w100,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )))),
+          ),
+        ])),
+      ),
+      Positioned(
+        left: constraints.maxWidth * 0.676,
+        width: constraints.maxWidth * 0.149,
+        top: constraints.maxHeight * 0.72,
+        height: constraints.maxHeight * 0.303,
+        child: Center(
+            child: Container(
+                height: 84.79998779296875,
+                width: 56.0,
+                child: BuyButtonCustom(
+                    child: LayoutBuilder(builder: (context, constraints) {
+                  return Buy(
+                    constraints,
+                    ovrBuy: 'Buy',
+                    ovrVector: 'assets/images/I0_12255;222_3028.png',
+                  );
+                })))),
+      ),
+      Positioned(
+        left: constraints.maxWidth * 0.426,
+        width: constraints.maxWidth * 0.149,
+        top: constraints.maxHeight * 0.717,
+        height: constraints.maxHeight * 0.303,
+        child: Center(
+            child: Container(
+                height: 84.79998779296875,
+                width: 56.0,
+                child: RecieveButtonCustom(
+                    child: LayoutBuilder(builder: (context, constraints) {
+                  return Receive(
+                    constraints,
+                    ovrReceive: 'Receive',
+                    ovrVector: 'assets/images/I0_12256;110_3428.png',
+                  );
+                })))),
       ),
       Positioned(
         left: constraints.maxWidth * 0.175,
@@ -280,12 +307,13 @@ class CoverBalance extends StatelessWidget {
             child: Container(
                 height: 84.79998779296875,
                 width: 56.0,
-                child: LayoutBuilder(builder: (context, constraints) {
+                child: SendButtonCustom(
+                    child: LayoutBuilder(builder: (context, constraints) {
                   return Send(
                     constraints,
                     ovrSend: 'Send',
                   );
-                }))),
+                })))),
       ),
     ]);
   }

@@ -56,25 +56,22 @@ class Alert extends StatelessWidget {
         width: constraints.maxWidth * 0.823,
         top: constraints.maxHeight * 0.179,
         height: constraints.maxHeight * 0.643,
-        child: Center(
-            child: Container(
-                width: 256.0,
-                child: Container(
-                    width: constraints.maxWidth * 256.000,
-                    height: constraints.maxHeight * 36.000,
-                    child: AutoSizeText(
-                      ovrNeversharerecoveryphrasewi ??
-                          'Never share recovery phrase with anyone, store it securely!',
-                      style: TextStyle(
-                        fontFamily: 'Prompt',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.normal,
-                        letterSpacing: 0.0,
-                        color: Color(0xffda5656),
-                      ),
-                      textAlign: TextAlign.left,
-                    )))),
+        child: Container(
+            width: constraints.maxWidth * 256.000,
+            height: constraints.maxHeight * 36.000,
+            child: AutoSizeText(
+              ovrNeversharerecoveryphrasewi ??
+                  'Never share recovery phrase with anyone, store it securely!',
+              style: TextStyle(
+                fontFamily: 'Prompt',
+                fontSize: 12.0,
+                fontWeight: FontWeight.w500,
+                fontStyle: FontStyle.normal,
+                letterSpacing: 0.0,
+                color: Color(0xffda5656),
+              ),
+              textAlign: TextAlign.left,
+            )),
       ),
     ]);
   }

@@ -4,30 +4,18 @@ import 'package:geniuswallet/widgets/symbols/genius_icon.g.dart';
 
 class Send extends StatelessWidget {
   final constraints;
-  final ovrIcon4;
   final ovrSend;
+  final ovrIcon4;
   Send(
     this.constraints, {
     Key key,
-    this.ovrIcon4,
     this.ovrSend,
+    this.ovrIcon4,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Stack(children: [
-      Positioned(
-        left: 0,
-        width: constraints.maxWidth * 1.0,
-        top: 0,
-        height: constraints.maxHeight * 0.66,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return GeniusIcon(
-            constraints,
-            ovrEllipse3: 'assets/images/I0_12469;0_12263.png',
-          );
-        }),
-      ),
       Positioned(
         left: constraints.maxWidth * 0.179,
         width: constraints.maxWidth * 0.623,
@@ -50,18 +38,48 @@ class Send extends StatelessWidget {
             )),
       ),
       Positioned(
-        left: constraints.maxWidth * 0.268,
-        width: constraints.maxWidth * 0.464,
-        top: 21.0,
-        height: 13.0,
-        child: Center(
+        left: 0,
+        width: constraints.maxWidth * 1.0,
+        top: 0,
+        height: constraints.maxHeight * 0.66,
+        child: Stack(children: [
+          Positioned(
+            left: 0,
+            width: constraints.maxWidth * 1.0,
+            top: 0,
+            height: constraints.maxHeight * 0.66,
             child: Container(
-                width: 26.0,
-                child: Image.asset(
-                  'assets/images/0_12471.png',
-                  width: constraints.maxWidth * 26.000,
-                  height: constraints.maxHeight * 13.000,
-                ))),
+              width: constraints.maxWidth * 56.000,
+              height: constraints.maxHeight * 56.000,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            width: constraints.maxWidth * 1.0,
+            top: 0,
+            height: constraints.maxHeight * 0.66,
+            child: LayoutBuilder(builder: (context, constraints) {
+              return GeniusIcon(
+                constraints,
+                ovrEllipse3: 'assets/images/I0_12469;0_12263.png',
+              );
+            }),
+          ),
+          Positioned(
+            left: constraints.maxWidth * 0.268,
+            width: constraints.maxWidth * 0.464,
+            top: constraints.maxHeight * 0.248,
+            height: constraints.maxHeight * 0.153,
+            child: Image.asset(
+              'assets/images/0_12471.png',
+              width: constraints.maxWidth * 26.000,
+              height: constraints.maxHeight * 13.000,
+            ),
+          ),
+        ]),
       ),
     ]);
   }

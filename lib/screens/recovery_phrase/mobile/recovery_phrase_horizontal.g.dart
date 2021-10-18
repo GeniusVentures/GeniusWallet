@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/words.g.dart';
-import 'package:geniuswallet/widgets/symbols/navigation_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/alert.g.dart';
-import 'package:geniuswallet/widgets/symbols/cover_text_desktop.g.dart';
-import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/navigation_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/cover_text_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 
 class RecoveryPhraseHorizontal extends StatefulWidget {
@@ -23,6 +23,17 @@ class _RecoveryPhraseHorizontal extends State<RecoveryPhraseHorizontal> {
       backgroundColor: Color(0xff003698),
       body: Stack(children: [
         Positioned(
+          left: MediaQuery.of(context).size.width * 0.001,
+          width: MediaQuery.of(context).size.width * 0.999,
+          top: 0,
+          height: MediaQuery.of(context).size.height * 1.0,
+          child: LayoutBuilder(builder: (context, constraints) {
+            return BackgroundDesktop(
+              constraints,
+            );
+          }),
+        ),
+        Positioned(
           left: 0,
           width: MediaQuery.of(context).size.width * 1.0,
           top: 0,
@@ -35,19 +46,6 @@ class _RecoveryPhraseHorizontal extends State<RecoveryPhraseHorizontal> {
               ovrsettings: 'settings',
               ovrEllipseXor: 'assets/images/I0_380;0_12570.png',
               ovrDex2: 'Dex',
-              ovrTriangle: 'assets/images/I0_380;0_12551.png',
-              ovrAvatar: 'assets/images/I0_380;0_12550.png',
-            );
-          }),
-        ),
-        Positioned(
-          left: MediaQuery.of(context).size.width * 0.001,
-          width: MediaQuery.of(context).size.width * 0.999,
-          top: 0,
-          height: MediaQuery.of(context).size.height * 1.0,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return BackgroundDesktop(
-              constraints,
             );
           }),
         ),
@@ -62,7 +60,6 @@ class _RecoveryPhraseHorizontal extends State<RecoveryPhraseHorizontal> {
               ovrTitle: 'Your recovery phrase',
               ovrLoremipsumdolorsitametco:
                   'Write down or copy these words in the right order and save them somewhere safe.',
-              ovrNewshape: 'assets/images/I0_382;0_12689.png',
             );
           }),
         ),

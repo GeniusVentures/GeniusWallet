@@ -6,9 +6,9 @@ import 'package:geniuswallet/egg/gnusamountselectorcustom.dart';
 import 'package:geniuswallet/egg/linktodataselectorcustom.dart';
 import 'package:geniuswallet/egg/protocolselectorcustom.dart';
 import 'package:geniuswallet/widgets/symbols/text_inputwith_button.g.dart';
-import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
 import 'package:geniuswallet/widgets/symbols/mult_choice.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
+import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
 
 class DappVertical extends StatefulWidget {
   const DappVertical() : super();

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:geniuswallet/egg/crytodetailsscrollview.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/widgets/symbols/contracts.g.dart';
+import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_buy.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_crypto.g.dart';
-import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
+import 'package:geniuswallet/widgets/symbols/contracts.g.dart';
 
 class CryptoDetailsVertical extends StatefulWidget {
   const CryptoDetailsVertical() : super();

@@ -4,8 +4,8 @@ import 'package:geniuswallet/egg/buttonactivecustom.dart';
 import 'package:geniuswallet/egg/copy.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/words.g.dart';
-import 'package:geniuswallet/widgets/symbols/navigation_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/alert.g.dart';
+import 'package:geniuswallet/widgets/symbols/navigation_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_text.g.dart';
 

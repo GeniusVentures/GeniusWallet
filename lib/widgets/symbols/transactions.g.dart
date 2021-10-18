@@ -3,16 +3,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 class Transactions extends StatelessWidget {
   final constraints;
-  final ovrMask;
-  final ovrMask2;
+  final ovrVector;
   final ovr1PRj85hu9RXPZTzxtko9;
   final ovr0009ETH;
   final ovr162312dec2018;
   Transactions(
     this.constraints, {
     Key key,
-    this.ovrMask,
-    this.ovrMask2,
+    this.ovrVector,
     this.ovr1PRj85hu9RXPZTzxtko9,
     this.ovr0009ETH,
     this.ovr162312dec2018,
@@ -122,31 +120,15 @@ class Transactions extends StatelessWidget {
                     )))),
       ),
       Positioned(
-        left: constraints.maxWidth * 0.839,
-        width: constraints.maxWidth * 0.024,
+        right: 96.022,
+        width: 17.0,
         top: constraints.maxHeight * 0.223,
         height: constraints.maxHeight * 0.153,
         child: Center(
             child: Container(
                 height: 11.0,
-                width: 17.0,
                 child: Image.asset(
-                  ovrMask2 ?? 'assets/images/0_12594.png',
-                  width: constraints.maxWidth * 17.000,
-                  height: constraints.maxHeight * 11.000,
-                ))),
-      ),
-      Positioned(
-        left: constraints.maxWidth * 0.839,
-        width: constraints.maxWidth * 0.024,
-        top: constraints.maxHeight * 0.223,
-        height: constraints.maxHeight * 0.153,
-        child: Center(
-            child: Container(
-                height: 11.0,
-                width: 17.0,
-                child: Image.asset(
-                  ovrMask ?? 'assets/images/0_12593.png',
+                  ovrVector ?? 'assets/images/222_3827.png',
                   width: constraints.maxWidth * 17.000,
                   height: constraints.maxHeight * 11.000,
                 ))),

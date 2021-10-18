@@ -3,9 +3,9 @@ import 'package:geniuswallet/egg/recoveryphrasefield.dart';
 import 'package:geniuswallet/egg/selections.dart';
 import 'package:geniuswallet/egg/buttonactivecustom.dart';
 import 'package:geniuswallet/widgets/symbols/words.g.dart';
-import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_inactive.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_text.g.dart';
+import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';
 
 class RecoveryPhraseTypeVertical extends StatefulWidget {
   const RecoveryPhraseTypeVertical() : super();

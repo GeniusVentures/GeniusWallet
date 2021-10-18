@@ -22,21 +22,24 @@ class CoverBuyCryptoDesktop extends StatelessWidget {
         width: constraints.maxWidth * 0.67,
         top: 0,
         height: constraints.maxHeight * 0.096,
-        child: Container(
-            width: constraints.maxWidth * 258.000,
-            height: constraints.maxHeight * 22.468,
-            child: AutoSizeText(
-              ovrTitle ?? 'Title',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 18.0,
-                fontWeight: FontWeight.w600,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            )),
+        child: Center(
+            child: Container(
+                width: 258.0,
+                child: Container(
+                    width: constraints.maxWidth * 258.000,
+                    height: constraints.maxHeight * 22.468,
+                    child: AutoSizeText(
+                      ovrTitle ?? 'Title',
+                      style: TextStyle(
+                        fontFamily: 'Prompt',
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.normal,
+                        letterSpacing: 0.0,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    )))),
       ),
       Positioned(
         left: 0,

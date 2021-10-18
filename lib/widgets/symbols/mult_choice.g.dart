@@ -32,23 +32,26 @@ class MultChoice extends StatelessWidget {
       Positioned(
         left: 10.0,
         right: 57.0,
-        top: 9.0,
-        height: 27.0,
-        child: Container(
-            width: constraints.maxWidth * 243.000,
-            height: constraints.maxHeight * 27.000,
-            child: AutoSizeText(
-              ovrType ?? 'Type',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 18.0,
-                fontWeight: FontWeight.w500,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Color(0xff575757),
-              ),
-              textAlign: TextAlign.left,
-            )),
+        top: constraints.maxHeight * 0.2,
+        height: constraints.maxHeight * 0.6,
+        child: Center(
+            child: Container(
+                height: 27.0,
+                child: Container(
+                    width: constraints.maxWidth * 243.000,
+                    height: constraints.maxHeight * 27.000,
+                    child: AutoSizeText(
+                      ovrType ?? 'Type',
+                      style: TextStyle(
+                        fontFamily: 'Prompt',
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w500,
+                        fontStyle: FontStyle.normal,
+                        letterSpacing: 0.0,
+                        color: Color(0xff575757),
+                      ),
+                      textAlign: TextAlign.left,
+                    )))),
       ),
       Positioned(
         left: constraints.maxWidth * 0.884,

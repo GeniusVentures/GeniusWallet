@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/arrow.dart';
+import 'package:geniuswallet/egg/backarrow.dart';
 import 'package:geniuswallet/egg/next.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -28,19 +28,16 @@ class NavigationNext extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 29.0,
-        width: 9.0,
-        top: constraints.maxHeight * 0.27,
-        height: constraints.maxHeight * 0.243,
-        child: Center(
-            child: Container(
-                height: 9.0,
-                child: Arrow(
-                    child: Image.asset(
-                  'assets/images/0_12087.png',
-                  width: constraints.maxWidth * 9.000,
-                  height: constraints.maxHeight * 9.000,
-                )))),
+        left: 26.0,
+        width: 10.0,
+        top: 9.0,
+        height: 18.0,
+        child: BackArrow(
+            child: Image.asset(
+          'assets/images/222_2976.png',
+          width: constraints.maxWidth * 10.000,
+          height: constraints.maxHeight * 18.000,
+        )),
       ),
       Positioned(
         right: 24.5,
