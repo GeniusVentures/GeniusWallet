@@ -15,8 +15,7 @@ class AmountAndSubtext extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AmountAndSubtextCustom(
-        child: Stack(children: [
+    return Stack(children: [
       Positioned(
         left: 0,
         width: constraints.maxWidth * 1.0,
@@ -65,6 +64,6 @@ class AmountAndSubtext extends StatelessWidget {
                       textAlign: TextAlign.center,
                     )))),
       ),
-    ]));
+    ]);
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geniuswallet/cubits/wallet_balance_cubit.dart';
 import 'package:geniuswallet/screens/wallet_balance/mobile/wallet_balance_vertical.g.dart';
 
 void main() {
@@ -23,8 +25,18 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home:
-          WalletBalanceVertical(), // MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: '/wallet_balance_vertical',
+      routes: {
+        "/": (context) => Scaffold(
+              backgroundColor: Colors.white,
+            ),
+        "/wallet_balance_vertical": (context) => BlocProvider(
+              create: (_) => WalletBalanceCubit(),
+              child: WalletBalanceVertical(),
+            )
+      },
+      // home:
+      //     WalletBalanceVertical(), // MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

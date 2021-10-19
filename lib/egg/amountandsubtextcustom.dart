@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geniuswallet/cubits/wallet_balance_cubit.dart';
+import 'package:geniuswallet/widgets/symbols/amount_and_subtext.g.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 class AmountAndSubtextCustom extends StatefulWidget {
   final Widget child;
@@ -11,6 +15,12 @@ class AmountAndSubtextCustom extends StatefulWidget {
 class _AmountAndSubtextCustomState extends State<AmountAndSubtextCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return LayoutBuilder(builder: (context, constraints) {
+      return AmountAndSubtext(
+        constraints,
+        ovrAmount:
+            "\$ ${context.watch<WalletBalanceCubit>().state.balance.toString()}",
+      );
+    });
   }
 }
