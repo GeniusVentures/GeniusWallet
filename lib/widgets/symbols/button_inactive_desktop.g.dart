@@ -41,12 +41,12 @@ class ButtonInactiveDesktop extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 153.4,
-        right: 154.6,
-        top: 14.0,
-        bottom: 14.0,
+        left: constraints.maxWidth * 0.314,
+        width: constraints.maxWidth * 0.372,
+        top: constraints.maxHeight * 0.216,
+        height: constraints.maxHeight * 0.563,
         child: Container(
-            width: constraints.maxWidth * 402.000,
+            width: constraints.maxWidth * 264.000,
             height: constraints.maxHeight * 36.000,
             child: AutoSizeText(
               ovrTypesomething ?? 'Continue',

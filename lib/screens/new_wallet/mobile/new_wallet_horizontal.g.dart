@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/widgets/symbols/cover_button_desktop.g.dart';
-import 'package:geniuswallet/widgets/symbols/double_info.g.dart';
-import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/double_info_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/cover_button_desktop.g.dart';
 
 class NewWalletHorizontal extends StatefulWidget {
   const NewWalletHorizontal() : super();
@@ -20,6 +20,17 @@ class _NewWalletHorizontal extends State<NewWalletHorizontal> {
       backgroundColor: Color(0xff003698),
       body: Stack(children: [
         Positioned(
+          left: MediaQuery.of(context).size.width * 0.001,
+          width: MediaQuery.of(context).size.width * 0.999,
+          top: 0,
+          height: MediaQuery.of(context).size.height * 1.0,
+          child: LayoutBuilder(builder: (context, constraints) {
+            return BackgroundDesktop(
+              constraints,
+            );
+          }),
+        ),
+        Positioned(
           left: 0,
           width: MediaQuery.of(context).size.width * 1.0,
           top: 0,
@@ -32,19 +43,20 @@ class _NewWalletHorizontal extends State<NewWalletHorizontal> {
               ovrsettings: 'settings',
               ovrEllipseXor: 'assets/images/I0_343;0_12570.png',
               ovrDex2: 'Dex',
-              ovrTriangle: 'assets/images/I0_343;0_12551.png',
-              ovrAvatar: 'assets/images/I0_343;0_12550.png',
             );
           }),
         ),
         Positioned(
-          left: MediaQuery.of(context).size.width * 0.001,
-          width: MediaQuery.of(context).size.width * 0.999,
-          top: 0,
-          height: MediaQuery.of(context).size.height * 1.0,
+          left: MediaQuery.of(context).size.width * 0.144,
+          width: MediaQuery.of(context).size.width * 0.291,
+          top: MediaQuery.of(context).size.height * 0.229,
+          height: MediaQuery.of(context).size.height * 0.075,
           child: LayoutBuilder(builder: (context, constraints) {
-            return BackgroundDesktop(
+            return DoubleInfoDesktop(
               constraints,
+              ovrTypesomething: 'Buy Genius Tokens',
+              ovrTypesomethingCopy: 'gnus.ai',
+              ovrRectangle2: 'assets/images/I206_3656;206_3652.png',
             );
           }),
         ),
@@ -62,49 +74,35 @@ class _NewWalletHorizontal extends State<NewWalletHorizontal> {
           }),
         ),
         Positioned(
-          left: MediaQuery.of(context).size.width * 0.144,
-          width: MediaQuery.of(context).size.width * 0.291,
-          top: MediaQuery.of(context).size.height * 0.229,
-          height: MediaQuery.of(context).size.height * 0.075,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return DoubleInfo(
-              constraints,
-              ovrTypesomething: 'Buy Genius Tokens',
-              ovrTypesomethingCopy: 'gnus.ai',
-              ovrRectangle2: 'assets/images/I0_346;0_12279.png',
-            );
-          }),
-        ),
-        Positioned(
-          left: 411.001,
-          width: 288.0,
-          top: 434.0,
-          height: 448.0,
+          left: MediaQuery.of(context).size.width * 0.214,
+          width: MediaQuery.of(context).size.width * 0.15,
+          top: MediaQuery.of(context).size.height * 0.402,
+          height: MediaQuery.of(context).size.height * 0.415,
           child: Image.asset(
-            'assets/images/0_347.png',
-            height: 448.000,
-            width: 288.000,
+            'assets/images/222_3743.png',
+            height: MediaQuery.of(context).size.height * 0.415,
+            width: MediaQuery.of(context).size.width * 0.150,
           ),
         ),
         Positioned(
           left: MediaQuery.of(context).size.width * 0.144,
-          width: MediaQuery.of(context).size.width * 0.128,
+          width: MediaQuery.of(context).size.width * 0.237,
           top: MediaQuery.of(context).size.height * 0.16,
           height: MediaQuery.of(context).size.height * 0.045,
           child: Container(
               height: MediaQuery.of(context).size.height * 0.045,
-              width: MediaQuery.of(context).size.width * 0.128,
+              width: MediaQuery.of(context).size.width * 0.237,
               child: AutoSizeText(
                 'Main wallet 1',
                 style: TextStyle(
                   fontFamily: 'Prompt',
-                  fontSize: 32.29999923706055,
+                  fontSize: 36.0,
                   fontWeight: FontWeight.w300,
                   fontStyle: FontStyle.normal,
                   letterSpacing: 0.0,
                   color: Colors.white,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               )),
         ),
       ]),

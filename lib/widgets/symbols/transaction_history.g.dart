@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/widgets/symbols/transactions.g.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:geniuswallet/widgets/symbols/transactions.g.dart';
 
 class TransactionHistory extends StatelessWidget {
   final constraints;
@@ -10,9 +10,9 @@ class TransactionHistory extends StatelessWidget {
   final ovrTransactions2Copy;
   final ovrTransactions2;
   final ovrRECENT;
-  final ovrButtonActiveCopy;
   final ovrSEND;
   final ovrALL;
+  final ovrButtonActiveCopy;
   final ovrTransactions;
   TransactionHistory(
     this.constraints, {
@@ -22,9 +22,9 @@ class TransactionHistory extends StatelessWidget {
     this.ovrTransactions2Copy,
     this.ovrTransactions2,
     this.ovrRECENT,
-    this.ovrButtonActiveCopy,
     this.ovrSEND,
     this.ovrALL,
+    this.ovrButtonActiveCopy,
     this.ovrTransactions,
   }) : super(key: key);
 
@@ -83,52 +83,88 @@ class TransactionHistory extends StatelessWidget {
                     )))),
       ),
       Positioned(
-        left: constraints.maxWidth * 0.751,
-        width: constraints.maxWidth * 0.028,
-        top: constraints.maxHeight * 0.073,
-        height: constraints.maxHeight * 0.034,
-        child: Center(
+        right: 48.3,
+        width: 150.0,
+        top: 36.899,
+        height: 17.0,
+        child: Stack(children: [
+          Positioned(
+            left: 0,
+            width: 150.0,
+            top: 0,
+            height: 17.0,
             child: Container(
-                height: 17.0,
-                child: Container(
-                    width: constraints.maxWidth * 22.000,
-                    height: constraints.maxHeight * 17.000,
-                    child: AutoSizeText(
-                      ovrALL ?? 'ALL',
-                      style: TextStyle(
-                        fontFamily: 'Prompt',
-                        fontSize: 11.0,
-                        fontWeight: FontWeight.w700,
-                        fontStyle: FontStyle.normal,
-                        letterSpacing: 0.4124999940395355,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )))),
-      ),
-      Positioned(
-        left: constraints.maxWidth * 0.812,
-        width: constraints.maxWidth * 0.038,
-        top: constraints.maxHeight * 0.073,
-        height: constraints.maxHeight * 0.034,
-        child: Center(
+              width: constraints.maxWidth * 150.000,
+              height: constraints.maxHeight * 17.000,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            width: 22.0,
+            top: 0,
+            height: 17.0,
             child: Container(
-                height: 17.0,
-                child: Container(
-                    width: constraints.maxWidth * 30.000,
-                    height: constraints.maxHeight * 17.000,
-                    child: AutoSizeText(
-                      ovrSEND ?? 'SEND',
-                      style: TextStyle(
-                        fontFamily: 'Prompt',
-                        fontSize: 11.0,
-                        fontWeight: FontWeight.w700,
-                        fontStyle: FontStyle.normal,
-                        letterSpacing: 0.4124999940395355,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )))),
+                width: constraints.maxWidth * 22.000,
+                height: constraints.maxHeight * 17.000,
+                child: AutoSizeText(
+                  ovrALL ?? 'ALL',
+                  style: TextStyle(
+                    fontFamily: 'Prompt',
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.w700,
+                    fontStyle: FontStyle.normal,
+                    letterSpacing: 0.4124999940395355,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                )),
+          ),
+          Positioned(
+            left: 49.0,
+            width: 30.0,
+            top: 0,
+            height: 17.0,
+            child: Container(
+                width: constraints.maxWidth * 30.000,
+                height: constraints.maxHeight * 17.000,
+                child: AutoSizeText(
+                  ovrSEND ?? 'SEND',
+                  style: TextStyle(
+                    fontFamily: 'Prompt',
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.w700,
+                    fontStyle: FontStyle.normal,
+                    letterSpacing: 0.4124999940395355,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                )),
+          ),
+          Positioned(
+            left: 106.0,
+            width: 44.0,
+            top: 0,
+            height: 17.0,
+            child: Container(
+                width: constraints.maxWidth * 44.000,
+                height: constraints.maxHeight * 17.000,
+                child: AutoSizeText(
+                  ovrRECENT ?? 'RECENT',
+                  style: TextStyle(
+                    fontFamily: 'Prompt',
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.w700,
+                    fontStyle: FontStyle.normal,
+                    letterSpacing: 0.4124999940395355,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                )),
+          ),
+        ]),
       ),
       Positioned(
         left: constraints.maxWidth * 0.668,
@@ -143,30 +179,6 @@ class TransactionHistory extends StatelessWidget {
         }),
       ),
       Positioned(
-        left: constraints.maxWidth * 0.884,
-        width: constraints.maxWidth * 0.055,
-        top: constraints.maxHeight * 0.073,
-        height: constraints.maxHeight * 0.034,
-        child: Center(
-            child: Container(
-                height: 17.0,
-                child: Container(
-                    width: constraints.maxWidth * 44.000,
-                    height: constraints.maxHeight * 17.000,
-                    child: AutoSizeText(
-                      ovrRECENT ?? 'RECENT',
-                      style: TextStyle(
-                        fontFamily: 'Prompt',
-                        fontSize: 11.0,
-                        fontWeight: FontWeight.w700,
-                        fontStyle: FontStyle.normal,
-                        letterSpacing: 0.4124999940395355,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )))),
-      ),
-      Positioned(
         left: constraints.maxWidth * 0.058,
         width: constraints.maxWidth * 0.882,
         top: constraints.maxHeight * 0.172,
@@ -174,8 +186,7 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrMask: 'assets/images/I0_12603;0_12593.png',
-            ovrMask2: 'assets/images/I0_12603;0_12594.png',
+            ovrVector: 'assets/images/I0_12603;222_3827.png',
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',
@@ -190,8 +201,7 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrMask: 'assets/images/I0_12604;0_12593.png',
-            ovrMask2: 'assets/images/I0_12604;0_12594.png',
+            ovrVector: 'assets/images/I0_12604;222_3827.png',
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',
@@ -206,8 +216,7 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrMask: 'assets/images/I0_12605;0_12593.png',
-            ovrMask2: 'assets/images/I0_12605;0_12594.png',
+            ovrVector: 'assets/images/I0_12605;222_3827.png',
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',
@@ -222,8 +231,7 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrMask: 'assets/images/I0_12606;0_12593.png',
-            ovrMask2: 'assets/images/I0_12606;0_12594.png',
+            ovrVector: 'assets/images/I0_12606;222_3827.png',
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',

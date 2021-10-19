@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geniuswallet/egg/buttonactivecustom.dart';
-import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
+import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_send_crypto.g.dart';
 
 class SendCryptoVertical extends StatefulWidget {

@@ -3,18 +3,18 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 class CoverSendCryptoDesktop extends StatelessWidget {
   final constraints;
-  final ovrPaste;
-  final ovrMaxETH;
-  final ovrETHAmount;
   final ovrRecipientAddress;
+  final ovrPaste;
+  final ovrETHAmount;
+  final ovrMaxETH;
   final ovrSendeth;
   CoverSendCryptoDesktop(
     this.constraints, {
     Key key,
-    this.ovrPaste,
-    this.ovrMaxETH,
-    this.ovrETHAmount,
     this.ovrRecipientAddress,
+    this.ovrPaste,
+    this.ovrETHAmount,
+    this.ovrMaxETH,
     this.ovrSendeth,
   }) : super(key: key);
 
@@ -23,123 +23,107 @@ class CoverSendCryptoDesktop extends StatelessWidget {
     return Stack(children: [
       Positioned(
         left: 0,
-        right: 0,
-        top: constraints.maxHeight * 0.348,
-        height: constraints.maxHeight * 0.451,
+        width: constraints.maxWidth * 0.824,
+        top: constraints.maxHeight * 0.373,
+        height: constraints.maxHeight * 0.39,
         child: Image.asset(
           'assets/images/0_12700.png',
-          width: constraints.maxWidth * 301.000,
+          width: constraints.maxWidth * 351.000,
+          height: constraints.maxHeight * 131.000,
+        ),
+      ),
+      Positioned(
+        left: 0,
+        width: constraints.maxWidth * 0.824,
+        top: constraints.maxHeight * 0.373,
+        height: constraints.maxHeight * 0.313,
+        child: Container(
+          width: constraints.maxWidth * 351.000,
           height: constraints.maxHeight * 105.100,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(0)),
+          ),
         ),
       ),
       Positioned(
-        right: 52.0,
-        width: 48.0,
-        top: 98.021,
-        height: 21.0,
-        child: Container(
-            width: constraints.maxWidth * 48.000,
-            height: constraints.maxHeight * 21.000,
-            child: AutoSizeText(
-              ovrPaste ?? 'Paste',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 14.0,
-                fontWeight: FontWeight.w500,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Color(0xff003698),
-              ),
-              textAlign: TextAlign.right,
-            )),
+        left: 17.026,
+        right: 14.0,
+        top: constraints.maxHeight * 0.605,
+        height: constraints.maxHeight * 0.08,
+        child: Center(
+            child: Container(
+                height: 27.0,
+                child: Stack(children: [
+                  Positioned(
+                    left: 0,
+                    width: constraints.maxWidth * 0.714,
+                    top: 0,
+                    height: 27.0,
+                    child: Container(
+                      width: constraints.maxWidth * 304.000,
+                      height: constraints.maxHeight * 27.000,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(0)),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    width: 116.0,
+                    top: 3.0,
+                    height: 21.0,
+                    child: Container(
+                        width: constraints.maxWidth * 116.000,
+                        height: constraints.maxHeight * 21.000,
+                        child: AutoSizeText(
+                          ovrMaxETH ?? 'Max ETH',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Color(0xff003698),
+                          ),
+                          textAlign: TextAlign.right,
+                        )),
+                  ),
+                  Positioned(
+                    left: 0,
+                    width: 188.0,
+                    top: 0,
+                    height: 27.0,
+                    child: Container(
+                        width: constraints.maxWidth * 188.000,
+                        height: constraints.maxHeight * 27.000,
+                        child: AutoSizeText(
+                          ovrETHAmount ?? 'ETH Amount',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Color(0xff575757),
+                          ),
+                          textAlign: TextAlign.left,
+                        )),
+                  ),
+                ]))),
       ),
       Positioned(
-        right: 30.0,
-        width: 83.0,
-        top: 149.021,
-        height: 21.0,
-        child: Container(
-            width: constraints.maxWidth * 83.000,
-            height: constraints.maxHeight * 21.000,
-            child: AutoSizeText(
-              ovrMaxETH ?? 'Max ETH',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 14.0,
-                fontWeight: FontWeight.w500,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Color(0xff003698),
-              ),
-              textAlign: TextAlign.right,
-            )),
-      ),
-      Positioned(
-        left: 17.0,
-        width: 133.0,
-        top: 146.021,
-        height: 27.0,
-        child: Container(
-            width: constraints.maxWidth * 133.000,
-            height: constraints.maxHeight * 27.000,
-            child: AutoSizeText(
-              ovrETHAmount ?? 'ETH Amount',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 18.0,
-                fontWeight: FontWeight.w500,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Color(0xff575757),
-              ),
-              textAlign: TextAlign.left,
-            )),
-      ),
-      Positioned(
-        left: 17.0,
-        width: 171.0,
-        top: 95.021,
-        height: 27.0,
-        child: Container(
-            width: constraints.maxWidth * 171.000,
-            height: constraints.maxHeight * 27.000,
-            child: AutoSizeText(
-              ovrRecipientAddress ?? 'Recipient Address',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 18.0,
-                fontWeight: FontWeight.w500,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Color(0xff575757),
-              ),
-              textAlign: TextAlign.left,
-            )),
-      ),
-      Positioned(
-        left: 265.0,
-        width: 18.0,
-        top: 100.021,
-        height: 16.0,
-        child: Image.asset(
-          'assets/images/0_12707.png',
-          width: constraints.maxWidth * 18.000,
-          height: constraints.maxHeight * 16.000,
-        ),
-      ),
-      Positioned(
-        left: constraints.maxWidth * 0.059,
+        left: constraints.maxWidth * 0.07,
         width: constraints.maxWidth * 0.686,
         top: 0,
         height: constraints.maxHeight * 0.096,
         child: Container(
-            width: constraints.maxWidth * 258.000,
-            height: constraints.maxHeight * 22.468,
+            width: constraints.maxWidth * 292.309,
+            height: constraints.maxHeight * 32.400,
             child: AutoSizeText(
               ovrSendeth ?? 'Send eth',
               style: TextStyle(
                 fontFamily: 'Prompt',
-                fontSize: 18.0,
+                fontSize: 36.0,
                 fontWeight: FontWeight.w600,
                 fontStyle: FontStyle.normal,
                 letterSpacing: 0.0,
@@ -147,6 +131,83 @@ class CoverSendCryptoDesktop extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             )),
+      ),
+      Positioned(
+        left: 17.026,
+        right: 17.826,
+        top: constraints.maxHeight * 0.415,
+        height: constraints.maxHeight * 0.089,
+        child: Center(
+            child: Container(
+                height: 29.797561645507812,
+                child: Stack(children: [
+                  Positioned(
+                    left: 0,
+                    width: constraints.maxWidth * 0.742,
+                    top: 0,
+                    height: 27.0,
+                    child: Container(
+                      width: constraints.maxWidth * 316.000,
+                      height: constraints.maxHeight * 27.000,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(0)),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 36.174,
+                    width: 68.0,
+                    top: 3.0,
+                    height: 21.0,
+                    child: Container(
+                        width: constraints.maxWidth * 68.000,
+                        height: constraints.maxHeight * 21.000,
+                        child: AutoSizeText(
+                          ovrPaste ?? 'Paste',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Color(0xff003698),
+                          ),
+                          textAlign: TextAlign.right,
+                        )),
+                  ),
+                  Positioned(
+                    left: 0,
+                    width: 219.0,
+                    top: 0,
+                    height: 27.0,
+                    child: Container(
+                        width: constraints.maxWidth * 219.000,
+                        height: constraints.maxHeight * 27.000,
+                        child: AutoSizeText(
+                          ovrRecipientAddress ?? 'Recipient Address',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Color(0xff575757),
+                          ),
+                          textAlign: TextAlign.left,
+                        )),
+                  ),
+                  Positioned(
+                    left: 291.168,
+                    width: 25.006,
+                    top: 4.761,
+                    height: 25.036,
+                    child: Image.asset(
+                      'assets/images/0_12707.png',
+                      width: constraints.maxWidth * 25.006,
+                      height: constraints.maxHeight * 25.036,
+                    ),
+                  ),
+                ]))),
       ),
     ]);
   }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:geniuswallet/egg/buttonactivecustom.dart';
 import 'package:geniuswallet/egg/geniuscheckboxcustom.dart';
+import 'package:geniuswallet/widgets/symbols/button_inactive.g.dart';
 import 'package:geniuswallet/widgets/symbols/genius_checkbox.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';
-import 'package:geniuswallet/widgets/symbols/button_inactive.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_text.g.dart';
 
 class BackUpWalletVertical extends StatefulWidget {

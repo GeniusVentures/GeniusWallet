@@ -44,25 +44,28 @@ class Words extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 5.3,
-        right: 6.0,
-        top: 8.0,
-        bottom: 8.0,
-        child: Container(
-            width: constraints.maxWidth * 40.000,
-            height: constraints.maxHeight * 8.000,
-            child: AutoSizeText(
-              ovrWord ?? 'Word',
-              style: TextStyle(
-                fontFamily: 'Prompt',
-                fontSize: 16.0,
-                fontWeight: FontWeight.w300,
-                fontStyle: FontStyle.normal,
-                letterSpacing: 0.0,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            )),
+        left: constraints.maxWidth * 0.103,
+        width: constraints.maxWidth * 0.78,
+        top: constraints.maxHeight * 0.333,
+        height: constraints.maxHeight * 0.333,
+        child: Center(
+            child: Container(
+                height: 8.0,
+                child: Container(
+                    width: constraints.maxWidth * 40.000,
+                    height: constraints.maxHeight * 8.000,
+                    child: AutoSizeText(
+                      ovrWord ?? 'Word',
+                      style: TextStyle(
+                        fontFamily: 'Prompt',
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w300,
+                        fontStyle: FontStyle.normal,
+                        letterSpacing: 0.0,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    )))),
       ),
     ]);
   }

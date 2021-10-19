@@ -26,19 +26,16 @@ class NavigationBack extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 29.0,
-        width: 9.0,
-        top: constraints.maxHeight * 0.27,
+        left: constraints.maxWidth * 0.069,
+        width: constraints.maxWidth * 0.027,
+        top: constraints.maxHeight * 0.243,
         height: constraints.maxHeight * 0.486,
-        child: Center(
-            child: Container(
-                height: 18.0,
-                child: BackArrow(
-                    child: Image.asset(
-                  'assets/images/0_12075.png',
-                  width: constraints.maxWidth * 9.000,
-                  height: constraints.maxHeight * 18.000,
-                )))),
+        child: BackArrow(
+            child: Image.asset(
+          'assets/images/222_2766.png',
+          width: constraints.maxWidth * 10.000,
+          height: constraints.maxHeight * 18.000,
+        )),
       ),
     ]);
   }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:geniuswallet/widgets/symbols/dial_pad.g.dart';
-import 'package:geniuswallet/widgets/symbols/double_info.g.dart';
-import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
-import 'package:geniuswallet/widgets/symbols/transaction_history.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/double_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/price_chart.g.dart';
-import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_buy_crypto_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
+import 'package:geniuswallet/widgets/symbols/transaction_history.g.dart';
 
 class BuyCryptoHorizontal extends StatefulWidget {
   const BuyCryptoHorizontal() : super();
@@ -23,20 +23,13 @@ class _BuyCryptoHorizontal extends State<BuyCryptoHorizontal> {
       backgroundColor: Color(0xff003698),
       body: Stack(children: [
         Positioned(
-          left: 0,
+          left: MediaQuery.of(context).size.width * 0.001,
           width: MediaQuery.of(context).size.width * 1.0,
           top: 0,
-          height: MediaQuery.of(context).size.height * 0.062,
+          height: MediaQuery.of(context).size.height * 1.0,
           child: LayoutBuilder(builder: (context, constraints) {
-            return NavbarDesktop(
+            return BackgroundDesktop(
               constraints,
-              ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_262;0_12560.png',
-              ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_262;0_12570.png',
-              ovrDex2: 'Dex',
-              ovrTriangle: 'assets/images/I0_262;0_12551.png',
-              ovrAvatar: 'assets/images/I0_262;0_12550.png',
             );
           }),
         ),
@@ -55,13 +48,18 @@ class _BuyCryptoHorizontal extends State<BuyCryptoHorizontal> {
           ),
         ),
         Positioned(
-          left: MediaQuery.of(context).size.width * 0.001,
-          width: MediaQuery.of(context).size.width * 0.999,
+          left: 0,
+          width: MediaQuery.of(context).size.width * 1.0,
           top: 0,
-          height: MediaQuery.of(context).size.height * 1.0,
+          height: MediaQuery.of(context).size.height * 0.062,
           child: LayoutBuilder(builder: (context, constraints) {
-            return BackgroundDesktop(
+            return NavbarDesktop(
               constraints,
+              ovrWallet: 'Wallet',
+              ovrShield: 'assets/images/I0_262;0_12560.png',
+              ovrsettings: 'settings',
+              ovrEllipseXor: 'assets/images/I0_262;0_12570.png',
+              ovrDex2: 'Dex',
             );
           }),
         ),

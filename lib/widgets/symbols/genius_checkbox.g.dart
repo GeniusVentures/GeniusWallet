@@ -30,27 +30,30 @@ class GeniusCheckbox extends StatelessWidget {
       ),
       Positioned(
         left: 0,
-        width: constraints.maxWidth * 0.065,
+        width: 19.871,
         top: constraints.maxHeight * 0.087,
         height: constraints.maxHeight * 0.866,
-        child: Container(
-          width: constraints.maxWidth * 19.871,
-          height: constraints.maxHeight * 18.182,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(4.0)),
-            border: Border.all(
-              width: 2.0,
-            ),
-          ),
-        ),
+        child: Center(
+            child: Container(
+                height: 18.18182373046875,
+                child: Container(
+                  width: constraints.maxWidth * 19.871,
+                  height: constraints.maxHeight * 18.182,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                    border: Border.all(
+                      width: 2.0,
+                    ),
+                  ),
+                ))),
       ),
       Positioned(
         left: constraints.maxWidth * 0.094,
-        width: constraints.maxWidth * 0.909,
-        top: 0,
-        bottom: 10.0,
+        width: constraints.maxWidth * 0.893,
+        top: constraints.maxHeight * 0.238,
+        height: constraints.maxHeight * 0.476,
         child: Container(
-            width: constraints.maxWidth * 280.000,
+            width: constraints.maxWidth * 275.000,
             height: constraints.maxHeight * 10.000,
             child: AutoSizeText(
               ovrThePropertyofAutonomousVer ?? 'Type something',

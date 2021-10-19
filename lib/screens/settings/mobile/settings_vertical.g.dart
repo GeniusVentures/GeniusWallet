@@ -5,8 +5,8 @@ import 'package:geniuswallet/egg/walletconnectcustom.dart';
 import 'package:geniuswallet/egg/aboutbuttoncustom.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card6_o_ptions.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_mobile.g.dart';
-import 'package:geniuswallet/widgets/symbols/settings_card.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
+import 'package:geniuswallet/widgets/symbols/settings_card.g.dart';
 
 class SettingsVertical extends StatefulWidget {
   const SettingsVertical() : super();

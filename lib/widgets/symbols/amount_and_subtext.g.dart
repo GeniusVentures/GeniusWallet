@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geniuswallet/egg/amountandsubtextcustom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class AmountAndSubtext extends StatelessWidget {

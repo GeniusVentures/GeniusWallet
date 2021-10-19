@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/text_inputwith_button.g.dart';
-import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
-import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
-import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
-import 'package:geniuswallet/widgets/symbols/genius_slider.g.dart';
 import 'package:geniuswallet/widgets/symbols/mult_choice.g.dart';
+import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
+import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
+import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
+import 'package:geniuswallet/widgets/symbols/genius_slider.g.dart';
 
 class DappHorizontal extends StatefulWidget {
   const DappHorizontal() : super();
@@ -23,6 +23,17 @@ class _DappHorizontal extends State<DappHorizontal> {
       backgroundColor: Color(0xff003698),
       body: Stack(children: [
         Positioned(
+          left: MediaQuery.of(context).size.width * 0.001,
+          width: MediaQuery.of(context).size.width * 0.999,
+          top: 0,
+          height: MediaQuery.of(context).size.height * 1.0,
+          child: LayoutBuilder(builder: (context, constraints) {
+            return BackgroundDesktop(
+              constraints,
+            );
+          }),
+        ),
+        Positioned(
           left: 0,
           width: MediaQuery.of(context).size.width * 1.0,
           top: 0,
@@ -35,19 +46,6 @@ class _DappHorizontal extends State<DappHorizontal> {
               ovrsettings: 'settings',
               ovrEllipseXor: 'assets/images/I0_509;0_12570.png',
               ovrDex2: 'Dex',
-              ovrTriangle: 'assets/images/I0_509;0_12551.png',
-              ovrAvatar: 'assets/images/I0_509;0_12550.png',
-            );
-          }),
-        ),
-        Positioned(
-          left: MediaQuery.of(context).size.width * 0.001,
-          width: MediaQuery.of(context).size.width * 0.999,
-          top: 0,
-          height: MediaQuery.of(context).size.height * 1.0,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return BackgroundDesktop(
-              constraints,
             );
           }),
         ),
@@ -125,9 +123,6 @@ class _DappHorizontal extends State<DappHorizontal> {
               ovrTypeCopy3: '\$0.98',
               ovrTypeCopy: '\$0.01',
               ovrTypeCopy2: '\$5.00',
-              ovrEllipse: 'assets/images/I0_516;0_12538.png',
-              ovrLine: 'assets/images/I0_516;0_12539.png',
-              ovrLineCopy: 'assets/images/I0_516;0_12540.png',
             );
           }),
         ),
@@ -153,10 +148,10 @@ class _DappHorizontal extends State<DappHorizontal> {
               )),
         ),
         Positioned(
-          left: 733.561,
-          right: 819.84,
-          top: 154.0,
-          bottom: 895.455,
+          left: MediaQuery.of(context).size.width * 0.382,
+          width: MediaQuery.of(context).size.width * 0.242,
+          top: MediaQuery.of(context).size.height * 0.143,
+          height: MediaQuery.of(context).size.height * 0.045,
           child: Container(
               height: MediaQuery.of(context).size.height * 0.045,
               width: MediaQuery.of(context).size.width * 0.242,
