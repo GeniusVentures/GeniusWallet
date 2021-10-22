@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:geniuswallet/widgets/symbols/buy.g.dart';
 import 'package:geniuswallet/widgets/symbols/receive.g.dart';
 import 'package:geniuswallet/widgets/symbols/send.g.dart';
-import 'package:geniuswallet/egg/menu.dart';
+import 'package:geniuswallet/controller/menu.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/egg/buybuttoncustom.dart';
-import 'package:geniuswallet/egg/recievebuttoncustom.dart';
-import 'package:geniuswallet/egg/sendbuttoncustom.dart';
-import 'package:geniuswallet/egg/amountandsubtextcustom.dart';
+import 'package:geniuswallet/controller/buy_button_custom.dart';
+import 'package:geniuswallet/controller/recieve_button_custom.dart';
+import 'package:geniuswallet/controller/send_button_custom.dart';
+import 'package:geniuswallet/controller/amount_and_subtext_custom.dart';
 import 'package:geniuswallet/widgets/symbols/amount_and_subtext.g.dart';
 
 class CoverBalance extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/buycryptocustom.dart';
+import 'package:geniuswallet/controller/buy_crypto_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_button.g.dart';

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/egg/priceslider.dart';
-import 'package:geniuswallet/egg/buttonactivecustom.dart';
-import 'package:geniuswallet/egg/gnusamountselectorcustom.dart';
-import 'package:geniuswallet/egg/linktodataselectorcustom.dart';
-import 'package:geniuswallet/egg/protocolselectorcustom.dart';
+import 'package:geniuswallet/controller/price_slider.dart';
+import 'package:geniuswallet/controller/button_active_custom.dart';
+import 'package:geniuswallet/controller/gnus_amount_selector_custom.dart';
+import 'package:geniuswallet/controller/link_to_data_selector_custom.dart';
+import 'package:geniuswallet/controller/protocol_selector_custom.dart';
 import 'package:geniuswallet/widgets/symbols/text_inputwith_button.g.dart';
 import 'package:geniuswallet/widgets/symbols/mult_choice.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';

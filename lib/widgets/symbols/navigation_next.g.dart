@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/backarrow.dart';
-import 'package:geniuswallet/egg/next.dart';
+import 'package:geniuswallet/controller/back_arrow_custom.dart';
+import 'package:geniuswallet/controller/next.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class NavigationNext extends StatelessWidget {
@@ -32,7 +32,7 @@ class NavigationNext extends StatelessWidget {
         width: 10.0,
         top: 9.0,
         height: 18.0,
-        child: BackArrow(
+        child: BackArrowCustom(
             child: Image.asset(
           'assets/images/222_2976.png',
           width: constraints.maxWidth * 10.000,

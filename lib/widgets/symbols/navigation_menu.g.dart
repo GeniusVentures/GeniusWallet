@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/menu.dart';
-import 'package:geniuswallet/egg/bell.dart';
+import 'package:geniuswallet/controller/menu_custom.dart';
+import 'package:geniuswallet/controller/bell_custom.dart';
 
 class NavigationMenu extends StatelessWidget {
   final constraints;
@@ -31,7 +31,7 @@ class NavigationMenu extends StatelessWidget {
         width: 16.5,
         top: 11.0,
         height: 12.0,
-        child: Menu(
+        child: MenuCustom(
             child: Image.asset(
           'assets/images/110_4077.png',
           width: constraints.maxWidth * 16.500,
@@ -43,7 +43,7 @@ class NavigationMenu extends StatelessWidget {
         width: 15.5,
         top: 9.0,
         height: 19.0,
-        child: Bell(
+        child: BellCustom(
             child: Image.asset(
           'assets/images/166_1855.png',
           width: constraints.maxWidth * 15.500,

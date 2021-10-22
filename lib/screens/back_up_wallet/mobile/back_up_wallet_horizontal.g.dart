@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/geniuscheckboxcustom.dart';
+import 'package:geniuswallet/controller/genius_checkbox_custom.dart';
 import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_text_desktop.g.dart';
@@ -66,17 +66,14 @@ class _BackUpWalletHorizontal extends State<BackUpWalletHorizontal> {
           width: MediaQuery.of(context).size.width * 0.289,
           bottom: 226.0,
           height: 37.813,
-          child: Center(
-              child: Container(
-                  width: 554.3999633789062,
-                  child: GeniusCheckboxCustom(
-                      child: LayoutBuilder(builder: (context, constraints) {
-                    return GeniusCheckbox(
-                      constraints,
-                      ovrThePropertyofAutonomousVer:
-                          'I understand that if I lose my recovery words, I will not be able to access my wallet.',
-                    );
-                  })))),
+          child: GeniusCheckboxCustom(
+              child: LayoutBuilder(builder: (context, constraints) {
+            return GeniusCheckbox(
+              constraints,
+              ovrThePropertyofAutonomousVer:
+                  'I understand that if I lose my recovery words, I will not be able to access my wallet.',
+            );
+          })),
         ),
         Positioned(
           left: MediaQuery.of(context).size.width * 0.14,

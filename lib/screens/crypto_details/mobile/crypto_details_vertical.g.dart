@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/crytodetailsscrollview.dart';
+import 'package:geniuswallet/controller/cryto_details_scroll_view.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_buy.g.dart';

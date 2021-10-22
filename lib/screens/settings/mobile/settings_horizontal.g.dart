@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/exitbutton.dart';
+import 'package:geniuswallet/controller/exit_button_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card6_o_ptions.g.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card.g.dart';
@@ -56,7 +56,7 @@ class _SettingsHorizontal extends State<SettingsHorizontal> {
               width: 33.0,
               top: 50.5,
               height: 33.0,
-              child: ExitButton(
+              child: ExitButtonCustom(
                   child: Image.asset(
                 'assets/images/187_3050.png',
                 height: 33.000,

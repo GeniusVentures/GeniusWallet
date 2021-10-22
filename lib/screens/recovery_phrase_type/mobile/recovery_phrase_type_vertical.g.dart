@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/recoveryphrasefield.dart';
-import 'package:geniuswallet/egg/selections.dart';
-import 'package:geniuswallet/egg/buttonactivecustom.dart';
+import 'package:geniuswallet/controller/recovery_phrase_field_custom.dart';
+import 'package:geniuswallet/controller/selections.dart';
+import 'package:geniuswallet/controller/button_active_custom.dart';
 import 'package:geniuswallet/widgets/symbols/words.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_inactive.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';
@@ -36,19 +36,19 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
           }),
         ),
         Positioned(
-          left: 33.156,
-          right: 32.2,
-          top: 321.0,
+          left: 25.456,
+          right: 25.2,
+          top: 322.0,
           height: 276.0,
           child: Stack(children: [
             Positioned(
               left: 0,
-              width: MediaQuery.of(context).size.width * 0.827,
+              width: MediaQuery.of(context).size.width * 0.867,
               top: 0,
               height: 276.0,
               child: Container(
                 height: 276.000,
-                width: MediaQuery.of(context).size.width * 0.827,
+                width: MediaQuery.of(context).size.width * 0.867,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(0)),
                 ),
@@ -56,31 +56,31 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
             ),
             Positioned(
               left: 0,
-              width: MediaQuery.of(context).size.width * 0.827,
+              width: MediaQuery.of(context).size.width * 0.866,
               top: 0,
               height: 153.0,
-              child: RecoveryPhraseField(
+              child: RecoveryPhraseFieldCustom(
                   child: Image.asset(
                 'assets/images/37_2996.png',
                 height: 153.000,
-                width: MediaQuery.of(context).size.width * 0.827,
+                width: MediaQuery.of(context).size.width * 0.866,
               )),
             ),
             Positioned(
               left: MediaQuery.of(context).size.width * 0.001,
-              width: MediaQuery.of(context).size.width * 0.827,
+              width: MediaQuery.of(context).size.width * 0.866,
               top: 170.0,
               height: 106.0,
               child: Selections(
                   child: Stack(children: [
                 Positioned(
                   left: 0,
-                  width: MediaQuery.of(context).size.width * 0.827,
+                  width: MediaQuery.of(context).size.width * 0.866,
                   top: 0,
                   height: 106.0,
                   child: Container(
                     height: 106.000,
-                    width: MediaQuery.of(context).size.width * 0.827,
+                    width: MediaQuery.of(context).size.width * 0.866,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(0)),
                     ),
@@ -88,7 +88,7 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                 ),
                 Positioned(
                   left: 0,
-                  width: MediaQuery.of(context).size.width * 0.171,
+                  width: MediaQuery.of(context).size.width * 0.179,
                   top: 0,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -99,8 +99,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.205,
-                  width: MediaQuery.of(context).size.width * 0.165,
+                  left: MediaQuery.of(context).size.width * 0.215,
+                  width: MediaQuery.of(context).size.width * 0.173,
                   top: 0,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -111,8 +111,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.405,
-                  width: MediaQuery.of(context).size.width * 0.203,
+                  left: MediaQuery.of(context).size.width * 0.425,
+                  width: MediaQuery.of(context).size.width * 0.212,
                   top: 0,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -123,8 +123,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.643,
-                  width: MediaQuery.of(context).size.width * 0.184,
+                  left: MediaQuery.of(context).size.width * 0.673,
+                  width: MediaQuery.of(context).size.width * 0.193,
                   top: 0,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -136,7 +136,7 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                 ),
                 Positioned(
                   left: 0,
-                  width: MediaQuery.of(context).size.width * 0.123,
+                  width: MediaQuery.of(context).size.width * 0.128,
                   top: 38.545,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -147,8 +147,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.509,
-                  width: MediaQuery.of(context).size.width * 0.137,
+                  left: MediaQuery.of(context).size.width * 0.533,
+                  width: MediaQuery.of(context).size.width * 0.143,
                   top: 38.545,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -159,8 +159,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.304,
-                  width: MediaQuery.of(context).size.width * 0.168,
+                  left: MediaQuery.of(context).size.width * 0.318,
+                  width: MediaQuery.of(context).size.width * 0.176,
                   top: 38.545,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -171,8 +171,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.188,
-                  width: MediaQuery.of(context).size.width * 0.117,
+                  left: MediaQuery.of(context).size.width * 0.197,
+                  width: MediaQuery.of(context).size.width * 0.123,
                   top: 77.091,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -183,8 +183,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.34,
-                  width: MediaQuery.of(context).size.width * 0.099,
+                  left: MediaQuery.of(context).size.width * 0.356,
+                  width: MediaQuery.of(context).size.width * 0.103,
                   top: 77.091,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -195,8 +195,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.473,
-                  width: MediaQuery.of(context).size.width * 0.137,
+                  left: MediaQuery.of(context).size.width * 0.495,
+                  width: MediaQuery.of(context).size.width * 0.143,
                   top: 77.091,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -207,8 +207,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.68,
-                  width: MediaQuery.of(context).size.width * 0.147,
+                  left: MediaQuery.of(context).size.width * 0.712,
+                  width: MediaQuery.of(context).size.width * 0.154,
                   top: 38.545,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {
@@ -219,8 +219,8 @@ class _RecoveryPhraseTypeVertical extends State<RecoveryPhraseTypeVertical> {
                   }),
                 ),
                 Positioned(
-                  left: MediaQuery.of(context).size.width * 0.157,
-                  width: MediaQuery.of(context).size.width * 0.112,
+                  left: MediaQuery.of(context).size.width * 0.165,
+                  width: MediaQuery.of(context).size.width * 0.117,
                   top: 38.545,
                   height: 28.909,
                   child: LayoutBuilder(builder: (context, constraints) {

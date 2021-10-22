@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/menu.dart';
+import 'package:geniuswallet/controller/menu_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class NavbarDesktop extends StatelessWidget {
@@ -38,7 +38,7 @@ class NavbarDesktop extends StatelessWidget {
         width: 44.5,
         top: 17.5,
         height: 27.0,
-        child: Menu(
+        child: MenuCustom(
             child: Image.asset(
           'assets/images/182_1766.png',
           width: constraints.maxWidth * 44.500,

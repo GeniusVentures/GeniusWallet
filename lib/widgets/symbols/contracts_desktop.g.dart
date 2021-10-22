@@ -59,8 +59,8 @@ class ContractsDesktop extends StatelessWidget {
                     )))),
       ),
       Positioned(
-        left: 297.0,
         right: 9.0,
+        width: 79.0,
         top: constraints.maxHeight * 0.366,
         height: constraints.maxHeight * 0.268,
         child: Center(

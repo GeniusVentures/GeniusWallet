@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/backarrow.dart';
-import 'package:geniuswallet/egg/buy.dart';
+import 'package:geniuswallet/controller/back_arrow_custom.dart';
+import 'package:geniuswallet/controller/buy.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/egg/graph.dart';
+import 'package:geniuswallet/controller/graph_custom.dart';
 
 class NavigationBuy extends StatelessWidget {
   final constraints;
@@ -33,7 +33,7 @@ class NavigationBuy extends StatelessWidget {
         width: 10.0,
         top: 9.0,
         height: 18.0,
-        child: BackArrow(
+        child: BackArrowCustom(
             child: Image.asset(
           'assets/images/222_2913.png',
           width: constraints.maxWidth * 10.000,
@@ -64,7 +64,7 @@ class NavigationBuy extends StatelessWidget {
         width: 16.0,
         top: 9.0,
         height: 16.0,
-        child: Graph(
+        child: GraphCustom(
             child: Image.asset(
           'assets/images/166_1933.png',
           width: constraints.maxWidth * 16.000,

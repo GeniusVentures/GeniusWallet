@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/egg/pricealertscustom.dart';
-import 'package:geniuswallet/egg/walletconnectcustom.dart';
-import 'package:geniuswallet/egg/aboutbuttoncustom.dart';
+import 'package:geniuswallet/controller/price_alerts_custom.dart';
+import 'package:geniuswallet/controller/wallet_connect_custom.dart';
+import 'package:geniuswallet/controller/about_button_custom.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card6_o_ptions.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_mobile.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';

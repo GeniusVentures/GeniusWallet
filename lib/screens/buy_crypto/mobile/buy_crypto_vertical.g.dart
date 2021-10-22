@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/egg/buycryptobuttoncustom.dart';
-import 'package:geniuswallet/egg/calculatorkeyboardcustom.dart';
-import 'package:geniuswallet/egg/buttonactivecustom.dart';
+import 'package:geniuswallet/controller/buy_crypto_button_custom.dart';
+import 'package:geniuswallet/controller/calculator_keyboard_custom.dart';
+import 'package:geniuswallet/controller/button_active_custom.dart';
 import 'package:geniuswallet/widgets/symbols/dial_pad.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_info.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_buy_crypto.g.dart';

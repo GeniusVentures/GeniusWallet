@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/egg/paste.dart';
-import 'package:geniuswallet/egg/maxeth.dart';
-import 'package:geniuswallet/egg/ethamount.dart';
-import 'package:geniuswallet/egg/recipientaddress.dart';
-import 'package:geniuswallet/egg/scan.dart';
+import 'package:geniuswallet/controller/paste.dart';
+import 'package:geniuswallet/controller/max_e_t_h.dart';
+import 'package:geniuswallet/controller/e_t_h_amount.dart';
+import 'package:geniuswallet/controller/recipient_address.dart';
+import 'package:geniuswallet/controller/scan_custom.dart';
 
 class CoverSendCrypto extends StatelessWidget {
   final constraints;
@@ -188,7 +188,7 @@ class CoverSendCrypto extends StatelessWidget {
             width: 19.0,
             top: 18.5,
             height: 17.0,
-            child: Scan(
+            child: ScanCustom(
                 child: Image.asset(
               'assets/images/167_1946.png',
               width: constraints.maxWidth * 19.000,
