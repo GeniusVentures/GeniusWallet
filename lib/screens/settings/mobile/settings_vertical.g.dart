@@ -156,11 +156,12 @@ class _SettingsVertical extends State<SettingsVertical> {
           child: LayoutBuilder(builder: (context, constraints) {
             return Navbar(
               constraints,
-              ovrsettings: 'settings',
-              ovrDex: 'Dex',
               ovrWallet: 'Wallet',
-              ovrEllipseXor: 'assets/images/I0_46;0_12375.png',
               ovrShield: 'assets/images/I0_46;0_12369.png',
+              ovrDex: 'Dex',
+              ovrVector: 'assets/images/I0_46;293_1712.png',
+              ovrsettings: 'settings',
+              ovrEllipseXor: 'assets/images/I0_46;0_12375.png',
             );
           }),
         ),

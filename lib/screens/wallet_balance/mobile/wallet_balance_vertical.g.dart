@@ -116,11 +116,12 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
           child: LayoutBuilder(builder: (context, constraints) {
             return Navbar(
               constraints,
-              ovrsettings: 'settings',
-              ovrDex: 'Dex',
               ovrWallet: 'Wallet',
-              ovrEllipseXor: 'assets/images/I0_54;0_12375.png',
               ovrShield: 'assets/images/I0_54;0_12369.png',
+              ovrDex: 'Dex',
+              ovrVector: 'assets/images/I0_54;293_1712.png',
+              ovrsettings: 'settings',
+              ovrEllipseXor: 'assets/images/I0_54;0_12375.png',
             );
           }),
         ),
