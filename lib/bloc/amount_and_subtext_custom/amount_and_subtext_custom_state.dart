@@ -1,19 +1,11 @@
-import 'package:intl/intl.dart';
-
 abstract class AmountAndSubtextCustomState {
-  double Amount;
-  String SubText;
+  var ovrAmount;
+  var ovrText;
 
-  String GetAmount() {
-    if (Amount == null)
-      return '';
-
-    NumberFormat formatter = NumberFormat();
-    formatter.minimumFractionDigits = 1;
-    formatter.maximumFractionDigits = 7;
-    return formatter.format(Amount);
-  }
-
+  AmountAndSubtextCustomState(
+    this.ovrAmount,
+    this.ovrText,
+  );
 }
 
 /// TODO: @developer Add states that extend the abstract state above.
@@ -24,10 +16,9 @@ abstract class AmountAndSubtextCustomState {
 /// }
 
 class AmountAndSubtextCustomInitial extends AmountAndSubtextCustomState {
-
-  AmountAndSubtextCustomInitial() {
-    Amount = 1000.0000001000;
-    SubText = "Ethereum";
-  }
-
+  AmountAndSubtextCustomInitial()
+      : super(
+          'Amount',
+          'Text',
+        );
 }

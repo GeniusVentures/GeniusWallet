@@ -1,4 +1,6 @@
-abstract class ScanCustomState {}
+abstract class ScanCustomState {
+  ScanCustomState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class ScanCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class ScanCustomInitial extends ScanCustomState {}
+class ScanCustomInitial extends ScanCustomState {
+  ScanCustomInitial() : super();
+}

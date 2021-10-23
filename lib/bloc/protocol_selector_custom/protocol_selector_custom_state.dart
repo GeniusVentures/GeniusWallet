@@ -1,4 +1,12 @@
-abstract class ProtocolSelectorCustomState {}
+abstract class ProtocolSelectorCustomState {
+  var ovrType;
+  var ovrTriangle;
+
+  ProtocolSelectorCustomState(
+    this.ovrType,
+    this.ovrTriangle,
+  );
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +15,10 @@ abstract class ProtocolSelectorCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class ProtocolSelectorCustomInitial extends ProtocolSelectorCustomState {}
+class ProtocolSelectorCustomInitial extends ProtocolSelectorCustomState {
+  ProtocolSelectorCustomInitial()
+      : super(
+          'Type',
+          'Triangle',
+        );
+}

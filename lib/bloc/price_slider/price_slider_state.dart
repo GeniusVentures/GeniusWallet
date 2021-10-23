@@ -1,4 +1,6 @@
-abstract class PriceSliderState {}
+abstract class PriceSliderState {
+  PriceSliderState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class PriceSliderState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class PriceSliderInitial extends PriceSliderState {}
+class PriceSliderInitial extends PriceSliderState {
+  PriceSliderInitial() : super();
+}

@@ -1,4 +1,6 @@
-abstract class ETHAmountState {}
+abstract class ETHAmountState {
+  ETHAmountState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class ETHAmountState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class ETHAmountInitial extends ETHAmountState {}
+class ETHAmountInitial extends ETHAmountState {
+  ETHAmountInitial() : super();
+}

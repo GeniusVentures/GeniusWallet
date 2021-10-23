@@ -1,4 +1,6 @@
-abstract class RecipientAddressState {}
+abstract class RecipientAddressState {
+  RecipientAddressState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class RecipientAddressState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class RecipientAddressInitial extends RecipientAddressState {}
+class RecipientAddressInitial extends RecipientAddressState {
+  RecipientAddressInitial() : super();
+}

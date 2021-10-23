@@ -1,4 +1,6 @@
-abstract class GraphCustomState {}
+abstract class GraphCustomState {
+  GraphCustomState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class GraphCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class GraphCustomInitial extends GraphCustomState {}
+class GraphCustomInitial extends GraphCustomState {
+  GraphCustomInitial() : super();
+}

@@ -1,4 +1,6 @@
-abstract class MaxETHState {}
+abstract class MaxETHState {
+  MaxETHState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class MaxETHState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class MaxETHInitial extends MaxETHState {}
+class MaxETHInitial extends MaxETHState {
+  MaxETHInitial() : super();
+}

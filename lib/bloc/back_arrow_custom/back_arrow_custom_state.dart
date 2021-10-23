@@ -1,4 +1,6 @@
-abstract class BackArrowCustomState {}
+abstract class BackArrowCustomState {
+  BackArrowCustomState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class BackArrowCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class BackArrowCustomInitial extends BackArrowCustomState {}
+class BackArrowCustomInitial extends BackArrowCustomState {
+  BackArrowCustomInitial() : super();
+}

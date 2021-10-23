@@ -5,8 +5,6 @@ class AmountAndSubtextCustomCubit extends Cubit<AmountAndSubtextCustomState> {
   AmountAndSubtextCustomCubit(AmountAndSubtextCustomState initialState)
       : super(initialState);
 
-  //void ChangeAmount(amount) => emit((amount) { state.Amount = amount; });
-  //void increment() => emit()
   /// TODO: @developer add functions here that emit a different state.
   ///
   /// For example, if you're coding a counter, you may want to have a function that

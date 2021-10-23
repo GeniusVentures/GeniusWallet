@@ -1,4 +1,6 @@
-abstract class GeniusCheckboxCustomState {}
+abstract class GeniusCheckboxCustomState {
+  GeniusCheckboxCustomState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class GeniusCheckboxCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class GeniusCheckboxCustomInitial extends GeniusCheckboxCustomState {}
+class GeniusCheckboxCustomInitial extends GeniusCheckboxCustomState {
+  GeniusCheckboxCustomInitial() : super();
+}

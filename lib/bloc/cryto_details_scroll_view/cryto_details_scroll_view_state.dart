@@ -1,4 +1,6 @@
-abstract class CrytoDetailsScrollViewState {}
+abstract class CrytoDetailsScrollViewState {
+  CrytoDetailsScrollViewState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class CrytoDetailsScrollViewState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class CrytoDetailsScrollViewInitial extends CrytoDetailsScrollViewState {}
+class CrytoDetailsScrollViewInitial extends CrytoDetailsScrollViewState {
+  CrytoDetailsScrollViewInitial() : super();
+}

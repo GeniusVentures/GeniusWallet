@@ -1,4 +1,6 @@
-abstract class RecoveryPhraseSelectionsState {}
+abstract class RecoveryPhraseSelectionsState {
+  RecoveryPhraseSelectionsState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class RecoveryPhraseSelectionsState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class RecoveryPhraseSelectionsInitial extends RecoveryPhraseSelectionsState {}
+class RecoveryPhraseSelectionsInitial extends RecoveryPhraseSelectionsState {
+  RecoveryPhraseSelectionsInitial() : super();
+}

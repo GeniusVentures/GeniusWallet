@@ -1,4 +1,12 @@
-abstract class LinkToDataSelectorCustomState {}
+abstract class LinkToDataSelectorCustomState {
+  var ovrType;
+  var ovrPaste;
+
+  LinkToDataSelectorCustomState(
+    this.ovrType,
+    this.ovrPaste,
+  );
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +15,10 @@ abstract class LinkToDataSelectorCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class LinkToDataSelectorCustomInitial extends LinkToDataSelectorCustomState {}
+class LinkToDataSelectorCustomInitial extends LinkToDataSelectorCustomState {
+  LinkToDataSelectorCustomInitial()
+      : super(
+          'Type',
+          'Paste',
+        );
+}

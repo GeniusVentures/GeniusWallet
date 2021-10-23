@@ -1,4 +1,14 @@
-abstract class BuyCryptoCustomState {}
+abstract class BuyCryptoCustomState {
+  var ovrTypesomething;
+  var ovrTypesomethingCopy;
+  var ovrRectangle2;
+
+  BuyCryptoCustomState(
+    this.ovrTypesomething,
+    this.ovrTypesomethingCopy,
+    this.ovrRectangle2,
+  );
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +17,11 @@ abstract class BuyCryptoCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class BuyCryptoCustomInitial extends BuyCryptoCustomState {}
+class BuyCryptoCustomInitial extends BuyCryptoCustomState {
+  BuyCryptoCustomInitial()
+      : super(
+          'Type something',
+          'Type something Copy',
+          'Rectangle 2',
+        );
+}

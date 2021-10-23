@@ -15,28 +15,21 @@ class BuyCryptoButtonCustom extends StatefulWidget {
 class _BuyCryptoButtonCustomState extends State<BuyCryptoButtonCustom> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-        // When the child is tapped, show a snackbar.
-        onTap: () {
-          const snackBar = SnackBar(content: Text('Tap'));
-
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        },
-        child: BlocProvider(
-          create: (_) =>
-              BuyCryptoButtonCustomCubit(BuyCryptoButtonCustomInitial()),
-          child: BlocBuilder<BuyCryptoButtonCustomCubit,
-              BuyCryptoButtonCustomState>(builder: (context, state) {
-            /// TODO: @developer implement bloc and map the states to widgets as desired.
-            /// For example, in a counter app you may have something like
-            ///
-            /// if(state is CounterInProgress){
-            ///   return Text('${state.value}');
-            /// } else {
-            ///   return Text('0');
-            /// }
-            return widget.child;
-          }),
-        ));
+    return BlocProvider(
+      create: (_) => BuyCryptoButtonCustomCubit(BuyCryptoButtonCustomInitial()),
+      child:
+          BlocBuilder<BuyCryptoButtonCustomCubit, BuyCryptoButtonCustomState>(
+              builder: (context, state) {
+        /// TODO: @developer implement bloc and map the states to widgets as desired.
+        /// For example, in a counter app you may have something like
+        ///
+        /// if(state is CounterInProgress){
+        ///   return Text('${state.value}');
+        /// } else {
+        ///   return Text('0');
+        /// }
+        return widget.child;
+      }),
+    );
   }
 }

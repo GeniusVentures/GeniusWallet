@@ -1,4 +1,6 @@
-abstract class SelectionsState {}
+abstract class SelectionsState {
+  SelectionsState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class SelectionsState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class SelectionsInitial extends SelectionsState {}
+class SelectionsInitial extends SelectionsState {
+  SelectionsInitial() : super();
+}

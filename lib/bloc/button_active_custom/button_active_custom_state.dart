@@ -1,4 +1,10 @@
-abstract class ButtonActiveCustomState {}
+abstract class ButtonActiveCustomState {
+  var ovrTypesomething;
+
+  ButtonActiveCustomState(
+    this.ovrTypesomething,
+  );
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +13,9 @@ abstract class ButtonActiveCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class ButtonActiveCustomInitial extends ButtonActiveCustomState {}
+class ButtonActiveCustomInitial extends ButtonActiveCustomState {
+  ButtonActiveCustomInitial()
+      : super(
+          'Type something',
+        );
+}

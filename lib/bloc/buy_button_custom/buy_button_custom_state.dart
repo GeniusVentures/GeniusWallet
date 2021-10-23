@@ -1,4 +1,12 @@
-abstract class BuyButtonCustomState {}
+abstract class BuyButtonCustomState {
+  var ovrBuy;
+  var ovrVector;
+
+  BuyButtonCustomState(
+    this.ovrBuy,
+    this.ovrVector,
+  );
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +15,10 @@ abstract class BuyButtonCustomState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class BuyButtonCustomInitial extends BuyButtonCustomState {}
+class BuyButtonCustomInitial extends BuyButtonCustomState {
+  BuyButtonCustomInitial()
+      : super(
+          'Buy',
+          'Vector',
+        );
+}

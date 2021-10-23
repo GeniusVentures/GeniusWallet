@@ -1,4 +1,6 @@
-abstract class CopyState {}
+abstract class CopyState {
+  CopyState();
+}
 
 /// TODO: @developer Add states that extend the abstract state above.
 /// For example, if you are coding a counter, you may want to add something like:
@@ -7,4 +9,6 @@ abstract class CopyState {}
 ///   CounterInProgress(int value): super(value);
 /// }
 
-class CopyInitial extends CopyState {}
+class CopyInitial extends CopyState {
+  CopyInitial() : super();
+}
