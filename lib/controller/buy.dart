@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geniuswallet/bloc/buy/buy_cubit.dart';
 
 import 'package:geniuswallet/bloc/buy/buy_state.dart';
+import 'package:geniuswallet/screens/buy_crypto/mobile/buy_crypto_vertical.g.dart';
 
 class Buy extends StatefulWidget {
   final Widget child;
@@ -18,15 +19,13 @@ class _BuyState extends State<Buy> {
     return BlocProvider(
       create: (_) => BuyCubit(BuyInitial()),
       child: BlocBuilder<BuyCubit, BuyState>(builder: (context, state) {
-        /// TODO: @developer implement bloc and map the states to widgets as desired.
-        /// For example, in a counter app you may have something like
-        ///
-        /// if(state is CounterInProgress){
-        ///   return Text('${state.value}');
-        /// } else {
-        ///   return Text('0');
-        /// }
-        return widget.child;
+        return GestureDetector(
+          child: widget.child,
+          onTap: () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => BuyCryptoVertical()));
+          },
+        );
       }),
     );
   }

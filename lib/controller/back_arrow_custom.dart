@@ -19,15 +19,10 @@ class _BackArrowCustomState extends State<BackArrowCustom> {
       create: (_) => BackArrowCustomCubit(BackArrowCustomInitial()),
       child: BlocBuilder<BackArrowCustomCubit, BackArrowCustomState>(
           builder: (context, state) {
-        /// TODO: @developer implement bloc and map the states to widgets as desired.
-        /// For example, in a counter app you may have something like
-        ///
-        /// if(state is CounterInProgress){
-        ///   return Text('${state.value}');
-        /// } else {
-        ///   return Text('0');
-        /// }
-        return widget.child;
+        return GestureDetector(
+          child: widget.child,
+          onTap: () => Navigator.of(context).pop(),
+        );
       }),
     );
   }

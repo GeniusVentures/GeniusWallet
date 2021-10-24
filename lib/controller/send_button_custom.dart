@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geniuswallet/bloc/send_button_custom/send_button_custom_cubit.dart';
 
 import 'package:geniuswallet/bloc/send_button_custom/send_button_custom_state.dart';
+import 'package:geniuswallet/screens/send_crypto/mobile/send_crypto_vertical.g.dart';
 
 class SendButtonCustom extends StatefulWidget {
   final Widget child;
@@ -19,15 +20,15 @@ class _SendButtonCustomState extends State<SendButtonCustom> {
       create: (_) => SendButtonCustomCubit(SendButtonCustomInitial()),
       child: BlocBuilder<SendButtonCustomCubit, SendButtonCustomState>(
           builder: (context, state) {
-        /// TODO: @developer implement bloc and map the states to widgets as desired.
-        /// For example, in a counter app you may have something like
-        ///
-        /// if(state is CounterInProgress){
-        ///   return Text('${state.value}');
-        /// } else {
-        ///   return Text('0');
-        /// }
-        return widget.child;
+        return GestureDetector(
+            child: widget.child,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => SendCryptoVertical(),
+                ),
+              );
+            });
       }),
     );
   }
