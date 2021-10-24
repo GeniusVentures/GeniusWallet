@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/button_active_custom.dart';
-import 'package:geniuswallet/controller/genius_checkbox_custom.dart';
+import 'package:geniuswallet/controller/tag/button_active_custom.dart';
+import 'package:geniuswallet/controller/tag/genius_checkbox_custom.dart';
 import 'package:geniuswallet/widgets/symbols/button_inactive.g.dart';
 import 'package:geniuswallet/widgets/symbols/genius_checkbox.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';

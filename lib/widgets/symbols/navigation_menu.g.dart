@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/menu_custom.dart';
-import 'package:geniuswallet/controller/bell_custom.dart';
+import 'package:geniuswallet/controller/tag/menu_custom.dart';
+import 'package:geniuswallet/controller/tag/bell_custom.dart';
 
 class NavigationMenu extends StatelessWidget {
   final constraints;

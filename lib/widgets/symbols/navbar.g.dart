@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/wallet_tab.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/controller/dex_tab.dart';
-import 'package:geniuswallet/controller/settings_tab.dart';
 
 class Navbar extends StatelessWidget {
   final constraints;
   final ovrWallet;
   final ovrShield;
   final ovrDex;
-  final ovrVector;
   final ovrsettings;
   final ovrEllipseXor;
   Navbar(
@@ -18,7 +14,6 @@ class Navbar extends StatelessWidget {
     this.ovrWallet,
     this.ovrShield,
     this.ovrDex,
-    this.ovrVector,
     this.ovrsettings,
     this.ovrEllipseXor,
   }) : super(key: key);
@@ -45,8 +40,7 @@ class Navbar extends StatelessWidget {
         width: 39.0,
         top: 9.5,
         height: 43.5,
-        child: WalletTab(
-            child: Stack(children: [
+        child: Stack(children: [
           Positioned(
             left: 0,
             width: 39.0,
@@ -92,23 +86,22 @@ class Navbar extends StatelessWidget {
                   textAlign: TextAlign.center,
                 )),
           ),
-        ])),
+        ]),
       ),
       Positioned(
         left: 175.0,
         width: 25.0,
-        top: 13.643,
-        height: 39.357,
-        child: DexTab(
-            child: Stack(children: [
+        top: 12.0,
+        height: 41.0,
+        child: Stack(children: [
           Positioned(
             left: 0,
             width: 25.0,
             top: 0,
-            height: 39.357,
+            height: 41.0,
             child: Container(
               width: constraints.maxWidth * 25.000,
-              height: constraints.maxHeight * 39.357,
+              height: constraints.maxHeight * 41.000,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(0)),
               ),
@@ -120,7 +113,7 @@ class Navbar extends StatelessWidget {
             top: 0,
             height: 17.244,
             child: Image.asset(
-              ovrVector ?? 'assets/images/293_1712.png',
+              'assets/images/110_3878.png',
               width: constraints.maxWidth * 25.000,
               height: constraints.maxHeight * 17.244,
             ),
@@ -128,7 +121,7 @@ class Navbar extends StatelessWidget {
           Positioned(
             left: 2.1,
             width: 20.0,
-            top: 24.357,
+            top: 26.0,
             height: 15.0,
             child: Container(
                 width: constraints.maxWidth * 20.000,
@@ -146,61 +139,64 @@ class Navbar extends StatelessWidget {
                   textAlign: TextAlign.center,
                 )),
           ),
-        ])),
+        ]),
       ),
       Positioned(
-        left: 296.0,
-        width: 46.0,
-        top: 11.789,
-        height: 41.211,
-        child: SettingsTab(
-            child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: 46.0,
-            top: 0,
-            height: 41.211,
+        left: constraints.maxWidth * 0.789,
+        width: constraints.maxWidth * 0.123,
+        top: constraints.maxHeight * 0.153,
+        height: constraints.maxHeight * 0.535,
+        child: Center(
             child: Container(
-              width: constraints.maxWidth * 46.000,
-              height: constraints.maxHeight * 41.211,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(0)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 11.789,
-            width: 22.518,
-            top: 0,
-            height: 22.518,
-            child: Image.asset(
-              ovrEllipseXor ?? 'assets/images/0_12375.png',
-              width: constraints.maxWidth * 22.518,
-              height: constraints.maxHeight * 22.518,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            width: 46.0,
-            top: 26.211,
-            height: 15.0,
-            child: Container(
-                width: constraints.maxWidth * 46.000,
-                height: constraints.maxHeight * 15.000,
-                child: AutoSizeText(
-                  ovrsettings ?? 'settings',
-                  style: TextStyle(
-                    fontFamily: 'Prompt',
-                    fontSize: 10.0,
-                    fontWeight: FontWeight.w300,
-                    fontStyle: FontStyle.normal,
-                    letterSpacing: 0.0,
-                    color: Colors.white,
+                height: 41.21063232421875,
+                width: 46.0,
+                child: Stack(children: [
+                  Positioned(
+                    left: 0,
+                    width: 46.0,
+                    top: 0,
+                    height: 41.211,
+                    child: Container(
+                      width: constraints.maxWidth * 46.000,
+                      height: constraints.maxHeight * 41.211,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(0)),
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                )),
-          ),
-        ])),
+                  Positioned(
+                    left: 11.789,
+                    width: 22.518,
+                    top: 0,
+                    height: 22.518,
+                    child: Image.asset(
+                      ovrEllipseXor ?? 'assets/images/0_12375.png',
+                      width: constraints.maxWidth * 22.518,
+                      height: constraints.maxHeight * 22.518,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    width: 46.0,
+                    top: 26.211,
+                    height: 15.0,
+                    child: Container(
+                        width: constraints.maxWidth * 46.000,
+                        height: constraints.maxHeight * 15.000,
+                        child: AutoSizeText(
+                          ovrsettings ?? 'settings',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w300,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                ]))),
       ),
     ]);
   }

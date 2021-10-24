@@ -38,7 +38,7 @@ class CoverCryptoDesktop extends StatelessWidget {
       Positioned(
         left: constraints.maxWidth * 0.404,
         width: constraints.maxWidth * 0.17,
-        top: constraints.maxHeight * 0.153,
+        top: constraints.maxHeight * 0.204,
         height: constraints.maxHeight * 0.193,
         child: Image.asset(
           ovrEllipse ?? 'assets/images/0_12664.png',
@@ -49,7 +49,7 @@ class CoverCryptoDesktop extends StatelessWidget {
       Positioned(
         left: 20.0,
         right: 20.0,
-        top: constraints.maxHeight * 0.354,
+        top: constraints.maxHeight * 0.405,
         height: constraints.maxHeight * 0.181,
         child: Center(
             child: Container(
@@ -115,7 +115,7 @@ class CoverCryptoDesktop extends StatelessWidget {
       Positioned(
         left: constraints.maxWidth * 0.326,
         width: constraints.maxWidth * 0.351,
-        top: constraints.maxHeight * 0.561,
+        top: constraints.maxHeight * 0.612,
         height: constraints.maxHeight * 0.034,
         child: Center(
             child: Container(
@@ -182,7 +182,7 @@ class CoverCryptoDesktop extends StatelessWidget {
       Positioned(
         left: constraints.maxWidth * 0.158,
         width: constraints.maxWidth * 0.682,
-        top: 0,
+        top: 18.0,
         height: 48.0,
         child: Center(
             child: Container(

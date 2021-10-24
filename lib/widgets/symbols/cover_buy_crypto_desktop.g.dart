@@ -18,9 +18,9 @@ class CoverBuyCryptoDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(children: [
       Positioned(
-        left: constraints.maxWidth * 0.112,
+        left: constraints.maxWidth * 0.164,
         width: constraints.maxWidth * 0.67,
-        top: 0,
+        top: constraints.maxHeight * 0.064,
         height: constraints.maxHeight * 0.096,
         child: Center(
             child: Container(
@@ -42,10 +42,10 @@ class CoverBuyCryptoDesktop extends StatelessWidget {
                     )))),
       ),
       Positioned(
-        left: 0,
-        right: 0,
-        top: 58.021,
-        bottom: 0,
+        left: 20.0,
+        right: 20.0,
+        top: 73.0,
+        bottom: 74.0,
         child: Stack(children: [
           Positioned(
             left: 0,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/buy_crypto_custom.dart';
+import 'package:geniuswallet/controller/tag/buy_crypto_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_button.g.dart';
@@ -43,7 +43,6 @@ class _NewWalletVertical extends State<NewWalletVertical> {
               ovrWallet: 'Wallet',
               ovrShield: 'assets/images/I0_78;0_12369.png',
               ovrDex: 'Dex',
-              ovrVector: 'assets/images/I0_78;293_1712.png',
               ovrsettings: 'settings',
               ovrEllipseXor: 'assets/images/I0_78;0_12375.png',
             );

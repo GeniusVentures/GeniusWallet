@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/controller/paste.dart';
-import 'package:geniuswallet/controller/max_e_t_h.dart';
-import 'package:geniuswallet/controller/e_t_h_amount.dart';
-import 'package:geniuswallet/controller/recipient_address.dart';
-import 'package:geniuswallet/controller/scan_custom.dart';
+import 'package:geniuswallet/controller/tag/paste.dart';
+import 'package:geniuswallet/controller/tag/max_e_t_h.dart';
+import 'package:geniuswallet/controller/tag/e_t_h_amount.dart';
+import 'package:geniuswallet/controller/tag/recipient_address.dart';
+import 'package:geniuswallet/controller/tag/scan_custom.dart';
 
 class CoverSendCrypto extends StatelessWidget {
   final constraints;

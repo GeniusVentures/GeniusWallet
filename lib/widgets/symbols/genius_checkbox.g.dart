@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/genius_checkbox_custom.dart';
+import 'package:geniuswallet/controller/tag/genius_checkbox_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class GeniusCheckbox extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geniuswallet/controller/tag/crypto_item_custom.dart';
 import 'package:geniuswallet/widgets/symbols/crypto_item.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_menu.g.dart';
@@ -57,7 +58,8 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
               right: 0,
               top: 0,
               height: 74.0,
-              child: LayoutBuilder(builder: (context, constraints) {
+              child: CryptoItemCustom(
+                  child: LayoutBuilder(builder: (context, constraints) {
                 return CryptoItem(
                   constraints,
                   ovrLine: 'assets/images/I0_49;0_12431.png',
@@ -68,14 +70,15 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
                   ovr4630950: '\$3,218.64',
                   ovrCrypto: 'Ethereum',
                 );
-              }),
+              })),
             ),
             Positioned(
               left: 0,
               right: 0,
               top: 74.0,
               height: 74.0,
-              child: LayoutBuilder(builder: (context, constraints) {
+              child: CryptoItemCustom(
+                  child: LayoutBuilder(builder: (context, constraints) {
                 return CryptoItem(
                   constraints,
                   ovrLine: 'assets/images/I0_50;0_12431.png',
@@ -86,14 +89,15 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
                   ovr4630950: '\$46,309.50',
                   ovrCrypto: 'Bitcoin',
                 );
-              }),
+              })),
             ),
             Positioned(
               left: 0,
               right: 0,
               top: 148.0,
               height: 74.0,
-              child: LayoutBuilder(builder: (context, constraints) {
+              child: CryptoItemCustom(
+                  child: LayoutBuilder(builder: (context, constraints) {
                 return CryptoItem(
                   constraints,
                   ovrLine: 'assets/images/I0_51;0_12431.png',
@@ -104,7 +108,7 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
                   ovr4630950: ' ',
                   ovrCrypto: 'Genius Token',
                 );
-              }),
+              })),
             ),
           ]),
         ),
@@ -119,7 +123,6 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
               ovrWallet: 'Wallet',
               ovrShield: 'assets/images/I0_54;0_12369.png',
               ovrDex: 'Dex',
-              ovrVector: 'assets/images/I0_54;293_1712.png',
               ovrsettings: 'settings',
               ovrEllipseXor: 'assets/images/I0_54;0_12375.png',
             );

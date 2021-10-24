@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/button_active_custom.dart';
+import 'package:geniuswallet/controller/tag/button_active_custom.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_next.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_send_crypto.g.dart';

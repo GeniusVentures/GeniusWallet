@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/exit_button_custom.dart';
+import 'package:geniuswallet/controller/tag/exit_button_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card6_o_ptions.g.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card.g.dart';

@@ -16,9 +16,9 @@ class CoverTextDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(children: [
       Positioned(
-        left: 17.022,
-        right: 16.978,
-        top: 0,
+        left: 68.0,
+        right: 69.0,
+        top: constraints.maxHeight * 0.079,
         height: constraints.maxHeight * 0.118,
         child: Container(
             width: constraints.maxWidth * 238.000,
@@ -37,9 +37,9 @@ class CoverTextDesktop extends StatelessWidget {
             )),
       ),
       Positioned(
-        left: 0,
-        right: 0,
-        top: constraints.maxHeight * 0.215,
+        left: 50.978,
+        right: 52.022,
+        top: constraints.maxHeight * 0.294,
         height: constraints.maxHeight * 0.461,
         child: Center(
             child: Container(

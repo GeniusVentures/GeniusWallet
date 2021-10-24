@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/menu_custom.dart';
+import 'package:geniuswallet/controller/tag/menu_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class NavbarDesktop extends StatelessWidget {
@@ -23,7 +23,7 @@ class NavbarDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(children: [
       Positioned(
-        left: 0,
+        left: 4.0,
         width: 1920.0,
         top: 0,
         height: 67.0,
@@ -34,7 +34,7 @@ class NavbarDesktop extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 20.5,
+        left: 24.5,
         width: 44.5,
         top: 17.5,
         height: 27.0,
@@ -205,7 +205,7 @@ class NavbarDesktop extends StatelessWidget {
         ]),
       ),
       Positioned(
-        left: 94.0,
+        left: 98.0,
         width: 50.0,
         top: 8.0,
         height: 50.0,

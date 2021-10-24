@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/back_arrow_custom.dart';
+import 'package:geniuswallet/controller/tag/back_arrow_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class NavigationInfo extends StatelessWidget {

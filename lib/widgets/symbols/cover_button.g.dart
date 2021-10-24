@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/controller/button_active_custom.dart';
+import 'package:geniuswallet/controller/tag/button_active_custom.dart';
 import 'package:geniuswallet/widgets/symbols/button_active.g.dart';
 
 class CoverButton extends StatelessWidget {

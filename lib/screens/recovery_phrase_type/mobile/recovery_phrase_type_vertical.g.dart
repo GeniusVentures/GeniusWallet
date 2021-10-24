@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/recovery_phrase_field_custom.dart';
-import 'package:geniuswallet/controller/selections.dart';
-import 'package:geniuswallet/controller/button_active_custom.dart';
+import 'package:geniuswallet/controller/tag/recovery_phrase_field_custom.dart';
+import 'package:geniuswallet/controller/tag/selections.dart';
+import 'package:geniuswallet/controller/tag/button_active_custom.dart';
 import 'package:geniuswallet/widgets/symbols/words.g.dart';
 import 'package:geniuswallet/widgets/symbols/button_inactive.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_back.g.dart';

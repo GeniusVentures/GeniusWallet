@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/controller/price_alerts_custom.dart';
-import 'package:geniuswallet/controller/wallet_connect_custom.dart';
-import 'package:geniuswallet/controller/about_button_custom.dart';
+import 'package:geniuswallet/controller/tag/price_alerts_custom.dart';
+import 'package:geniuswallet/controller/tag/wallet_connect_custom.dart';
+import 'package:geniuswallet/controller/tag/about_button_custom.dart';
 import 'package:geniuswallet/widgets/symbols/settings_card6_o_ptions.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_mobile.g.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
@@ -159,7 +159,6 @@ class _SettingsVertical extends State<SettingsVertical> {
               ovrWallet: 'Wallet',
               ovrShield: 'assets/images/I0_46;0_12369.png',
               ovrDex: 'Dex',
-              ovrVector: 'assets/images/I0_46;293_1712.png',
               ovrsettings: 'settings',
               ovrEllipseXor: 'assets/images/I0_46;0_12375.png',
             );

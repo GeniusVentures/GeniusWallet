@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/genius_checkbox_custom.dart';
+import 'package:geniuswallet/controller/tag/genius_checkbox_custom.dart';
 import 'package:geniuswallet/widgets/symbols/navbar_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/background_desktop.g.dart';
 import 'package:geniuswallet/widgets/symbols/cover_text_desktop.g.dart';
