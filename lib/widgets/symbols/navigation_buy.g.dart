@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geniuswallet/controller/tag/back_arrow_custom.dart';
-import 'package:geniuswallet/controller/tag/buy.dart';
+import 'package:geniuswallet/controller/tag/buy_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/controller/tag/graph_custom.dart';
 
@@ -45,7 +45,7 @@ class NavigationBuy extends StatelessWidget {
         width: 26.0,
         top: constraints.maxHeight * 0.189,
         height: constraints.maxHeight * 0.568,
-        child: Buy(
+        child: BuyCustom(
             child: AutoSizeText(
           'Buy',
           style: TextStyle(

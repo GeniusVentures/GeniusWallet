@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geniuswallet/controller/tag/wallet_tab_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:geniuswallet/controller/tag/dex_tab_custom.dart';
+import 'package:geniuswallet/controller/tag/settings_tab_custom.dart';
 
 class Navbar extends StatelessWidget {
   final constraints;
@@ -36,110 +39,120 @@ class Navbar extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: 38.1,
-        width: 39.0,
-        top: 9.5,
-        height: 43.5,
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: 39.0,
-            top: 0,
-            height: 43.5,
+        left: constraints.maxWidth * 0.102,
+        width: constraints.maxWidth * 0.104,
+        top: constraints.maxHeight * 0.123,
+        height: constraints.maxHeight * 0.565,
+        child: Center(
             child: Container(
-              width: constraints.maxWidth * 39.000,
-              height: constraints.maxHeight * 43.500,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(0)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 8.029,
-            width: 22.871,
-            top: 0,
-            height: 28.5,
-            child: Image.asset(
-              ovrShield ?? 'assets/images/0_12369.png',
-              width: constraints.maxWidth * 22.871,
-              height: constraints.maxHeight * 28.500,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            width: 39.0,
-            top: 28.5,
-            height: 15.0,
-            child: Container(
-                width: constraints.maxWidth * 39.000,
-                height: constraints.maxHeight * 15.000,
-                child: AutoSizeText(
-                  ovrWallet ?? 'Wallet',
-                  style: TextStyle(
-                    fontFamily: 'Prompt',
-                    fontSize: 10.0,
-                    fontWeight: FontWeight.w300,
-                    fontStyle: FontStyle.normal,
-                    letterSpacing: 0.0,
-                    color: Colors.white,
+                height: 43.5,
+                width: 39.0,
+                child: WalletTabCustom(
+                    child: Stack(children: [
+                  Positioned(
+                    left: 0,
+                    width: 39.0,
+                    top: 0,
+                    height: 43.5,
+                    child: Container(
+                      width: constraints.maxWidth * 39.000,
+                      height: constraints.maxHeight * 43.500,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(0)),
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                )),
-          ),
-        ]),
+                  Positioned(
+                    left: 8.029,
+                    width: 22.871,
+                    top: 0,
+                    height: 28.5,
+                    child: Image.asset(
+                      ovrShield ?? 'assets/images/0_12369.png',
+                      width: constraints.maxWidth * 22.871,
+                      height: constraints.maxHeight * 28.500,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    width: 39.0,
+                    top: 28.5,
+                    height: 15.0,
+                    child: Container(
+                        width: constraints.maxWidth * 39.000,
+                        height: constraints.maxHeight * 15.000,
+                        child: AutoSizeText(
+                          ovrWallet ?? 'Wallet',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w300,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                ])))),
       ),
       Positioned(
-        left: 175.0,
-        width: 25.0,
-        top: 12.0,
-        height: 41.0,
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: 25.0,
-            top: 0,
-            height: 41.0,
+        left: constraints.maxWidth * 0.467,
+        width: constraints.maxWidth * 0.067,
+        top: constraints.maxHeight * 0.156,
+        height: constraints.maxHeight * 0.532,
+        child: Center(
             child: Container(
-              width: constraints.maxWidth * 25.000,
-              height: constraints.maxHeight * 41.000,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(0)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            width: 25.0,
-            top: 0,
-            height: 17.244,
-            child: Image.asset(
-              'assets/images/110_3878.png',
-              width: constraints.maxWidth * 25.000,
-              height: constraints.maxHeight * 17.244,
-            ),
-          ),
-          Positioned(
-            left: 2.1,
-            width: 20.0,
-            top: 26.0,
-            height: 15.0,
-            child: Container(
-                width: constraints.maxWidth * 20.000,
-                height: constraints.maxHeight * 15.000,
-                child: AutoSizeText(
-                  ovrDex ?? 'Dex',
-                  style: TextStyle(
-                    fontFamily: 'Prompt',
-                    fontSize: 10.0,
-                    fontWeight: FontWeight.w300,
-                    fontStyle: FontStyle.normal,
-                    letterSpacing: 0.0,
-                    color: Colors.white,
+                height: 41.0,
+                width: 25.0,
+                child: DexTabCustom(
+                    child: Stack(children: [
+                  Positioned(
+                    left: 0,
+                    width: 25.0,
+                    top: 0,
+                    height: 41.0,
+                    child: Container(
+                      width: constraints.maxWidth * 25.000,
+                      height: constraints.maxHeight * 41.000,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(0)),
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                )),
-          ),
-        ]),
+                  Positioned(
+                    left: 0,
+                    width: 25.0,
+                    top: 0,
+                    height: 17.244,
+                    child: Image.asset(
+                      'assets/images/110_3878.png',
+                      width: constraints.maxWidth * 25.000,
+                      height: constraints.maxHeight * 17.244,
+                    ),
+                  ),
+                  Positioned(
+                    left: 2.1,
+                    width: 20.0,
+                    top: 26.0,
+                    height: 15.0,
+                    child: Container(
+                        width: constraints.maxWidth * 20.000,
+                        height: constraints.maxHeight * 15.000,
+                        child: AutoSizeText(
+                          ovrDex ?? 'Dex',
+                          style: TextStyle(
+                            fontFamily: 'Prompt',
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w300,
+                            fontStyle: FontStyle.normal,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                ])))),
       ),
       Positioned(
         left: constraints.maxWidth * 0.789,
@@ -150,7 +163,8 @@ class Navbar extends StatelessWidget {
             child: Container(
                 height: 41.21063232421875,
                 width: 46.0,
-                child: Stack(children: [
+                child: SettingsTabCustom(
+                    child: Stack(children: [
                   Positioned(
                     left: 0,
                     width: 46.0,
@@ -196,7 +210,7 @@ class Navbar extends StatelessWidget {
                           textAlign: TextAlign.center,
                         )),
                   ),
-                ]))),
+                ])))),
       ),
     ]);
   }

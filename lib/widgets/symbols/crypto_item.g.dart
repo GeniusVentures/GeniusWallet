@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/tag/crypto_item_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class CryptoItem extends StatelessWidget {
@@ -25,8 +24,7 @@ class CryptoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CryptoItemCustom(
-        child: Stack(children: [
+    return Stack(children: [
       Positioned(
         left: 0,
         width: constraints.maxWidth * 1.0,
@@ -196,6 +194,6 @@ class CryptoItem extends StatelessWidget {
           ),
         ]),
       ),
-    ]));
+    ]);
   }
 }

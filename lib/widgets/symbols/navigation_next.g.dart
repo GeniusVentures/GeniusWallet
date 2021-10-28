@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geniuswallet/controller/tag/back_arrow_custom.dart';
-import 'package:geniuswallet/controller/tag/next.dart';
+import 'package:geniuswallet/controller/tag/next_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class NavigationNext extends StatelessWidget {
@@ -44,7 +44,7 @@ class NavigationNext extends StatelessWidget {
         width: 32.0,
         top: constraints.maxHeight * 0.189,
         height: constraints.maxHeight * 0.568,
-        child: Next(
+        child: NextCustom(
             child: AutoSizeText(
           'Next',
           style: TextStyle(

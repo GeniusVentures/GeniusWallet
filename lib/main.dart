@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geniuswallet/bloc/navigation_bloc/navigation_cubit.dart';
+import 'package:geniuswallet/screens/back_up_wallet/mobile/back_up_wallet_vertical.g.dart';
+import 'package:geniuswallet/screens/buy_crypto/mobile/buy_crypto_vertical.g.dart';
+import 'package:geniuswallet/screens/crypto_details/mobile/crypto_details_vertical.g.dart';
+import 'package:geniuswallet/screens/dapp/mobile/dapp_vertical.g.dart';
+import 'package:geniuswallet/screens/new_wallet/mobile/new_wallet_vertical.g.dart';
+import 'package:geniuswallet/screens/recovery_phrase/mobile/recovery_phrase_vertical.g.dart';
+import 'package:geniuswallet/screens/recovery_phrase_type/mobile/recovery_phrase_type_vertical.g.dart';
+import 'package:geniuswallet/screens/send_crypto/mobile/send_crypto_vertical.g.dart';
+import 'package:geniuswallet/screens/settings/mobile/settings_vertical.g.dart';
+import 'package:geniuswallet/screens/wallet_balance/mobile/wallet_balance_horizontal.g.dart';
 import 'package:geniuswallet/screens/wallet_balance/mobile/wallet_balance_vertical.g.dart';
 
 void main() {

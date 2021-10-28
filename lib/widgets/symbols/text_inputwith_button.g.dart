@@ -54,8 +54,8 @@ class TextInputwithButton extends StatelessWidget {
                     )))),
       ),
       Positioned(
-        right: 9.0,
-        width: 37.0,
+        left: constraints.maxWidth * 0.852,
+        width: constraints.maxWidth * 0.119,
         top: constraints.maxHeight * 0.267,
         height: constraints.maxHeight * 0.467,
         child: Center(

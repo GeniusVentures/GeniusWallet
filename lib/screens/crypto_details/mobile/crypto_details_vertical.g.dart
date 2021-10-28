@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:geniuswallet/controller/tag/cryto_details_scroll_view.dart';
+import 'package:geniuswallet/controller/tag/cryto_details_scroll_view_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
 import 'package:geniuswallet/widgets/symbols/navigation_buy.g.dart';
@@ -42,7 +42,7 @@ class _CryptoDetailsVertical extends State<CryptoDetailsVertical> {
           right: 32.0,
           top: 341.0,
           height: 394.0,
-          child: CrytoDetailsScrollView(
+          child: CrytoDetailsScrollViewCustom(
               child: Stack(children: [
             Positioned(
               left: 0,

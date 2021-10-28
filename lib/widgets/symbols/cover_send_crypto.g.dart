@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/controller/tag/paste.dart';
-import 'package:geniuswallet/controller/tag/max_e_t_h.dart';
-import 'package:geniuswallet/controller/tag/e_t_h_amount.dart';
-import 'package:geniuswallet/controller/tag/recipient_address.dart';
+import 'package:geniuswallet/controller/tag/paste_custom.dart';
+import 'package:geniuswallet/controller/tag/max_e_t_h_custom.dart';
+import 'package:geniuswallet/controller/tag/e_t_h_amount_custom.dart';
+import 'package:geniuswallet/controller/tag/recipient_address_custom.dart';
 import 'package:geniuswallet/controller/tag/scan_custom.dart';
 
 class CoverSendCrypto extends StatelessWidget {
@@ -112,7 +112,7 @@ class CoverSendCrypto extends StatelessWidget {
             width: 48.0,
             top: 17.0,
             height: 21.0,
-            child: Paste(
+            child: PasteCustom(
                 child: AutoSizeText(
               'Paste',
               style: TextStyle(
@@ -131,7 +131,7 @@ class CoverSendCrypto extends StatelessWidget {
             width: 83.0,
             top: 68.0,
             height: 21.0,
-            child: MaxETH(
+            child: MaxETHCustom(
                 child: AutoSizeText(
               'Max ETH',
               style: TextStyle(
@@ -150,7 +150,7 @@ class CoverSendCrypto extends StatelessWidget {
             width: 133.0,
             top: 65.0,
             height: 27.0,
-            child: ETHAmount(
+            child: ETHAmountCustom(
                 child: AutoSizeText(
               'ETH Amount',
               style: TextStyle(
@@ -169,7 +169,7 @@ class CoverSendCrypto extends StatelessWidget {
             width: 171.0,
             top: 14.0,
             height: 27.0,
-            child: RecipientAddress(
+            child: RecipientAddressCustom(
                 child: AutoSizeText(
               'Recipient Address',
               style: TextStyle(

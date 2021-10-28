@@ -19,8 +19,8 @@ class Words extends StatelessWidget {
         top: 0,
         height: constraints.maxHeight * 1.0,
         child: Container(
-          width: constraints.maxWidth * 51.300,
-          height: constraints.maxHeight * 24.000,
+          width: constraints.maxWidth * 51.000,
+          height: constraints.maxHeight * 29.000,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(0)),
           ),
@@ -32,8 +32,8 @@ class Words extends StatelessWidget {
         top: 0,
         height: constraints.maxHeight * 1.0,
         child: Container(
-          width: constraints.maxWidth * 51.300,
-          height: constraints.maxHeight * 24.000,
+          width: constraints.maxWidth * 51.000,
+          height: constraints.maxHeight * 29.000,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(3.0)),
             border: Border.all(
@@ -44,16 +44,16 @@ class Words extends StatelessWidget {
         ),
       ),
       Positioned(
-        left: constraints.maxWidth * 0.103,
-        width: constraints.maxWidth * 0.78,
-        top: constraints.maxHeight * 0.333,
-        height: constraints.maxHeight * 0.333,
+        left: constraints.maxWidth * 0.118,
+        width: constraints.maxWidth * 0.784,
+        top: constraints.maxHeight * 0.276,
+        height: constraints.maxHeight * 0.448,
         child: Center(
             child: Container(
-                height: 8.0,
+                height: 13.0,
                 child: Container(
                     width: constraints.maxWidth * 40.000,
-                    height: constraints.maxHeight * 8.000,
+                    height: constraints.maxHeight * 13.000,
                     child: AutoSizeText(
                       ovrWord ?? 'Word',
                       style: TextStyle(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:geniuswallet/controller/tag/price_slider.dart';
+import 'package:geniuswallet/controller/tag/price_slider_custom.dart';
 import 'package:geniuswallet/controller/tag/button_active_custom.dart';
 import 'package:geniuswallet/controller/tag/gnus_amount_selector_custom.dart';
 import 'package:geniuswallet/controller/tag/link_to_data_selector_custom.dart';
@@ -34,6 +34,41 @@ class _DappVertical extends State<DappVertical> {
               constraints,
             );
           }),
+        ),
+        Positioned(
+          left: MediaQuery.of(context).size.width * 0.268,
+          width: MediaQuery.of(context).size.width * 0.468,
+          top: 454.0,
+          height: 248.0,
+          child: Center(
+              child: Container(
+                  width: 175.668701171875,
+                  child: Stack(children: [
+                    Positioned(
+                      left: 0,
+                      width: 175.669,
+                      top: 0,
+                      height: 248.0,
+                      child: Container(
+                        height: 248.000,
+                        width: 175.669,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(0)),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      width: 175.669,
+                      top: 0,
+                      height: 248.0,
+                      child: Image.asset(
+                        'assets/images/0_194.png',
+                        height: 248.000,
+                        width: 175.669,
+                      ),
+                    ),
+                  ]))),
         ),
         Positioned(
           left: 32.456,
@@ -80,7 +115,7 @@ class _DappVertical extends State<DappVertical> {
               right: 0,
               top: 41.0,
               height: 43.0,
-              child: PriceSlider(
+              child: PriceSliderCustom(
                   child: Stack(children: [
                 Positioned(
                   left: 0,
@@ -205,41 +240,6 @@ class _DappVertical extends State<DappVertical> {
               ])),
             ),
           ]),
-        ),
-        Positioned(
-          left: MediaQuery.of(context).size.width * 0.268,
-          width: MediaQuery.of(context).size.width * 0.468,
-          top: 454.0,
-          height: 248.0,
-          child: Center(
-              child: Container(
-                  width: 175.668701171875,
-                  child: Stack(children: [
-                    Positioned(
-                      left: 0,
-                      width: 175.669,
-                      top: 0,
-                      height: 248.0,
-                      child: Container(
-                        height: 248.000,
-                        width: 175.669,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(0)),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      width: 175.669,
-                      top: 0,
-                      height: 248.0,
-                      child: Image.asset(
-                        'assets/images/0_194.png',
-                        height: 248.000,
-                        width: 175.669,
-                      ),
-                    ),
-                  ]))),
         ),
         Positioned(
           left: 32.456,
