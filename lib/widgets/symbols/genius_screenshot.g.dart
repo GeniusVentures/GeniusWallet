@@ -11,10 +11,11 @@ class GeniusScreenshot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      ovrScreenShot20210813at12809PM ?? 'assets/images/0_12481.png',
-      width: constraints.maxWidth * 165.000,
-      height: constraints.maxHeight * 159.492,
-    );
+    return ovrScreenShot20210813at12809PM ??
+        Image.asset(
+          'assets/images/0_12481.png',
+          width: constraints.maxWidth * 165.000,
+          height: constraints.maxHeight * 159.492,
+        );
   }
 }

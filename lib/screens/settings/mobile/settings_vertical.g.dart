@@ -67,7 +67,11 @@ class _SettingsVertical extends State<SettingsVertical> {
             return SettingsCard(
               constraints,
               ovrTypesomething: 'Price Alerts',
-              ovrRectangle2: 'assets/images/I0_41;0_12272.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_41;0_12272.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           })),
         ),
@@ -81,7 +85,11 @@ class _SettingsVertical extends State<SettingsVertical> {
             return SettingsCard(
               constraints,
               ovrTypesomething: 'WalletConnect',
-              ovrRectangle2: 'assets/images/I0_42;0_12272.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_42;0_12272.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           })),
         ),
@@ -93,23 +101,67 @@ class _SettingsVertical extends State<SettingsVertical> {
           child: LayoutBuilder(builder: (context, constraints) {
             return SettingsCard6OPtions(
               constraints,
-              ovrLineCopy2: 'assets/images/I0_43;0_12348.png',
-              ovrLineCopy3: 'assets/images/I0_43;0_12349.png',
-              ovrLineCopy4: 'assets/images/I0_43;0_12350.png',
-              ovrLineCopy5: 'assets/images/I0_43;0_12351.png',
-              ovrLineCopy6: 'assets/images/I0_43;0_12352.png',
+              ovrLineCopy2: Image.asset(
+                'assets/images/I0_43;0_12348.png',
+                height: MediaQuery.of(context).size.height * 0.002,
+                width: MediaQuery.of(context).size.width * 0.677,
+              ),
+              ovrLineCopy3: Image.asset(
+                'assets/images/I0_43;0_12349.png',
+                height: MediaQuery.of(context).size.height * 0.002,
+                width: MediaQuery.of(context).size.width * 0.677,
+              ),
+              ovrLineCopy4: Image.asset(
+                'assets/images/I0_43;0_12350.png',
+                height: MediaQuery.of(context).size.height * 0.002,
+                width: MediaQuery.of(context).size.width * 0.677,
+              ),
+              ovrLineCopy5: Image.asset(
+                'assets/images/I0_43;0_12351.png',
+                height: MediaQuery.of(context).size.height * 0.002,
+                width: MediaQuery.of(context).size.width * 0.677,
+              ),
+              ovrLineCopy6: Image.asset(
+                'assets/images/I0_43;0_12352.png',
+                height: MediaQuery.of(context).size.height * 0.002,
+                width: MediaQuery.of(context).size.width * 0.677,
+              ),
               ovrTypesomething: 'Help Center',
-              ovrRectangle2: 'assets/images/I0_43;0_12316.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_43;0_12316.png',
+                height: 35.000,
+                width: 35.000,
+              ),
               ovrTypesomething2: 'Twitter',
-              ovrRectangle22: 'assets/images/I0_43;0_12322.png',
+              ovrRectangle22: Image.asset(
+                'assets/images/I0_43;0_12322.png',
+                height: 35.000,
+                width: 35.000,
+              ),
               ovrTypesomething3: 'Telegram',
-              ovrRectangle23: 'assets/images/I0_43;0_12328.png',
+              ovrRectangle23: Image.asset(
+                'assets/images/I0_43;0_12328.png',
+                height: 35.000,
+                width: 35.000,
+              ),
               ovrTypesomething4: 'Facebook',
-              ovrRectangle24: 'assets/images/I0_43;0_12334.png',
+              ovrRectangle24: Image.asset(
+                'assets/images/I0_43;0_12334.png',
+                height: 35.000,
+                width: 35.000,
+              ),
               ovrTypesomething5: 'Reddit',
-              ovrRectangle25: 'assets/images/I0_43;0_12340.png',
+              ovrRectangle25: Image.asset(
+                'assets/images/I0_43;0_12340.png',
+                height: 35.000,
+                width: 35.000,
+              ),
               ovrTypesomething6: 'Youtube',
-              ovrRectangle26: 'assets/images/I0_43;0_12346.png',
+              ovrRectangle26: Image.asset(
+                'assets/images/I0_43;0_12346.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           }),
         ),
@@ -123,7 +175,11 @@ class _SettingsVertical extends State<SettingsVertical> {
             return SettingsCard(
               constraints,
               ovrTypesomething: 'About',
-              ovrRectangle2: 'assets/images/I0_44;0_12272.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_44;0_12272.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           })),
         ),
@@ -157,10 +213,18 @@ class _SettingsVertical extends State<SettingsVertical> {
             return Navbar(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_46;0_12369.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_46;0_12369.png',
+                height: 28.500,
+                width: 22.871,
+              ),
               ovrDex: 'Dex',
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_46;0_12375.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_46;0_12375.png',
+                height: MediaQuery.of(context).size.height * 0.028,
+                width: MediaQuery.of(context).size.width * 0.060,
+              ),
             );
           }),
         ),

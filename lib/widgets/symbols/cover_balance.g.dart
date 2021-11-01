@@ -116,11 +116,12 @@ class CoverBalance extends StatelessWidget {
                     width: 2.0,
                     top: 4.0,
                     height: 19.0,
-                    child: Image.asset(
-                      ovrLine ?? 'assets/images/0_12248.png',
-                      width: constraints.maxWidth * 2.000,
-                      height: constraints.maxHeight * 19.000,
-                    ),
+                    child: ovrLine ??
+                        Image.asset(
+                          'assets/images/0_12248.png',
+                          width: constraints.maxWidth * 2.000,
+                          height: constraints.maxHeight * 19.000,
+                        ),
                   ),
                   Positioned(
                     left: 80.5,
@@ -180,7 +181,11 @@ class CoverBalance extends StatelessWidget {
                   return Buy(
                     constraints,
                     ovrBuy: 'Buy',
-                    ovrVector: 'assets/images/I0_12255;222_3028.png',
+                    ovrVector: Image.asset(
+                      'assets/images/I0_12255;222_3028.png',
+                      width: constraints.maxWidth * 30.992,
+                      height: constraints.maxHeight * 30.991,
+                    ),
                   );
                 })))),
       ),
@@ -198,7 +203,11 @@ class CoverBalance extends StatelessWidget {
                   return Receive(
                     constraints,
                     ovrReceive: 'Receive',
-                    ovrVector: 'assets/images/I0_12256;110_3428.png',
+                    ovrVector: Image.asset(
+                      'assets/images/I0_12256;110_3428.png',
+                      width: constraints.maxWidth * 23.900,
+                      height: constraints.maxHeight * 12.071,
+                    ),
                   );
                 })))),
       ),

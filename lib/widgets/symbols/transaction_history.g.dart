@@ -186,7 +186,11 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrVector: 'assets/images/I0_12603;222_3827.png',
+            ovrVector: Image.asset(
+              'assets/images/I0_12603;222_3827.png',
+              width: constraints.maxWidth * 17.000,
+              height: constraints.maxHeight * 11.000,
+            ),
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',
@@ -201,7 +205,11 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrVector: 'assets/images/I0_12604;222_3827.png',
+            ovrVector: Image.asset(
+              'assets/images/I0_12604;222_3827.png',
+              width: constraints.maxWidth * 17.000,
+              height: constraints.maxHeight * 11.000,
+            ),
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',
@@ -216,7 +224,11 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrVector: 'assets/images/I0_12605;222_3827.png',
+            ovrVector: Image.asset(
+              'assets/images/I0_12605;222_3827.png',
+              width: constraints.maxWidth * 17.000,
+              height: constraints.maxHeight * 11.000,
+            ),
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',
@@ -231,7 +243,11 @@ class TransactionHistory extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Transactions(
             constraints,
-            ovrVector: 'assets/images/I0_12606;222_3827.png',
+            ovrVector: Image.asset(
+              'assets/images/I0_12606;222_3827.png',
+              width: constraints.maxWidth * 17.000,
+              height: constraints.maxHeight * 11.000,
+            ),
             ovr1PRj85hu9RXPZTzxtko9: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
             ovr0009ETH: '0.009 ETH',
             ovr162312dec2018: '16:23, 12 dec 2018',

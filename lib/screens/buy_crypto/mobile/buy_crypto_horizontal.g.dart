@@ -56,9 +56,17 @@ class _BuyCryptoHorizontal extends State<BuyCryptoHorizontal> {
             return NavbarDesktop(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_262;0_12560.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_262;0_12560.png',
+                height: MediaQuery.of(context).size.height * 0.026,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_262;0_12570.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_262;0_12570.png',
+                height: MediaQuery.of(context).size.height * 0.021,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrDex2: 'Dex',
             );
           }),
@@ -85,7 +93,11 @@ class _BuyCryptoHorizontal extends State<BuyCryptoHorizontal> {
           child: LayoutBuilder(builder: (context, constraints) {
             return PriceChart(
               constraints,
-              ovrPath4: 'assets/images/I0_264;0_12639.png',
+              ovrPath4: Image.asset(
+                'assets/images/I0_264;0_12639.png',
+                height: MediaQuery.of(context).size.height * 0.115,
+                width: MediaQuery.of(context).size.width * 0.340,
+              ),
               ovr1jan: '1 jan',
               ovr18dec: '18 dec',
               ovr4dec: '4 dec',
@@ -116,7 +128,11 @@ class _BuyCryptoHorizontal extends State<BuyCryptoHorizontal> {
               constraints,
               ovrTypesomething: 'MoonPay',
               ovrTypesomethingCopy: 'Third Party Provider',
-              ovrRectangle2: 'assets/images/I0_268;0_12279.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_268;0_12279.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           }),
         ),

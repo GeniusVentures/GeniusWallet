@@ -53,11 +53,12 @@ class DoubleInfo extends StatelessWidget {
         child: Center(
             child: Container(
                 height: 35.0,
-                child: Image.asset(
-                  ovrRectangle2 ?? 'assets/images/0_12279.png',
-                  width: constraints.maxWidth * 35.000,
-                  height: constraints.maxHeight * 35.000,
-                ))),
+                child: ovrRectangle2 ??
+                    Image.asset(
+                      'assets/images/0_12279.png',
+                      width: constraints.maxWidth * 35.000,
+                      height: constraints.maxHeight * 35.000,
+                    ))),
       ),
       Positioned(
         left: 48.0,

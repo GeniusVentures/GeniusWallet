@@ -46,7 +46,11 @@ class _RecoveryPhraseVertical extends State<RecoveryPhraseVertical> {
             return NavigationInfo(
               constraints,
               ovri: 'i',
-              ovrEllipse: 'assets/images/I0_142;0_12072.png',
+              ovrEllipse: Image.asset(
+                'assets/images/I0_142;0_12072.png',
+                height: 20.000,
+                width: 20.000,
+              ),
             );
           }),
         ),

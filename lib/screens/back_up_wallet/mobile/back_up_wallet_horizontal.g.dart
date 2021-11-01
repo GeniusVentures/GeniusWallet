@@ -109,9 +109,17 @@ class _BackUpWalletHorizontal extends State<BackUpWalletHorizontal> {
             return NavbarDesktop(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_227;0_12560.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_227;0_12560.png',
+                height: MediaQuery.of(context).size.height * 0.026,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_227;0_12570.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_227;0_12570.png',
+                height: MediaQuery.of(context).size.height * 0.021,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrDex2: 'Dex',
             );
           }),

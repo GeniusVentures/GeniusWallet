@@ -26,7 +26,11 @@ class More extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return GeniusIcon(
             constraints,
-            ovrEllipse3: 'assets/images/I0_12444;0_12263.png',
+            ovrEllipse3: Image.asset(
+              'assets/images/I0_12444;0_12263.png',
+              width: constraints.maxWidth * 56.000,
+              height: constraints.maxHeight * 56.000,
+            ),
           );
         }),
       ),
@@ -35,11 +39,12 @@ class More extends StatelessWidget {
         width: constraints.maxWidth * 0.552,
         top: constraints.maxHeight * 0.304,
         height: constraints.maxHeight * 0.071,
-        child: Image.asset(
-          ovrVector ?? 'assets/images/176_1968.png',
-          width: constraints.maxWidth * 30.888,
-          height: constraints.maxHeight * 6.000,
-        ),
+        child: ovrVector ??
+            Image.asset(
+              'assets/images/176_1968.png',
+              width: constraints.maxWidth * 30.888,
+              height: constraints.maxHeight * 6.000,
+            ),
       ),
       Positioned(
         left: constraints.maxWidth * 0.179,

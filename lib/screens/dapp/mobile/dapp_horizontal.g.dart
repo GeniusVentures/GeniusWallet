@@ -42,9 +42,17 @@ class _DappHorizontal extends State<DappHorizontal> {
             return NavbarDesktop(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_509;0_12560.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_509;0_12560.png',
+                height: MediaQuery.of(context).size.height * 0.026,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_509;0_12570.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_509;0_12570.png',
+                height: MediaQuery.of(context).size.height * 0.021,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrDex2: 'Dex',
             );
           }),
@@ -107,7 +115,11 @@ class _DappHorizontal extends State<DappHorizontal> {
             return MultChoice(
               constraints,
               ovrType: 'protocol selection',
-              ovrTriangle: 'assets/images/I0_515;0_12530.png',
+              ovrTriangle: Image.asset(
+                'assets/images/I0_515;0_12530.png',
+                height: MediaQuery.of(context).size.height * 0.015,
+                width: MediaQuery.of(context).size.width * 0.019,
+              ),
             );
           }),
         ),

@@ -76,11 +76,12 @@ class SettingsCard3Options extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle2 ?? 'assets/images/0_12294.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle2 ??
+                Image.asset(
+                  'assets/images/0_12294.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -140,11 +141,12 @@ class SettingsCard3Options extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle22 ?? 'assets/images/0_12300.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle22 ??
+                Image.asset(
+                  'assets/images/0_12300.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -204,11 +206,12 @@ class SettingsCard3Options extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle23 ?? 'assets/images/0_12306.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle23 ??
+                Image.asset(
+                  'assets/images/0_12306.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -238,22 +241,24 @@ class SettingsCard3Options extends StatelessWidget {
         right: 7.0,
         top: constraints.maxHeight * 0.322,
         height: constraints.maxHeight * 0.015,
-        child: Image.asset(
-          ovrLine4 ?? 'assets/images/0_12308.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLine4 ??
+            Image.asset(
+              'assets/images/0_12308.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
       Positioned(
         left: 49.0,
         right: 7.0,
         top: constraints.maxHeight * 0.663,
         height: constraints.maxHeight * 0.015,
-        child: Image.asset(
-          ovrLineCopy ?? 'assets/images/0_12309.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLineCopy ??
+            Image.asset(
+              'assets/images/0_12309.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
     ]);
   }

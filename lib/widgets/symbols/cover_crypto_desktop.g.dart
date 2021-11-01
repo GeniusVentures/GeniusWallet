@@ -40,11 +40,12 @@ class CoverCryptoDesktop extends StatelessWidget {
         width: constraints.maxWidth * 0.17,
         top: constraints.maxHeight * 0.204,
         height: constraints.maxHeight * 0.193,
-        child: Image.asset(
-          ovrEllipse ?? 'assets/images/0_12664.png',
-          width: constraints.maxWidth * 68.000,
-          height: constraints.maxHeight * 68.000,
-        ),
+        child: ovrEllipse ??
+            Image.asset(
+              'assets/images/0_12664.png',
+              width: constraints.maxWidth * 68.000,
+              height: constraints.maxHeight * 68.000,
+            ),
       ),
       Positioned(
         left: 20.0,
@@ -233,7 +234,11 @@ class CoverCryptoDesktop extends StatelessWidget {
                     child: LayoutBuilder(builder: (context, constraints) {
                       return More(
                         constraints,
-                        ovrVector: 'assets/images/I0_12670;176_1968.png',
+                        ovrVector: Image.asset(
+                          'assets/images/I0_12670;176_1968.png',
+                          width: constraints.maxWidth * 42.063,
+                          height: constraints.maxHeight * 7.906,
+                        ),
                         ovrMore: 'More',
                       );
                     }),
@@ -247,8 +252,11 @@ class CoverCryptoDesktop extends StatelessWidget {
                       return Copy(
                         constraints,
                         ovrCopy: 'Copy',
-                        ovrRectangle2Difference:
-                            'assets/images/I0_12671;0_12458.png',
+                        ovrRectangle2Difference: Image.asset(
+                          'assets/images/I0_12671;0_12458.png',
+                          width: constraints.maxWidth * 26.342,
+                          height: constraints.maxHeight * 25.553,
+                        ),
                       );
                     }),
                   ),
@@ -261,7 +269,11 @@ class CoverCryptoDesktop extends StatelessWidget {
                       return Receive(
                         constraints,
                         ovrReceive: 'Receive',
-                        ovrVector: 'assets/images/I0_12672;110_3428.png',
+                        ovrVector: Image.asset(
+                          'assets/images/I0_12672;110_3428.png',
+                          width: constraints.maxWidth * 23.899,
+                          height: constraints.maxHeight * 12.071,
+                        ),
                       );
                     }),
                   ),

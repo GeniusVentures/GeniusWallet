@@ -41,10 +41,18 @@ class _NewWalletVertical extends State<NewWalletVertical> {
             return Navbar(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_78;0_12369.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_78;0_12369.png',
+                height: 28.500,
+                width: 22.871,
+              ),
               ovrDex: 'Dex',
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_78;0_12375.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_78;0_12375.png',
+                height: MediaQuery.of(context).size.height * 0.028,
+                width: MediaQuery.of(context).size.width * 0.060,
+              ),
             );
           }),
         ),
@@ -59,7 +67,11 @@ class _NewWalletVertical extends State<NewWalletVertical> {
               constraints,
               ovrTypesomething: 'buy genius tokens',
               ovrTypesomethingCopy: 'gnus.ai',
-              ovrRectangle2: 'assets/images/I0_79;0_12279.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_79;0_12279.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           })),
         ),

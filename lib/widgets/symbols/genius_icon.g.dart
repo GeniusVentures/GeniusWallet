@@ -11,10 +11,11 @@ class GeniusIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      ovrEllipse3 ?? 'assets/images/0_12263.png',
-      width: constraints.maxWidth * 77.100,
-      height: constraints.maxHeight * 77.100,
-    );
+    return ovrEllipse3 ??
+        Image.asset(
+          'assets/images/0_12263.png',
+          width: constraints.maxWidth * 77.100,
+          height: constraints.maxHeight * 77.100,
+        );
   }
 }

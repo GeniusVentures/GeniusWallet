@@ -30,22 +30,24 @@ class CryptoItemDesktop extends StatelessWidget {
         width: constraints.maxWidth * 1.0,
         top: 0,
         height: constraints.maxHeight * 0.027,
-        child: Image.asset(
-          ovrLine ?? 'assets/images/200_3395.png',
-          width: constraints.maxWidth * 385.000,
-          height: constraints.maxHeight * 3.405,
-        ),
+        child: ovrLine ??
+            Image.asset(
+              'assets/images/200_3395.png',
+              width: constraints.maxWidth * 385.000,
+              height: constraints.maxHeight * 3.405,
+            ),
       ),
       Positioned(
         left: 0,
         width: 75.0,
         top: constraints.maxHeight * 0.405,
         height: constraints.maxHeight * 0.595,
-        child: Image.asset(
-          ovrEllipse ?? 'assets/images/200_3396.png',
-          width: constraints.maxWidth * 75.000,
-          height: constraints.maxHeight * 75.000,
-        ),
+        child: ovrEllipse ??
+            Image.asset(
+              'assets/images/200_3396.png',
+              width: constraints.maxWidth * 75.000,
+              height: constraints.maxHeight * 75.000,
+            ),
       ),
       Positioned(
         right: 0,

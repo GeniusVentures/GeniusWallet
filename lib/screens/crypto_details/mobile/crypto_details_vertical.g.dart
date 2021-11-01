@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geniuswallet/controller/tag/crypto_logo_custom.dart';
 import 'package:geniuswallet/controller/tag/cryto_details_scroll_view_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geniuswallet/widgets/symbols/navbar.g.dart';
@@ -31,7 +32,12 @@ class _CryptoDetailsVertical extends State<CryptoDetailsVertical> {
               ovrTitle: 'ethereum',
               ovr4630950: '\$46,309.50',
               ovr418: '+4.18%',
-              ovrEllipse: 'assets/images/I0_121;0_12183.png',
+              ovrEllipse: CryptoLogoCustom(
+                  child: Image.asset(
+                'assets/images/I0_121;0_12183.png',
+                height: MediaQuery.of(context).size.height * 0.067,
+                width: MediaQuery.of(context).size.width * 0.140,
+              )),
               ovrText: '~ \$21.03',
               ovrAmount: '0.0065218 ETH',
             );
@@ -205,10 +211,18 @@ class _CryptoDetailsVertical extends State<CryptoDetailsVertical> {
             return Navbar(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_131;0_12369.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_131;0_12369.png',
+                height: 28.500,
+                width: 22.871,
+              ),
               ovrDex: 'Dex',
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_131;0_12375.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_131;0_12375.png',
+                height: MediaQuery.of(context).size.height * 0.028,
+                width: MediaQuery.of(context).size.width * 0.060,
+              ),
             );
           }),
         ),

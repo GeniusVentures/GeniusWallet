@@ -78,11 +78,12 @@ class CoverCrypto extends StatelessWidget {
         width: constraints.maxWidth * 0.14,
         top: 52.45,
         height: 54.0,
-        child: Image.asset(
-          ovrEllipse ?? 'assets/images/0_12183.png',
-          width: constraints.maxWidth * 54.000,
-          height: constraints.maxHeight * 54.000,
-        ),
+        child: ovrEllipse ??
+            Image.asset(
+              'assets/images/0_12183.png',
+              width: constraints.maxWidth * 54.000,
+              height: constraints.maxHeight * 54.000,
+            ),
       ),
       Positioned(
         left: 20.616,
@@ -198,7 +199,11 @@ class CoverCrypto extends StatelessWidget {
                     child: LayoutBuilder(builder: (context, constraints) {
                       return More(
                         constraints,
-                        ovrVector: 'assets/images/I0_12189;176_1968.png',
+                        ovrVector: Image.asset(
+                          'assets/images/I0_12189;176_1968.png',
+                          width: constraints.maxWidth * 30.888,
+                          height: constraints.maxHeight * 6.000,
+                        ),
                         ovrMore: 'More',
                       );
                     }))),
@@ -215,8 +220,11 @@ class CoverCrypto extends StatelessWidget {
                       return Copy(
                         constraints,
                         ovrCopy: 'Copy',
-                        ovrRectangle2Difference:
-                            'assets/images/I0_12190;0_12458.png',
+                        ovrRectangle2Difference: Image.asset(
+                          'assets/images/I0_12190;0_12458.png',
+                          width: constraints.maxWidth * 19.875,
+                          height: constraints.maxHeight * 19.875,
+                        ),
                       );
                     }))),
           ),
@@ -232,7 +240,11 @@ class CoverCrypto extends StatelessWidget {
                       return Receive(
                         constraints,
                         ovrReceive: 'Receive',
-                        ovrVector: 'assets/images/I0_12191;110_3428.png',
+                        ovrVector: Image.asset(
+                          'assets/images/I0_12191;110_3428.png',
+                          width: constraints.maxWidth * 23.900,
+                          height: constraints.maxHeight * 12.071,
+                        ),
                       );
                     }))),
           ),

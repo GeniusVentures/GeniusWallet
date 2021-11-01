@@ -670,11 +670,12 @@ class PriceChart extends StatelessWidget {
         width: constraints.maxWidth * 0.821,
         top: constraints.maxHeight * 0.367,
         height: constraints.maxHeight * 0.342,
-        child: Image.asset(
-          ovrPath4 ?? 'assets/images/0_12639.png',
-          width: constraints.maxWidth * 652.558,
-          height: constraints.maxHeight * 123.751,
-        ),
+        child: ovrPath4 ??
+            Image.asset(
+              'assets/images/0_12639.png',
+              width: constraints.maxWidth * 652.558,
+              height: constraints.maxHeight * 123.751,
+            ),
       ),
     ]);
   }

@@ -65,11 +65,12 @@ class NavigationInfo extends StatelessWidget {
             width: 20.0,
             top: 1.0,
             height: 20.0,
-            child: Image.asset(
-              ovrEllipse ?? 'assets/images/0_12072.png',
-              width: constraints.maxWidth * 20.000,
-              height: constraints.maxHeight * 20.000,
-            ),
+            child: ovrEllipse ??
+                Image.asset(
+                  'assets/images/0_12072.png',
+                  width: constraints.maxWidth * 20.000,
+                  height: constraints.maxHeight * 20.000,
+                ),
           ),
           Positioned(
             left: 8.0,

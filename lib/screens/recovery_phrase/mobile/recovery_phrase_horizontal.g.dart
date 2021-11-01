@@ -42,9 +42,17 @@ class _RecoveryPhraseHorizontal extends State<RecoveryPhraseHorizontal> {
             return NavbarDesktop(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_380;0_12560.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_380;0_12560.png',
+                height: MediaQuery.of(context).size.height * 0.026,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_380;0_12570.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_380;0_12570.png',
+                height: MediaQuery.of(context).size.height * 0.021,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrDex2: 'Dex',
             );
           }),
@@ -215,7 +223,11 @@ class _RecoveryPhraseHorizontal extends State<RecoveryPhraseHorizontal> {
             return NavigationInfo(
               constraints,
               ovri: 'i',
-              ovrEllipse: 'assets/images/I0_422;0_12072.png',
+              ovrEllipse: Image.asset(
+                'assets/images/I0_422;0_12072.png',
+                height: 20.000,
+                width: 20.000,
+              ),
             );
           }),
         ),

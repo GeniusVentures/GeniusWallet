@@ -94,11 +94,12 @@ class SettingsCard6OPtions extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle2 ?? 'assets/images/0_12316.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle2 ??
+                Image.asset(
+                  'assets/images/0_12316.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -158,11 +159,12 @@ class SettingsCard6OPtions extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle22 ?? 'assets/images/0_12322.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle22 ??
+                Image.asset(
+                  'assets/images/0_12322.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -222,11 +224,12 @@ class SettingsCard6OPtions extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle23 ?? 'assets/images/0_12328.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle23 ??
+                Image.asset(
+                  'assets/images/0_12328.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -286,11 +289,12 @@ class SettingsCard6OPtions extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle24 ?? 'assets/images/0_12334.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle24 ??
+                Image.asset(
+                  'assets/images/0_12334.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -350,11 +354,12 @@ class SettingsCard6OPtions extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle25 ?? 'assets/images/0_12340.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle25 ??
+                Image.asset(
+                  'assets/images/0_12340.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -414,11 +419,12 @@ class SettingsCard6OPtions extends StatelessWidget {
             width: 35.0,
             top: 0,
             height: 35.0,
-            child: Image.asset(
-              ovrRectangle26 ?? 'assets/images/0_12346.png',
-              width: constraints.maxWidth * 35.000,
-              height: constraints.maxHeight * 35.000,
-            ),
+            child: ovrRectangle26 ??
+                Image.asset(
+                  'assets/images/0_12346.png',
+                  width: constraints.maxWidth * 35.000,
+                  height: constraints.maxHeight * 35.000,
+                ),
           ),
           Positioned(
             left: 42.0,
@@ -448,55 +454,60 @@ class SettingsCard6OPtions extends StatelessWidget {
         right: 8.0,
         top: constraints.maxHeight * 0.167,
         height: constraints.maxHeight * 0.007,
-        child: Image.asset(
-          ovrLineCopy2 ?? 'assets/images/0_12348.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLineCopy2 ??
+            Image.asset(
+              'assets/images/0_12348.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
       Positioned(
         left: 48.0,
         right: 8.0,
         top: constraints.maxHeight * 0.326,
         height: constraints.maxHeight * 0.007,
-        child: Image.asset(
-          ovrLineCopy3 ?? 'assets/images/0_12349.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLineCopy3 ??
+            Image.asset(
+              'assets/images/0_12349.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
       Positioned(
         left: 48.0,
         right: 8.0,
         top: constraints.maxHeight * 0.5,
         height: constraints.maxHeight * 0.007,
-        child: Image.asset(
-          ovrLineCopy4 ?? 'assets/images/0_12350.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLineCopy4 ??
+            Image.asset(
+              'assets/images/0_12350.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
       Positioned(
         left: 48.0,
         right: 8.0,
         top: constraints.maxHeight * 0.659,
         height: constraints.maxHeight * 0.007,
-        child: Image.asset(
-          ovrLineCopy5 ?? 'assets/images/0_12351.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLineCopy5 ??
+            Image.asset(
+              'assets/images/0_12351.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
       Positioned(
         left: 48.0,
         right: 8.0,
         top: constraints.maxHeight * 0.833,
         height: constraints.maxHeight * 0.007,
-        child: Image.asset(
-          ovrLineCopy6 ?? 'assets/images/0_12352.png',
-          width: constraints.maxWidth * 254.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLineCopy6 ??
+            Image.asset(
+              'assets/images/0_12352.png',
+              width: constraints.maxWidth * 254.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
     ]);
   }

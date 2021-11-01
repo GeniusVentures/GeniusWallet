@@ -30,22 +30,24 @@ class CryptoItem extends StatelessWidget {
         width: constraints.maxWidth * 1.0,
         top: 0,
         height: constraints.maxHeight * 0.027,
-        child: Image.asset(
-          ovrLine ?? 'assets/images/0_12431.png',
-          width: constraints.maxWidth * 281.000,
-          height: constraints.maxHeight * 2.000,
-        ),
+        child: ovrLine ??
+            Image.asset(
+              'assets/images/0_12431.png',
+              width: constraints.maxWidth * 281.000,
+              height: constraints.maxHeight * 2.000,
+            ),
       ),
       Positioned(
         left: 0,
         width: 36.774,
         top: constraints.maxHeight * 0.196,
         height: constraints.maxHeight * 0.497,
-        child: Image.asset(
-          ovrEllipse ?? 'assets/images/0_12432.png',
-          width: constraints.maxWidth * 36.774,
-          height: constraints.maxHeight * 36.770,
-        ),
+        child: ovrEllipse ??
+            Image.asset(
+              'assets/images/0_12432.png',
+              width: constraints.maxWidth * 36.774,
+              height: constraints.maxHeight * 36.770,
+            ),
       ),
       Positioned(
         right: 0,

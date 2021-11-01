@@ -47,7 +47,11 @@ class _BuyCryptoVertical extends State<BuyCryptoVertical> {
               constraints,
               ovrTypesomething: 'MoonPay',
               ovrTypesomethingCopy: 'Third Party Provider',
-              ovrRectangle2: 'assets/images/I0_116;0_12279.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I0_116;0_12279.png',
+                height: 35.000,
+                width: 35.000,
+              ),
             );
           })),
         ),
@@ -96,7 +100,11 @@ class _BuyCryptoVertical extends State<BuyCryptoVertical> {
             return NavigationInfo(
               constraints,
               ovri: 'i',
-              ovrEllipse: 'assets/images/I0_119;0_12072.png',
+              ovrEllipse: Image.asset(
+                'assets/images/I0_119;0_12072.png',
+                height: 20.000,
+                width: 20.000,
+              ),
             );
           }),
         ),

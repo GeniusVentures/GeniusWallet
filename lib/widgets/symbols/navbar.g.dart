@@ -67,11 +67,12 @@ class Navbar extends StatelessWidget {
                     width: 22.871,
                     top: 0,
                     height: 28.5,
-                    child: Image.asset(
-                      ovrShield ?? 'assets/images/0_12369.png',
-                      width: constraints.maxWidth * 22.871,
-                      height: constraints.maxHeight * 28.500,
-                    ),
+                    child: ovrShield ??
+                        Image.asset(
+                          'assets/images/0_12369.png',
+                          width: constraints.maxWidth * 22.871,
+                          height: constraints.maxHeight * 28.500,
+                        ),
                   ),
                   Positioned(
                     left: 0,
@@ -183,11 +184,12 @@ class Navbar extends StatelessWidget {
                     width: 22.518,
                     top: 0,
                     height: 22.518,
-                    child: Image.asset(
-                      ovrEllipseXor ?? 'assets/images/0_12375.png',
-                      width: constraints.maxWidth * 22.518,
-                      height: constraints.maxHeight * 22.518,
-                    ),
+                    child: ovrEllipseXor ??
+                        Image.asset(
+                          'assets/images/0_12375.png',
+                          width: constraints.maxWidth * 22.518,
+                          height: constraints.maxHeight * 22.518,
+                        ),
                   ),
                   Positioned(
                     left: 0,

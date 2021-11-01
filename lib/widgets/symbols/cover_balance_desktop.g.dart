@@ -200,7 +200,11 @@ class CoverBalanceDesktop extends StatelessWidget {
                       return Buy(
                         constraints,
                         ovrBuy: 'Buy',
-                        ovrVector: 'assets/images/I0_12748;222_3028.png',
+                        ovrVector: Image.asset(
+                          'assets/images/I0_12748;222_3028.png',
+                          width: constraints.maxWidth * 30.991,
+                          height: constraints.maxHeight * 30.991,
+                        ),
                       );
                     }))),
           ),
@@ -216,7 +220,11 @@ class CoverBalanceDesktop extends StatelessWidget {
                       return Receive(
                         constraints,
                         ovrReceive: 'Receive',
-                        ovrVector: 'assets/images/I0_12749;110_3428.png',
+                        ovrVector: Image.asset(
+                          'assets/images/I0_12749;110_3428.png',
+                          width: constraints.maxWidth * 23.899,
+                          height: constraints.maxHeight * 12.071,
+                        ),
                       );
                     }))),
           ),
@@ -245,11 +253,12 @@ class CoverBalanceDesktop extends StatelessWidget {
         child: Center(
             child: Container(
                 width: 2.0,
-                child: Image.asset(
-                  ovrLine ?? 'assets/images/0_12741.png',
-                  width: constraints.maxWidth * 2.000,
-                  height: constraints.maxHeight * 29.000,
-                ))),
+                child: ovrLine ??
+                    Image.asset(
+                      'assets/images/0_12741.png',
+                      width: constraints.maxWidth * 2.000,
+                      height: constraints.maxHeight * 29.000,
+                    ))),
       ),
       Positioned(
         left: constraints.maxWidth * 0.332,

@@ -64,7 +64,11 @@ class Send extends StatelessWidget {
             child: LayoutBuilder(builder: (context, constraints) {
               return GeniusIcon(
                 constraints,
-                ovrEllipse3: 'assets/images/I0_12469;0_12263.png',
+                ovrEllipse3: Image.asset(
+                  'assets/images/I0_12469;0_12263.png',
+                  width: constraints.maxWidth * 56.000,
+                  height: constraints.maxHeight * 56.000,
+                ),
               );
             }),
           ),

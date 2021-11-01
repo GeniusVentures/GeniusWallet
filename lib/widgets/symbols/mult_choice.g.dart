@@ -58,11 +58,12 @@ class MultChoice extends StatelessWidget {
         width: constraints.maxWidth * 0.065,
         top: constraints.maxHeight * 0.444,
         height: constraints.maxHeight * 0.2,
-        child: Image.asset(
-          ovrTriangle ?? 'assets/images/0_12530.png',
-          width: constraints.maxWidth * 20.000,
-          height: constraints.maxHeight * 9.000,
-        ),
+        child: ovrTriangle ??
+            Image.asset(
+              'assets/images/0_12530.png',
+              width: constraints.maxWidth * 20.000,
+              height: constraints.maxHeight * 9.000,
+            ),
       ),
     ]);
   }

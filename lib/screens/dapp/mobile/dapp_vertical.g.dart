@@ -292,7 +292,11 @@ class _DappVertical extends State<DappVertical> {
             return MultChoice(
               constraints,
               ovrType: 'protocol selection',
-              ovrTriangle: 'assets/images/I0_190;0_12530.png',
+              ovrTriangle: Image.asset(
+                'assets/images/I0_190;0_12530.png',
+                height: MediaQuery.of(context).size.height * 0.011,
+                width: MediaQuery.of(context).size.width * 0.053,
+              ),
             );
           })),
         ),

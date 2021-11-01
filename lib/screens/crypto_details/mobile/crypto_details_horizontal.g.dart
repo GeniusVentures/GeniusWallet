@@ -40,9 +40,17 @@ class _CryptoDetailsHorizontal extends State<CryptoDetailsHorizontal> {
             return NavbarDesktop(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_273;0_12560.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_273;0_12560.png',
+                height: MediaQuery.of(context).size.height * 0.026,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_273;0_12570.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_273;0_12570.png',
+                height: MediaQuery.of(context).size.height * 0.021,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrDex2: 'Dex',
             );
           }),
@@ -56,7 +64,11 @@ class _CryptoDetailsHorizontal extends State<CryptoDetailsHorizontal> {
             return CoverCryptoDesktop(
               constraints,
               ovrTitle: 'ethereum',
-              ovrEllipse: 'assets/images/I0_284;0_12664.png',
+              ovrEllipse: Image.asset(
+                'assets/images/I0_284;0_12664.png',
+                height: MediaQuery.of(context).size.height * 0.094,
+                width: MediaQuery.of(context).size.width * 0.060,
+              ),
               ovrText: '~ \$21.03',
               ovrAmount: '0.0065218 ETH',
               ovr418: '+4.18%',

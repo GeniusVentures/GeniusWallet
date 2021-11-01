@@ -39,9 +39,17 @@ class _NewWalletHorizontal extends State<NewWalletHorizontal> {
             return NavbarDesktop(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_343;0_12560.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_343;0_12560.png',
+                height: MediaQuery.of(context).size.height * 0.026,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_343;0_12570.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_343;0_12570.png',
+                height: MediaQuery.of(context).size.height * 0.021,
+                width: MediaQuery.of(context).size.width * 0.012,
+              ),
               ovrDex2: 'Dex',
             );
           }),
@@ -56,7 +64,11 @@ class _NewWalletHorizontal extends State<NewWalletHorizontal> {
               constraints,
               ovrTypesomething: 'Buy Genius Tokens',
               ovrTypesomethingCopy: 'gnus.ai',
-              ovrRectangle2: 'assets/images/I206_3656;206_3652.png',
+              ovrRectangle2: Image.asset(
+                'assets/images/I206_3656;206_3652.png',
+                height: 60.000,
+                width: 60.000,
+              ),
             );
           }),
         ),

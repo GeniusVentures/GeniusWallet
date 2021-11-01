@@ -66,7 +66,11 @@ class Buy extends StatelessWidget {
             child: LayoutBuilder(builder: (context, constraints) {
               return GeniusIcon(
                 constraints,
-                ovrEllipse3: 'assets/images/I0_12462;0_12263.png',
+                ovrEllipse3: Image.asset(
+                  'assets/images/I0_12462;0_12263.png',
+                  width: constraints.maxWidth * 56.000,
+                  height: constraints.maxHeight * 56.000,
+                ),
               );
             }),
           ),
@@ -79,11 +83,12 @@ class Buy extends StatelessWidget {
                 child: Container(
                     height: 30.991378784179688,
                     width: 30.991455078125,
-                    child: Image.asset(
-                      ovrVector ?? 'assets/images/222_3028.png',
-                      width: constraints.maxWidth * 30.991,
-                      height: constraints.maxHeight * 30.991,
-                    ))),
+                    child: ovrVector ??
+                        Image.asset(
+                          'assets/images/222_3028.png',
+                          width: constraints.maxWidth * 30.991,
+                          height: constraints.maxHeight * 30.991,
+                        ))),
           ),
         ]),
       ),

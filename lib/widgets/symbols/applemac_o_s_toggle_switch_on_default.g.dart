@@ -21,33 +21,36 @@ class ApplemacOSToggleSwitchOnDefault extends StatelessWidget {
         width: constraints.maxWidth * 1.0,
         top: 0,
         height: constraints.maxHeight * 0.967,
-        child: Image.asset(
-          ovrMask ?? 'assets/images/0_12260.png',
-          width: constraints.maxWidth * 35.000,
-          height: constraints.maxHeight * 21.275,
-        ),
+        child: ovrMask ??
+            Image.asset(
+              'assets/images/0_12260.png',
+              width: constraints.maxWidth * 35.000,
+              height: constraints.maxHeight * 21.275,
+            ),
       ),
       Positioned(
         left: 0,
         width: constraints.maxWidth * 1.0,
         top: 0,
         height: constraints.maxHeight * 0.967,
-        child: Image.asset(
-          ovrMask2 ?? 'assets/images/0_12259.png',
-          width: constraints.maxWidth * 35.000,
-          height: constraints.maxHeight * 21.275,
-        ),
+        child: ovrMask2 ??
+            Image.asset(
+              'assets/images/0_12259.png',
+              width: constraints.maxWidth * 35.000,
+              height: constraints.maxHeight * 21.275,
+            ),
       ),
       Positioned(
         left: constraints.maxWidth * 0.431,
         width: constraints.maxWidth * 0.529,
         top: constraints.maxHeight * 0.062,
         height: constraints.maxHeight * 0.842,
-        child: Image.asset(
-          ovrknob ?? 'assets/images/0_12261.png',
-          width: constraints.maxWidth * 18.529,
-          height: constraints.maxHeight * 18.529,
-        ),
+        child: ovrknob ??
+            Image.asset(
+              'assets/images/0_12261.png',
+              width: constraints.maxWidth * 18.529,
+              height: constraints.maxHeight * 18.529,
+            ),
       ),
     ]);
   }

@@ -40,11 +40,12 @@ class NavbarWallet extends StatelessWidget {
         width: constraints.maxWidth * 0.061,
         top: constraints.maxHeight * 0.123,
         height: constraints.maxHeight * 0.37,
-        child: Image.asset(
-          ovrShield ?? 'assets/images/0_12385.png',
-          width: constraints.maxWidth * 22.871,
-          height: constraints.maxHeight * 28.500,
-        ),
+        child: ovrShield ??
+            Image.asset(
+              'assets/images/0_12385.png',
+              width: constraints.maxWidth * 22.871,
+              height: constraints.maxHeight * 28.500,
+            ),
       ),
       Positioned(
         left: constraints.maxWidth * 0.102,
@@ -72,11 +73,12 @@ class NavbarWallet extends StatelessWidget {
         width: constraints.maxWidth * 0.064,
         top: constraints.maxHeight * 0.142,
         height: constraints.maxHeight * 0.314,
-        child: Image.asset(
-          ovrEllipseXor ?? 'assets/images/0_12391.png',
-          width: constraints.maxWidth * 24.169,
-          height: constraints.maxHeight * 24.169,
-        ),
+        child: ovrEllipseXor ??
+            Image.asset(
+              'assets/images/0_12391.png',
+              width: constraints.maxWidth * 24.169,
+              height: constraints.maxHeight * 24.169,
+            ),
       ),
       Positioned(
         left: constraints.maxWidth * 0.472,

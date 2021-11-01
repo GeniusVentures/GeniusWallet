@@ -127,11 +127,12 @@ class Transactions extends StatelessWidget {
         child: Center(
             child: Container(
                 height: 11.0,
-                child: Image.asset(
-                  ovrVector ?? 'assets/images/222_3827.png',
-                  width: constraints.maxWidth * 17.000,
-                  height: constraints.maxHeight * 11.000,
-                ))),
+                child: ovrVector ??
+                    Image.asset(
+                      'assets/images/222_3827.png',
+                      width: constraints.maxWidth * 17.000,
+                      height: constraints.maxHeight * 11.000,
+                    ))),
       ),
     ]);
   }

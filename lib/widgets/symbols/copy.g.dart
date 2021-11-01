@@ -26,7 +26,11 @@ class Copy extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return GeniusIcon(
             constraints,
-            ovrEllipse3: 'assets/images/I0_12453;0_12263.png',
+            ovrEllipse3: Image.asset(
+              'assets/images/I0_12453;0_12263.png',
+              width: constraints.maxWidth * 56.000,
+              height: constraints.maxHeight * 56.000,
+            ),
           );
         }),
       ),
@@ -56,11 +60,12 @@ class Copy extends StatelessWidget {
         width: constraints.maxWidth * 0.355,
         top: constraints.maxHeight * 0.251,
         height: constraints.maxHeight * 0.234,
-        child: Image.asset(
-          ovrRectangle2Difference ?? 'assets/images/0_12458.png',
-          width: constraints.maxWidth * 19.875,
-          height: constraints.maxHeight * 19.875,
-        ),
+        child: ovrRectangle2Difference ??
+            Image.asset(
+              'assets/images/0_12458.png',
+              width: constraints.maxWidth * 19.875,
+              height: constraints.maxHeight * 19.875,
+            ),
       ),
       Positioned(
         left: constraints.maxWidth * 0.268,

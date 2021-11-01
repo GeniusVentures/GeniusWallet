@@ -109,7 +109,11 @@ class CoverTextDesktopShield extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return GeniusIcon(
             constraints,
-            ovrEllipse3: 'assets/images/I222_2614;0_12263.png',
+            ovrEllipse3: Image.asset(
+              'assets/images/I222_2614;0_12263.png',
+              width: constraints.maxWidth * 77.100,
+              height: constraints.maxHeight * 77.100,
+            ),
           );
         }),
       ),
@@ -118,11 +122,12 @@ class CoverTextDesktopShield extends StatelessWidget {
         width: constraints.maxWidth * 0.087,
         top: constraints.maxHeight * 0.919,
         height: constraints.maxHeight * 0.178,
-        child: Image.asset(
-          ovrNewshape ?? 'assets/images/222_2615.png',
-          width: constraints.maxWidth * 32.611,
-          height: constraints.maxHeight * 40.500,
-        ),
+        child: ovrNewshape ??
+            Image.asset(
+              'assets/images/222_2615.png',
+              width: constraints.maxWidth * 32.611,
+              height: constraints.maxHeight * 40.500,
+            ),
       ),
     ]);
   }

@@ -29,7 +29,11 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
               constraints,
               ovrCollectibles: 'Collectibles',
               ovrFinance: 'Finance',
-              ovrLine: 'assets/images/I0_52;0_12248.png',
+              ovrLine: Image.asset(
+                'assets/images/I0_52;0_12248.png',
+                height: 19.000,
+                width: 2.000,
+              ),
               ovrTokens: 'Tokens',
             );
           }),
@@ -62,8 +66,16 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
                   child: LayoutBuilder(builder: (context, constraints) {
                 return CryptoItem(
                   constraints,
-                  ovrLine: 'assets/images/I0_49;0_12431.png',
-                  ovrEllipse: 'assets/images/I0_49;0_12432.png',
+                  ovrLine: Image.asset(
+                    'assets/images/I0_49;0_12431.png',
+                    height: MediaQuery.of(context).size.height * 0.002,
+                    width: MediaQuery.of(context).size.width * 0.749,
+                  ),
+                  ovrEllipse: Image.asset(
+                    'assets/images/I0_49;0_12432.png',
+                    height: MediaQuery.of(context).size.height * 0.045,
+                    width: 36.774,
+                  ),
                   ovr2099: '\$20.99',
                   ovr0BTC: '0.0065 ETH',
                   ovr418: '+5.25%',
@@ -81,8 +93,16 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
                   child: LayoutBuilder(builder: (context, constraints) {
                 return CryptoItem(
                   constraints,
-                  ovrLine: 'assets/images/I0_50;0_12431.png',
-                  ovrEllipse: 'assets/images/I0_50;0_12432.png',
+                  ovrLine: Image.asset(
+                    'assets/images/I0_50;0_12431.png',
+                    height: MediaQuery.of(context).size.height * 0.002,
+                    width: MediaQuery.of(context).size.width * 0.749,
+                  ),
+                  ovrEllipse: Image.asset(
+                    'assets/images/I0_50;0_12432.png',
+                    height: MediaQuery.of(context).size.height * 0.045,
+                    width: 36.774,
+                  ),
                   ovr2099: ' ',
                   ovr0BTC: '0 BTC',
                   ovr418: '+4.18%',
@@ -100,8 +120,16 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
                   child: LayoutBuilder(builder: (context, constraints) {
                 return CryptoItem(
                   constraints,
-                  ovrLine: 'assets/images/I0_51;0_12431.png',
-                  ovrEllipse: 'assets/images/I0_51;0_12432.png',
+                  ovrLine: Image.asset(
+                    'assets/images/I0_51;0_12431.png',
+                    height: MediaQuery.of(context).size.height * 0.002,
+                    width: MediaQuery.of(context).size.width * 0.749,
+                  ),
+                  ovrEllipse: Image.asset(
+                    'assets/images/I0_51;0_12432.png',
+                    height: MediaQuery.of(context).size.height * 0.045,
+                    width: 36.774,
+                  ),
                   ovr2099: ' ',
                   ovr0BTC: '606.147 GNUS',
                   ovr418: ' ',
@@ -121,10 +149,18 @@ class _WalletBalanceVertical extends State<WalletBalanceVertical> {
             return Navbar(
               constraints,
               ovrWallet: 'Wallet',
-              ovrShield: 'assets/images/I0_54;0_12369.png',
+              ovrShield: Image.asset(
+                'assets/images/I0_54;0_12369.png',
+                height: 28.500,
+                width: 22.871,
+              ),
               ovrDex: 'Dex',
               ovrsettings: 'settings',
-              ovrEllipseXor: 'assets/images/I0_54;0_12375.png',
+              ovrEllipseXor: Image.asset(
+                'assets/images/I0_54;0_12375.png',
+                height: MediaQuery.of(context).size.height * 0.028,
+                width: MediaQuery.of(context).size.width * 0.060,
+              ),
             );
           }),
         ),

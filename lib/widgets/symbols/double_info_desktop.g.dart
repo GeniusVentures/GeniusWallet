@@ -53,11 +53,12 @@ class DoubleInfoDesktop extends StatelessWidget {
         child: Center(
             child: Container(
                 height: 60.0,
-                child: Image.asset(
-                  ovrRectangle2 ?? 'assets/images/206_3652.png',
-                  width: constraints.maxWidth * 60.000,
-                  height: constraints.maxHeight * 60.000,
-                ))),
+                child: ovrRectangle2 ??
+                    Image.asset(
+                      'assets/images/206_3652.png',
+                      width: constraints.maxWidth * 60.000,
+                      height: constraints.maxHeight * 60.000,
+                    ))),
       ),
       Positioned(
         left: 96.0,
