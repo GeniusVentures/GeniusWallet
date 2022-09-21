@@ -1,0 +1,70 @@
+name: genius_wallet
+description: A new Flutter project.
+publish_to: none
+version: 1.0.0+1
+environment: 
+  sdk: '>=2.18.1 <3.0.0'
+dependencies: 
+  flutter: 
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  widgetbook: 2.0.5-beta
+  auto_size_text: 3.0.0
+  flutter_svg: ^1.0.3
+dev_dependencies: 
+  flutter_test: 
+    sdk: flutter
+  flutter_lints: ^2.0.0
+flutter: 
+  uses-material-design: true
+  assets: 
+    - packages/genius_wallet/assets/images/mask2.png
+    - packages/genius_wallet/assets/images/mask4.png
+    - packages/genius_wallet/assets/images/mask3.svg
+    - packages/genius_wallet/assets/images/mask6.svg
+    - packages/genius_wallet/assets/images/mask5.svg
+    - packages/genius_wallet/assets/images/shape.svg
+    - packages/genius_wallet/assets/images/mask3.png
+    - packages/genius_wallet/assets/images/mask.svg
+    - packages/genius_wallet/assets/images/optionscustom.png
+    - packages/genius_wallet/assets/images/oval.png
+    - packages/genius_wallet/assets/images/mask.png
+    - packages/genius_wallet/assets/images/image1.png
+    - packages/genius_wallet/assets/images/graphcustom.svg
+    - packages/genius_wallet/assets/images/shape.png
+    - packages/genius_wallet/assets/images/trendlinecustom.svg
+    - packages/genius_wallet/assets/images/vector.svg
+    - packages/genius_wallet/assets/images/ribookletfill.svg
+    - packages/genius_wallet/assets/images/group18.svg
+    - packages/genius_wallet/assets/images/bxsdashboard.svg
+    - packages/genius_wallet/assets/images/checkmarksuffixicon.svg
+    - packages/genius_wallet/assets/images/path4.svg
+    - packages/genius_wallet/assets/images/combinedshape.png
+    - packages/genius_wallet/assets/images/arrowtoggle.svg
+    - packages/genius_wallet/assets/images/markettrendline.svg
+    - packages/genius_wallet/assets/images/transactiontype.svg
+    - packages/genius_wallet/assets/images/mask2.svg
+    - packages/genius_wallet/assets/images/cointogglecustom.svg
+    - packages/genius_wallet/assets/images/increasecustom.svg
+    - packages/genius_wallet/assets/images/decreasecustom.svg
+    - packages/genius_wallet/assets/images/transactionoptionscustom.svg
+    - packages/genius_wallet/assets/images/transactiontypeiconcustom.svg
+    - packages/genius_wallet/assets/images/mask4.svg
+    - packages/genius_wallet/assets/images/chartoptionscustom.svg
+    - packages/genius_wallet/assets/images/profileicon.png
+    - packages/genius_wallet/assets/images/whitearrowleft.svg
+    - packages/genius_wallet/assets/images/chatbubbles.png
+    - packages/genius_wallet/assets/images/arrowselectorvertical3.png
+    - packages/genius_wallet/assets/images/arrowselectorvertical2.png
+    - packages/genius_wallet/assets/images/arrowselectorvertical.png
+    - packages/genius_wallet/assets/images/vector4.svg
+    - packages/genius_wallet/assets/images/whitearrowback.svg
+    - packages/genius_wallet/assets/images/greenarrowright.svg
+    - packages/genius_wallet/assets/images/line6.svg
+    - packages/genius_wallet/assets/images/line7.svg
+    - packages/genius_wallet/assets/images/line8.svg
+    - packages/genius_wallet/assets/images/line9.svg
+    - packages/genius_wallet/assets/images/line10.svg
+    - packages/genius_wallet/assets/images/line11.svg
+    - packages/genius_wallet/assets/images/ellipse1.png
+    - packages/genius_wallet/assets/images/whitearrowright.svg
