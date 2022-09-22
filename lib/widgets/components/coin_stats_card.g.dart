@@ -165,9 +165,9 @@ class _CoinStatsCard extends State<CoinStatsCard> {
                     )),
               ),
               Positioned(
-                left: 267.0,
+                right: 20.0,
                 width: 24.0,
-                top: 127.0,
+                bottom: 51.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
@@ -185,18 +185,22 @@ class _CoinStatsCard extends State<CoinStatsCard> {
                     )),
               ),
               Positioned(
-                left: 26.0,
-                right: 26.0,
-                top: 59.0,
-                height: 68.0,
-                child: TrendLineCustom(
-                    child: SvgPicture.asset(
-                  'assets/images/trendlinecustom.svg',
-                  package: 'genius_wallet',
-                  height: 68.0,
-                  width: widget.constraints.maxWidth * 0.8327974276527331,
-                  fit: BoxFit.fitWidth,
-                )),
+                left: widget.constraints.maxWidth * 0.084,
+                width: widget.constraints.maxWidth * 0.833,
+                top: widget.constraints.maxHeight * 0.307,
+                height: widget.constraints.maxHeight * 0.354,
+                child: Center(
+                    child: Container(
+                        height: 68.0,
+                        width: 259.0,
+                        child: TrendLineCustom(
+                            child: SvgPicture.asset(
+                          'assets/images/trendlinecustom.svg',
+                          package: 'genius_wallet',
+                          height: 68.0,
+                          width: 259.0,
+                          fit: BoxFit.scaleDown,
+                        )))),
               ),
             ]),
           ),

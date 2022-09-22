@@ -34,8 +34,8 @@ class _TypeCreate extends State<TypeCreate> {
           Positioned(
             left: widget.constraints.maxWidth * 0.292,
             width: widget.constraints.maxWidth * 0.416,
-            top: 16.0,
-            height: 13.0,
+            top: widget.constraints.maxHeight * 0.348,
+            height: widget.constraints.maxHeight * 0.283,
             child: Center(
                 child: Container(
                     height: 13.0,

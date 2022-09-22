@@ -50,13 +50,13 @@ class _DetailedTransaction extends State<DetailedTransaction> {
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: widget.constraints.maxWidth * 0.016,
-                width: widget.constraints.maxWidth * 0.984,
+                left: 0,
+                right: 0,
                 top: 0,
-                height: widget.constraints.maxHeight * 1.0,
+                bottom: 0,
                 child: Container(
                   height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 0.9841772151898734,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff2a2b31),
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -78,39 +78,42 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                 )),
               ),
               Positioned(
-                left: 25.0,
-                width: 16.0,
-                top: 87.0,
-                height: 10.667,
-                child: TransactionTypeIconCustom(
-                    child: SvgPicture.asset(
-                  'assets/images/transactiontypeiconcustom.svg',
-                  package: 'genius_wallet',
-                  height: 10.66650390625,
-                  width: 16.0,
-                  fit: BoxFit.none,
-                )),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.123,
-                width: widget.constraints.maxWidth * 0.392,
-                top: widget.constraints.maxHeight * 0.09,
-                height: widget.constraints.maxHeight * 0.085,
+                left: widget.constraints.maxWidth * 0.079,
+                width: widget.constraints.maxWidth * 0.051,
+                top: widget.constraints.maxHeight * 0.46,
+                height: widget.constraints.maxHeight * 0.056,
                 child: Center(
                     child: Container(
-                        height: 16.0,
-                        width: widget.constraints.maxWidth * 0.3924050632911392,
-                        child: AutoSizeText(
-                          widget.ovrTimestamp ?? '16:23, 12 dec 2018',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.3500000238418579,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.right,
-                        ))),
+                        height: 10.66650390625,
+                        width: 16.0,
+                        child: TransactionTypeIconCustom(
+                            child: SvgPicture.asset(
+                          'assets/images/transactiontypeiconcustom.svg',
+                          package: 'genius_wallet',
+                          height: 10.66650390625,
+                          width: 16.0,
+                          fit: BoxFit.scaleDown,
+                        )))),
+              ),
+              Positioned(
+                left: 39.0,
+                width: 124.0,
+                top: 17.0,
+                height: 16.0,
+                child: Container(
+                    height: 16.0,
+                    width: 124.0,
+                    child: AutoSizeText(
+                      widget.ovrTimestamp ?? '16:23, 12 dec 2018',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.3500000238418579,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.right,
+                    )),
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.149,
@@ -120,7 +123,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                 child: Center(
                     child: Container(
                         height: 30.0,
-                        width: widget.constraints.maxWidth * 0.8291139240506329,
+                        width: 262.0,
                         child: AutoSizeText(
                           widget.ovrTransactionID ??
                               '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
@@ -135,32 +138,30 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                         ))),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.028,
-                width: widget.constraints.maxWidth * 0.389,
-                top: widget.constraints.maxHeight * 0.725,
-                height: widget.constraints.maxHeight * 0.122,
-                child: Center(
-                    child: Container(
-                        height: 23.0,
-                        width:
-                            widget.constraints.maxWidth * 0.38924050632911394,
-                        child: AutoSizeText(
-                          widget.ovrTransactionValue ?? '0.0094 LTC',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.right,
-                        ))),
+                left: 9.0,
+                width: 123.0,
+                bottom: 29.0,
+                height: 23.0,
+                child: Container(
+                    height: 23.0,
+                    width: 123.0,
+                    child: AutoSizeText(
+                      widget.ovrTransactionValue ?? '0.0094 LTC',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.0,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.right,
+                    )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.554,
-                width: widget.constraints.maxWidth * 0.383,
-                top: widget.constraints.maxHeight * 0.688,
-                height: widget.constraints.maxHeight * 0.185,
+                right: 20.0,
+                width: 121.0,
+                bottom: 24.0,
+                height: 35.0,
                 child: TransactionStatusCustom(
                     child: Container(
                         clipBehavior: Clip.hardEdge,
@@ -168,14 +169,12 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                         child: Stack(children: [
                           Positioned(
                             left: 0,
-                            width: widget.constraints.maxWidth * 0.383,
+                            width: 121.0,
                             top: 0,
-                            height: widget.constraints.maxHeight * 0.185,
+                            height: 35.0,
                             child: Container(
-                              height: widget.constraints.maxHeight *
-                                  0.18518518518518517,
-                              width: widget.constraints.maxWidth *
-                                  0.3829113924050633,
+                              height: 35.0,
+                              width: 121.0,
                               decoration: BoxDecoration(
                                 color: Color(0xff7ac131),
                                 borderRadius:
@@ -184,57 +183,51 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                             ),
                           ),
                           Positioned(
-                            left: widget.constraints.maxWidth * 0.022,
-                            width: widget.constraints.maxWidth * 0.244,
-                            top: widget.constraints.maxHeight * 0.053,
-                            height: widget.constraints.maxHeight * 0.074,
-                            child: Center(
-                                child: Container(
-                                    height: 14.0,
-                                    width: widget.constraints.maxWidth *
-                                        0.24367088607594936,
-                                    child: AutoSizeText(
-                                      widget.ovrCompleted ?? 'Completed',
-                                      style: TextStyle(
-                                        fontFamily: 'Roboto',
-                                        fontSize: 12.0,
-                                        fontWeight: FontWeight.w500,
-                                        letterSpacing: 0.30000001192092896,
-                                        color: Colors.white,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ))),
+                            left: 7.0,
+                            width: 77.0,
+                            top: 10.0,
+                            height: 14.0,
+                            child: Container(
+                                height: 14.0,
+                                width: 77.0,
+                                child: AutoSizeText(
+                                  widget.ovrCompleted ?? 'Completed',
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.30000001192092896,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                )),
                           ),
                           Positioned(
-                            left: widget.constraints.maxWidth * 0.288,
-                            width: widget.constraints.maxWidth * 0.056,
-                            top: widget.constraints.maxHeight * 0.053,
-                            height: widget.constraints.maxHeight * 0.071,
+                            left: 91.0,
+                            width: 17.6,
+                            top: 10.0,
+                            height: 13.4,
                             child: widget.ovrMask4 ??
                                 SvgPicture.asset(
                                   'assets/images/mask4.svg',
                                   package: 'genius_wallet',
-                                  height: widget.constraints.maxHeight *
-                                      0.07089895419973545,
-                                  width: widget.constraints.maxWidth *
-                                      0.055696511570411396,
-                                  fit: BoxFit.fill,
+                                  height: 13.39990234375,
+                                  width: 17.60009765625,
+                                  fit: BoxFit.none,
                                 ),
                           ),
                           Positioned(
-                            left: widget.constraints.maxWidth * 0.288,
-                            width: widget.constraints.maxWidth * 0.056,
-                            top: widget.constraints.maxHeight * 0.053,
-                            height: widget.constraints.maxHeight * 0.071,
+                            left: 91.0,
+                            width: 17.6,
+                            top: 10.0,
+                            height: 13.4,
                             child: widget.ovrMask3 ??
                                 SvgPicture.asset(
                                   'assets/images/mask3.svg',
                                   package: 'genius_wallet',
-                                  height: widget.constraints.maxHeight *
-                                      0.07089895419973545,
-                                  width: widget.constraints.maxWidth *
-                                      0.055696511570411396,
-                                  fit: BoxFit.fill,
+                                  height: 13.39990234375,
+                                  width: 17.60009765625,
+                                  fit: BoxFit.none,
                                 ),
                           ),
                         ]))),
@@ -248,7 +241,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                     decoration: BoxDecoration(),
                     child: Stack(children: [
                       Positioned(
-                        left: 0,
+                        right: 0,
                         width: 35.0,
                         top: 0,
                         height: 35.0,
@@ -271,7 +264,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                         ),
                       ),
                       Positioned(
-                        left: 11.0,
+                        right: 9.0,
                         width: 15.0,
                         top: 9.0,
                         height: 18.0,

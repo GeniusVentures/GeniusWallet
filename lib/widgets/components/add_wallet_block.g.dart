@@ -39,12 +39,12 @@ class _AddWalletBlock extends State<AddWalletBlock> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 311.0,
+                width: widget.constraints.maxWidth * 1.0,
                 top: 0,
-                height: 297.0,
+                height: widget.constraints.maxHeight * 1.0,
                 child: Container(
-                  height: 297.0,
-                  width: 311.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
                     border: Border.all(
@@ -56,12 +56,12 @@ class _AddWalletBlock extends State<AddWalletBlock> {
               ),
               Positioned(
                 left: 0,
-                width: 311.0,
+                width: widget.constraints.maxWidth * 1.0,
                 top: 0,
-                height: 297.0,
+                height: widget.constraints.maxHeight * 1.0,
                 child: Container(
-                  height: 297.0,
-                  width: 311.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Colors.black,
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -73,46 +73,50 @@ class _AddWalletBlock extends State<AddWalletBlock> {
                 ),
               ),
               Positioned(
-                left: 122.0,
-                width: 68.0,
-                top: 98.0,
-                height: 99.0,
+                left: widget.constraints.maxWidth * 0.392,
+                width: widget.constraints.maxWidth * 0.219,
+                top: widget.constraints.maxHeight * 0.33,
+                height: widget.constraints.maxHeight * 0.333,
                 child: Container(
                     clipBehavior: Clip.hardEdge,
                     decoration: BoxDecoration(),
                     child: Stack(children: [
                       Positioned(
                         left: 0,
-                        width: 69.0,
-                        top: 82.0,
-                        height: 16.0,
-                        child: Container(
-                            height: 16.0,
-                            width: 69.0,
-                            child: AutoSizeText(
-                              widget.ovrAddwallet ?? 'Add wallet',
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0.32307693362236023,
-                                color: Color(0xff2a2b31),
-                              ),
-                              textAlign: TextAlign.center,
-                            )),
+                        width: widget.constraints.maxWidth * 0.222,
+                        top: widget.constraints.maxHeight * 0.276,
+                        height: widget.constraints.maxHeight * 0.054,
+                        child: Center(
+                            child: Container(
+                                height: 16.0,
+                                width: widget.constraints.maxWidth *
+                                    0.22186495176848875,
+                                child: AutoSizeText(
+                                  widget.ovrAddwallet ?? 'Add wallet',
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 0.32307693362236023,
+                                    color: Color(0xff2a2b31),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ))),
                       ),
                       Positioned(
-                        left: 9.0,
-                        width: 50.0,
+                        left: widget.constraints.maxWidth * 0.029,
+                        width: widget.constraints.maxWidth * 0.161,
                         top: 0,
-                        height: 50.0,
+                        height: widget.constraints.maxHeight * 0.168,
                         child: widget.ovrCombinedShape ??
                             Image.asset(
                               'assets/images/combinedshape.png',
                               package: 'genius_wallet',
-                              height: 50.0,
-                              width: 50.0,
-                              fit: BoxFit.none,
+                              height: widget.constraints.maxHeight *
+                                  0.16835016835016836,
+                              width: widget.constraints.maxWidth *
+                                  0.1607717041800643,
+                              fit: BoxFit.fill,
                             ),
                       ),
                     ])),

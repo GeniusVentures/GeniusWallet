@@ -34,7 +34,7 @@ class _CurrencySelector extends State<CurrencySelector> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth * 1.047,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [

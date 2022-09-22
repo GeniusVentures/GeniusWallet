@@ -204,12 +204,12 @@ class _OrderHistory extends State<OrderHistory> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 311.0,
+                right: 0,
                 top: 0,
-                height: 692.0,
+                bottom: 0,
                 child: Container(
-                  height: 692.0,
-                  width: 311.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff1d2024),
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),

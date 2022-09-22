@@ -37,12 +37,12 @@ class _ExportHistory extends State<ExportHistory> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 120.0,
+                right: 0,
                 top: 0,
-                height: 35.0,
+                bottom: 0,
                 child: Container(
-                  height: 35.0,
-                  width: 120.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff2a2b31),
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),

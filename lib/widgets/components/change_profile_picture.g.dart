@@ -44,7 +44,7 @@ class _ChangeProfilePicture extends State<ChangeProfilePicture> {
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: 136.0,
+                right: 0,
                 width: 117.0,
                 top: 0,
                 height: 19.0,
@@ -64,7 +64,7 @@ class _ChangeProfilePicture extends State<ChangeProfilePicture> {
                     )),
               ),
               Positioned(
-                left: 136.0,
+                right: 0,
                 width: 117.0,
                 top: 26.0,
                 height: 14.0,
@@ -124,9 +124,9 @@ class _ChangeProfilePicture extends State<ChangeProfilePicture> {
                         ]))),
               ),
               Positioned(
-                left: 136.0,
+                right: 8.0,
                 width: 109.0,
-                top: 53.0,
+                bottom: 1.0,
                 height: 35.0,
                 child: UploadPictureButtonCustom(
                     child: Container(

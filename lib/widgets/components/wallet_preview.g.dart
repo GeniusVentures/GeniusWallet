@@ -41,12 +41,12 @@ class _WalletPreview extends State<WalletPreview> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 200.0,
+                width: widget.constraints.maxWidth * 1.0,
                 top: 0,
-                height: 100.0,
+                height: widget.constraints.maxHeight * 1.0,
                 child: Container(
-                  height: 100.0,
-                  width: 200.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff0068ef),
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -56,7 +56,7 @@ class _WalletPreview extends State<WalletPreview> {
               Positioned(
                 left: 12.0,
                 width: 51.0,
-                top: 68.0,
+                bottom: 13.0,
                 height: 19.0,
                 child: Container(
                     height: 19.0,
@@ -74,9 +74,9 @@ class _WalletPreview extends State<WalletPreview> {
                     )),
               ),
               Positioned(
-                left: 87.0,
+                right: 11.0,
                 width: 102.0,
-                top: 60.0,
+                bottom: 12.0,
                 height: 28.0,
                 child: Container(
                     height: 28.0,
@@ -102,7 +102,7 @@ class _WalletPreview extends State<WalletPreview> {
                     decoration: BoxDecoration(),
                     child: Stack(children: [
                       Positioned(
-                        left: 0,
+                        right: 0,
                         width: 35.0,
                         top: 0,
                         height: 35.0,

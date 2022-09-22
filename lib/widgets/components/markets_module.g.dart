@@ -46,12 +46,12 @@ class _MarketsModule extends State<MarketsModule> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 311.0,
+                width: widget.constraints.maxWidth * 1.0,
                 top: 0,
-                height: 319.0,
+                height: widget.constraints.maxHeight * 1.0,
                 child: Container(
-                  height: 319.0,
-                  width: 311.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff2a2b31),
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -79,7 +79,7 @@ class _MarketsModule extends State<MarketsModule> {
                     )),
               ),
               Positioned(
-                left: 198.0,
+                right: 18.0,
                 width: 95.0,
                 top: 24.0,
                 height: 13.0,
@@ -150,8 +150,8 @@ class _MarketsModule extends State<MarketsModule> {
                         ]))),
               ),
               Positioned(
-                left: 20.0,
-                width: 271.0,
+                left: widget.constraints.maxWidth * 0.064,
+                width: widget.constraints.maxWidth * 0.871,
                 top: 65.0,
                 height: 47.0,
                 child: LayoutBuilder(builder: (context, constraints) {
@@ -171,8 +171,8 @@ class _MarketsModule extends State<MarketsModule> {
                 }),
               ),
               Positioned(
-                left: 20.0,
-                width: 271.0,
+                left: widget.constraints.maxWidth * 0.064,
+                width: widget.constraints.maxWidth * 0.871,
                 top: 130.0,
                 height: 47.0,
                 child: LayoutBuilder(builder: (context, constraints) {
@@ -192,8 +192,8 @@ class _MarketsModule extends State<MarketsModule> {
                 }),
               ),
               Positioned(
-                left: 19.0,
-                width: 271.0,
+                left: widget.constraints.maxWidth * 0.061,
+                width: widget.constraints.maxWidth * 0.871,
                 top: 194.0,
                 height: 47.0,
                 child: LayoutBuilder(builder: (context, constraints) {
@@ -213,8 +213,8 @@ class _MarketsModule extends State<MarketsModule> {
                 }),
               ),
               Positioned(
-                left: 19.0,
-                width: 271.0,
+                left: widget.constraints.maxWidth * 0.061,
+                width: widget.constraints.maxWidth * 0.871,
                 top: 259.0,
                 height: 47.0,
                 child: LayoutBuilder(builder: (context, constraints) {

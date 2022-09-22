@@ -13,7 +13,7 @@ class Property1NavbarDashboard extends StatefulWidget {
   final String? ovrTrade;
   final String? ovrTransactions;
   final String? ovrWallets;
-  final Widget? ovrVector4;
+  final Widget? ovrWalletIcon;
   final String? ovrDashboard;
   const Property1NavbarDashboard(
     this.constraints, {
@@ -21,7 +21,7 @@ class Property1NavbarDashboard extends StatefulWidget {
     this.ovrTrade,
     this.ovrTransactions,
     this.ovrWallets,
-    this.ovrVector4,
+    this.ovrWalletIcon,
     this.ovrDashboard,
   }) : super(key: key);
   @override
@@ -138,9 +138,9 @@ class _Property1NavbarDashboard extends State<Property1NavbarDashboard> {
                                       width: 18.0,
                                       top: 0,
                                       height: 18.0,
-                                      child: widget.ovrVector4 ??
+                                      child: widget.ovrWalletIcon ??
                                           SvgPicture.asset(
-                                            'assets/images/vector4.svg',
+                                            'assets/images/walleticon.svg',
                                             package: 'genius_wallet',
                                             height: 18.0,
                                             width: 18.0,

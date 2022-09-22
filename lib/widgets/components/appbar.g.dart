@@ -45,9 +45,9 @@ class _Appbar extends State<Appbar> {
                 ovrimage1: Image.asset(
                   'assets/images/image1.png',
                   package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.926829268292683,
-                  width: widget.constraints.maxWidth * 0.5610932475884244,
-                  fit: BoxFit.fill,
+                  height: 38.0,
+                  width: 174.5,
+                  fit: BoxFit.none,
                 ),
               );
             }),

@@ -37,20 +37,20 @@ class _Transactions extends State<Transactions> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: 311.0,
+            width: widget.constraints.maxWidth * 1.0,
             top: 0,
-            height: 366.0,
+            height: widget.constraints.maxHeight * 1.0,
             child: Container(
                 decoration: BoxDecoration(),
                 child: Stack(children: [
                   Positioned(
                     left: 0,
-                    width: 311.0,
+                    width: widget.constraints.maxWidth * 1.0,
                     top: 0,
-                    height: 366.0,
+                    height: widget.constraints.maxHeight * 1.0,
                     child: Container(
-                      height: 366.0,
-                      width: 311.0,
+                      height: widget.constraints.maxHeight * 1.0,
+                      width: widget.constraints.maxWidth * 1.0,
                       decoration: BoxDecoration(
                         color: Color(0xff1d2024),
                         borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -120,9 +120,9 @@ class _Transactions extends State<Transactions> {
                         )),
                   ),
                   Positioned(
-                    left: 207.0,
+                    right: 19.0,
                     width: 85.0,
-                    top: 324.0,
+                    bottom: 19.0,
                     height: 23.0,
                     child: ViewMoreCustom(
                         child: Container(
@@ -171,7 +171,7 @@ class _Transactions extends State<Transactions> {
                             ]))),
                   ),
                   Positioned(
-                    left: 177.0,
+                    right: 1.0,
                     width: 133.0,
                     top: 28.0,
                     height: 13.0,

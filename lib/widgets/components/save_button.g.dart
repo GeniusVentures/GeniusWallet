@@ -37,12 +37,12 @@ class _SaveButton extends State<SaveButton> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 311.0,
+                right: 0,
                 top: 0,
-                height: 35.0,
+                bottom: 0,
                 child: Container(
-                  height: 35.0,
-                  width: 311.0,
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff7ac231),
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -50,24 +50,25 @@ class _SaveButton extends State<SaveButton> {
                 ),
               ),
               Positioned(
-                left: 143.0,
-                width: 27.0,
-                top: 11.0,
-                height: 14.0,
-                child: Container(
-                    height: 14.0,
-                    width: 27.0,
-                    child: AutoSizeText(
-                      widget.ovrSave ?? 'Save',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.30000001192092896,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
+                left: widget.constraints.maxWidth * 0.46,
+                width: widget.constraints.maxWidth * 0.087,
+                top: widget.constraints.maxHeight * 0.314,
+                height: widget.constraints.maxHeight * 0.4,
+                child: Center(
+                    child: Container(
+                        height: 14.0,
+                        width: 27.0,
+                        child: AutoSizeText(
+                          widget.ovrSave ?? 'Save',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.30000001192092896,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.left,
+                        ))),
               ),
             ]),
           ),

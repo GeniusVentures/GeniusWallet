@@ -37,11 +37,11 @@ class _TypeExisting extends State<TypeExisting> {
           Positioned(
             left: widget.constraints.maxWidth * 0.248,
             width: widget.constraints.maxWidth * 0.505,
-            top: 16.0,
-            height: 13.0,
+            top: widget.constraints.maxHeight * 0.326,
+            height: widget.constraints.maxHeight * 0.348,
             child: Center(
                 child: Container(
-                    height: 13.0,
+                    height: 16.0,
                     width: 159.0,
                     child: AutoSizeText(
                       widget.ovrIalreadyhaveawallet ??

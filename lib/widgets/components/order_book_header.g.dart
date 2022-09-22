@@ -57,7 +57,7 @@ class _OrderBookHeader extends State<OrderBookHeader> {
                     )),
               ),
               Positioned(
-                left: 232.0,
+                right: 22.0,
                 width: 16.0,
                 top: 0,
                 height: 16.0,
@@ -71,7 +71,7 @@ class _OrderBookHeader extends State<OrderBookHeader> {
                 )),
               ),
               Positioned(
-                left: 254.0,
+                right: 0,
                 width: 16.0,
                 top: 0,
                 height: 16.0,

@@ -58,22 +58,21 @@ class _Recoveryword extends State<Recoveryword> {
                     width: widget.constraints.maxWidth * 0.784,
                     top: widget.constraints.maxHeight * 0.286,
                     height: widget.constraints.maxHeight * 0.464,
-                    child: Center(
-                        child: Container(
-                            height: 13.0,
-                            width: widget.constraints.maxWidth *
-                                0.7843137174039274,
-                            child: AutoSizeText(
-                              widget.ovrWord ?? '1 limb',
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w300,
-                                letterSpacing: 0.0,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ))),
+                    child: Container(
+                        height:
+                            widget.constraints.maxHeight * 0.4642857142857143,
+                        width: widget.constraints.maxWidth * 0.7843137174039274,
+                        child: AutoSizeText(
+                          widget.ovrWord ?? '1 limb',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
                   ),
                 ])),
           ),

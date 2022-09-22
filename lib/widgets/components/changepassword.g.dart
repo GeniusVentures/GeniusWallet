@@ -38,12 +38,12 @@ class _Changepassword extends State<Changepassword> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: widget.constraints.maxWidth * 0.46,
+                width: 134.0,
                 top: 0,
-                height: widget.constraints.maxHeight * 0.253,
+                height: 19.0,
                 child: Container(
-                    height: widget.constraints.maxHeight * 0.25333333333333335,
-                    width: widget.constraints.maxWidth * 0.46048109965635736,
+                    height: 19.0,
+                    width: 134.0,
                     child: AutoSizeText(
                       widget.ovrChangePassword ?? 'Change Password ',
                       style: TextStyle(
@@ -58,9 +58,9 @@ class _Changepassword extends State<Changepassword> {
               ),
               Positioned(
                 left: 0,
-                width: widget.constraints.maxWidth * 0.533,
-                top: widget.constraints.maxHeight * 0.533,
-                height: widget.constraints.maxHeight * 0.467,
+                width: 155.0,
+                bottom: 0,
+                height: 35.0,
                 child: ChangePasswordButtonCustom(
                     child: Container(
                         decoration: BoxDecoration(),
@@ -98,7 +98,7 @@ class _Changepassword extends State<Changepassword> {
                                     letterSpacing: 0.30000001192092896,
                                     color: Colors.white,
                                   ),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.center,
                                 )),
                           ),
                         ]))),

@@ -102,19 +102,19 @@ class _CryptoMarketOverview extends State<CryptoMarketOverview> {
               ),
               Positioned(
                 left: 0,
-                width: 271.0,
-                top: 46.0,
-                height: 1.0,
+                width: widget.constraints.maxWidth * 1.0,
+                top: widget.constraints.maxHeight * 0.979,
+                height: widget.constraints.maxHeight * 0.021,
                 child: Container(
-                  height: 1.0,
-                  width: 271.0,
+                  height: widget.constraints.maxHeight * 0.02127659574468085,
+                  width: widget.constraints.maxWidth * 1.0,
                   decoration: BoxDecoration(
                     color: Color(0xff3a3c43),
                   ),
                 ),
               ),
               Positioned(
-                left: 201.0,
+                right: 0,
                 width: 70.0,
                 top: 17.0,
                 height: 6.0,

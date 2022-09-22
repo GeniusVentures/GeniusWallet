@@ -12,13 +12,13 @@ import 'package:genius_wallet/widgets/components/enter_amount_widget.g.dart';
 class EnterAmount extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrENTERAMOUNT;
-  final Widget? ovrCheckmarksuffixIcon;
+  final Widget? ovrCheckmarksuffixicon;
   final String? ovramounthinttext;
   const EnterAmount(
     this.constraints, {
     Key? key,
     this.ovrENTERAMOUNT,
-    this.ovrCheckmarksuffixIcon,
+    this.ovrCheckmarksuffixicon,
     this.ovramounthinttext,
   }) : super(key: key);
   @override

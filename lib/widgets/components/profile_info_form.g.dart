@@ -330,12 +330,12 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                                                 ),
                                                 Positioned(
                                                   left: 23.0,
-                                                  width: 36.0,
+                                                  width: 51.0,
                                                   top: 12.0,
                                                   height: 14.0,
                                                   child: Container(
                                                       height: 14.0,
-                                                      width: 36.0,
+                                                      width: 51.0,
                                                       child: AutoSizeText(
                                                         widget.ovrNikita ??
                                                             'Month',
@@ -399,12 +399,12 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                                                 ),
                                                 Positioned(
                                                   left: 16.0,
-                                                  width: 21.0,
+                                                  width: 36.0,
                                                   top: 13.0,
                                                   height: 14.0,
                                                   child: Container(
                                                       height: 14.0,
-                                                      width: 21.0,
+                                                      width: 36.0,
                                                       child: AutoSizeText(
                                                         widget.ovrDay ?? 'Day',
                                                         style: TextStyle(
@@ -467,12 +467,12 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                                                 ),
                                                 Positioned(
                                                   left: 16.0,
-                                                  width: 25.0,
+                                                  width: 40.0,
                                                   top: 13.0,
                                                   height: 14.0,
                                                   child: Container(
                                                       height: 14.0,
-                                                      width: 25.0,
+                                                      width: 40.0,
                                                       child: AutoSizeText(
                                                         widget.ovrYear ??
                                                             'Year',

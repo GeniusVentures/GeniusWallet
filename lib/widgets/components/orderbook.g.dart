@@ -184,8 +184,8 @@ class _Orderbook extends State<Orderbook> {
               Positioned(
                 left: widget.constraints.maxWidth * 0.007,
                 width: widget.constraints.maxWidth * 0.993,
-                top: 53.0,
-                height: 210.0,
+                top: widget.constraints.maxHeight * 0.083,
+                height: widget.constraints.maxHeight * 0.327,
                 child: Center(
                     child: Container(
                         height: 210.0,
@@ -858,800 +858,976 @@ class _Orderbook extends State<Orderbook> {
                                     ]))))),
               ),
               Positioned(
-                left: 2.0,
-                width: 269.0,
-                top: 344.0,
-                height: 298.0,
-                child: BuyLimitOrdersCustom(
+                left: widget.constraints.maxWidth * 0.007,
+                width: widget.constraints.maxWidth * 0.993,
+                top: widget.constraints.maxHeight * 0.536,
+                height: widget.constraints.maxHeight * 0.464,
+                child: Center(
+                    child: Container(
+                        height: 298.0,
+                        width: 269.0,
+                        child: BuyLimitOrdersCustom(
+                            child: Container(
+                                width: 269.0,
+                                decoration: BoxDecoration(),
+                                child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr11333570014 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0660014 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr03414 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr11333570013 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0660013 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr03413 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr11333570012 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0660012 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr03412 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr11333570011 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0660011 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr03411 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr11333570010 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0660010 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr03410 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357009 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066009 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0349 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357008 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066008 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0348 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357007 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066007 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0347 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357006 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066006 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0346 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357005 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066005 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0345 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357004 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066004 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0344 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357003 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066003 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0343 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr1133357002 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr066002 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr0342 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                      SizedBox(
+                                        height: 10.0,
+                                      ),
+                                      Container(
+                                          width: 269.0,
+                                          decoration: BoxDecoration(),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 59.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr113335700 ??
+                                                          '11 333.5700',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color: Colors.white,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 33.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr06600 ??
+                                                          '0.6600',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff7ac231),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                                Container(
+                                                    height: 12.0,
+                                                    width: 21.0,
+                                                    child: AutoSizeText(
+                                                      widget.ovr034 ?? '0.34',
+                                                      style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                        fontSize: 10.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        letterSpacing: 0.25,
+                                                        color:
+                                                            Color(0xff6d6e76),
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    )),
+                                              ])),
+                                    ]))))),
+              ),
+              Positioned(
+                left: 0,
+                width: widget.constraints.maxWidth * 1.0,
+                top: widget.constraints.maxHeight * 0.433,
+                height: widget.constraints.maxHeight * 0.059,
+                child: Center(
                     child: Container(
                         decoration: BoxDecoration(),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr11333570014 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0660014 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr03414 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
+                        child: Stack(children: [
+                          Positioned(
+                            left: 0,
+                            width: 271.0,
+                            top: 0,
+                            height: 38.0,
+                            child: Container(
+                              height: 38.0,
+                              width: 271.0,
+                              decoration: BoxDecoration(
+                                color: Color(0xff2a2b31),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(2.0)),
                               ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr11333570013 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0660013 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr03413 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
+                            ),
+                          ),
+                          Positioned(
+                            left: 65.0,
+                            width: 133.0,
+                            top: 9.0,
+                            height: 21.0,
+                            child: MarkPriceCustom(
+                                child: AutoSizeText(
+                              '12,756.00  USD',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.0,
+                                color: Colors.white,
                               ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr11333570012 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0660012 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr03412 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr11333570011 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0660011 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr03411 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr11333570010 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0660010 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr03410 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357009 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066009 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0349 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357008 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066008 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0348 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357007 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066007 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0347 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357006 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066006 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0346 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357005 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066005 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0345 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357004 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066004 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0344 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357003 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066003 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0343 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr1133357002 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr066002 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr0342 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                              SizedBox(
-                                height: 10.0,
-                              ),
-                              Container(
-                                  width: 269.0,
-                                  decoration: BoxDecoration(),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            height: 12.0,
-                                            width: 59.0,
-                                            child: AutoSizeText(
-                                              widget.ovr113335700 ??
-                                                  '11 333.5700',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Colors.white,
-                                              ),
-                                              textAlign: TextAlign.left,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 33.0,
-                                            child: AutoSizeText(
-                                              widget.ovr06600 ?? '0.6600',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff7ac231),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                        Container(
-                                            height: 12.0,
-                                            width: 21.0,
-                                            child: AutoSizeText(
-                                              widget.ovr034 ?? '0.34',
-                                              style: TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 10.0,
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 0.25,
-                                                color: Color(0xff6d6e76),
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            )),
-                                      ])),
-                            ]))),
+                              textAlign: TextAlign.right,
+                            )),
+                          ),
+                        ]))),
               ),
               Positioned(
                 left: 1.0,
@@ -1664,49 +1840,6 @@ class _Orderbook extends State<Orderbook> {
                     ovrOrderBookLabel: 'Order book',
                   );
                 }),
-              ),
-              Positioned(
-                left: 0,
-                width: 271.0,
-                top: 278.0,
-                height: 38.0,
-                child: Container(
-                    decoration: BoxDecoration(),
-                    child: Stack(children: [
-                      Positioned(
-                        left: 0,
-                        width: 271.0,
-                        top: 0,
-                        height: 38.0,
-                        child: Container(
-                          height: 38.0,
-                          width: 271.0,
-                          decoration: BoxDecoration(
-                            color: Color(0xff2a2b31),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(2.0)),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 65.0,
-                        width: 133.0,
-                        top: 9.0,
-                        height: 21.0,
-                        child: MarkPriceCustom(
-                            child: AutoSizeText(
-                          '12,756.00  USD',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.right,
-                        )),
-                      ),
-                    ])),
               ),
             ]),
           ),

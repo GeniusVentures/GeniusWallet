@@ -68,3 +68,15 @@ flutter:
     - packages/genius_wallet/assets/images/line11.svg
     - packages/genius_wallet/assets/images/ellipse1.png
     - packages/genius_wallet/assets/images/whitearrowright.svg
+    - packages/genius_wallet/assets/images/walleticon.svg
+    - packages/genius_wallet/assets/images/group.svg
+    - packages/genius_wallet/assets/images/walletqrcode.svg
+    - packages/genius_wallet/assets/images/statuslogo.svg
+    - packages/genius_wallet/assets/images/ellipse17.png
+    - packages/genius_wallet/assets/images/ellipse18.png
+    - packages/genius_wallet/assets/images/ellipse19.png
+    - packages/genius_wallet/assets/images/ellipse20.png
+    - packages/genius_wallet/assets/images/ellipse21.png
+    - packages/genius_wallet/assets/images/ellipse22.png
+    - packages/genius_wallet/assets/images/copysymbol.svg
+    - packages/genius_wallet/assets/images/shield_icon.png
