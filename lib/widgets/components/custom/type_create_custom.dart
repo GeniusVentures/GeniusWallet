@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TypeCreateCustom extends StatefulWidget {
   final Widget? child;
@@ -14,6 +15,9 @@ class TypeCreateCustom extends StatefulWidget {
 class _TypeCreateCustomState extends State<TypeCreateCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return GestureDetector(
+      onTap: () => context.go('/backup_phrase'),
+      child: widget.child,
+    );
   }
 }

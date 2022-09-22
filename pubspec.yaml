@@ -11,6 +11,7 @@ dependencies:
   widgetbook: 2.0.5-beta
   auto_size_text: 3.0.0
   flutter_svg: ^1.0.3
+  go_router: ^5.0.1
 dev_dependencies: 
   flutter_test: 
     sdk: flutter

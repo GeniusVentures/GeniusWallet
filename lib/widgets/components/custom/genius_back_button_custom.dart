@@ -1,6 +1,5 @@
-import 'package:genius_wallet/widgets/components/genius_back_button.g.dart';
-
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class GeniusBackButtonCustom extends StatefulWidget {
   final Widget? child;
@@ -16,10 +15,15 @@ class GeniusBackButtonCustom extends StatefulWidget {
 class _GeniusBackButtonCustomState extends State<GeniusBackButtonCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child ??
-        GeniusBackButton(BoxConstraints(
-          maxWidth: 5.0,
-          maxHeight: 9.0,
-        ));
+    return GestureDetector(
+      onTap: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/');
+        }
+      },
+      child: widget.child,
+    );
   }
 }
