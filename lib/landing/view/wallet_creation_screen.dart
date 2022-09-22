@@ -8,6 +8,7 @@ class WalletCreationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //TODO: Can make this future based instead
     return Scaffold(
       body: AppScreenView(
         body: SizedBox(
@@ -16,7 +17,7 @@ class WalletCreationScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/image1.png',
+                'assets/images/logo_and_title.png',
                 package: 'genius_wallet',
               ),
               const SizedBox(
