@@ -1,5 +1,8 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/landing/view/backup_phrase_screen.dart';
 import 'package:genius_wallet/landing/view/existing_wallet/create_passcode_screen.dart';
+import 'package:genius_wallet/app/screens/pin_screen.dart';
 import 'package:genius_wallet/landing/view/existing_wallet/import_security_screen.dart';
 import 'package:genius_wallet/landing/view/existing_wallet/import_wallet_screen.dart';
 import 'package:genius_wallet/landing/view/existing_wallet/legal_screen.dart';
@@ -55,6 +58,17 @@ final landingRoutes = <GoRoute>[
     path: '/import_security',
     builder: (context, state) {
       return const ImportSecurityScreen();
+    },
+  ),
+  GoRoute(
+    path: '/create_pin',
+    builder: (context, state) {
+      return BlocProvider(
+        create: (context) => PinCubit(pinMaxLength: 6),
+        child: PinScreen(
+          text: 'Create PIN',
+        ),
+      );
     },
   ),
 ];

@@ -13,6 +13,7 @@ dependencies:
   flutter_svg: ^1.0.3
   go_router: ^5.0.1
   flutter_bloc: ^8.1.1
+  pin_code_fields: ^7.4.0
 dev_dependencies: 
   flutter_test: 
     sdk: flutter
