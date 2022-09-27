@@ -13,44 +13,44 @@ class BackupPhraseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenView(
-        body: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            children: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: 190,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return RegistrationHeader(constraints);
-                }),
+        body: Column(
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 190,
+              child: LayoutBuilder(builder: (context, constraints) {
+                return RegistrationHeader(constraints);
+              }),
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.2,
+            ),
+            Image.asset(
+              'assets/images/shield_icon.png',
+              package: 'genius_wallet',
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.2,
+            ),
+            SizedBox(
+              height: 30,
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return WalletAgreement(constraints);
+                },
               ),
-              const Spacer(),
-              Image.asset(
-                'assets/images/shield_icon.png',
-                package: 'genius_wallet',
-              ),
-              const Spacer(),
-              SizedBox(
-                height: 30,
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return WalletAgreement(constraints);
-                  },
-                ),
-              ),
-              const SizedBox(
-                height: 25,
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: 46,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  //TODO: Make this interactive with state
-                  return IsactiveFalse(constraints);
-                }),
-              ),
-            ],
+            ),
+          ],
+        ),
+        footer: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: 46,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              //TODO: Make this interactive with state
+              return IsactiveFalse(constraints);
+            },
           ),
         ),
       ),
