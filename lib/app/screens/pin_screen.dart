@@ -6,18 +6,15 @@ import 'package:genius_wallet/app/widgets/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-class PinScreen extends StatefulWidget {
+class PinScreen extends StatelessWidget {
   final String text;
-  PinScreen({
+  final Function(String) onCompleted;
+  const PinScreen({
     Key? key,
     required this.text,
+    required this.onCompleted,
   }) : super(key: key);
 
-  @override
-  State<PinScreen> createState() => _PinScreenState();
-}
-
-class _PinScreenState extends State<PinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +37,7 @@ class _PinScreenState extends State<PinScreen> {
               ),
               Center(
                 child: Text(
-                  widget.text,
+                  text,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -53,7 +50,7 @@ class _PinScreenState extends State<PinScreen> {
                   width: MediaQuery.of(context).size.width * 0.6,
                   child: PinCodeTextField(
                     appContext: context,
-                    // obscureText: true,
+                    obscureText: true,
                     obscuringWidget: Container(
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
@@ -68,8 +65,9 @@ class _PinScreenState extends State<PinScreen> {
                     ),
                     length: 6,
                     onChanged: (passcode) {},
-                    // readOnly: true,
+                    readOnly: true,
                     controller: context.watch<PinCubit>().state.controller,
+                    onCompleted: onCompleted,
                   ),
                 ),
               ),

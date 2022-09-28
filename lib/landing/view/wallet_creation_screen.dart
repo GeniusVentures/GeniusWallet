@@ -24,7 +24,7 @@ class WalletCreationScreen extends StatelessWidget {
                 height: 50,
               ),
               SizedBox(
-                width: 315,
+                width: MediaQuery.of(context).size.width * 0.8,
                 height: 50,
                 child: LayoutBuilder(
                   builder: (context, constraints) => TypeCreate(constraints),
@@ -34,7 +34,7 @@ class WalletCreationScreen extends StatelessWidget {
                 height: 50,
               ),
               SizedBox(
-                width: 315,
+                width: MediaQuery.of(context).size.width * 0.8,
                 height: 50,
                 child: LayoutBuilder(
                   builder: (context, constraints) => TypeExisting(constraints),

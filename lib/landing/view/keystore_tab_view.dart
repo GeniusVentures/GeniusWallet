@@ -8,6 +8,7 @@ class KeystoreTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PasteField(
+      hintText: 'Keystore JSON',
       additionalWidget: SizedBox(
         height: 50,
         child: LayoutBuilder(builder: (context, constraints) {
