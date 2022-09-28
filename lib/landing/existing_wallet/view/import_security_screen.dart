@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
-import 'package:genius_wallet/landing/widgets/address_tab_view.dart';
-import 'package:genius_wallet/landing/widgets/keystore_tab_view.dart';
-import 'package:genius_wallet/landing/widgets/phrase_tab_view.dart';
-import 'package:genius_wallet/landing/widgets/private_key_tab_view.dart';
+import 'package:genius_wallet/landing/view/address_tab_view.dart';
+import 'package:genius_wallet/landing/view/keystore_tab_view.dart';
+import 'package:genius_wallet/landing/view/phrase_tab_view.dart';
+import 'package:genius_wallet/landing/view/private_key_tab_view.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/text_entry_field.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
-  const ImportSecurityScreen({Key? key}) : super(key: key);
+  final String walletName;
+  const ImportSecurityScreen({
+    required this.walletName,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,7 @@ class ImportSecurityScreen extends StatelessWidget {
       body: DefaultTabController(
         length: 4,
         child: AppScreenWithHeader(
-          title: 'Import Wallet',
+          title: 'Import $walletName Wallet',
           subtitle: '',
           bodyWidgets: [
             SizedBox(
@@ -30,7 +34,10 @@ class ImportSecurityScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.8,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-                  return TextEntryField(constraints);
+                  return TextEntryField(
+                    constraints,
+                    ovrTextEntryHinthinttext: walletName,
+                  );
                 },
               ),
             ),

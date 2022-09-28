@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/landing/existing_wallet/routes/existing_wallet_flow.dart';
 
 class TypeExistingCustom extends StatefulWidget {
   final Widget? child;
-  TypeExistingCustom({
+  const TypeExistingCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -14,6 +17,18 @@ class TypeExistingCustom extends StatefulWidget {
 class _TypeExistingCustomState extends State<TypeExistingCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => ExistingWalletBloc(),
+              child: const ExistingWalletFlow(),
+            ),
+          ),
+        );
+      },
+      child: widget.child!,
+    );
   }
 }
