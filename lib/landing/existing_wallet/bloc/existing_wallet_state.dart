@@ -1,23 +1,27 @@
 part of 'existing_wallet_bloc.dart';
 
 class ExistingWalletState {
-  bool acceptedLegal;
+  final bool acceptedLegal;
 
-  FlowStep currentStep;
+  final bool failedPinVerification;
 
-  String selectedWallet;
+  final FlowStep currentStep;
 
-  String createdPin;
+  final String selectedWallet;
 
-  ExistingWalletState({
+  final String createdPin;
+
+  const ExistingWalletState({
     this.acceptedLegal = false,
     this.currentStep = FlowStep.legal,
     this.selectedWallet = '',
     this.createdPin = '',
+    this.failedPinVerification = false,
   });
 
   ExistingWalletState copyWith({
     bool? acceptedLegal,
+    bool? failedPinVerification,
     FlowStep? currentStep,
     String? selectedWallet,
     String? createdPin,
@@ -27,6 +31,8 @@ class ExistingWalletState {
       currentStep: currentStep ?? this.currentStep,
       selectedWallet: selectedWallet ?? this.selectedWallet,
       createdPin: createdPin ?? this.createdPin,
+      failedPinVerification:
+          failedPinVerification ?? this.failedPinVerification,
     );
   }
 }

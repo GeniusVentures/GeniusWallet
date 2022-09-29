@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
+        buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
         primarySwatch: Colors.blue,
         colorScheme: const ColorScheme
             .dark(), //TODO: replace this once we have theme generated

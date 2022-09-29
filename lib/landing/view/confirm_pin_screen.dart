@@ -24,7 +24,7 @@ class ConfirmPinScreen extends StatelessWidget {
             context.read<ExistingWalletBloc>().add(PinCheckSuccessful());
             context.flow<ExistingWalletState>().complete();
           } else {
-            ///TODO: Implement logic for when pins don't match
+            context.read<ExistingWalletBloc>().add(PinCheckFailed());
           }
         },
       ),
