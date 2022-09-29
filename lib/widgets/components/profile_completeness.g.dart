@@ -12,11 +12,11 @@ import 'package:genius_wallet/widgets/components/custom/update_custom.dart';
 
 class ProfileCompleteness extends StatefulWidget {
   final BoxConstraints constraints;
-  final String? ovr35;
+  final String? ovrPercentageLabel;
   const ProfileCompleteness(
     this.constraints, {
     Key? key,
-    this.ovr35,
+    this.ovrPercentageLabel,
   }) : super(key: key);
   @override
   _ProfileCompleteness createState() => _ProfileCompleteness();
@@ -119,7 +119,7 @@ class _ProfileCompleteness extends State<ProfileCompleteness> {
                                         height: 12.0,
                                         width: 20.0,
                                         child: AutoSizeText(
-                                          widget.ovr35 ?? '35%',
+                                          widget.ovrPercentageLabel ?? '35%',
                                           style: TextStyle(
                                             fontFamily: 'Roboto',
                                             fontSize: 10.0,

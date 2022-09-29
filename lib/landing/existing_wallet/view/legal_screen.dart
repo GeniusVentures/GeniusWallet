@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
+import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_agreement.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
@@ -13,13 +16,13 @@ class LegalScreen extends StatelessWidget {
       body: AppScreenWithHeader(
         title: 'Legal',
         subtitle:
-            'Please review the Privacy Policy and Terms of Service of the Cryptonix wallet before processing',
+            'Please review the Privacy Policy and Terms of Service of the GNUS wallet before proceeding',
         bodyWidgets: [
           ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: 50,
               minWidth: MediaQuery.of(context).size.width * 0.8,
-              maxHeight: MediaQuery.of(context).size.width * 0.6,
+              maxHeight: MediaQuery.of(context).size.width * 0.5,
               maxWidth: MediaQuery.of(context).size.width * 0.8,
             ),
             child: Column(
@@ -72,7 +75,20 @@ class LegalScreen extends StatelessWidget {
               height: 50,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return IsactiveFalse(constraints);
+                  return BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
+                      builder: (context, state) {
+                    if (state.acceptedLegal) {
+                      return MaterialButton(
+                        onPressed: () {
+                          context
+                              .read<ExistingWalletBloc>()
+                              .add(ChangeStep(step: FlowStep.createPasscode));
+                        },
+                        child: IsactiveTrue(constraints),
+                      );
+                    }
+                    return IsactiveFalse(constraints);
+                  });
                 },
               ),
             ),

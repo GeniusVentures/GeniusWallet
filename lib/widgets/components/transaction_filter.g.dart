@@ -35,18 +35,18 @@ class _TransactionFilter extends State<TransactionFilter> {
             child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth * 1.047,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 28.0,
+                width: 40.0,
                 top: 0,
                 height: 13.0,
                 child: Container(
                     height: 13.0,
-                    width: 28.0,
+                    width: 40.0,
                     child: AutoSizeText(
                       widget.ovrALL ?? 'ALL',
                       style: TextStyle(
@@ -61,12 +61,12 @@ class _TransactionFilter extends State<TransactionFilter> {
               ),
               Positioned(
                 left: 38.0,
-                width: 35.0,
+                right: 65.0,
                 top: 0,
                 height: 13.0,
                 child: Container(
                     height: 13.0,
-                    width: 35.0,
+                    width: widget.constraints.maxWidth * 0.36,
                     child: AutoSizeText(
                       widget.ovrSEND ?? 'SEND',
                       style: TextStyle(
@@ -80,13 +80,13 @@ class _TransactionFilter extends State<TransactionFilter> {
                     )),
               ),
               Positioned(
-                left: 83.0,
-                width: 50.0,
+                right: 0,
+                width: 74.0,
                 top: 0,
                 height: 13.0,
                 child: Container(
                     height: 13.0,
-                    width: 50.0,
+                    width: 74.0,
                     child: AutoSizeText(
                       widget.ovrRECENT ?? 'RECENT',
                       style: TextStyle(

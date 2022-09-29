@@ -1,4 +1,5 @@
-import 'package:genius_wallet/widgets/components/wallet_agreement.g.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
 
 import 'package:flutter/material.dart';
 
@@ -16,10 +17,17 @@ class WalletAgreementCustom extends StatefulWidget {
 class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child ??
-        WalletAgreement(BoxConstraints(
-          maxWidth: 327.0,
-          maxHeight: 34.0,
-        ));
+    return Row(
+      children: [
+        Checkbox(
+            value: context.watch<ExistingWalletBloc>().state.acceptedLegal,
+            onChanged: (value) {
+              context.read<ExistingWalletBloc>().add(ToggleLegal());
+            }),
+        const Text(
+          'I’ve read and accept the Terms of Service and Privacy Policy',
+        ),
+      ],
+    );
   }
 }

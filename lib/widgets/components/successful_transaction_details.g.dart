@@ -53,13 +53,13 @@ class _SuccessfulTransactionDetails
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.051,
+            width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
                 left: 0,
-                right: 16.0,
+                right: 0,
                 top: 0,
                 bottom: 0,
                 child: Container(
@@ -73,12 +73,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 15.0,
-                width: 45.0,
+                width: 299.0,
                 top: 85.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 45.0,
+                    width: 299.0,
                     child: AutoSizeText(
                       widget.ovrUserBalanceLabel ?? 'Balance',
                       style: TextStyle(
@@ -93,12 +93,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 15.0,
-                width: 48.0,
+                width: 295.0,
                 top: 149.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 48.0,
+                    width: 295.0,
                     child: AutoSizeText(
                       widget.ovrReceiverWalletIDLabel ?? 'Receiver',
                       style: TextStyle(
@@ -113,12 +113,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 15.0,
-                width: 67.0,
+                width: 299.0,
                 top: 211.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 67.0,
+                    width: 299.0,
                     child: AutoSizeText(
                       widget.ovrTransactionIDLabel ?? 'Transaction',
                       style: TextStyle(
@@ -133,12 +133,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 15.0,
-                width: 20.0,
+                width: 299.0,
                 top: 273.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 20.0,
+                    width: 299.0,
                     child: AutoSizeText(
                       widget.ovrTransactionFeeLabel ?? 'Fee',
                       style: TextStyle(
@@ -153,12 +153,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 15.0,
-                width: 26.0,
+                width: 299.0,
                 top: 339.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 26.0,
+                    width: 299.0,
                     child: AutoSizeText(
                       widget.ovrTransactionTimestampLabel ?? 'Date',
                       style: TextStyle(
@@ -173,12 +173,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 15.0,
-                width: 44.0,
+                width: 299.0,
                 top: 31.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 44.0,
+                    width: 299.0,
                     child: AutoSizeText(
                       widget.ovrTransactionValueLabel ?? 'Amount',
                       style: TextStyle(
@@ -193,12 +193,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 14.0,
-                width: 79.0,
+                width: 300.0,
                 top: 106.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 79.0,
+                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrUserBalance ?? '0.000014 BTC',
                       style: TextStyle(
@@ -213,12 +213,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 17.0,
-                width: 313.0,
+                width: 297.0,
                 top: 173.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 313.0,
+                    width: 297.0,
                     child: AutoSizeText(
                       widget.ovrReceiverWalletID ??
                           '0x0xeacdeeefxceadefe3ad567cda5cxc6879',
@@ -255,12 +255,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 17.0,
-                width: 284.0,
+                width: 297.0,
                 top: 297.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 284.0,
+                    width: 297.0,
                     child: AutoSizeText(
                       widget.ovrGasFee ??
                           '0xeacdacdvafedswvsvxfsafedavedvaseav832',
@@ -276,12 +276,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 17.0,
-                width: 197.0,
+                width: 297.0,
                 top: 363.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 197.0,
+                    width: 297.0,
                     child: AutoSizeText(
                       widget.ovrTransactionTimestamp ??
                           '29th September 2022, 11:23PM',
@@ -297,12 +297,12 @@ class _SuccessfulTransactionDetails
               ),
               Positioned(
                 left: 14.0,
-                width: 79.0,
+                width: 300.0,
                 top: 52.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 79.0,
+                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrTransactionValue ?? '0.221764 BTC',
                       style: TextStyle(

@@ -280,10 +280,10 @@ class _OrderHistory extends State<OrderHistory> {
                 left: 21.0,
                 width: 271.0,
                 top: 100.0,
-                height: 379.0,
+                height: 598.0,
                 child: OrderHistoryCustom(
                     child: Container(
-                        height: 379.0,
+                        height: 598.0,
                         width: 272.0,
                         decoration: BoxDecoration(),
                         child: Column(

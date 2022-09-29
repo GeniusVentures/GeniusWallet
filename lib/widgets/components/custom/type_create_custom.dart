@@ -15,8 +15,8 @@ class TypeCreateCustom extends StatefulWidget {
 class _TypeCreateCustomState extends State<TypeCreateCustom> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.go('/backup_phrase'),
+    return MaterialButton(
+      onPressed: () => context.go('/backup_phrase'),
       child: widget.child,
     );
   }
