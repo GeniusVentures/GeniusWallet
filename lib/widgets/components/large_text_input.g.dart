@@ -33,7 +33,9 @@ class _LargeTextInput extends State<LargeTextInput> {
             width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
-            child: LargeTextInputWidget(),
+            child: LargeTextInputWidget(
+              logic: LargeTextInputLogic(context),
+            ),
           ),
         ]));
   }

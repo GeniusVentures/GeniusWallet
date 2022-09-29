@@ -5,9 +5,9 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/transaction_type_arrow/incoming.g.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:genius_wallet/widgets/components/transaction_type_arrow/incomingarrow.g.dart';
 
 class HistoricTransactionDetailView extends StatefulWidget {
   final BoxConstraints constraints;
@@ -61,13 +61,13 @@ class _HistoricTransactionDetailView
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.041,
+            width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
                 left: 0,
-                right: 13.0,
+                right: 0,
                 top: 0,
                 bottom: 0,
                 child: Container(
@@ -81,12 +81,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 85.0,
+                width: 298.0,
                 top: 85.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 85.0,
+                    width: 298.0,
                     child: AutoSizeText(
                       widget.ovrCryptoTypeLabel ?? 'Cryptocurrency',
                       style: TextStyle(
@@ -101,12 +101,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 48.0,
+                width: 302.0,
                 top: 149.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 48.0,
+                    width: 302.0,
                     child: AutoSizeText(
                       widget.ovrReceiverWalletIDLabel ?? 'Receiver',
                       style: TextStyle(
@@ -141,12 +141,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 20.0,
+                width: 302.0,
                 top: 273.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 20.0,
+                    width: 302.0,
                     child: AutoSizeText(
                       widget.ovrTransactionFeeLabel ?? 'Fee',
                       style: TextStyle(
@@ -161,12 +161,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 96.0,
+                width: 302.0,
                 top: 345.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 96.0,
+                    width: 302.0,
                     child: AutoSizeText(
                       widget.ovrTransactionTypeLabel ?? 'Transaction Type',
                       style: TextStyle(
@@ -181,12 +181,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 26.0,
+                width: 302.0,
                 top: 421.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 26.0,
+                    width: 302.0,
                     child: AutoSizeText(
                       widget.ovrTransactionTimestampLabel ?? 'Date',
                       style: TextStyle(
@@ -201,12 +201,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 44.0,
+                width: 298.0,
                 top: 31.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 44.0,
+                    width: 298.0,
                     child: AutoSizeText(
                       widget.ovrTransactionAmountLabel ?? 'Amount',
                       style: TextStyle(
@@ -221,12 +221,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 14.0,
-                width: 39.0,
+                width: 299.0,
                 top: 106.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 39.0,
+                    width: 299.0,
                     child: AutoSizeText(
                       widget.ovrCryptoType ?? 'Bitcoin',
                       style: TextStyle(
@@ -241,12 +241,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 17.0,
-                width: 313.0,
+                width: 300.0,
                 top: 173.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 313.0,
+                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrReceiverWalletID ??
                           '0x0xeacdeeefxceadefe3ad567cda5cxc6879',
@@ -262,12 +262,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 17.0,
-                width: 284.0,
+                width: 300.0,
                 top: 235.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 284.0,
+                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrTransactionID ??
                           '0xeacdacdvafedswvsvxfsafedavedvaseav832',
@@ -283,12 +283,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 17.0,
-                width: 284.0,
+                width: 300.0,
                 top: 297.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 284.0,
+                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrTransactionFee ??
                           '0xeacdacdvafedswvsvxfsafedavedvaseav832',
@@ -304,12 +304,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 36.0,
-                width: 59.0,
+                width: 281.0,
                 top: 369.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 59.0,
+                    width: 281.0,
                     child: AutoSizeText(
                       widget.ovrTransactionType ?? 'Incoming',
                       style: TextStyle(
@@ -324,12 +324,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 17.0,
-                width: 197.0,
+                width: 300.0,
                 top: 445.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 197.0,
+                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrTransactionTimestamp ??
                           '29th September 2022, 11:23PM',
@@ -345,12 +345,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 14.0,
-                width: 90.0,
+                width: 303.0,
                 top: 52.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 90.0,
+                    width: 303.0,
                     child: AutoSizeText(
                       widget.ovrTransactionAmount ?? '+ 0.221764 BTC',
                       style: TextStyle(
@@ -369,10 +369,10 @@ class _HistoricTransactionDetailView
                 top: 372.0,
                 height: 10.667,
                 child: LayoutBuilder(builder: (context, constraints) {
-                  return Incoming(
+                  return Incomingarrow(
                     constraints,
-                    ovrMask: SvgPicture.asset(
-                      'assets/images/mask.svg',
+                    ovrMaskArrow2: SvgPicture.asset(
+                      'assets/images/maskarrow2.svg',
                       package: 'genius_wallet',
                       height:
                           widget.constraints.maxHeight * 0.021636900988843813,

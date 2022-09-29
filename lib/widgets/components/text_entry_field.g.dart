@@ -33,7 +33,9 @@ class _TextEntryField extends State<TextEntryField> {
             width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
-            child: TextEntryFieldWidget(),
+            child: TextEntryFieldWidget(
+              logic: TextEntryFieldLogic(context),
+            ),
           ),
         ]));
   }

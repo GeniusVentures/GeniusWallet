@@ -74,10 +74,10 @@ class _TransactionCard extends State<TransactionCard> {
               Positioned(
                 left: widget.constraints.maxWidth * 0.048,
                 width: widget.constraints.maxWidth * 0.889,
-                top: widget.constraints.maxHeight * 0.639,
-                height: widget.constraints.maxHeight * 0.194,
+                top: widget.constraints.maxHeight * 0.642,
+                height: widget.constraints.maxHeight * 0.283,
                 child: Container(
-                    height: widget.constraints.maxHeight * 0.19444649174528303,
+                    height: widget.constraints.maxHeight * 0.2830188679245283,
                     width: widget.constraints.maxWidth * 0.8892988929889298,
                     child: AutoSizeText(
                       widget.ovrTransactionID ??

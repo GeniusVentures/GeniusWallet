@@ -51,13 +51,13 @@ class _SaveButton extends State<SaveButton> {
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.46,
-                width: widget.constraints.maxWidth * 0.087,
+                width: widget.constraints.maxWidth * 0.158,
                 top: widget.constraints.maxHeight * 0.314,
                 height: widget.constraints.maxHeight * 0.4,
                 child: Center(
                     child: Container(
                         height: 14.0,
-                        width: 27.0,
+                        width: 49.0,
                         child: AutoSizeText(
                           widget.ovrSave ?? 'Save',
                           style: TextStyle(

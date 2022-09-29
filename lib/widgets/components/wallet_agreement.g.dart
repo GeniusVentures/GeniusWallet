@@ -59,9 +59,10 @@ class _WalletAgreement extends State<WalletAgreement> {
               Positioned(
                 left: 0,
                 width: 14.0,
-                top: 2.0,
-                height: 14.0,
-                child: Container(
+                top: widget.constraints.maxHeight * 0.294,
+                height: widget.constraints.maxHeight * 0.412,
+                child: Center(
+                    child: Container(
                   height: 14.0,
                   width: 14.0,
                   decoration: BoxDecoration(
@@ -72,7 +73,7 @@ class _WalletAgreement extends State<WalletAgreement> {
                       width: 1.0,
                     ),
                   ),
-                ),
+                )),
               ),
             ]),
           ),
