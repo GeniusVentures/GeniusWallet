@@ -14,14 +14,14 @@ import 'package:genius_wallet/widgets/components/custom/add_event_button_custom.
 class Monthselector extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrMonth;
-  final Widget? ovrMask;
-  final Widget? ovrMask2;
+  final Widget? ovrMaskNextMonth;
+  final Widget? ovrMaskPreviousMonth;
   const Monthselector(
     this.constraints, {
     Key? key,
     this.ovrMonth,
-    this.ovrMask,
-    this.ovrMask2,
+    this.ovrMaskNextMonth,
+    this.ovrMaskPreviousMonth,
   }) : super(key: key);
   @override
   _Monthselector createState() => _Monthselector();
@@ -90,9 +90,9 @@ class _Monthselector extends State<Monthselector> {
                             width: 5.0,
                             top: 10.0,
                             height: 9.0,
-                            child: widget.ovrMask ??
+                            child: widget.ovrMaskNextMonth ??
                                 SvgPicture.asset(
-                                  'assets/images/mask.svg',
+                                  'assets/images/masknextmonth.svg',
                                   package: 'genius_wallet',
                                   height: 9.0,
                                   width: 5.0,
@@ -130,9 +130,9 @@ class _Monthselector extends State<Monthselector> {
                             width: 5.0,
                             top: 10.0,
                             height: 9.0,
-                            child: widget.ovrMask2 ??
+                            child: widget.ovrMaskPreviousMonth ??
                                 SvgPicture.asset(
-                                  'assets/images/mask2.svg',
+                                  'assets/images/maskpreviousmonth.svg',
                                   package: 'genius_wallet',
                                   height: 9.0,
                                   width: 5.0,

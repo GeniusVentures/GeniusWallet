@@ -11,11 +11,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 class CopyWalletID extends StatefulWidget {
   final BoxConstraints constraints;
-  final String? ovrCopy;
+  final String? ovrCopyWalletLabel;
   const CopyWalletID(
     this.constraints, {
     Key? key,
-    this.ovrCopy,
+    this.ovrCopyWalletLabel,
   }) : super(key: key);
   @override
   _CopyWalletID createState() => _CopyWalletID();
@@ -42,7 +42,7 @@ class _CopyWalletID extends State<CopyWalletID> {
                 top: 1.0,
                 height: 13.5,
                 child: SvgPicture.asset(
-                  'assets/images/copysymbol.svg',
+                  'assets/images/copywalletsymbol.svg',
                   package: 'genius_wallet',
                   height: 13.5,
                   width: 11.0,
@@ -58,7 +58,7 @@ class _CopyWalletID extends State<CopyWalletID> {
                     height: 16.0,
                     width: 32.0,
                     child: AutoSizeText(
-                      widget.ovrCopy ?? 'Copy',
+                      widget.ovrCopyWalletLabel ?? 'Copy',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 14.0,

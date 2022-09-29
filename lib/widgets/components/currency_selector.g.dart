@@ -12,13 +12,13 @@ class CurrencySelector extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrTitle;
   final String? ovrBitcoinBTC;
-  final Widget? ovrMask;
+  final Widget? ovrMaskCurrencySelector;
   const CurrencySelector(
     this.constraints, {
     Key? key,
     this.ovrTitle,
     this.ovrBitcoinBTC,
-    this.ovrMask,
+    this.ovrMaskCurrencySelector,
   }) : super(key: key);
   @override
   _CurrencySelector createState() => _CurrencySelector();
@@ -40,12 +40,12 @@ class _CurrencySelector extends State<CurrencySelector> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 34.0,
+                width: 68.0,
                 top: 0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 34.0,
+                    width: 68.0,
                     child: AutoSizeText(
                       widget.ovrTitle ?? 'FROM',
                       style: TextStyle(
@@ -72,9 +72,9 @@ class _CurrencySelector extends State<CurrencySelector> {
                             width: 7.0,
                             top: 11.0,
                             height: 14.0,
-                            child: widget.ovrMask ??
+                            child: widget.ovrMaskCurrencySelector ??
                                 Image.asset(
-                                  'assets/images/mask.png',
+                                  'assets/images/maskcurrencyselector.png',
                                   package: 'genius_wallet',
                                   height: 14.0,
                                   width: 7.0,

@@ -86,3 +86,13 @@ flutter:
     - packages/genius_wallet/assets/images/copysymbol.svg
     - packages/genius_wallet/assets/images/shield_icon.png
     - packages/genius_wallet/assets/images/logo_and_title.png
+    - packages/genius_wallet/assets/images/maskcurrencyselector.png
+    - packages/genius_wallet/assets/images/passcodeframe.svg
+    - packages/genius_wallet/assets/images/cancelledstatuslogo.svg
+    - packages/genius_wallet/assets/images/masknextmonth.svg
+    - packages/genius_wallet/assets/images/maskpreviousmonth.svg
+    - packages/genius_wallet/assets/images/completedstatuslogo.svg
+    - packages/genius_wallet/assets/images/maskarrow2.svg
+    - packages/genius_wallet/assets/images/copywalletsymbol.svg
+    - packages/genius_wallet/assets/images/pendingstatuslogo.svg
+    - packages/genius_wallet/assets/images/maskarrow1.svg

@@ -64,7 +64,9 @@ class _EnterAmount extends State<EnterAmount> {
                 width: 315.0,
                 top: 43.0,
                 height: 61.0,
-                child: EnterAmountWidget(),
+                child: EnterAmountWidget(
+                  logic: EnterAmountLogic(context),
+                ),
               ),
             ]),
           ),

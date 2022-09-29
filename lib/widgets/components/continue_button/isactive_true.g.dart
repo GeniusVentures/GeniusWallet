@@ -63,12 +63,12 @@ class _IsactiveTrue extends State<IsactiveTrue> {
               ),
               Positioned(
                 left: 115.0,
-                right: 116.0,
+                right: 112.0,
                 top: 16.0,
                 bottom: 17.0,
                 child: Container(
                     height: widget.constraints.maxHeight * 0.2826086956521739,
-                    width: widget.constraints.maxWidth * 0.26666666666666666,
+                    width: widget.constraints.maxWidth * 0.27936507936507937,
                     child: AutoSizeText(
                       widget.ovrContinue ?? 'Continue',
                       style: TextStyle(

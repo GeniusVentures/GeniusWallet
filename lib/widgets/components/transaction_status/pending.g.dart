@@ -54,7 +54,7 @@ class _Pending extends State<Pending> {
                 top: 10.0,
                 height: 18.0,
                 child: SvgPicture.asset(
-                  'assets/images/statuslogo.svg',
+                  'assets/images/pendingstatuslogo.svg',
                   package: 'genius_wallet',
                   height: 18.0,
                   width: 21.0,
@@ -62,15 +62,15 @@ class _Pending extends State<Pending> {
                 ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.202,
-                width: widget.constraints.maxWidth * 0.38,
+                left: widget.constraints.maxWidth * 0.083,
+                width: widget.constraints.maxWidth * 0.496,
                 top: widget.constraints.maxHeight * 0.286,
                 height: widget.constraints.maxHeight * 0.4,
                 child: Center(
                     child: Container(
                         height: 14.0,
                         width:
-                            widget.constraints.maxWidth * 0.38016528925619836,
+                            widget.constraints.maxWidth * 0.49586776859504134,
                         child: AutoSizeText(
                           widget.ovrStatus ?? 'Pending',
                           style: TextStyle(
