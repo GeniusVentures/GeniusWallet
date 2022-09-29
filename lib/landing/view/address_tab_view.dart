@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
 
 class AddressTabView extends StatelessWidget {
-  const AddressTabView({Key? key}) : super(key: key);
+  final TextEditingController controller;
+  const AddressTabView({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

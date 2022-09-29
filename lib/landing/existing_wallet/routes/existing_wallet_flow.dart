@@ -7,6 +7,8 @@ import 'package:genius_wallet/landing/existing_wallet/view/create_passcode_scree
 import 'package:genius_wallet/landing/existing_wallet/view/import_security_screen.dart';
 import 'package:genius_wallet/landing/existing_wallet/view/import_wallet_screen.dart';
 import 'package:genius_wallet/landing/existing_wallet/view/legal_screen.dart';
+import 'package:genius_wallet/landing/view/confirm_pin_screen.dart';
+import 'package:genius_wallet/landing/view/create_pin_screen.dart';
 
 class ExistingWalletFlow extends StatelessWidget {
   const ExistingWalletFlow({super.key});
@@ -25,8 +27,13 @@ class ExistingWalletFlow extends StatelessWidget {
             const MaterialPage(child: ImportWalletScreen()),
           if (state.currentStep == FlowStep.importWalletSecurity)
             MaterialPage(
-              child: ImportSecurityScreen(walletName: state.selectedWallet),
+              child: ImportSecurityScreen(walletType: state.selectedWallet),
             ),
+          if (state.currentStep == FlowStep.createPin)
+            const MaterialPage(child: CreatePinScreen()),
+          if (state.currentStep == FlowStep.confirmPin)
+            MaterialPage(
+                child: ConfirmPinScreen(pinToConfirm: state.createdPin))
         ];
       },
       state: context.watch<ExistingWalletBloc>().state,
