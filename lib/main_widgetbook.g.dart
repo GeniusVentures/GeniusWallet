@@ -7,73 +7,76 @@
 
     import 'package:widgetbook/widgetbook.dart';
     import 'package:flutter/material.dart';
-    import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
-import 'package:genius_wallet/widgets/components/profile_info_form.g.dart';
-import 'package:genius_wallet/widgets/components/date_selector.g.dart';
-import 'package:genius_wallet/widgets/components/changepassword.g.dart';
+    import 'package:genius_wallet/widgets/components/date_selector.g.dart';
+import 'package:genius_wallet/widgets/components/save_button.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
-import 'package:genius_wallet/widgets/components/change_profile_picture.g.dart';
+import 'package:genius_wallet/widgets/components/changepassword.g.dart';
 import 'package:genius_wallet/widgets/components/crypto_market_overview.g.dart';
-import 'package:genius_wallet/widgets/components/header.g.dart';
+import 'package:genius_wallet/widgets/components/change_profile_picture.g.dart';
 import 'package:genius_wallet/widgets/components/export_history.g.dart';
-import 'package:genius_wallet/widgets/components/coin_stats_card.g.dart';
+import 'package:genius_wallet/widgets/components/market_graph.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_counter.g.dart';
-import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_dashboard.g.dart';
+import 'package:genius_wallet/widgets/components/coin_stats_card.g.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
-import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_wallets.g.dart';
+import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_dashboard.g.dart';
 import 'package:genius_wallet/widgets/components/markets_module.g.dart';
-import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_markets.g.dart';
+import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
-import 'package:genius_wallet/widgets/components/аdd_wallet_text.g.dart';
+import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_markets.g.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
-import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 import 'package:genius_wallet/widgets/components/crypto_chart.g.dart';
 import 'package:genius_wallet/widgets/components/enter_amount.g.dart';
-import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
-import 'package:genius_wallet/widgets/components/appbar.g.dart';
-import 'package:genius_wallet/widgets/components/genius_back_button.g.dart';
+import 'package:genius_wallet/widgets/components/аdd_wallet_text.g.dart';
 import 'package:genius_wallet/widgets/components/currency_selector.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_q_r_scan.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
+import 'package:genius_wallet/widgets/components/send/buttontype_buy.g.dart';
+import 'package:genius_wallet/widgets/components/genius_back_button.g.dart';
+import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/passcode_entry.g.dart';
-import 'package:genius_wallet/widgets/components/price_chart.g.dart';
+import 'package:genius_wallet/widgets/components/appbar.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_agreement.g.dart';
-import 'package:genius_wallet/widgets/components/order_book_header.g.dart';
-import 'package:genius_wallet/widgets/components/white_arrow/pointing_right.g.dart';
-import 'package:genius_wallet/widgets/components/orderbook.g.dart';
-import 'package:genius_wallet/widgets/components/large_text_input.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_type_arrow/outgoing.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_type_arrow/incoming.g.dart';
-import 'package:genius_wallet/widgets/components/historic_transaction_detail_view.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_q_r_code.g.dart';
-import 'package:genius_wallet/widgets/components/monthselector.g.dart';
-import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_transactions.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
-import 'package:genius_wallet/widgets/components/profile_completeness.g.dart';
-import 'package:genius_wallet/widgets/components/coin_toggle_selector.g.dart';
+import 'package:genius_wallet/widgets/components/price_chart.g.dart';
 import 'package:genius_wallet/widgets/components/recoveryword.g.dart';
-import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_status/completed.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_preview.g.dart';
-import 'package:genius_wallet/widgets/components/navbar_group22.g.dart';
-import 'package:genius_wallet/widgets/components/detailed_transaction.g.dart';
-import 'package:genius_wallet/widgets/components/market_graph.g.dart';
-import 'package:genius_wallet/widgets/components/p_i_n_entry.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_card.g.dart';
-import 'package:genius_wallet/widgets/components/save_button.g.dart';
 import 'package:genius_wallet/widgets/components/white_arrow/pointing_left.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_status/pending.g.dart';
+import 'package:genius_wallet/widgets/components/detailed_transaction.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_card.g.dart';
+import 'package:genius_wallet/widgets/components/navbar_group22.g.dart';
+import 'package:genius_wallet/widgets/components/p_i_n_entry.g.dart';
+import 'package:genius_wallet/widgets/components/profile_info_form.g.dart';
+import 'package:genius_wallet/widgets/components/send/buttontype_receive.g.dart';
+import 'package:genius_wallet/widgets/components/send/buttontype_default.g.dart';
+import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
+import 'package:genius_wallet/widgets/components/large_text_input.g.dart';
+import 'package:genius_wallet/widgets/components/header.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_status/cancelled.g.dart';
+import 'package:genius_wallet/widgets/components/coin_toggle_selector.g.dart';
+import 'package:genius_wallet/widgets/components/bottom_navbar/property1_navbar_wallets.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_preview.g.dart';
+import 'package:genius_wallet/widgets/components/monthselector.g.dart';
+import 'package:genius_wallet/widgets/components/order_book_header.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_status/completed.g.dart';
+import 'package:genius_wallet/widgets/components/historic_transaction_detail_view.g.dart';
+import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
+import 'package:genius_wallet/widgets/components/registration_header.g.dart';
+import 'package:genius_wallet/widgets/components/profile_completeness.g.dart';
+import 'package:genius_wallet/widgets/components/order_history.g.dart';
 import 'package:genius_wallet/widgets/components/copy_wallet_i_d.g.dart';
 import 'package:genius_wallet/widgets/components/successful_transaction_details.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
-import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/text_entry_field.g.dart';
-import 'package:genius_wallet/widgets/components/registration_header.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_status/cancelled.g.dart';
-import 'package:genius_wallet/widgets/components/back_button_dashboard.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_q_r_scan.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_type_arrow/incomingarrow.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_status/pending.g.dart';
 import 'package:genius_wallet/widgets/components/conversion_result.g.dart';
-import 'package:genius_wallet/widgets/components/order_history.g.dart';
+import 'package:genius_wallet/widgets/components/orderbook.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
+import 'package:genius_wallet/widgets/components/white_arrow/pointing_right.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_type_arrow/outgoingarrow.g.dart';
+import 'package:genius_wallet/widgets/components/text_entry_field.g.dart';
+import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
+import 'package:genius_wallet/widgets/components/back_button_dashboard.g.dart';
 
 
     void main() {
@@ -101,52 +104,6 @@ import 'package:genius_wallet/widgets/components/order_history.g.dart';
         name: 'components',
         widgets: [
       WidgetbookWidget(
-        name: 'TransactionCard',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'TransactionCard',
-        builder: (context) => Center(child:       SizedBox(
-        height: 53.0,width: 271.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return TransactionCard(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'ProfileInfoForm',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'ProfileInfoForm',
-        builder: (context) => Center(child:       SizedBox(
-        height: 603.0,width: 314.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return ProfileInfoForm(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
         name: 'Date selector ',
         useCases: [
       WidgetbookUseCase(
@@ -156,6 +113,52 @@ constraints,
         child: LayoutBuilder( 
   builder: (context, constraints) {
     return DateSelector(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Save Button',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'SaveButton',
+        builder: (context) => Center(child:       SizedBox(
+        height: 35.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return SaveButton(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Transaction Filter ',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'TransactionFilter',
+        builder: (context) => Center(child:       SizedBox(
+        height: 13.0,width: 150.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return TransactionFilter(
 constraints,
 )
 ;
@@ -193,15 +196,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'Transaction Filter ',
+        name: 'CryptoMarketOverview',
         useCases: [
       WidgetbookUseCase(
-        name: 'TransactionFilter',
+        name: 'CryptoMarketOverview',
         builder: (context) => Center(child:       SizedBox(
-        height: 13.0,width: 133.0,
+        height: 47.0,width: 271.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return TransactionFilter(
+    return CryptoMarketOverview(
 constraints,
 )
 ;
@@ -239,52 +242,6 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'CryptoMarketOverview',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'CryptoMarketOverview',
-        builder: (context) => Center(child:       SizedBox(
-        height: 47.0,width: 271.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return CryptoMarketOverview(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'Header',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'Header',
-        builder: (context) => Center(child:       SizedBox(
-        height: 28.0,width: 312.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return Header(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
         name: 'Export History',
         useCases: [
       WidgetbookUseCase(
@@ -308,15 +265,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'CoinStatsCard',
+        name: 'MarketGraph',
         useCases: [
       WidgetbookUseCase(
-        name: 'CoinStatsCard',
+        name: 'MarketGraph',
         builder: (context) => Center(child:       SizedBox(
         height: 192.0,width: 311.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return CoinStatsCard(
+    return MarketGraph(
 constraints,
 )
 ;
@@ -354,6 +311,52 @@ constraints,
       )
     ,
       WidgetbookWidget(
+        name: 'CoinStatsCard',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'CoinStatsCard',
+        builder: (context) => Center(child:       SizedBox(
+        height: 192.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return CoinStatsCard(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'WalletsOverview',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'WalletsOverview',
+        builder: (context) => Center(child:       SizedBox(
+        height: 290.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return WalletsOverview(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
         name: 'bottom-navbar',
         useCases: [
       WidgetbookUseCase(
@@ -373,12 +376,12 @@ constraints,
       ),
     
       WidgetbookUseCase(
-        name: 'Property1NavbarWallets',
+        name: 'Property1NavbarTransactions',
         builder: (context) => Center(child:       SizedBox(
         height: 63.0,width: 375.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return Property1NavbarWallets(
+    return Property1NavbarTransactions(
 constraints,
 )
 ;
@@ -405,35 +408,12 @@ constraints,
       ),
     
       WidgetbookUseCase(
-        name: 'Property1NavbarTransactions',
+        name: 'Property1NavbarWallets',
         builder: (context) => Center(child:       SizedBox(
         height: 63.0,width: 375.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return Property1NavbarTransactions(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'WalletsOverview',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'WalletsOverview',
-        builder: (context) => Center(child:       SizedBox(
-        height: 290.0,width: 311.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return WalletsOverview(
+    return Property1NavbarWallets(
 constraints,
 )
 ;
@@ -494,29 +474,6 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'Аdd Wallet Text',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'АddWalletText',
-        builder: (context) => Center(child:       SizedBox(
-        height: 14.0,width: 76.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return DdWalletText(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
         name: 'Transactions',
         useCases: [
       WidgetbookUseCase(
@@ -540,15 +497,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'IncorrectPin',
+        name: 'TransactionCard',
         useCases: [
       WidgetbookUseCase(
-        name: 'IncorrectPin',
+        name: 'TransactionCard',
         builder: (context) => Center(child:       SizedBox(
-        height: 34.0,width: 160.0,
+        height: 53.0,width: 271.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return IncorrectPin(
+    return TransactionCard(
 constraints,
 )
 ;
@@ -609,6 +566,130 @@ constraints,
       )
     ,
       WidgetbookWidget(
+        name: 'Аdd Wallet Text',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'АddWalletText',
+        builder: (context) => Center(child:       SizedBox(
+        height: 14.0,width: 76.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return DdWalletText(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'CurrencySelector',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'CurrencySelector',
+        builder: (context) => Center(child:       SizedBox(
+        height: 115.0,width: 297.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return CurrencySelector(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Send',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'ButtontypeBuy',
+        builder: (context) => Center(child:       SizedBox(
+        height: 23.0,width: 90.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return ButtontypeBuy(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+      WidgetbookUseCase(
+        name: 'ButtontypeReceive',
+        builder: (context) => Center(child:       SizedBox(
+        height: 23.0,width: 90.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return ButtontypeReceive(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+      WidgetbookUseCase(
+        name: 'ButtontypeDefault',
+        builder: (context) => Center(child:       SizedBox(
+        height: 23.0,width: 90.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return ButtontypeDefault(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Genius Back Button',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'GeniusBackButton',
+        builder: (context) => Center(child:       SizedBox(
+        height: 9.0,width: 5.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return GeniusBackButton(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
         name: 'Continue Button',
         useCases: [
       WidgetbookUseCase(
@@ -648,6 +729,29 @@ constraints,
       )
     ,
       WidgetbookWidget(
+        name: 'Passcode Entry',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'PasscodeEntry',
+        builder: (context) => Center(child:       SizedBox(
+        height: 50.0,width: 317.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return PasscodeEntry(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
         name: 'Appbar',
         useCases: [
       WidgetbookUseCase(
@@ -671,38 +775,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'Genius Back Button',
+        name: 'WalletModule',
         useCases: [
       WidgetbookUseCase(
-        name: 'GeniusBackButton',
+        name: 'WalletModule',
         builder: (context) => Center(child:       SizedBox(
-        height: 9.0,width: 5.0,
+        height: 297.0,width: 311.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return GeniusBackButton(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'CurrencySelector',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'CurrencySelector',
-        builder: (context) => Center(child:       SizedBox(
-        height: 115.0,width: 297.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return CurrencySelector(
+    return WalletModule(
 constraints,
 )
 ;
@@ -756,98 +837,6 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'WalletQRScan',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'WalletQRScan',
-        builder: (context) => Center(child:       SizedBox(
-        height: 61.0,width: 119.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return WalletQRScan(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'WalletModule',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'WalletModule',
-        builder: (context) => Center(child:       SizedBox(
-        height: 297.0,width: 311.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return WalletModule(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'Passcode Entry',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'PasscodeEntry',
-        builder: (context) => Center(child:       SizedBox(
-        height: 50.0,width: 317.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return PasscodeEntry(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'PriceChart',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'PriceChart',
-        builder: (context) => Center(child:       SizedBox(
-        height: 371.0,width: 314.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return PriceChart(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
         name: 'Wallet Agreement',
         useCases: [
       WidgetbookUseCase(
@@ -857,176 +846,6 @@ constraints,
         child: LayoutBuilder( 
   builder: (context, constraints) {
     return WalletAgreement(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'OrderBookHeader',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'OrderBookHeader',
-        builder: (context) => Center(child:       SizedBox(
-        height: 19.0,width: 270.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return OrderBookHeader(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'White Arrow',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'PointingRight',
-        builder: (context) => Center(child:       SizedBox(
-        height: 9.0,width: 5.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return PointingRight(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-      WidgetbookUseCase(
-        name: 'PointingLeft',
-        builder: (context) => Center(child:       SizedBox(
-        height: 9.0,width: 5.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return PointingLeft(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'Orderbook',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'Orderbook',
-        builder: (context) => Center(child:       SizedBox(
-        height: 642.0,width: 271.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return Orderbook(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'LargeTextInput',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'LargeTextInput',
-        builder: (context) => Center(child:       SizedBox(
-        height: 190.0,width: 315.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return LargeTextInput(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'Transaction Type Arrow',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'Outgoing',
-        builder: (context) => Center(child:       SizedBox(
-        height: 10.6669921875,width: 16.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return Outgoing(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-      WidgetbookUseCase(
-        name: 'Incoming',
-        builder: (context) => Center(child:       SizedBox(
-        height: 10.6669921875,width: 16.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return Incoming(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'HistoricTransactionDetailView',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'HistoricTransactionDetailView',
-        builder: (context) => Center(child:       SizedBox(
-        height: 493.0,width: 317.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return HistoricTransactionDetailView(
 constraints,
 )
 ;
@@ -1064,61 +883,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'Monthselector',
+        name: 'PriceChart',
         useCases: [
       WidgetbookUseCase(
-        name: 'Monthselector',
+        name: 'PriceChart',
         builder: (context) => Center(child:       SizedBox(
-        height: 29.0,width: 311.0,
+        height: 371.0,width: 314.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return Monthselector(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'ProfileCompleteness',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'ProfileCompleteness',
-        builder: (context) => Center(child:       SizedBox(
-        height: 165.0,width: 311.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return ProfileCompleteness(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'CoinToggleSelector',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'CoinToggleSelector',
-        builder: (context) => Center(child:       SizedBox(
-        height: 35.0,width: 109.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return CoinToggleSelector(
+    return PriceChart(
 constraints,
 )
 ;
@@ -1156,38 +929,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'Add Wallet Block',
+        name: 'White Arrow',
         useCases: [
       WidgetbookUseCase(
-        name: 'AddWalletBlock',
+        name: 'PointingLeft',
         builder: (context) => Center(child:       SizedBox(
-        height: 297.0,width: 311.0,
+        height: 9.0,width: 5.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return AddWalletBlock(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'Transaction Status',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'Completed',
-        builder: (context) => Center(child:       SizedBox(
-        height: 35.0,width: 121.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return Completed(
+    return PointingLeft(
 constraints,
 )
 ;
@@ -1198,74 +948,12 @@ constraints,
       ),
     
       WidgetbookUseCase(
-        name: 'Pending',
+        name: 'PointingRight',
         builder: (context) => Center(child:       SizedBox(
-        height: 35.0,width: 121.0,
+        height: 9.0,width: 5.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return Pending(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-      WidgetbookUseCase(
-        name: 'Cancelled',
-        builder: (context) => Center(child:       SizedBox(
-        height: 35.0,width: 121.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return Cancelled(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'WalletPreview',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'WalletPreview',
-        builder: (context) => Center(child:       SizedBox(
-        height: 100.0,width: 200.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return WalletPreview(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'navbar/Group22',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'NavbarGroup22',
-        builder: (context) => Center(child:       SizedBox(
-        height: 41.0,width: 311.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return NavbarGroup22(
+    return PointingRight(
 constraints,
 )
 ;
@@ -1303,15 +991,38 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'MarketGraph',
+        name: 'walletCard',
         useCases: [
       WidgetbookUseCase(
-        name: 'MarketGraph',
+        name: 'WalletCard',
         builder: (context) => Center(child:       SizedBox(
-        height: 192.0,width: 311.0,
+        height: 55.0,width: 311.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return MarketGraph(
+    return WalletCard(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'navbar/Group22',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'NavbarGroup22',
+        builder: (context) => Center(child:       SizedBox(
+        height: 41.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return NavbarGroup22(
 constraints,
 )
 ;
@@ -1349,15 +1060,15 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'walletCard',
+        name: 'ProfileInfoForm',
         useCases: [
       WidgetbookUseCase(
-        name: 'WalletCard',
+        name: 'ProfileInfoForm',
         builder: (context) => Center(child:       SizedBox(
-        height: 55.0,width: 311.0,
+        height: 603.0,width: 314.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return WalletCard(
+    return ProfileInfoForm(
 constraints,
 )
 ;
@@ -1372,15 +1083,323 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'Save Button',
+        name: 'IncorrectPin',
         useCases: [
       WidgetbookUseCase(
-        name: 'SaveButton',
+        name: 'IncorrectPin',
         builder: (context) => Center(child:       SizedBox(
-        height: 35.0,width: 311.0,
+        height: 34.0,width: 160.0,
         child: LayoutBuilder( 
   builder: (context, constraints) {
-    return SaveButton(
+    return IncorrectPin(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'LargeTextInput',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'LargeTextInput',
+        builder: (context) => Center(child:       SizedBox(
+        height: 190.0,width: 315.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return LargeTextInput(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Header',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'Header',
+        builder: (context) => Center(child:       SizedBox(
+        height: 28.0,width: 312.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Header(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Transaction Status',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'Cancelled',
+        builder: (context) => Center(child:       SizedBox(
+        height: 35.0,width: 121.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Cancelled(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+      WidgetbookUseCase(
+        name: 'Completed',
+        builder: (context) => Center(child:       SizedBox(
+        height: 35.0,width: 121.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Completed(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+      WidgetbookUseCase(
+        name: 'Pending',
+        builder: (context) => Center(child:       SizedBox(
+        height: 35.0,width: 121.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Pending(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'CoinToggleSelector',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'CoinToggleSelector',
+        builder: (context) => Center(child:       SizedBox(
+        height: 35.0,width: 109.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return CoinToggleSelector(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'WalletPreview',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'WalletPreview',
+        builder: (context) => Center(child:       SizedBox(
+        height: 100.0,width: 200.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return WalletPreview(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Monthselector',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'Monthselector',
+        builder: (context) => Center(child:       SizedBox(
+        height: 29.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Monthselector(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'OrderBookHeader',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'OrderBookHeader',
+        builder: (context) => Center(child:       SizedBox(
+        height: 19.0,width: 270.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return OrderBookHeader(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'HistoricTransactionDetailView',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'HistoricTransactionDetailView',
+        builder: (context) => Center(child:       SizedBox(
+        height: 493.0,width: 317.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return HistoricTransactionDetailView(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Add Wallet Block',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'AddWalletBlock',
+        builder: (context) => Center(child:       SizedBox(
+        height: 297.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return AddWalletBlock(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'RegistrationHeader',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'RegistrationHeader',
+        builder: (context) => Center(child:       SizedBox(
+        height: 190.0,width: 375.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return RegistrationHeader(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'ProfileCompleteness',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'ProfileCompleteness',
+        builder: (context) => Center(child:       SizedBox(
+        height: 165.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return ProfileCompleteness(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'OrderHistory',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'OrderHistory',
+        builder: (context) => Center(child:       SizedBox(
+        height: 722.0,width: 311.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return OrderHistory(
 constraints,
 )
 ;
@@ -1441,6 +1460,114 @@ constraints,
       )
     ,
       WidgetbookWidget(
+        name: 'WalletQRScan',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'WalletQRScan',
+        builder: (context) => Center(child:       SizedBox(
+        height: 61.0,width: 119.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return WalletQRScan(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Transaction Type Arrow',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'Incomingarrow',
+        builder: (context) => Center(child:       SizedBox(
+        height: 10.6669921875,width: 16.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Incomingarrow(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+      WidgetbookUseCase(
+        name: 'Outgoingarrow',
+        builder: (context) => Center(child:       SizedBox(
+        height: 10.6669921875,width: 16.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Outgoingarrow(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'ConversionResult',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'ConversionResult',
+        builder: (context) => Center(child:       SizedBox(
+        height: 132.0,width: 306.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return ConversionResult(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
+        name: 'Orderbook',
+        useCases: [
+      WidgetbookUseCase(
+        name: 'Orderbook',
+        builder: (context) => Center(child:       SizedBox(
+        height: 642.0,width: 271.0,
+        child: LayoutBuilder( 
+  builder: (context, constraints) {
+    return Orderbook(
+constraints,
+)
+;
+}
+),
+      ),
+    ),
+      ),
+    
+],
+
+      )
+    ,
+      WidgetbookWidget(
         name: 'WalletToggle',
         useCases: [
       WidgetbookUseCase(
@@ -1487,29 +1614,6 @@ constraints,
       )
     ,
       WidgetbookWidget(
-        name: 'RegistrationHeader',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'RegistrationHeader',
-        builder: (context) => Center(child:       SizedBox(
-        height: 190.0,width: 375.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return RegistrationHeader(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
         name: 'Back Button Dashboard',
         useCases: [
       WidgetbookUseCase(
@@ -1519,52 +1623,6 @@ constraints,
         child: LayoutBuilder( 
   builder: (context, constraints) {
     return BackButtonDashboard(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'ConversionResult',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'ConversionResult',
-        builder: (context) => Center(child:       SizedBox(
-        height: 132.0,width: 306.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return ConversionResult(
-constraints,
-)
-;
-}
-),
-      ),
-    ),
-      ),
-    
-],
-
-      )
-    ,
-      WidgetbookWidget(
-        name: 'OrderHistory',
-        useCases: [
-      WidgetbookUseCase(
-        name: 'OrderHistory',
-        builder: (context) => Center(child:       SizedBox(
-        height: 692.0,width: 311.0,
-        child: LayoutBuilder( 
-  builder: (context, constraints) {
-    return OrderHistory(
 constraints,
 )
 ;

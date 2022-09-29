@@ -54,7 +54,7 @@ class _Cancelled extends State<Cancelled> {
                 top: 10.0,
                 height: 10.667,
                 child: SvgPicture.asset(
-                  'assets/images/statuslogo.svg',
+                  'assets/images/cancelledstatuslogo.svg',
                   package: 'genius_wallet',
                   height: 10.6669921875,
                   width: 10.66668701171875,
@@ -62,14 +62,14 @@ class _Cancelled extends State<Cancelled> {
                 ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.161,
-                width: widget.constraints.maxWidth * 0.463,
+                left: widget.constraints.maxWidth * 0.116,
+                width: widget.constraints.maxWidth * 0.562,
                 top: widget.constraints.maxHeight * 0.286,
                 height: widget.constraints.maxHeight * 0.4,
                 child: Center(
                     child: Container(
                         height: 14.0,
-                        width: widget.constraints.maxWidth * 0.4628099173553719,
+                        width: widget.constraints.maxWidth * 0.5619834710743802,
                         child: AutoSizeText(
                           widget.ovrStatus ?? 'Cancelled',
                           style: TextStyle(

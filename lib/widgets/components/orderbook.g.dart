@@ -179,25 +179,25 @@ class _Orderbook extends State<Orderbook> {
             left: 0,
             width: widget.constraints.maxWidth * 1.0,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxHeight * 1.016,
             child: Stack(children: [
               Positioned(
                 left: widget.constraints.maxWidth * 0.007,
                 width: widget.constraints.maxWidth * 0.993,
                 top: widget.constraints.maxHeight * 0.083,
-                height: widget.constraints.maxHeight * 0.327,
+                height: widget.constraints.maxHeight * 0.341,
                 child: Center(
                     child: Container(
-                        height: 210.0,
+                        height: 219.0,
                         width: 269.0,
                         child: SellLimitOrdersCustom(
                             child: Container(
+                                height: 219.0,
                                 decoration: BoxDecoration(),
                                 child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
                                           width: 269.0,
@@ -861,20 +861,20 @@ class _Orderbook extends State<Orderbook> {
                 left: widget.constraints.maxWidth * 0.007,
                 width: widget.constraints.maxWidth * 0.993,
                 top: widget.constraints.maxHeight * 0.536,
-                height: widget.constraints.maxHeight * 0.464,
+                height: widget.constraints.maxHeight * 0.48,
                 child: Center(
                     child: Container(
-                        height: 298.0,
+                        height: 308.0,
                         width: 269.0,
                         child: BuyLimitOrdersCustom(
                             child: Container(
+                                height: 308.0,
                                 width: 269.0,
                                 decoration: BoxDecoration(),
                                 child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
                                           width: 269.0,

@@ -5,23 +5,22 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/custom/large_text_input_logic.dart';
-import 'package:genius_wallet/widgets/components/large_text_input_widget.g.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-class LargeTextInput extends StatefulWidget {
+class Incomingarrow extends StatefulWidget {
   final BoxConstraints constraints;
-  final String? ovrLargeTextInputHinthinttext;
-  const LargeTextInput(
+  final Widget? ovrMaskArrow2;
+  const Incomingarrow(
     this.constraints, {
     Key? key,
-    this.ovrLargeTextInputHinthinttext,
+    this.ovrMaskArrow2,
   }) : super(key: key);
   @override
-  _LargeTextInput createState() => _LargeTextInput();
+  _Incomingarrow createState() => _Incomingarrow();
 }
 
-class _LargeTextInput extends State<LargeTextInput> {
-  _LargeTextInput();
+class _Incomingarrow extends State<Incomingarrow> {
+  _Incomingarrow();
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +32,14 @@ class _LargeTextInput extends State<LargeTextInput> {
             width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
-            child: LargeTextInputWidget(
-              logic: LargeTextInputLogic(context),
-            ),
+            child: widget.ovrMaskArrow2 ??
+                SvgPicture.asset(
+                  'assets/images/maskarrow2.svg',
+                  package: 'genius_wallet',
+                  height: widget.constraints.maxHeight * 1.0,
+                  width: widget.constraints.maxWidth * 1.0,
+                  fit: BoxFit.fill,
+                ),
           ),
         ]));
   }

@@ -54,7 +54,7 @@ class _Completed extends State<Completed> {
                 top: 10.0,
                 height: 13.4,
                 child: SvgPicture.asset(
-                  'assets/images/statuslogo.svg',
+                  'assets/images/completedstatuslogo.svg',
                   package: 'genius_wallet',
                   height: 13.400390625,
                   width: 17.5999755859375,
@@ -62,14 +62,14 @@ class _Completed extends State<Completed> {
                 ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.14,
-                width: widget.constraints.maxWidth * 0.504,
+                left: widget.constraints.maxWidth * 0.107,
+                width: widget.constraints.maxWidth * 0.537,
                 top: widget.constraints.maxHeight * 0.286,
                 height: widget.constraints.maxHeight * 0.4,
                 child: Center(
                     child: Container(
                         height: 14.0,
-                        width: widget.constraints.maxWidth * 0.5041322314049587,
+                        width: widget.constraints.maxWidth * 0.5371900826446281,
                         child: AutoSizeText(
                           widget.ovrStatus ?? 'Completed',
                           style: TextStyle(

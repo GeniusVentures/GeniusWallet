@@ -133,7 +133,9 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                               width: 311.0,
                               top: 71.0,
                               height: 40.0,
-                              child: NicknameWidget(),
+                              child: NicknameWidget(
+                                logic: NicknameLogic(context),
+                              ),
                             ),
                           ])),
                       SizedBox(
@@ -169,7 +171,9 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                               width: 311.0,
                               top: 32.0,
                               height: 40.0,
-                              child: EmailWidget(),
+                              child: EmailWidget(
+                                logic: EmailLogic(context),
+                              ),
                             ),
                           ])),
                       SizedBox(
@@ -235,9 +239,9 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                               left: 0,
                               width: 81.0,
                               top: 3.0,
-                              height: 11.0,
+                              height: 18.0,
                               child: Container(
-                                  height: 11.0,
+                                  height: 18.0,
                                   width: 81.0,
                                   child: AutoSizeText(
                                     widget.ovrLegalName ?? 'Legal Name',
@@ -256,14 +260,18 @@ class _ProfileInfoForm extends State<ProfileInfoForm> {
                               width: 311.0,
                               top: 33.0,
                               height: 40.0,
-                              child: FirstNameWidget(),
+                              child: FirstNameWidget(
+                                logic: FirstNameLogic(context),
+                              ),
                             ),
                             Positioned(
                               left: 0,
                               width: 311.0,
                               top: 93.0,
                               height: 40.0,
-                              child: LastNameWidget(),
+                              child: LastNameWidget(
+                                logic: LastNameLogic(context),
+                              ),
                             ),
                           ])),
                       SizedBox(

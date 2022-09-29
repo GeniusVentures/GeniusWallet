@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 ///
 /// The use of this class is that it provides a common interface for all logic classes that are used by the TextField widget.
 /// Therefore, any developer-owned TextField widget can extend the specific logic that it needs.
-abstract class TextFormFieldLogic {
+class TextFormFieldLogic {
   TextFormFieldLogic(
     this.context, {
     this.controller,

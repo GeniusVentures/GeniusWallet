@@ -9,13 +9,15 @@ import 'package:genius_wallet/widgets/components/custom/first_name_logic.dart';
 import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
 class FirstNameWidget extends StatelessWidget {
-  late final TextFormFieldLogic _logic;
+  final TextFormFieldLogic logic;
 
-  FirstNameWidget({Key? key}) : super(key: key);
+  FirstNameWidget({
+    Key? key,
+    required this.logic,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    _logic = FirstNameLogic(context);
     return TextFormField(
       style: TextStyle(
         fontFamily: 'Roboto',
@@ -25,7 +27,7 @@ class FirstNameWidget extends StatelessWidget {
         color: Color(0xff85858a),
       ),
       decoration: InputDecoration(
-        hintText: _logic.hintText,
+        hintText: logic.hintText,
         hintStyle: TextStyle(
           fontFamily: 'Roboto',
           fontSize: 12.0,
@@ -56,29 +58,29 @@ class FirstNameWidget extends StatelessWidget {
         fillColor: Color(0xff2a2b31),
         suffixIcon: null,
       ),
-      controller: _logic.controller,
-      initialValue: _logic.initialValue,
-      keyboardType: _logic.keyboardType,
-      textCapitalization: _logic.textCapitalization,
-      autofocus: _logic.autofocus,
-      readOnly: _logic.readOnly,
-      obscureText: _logic.obscureText,
-      maxLengthEnforcement: _logic.maxLengthEnforcement,
-      minLines: _logic.minLines,
-      maxLines: _logic.maxLines,
-      expands: _logic.expands,
-      maxLength: _logic.maxLength,
-      onChanged: _logic.onChanged,
-      onTap: _logic.onTap,
-      onEditingComplete: _logic.onEditingComplete,
-      onFieldSubmitted: _logic.onFieldSubmitted,
-      onSaved: _logic.onSaved,
-      validator: _logic.validator,
-      inputFormatters: _logic.inputFormatters,
-      enabled: _logic.enabled,
-      scrollPhysics: _logic.scrollPhysics,
-      autovalidateMode: _logic.autovalidateMode,
-      scrollController: _logic.scrollController,
+      controller: logic.controller,
+      initialValue: logic.initialValue,
+      keyboardType: logic.keyboardType,
+      textCapitalization: logic.textCapitalization,
+      autofocus: logic.autofocus,
+      readOnly: logic.readOnly,
+      obscureText: logic.obscureText,
+      maxLengthEnforcement: logic.maxLengthEnforcement,
+      minLines: logic.minLines,
+      maxLines: logic.maxLines,
+      expands: logic.expands,
+      maxLength: logic.maxLength,
+      onChanged: logic.onChanged,
+      onTap: logic.onTap,
+      onEditingComplete: logic.onEditingComplete,
+      onFieldSubmitted: logic.onFieldSubmitted,
+      onSaved: logic.onSaved,
+      validator: logic.validator,
+      inputFormatters: logic.inputFormatters,
+      enabled: logic.enabled,
+      scrollPhysics: logic.scrollPhysics,
+      autovalidateMode: logic.autovalidateMode,
+      scrollController: logic.scrollController,
     );
   }
 }

@@ -53,10 +53,10 @@ class _ConversionResult extends State<ConversionResult> {
                 left: widget.constraints.maxWidth * 0.248,
                 width: widget.constraints.maxWidth * 0.52,
                 top: widget.constraints.maxHeight * 0.568,
-                height: widget.constraints.maxHeight * 0.061,
+                height: widget.constraints.maxHeight * 0.182,
                 child: Center(
                     child: Container(
-                        height: 8.0,
+                        height: 24.0,
                         width: 159.0,
                         child: AutoSizeText(
                           widget.ovrResult ?? 'BTC = 3748.76 USD',
