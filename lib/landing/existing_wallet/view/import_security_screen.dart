@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/landing/view/address_tab_view.dart';
 import 'package:genius_wallet/landing/view/keystore_tab_view.dart';
 import 'package:genius_wallet/landing/view/phrase_tab_view.dart';
@@ -8,19 +10,39 @@ import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g
 import 'package:genius_wallet/widgets/components/text_entry_field.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
-  final String walletName;
+  final String walletType;
   const ImportSecurityScreen({
-    required this.walletName,
+    required this.walletType,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    /// This was done to have the same data structure, since `KeyStore` needs two controllers.
+    /// TODO: Optimize this.
+    final tabControllers = {
+      'phrase': {
+        'pasteField': TextEditingController(),
+      },
+      'keystore': {
+        'pasteField': TextEditingController(),
+        'passwordField': TextEditingController(),
+      },
+      'privatekey': {
+        'pasteField': TextEditingController(),
+      },
+      'address': {
+        'pasteField': TextEditingController(),
+      },
+    };
+
+    final walletNameController = TextEditingController();
+
     return Scaffold(
       body: DefaultTabController(
         length: 4,
         child: AppScreenWithHeader(
-          title: 'Import $walletName Wallet',
+          title: 'Import $walletType Wallet',
           subtitle: '',
           bodyWidgets: [
             SizedBox(
@@ -36,7 +58,7 @@ class ImportSecurityScreen extends StatelessWidget {
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return TextEntryField(
                     constraints,
-                    ovrTextEntryHinthinttext: walletName,
+                    ovrTextEntryHinthinttext: walletType,
                   );
                 },
               ),
@@ -62,23 +84,34 @@ class ImportSecurityScreen extends StatelessWidget {
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
               height: 500,
-              child: const TabBarView(
+              child: TabBarView(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top: 25),
-                    child: PhraseTabView(),
+                    padding: const EdgeInsets.only(top: 25),
+                    child: PhraseTabView(
+                      controller: tabControllers['phrase']!['pasteField']!,
+                    ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: KeystoreTabView(),
+                    padding: const EdgeInsets.only(top: 10),
+                    child: KeystoreTabView(
+                      passwordController:
+                          tabControllers['keystore']!['passwordField']!,
+                      pasteFieldController:
+                          tabControllers['keystore']!['pasteField']!,
+                    ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: PrivateKeyTabView(),
-                  ),
+                      padding: const EdgeInsets.only(top: 10),
+                      child: PrivateKeyTabView(
+                        controller:
+                            tabControllers['privatekey']!['pasteField']!,
+                      )),
                   Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: AddressTabView(),
+                    padding: const EdgeInsets.only(top: 10),
+                    child: AddressTabView(
+                      controller: tabControllers['address']!['pasteField']!,
+                    ),
                   ),
                 ],
               ),
@@ -89,9 +122,33 @@ class ImportSecurityScreen extends StatelessWidget {
             width: MediaQuery.of(context).size.width * 0.8,
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-                return IsactiveTrue(
-                  constraints,
-                  ovrContinue: 'Import',
+                return MaterialButton(
+                  onPressed: () {
+                    /// Get currently selected tab
+                    final selectedIndex =
+                        DefaultTabController.of(context)?.index ?? 0;
+
+                    /// Get current entry to access [TextEditingControllers]
+                    final selectedEntry =
+                        tabControllers.entries.toList()[selectedIndex];
+
+                    /// Send event with currently selected tab information
+                    context.read<ExistingWalletBloc>().add(
+                          WalletSecurityEntered(
+                            walletName: walletNameController.text,
+                            walletType: walletType,
+                            securityType: selectedEntry.key,
+                            pasteFieldText:
+                                selectedEntry.value['pasteField']!.text,
+                            password:
+                                selectedEntry.value['passwordField']?.text,
+                          ),
+                        );
+                  },
+                  child: IsactiveTrue(
+                    constraints,
+                    ovrContinue: 'Import',
+                  ),
                 );
               },
             ),

@@ -6,16 +6,17 @@ class PasteField extends StatelessWidget {
   final String hintText;
   final Widget? additionalWidget;
   final String subtitle;
+  final TextEditingController controller;
   const PasteField({
     Key? key,
     this.additionalWidget,
     this.subtitle = '',
     this.hintText = '',
+    required this.controller,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController();
     var addon = const <Widget>[SizedBox()];
     if (additionalWidget != null) {
       addon = [

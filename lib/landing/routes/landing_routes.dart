@@ -60,7 +60,7 @@ class LandingRoutes {
           path: '/import_security',
           builder: (context, state) {
             return const ImportSecurityScreen(
-              walletName: '',
+              walletType: '',
             );
           },
         ),
@@ -76,7 +76,9 @@ class LandingRoutes {
         GoRoute(
           path: '/confirm_pin',
           builder: (context, state) {
-            return const ConfirmPinScreen();
+            return const ConfirmPinScreen(
+              pinToConfirm: '',
+            );
           },
         ),
       ];
