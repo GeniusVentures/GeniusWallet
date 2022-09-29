@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/landing/widgets/paste_field.dart';
-import 'package:genius_wallet/widgets/components/text_entry_field.g.dart';
+import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
+import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
 class KeystoreTabView extends StatelessWidget {
   final TextEditingController pasteFieldController;
@@ -19,9 +20,13 @@ class KeystoreTabView extends StatelessWidget {
       additionalWidget: SizedBox(
         height: 50,
         child: LayoutBuilder(builder: (context, constraints) {
-          return TextEntryField(
-            constraints,
-            ovrTextEntryHinthinttext: 'Password',
+          return TextEntryFieldWidget(
+            logic: TextFormFieldLogic(
+              context,
+              controller: passwordController,
+              obscureText: true,
+              hintText: 'Password',
+            ),
           );
         }),
       ),

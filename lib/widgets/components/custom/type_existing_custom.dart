@@ -17,8 +17,8 @@ class TypeExistingCustom extends StatefulWidget {
 class _TypeExistingCustomState extends State<TypeExistingCustom> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
+    return MaterialButton(
+      onPressed: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => BlocProvider(

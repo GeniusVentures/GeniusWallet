@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
+import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinScreen extends StatelessWidget {
@@ -31,6 +33,26 @@ class PinScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 50, left: 40),
                 child: Icon(Icons.close, size: 40),
+              ),
+              BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
+                builder: (context, state) {
+                  if (state.failedPinVerification) {
+                    return Center(
+                      child: SizedBox(
+                        width: 200,
+                        height: 40,
+                        child: LayoutBuilder(
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            return IncorrectPin(constraints);
+                          },
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                },
+                bloc: context.watch<ExistingWalletBloc>(),
               ),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.3,

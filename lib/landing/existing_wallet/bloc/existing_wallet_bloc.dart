@@ -7,7 +7,8 @@ part 'existing_wallet_state.dart';
 
 class ExistingWalletBloc
     extends Bloc<ExistingWalletEvent, ExistingWalletState> {
-  ExistingWalletBloc() : super(ExistingWalletState()) {
+  ExistingWalletBloc({ExistingWalletState initialState = const ExistingWalletState()})
+      : super(initialState) {
     on<ToggleLegal>((event, emit) =>
         emit(state.copyWith(acceptedLegal: !state.acceptedLegal)));
 
@@ -30,17 +31,21 @@ class ExistingWalletBloc
         state.copyWith(
           createdPin: event.pin,
           currentStep: FlowStep.confirmPin,
+          failedPinVerification: false,
         ),
       ),
     );
 
     on<PinCheckSuccessful>(onPinCheckSuccessful);
-  }
 
-  FutureOr<void> onPinCheckSuccessful(
-      PinCheckSuccessful event, Emitter<ExistingWalletState> emit) {
-    ///TODO: Can check the [state] here and send the pin to the API.
-    emit(state.copyWith());
+    /// On [PinCheckFailed], send user back a screen and reset pin state
+    on<PinCheckFailed>((event, emit) {
+      emit(state.copyWith(
+        failedPinVerification: true,
+        createdPin: '',
+        currentStep: FlowStep.createPin,
+      ));
+    });
   }
 
   FutureOr<void> onWalletSecurityEntered(
@@ -50,5 +55,11 @@ class ExistingWalletBloc
     emit(state.copyWith(
       currentStep: FlowStep.createPin,
     ));
+  }
+
+  FutureOr<void> onPinCheckSuccessful(
+      PinCheckSuccessful event, Emitter<ExistingWalletState> emit) {
+    ///TODO: Can check the [state] here and send the pin to the API.
+    emit(state.copyWith());
   }
 }

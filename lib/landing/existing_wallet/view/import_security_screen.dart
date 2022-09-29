@@ -7,7 +7,8 @@ import 'package:genius_wallet/landing/view/keystore_tab_view.dart';
 import 'package:genius_wallet/landing/view/phrase_tab_view.dart';
 import 'package:genius_wallet/landing/view/private_key_tab_view.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/text_entry_field.g.dart';
+import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
+import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
@@ -36,7 +37,8 @@ class ImportSecurityScreen extends StatelessWidget {
       },
     };
 
-    final walletNameController = TextEditingController();
+    final walletNameController =
+        TextEditingController(text: '$walletType Wallet');
 
     return Scaffold(
       body: DefaultTabController(
@@ -56,9 +58,11 @@ class ImportSecurityScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.8,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-                  return TextEntryField(
-                    constraints,
-                    ovrTextEntryHinthinttext: walletType,
+                  return TextEntryFieldWidget(
+                    logic: TextFormFieldLogic(
+                      context,
+                      controller: walletNameController,
+                    ),
                   );
                 },
               ),

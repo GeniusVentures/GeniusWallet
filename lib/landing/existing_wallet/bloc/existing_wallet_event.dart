@@ -45,3 +45,5 @@ class PinCreated extends ExistingWalletEvent {
 }
 
 class PinCheckSuccessful extends ExistingWalletEvent {}
+
+class PinCheckFailed extends ExistingWalletEvent {}
