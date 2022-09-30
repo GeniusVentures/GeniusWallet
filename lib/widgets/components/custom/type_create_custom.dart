@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/landing/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/landing/new_wallet/routes/new_wallet_flow.dart';
 
@@ -21,7 +22,9 @@ class _TypeCreateCustomState extends State<TypeCreateCustom> {
       onPressed: () => Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => BlocProvider(
-            create: (context) => NewWalletBloc(),
+            create: (context) => NewWalletBloc(
+              api: context.read<GeniusApi>(),
+            ),
             child: const NewWalletFlow(),
           ),
         ),
