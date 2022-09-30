@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/registration_header.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_agreement.g.dart';
-import 'package:genius_wallet/widgets/mobile/wallet_address.g.dart';
-
-import '../../widgets/components/continue_button/isactive_false.g.dart';
 
 class BackupPhraseScreen extends StatelessWidget {
   const BackupPhraseScreen({super.key});
