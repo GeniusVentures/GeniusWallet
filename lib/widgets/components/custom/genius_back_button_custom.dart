@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:genius_wallet/landing/view/wallet_creation_screen.dart';
 
 class GeniusBackButtonCustom extends StatefulWidget {
   final Widget? child;
@@ -15,12 +15,13 @@ class GeniusBackButtonCustom extends StatefulWidget {
 class _GeniusBackButtonCustomState extends State<GeniusBackButtonCustom> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (context.canPop()) {
-          context.pop();
+    return MaterialButton(
+      onPressed: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
         } else {
-          context.go('/');
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const LandingScreen()));
         }
       },
       child: widget.child,

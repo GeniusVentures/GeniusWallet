@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clipboard/clipboard.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 
@@ -16,6 +17,46 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     on<LoadRecoveryPhrase>(onLoadRecoveryPhrase);
 
     on<CopyRecoveryPhrase>(onCopyRecoveryPhrase);
+
+    on<RecoveryPhraseContinue>(((event, emit) {
+      emit(state.copyWith(
+        currentStep: NewWalletStep.verifyRecoveryPhrase,
+        shuffledWords: List.from(state.recoveryWords)..shuffle(),
+      ));
+    }));
+
+    on<RecoveryWordTapped>((event, emit) {
+      final newSelectedWords = [
+        ...state.selectedWords,
+        event.wordTapped,
+      ];
+      emit(
+        state.copyWith(
+          selectedWords: newSelectedWords,
+          verificationStatus: VerificationStatus.inProgress,
+        ),
+      );
+    });
+
+    on<RecoveryVerificationContinue>((event, emit) {
+      if (listEquals(state.selectedWords, state.recoveryWords)) {
+        emit(state.copyWith(
+          verificationStatus: VerificationStatus.passed,
+        ));
+      } else {
+        emit(state.copyWith(
+          verificationStatus: VerificationStatus.failed,
+          selectedWords: [],
+        ));
+      }
+    });
+
+    on<ToggleCheckbox>((event, emit) {
+      emit(state.copyWith(acceptedWarning: !state.acceptedWarning));
+    });
+
+    on<ChangeStep>(
+        (event, emit) => emit(state.copyWith(currentStep: event.step)));
   }
 
   FutureOr<void> onLoadRecoveryPhrase(

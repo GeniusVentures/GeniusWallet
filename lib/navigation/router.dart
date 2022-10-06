@@ -8,7 +8,7 @@ final geniusWalletRouter = GoRouter(
       path: '/',
       builder: (context, state) {
         return const Splash(
-          onCompletion: '/wallet_creation',
+          onCompletion: '/landing_screen',
         );
       },
     ),

@@ -44,7 +44,14 @@ class RecoveryPhraseScreen extends StatelessWidget {
               const SizedBox(
                 height: 100,
               ),
-              const RecoveryWords(),
+              BlocBuilder<NewWalletBloc, NewWalletState>(
+                builder: (context, state) {
+                  if (state.recoveryPhraseStatus == NewWalletStatus.loaded) {
+                    return RecoveryWords(recoveryWords: state.recoveryWords);
+                  }
+                  return const CircularProgressIndicator();
+                },
+              ),
               const SizedBox(
                 height: 25,
               ),
@@ -64,9 +71,14 @@ class RecoveryPhraseScreen extends StatelessWidget {
           footer: SizedBox(
             width: MediaQuery.of(context).size.width * .8,
             height: 50,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return IsactiveTrue(constraints);
-            }),
+            child: MaterialButton(
+              onPressed: () {
+                context.read<NewWalletBloc>().add(RecoveryPhraseContinue());
+              },
+              child: LayoutBuilder(builder: (context, constraints) {
+                return IsactiveTrue(constraints);
+              }),
+            ),
           ),
         ),
       ),
