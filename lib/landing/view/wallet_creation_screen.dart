@@ -3,8 +3,8 @@ import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
-class WalletCreationScreen extends StatelessWidget {
-  const WalletCreationScreen({super.key});
+class LandingScreen extends StatelessWidget {
+  const LandingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
