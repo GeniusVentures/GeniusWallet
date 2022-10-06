@@ -1,12 +1,13 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
-
 import 'package:flutter/material.dart';
 
 class WalletAgreementCustom extends StatefulWidget {
   final Widget? child;
+  final bool? value;
+  final void Function(bool?)? onChanged;
   WalletAgreementCustom({
     Key? key,
+    this.value,
+    this.onChanged,
     this.child,
   }) : super(key: key);
 
@@ -20,10 +21,9 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
     return Row(
       children: [
         Checkbox(
-            value: context.watch<ExistingWalletBloc>().state.acceptedLegal,
-            onChanged: (value) {
-              context.read<ExistingWalletBloc>().add(ToggleLegal());
-            }),
+          value: widget.value ?? false,
+          onChanged: widget.onChanged,
+        ),
         const Text(
           'I’ve read and accept the Terms of Service and Privacy Policy',
         ),

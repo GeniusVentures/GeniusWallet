@@ -4,7 +4,7 @@ import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
 import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_agreement.g.dart';
+import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
 class LegalScreen extends StatelessWidget {
@@ -65,7 +65,12 @@ class LegalScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.8,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return WalletAgreement(constraints);
+                  return WalletAgreementCustom(
+                    value:
+                        context.watch<ExistingWalletBloc>().state.acceptedLegal,
+                    onChanged: (value) =>
+                        context.read<ExistingWalletBloc>().add(ToggleLegal()),
+                  );
                 },
               ),
             ),
@@ -82,7 +87,7 @@ class LegalScreen extends StatelessWidget {
                         onPressed: () {
                           context
                               .read<ExistingWalletBloc>()
-                              .add(ChangeStep(step: FlowStep.createPasscode));
+                              .add(ChangeStep(step: FlowStep.importWallet));
                         },
                         child: IsactiveTrue(constraints),
                       );

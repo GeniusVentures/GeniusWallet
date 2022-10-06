@@ -16,9 +16,9 @@ import '../new_wallet/view/recovery_phrase_screen.dart';
 class LandingRoutes {
   List<GoRoute> get landingRoutes => <GoRoute>[
         GoRoute(
-          path: '/wallet_creation',
+          path: '/landing_screen',
           builder: (context, state) {
-            return const WalletCreationScreen();
+            return const LandingScreen();
           },
         ),
         GoRoute(

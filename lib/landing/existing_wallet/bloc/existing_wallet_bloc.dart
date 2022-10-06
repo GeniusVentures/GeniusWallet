@@ -7,7 +7,8 @@ part 'existing_wallet_state.dart';
 
 class ExistingWalletBloc
     extends Bloc<ExistingWalletEvent, ExistingWalletState> {
-  ExistingWalletBloc({ExistingWalletState initialState = const ExistingWalletState()})
+  ExistingWalletBloc(
+      {ExistingWalletState initialState = const ExistingWalletState()})
       : super(initialState) {
     on<ToggleLegal>((event, emit) =>
         emit(state.copyWith(acceptedLegal: !state.acceptedLegal)));

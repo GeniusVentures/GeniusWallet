@@ -13,13 +13,22 @@ class NewWalletFlow extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlowBuilder(
       onGeneratePages: (state, pages) {
-        return [
-          const MaterialPage(child: BackupPhraseScreen()),
-          if (state.currentStep == NewWalletStep.copyPhrase)
-            const MaterialPage(child: RecoveryPhraseScreen()),
-          if (state.currentStep == NewWalletStep.verifyRecoveryPhrase)
-            const MaterialPage(child: VerifyRecoveryPhraseScreen()),
-        ];
+        switch (state.currentStep) {
+          case NewWalletStep.verifyRecoveryPhrase:
+            return [
+              const MaterialPage(child: BackupPhraseScreen()),
+              const MaterialPage(child: RecoveryPhraseScreen()),
+              const MaterialPage(child: VerifyRecoveryPhraseScreen()),
+            ];
+          case NewWalletStep.copyPhrase:
+            return [
+              const MaterialPage(child: BackupPhraseScreen()),
+              const MaterialPage(child: RecoveryPhraseScreen()),
+            ];
+          case NewWalletStep.agreement:
+          default:
+            return [const MaterialPage(child: BackupPhraseScreen())];
+        }
       },
       state: context.watch<NewWalletBloc>().state,
     );
