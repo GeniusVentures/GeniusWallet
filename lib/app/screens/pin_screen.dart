@@ -30,9 +30,13 @@ class PinScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 50, left: 40),
-                child: Icon(Icons.close, size: 40),
+              Padding(
+                padding: const EdgeInsets.only(top: 50, left: 40),
+                child: IconButton(
+                  alignment: Alignment.center,
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, size: 40),
+                ),
               ),
               BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
                 builder: (context, state) {

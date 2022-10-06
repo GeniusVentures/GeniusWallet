@@ -17,10 +17,51 @@ class ExistingWalletFlow extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlowBuilder(
       onGeneratePages: (state, pages) {
+        switch (state.currentStep) {
+          case FlowStep.confirmPin:
+            return [
+              const MaterialPage(child: LegalScreen()),
+              const MaterialPage(child: ImportWalletScreen()),
+              MaterialPage(
+                  child:
+                      ImportSecurityScreen(walletType: state.selectedWallet)),
+              const MaterialPage(child: CreatePinScreen()),
+              MaterialPage(
+                  child: ConfirmPinScreen(
+                pinToConfirm: state.createdPin,
+              )),
+            ];
+          case FlowStep.createPin:
+            return [
+              const MaterialPage(child: LegalScreen()),
+              const MaterialPage(child: ImportWalletScreen()),
+              MaterialPage(
+                  child:
+                      ImportSecurityScreen(walletType: state.selectedWallet)),
+              const MaterialPage(child: CreatePinScreen())
+            ];
+          case FlowStep.importWalletSecurity:
+            return [
+              const MaterialPage(child: LegalScreen()),
+              const MaterialPage(child: ImportWalletScreen()),
+              MaterialPage(
+                  child:
+                      ImportSecurityScreen(walletType: state.selectedWallet)),
+            ];
+          case FlowStep.importWallet:
+            return [
+              const MaterialPage(child: LegalScreen()),
+              const MaterialPage(child: ImportWalletScreen()),
+            ];
+          case FlowStep.legal:
+          default:
+            return [
+              const MaterialPage(child: LegalScreen()),
+            ];
+        }
         return [
           const MaterialPage(child: LegalScreen()),
-          if (state.currentStep == FlowStep.createPasscode)
-            const MaterialPage(child: CreatePasscodeScreen()),
+          const MaterialPage(child: CreatePasscodeScreen()),
           if (state.currentStep == FlowStep.confirmPasscode)
             const MaterialPage(child: ConfirmPasscodeScreen()),
           if (state.currentStep == FlowStep.importWallet)

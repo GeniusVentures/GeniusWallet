@@ -4,20 +4,21 @@ import 'package:genius_wallet/landing/existing_wallet/view/create_passcode_scree
 import 'package:genius_wallet/landing/existing_wallet/view/import_security_screen.dart';
 import 'package:genius_wallet/landing/existing_wallet/view/import_wallet_screen.dart';
 import 'package:genius_wallet/landing/existing_wallet/view/legal_screen.dart';
-import 'package:genius_wallet/landing/view/backup_phrase_screen.dart';
+import 'package:genius_wallet/landing/new_wallet/view/backup_phrase_screen.dart';
+import 'package:genius_wallet/landing/new_wallet/view/verify_recovery_phrase_screen.dart';
 import 'package:genius_wallet/landing/view/confirm_pin_screen.dart';
 import 'package:genius_wallet/landing/view/create_pin_screen.dart';
-import 'package:genius_wallet/landing/view/recovery_phrase_screen.dart';
-import 'package:genius_wallet/landing/view/verify_recovery_phrase_screen.dart';
 import 'package:genius_wallet/landing/view/wallet_creation_screen.dart';
 import 'package:go_router/go_router.dart';
+
+import '../new_wallet/view/recovery_phrase_screen.dart';
 
 class LandingRoutes {
   List<GoRoute> get landingRoutes => <GoRoute>[
         GoRoute(
-          path: '/wallet_creation',
+          path: '/landing_screen',
           builder: (context, state) {
-            return const WalletCreationScreen();
+            return const LandingScreen();
           },
         ),
         GoRoute(
