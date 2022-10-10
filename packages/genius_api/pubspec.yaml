@@ -10,7 +10,11 @@ environment:
 #   path: ^1.8.0
 
 dev_dependencies:
+  build_runner: ^2.2.1
+  freezed: ^2.1.1
+  json_serializable: ^6.5.0
   lints: ^2.0.0
   test: ^1.16.0
 dependencies:
-  freezed: ^2.1.1
+  freezed_annotation: ^2.1.0
+  json_annotation: ^4.7.0
