@@ -6,22 +6,22 @@
 
 import 'package:flutter/material.dart';
 
-class Appbar extends StatefulWidget {
+class GeniusAppbar extends StatefulWidget {
   final BoxConstraints constraints;
   final Widget? ovrChatbubbles;
-  final Widget? ovrimage1;
-  const Appbar(
+  final Widget? ovrGeniusAppbarLogo;
+  const GeniusAppbar(
     this.constraints, {
     Key? key,
     this.ovrChatbubbles,
-    this.ovrimage1,
+    this.ovrGeniusAppbarLogo,
   }) : super(key: key);
   @override
-  _Appbar createState() => _Appbar();
+  _GeniusAppbar createState() => _GeniusAppbar();
 }
 
-class _Appbar extends State<Appbar> {
-  _Appbar();
+class _GeniusAppbar extends State<GeniusAppbar> {
+  _GeniusAppbar();
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class _Appbar extends State<Appbar> {
                         ),
                   ),
                   Positioned(
-                    left: 274.4,
+                    right: 0,
                     width: 36.6,
                     top: 16.0,
                     height: 14.5,
@@ -116,40 +116,17 @@ class _Appbar extends State<Appbar> {
                   ),
                   Positioned(
                     left: 0,
-                    width: 35.0,
+                    width: 38.0,
                     top: 1.0,
                     height: 38.0,
-                    child: Container(
-                        decoration: BoxDecoration(),
-                        child: Stack(children: [
-                          Positioned(
-                            left: 0,
-                            width: 35.0,
-                            top: 0,
-                            height: 38.0,
-                            child: Container(
-                              height: 38.0,
-                              width: 35.0,
-                              decoration: BoxDecoration(
-                                color: Color(0xffd9d9d9),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: 0,
-                            width: 174.5,
-                            top: 0,
-                            height: 38.0,
-                            child: widget.ovrimage1 ??
-                                Image.asset(
-                                  'assets/images/image1.png',
-                                  package: 'genius_wallet',
-                                  height: 38.0,
-                                  width: 174.5,
-                                  fit: BoxFit.none,
-                                ),
-                          ),
-                        ])),
+                    child: widget.ovrGeniusAppbarLogo ??
+                        Image.asset(
+                          'assets/images/geniusappbarlogo.png',
+                          package: 'genius_wallet',
+                          height: 38.0,
+                          width: 38.0,
+                          fit: BoxFit.none,
+                        ),
                   ),
                 ])),
           ),

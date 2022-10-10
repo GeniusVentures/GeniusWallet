@@ -5,7 +5,6 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/date_selector.g.dart';
 import 'package:genius_wallet/widgets/components/custom/chart_options_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -13,6 +12,7 @@ import 'package:genius_wallet/widgets/components/custom/price_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/dateselector_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/trendline_with_axes_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/trendline_hover_custom.dart';
+import 'package:genius_wallet/widgets/components/date_selector.g.dart';
 
 class CryptoChart extends StatefulWidget {
   final BoxConstraints constraints;

@@ -15,7 +15,7 @@ dependencies:
   pin_code_fields: ^7.4.0
   flow_builder: ^0.0.9
   clipboard: ^0.1.3
-  genius_api:
+  genius_api: 
     path: packages/genius_api
 dev_dependencies: 
   flutter_test: 
@@ -97,3 +97,4 @@ flutter:
     - packages/genius_wallet/assets/images/copywalletsymbol.svg
     - packages/genius_wallet/assets/images/pendingstatuslogo.svg
     - packages/genius_wallet/assets/images/maskarrow1.svg
+    - packages/genius_wallet/assets/images/geniusappbarlogo.png

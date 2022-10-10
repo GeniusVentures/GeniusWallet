@@ -14,10 +14,10 @@ class WalletsOverview extends StatefulWidget {
   final String? ovrCurrentbalance;
   final String? ovrPercentChange;
   final String? ovrCurrencyChange;
-  final String? ovrWallets;
   final String? ovrTotalWalletBalance;
   final String? ovrBalancecurrency;
   final String? ovrWalletCounter;
+  final String? ovrWallets;
   final String? ovrTransactions;
   final String? ovrbuy;
   const WalletsOverview(
@@ -26,10 +26,10 @@ class WalletsOverview extends StatefulWidget {
     this.ovrCurrentbalance,
     this.ovrPercentChange,
     this.ovrCurrencyChange,
-    this.ovrWallets,
     this.ovrTotalWalletBalance,
     this.ovrBalancecurrency,
     this.ovrWalletCounter,
+    this.ovrWallets,
     this.ovrTransactions,
     this.ovrbuy,
   }) : super(key: key);
@@ -68,7 +68,7 @@ class _WalletsOverview extends State<WalletsOverview> {
               Positioned(
                 left: 18.0,
                 width: 90.0,
-                top: 137.0,
+                bottom: 139.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
@@ -88,7 +88,7 @@ class _WalletsOverview extends State<WalletsOverview> {
               Positioned(
                 left: 105.0,
                 width: 31.0,
-                top: 245.0,
+                bottom: 31.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
@@ -108,7 +108,7 @@ class _WalletsOverview extends State<WalletsOverview> {
               Positioned(
                 left: 19.0,
                 width: 70.0,
-                top: 245.0,
+                bottom: 31.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
@@ -126,43 +126,9 @@ class _WalletsOverview extends State<WalletsOverview> {
                     )),
               ),
               Positioned(
-                left: 226.0,
-                width: 65.0,
-                top: 29.0,
-                height: 76.0,
-                child: Container(
-                  height: 76.0,
-                  width: 65.0,
-                  decoration: BoxDecoration(
-                    color: Color(0xff252529),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 236.0,
-                width: 45.0,
-                top: 78.0,
-                height: 15.0,
-                child: Container(
-                    height: 15.0,
-                    width: 45.0,
-                    child: AutoSizeText(
-                      widget.ovrWallets ?? 'Wallets',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.0,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )),
-              ),
-              Positioned(
                 left: 19.0,
                 width: 147.0,
-                top: 157.0,
+                bottom: 77.0,
                 height: 56.0,
                 child: Container(
                     height: 56.0,
@@ -182,7 +148,7 @@ class _WalletsOverview extends State<WalletsOverview> {
               Positioned(
                 left: 162.0,
                 width: 24.0,
-                top: 155.0,
+                bottom: 121.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
@@ -200,24 +166,69 @@ class _WalletsOverview extends State<WalletsOverview> {
                     )),
               ),
               Positioned(
-                left: 248.0,
-                width: 20.0,
-                top: 35.0,
-                height: 40.0,
+                right: 20.0,
+                width: 65.0,
+                top: 29.0,
+                height: 76.0,
                 child: Container(
-                    height: 40.0,
-                    width: 20.0,
-                    child: AutoSizeText(
-                      widget.ovrWalletCounter ?? '5 ',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 34.0,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 0.0,
-                        color: Colors.white,
+                    decoration: BoxDecoration(),
+                    child: Stack(children: [
+                      Positioned(
+                        left: 0,
+                        width: 65.0,
+                        top: 0,
+                        height: 76.0,
+                        child: Container(
+                          height: 76.0,
+                          width: 65.0,
+                          decoration: BoxDecoration(
+                            color: Color(0xff252529),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(2.0)),
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    )),
+                      Positioned(
+                        left: 10.0,
+                        width: 45.0,
+                        top: 49.0,
+                        height: 15.0,
+                        child: Container(
+                            height: 15.0,
+                            width: 45.0,
+                            child: AutoSizeText(
+                              widget.ovrWallets ?? 'Wallets',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.0,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                      Positioned(
+                        left: 22.0,
+                        width: 20.0,
+                        top: 6.0,
+                        height: 40.0,
+                        child: Container(
+                            height: 40.0,
+                            width: 20.0,
+                            child: AutoSizeText(
+                              widget.ovrWalletCounter ?? '5 ',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 34.0,
+                                fontWeight: FontWeight.w300,
+                                letterSpacing: 0.0,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                    ])),
               ),
               Positioned(
                 left: 17.0,
@@ -258,9 +269,9 @@ class _WalletsOverview extends State<WalletsOverview> {
                 )),
               ),
               Positioned(
-                left: 244.0,
+                right: 20.0,
                 width: 47.0,
-                top: 240.0,
+                bottom: 27.0,
                 height: 23.0,
                 child: BuyButtonCustom(
                     child: Container(
