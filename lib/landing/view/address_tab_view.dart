@@ -14,11 +14,8 @@ class AddressTabView extends StatelessWidget {
     return Column(
       children: [
         TextEntryFieldWidget(
-          logic: TextFormFieldLogic(
-            context,
-            controller: controller,
-            hintText: 'Address'
-          ),
+          logic: TextFormFieldLogic(context,
+              controller: controller, hintText: 'Address'),
         ),
         const SizedBox(height: 20),
         const Text(
