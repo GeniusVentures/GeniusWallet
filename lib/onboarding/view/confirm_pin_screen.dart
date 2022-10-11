@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/screens/pin_screen.dart';
-import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 
 class ConfirmPinScreen extends StatelessWidget {
   final String pinToConfirm;
