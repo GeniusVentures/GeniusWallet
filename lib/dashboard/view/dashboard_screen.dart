@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
-import 'package:genius_wallet/dashboard/home/widgets/genius_tabbar.dart';
+import 'package:genius_wallet/dashboard/widgets/genius_tabbar.dart';
 import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallets_screen.dart';
