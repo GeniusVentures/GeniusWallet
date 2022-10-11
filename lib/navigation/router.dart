@@ -1,5 +1,5 @@
 import 'package:genius_wallet/app/widgets/splash.dart';
-import 'package:genius_wallet/dashboard/dashboard/view/dashboard_screen.dart';
+import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
 import 'package:genius_wallet/landing/routes/landing_routes.dart';
 import 'package:go_router/go_router.dart';
 
