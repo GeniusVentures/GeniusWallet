@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/landing/widgets/paste_field.dart';
+import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
 
 class PhraseTabView extends StatelessWidget {
   final TextEditingController controller;

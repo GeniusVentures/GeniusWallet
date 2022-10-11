@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/landing/view/wallet_creation_screen.dart';
+import 'package:genius_wallet/onboarding/view/wallet_creation_screen.dart';
 
 class GeniusBackButtonCustom extends StatefulWidget {
   final Widget? child;

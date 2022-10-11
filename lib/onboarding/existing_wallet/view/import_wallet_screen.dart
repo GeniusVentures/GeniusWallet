@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
-import 'package:genius_wallet/landing/widgets/supported_existing_wallets.dart';
+import 'package:genius_wallet/onboarding/widgets/supported_existing_wallets.dart';
 import 'package:genius_wallet/widgets/components/wallet_card.g.dart';
 
 class ImportWalletScreen extends StatelessWidget {

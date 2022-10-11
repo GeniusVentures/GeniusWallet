@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/wallet_card.g.dart';
 
 class SupportedExistingWallets extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
-import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.dart';

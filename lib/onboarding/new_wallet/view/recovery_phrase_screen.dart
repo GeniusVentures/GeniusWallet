@@ -2,8 +2,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/landing/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/landing/widgets/recovery_words.dart';
+import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/registration_header.g.dart';
 

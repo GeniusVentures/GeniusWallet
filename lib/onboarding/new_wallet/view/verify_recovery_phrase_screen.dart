@@ -2,9 +2,9 @@ import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
-import 'package:genius_wallet/landing/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/landing/widgets/recovery_words.dart';
-import 'package:genius_wallet/landing/widgets/recovery_words_input.dart';
+import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
+import 'package:genius_wallet/onboarding/widgets/recovery_words_input.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {

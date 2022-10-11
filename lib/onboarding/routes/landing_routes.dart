@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/create_passcode_screen.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/import_security_screen.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/import_wallet_screen.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/legal_screen.dart';
-import 'package:genius_wallet/landing/new_wallet/view/backup_phrase_screen.dart';
-import 'package:genius_wallet/landing/new_wallet/view/verify_recovery_phrase_screen.dart';
-import 'package:genius_wallet/landing/view/confirm_pin_screen.dart';
-import 'package:genius_wallet/landing/view/create_pin_screen.dart';
-import 'package:genius_wallet/landing/view/wallet_creation_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/create_passcode_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/import_wallet_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
+import 'package:genius_wallet/onboarding/new_wallet/view/backup_phrase_screen.dart';
+import 'package:genius_wallet/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart';
+import 'package:genius_wallet/onboarding/view/confirm_pin_screen.dart';
+import 'package:genius_wallet/onboarding/view/create_pin_screen.dart';
+import 'package:genius_wallet/onboarding/view/wallet_creation_screen.dart';
 import 'package:go_router/go_router.dart';
 
 import '../new_wallet/view/recovery_phrase_screen.dart';

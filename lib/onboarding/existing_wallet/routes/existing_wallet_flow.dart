@@ -1,12 +1,12 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/import_security_screen.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/import_wallet_screen.dart';
-import 'package:genius_wallet/landing/existing_wallet/view/legal_screen.dart';
-import 'package:genius_wallet/landing/view/confirm_pin_screen.dart';
-import 'package:genius_wallet/landing/view/create_pin_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/import_wallet_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
+import 'package:genius_wallet/onboarding/view/confirm_pin_screen.dart';
+import 'package:genius_wallet/onboarding/view/create_pin_screen.dart';
 
 class ExistingWalletFlow extends StatelessWidget {
   const ExistingWalletFlow({super.key});

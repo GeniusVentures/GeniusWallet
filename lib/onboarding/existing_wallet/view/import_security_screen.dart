@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
-import 'package:genius_wallet/landing/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/landing/view/address_tab_view.dart';
-import 'package:genius_wallet/landing/view/keystore_tab_view.dart';
-import 'package:genius_wallet/landing/view/phrase_tab_view.dart';
-import 'package:genius_wallet/landing/view/private_key_tab_view.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
+import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
+import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
+import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
 import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
