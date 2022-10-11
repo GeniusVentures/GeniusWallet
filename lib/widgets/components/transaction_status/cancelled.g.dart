@@ -56,8 +56,8 @@ class _Cancelled extends State<Cancelled> {
                 child: SvgPicture.asset(
                   'assets/images/cancelledstatuslogo.svg',
                   package: 'genius_wallet',
-                  height: 10.6669921875,
-                  width: 10.66668701171875,
+                  height: 10.666671752929688,
+                  width: 10.6669921875,
                   fit: BoxFit.none,
                 ),
               ),

@@ -375,7 +375,7 @@ class _HistoricTransactionDetailView
                       'assets/images/maskarrow2.svg',
                       package: 'genius_wallet',
                       height:
-                          widget.constraints.maxHeight * 0.021636900988843813,
+                          widget.constraints.maxHeight * 0.02163622006925076,
                       width: widget.constraints.maxWidth * 0.050473186119873815,
                       fit: BoxFit.fill,
                     ),

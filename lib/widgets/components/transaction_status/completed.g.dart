@@ -56,8 +56,8 @@ class _Completed extends State<Completed> {
                 child: SvgPicture.asset(
                   'assets/images/completedstatuslogo.svg',
                   package: 'genius_wallet',
-                  height: 13.400390625,
-                  width: 17.5999755859375,
+                  height: 13.400001525878906,
+                  width: 17.599609375,
                   fit: BoxFit.none,
                 ),
               ),
