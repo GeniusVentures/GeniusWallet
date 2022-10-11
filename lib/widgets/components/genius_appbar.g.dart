@@ -8,13 +8,13 @@ import 'package:flutter/material.dart';
 
 class GeniusAppbar extends StatefulWidget {
   final BoxConstraints constraints;
-  final Widget? ovrChatbubbles;
   final Widget? ovrGeniusAppbarLogo;
+  final Widget? ovrChatbubbles;
   const GeniusAppbar(
     this.constraints, {
     Key? key,
-    this.ovrChatbubbles,
     this.ovrGeniusAppbarLogo,
+    this.ovrChatbubbles,
   }) : super(key: key);
   @override
   _GeniusAppbar createState() => _GeniusAppbar();
@@ -29,41 +29,52 @@ class _GeniusAppbar extends State<GeniusAppbar> {
         decoration: BoxDecoration(),
         child: Stack(children: [
           Positioned(
+            left: 0,
             right: 0,
-            width: 311.0,
             top: 0,
-            height: 41.0,
+            bottom: 0,
             child: Container(
-                clipBehavior: Clip.hardEdge,
                 decoration: BoxDecoration(),
                 child: Stack(children: [
                   Positioned(
-                    left: 225.0,
-                    width: 34.0,
-                    top: 7.0,
-                    height: 34.0,
+                    right: 45.0,
+                    width: 41.0,
+                    top: 0,
+                    height: 41.0,
                     child: Container(
-                      height: 34.0,
-                      width: 34.0,
-                      decoration: BoxDecoration(
-                        color: Color(0xff4c4d55),
-                        borderRadius: BorderRadius.all(Radius.circular(2.0)),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 232.0,
-                    width: 20.0,
-                    top: 14.0,
-                    height: 20.0,
-                    child: widget.ovrChatbubbles ??
-                        Image.asset(
-                          'assets/images/chatbubbles.png',
-                          package: 'genius_wallet',
-                          height: 20.0,
-                          width: 20.0,
-                          fit: BoxFit.none,
-                        ),
+                        clipBehavior: Clip.hardEdge,
+                        decoration: BoxDecoration(),
+                        child: Stack(children: [
+                          Positioned(
+                            left: 0,
+                            width: 34.0,
+                            top: 7.0,
+                            height: 34.0,
+                            child: Container(
+                              height: 34.0,
+                              width: 34.0,
+                              decoration: BoxDecoration(
+                                color: Color(0xff4c4d55),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(2.0)),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 7.0,
+                            width: 20.0,
+                            top: 14.0,
+                            height: 20.0,
+                            child: widget.ovrChatbubbles ??
+                                Image.asset(
+                                  'assets/images/chatbubbles.png',
+                                  package: 'genius_wallet',
+                                  height: 20.0,
+                                  width: 20.0,
+                                  fit: BoxFit.none,
+                                ),
+                          ),
+                        ])),
                   ),
                   Positioned(
                     right: 0,

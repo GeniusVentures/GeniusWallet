@@ -42,7 +42,7 @@ class _Recoveryword extends State<Recoveryword> {
                     top: 0,
                     height: widget.constraints.maxHeight * 1.0,
                     child: Container(
-                      height: widget.constraints.maxHeight * 1.0,
+                      height: widget.constraints.maxHeight * 0.999999863760812,
                       width: widget.constraints.maxWidth * 1.0,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(3.0)),
@@ -61,7 +61,7 @@ class _Recoveryword extends State<Recoveryword> {
                     child: Container(
                         height:
                             widget.constraints.maxHeight * 0.4642857142857143,
-                        width: widget.constraints.maxWidth * 0.7843137174039274,
+                        width: widget.constraints.maxWidth * 0.7843116554054054,
                         child: AutoSizeText(
                           widget.ovrWord ?? '1 limb',
                           style: TextStyle(

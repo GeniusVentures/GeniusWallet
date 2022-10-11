@@ -84,13 +84,13 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                 height: widget.constraints.maxHeight * 0.056,
                 child: Center(
                     child: Container(
-                        height: 10.66650390625,
+                        height: 10.666664123535156,
                         width: 16.0,
                         child: TransactionTypeIconCustom(
                             child: SvgPicture.asset(
                           'assets/images/transactiontypeiconcustom.svg',
                           package: 'genius_wallet',
-                          height: 10.66650390625,
+                          height: 10.666664123535156,
                           width: 16.0,
                           fit: BoxFit.scaleDown,
                         )))),
@@ -211,7 +211,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                                 SvgPicture.asset(
                                   'assets/images/mask4.svg',
                                   package: 'genius_wallet',
-                                  height: 13.39990234375,
+                                  height: 13.399993896484375,
                                   width: 17.60009765625,
                                   fit: BoxFit.none,
                                 ),
@@ -225,7 +225,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                                 SvgPicture.asset(
                                   'assets/images/mask3.svg',
                                   package: 'genius_wallet',
-                                  height: 13.39990234375,
+                                  height: 13.399993896484375,
                                   width: 17.60009765625,
                                   fit: BoxFit.none,
                                 ),
@@ -235,7 +235,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
               Positioned(
                 left: 260.094,
                 width: 35.0,
-                top: 16.233,
+                top: 16.234,
                 height: 35.0,
                 child: Container(
                     decoration: BoxDecoration(),

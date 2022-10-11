@@ -146,7 +146,7 @@ class _Monthselector extends State<Monthselector> {
                 width: 60.0,
                 top: 7.0,
                 height: 14.0,
-                child: BrannyCustom(
+                child: AddEventButtonCustom(
                     child: AutoSizeText(
                   ' Аdd event ',
                   style: TextStyle(

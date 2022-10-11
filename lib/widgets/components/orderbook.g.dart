@@ -5,11 +5,11 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/widgets/components/order_book_header.g.dart';
 import 'package:genius_wallet/widgets/components/custom/sell_limit_orders_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_limit_orders_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/mark_price_custom.dart';
-import 'package:genius_wallet/widgets/components/order_book_header.g.dart';
 
 class Orderbook extends StatefulWidget {
   final BoxConstraints constraints;

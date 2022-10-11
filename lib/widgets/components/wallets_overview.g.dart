@@ -6,7 +6,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/transaction_counter_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 
 class WalletsOverview extends StatefulWidget {
@@ -19,6 +18,7 @@ class WalletsOverview extends StatefulWidget {
   final String? ovrWalletCounter;
   final String? ovrWallets;
   final String? ovrTransactions;
+  final String? ovrTransactionCounter;
   final String? ovrbuy;
   const WalletsOverview(
     this.constraints, {
@@ -31,6 +31,7 @@ class WalletsOverview extends StatefulWidget {
     this.ovrWalletCounter,
     this.ovrWallets,
     this.ovrTransactions,
+    this.ovrTransactionCounter,
     this.ovrbuy,
   }) : super(key: key);
   @override
@@ -255,18 +256,20 @@ class _WalletsOverview extends State<WalletsOverview> {
                 width: 84.0,
                 top: 34.0,
                 height: 40.0,
-                child: TransactionCounterCustom(
+                child: Container(
+                    height: 40.0,
+                    width: 84.0,
                     child: AutoSizeText(
-                  '2,345 ',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 34.0,
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 0.0,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
-                )),
+                      widget.ovrTransactionCounter ?? '2,345 ',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 34.0,
+                        fontWeight: FontWeight.w300,
+                        letterSpacing: 0.0,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.left,
+                    )),
               ),
               Positioned(
                 right: 20.0,
