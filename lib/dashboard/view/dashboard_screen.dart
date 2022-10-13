@@ -8,12 +8,16 @@ import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.da
 import 'package:genius_wallet/dashboard/wallets/view/wallets_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final NavbarItem? initialItem;
+  const DashboardScreen({
+    Key? key,
+    this.initialItem,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => BottomNavigationBarCubit(),
+      create: (context) => BottomNavigationBarCubit(initialItem: initialItem),
       child: Scaffold(
         bottomNavigationBar: const GeniusTabbar(),
         body: BlocBuilder<BottomNavigationBarCubit, BottomNavigationBarState>(
