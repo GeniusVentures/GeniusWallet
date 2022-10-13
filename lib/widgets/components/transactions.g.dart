@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
+import 'package:genius_wallet/widgets/components/custom/transactions_preview_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/view_more_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/transaction_filter_custom.dart';
@@ -37,7 +38,7 @@ class _Transactions extends State<Transactions> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.051,
+            width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Container(
@@ -60,44 +61,61 @@ class _Transactions extends State<Transactions> {
                   Positioned(
                     left: 20.0,
                     width: 271.0,
-                    top: 227.0,
-                    height: 53.0,
-                    child: LayoutBuilder(builder: (context, constraints) {
-                      return TransactionCard(
-                        constraints,
-                        ovrTimestamp: '16:23, 12 dec 2018',
-                        ovrTransactionID: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                        ovrTransactionQuantity: '0.009 BTC',
-                      );
-                    }),
-                  ),
-                  Positioned(
-                    left: 20.0,
-                    width: 271.0,
                     top: 67.0,
-                    height: 53.0,
-                    child: LayoutBuilder(builder: (context, constraints) {
-                      return TransactionCard(
-                        constraints,
-                        ovrTimestamp: '16:23, 12 dec 2018',
-                        ovrTransactionID: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                        ovrTransactionQuantity: '0.009 BTC',
-                      );
-                    }),
-                  ),
-                  Positioned(
-                    left: 20.0,
-                    width: 271.0,
-                    top: 147.0,
-                    height: 53.0,
-                    child: LayoutBuilder(builder: (context, constraints) {
-                      return TransactionCard(
-                        constraints,
-                        ovrTimestamp: '16:23, 12 dec 2018',
-                        ovrTransactionID: '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                        ovrTransactionQuantity: '0.009 BTC',
-                      );
-                    }),
+                    height: 236.0,
+                    child: TransactionsPreviewCustom(
+                        child: Container(
+                            decoration: BoxDecoration(),
+                            child: Stack(children: [
+                              Positioned(
+                                left: 0,
+                                width: 271.0,
+                                top: 160.0,
+                                height: 53.0,
+                                child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                  return TransactionCard(
+                                    constraints,
+                                    ovrTimestamp: '16:23, 12 dec 2018',
+                                    ovrTransactionID:
+                                        '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
+                                    ovrTransactionQuantity: '0.009 BTC',
+                                  );
+                                }),
+                              ),
+                              Positioned(
+                                left: 0,
+                                width: 271.0,
+                                top: 0,
+                                height: 53.0,
+                                child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                  return TransactionCard(
+                                    constraints,
+                                    ovrTimestamp: '16:23, 12 dec 2018',
+                                    ovrTransactionID:
+                                        '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
+                                    ovrTransactionQuantity: '0.009 BTC',
+                                  );
+                                }),
+                              ),
+                              Positioned(
+                                left: 0,
+                                width: 271.0,
+                                top: 80.0,
+                                height: 53.0,
+                                child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                  return TransactionCard(
+                                    constraints,
+                                    ovrTimestamp: '16:23, 12 dec 2018',
+                                    ovrTransactionID:
+                                        '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
+                                    ovrTransactionQuantity: '0.009 BTC',
+                                  );
+                                }),
+                              ),
+                            ]))),
                   ),
                   Positioned(
                     left: 19.0,
@@ -120,7 +138,7 @@ class _Transactions extends State<Transactions> {
                         )),
                   ),
                   Positioned(
-                    right: 35.0,
+                    right: 19.0,
                     width: 85.0,
                     bottom: 19.0,
                     height: 23.0,
@@ -149,13 +167,13 @@ class _Transactions extends State<Transactions> {
                                 ),
                               ),
                               Positioned(
-                                left: 13.0,
-                                width: 60.0,
-                                top: 4.0,
+                                left: 5.0,
+                                width: 75.0,
+                                top: 5.0,
                                 height: 14.0,
                                 child: Container(
                                     height: 14.0,
-                                    width: 60.0,
+                                    width: 75.0,
                                     child: AutoSizeText(
                                       widget.ovrViewmore ?? 'View more  ',
                                       style: TextStyle(
@@ -171,7 +189,7 @@ class _Transactions extends State<Transactions> {
                             ]))),
                   ),
                   Positioned(
-                    right: 0,
+                    right: 20.0,
                     width: 150.0,
                     top: 28.0,
                     height: 13.0,

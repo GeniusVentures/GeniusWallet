@@ -299,13 +299,13 @@ class _WalletsOverview extends State<WalletsOverview> {
                             ),
                           ),
                           Positioned(
-                            left: 12.0,
-                            width: 22.0,
-                            top: 4.0,
+                            left: 8.0,
+                            width: 32.0,
+                            top: 5.0,
                             height: 14.0,
                             child: Container(
                                 height: 14.0,
-                                width: 22.0,
+                                width: 32.0,
                                 child: AutoSizeText(
                                   widget.ovrbuy ?? 'Buy ',
                                   style: TextStyle(
