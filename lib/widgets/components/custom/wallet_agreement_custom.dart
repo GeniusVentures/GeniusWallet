@@ -19,13 +19,17 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Checkbox(
           value: widget.value ?? false,
           onChanged: widget.onChanged,
         ),
-        const Text(
-          'I’ve read and accept the Terms of Service and Privacy Policy',
+        const Flexible(
+          flex: 10,
+          child: Text(
+            'I’ve read and accept the Terms of Service and Privacy Policy',
+          ),
         ),
       ],
     );

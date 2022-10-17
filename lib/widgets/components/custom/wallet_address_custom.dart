@@ -37,6 +37,7 @@ class _WalletAddressCustomState extends State<WalletAddressCustom> {
               content: Text(message),
             ),
           );
+          context.read<WalletCubit>().messageShowed();
         }
       },
       builder: (context, state) {
