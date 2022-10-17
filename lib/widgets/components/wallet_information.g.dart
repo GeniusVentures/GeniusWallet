@@ -7,13 +7,13 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/send/buttontype_send.g.dart';
 import 'package:genius_wallet/widgets/components/send/buttontype_buy.g.dart';
-import 'package:genius_wallet/widgets/components/send/buttontype_receive.g.dart';
 import 'package:genius_wallet/widgets/components/custom/total_balance_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/receive_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
+import 'package:genius_wallet/widgets/components/send/buttontype_receive.g.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;

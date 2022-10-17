@@ -5,12 +5,12 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
 import 'package:genius_wallet/widgets/components/custom/transactions_preview_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/view_more_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/transaction_filter_custom.dart';
+import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 
 class Transactions extends StatefulWidget {
   final BoxConstraints constraints;
