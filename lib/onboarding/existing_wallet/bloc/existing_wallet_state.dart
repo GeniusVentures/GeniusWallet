@@ -3,36 +3,35 @@ part of 'existing_wallet_bloc.dart';
 class ExistingWalletState {
   final bool acceptedLegal;
 
-  final bool failedPinVerification;
-
   final FlowStep currentStep;
 
   final String selectedWallet;
 
   final String createdPin;
 
+  final ExistingWalletStatus savePinStatus;
+
   const ExistingWalletState({
     this.acceptedLegal = false,
     this.currentStep = FlowStep.legal,
     this.selectedWallet = '',
     this.createdPin = '',
-    this.failedPinVerification = false,
+    this.savePinStatus = ExistingWalletStatus.initial,
   });
 
   ExistingWalletState copyWith({
     bool? acceptedLegal,
-    bool? failedPinVerification,
     FlowStep? currentStep,
     String? selectedWallet,
     String? createdPin,
+    ExistingWalletStatus? savePinStatus,
   }) {
     return ExistingWalletState(
       acceptedLegal: acceptedLegal ?? this.acceptedLegal,
       currentStep: currentStep ?? this.currentStep,
       selectedWallet: selectedWallet ?? this.selectedWallet,
       createdPin: createdPin ?? this.createdPin,
-      failedPinVerification:
-          failedPinVerification ?? this.failedPinVerification,
+      savePinStatus: savePinStatus ?? this.savePinStatus,
     );
   }
 }
@@ -45,4 +44,11 @@ enum FlowStep {
   importWalletSecurity,
   createPin,
   confirmPin,
+}
+
+enum ExistingWalletStatus {
+  initial,
+  loading,
+  success,
+  error,
 }

@@ -34,4 +34,12 @@ class PinCubit extends Cubit<PinState> {
       }
     }
   }
+
+  void pinConfirmFailed() {
+    state.controller.clear();
+    emit(PinStateIncomplete(
+      controller: state.controller,
+      displayIncorrectPin: true,
+    ));
+  }
 }

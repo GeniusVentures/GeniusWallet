@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/wallet.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
