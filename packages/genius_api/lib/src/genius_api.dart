@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/src/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GeniusApi {
   const GeniusApi();
@@ -21,6 +23,7 @@ class GeniusApi {
         timeStamp: '13:26, 10 oct 2022',
         transactionDirection: TransactionDirection.sent,
         amount: '0.0002 ETH',
+        fees: '',
       ),
       Transaction(
         fromAddress: '0x2',
@@ -28,6 +31,7 @@ class GeniusApi {
         timeStamp: '15:20, 09 oct 2022',
         transactionDirection: TransactionDirection.received,
         amount: '0.0003 ETH',
+        fees: '',
       ),
     ];
   }
@@ -59,5 +63,26 @@ class GeniusApi {
       profilePictureUrl: '',
       wallets: await getUserWallets('some_id?'),
     );
+  }
+
+  Future<int> getGasFees() async {
+    return 100;
+  }
+
+  Future<void> storeUserPin(String pin) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString(gnusPin, pin);
+  }
+
+  Future<String> getUserPin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      return prefs.getString(gnusPin) ?? '';
+    } catch (e) {
+      //TODO: Throw error for FE?
+      return '';
+    }
   }
 }

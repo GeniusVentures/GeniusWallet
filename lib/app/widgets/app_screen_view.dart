@@ -11,25 +11,27 @@ class AppScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: body,
-            ),
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Container(
-                alignment: Alignment.bottomCenter,
-                padding: const EdgeInsets.only(bottom: 50),
-                child: footer,
+    return SafeArea(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: body,
               ),
-            ),
-          ],
-        ),
-      ],
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Container(
+                  alignment: Alignment.bottomCenter,
+                  padding: const EdgeInsets.only(bottom: 50),
+                  child: footer,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

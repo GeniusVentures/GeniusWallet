@@ -14,6 +14,7 @@ _$_Transaction _$$_TransactionFromJson(Map<String, dynamic> json) =>
       transactionDirection: $enumDecode(
           _$TransactionDirectionEnumMap, json['transactionDirection']),
       amount: json['amount'] as String,
+      fees: json['fees'] as String,
     );
 
 Map<String, dynamic> _$$_TransactionToJson(_$_Transaction instance) =>
@@ -24,6 +25,7 @@ Map<String, dynamic> _$$_TransactionToJson(_$_Transaction instance) =>
       'transactionDirection':
           _$TransactionDirectionEnumMap[instance.transactionDirection]!,
       'amount': instance.amount,
+      'fees': instance.fees,
     };
 
 const _$TransactionDirectionEnumMap = {

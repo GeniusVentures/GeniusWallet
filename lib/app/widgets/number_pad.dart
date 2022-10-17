@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
-import 'package:genius_wallet/app/screens/pin_screen.dart';
 
 class NumberPad extends StatelessWidget {
   const NumberPad({
@@ -11,7 +10,7 @@ class NumberPad extends StatelessWidget {
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * .25,
+        maxHeight: MediaQuery.of(context).size.height * .35,
       ),
       child: Column(
         children: [

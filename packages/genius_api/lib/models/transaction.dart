@@ -11,6 +11,7 @@ class Transaction with _$Transaction {
     required String timeStamp,
     required TransactionDirection transactionDirection,
     required String amount,
+    required String fees,
   }) = _Transaction;
 
   factory Transaction.fromJson(Map<String, Object?> json) =>

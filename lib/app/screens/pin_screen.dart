@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
+import 'package:genius_wallet/app/bloc/pin_state.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
@@ -38,9 +38,9 @@ class PinScreen extends StatelessWidget {
                   icon: const Icon(Icons.close, size: 40),
                 ),
               ),
-              BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
+              BlocBuilder<PinCubit, PinState>(
                 builder: (context, state) {
-                  if (state.failedPinVerification) {
+                  if (state.displayIncorrectPin) {
                     return Center(
                       child: SizedBox(
                         width: 200,
@@ -56,10 +56,9 @@ class PinScreen extends StatelessWidget {
                   }
                   return const SizedBox();
                 },
-                bloc: context.watch<ExistingWalletBloc>(),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.3,
+                height: MediaQuery.of(context).size.height * 0.1,
               ),
               Center(
                 child: Text(
@@ -73,7 +72,7 @@ class PinScreen extends StatelessWidget {
               const SizedBox(height: 80),
               Center(
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.6,
+                  width: MediaQuery.of(context).size.width * 0.8,
                   child: PinCodeTextField(
                     appContext: context,
                     obscureText: true,

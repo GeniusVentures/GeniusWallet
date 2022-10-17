@@ -26,6 +26,7 @@ mixin _$Transaction {
   TransactionDirection get transactionDirection =>
       throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
+  String get fees => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -43,7 +44,8 @@ abstract class $TransactionCopyWith<$Res> {
       String toAddress,
       String timeStamp,
       TransactionDirection transactionDirection,
-      String amount});
+      String amount,
+      String fees});
 }
 
 /// @nodoc
@@ -61,6 +63,7 @@ class _$TransactionCopyWithImpl<$Res> implements $TransactionCopyWith<$Res> {
     Object? timeStamp = freezed,
     Object? transactionDirection = freezed,
     Object? amount = freezed,
+    Object? fees = freezed,
   }) {
     return _then(_value.copyWith(
       fromAddress: fromAddress == freezed
@@ -83,6 +86,10 @@ class _$TransactionCopyWithImpl<$Res> implements $TransactionCopyWith<$Res> {
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as String,
+      fees: fees == freezed
+          ? _value.fees
+          : fees // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -99,7 +106,8 @@ abstract class _$$_TransactionCopyWith<$Res>
       String toAddress,
       String timeStamp,
       TransactionDirection transactionDirection,
-      String amount});
+      String amount,
+      String fees});
 }
 
 /// @nodoc
@@ -119,6 +127,7 @@ class __$$_TransactionCopyWithImpl<$Res> extends _$TransactionCopyWithImpl<$Res>
     Object? timeStamp = freezed,
     Object? transactionDirection = freezed,
     Object? amount = freezed,
+    Object? fees = freezed,
   }) {
     return _then(_$_Transaction(
       fromAddress: fromAddress == freezed
@@ -141,6 +150,10 @@ class __$$_TransactionCopyWithImpl<$Res> extends _$TransactionCopyWithImpl<$Res>
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as String,
+      fees: fees == freezed
+          ? _value.fees
+          : fees // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -153,7 +166,8 @@ class _$_Transaction implements _Transaction {
       required this.toAddress,
       required this.timeStamp,
       required this.transactionDirection,
-      required this.amount});
+      required this.amount,
+      required this.fees});
 
   factory _$_Transaction.fromJson(Map<String, dynamic> json) =>
       _$$_TransactionFromJson(json);
@@ -168,10 +182,12 @@ class _$_Transaction implements _Transaction {
   final TransactionDirection transactionDirection;
   @override
   final String amount;
+  @override
+  final String fees;
 
   @override
   String toString() {
-    return 'Transaction(fromAddress: $fromAddress, toAddress: $toAddress, timeStamp: $timeStamp, transactionDirection: $transactionDirection, amount: $amount)';
+    return 'Transaction(fromAddress: $fromAddress, toAddress: $toAddress, timeStamp: $timeStamp, transactionDirection: $transactionDirection, amount: $amount, fees: $fees)';
   }
 
   @override
@@ -185,7 +201,8 @@ class _$_Transaction implements _Transaction {
             const DeepCollectionEquality().equals(other.timeStamp, timeStamp) &&
             const DeepCollectionEquality()
                 .equals(other.transactionDirection, transactionDirection) &&
-            const DeepCollectionEquality().equals(other.amount, amount));
+            const DeepCollectionEquality().equals(other.amount, amount) &&
+            const DeepCollectionEquality().equals(other.fees, fees));
   }
 
   @JsonKey(ignore: true)
@@ -196,7 +213,8 @@ class _$_Transaction implements _Transaction {
       const DeepCollectionEquality().hash(toAddress),
       const DeepCollectionEquality().hash(timeStamp),
       const DeepCollectionEquality().hash(transactionDirection),
-      const DeepCollectionEquality().hash(amount));
+      const DeepCollectionEquality().hash(amount),
+      const DeepCollectionEquality().hash(fees));
 
   @JsonKey(ignore: true)
   @override
@@ -217,7 +235,8 @@ abstract class _Transaction implements Transaction {
       required final String toAddress,
       required final String timeStamp,
       required final TransactionDirection transactionDirection,
-      required final String amount}) = _$_Transaction;
+      required final String amount,
+      required final String fees}) = _$_Transaction;
 
   factory _Transaction.fromJson(Map<String, dynamic> json) =
       _$_Transaction.fromJson;
@@ -232,6 +251,8 @@ abstract class _Transaction implements Transaction {
   TransactionDirection get transactionDirection;
   @override
   String get amount;
+  @override
+  String get fees;
   @override
   @JsonKey(ignore: true)
   _$$_TransactionCopyWith<_$_Transaction> get copyWith =>

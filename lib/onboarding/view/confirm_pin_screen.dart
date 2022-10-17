@@ -15,16 +15,23 @@ class ConfirmPinScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => PinCubit(pinMaxLength: 6),
+    return BlocListener<ExistingWalletBloc, ExistingWalletState>(
+      listener: (context, state) {
+        if (state.savePinStatus == ExistingWalletStatus.success) {
+          context.flow<ExistingWalletState>().complete();
+        } else if (state.savePinStatus == ExistingWalletStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Something went wrong while saving your Pin')));
+        }
+      },
       child: PinScreen(
         text: 'Confirm PIN',
         onCompleted: (value) {
           if (value == pinToConfirm) {
             context.read<ExistingWalletBloc>().add(PinCheckSuccessful());
-            context.flow<ExistingWalletState>().complete();
           } else {
             context.read<ExistingWalletBloc>().add(PinCheckFailed());
+            context.read<PinCubit>().pinConfirmFailed();
           }
         },
       ),

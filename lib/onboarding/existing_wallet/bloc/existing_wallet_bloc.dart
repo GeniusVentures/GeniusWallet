@@ -1,15 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 
 part 'existing_wallet_event.dart';
 part 'existing_wallet_state.dart';
 
 class ExistingWalletBloc
     extends Bloc<ExistingWalletEvent, ExistingWalletState> {
-  ExistingWalletBloc(
-      {ExistingWalletState initialState = const ExistingWalletState()})
-      : super(initialState) {
+  final GeniusApi geniusApi;
+  ExistingWalletBloc({
+    ExistingWalletState initialState = const ExistingWalletState(),
+    required this.geniusApi,
+  }) : super(initialState) {
     on<ToggleLegal>((event, emit) =>
         emit(state.copyWith(acceptedLegal: !state.acceptedLegal)));
 
@@ -32,7 +35,6 @@ class ExistingWalletBloc
         state.copyWith(
           createdPin: event.pin,
           currentStep: FlowStep.confirmPin,
-          failedPinVerification: false,
         ),
       ),
     );
@@ -42,9 +44,7 @@ class ExistingWalletBloc
     /// On [PinCheckFailed], send user back a screen and reset pin state
     on<PinCheckFailed>((event, emit) {
       emit(state.copyWith(
-        failedPinVerification: true,
         createdPin: '',
-        currentStep: FlowStep.createPin,
       ));
     });
   }
@@ -59,8 +59,15 @@ class ExistingWalletBloc
   }
 
   FutureOr<void> onPinCheckSuccessful(
-      PinCheckSuccessful event, Emitter<ExistingWalletState> emit) {
-    ///TODO: Can check the [state] here and send the pin to the API.
-    emit(state.copyWith());
+      PinCheckSuccessful event, Emitter<ExistingWalletState> emit) async {
+    try {
+      emit(state.copyWith(
+        savePinStatus: ExistingWalletStatus.success,
+      ));
+      await geniusApi.storeUserPin(state.createdPin);
+      emit(state.copyWith(savePinStatus: ExistingWalletStatus.success));
+    } catch (e) {
+      emit(state.copyWith(savePinStatus: ExistingWalletStatus.error));
+    }
   }
 }
