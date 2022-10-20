@@ -72,7 +72,7 @@ class ExistingWalletFlow extends StatelessWidget {
         }
       },
       state: context.watch<ExistingWalletBloc>().state,
-      onComplete: (state){
+      onComplete: (state) {
         context.go('/dashboard');
       },
     );

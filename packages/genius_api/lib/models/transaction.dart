@@ -6,6 +6,7 @@ part 'transaction.g.dart';
 @freezed
 class Transaction with _$Transaction {
   const factory Transaction({
+    required String hash,
     required String fromAddress,
     required String toAddress,
     required String timeStamp,

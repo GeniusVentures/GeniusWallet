@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 
-class BackButtonDashboardCustom extends StatefulWidget {
+class GeniusCloseButtonCustom extends StatefulWidget {
   final Widget? child;
-  BackButtonDashboardCustom({
+  GeniusCloseButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);
 
   @override
-  _BackButtonDashboardCustomState createState() =>
-      _BackButtonDashboardCustomState();
+  _GeniusCloseButtonCustomState createState() =>
+      _GeniusCloseButtonCustomState();
 }
 
-class _BackButtonDashboardCustomState extends State<BackButtonDashboardCustom> {
+class _GeniusCloseButtonCustomState extends State<GeniusCloseButtonCustom> {
   @override
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () {
-        print('popping');
         Navigator.of(context).pop();
       },
       child: widget.child!,

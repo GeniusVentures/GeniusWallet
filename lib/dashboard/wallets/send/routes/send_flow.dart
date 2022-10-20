@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/bloc/verification_cubit.dart';
 import 'package:genius_wallet/app/screens/pin_screen.dart';
+import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/enter_wallet_address_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/transaction_details_screen.dart';
@@ -20,6 +21,7 @@ class SendFlow extends StatelessWidget {
         switch (state.flowStep) {
           case SendFlowStep.transactionSummary:
             return [
+              const MaterialPage(child: DashboardScreen()),
               const MaterialPage(child: TransactionSummaryScreen()),
             ];
           case SendFlowStep.enterPin:
@@ -65,6 +67,7 @@ class SendFlow extends StatelessWidget {
         }
       },
       state: context.watch<SendCubit>().state,
+      onComplete: (state) {},
     );
   }
 }
