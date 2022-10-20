@@ -18,6 +18,8 @@ class GeniusApi {
     //TODO: Implement getting these from Genius API
     return [
       Transaction(
+        hash:
+            '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
         fromAddress: '0x0',
         toAddress: '0x1',
         timeStamp: '13:26, 10 oct 2022',
@@ -26,6 +28,8 @@ class GeniusApi {
         fees: '',
       ),
       Transaction(
+        hash:
+            '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
         fromAddress: '0x2',
         toAddress: '0x0',
         timeStamp: '15:20, 09 oct 2022',

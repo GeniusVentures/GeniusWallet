@@ -51,12 +51,12 @@ class _TransactionDetailTile extends State<TransactionDetailTile> {
               ),
               Positioned(
                 left: 17.0,
-                width: 99.0,
+                width: 138.0,
                 top: 12.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 99.0,
+                    width: 138.0,
                     child: AutoSizeText(
                       widget.ovrLeftfield ?? 'Available Balance',
                       style: TextStyle(

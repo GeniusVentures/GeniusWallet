@@ -10,6 +10,7 @@ class SendState {
     this.flowStep = SendFlowStep.enterAddress,
     this.sendStatus = SendStatus.initial,
     this.currentTransaction = const Transaction(
+      hash: '',
       amount: '0',
       fromAddress: '',
       timeStamp: '',

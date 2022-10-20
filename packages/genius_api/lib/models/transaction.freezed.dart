@@ -20,6 +20,7 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Transaction {
+  String get hash => throw _privateConstructorUsedError;
   String get fromAddress => throw _privateConstructorUsedError;
   String get toAddress => throw _privateConstructorUsedError;
   String get timeStamp => throw _privateConstructorUsedError;
@@ -38,9 +39,11 @@ mixin _$Transaction {
 abstract class $TransactionCopyWith<$Res> {
   factory $TransactionCopyWith(
           Transaction value, $Res Function(Transaction) then) =
-      _$TransactionCopyWithImpl<$Res>;
+      _$TransactionCopyWithImpl<$Res, Transaction>;
+  @useResult
   $Res call(
-      {String fromAddress,
+      {String hash,
+      String fromAddress,
       String toAddress,
       String timeStamp,
       TransactionDirection transactionDirection,
@@ -49,48 +52,56 @@ abstract class $TransactionCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$TransactionCopyWithImpl<$Res> implements $TransactionCopyWith<$Res> {
+class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
+    implements $TransactionCopyWith<$Res> {
   _$TransactionCopyWithImpl(this._value, this._then);
 
-  final Transaction _value;
   // ignore: unused_field
-  final $Res Function(Transaction) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? fromAddress = freezed,
-    Object? toAddress = freezed,
-    Object? timeStamp = freezed,
-    Object? transactionDirection = freezed,
-    Object? amount = freezed,
-    Object? fees = freezed,
+    Object? hash = null,
+    Object? fromAddress = null,
+    Object? toAddress = null,
+    Object? timeStamp = null,
+    Object? transactionDirection = null,
+    Object? amount = null,
+    Object? fees = null,
   }) {
     return _then(_value.copyWith(
-      fromAddress: fromAddress == freezed
+      hash: null == hash
+          ? _value.hash
+          : hash // ignore: cast_nullable_to_non_nullable
+              as String,
+      fromAddress: null == fromAddress
           ? _value.fromAddress
           : fromAddress // ignore: cast_nullable_to_non_nullable
               as String,
-      toAddress: toAddress == freezed
+      toAddress: null == toAddress
           ? _value.toAddress
           : toAddress // ignore: cast_nullable_to_non_nullable
               as String,
-      timeStamp: timeStamp == freezed
+      timeStamp: null == timeStamp
           ? _value.timeStamp
           : timeStamp // ignore: cast_nullable_to_non_nullable
               as String,
-      transactionDirection: transactionDirection == freezed
+      transactionDirection: null == transactionDirection
           ? _value.transactionDirection
           : transactionDirection // ignore: cast_nullable_to_non_nullable
               as TransactionDirection,
-      amount: amount == freezed
+      amount: null == amount
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as String,
-      fees: fees == freezed
+      fees: null == fees
           ? _value.fees
           : fees // ignore: cast_nullable_to_non_nullable
               as String,
-    ));
+    ) as $Val);
   }
 }
 
@@ -101,8 +112,10 @@ abstract class _$$_TransactionCopyWith<$Res>
           _$_Transaction value, $Res Function(_$_Transaction) then) =
       __$$_TransactionCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call(
-      {String fromAddress,
+      {String hash,
+      String fromAddress,
       String toAddress,
       String timeStamp,
       TransactionDirection transactionDirection,
@@ -111,46 +124,50 @@ abstract class _$$_TransactionCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_TransactionCopyWithImpl<$Res> extends _$TransactionCopyWithImpl<$Res>
+class __$$_TransactionCopyWithImpl<$Res>
+    extends _$TransactionCopyWithImpl<$Res, _$_Transaction>
     implements _$$_TransactionCopyWith<$Res> {
   __$$_TransactionCopyWithImpl(
       _$_Transaction _value, $Res Function(_$_Transaction) _then)
-      : super(_value, (v) => _then(v as _$_Transaction));
+      : super(_value, _then);
 
-  @override
-  _$_Transaction get _value => super._value as _$_Transaction;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? fromAddress = freezed,
-    Object? toAddress = freezed,
-    Object? timeStamp = freezed,
-    Object? transactionDirection = freezed,
-    Object? amount = freezed,
-    Object? fees = freezed,
+    Object? hash = null,
+    Object? fromAddress = null,
+    Object? toAddress = null,
+    Object? timeStamp = null,
+    Object? transactionDirection = null,
+    Object? amount = null,
+    Object? fees = null,
   }) {
     return _then(_$_Transaction(
-      fromAddress: fromAddress == freezed
+      hash: null == hash
+          ? _value.hash
+          : hash // ignore: cast_nullable_to_non_nullable
+              as String,
+      fromAddress: null == fromAddress
           ? _value.fromAddress
           : fromAddress // ignore: cast_nullable_to_non_nullable
               as String,
-      toAddress: toAddress == freezed
+      toAddress: null == toAddress
           ? _value.toAddress
           : toAddress // ignore: cast_nullable_to_non_nullable
               as String,
-      timeStamp: timeStamp == freezed
+      timeStamp: null == timeStamp
           ? _value.timeStamp
           : timeStamp // ignore: cast_nullable_to_non_nullable
               as String,
-      transactionDirection: transactionDirection == freezed
+      transactionDirection: null == transactionDirection
           ? _value.transactionDirection
           : transactionDirection // ignore: cast_nullable_to_non_nullable
               as TransactionDirection,
-      amount: amount == freezed
+      amount: null == amount
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as String,
-      fees: fees == freezed
+      fees: null == fees
           ? _value.fees
           : fees // ignore: cast_nullable_to_non_nullable
               as String,
@@ -162,7 +179,8 @@ class __$$_TransactionCopyWithImpl<$Res> extends _$TransactionCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_Transaction implements _Transaction {
   const _$_Transaction(
-      {required this.fromAddress,
+      {required this.hash,
+      required this.fromAddress,
       required this.toAddress,
       required this.timeStamp,
       required this.transactionDirection,
@@ -172,6 +190,8 @@ class _$_Transaction implements _Transaction {
   factory _$_Transaction.fromJson(Map<String, dynamic> json) =>
       _$$_TransactionFromJson(json);
 
+  @override
+  final String hash;
   @override
   final String fromAddress;
   @override
@@ -187,7 +207,7 @@ class _$_Transaction implements _Transaction {
 
   @override
   String toString() {
-    return 'Transaction(fromAddress: $fromAddress, toAddress: $toAddress, timeStamp: $timeStamp, transactionDirection: $transactionDirection, amount: $amount, fees: $fees)';
+    return 'Transaction(hash: $hash, fromAddress: $fromAddress, toAddress: $toAddress, timeStamp: $timeStamp, transactionDirection: $transactionDirection, amount: $amount, fees: $fees)';
   }
 
   @override
@@ -195,29 +215,27 @@ class _$_Transaction implements _Transaction {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_Transaction &&
-            const DeepCollectionEquality()
-                .equals(other.fromAddress, fromAddress) &&
-            const DeepCollectionEquality().equals(other.toAddress, toAddress) &&
-            const DeepCollectionEquality().equals(other.timeStamp, timeStamp) &&
-            const DeepCollectionEquality()
-                .equals(other.transactionDirection, transactionDirection) &&
-            const DeepCollectionEquality().equals(other.amount, amount) &&
-            const DeepCollectionEquality().equals(other.fees, fees));
+            (identical(other.hash, hash) || other.hash == hash) &&
+            (identical(other.fromAddress, fromAddress) ||
+                other.fromAddress == fromAddress) &&
+            (identical(other.toAddress, toAddress) ||
+                other.toAddress == toAddress) &&
+            (identical(other.timeStamp, timeStamp) ||
+                other.timeStamp == timeStamp) &&
+            (identical(other.transactionDirection, transactionDirection) ||
+                other.transactionDirection == transactionDirection) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
+            (identical(other.fees, fees) || other.fees == fees));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(fromAddress),
-      const DeepCollectionEquality().hash(toAddress),
-      const DeepCollectionEquality().hash(timeStamp),
-      const DeepCollectionEquality().hash(transactionDirection),
-      const DeepCollectionEquality().hash(amount),
-      const DeepCollectionEquality().hash(fees));
+  int get hashCode => Object.hash(runtimeType, hash, fromAddress, toAddress,
+      timeStamp, transactionDirection, amount, fees);
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_TransactionCopyWith<_$_Transaction> get copyWith =>
       __$$_TransactionCopyWithImpl<_$_Transaction>(this, _$identity);
 
@@ -231,7 +249,8 @@ class _$_Transaction implements _Transaction {
 
 abstract class _Transaction implements Transaction {
   const factory _Transaction(
-      {required final String fromAddress,
+      {required final String hash,
+      required final String fromAddress,
       required final String toAddress,
       required final String timeStamp,
       required final TransactionDirection transactionDirection,
@@ -241,6 +260,8 @@ abstract class _Transaction implements Transaction {
   factory _Transaction.fromJson(Map<String, dynamic> json) =
       _$_Transaction.fromJson;
 
+  @override
+  String get hash;
   @override
   String get fromAddress;
   @override

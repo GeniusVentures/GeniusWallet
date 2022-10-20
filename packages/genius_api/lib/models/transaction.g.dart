@@ -8,6 +8,7 @@ part of 'transaction.dart';
 
 _$_Transaction _$$_TransactionFromJson(Map<String, dynamic> json) =>
     _$_Transaction(
+      hash: json['hash'] as String,
       fromAddress: json['fromAddress'] as String,
       toAddress: json['toAddress'] as String,
       timeStamp: json['timeStamp'] as String,
@@ -19,6 +20,7 @@ _$_Transaction _$$_TransactionFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$_TransactionToJson(_$_Transaction instance) =>
     <String, dynamic>{
+      'hash': instance.hash,
       'fromAddress': instance.fromAddress,
       'toAddress': instance.toAddress,
       'timeStamp': instance.timeStamp,

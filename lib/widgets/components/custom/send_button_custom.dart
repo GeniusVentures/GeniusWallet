@@ -30,6 +30,7 @@ class _SendButtonCustomState extends State<SendButtonCustom> {
                 create: (context) => SendCubit(
                   initialState: SendState(
                     currentTransaction: Transaction(
+                      hash: '',
                       fromAddress: walletCubit.state.selectedWallet!.address,
                       toAddress: '',
                       amount: '',

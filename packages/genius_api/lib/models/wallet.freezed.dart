@@ -35,7 +35,8 @@ mixin _$Wallet {
 /// @nodoc
 abstract class $WalletCopyWith<$Res> {
   factory $WalletCopyWith(Wallet value, $Res Function(Wallet) then) =
-      _$WalletCopyWithImpl<$Res>;
+      _$WalletCopyWithImpl<$Res, Wallet>;
+  @useResult
   $Res call(
       {String walletName,
       String currencySymbol,
@@ -46,48 +47,51 @@ abstract class $WalletCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$WalletCopyWithImpl<$Res> implements $WalletCopyWith<$Res> {
+class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
+    implements $WalletCopyWith<$Res> {
   _$WalletCopyWithImpl(this._value, this._then);
 
-  final Wallet _value;
   // ignore: unused_field
-  final $Res Function(Wallet) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? walletName = freezed,
-    Object? currencySymbol = freezed,
-    Object? currencyName = freezed,
-    Object? balance = freezed,
-    Object? address = freezed,
-    Object? transactions = freezed,
+    Object? walletName = null,
+    Object? currencySymbol = null,
+    Object? currencyName = null,
+    Object? balance = null,
+    Object? address = null,
+    Object? transactions = null,
   }) {
     return _then(_value.copyWith(
-      walletName: walletName == freezed
+      walletName: null == walletName
           ? _value.walletName
           : walletName // ignore: cast_nullable_to_non_nullable
               as String,
-      currencySymbol: currencySymbol == freezed
+      currencySymbol: null == currencySymbol
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyName: currencyName == freezed
+      currencyName: null == currencyName
           ? _value.currencyName
           : currencyName // ignore: cast_nullable_to_non_nullable
               as String,
-      balance: balance == freezed
+      balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
               as int,
-      address: address == freezed
+      address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
               as String,
-      transactions: transactions == freezed
+      transactions: null == transactions
           ? _value.transactions
           : transactions // ignore: cast_nullable_to_non_nullable
               as List<Transaction>,
-    ));
+    ) as $Val);
   }
 }
 
@@ -96,6 +100,7 @@ abstract class _$$_WalletCopyWith<$Res> implements $WalletCopyWith<$Res> {
   factory _$$_WalletCopyWith(_$_Wallet value, $Res Function(_$_Wallet) then) =
       __$$_WalletCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call(
       {String walletName,
       String currencySymbol,
@@ -106,45 +111,44 @@ abstract class _$$_WalletCopyWith<$Res> implements $WalletCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_WalletCopyWithImpl<$Res> extends _$WalletCopyWithImpl<$Res>
+class __$$_WalletCopyWithImpl<$Res>
+    extends _$WalletCopyWithImpl<$Res, _$_Wallet>
     implements _$$_WalletCopyWith<$Res> {
   __$$_WalletCopyWithImpl(_$_Wallet _value, $Res Function(_$_Wallet) _then)
-      : super(_value, (v) => _then(v as _$_Wallet));
+      : super(_value, _then);
 
-  @override
-  _$_Wallet get _value => super._value as _$_Wallet;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? walletName = freezed,
-    Object? currencySymbol = freezed,
-    Object? currencyName = freezed,
-    Object? balance = freezed,
-    Object? address = freezed,
-    Object? transactions = freezed,
+    Object? walletName = null,
+    Object? currencySymbol = null,
+    Object? currencyName = null,
+    Object? balance = null,
+    Object? address = null,
+    Object? transactions = null,
   }) {
     return _then(_$_Wallet(
-      walletName: walletName == freezed
+      walletName: null == walletName
           ? _value.walletName
           : walletName // ignore: cast_nullable_to_non_nullable
               as String,
-      currencySymbol: currencySymbol == freezed
+      currencySymbol: null == currencySymbol
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyName: currencyName == freezed
+      currencyName: null == currencyName
           ? _value.currencyName
           : currencyName // ignore: cast_nullable_to_non_nullable
               as String,
-      balance: balance == freezed
+      balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
               as int,
-      address: address == freezed
+      address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
               as String,
-      transactions: transactions == freezed
+      transactions: null == transactions
           ? _value._transactions
           : transactions // ignore: cast_nullable_to_non_nullable
               as List<Transaction>,
@@ -194,14 +198,14 @@ class _$_Wallet implements _Wallet {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_Wallet &&
-            const DeepCollectionEquality()
-                .equals(other.walletName, walletName) &&
-            const DeepCollectionEquality()
-                .equals(other.currencySymbol, currencySymbol) &&
-            const DeepCollectionEquality()
-                .equals(other.currencyName, currencyName) &&
-            const DeepCollectionEquality().equals(other.balance, balance) &&
-            const DeepCollectionEquality().equals(other.address, address) &&
+            (identical(other.walletName, walletName) ||
+                other.walletName == walletName) &&
+            (identical(other.currencySymbol, currencySymbol) ||
+                other.currencySymbol == currencySymbol) &&
+            (identical(other.currencyName, currencyName) ||
+                other.currencyName == currencyName) &&
+            (identical(other.balance, balance) || other.balance == balance) &&
+            (identical(other.address, address) || other.address == address) &&
             const DeepCollectionEquality()
                 .equals(other._transactions, _transactions));
   }
@@ -210,15 +214,16 @@ class _$_Wallet implements _Wallet {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      const DeepCollectionEquality().hash(walletName),
-      const DeepCollectionEquality().hash(currencySymbol),
-      const DeepCollectionEquality().hash(currencyName),
-      const DeepCollectionEquality().hash(balance),
-      const DeepCollectionEquality().hash(address),
+      walletName,
+      currencySymbol,
+      currencyName,
+      balance,
+      address,
       const DeepCollectionEquality().hash(_transactions));
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_WalletCopyWith<_$_Wallet> get copyWith =>
       __$$_WalletCopyWithImpl<_$_Wallet>(this, _$identity);
 

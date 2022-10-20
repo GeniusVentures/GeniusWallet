@@ -36,7 +36,8 @@ mixin _$User {
 /// @nodoc
 abstract class $UserCopyWith<$Res> {
   factory $UserCopyWith(User value, $Res Function(User) then) =
-      _$UserCopyWithImpl<$Res>;
+      _$UserCopyWithImpl<$Res, User>;
+  @useResult
   $Res call(
       {String profilePictureUrl,
       String nickname,
@@ -48,53 +49,56 @@ abstract class $UserCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$UserCopyWithImpl<$Res> implements $UserCopyWith<$Res> {
+class _$UserCopyWithImpl<$Res, $Val extends User>
+    implements $UserCopyWith<$Res> {
   _$UserCopyWithImpl(this._value, this._then);
 
-  final User _value;
   // ignore: unused_field
-  final $Res Function(User) _then;
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? profilePictureUrl = freezed,
-    Object? nickname = freezed,
-    Object? email = freezed,
-    Object? firstName = freezed,
-    Object? lastName = freezed,
-    Object? dateOfBirth = freezed,
-    Object? wallets = freezed,
+    Object? profilePictureUrl = null,
+    Object? nickname = null,
+    Object? email = null,
+    Object? firstName = null,
+    Object? lastName = null,
+    Object? dateOfBirth = null,
+    Object? wallets = null,
   }) {
     return _then(_value.copyWith(
-      profilePictureUrl: profilePictureUrl == freezed
+      profilePictureUrl: null == profilePictureUrl
           ? _value.profilePictureUrl
           : profilePictureUrl // ignore: cast_nullable_to_non_nullable
               as String,
-      nickname: nickname == freezed
+      nickname: null == nickname
           ? _value.nickname
           : nickname // ignore: cast_nullable_to_non_nullable
               as String,
-      email: email == freezed
+      email: null == email
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      firstName: firstName == freezed
+      firstName: null == firstName
           ? _value.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
               as String,
-      lastName: lastName == freezed
+      lastName: null == lastName
           ? _value.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String,
-      dateOfBirth: dateOfBirth == freezed
+      dateOfBirth: null == dateOfBirth
           ? _value.dateOfBirth
           : dateOfBirth // ignore: cast_nullable_to_non_nullable
               as String,
-      wallets: wallets == freezed
+      wallets: null == wallets
           ? _value.wallets
           : wallets // ignore: cast_nullable_to_non_nullable
               as List<Wallet>,
-    ));
+    ) as $Val);
   }
 }
 
@@ -103,6 +107,7 @@ abstract class _$$_UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$$_UserCopyWith(_$_User value, $Res Function(_$_User) then) =
       __$$_UserCopyWithImpl<$Res>;
   @override
+  @useResult
   $Res call(
       {String profilePictureUrl,
       String nickname,
@@ -114,50 +119,48 @@ abstract class _$$_UserCopyWith<$Res> implements $UserCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_UserCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res>
+class __$$_UserCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res, _$_User>
     implements _$$_UserCopyWith<$Res> {
   __$$_UserCopyWithImpl(_$_User _value, $Res Function(_$_User) _then)
-      : super(_value, (v) => _then(v as _$_User));
+      : super(_value, _then);
 
-  @override
-  _$_User get _value => super._value as _$_User;
-
+  @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? profilePictureUrl = freezed,
-    Object? nickname = freezed,
-    Object? email = freezed,
-    Object? firstName = freezed,
-    Object? lastName = freezed,
-    Object? dateOfBirth = freezed,
-    Object? wallets = freezed,
+    Object? profilePictureUrl = null,
+    Object? nickname = null,
+    Object? email = null,
+    Object? firstName = null,
+    Object? lastName = null,
+    Object? dateOfBirth = null,
+    Object? wallets = null,
   }) {
     return _then(_$_User(
-      profilePictureUrl: profilePictureUrl == freezed
+      profilePictureUrl: null == profilePictureUrl
           ? _value.profilePictureUrl
           : profilePictureUrl // ignore: cast_nullable_to_non_nullable
               as String,
-      nickname: nickname == freezed
+      nickname: null == nickname
           ? _value.nickname
           : nickname // ignore: cast_nullable_to_non_nullable
               as String,
-      email: email == freezed
+      email: null == email
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      firstName: firstName == freezed
+      firstName: null == firstName
           ? _value.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
               as String,
-      lastName: lastName == freezed
+      lastName: null == lastName
           ? _value.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String,
-      dateOfBirth: dateOfBirth == freezed
+      dateOfBirth: null == dateOfBirth
           ? _value.dateOfBirth
           : dateOfBirth // ignore: cast_nullable_to_non_nullable
               as String,
-      wallets: wallets == freezed
+      wallets: null == wallets
           ? _value._wallets
           : wallets // ignore: cast_nullable_to_non_nullable
               as List<Wallet>,
@@ -209,14 +212,17 @@ class _$_User implements _User {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_User &&
-            const DeepCollectionEquality()
-                .equals(other.profilePictureUrl, profilePictureUrl) &&
-            const DeepCollectionEquality().equals(other.nickname, nickname) &&
-            const DeepCollectionEquality().equals(other.email, email) &&
-            const DeepCollectionEquality().equals(other.firstName, firstName) &&
-            const DeepCollectionEquality().equals(other.lastName, lastName) &&
-            const DeepCollectionEquality()
-                .equals(other.dateOfBirth, dateOfBirth) &&
+            (identical(other.profilePictureUrl, profilePictureUrl) ||
+                other.profilePictureUrl == profilePictureUrl) &&
+            (identical(other.nickname, nickname) ||
+                other.nickname == nickname) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
+            (identical(other.dateOfBirth, dateOfBirth) ||
+                other.dateOfBirth == dateOfBirth) &&
             const DeepCollectionEquality().equals(other._wallets, _wallets));
   }
 
@@ -224,16 +230,17 @@ class _$_User implements _User {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      const DeepCollectionEquality().hash(profilePictureUrl),
-      const DeepCollectionEquality().hash(nickname),
-      const DeepCollectionEquality().hash(email),
-      const DeepCollectionEquality().hash(firstName),
-      const DeepCollectionEquality().hash(lastName),
-      const DeepCollectionEquality().hash(dateOfBirth),
+      profilePictureUrl,
+      nickname,
+      email,
+      firstName,
+      lastName,
+      dateOfBirth,
       const DeepCollectionEquality().hash(_wallets));
 
   @JsonKey(ignore: true)
   @override
+  @pragma('vm:prefer-inline')
   _$$_UserCopyWith<_$_User> get copyWith =>
       __$$_UserCopyWithImpl<_$_User>(this, _$identity);
 
