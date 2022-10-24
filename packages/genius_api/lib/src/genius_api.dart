@@ -41,6 +41,7 @@ class GeniusApi {
   }
 
   Future<List<Wallet>> getUserWallets(String id) async {
+    await Future.delayed(Duration(seconds: 5));
     //TODO: Implement this with the Genius API
     return [
       Wallet(
@@ -48,7 +49,7 @@ class GeniusApi {
         currencyName: 'Ethereum',
         currencySymbol: 'ETH',
         address: '0x0',
-        balance: 2000,
+        balance: 1000,
         transactions: await getTransactionsFor('0x0'),
       ),
     ];
@@ -88,5 +89,15 @@ class GeniusApi {
       //TODO: Throw error for FE?
       return '';
     }
+  }
+
+  Future<Transaction> postTransaction(Transaction transaction) async {
+    await Future.delayed(Duration(seconds: 5));
+
+    ///TODO: Alter this method to actually post the transaction
+    return transaction.copyWith(
+      timeStamp: DateTime.now().toIso8601String(),
+      hash: transaction.hashCode.toString(),
+    );
   }
 }
