@@ -19,7 +19,7 @@ class RecoveryWords extends StatelessWidget {
       width: MediaQuery.of(context).size.width * 0.8,
       child: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
+          crossAxisCount: 3,
           mainAxisSpacing: 20,
           crossAxisSpacing: 20,
           childAspectRatio: MediaQuery.of(context).size.width /

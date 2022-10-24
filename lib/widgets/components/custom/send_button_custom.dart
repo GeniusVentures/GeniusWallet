@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/app/bloc/verification_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
+import 'package:go_router/go_router.dart';
 
 class SendButtonCustom extends StatefulWidget {
   final Widget? child;
@@ -23,34 +20,7 @@ class _SendButtonCustomState extends State<SendButtonCustom> {
     final walletCubit = context.read<WalletCubit>();
     return MaterialButton(
       onPressed: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (context) => SendCubit(
-                  initialState: SendState(
-                    currentTransaction: Transaction(
-                      hash: '',
-                      fromAddress: walletCubit.state.selectedWallet!.address,
-                      toAddress: '',
-                      amount: '',
-                      fees: '',
-                      timeStamp: '',
-                      transactionDirection: TransactionDirection.sent,
-                    ),
-                  ),
-                ),
-              ),
-              BlocProvider.value(
-                value: walletCubit,
-              ),
-              BlocProvider(
-                  create: (context) =>
-                      VerificationCubit(geniusApi: context.read<GeniusApi>())),
-            ],
-            child: const SendFlow(),
-          );
-        }));
+        context.push('/send', extra: walletCubit);
       },
       child: widget.child!,
     );

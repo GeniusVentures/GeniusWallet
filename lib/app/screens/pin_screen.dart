@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinScreen extends StatelessWidget {
@@ -34,7 +35,7 @@ class PinScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 50, left: 40),
                 child: IconButton(
                   alignment: Alignment.center,
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.close, size: 40),
                 ),
               ),
