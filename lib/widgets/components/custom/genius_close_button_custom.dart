@@ -1,4 +1,6 @@
+import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 
 class GeniusCloseButtonCustom extends StatefulWidget {
   final Widget? child;
@@ -17,7 +19,7 @@ class _GeniusCloseButtonCustomState extends State<GeniusCloseButtonCustom> {
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () {
-        Navigator.of(context).pop();
+        context.flow<SendState>().complete();
       },
       child: widget.child!,
     );
