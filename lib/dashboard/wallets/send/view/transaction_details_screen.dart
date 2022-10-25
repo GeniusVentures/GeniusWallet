@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
@@ -15,7 +15,7 @@ class TransactionDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<WalletCubit>().getCurrentFees();
+    context.read<WalletDetailsCubit>().getCurrentFees();
     final formKey = GlobalKey<FormState>();
     return Scaffold(
       body: Form(
@@ -47,7 +47,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                         constraints,
                         ovrLeftfield: 'Available Balance',
                         ovrAmount: context
-                            .read<WalletCubit>()
+                            .read<WalletDetailsCubit>()
                             .state
                             .selectedWallet!
                             .balance
@@ -61,14 +61,14 @@ class TransactionDetailsScreen extends StatelessWidget {
                   child: LayoutBuilder(
                     builder:
                         (BuildContext context, BoxConstraints constraints) {
-                      return BlocBuilder<WalletCubit, WalletState>(
+                      return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
                         builder: (context, state) {
                           if (state.gasFeesStatus == WalletStatus.successful) {
                             return TransactionDetailTile(
                               constraints,
                               ovrLeftfield: 'Gas Fee',
                               ovrAmount: context
-                                  .watch<WalletCubit>()
+                                  .watch<WalletDetailsCubit>()
                                   .state
                                   .gasFees
                                   .toString(),
@@ -102,9 +102,9 @@ class TransactionDetailsScreen extends StatelessWidget {
 
                       context.read<SendCubit>().amountConfirmed(
                             value,
-                            context.read<WalletCubit>().state.gasFees,
+                            context.read<WalletDetailsCubit>().state.gasFees,
                             context
-                                .read<WalletCubit>()
+                                .read<WalletDetailsCubit>()
                                 .state
                                 .selectedWallet!
                                 .balance,

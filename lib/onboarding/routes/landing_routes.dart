@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/create_passcode_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
@@ -69,7 +70,8 @@ class LandingRoutes {
           path: '/create_pin',
           builder: (context, state) {
             return BlocProvider(
-              create: (context) => PinCubit(pinMaxLength: 6),
+              create: (context) => PinCubit(
+                  pinMaxLength: 6, geniusApi: context.read<GeniusApi>()),
               child: const CreatePinScreen(),
             );
           },

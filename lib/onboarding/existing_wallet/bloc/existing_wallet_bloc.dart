@@ -30,21 +30,19 @@ class ExistingWalletBloc
 
     on<WalletSecurityEntered>(onWalletSecurityEntered);
 
-    on<PinCreated>(
-      (event, emit) => emit(
+    on<PinCreated>((event, emit) {
+      emit(
         state.copyWith(
-          createdPin: event.pin,
           currentStep: FlowStep.confirmPin,
+          createdPin: event.pin,
         ),
-      ),
-    );
-
-    on<PinCheckSuccessful>(onPinCheckSuccessful);
+      );
+    });
 
     /// On [PinCheckFailed], send user back a screen and reset pin state
     on<PinCheckFailed>((event, emit) {
       emit(state.copyWith(
-        createdPin: '',
+        currentStep: FlowStep.createPin,
       ));
     });
   }
@@ -56,18 +54,5 @@ class ExistingWalletBloc
     emit(state.copyWith(
       currentStep: FlowStep.createPin,
     ));
-  }
-
-  FutureOr<void> onPinCheckSuccessful(
-      PinCheckSuccessful event, Emitter<ExistingWalletState> emit) async {
-    try {
-      emit(state.copyWith(
-        savePinStatus: ExistingWalletStatus.success,
-      ));
-      await geniusApi.storeUserPin(state.createdPin);
-      emit(state.copyWith(savePinStatus: ExistingWalletStatus.success));
-    } catch (e) {
-      emit(state.copyWith(savePinStatus: ExistingWalletStatus.error));
-    }
   }
 }

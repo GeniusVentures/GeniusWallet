@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
@@ -15,6 +16,9 @@ class ExistingWalletFlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final confirmPinCubit =
+        PinCubit(pinMaxLength: 6, geniusApi: context.read<GeniusApi>());
+
     return FlowBuilder(
       onGeneratePages: (state, pages) {
         switch (state.currentStep) {
@@ -27,15 +31,14 @@ class ExistingWalletFlow extends StatelessWidget {
                       ImportSecurityScreen(walletType: state.selectedWallet)),
               MaterialPage(
                   child: BlocProvider(
-                create: (context) => PinCubit(pinMaxLength: 6),
+                create: (context) => PinCubit(
+                    pinMaxLength: 6, geniusApi: context.read<GeniusApi>()),
                 child: const CreatePinScreen(),
               )),
               MaterialPage(
-                  child: BlocProvider(
-                create: (context) => PinCubit(pinMaxLength: 6),
-                child: ConfirmPinScreen(
-                  pinToConfirm: state.createdPin,
-                ),
+                  child: BlocProvider.value(
+                value: confirmPinCubit,
+                child: ConfirmPinScreen(pinToConfirm: state.createdPin),
               )),
             ];
           case FlowStep.createPin:
@@ -47,7 +50,10 @@ class ExistingWalletFlow extends StatelessWidget {
                       ImportSecurityScreen(walletType: state.selectedWallet)),
               MaterialPage(
                   child: BlocProvider(
-                create: (context) => PinCubit(pinMaxLength: 6),
+                create: (context) => PinCubit(
+                  pinMaxLength: 6,
+                  geniusApi: context.read<GeniusApi>(),
+                ),
                 child: const CreatePinScreen(),
               ))
             ];

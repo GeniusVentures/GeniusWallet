@@ -1,23 +1,33 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/pin_state.dart';
 
 class PinCubit extends Cubit<PinState> {
   final int pinMaxLength;
+  final GeniusApi geniusApi;
   PinCubit({
     required this.pinMaxLength,
-  }) : super(PinStateIncomplete(controller: TextEditingController()));
+    required this.geniusApi,
+  }) : super(PinState(controller: TextEditingController()));
 
   void clearAll() {
     state.controller.clear();
-    emit(PinStateIncomplete(controller: state.controller));
+    emit(state.copyWith(
+      controller: state.controller,
+      pinFullness: PinFullness.inProgress,
+    ));
   }
 
   void backspace() {
     if (state.controller.text.isNotEmpty) {
       state.controller.text =
           state.controller.text.substring(0, state.controller.text.length - 1);
-      emit(PinStateIncomplete(controller: state.controller));
+      emit(state.copyWith(
+        pinFullness: PinFullness.completed,
+      ));
     }
   }
 
@@ -28,18 +38,44 @@ class PinCubit extends Cubit<PinState> {
       state.controller.text = newValue;
 
       if (newValue.length == pinMaxLength) {
-        emit(PinStateComplete(controller: state.controller));
+        emit(state.copyWith(pinFullness: PinFullness.completed));
       } else {
-        emit(PinStateIncomplete(controller: state.controller));
+        emit(state.copyWith(
+          pinFullness: PinFullness.inProgress,
+        ));
       }
     }
   }
 
   void pinConfirmFailed() {
     state.controller.clear();
-    emit(PinStateIncomplete(
+    emit(state.copyWith(
       controller: state.controller,
       displayIncorrectPin: true,
+      pinFullness: PinFullness.inProgress,
     ));
+  }
+
+  /// Verifies [pin] with the user-set pin
+  Future<void> verifyPin(String pin) async {
+    final userPin = await geniusApi.getUserPin();
+
+    if (pin == userPin) {
+      emit(state.copyWith(verificationStatus: VerificationStatus.pass));
+    } else {
+      pinConfirmFailed();
+    }
+  }
+
+  FutureOr<void> onPinCheckSuccessful() async {
+    try {
+      emit(state.copyWith(
+        savePinStatus: SavePinStatus.loading,
+      ));
+      await geniusApi.storeUserPin(state.controller.text);
+      emit(state.copyWith(savePinStatus: SavePinStatus.success));
+    } catch (e) {
+      emit(state.copyWith(savePinStatus: SavePinStatus.error));
+    }
   }
 }

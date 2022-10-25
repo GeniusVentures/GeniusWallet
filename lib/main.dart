@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return RepositoryProvider.value(
       value: geniusApi,
       child: BlocProvider(
-        create: (context) => AppBloc(geniusApi: geniusApi),
+        create: (context) => AppBloc(),
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
