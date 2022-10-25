@@ -1,7 +1,7 @@
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 
 class WalletAddressCustom extends StatefulWidget {
   final Widget? child;
@@ -17,7 +17,7 @@ class WalletAddressCustom extends StatefulWidget {
 class _WalletAddressCustomState extends State<WalletAddressCustom> {
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<WalletCubit, WalletState>(
+    return BlocConsumer<WalletDetailsCubit, WalletDetailsState>(
       listener: (context, state) {
         var message = '';
         switch (state.copyAddressStatus) {
@@ -37,7 +37,7 @@ class _WalletAddressCustomState extends State<WalletAddressCustom> {
               content: Text(message),
             ),
           );
-          context.read<WalletCubit>().messageShowed();
+          context.read<WalletDetailsCubit>().messageShowed();
         }
       },
       builder: (context, state) {
@@ -46,7 +46,7 @@ class _WalletAddressCustomState extends State<WalletAddressCustom> {
         }
         return MaterialButton(
           onPressed: () {
-            context.read<WalletCubit>().copyWalletAddress();
+            context.read<WalletDetailsCubit>().copyWalletAddress();
           },
           child: widget.child!,
         );

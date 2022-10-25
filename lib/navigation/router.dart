@@ -1,10 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
 import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
@@ -70,8 +71,8 @@ final geniusWalletRouter = GoRouter(
                   .wallets
                   .firstWhere((element) => element.address == id);
               return BlocProvider(
-                create: (context) => WalletCubit(
-                  initialState: WalletState(selectedWallet: wallet),
+                create: (context) => WalletDetailsCubit(
+                  initialState: WalletDetailsState(selectedWallet: wallet),
                   geniusApi: context.read<GeniusApi>(),
                 ),
                 child: const WalletDetailsScreen(),
@@ -94,12 +95,12 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/send',
       builder: (context, state) {
-        final walletCubit = state.extra as WalletCubit;
+        final walletCubit = state.extra as WalletDetailsCubit;
         return MultiBlocProvider(
           providers: [
             BlocProvider(
               create: (context) => SendCubit(
-                geniusApi: context.read(),
+                geniusApi: context.read<GeniusApi>(),
                 initialState: SendState(
                   currentTransaction: Transaction(
                     hash: '',
@@ -115,6 +116,11 @@ final geniusWalletRouter = GoRouter(
             ),
             BlocProvider.value(
               value: walletCubit,
+            ),
+            BlocProvider(
+              create: (context) => WalletsOverviewCubit(
+                geniusApi: context.read<GeniusApi>(),
+              ),
             ),
           ],
           child: const SendFlow(),

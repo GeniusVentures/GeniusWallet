@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
+import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_state.dart';
+import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
@@ -15,83 +18,127 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<AppBloc>().add(FetchWallets());
+    return BlocProvider(
+      create: (context) => WalletsOverviewCubit(
+        geniusApi: context.read<GeniusApi>(),
+      ),
+      child: const HomeView(),
+    );
+  }
+}
+
+class HomeView extends StatelessWidget {
+  const HomeView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenView(
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            children: [
-              SizedBox(
-                height: 100,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return GeniusAppbar(constraints);
-                  },
-                ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: const Text(
-                  'Dashboard',
-                  style: TextStyle(fontSize: 24),
-                ),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 300,
-                width: MediaQuery.of(context).size.width,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return BlocBuilder<AppBloc, AppState>(
-                    builder: (context, state) {
-                      return WalletsOverview(
-                        constraints,
-                        ovrTotalWalletBalance: WalletUtils.totalBalance(
-                          context.read<GeniusApi>(),
-                          state.wallets,
-                        ).toString(),
-                        ovrWalletCounter: state.wallets.length.toString(),
-                        ovrTransactionCounter:
-                            WalletUtils.getTransactionNumber(state.wallets)
-                                .toString(),
-                      );
-                    },
-                  );
-                }),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 20,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('My Wallets', style: TextStyle(fontSize: 16)),
-                    MaterialButton(
-                      onPressed: () {
-                        /// TODO: Take to create/add wallet
-                      },
-                      child: const Text(
-                        'Add Wallet',
-                        style: TextStyle(color: GeniusWalletColors.blue500),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              const HorizontalWalletsScrollview(),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 500,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return MarketsModule(constraints);
-                  },
-                ),
-              ),
-            ],
-          ),
+        body: BlocBuilder<WalletsOverviewCubit, WalletsOverviewState>(
+          builder: (context, state) {
+            switch (state.fetchWalletsStatus) {
+              case WalletsOverviewStatus.success:
+                context
+                    .read<AppBloc>()
+                    .add(CacheWallets(wallets: state.wallets));
+                return const OnSuccessful();
+              case WalletsOverviewStatus.error:
+                return const Center(
+                  child: Text('Something went wrong!'),
+                );
+              case WalletsOverviewStatus.initial:
+                context.read<WalletsOverviewCubit>().fetchWallets(
+                    context.read<AppBloc>().state.userModel.email);
+                return const LoadingScreen();
+              case WalletsOverviewStatus.loading:
+                return const LoadingScreen();
+            }
+          },
         ),
+      ),
+    );
+  }
+}
+
+class OnSuccessful extends StatelessWidget {
+  const OnSuccessful({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 100,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return GeniusAppbar(constraints);
+              },
+            ),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: const Text(
+              'Dashboard',
+              style: TextStyle(fontSize: 24),
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 300,
+            width: MediaQuery.of(context).size.width,
+            child: LayoutBuilder(builder: (context, constraints) {
+              return BlocBuilder<AppBloc, AppState>(
+                builder: (context, state) {
+                  return WalletsOverview(
+                    constraints,
+                    ovrTotalWalletBalance: WalletUtils.totalBalance(
+                      context.read<GeniusApi>(),
+                      state.wallets,
+                    ).toString(),
+                    ovrWalletCounter: state.wallets.length.toString(),
+                    ovrTransactionCounter:
+                        WalletUtils.getTransactionNumber(state.wallets)
+                            .toString(),
+                  );
+                },
+              );
+            }),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('My Wallets', style: TextStyle(fontSize: 16)),
+                MaterialButton(
+                  onPressed: () {
+                    /// TODO: Take to create/add wallet
+                  },
+                  child: const Text(
+                    'Add Wallet',
+                    style: TextStyle(color: GeniusWalletColors.blue500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          const HorizontalWalletsScrollview(),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 500,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return MarketsModule(constraints);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

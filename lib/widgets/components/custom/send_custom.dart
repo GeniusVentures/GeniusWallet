@@ -16,7 +16,6 @@ class _SendCustomState extends State<SendCustom> {
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () {
-        print('hello world');
       },
       child: widget.child!,
     );

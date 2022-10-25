@@ -9,14 +9,12 @@ class ExistingWalletState {
 
   final String createdPin;
 
-  final ExistingWalletStatus savePinStatus;
 
   const ExistingWalletState({
     this.acceptedLegal = false,
     this.currentStep = FlowStep.legal,
     this.selectedWallet = '',
     this.createdPin = '',
-    this.savePinStatus = ExistingWalletStatus.initial,
   });
 
   ExistingWalletState copyWith({
@@ -31,7 +29,6 @@ class ExistingWalletState {
       currentStep: currentStep ?? this.currentStep,
       selectedWallet: selectedWallet ?? this.selectedWallet,
       createdPin: createdPin ?? this.createdPin,
-      savePinStatus: savePinStatus ?? this.savePinStatus,
     );
   }
 }

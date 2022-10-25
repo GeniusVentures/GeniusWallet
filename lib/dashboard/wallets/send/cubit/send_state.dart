@@ -1,10 +1,14 @@
 part of 'send_cubit.dart';
 
-class SendState {
+class SendState extends Equatable {
   final Transaction currentTransaction;
   final SendFlowStep flowStep;
 
+  /// Status on whether the user is allowed to perform the transaction.
   final SendStatus sendStatus;
+
+  /// Status on posting the transaction
+  final TransactionPostingStatus transactionPostingStatus;
 
   SendState({
     this.flowStep = SendFlowStep.enterAddress,
@@ -18,19 +22,27 @@ class SendState {
       transactionDirection: TransactionDirection.sent,
       fees: '',
     ),
+    this.transactionPostingStatus = TransactionPostingStatus.initial,
   });
 
   SendState copyWith({
     SendFlowStep? flowStep,
     SendStatus? sendStatus,
     Transaction? currentTransaction,
+    TransactionPostingStatus? transactionPostingStatus,
   }) {
     return SendState(
       flowStep: flowStep ?? this.flowStep,
       sendStatus: sendStatus ?? this.sendStatus,
       currentTransaction: currentTransaction ?? this.currentTransaction,
+      transactionPostingStatus:
+          transactionPostingStatus ?? this.transactionPostingStatus,
     );
   }
+
+  @override
+  List<Object?> get props =>
+      [currentTransaction, flowStep, sendStatus, transactionPostingStatus];
 }
 
 enum SendStatus {
@@ -50,4 +62,12 @@ enum SendFlowStep {
   transactionConfirmation,
   enterPin,
   transactionSummary,
+}
+
+enum TransactionPostingStatus {
+  initial,
+  loading,
+
+  error,
+  success,
 }

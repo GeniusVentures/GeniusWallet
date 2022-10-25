@@ -4,12 +4,12 @@ import 'package:clipboard/clipboard.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 
-part 'wallet_state.dart';
+part 'wallet_details_state.dart';
 
-class WalletCubit extends Cubit<WalletState> {
+class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   GeniusApi geniusApi;
-  WalletCubit({
-    WalletState initialState = const WalletState(),
+  WalletDetailsCubit({
+    WalletDetailsState initialState = const WalletDetailsState(),
     required this.geniusApi,
   }) : super(initialState);
 

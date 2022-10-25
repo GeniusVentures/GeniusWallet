@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/back_button_dashboard.g.dart';
 import 'package:genius_wallet/widgets/components/crypto_chart.g.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
@@ -14,7 +14,7 @@ class WalletDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WalletCubit, WalletState>(
+    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
       builder: (context, state) {
         if (state.selectedWallet == null) {
           return const Center(

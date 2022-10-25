@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
@@ -42,7 +42,7 @@ class TransactionConfirmationScreen extends StatelessWidget {
                           constraints,
                           ovrLeftfield: 'Amount',
                           ovrAmount:
-                              '${state.currentTransaction.amount} ${context.read<WalletCubit>().state.selectedWallet!.currencySymbol}',
+                              '${state.currentTransaction.amount} ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}',
                         );
                       },
                     ),
@@ -56,7 +56,7 @@ class TransactionConfirmationScreen extends StatelessWidget {
                           constraints,
                           ovrLeftfield: 'Fees',
                           ovrAmount:
-                              '${state.currentTransaction.fees} ${context.read<WalletCubit>().state.selectedWallet!.currencySymbol}',
+                              '${state.currentTransaction.fees} ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}',
                         );
                       },
                     ),

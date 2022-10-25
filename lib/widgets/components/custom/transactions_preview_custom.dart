@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 
 class TransactionsPreviewCustom extends StatefulWidget {
@@ -18,7 +18,7 @@ class TransactionsPreviewCustom extends StatefulWidget {
 class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WalletCubit, WalletState>(builder: (context, state) {
+    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(builder: (context, state) {
       if (state.selectedWallet == null ||
           state.selectedWallet!.transactions.isEmpty) {
         return const Center(
