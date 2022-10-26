@@ -100,4 +100,13 @@ class GeniusApi {
       hash: transaction.hashCode.toString(),
     );
   }
+
+  /// Converts [fiatAmount] in USD to [cryptoCurrency].
+  ///
+  /// Returns a [num] of how many coins [fiatAmount] converts to.
+  Future<num> getConversion(num fiatAmount, String cryptoCurrency) async {
+    await Future.delayed(Duration(seconds: 1));
+
+    return fiatAmount / 1551.40;
+  }
 }

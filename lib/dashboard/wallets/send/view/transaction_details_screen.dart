@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
@@ -61,7 +61,8 @@ class TransactionDetailsScreen extends StatelessWidget {
                   child: LayoutBuilder(
                     builder:
                         (BuildContext context, BoxConstraints constraints) {
-                      return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                      return BlocBuilder<WalletDetailsCubit,
+                          WalletDetailsState>(
                         builder: (context, state) {
                           if (state.gasFeesStatus == WalletStatus.successful) {
                             return TransactionDetailTile(
@@ -92,8 +93,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                     hintText: 'Enter Amount',
                     keyboardType: const TextInputType.numberWithOptions(),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+(\.\d*)?')),
+                      Formatters.allowDecimals,
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
