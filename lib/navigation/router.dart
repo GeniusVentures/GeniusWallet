@@ -5,6 +5,8 @@ import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.d
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
 import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
+import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
+import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
@@ -124,6 +126,27 @@ final geniusWalletRouter = GoRouter(
             ),
           ],
           child: const SendFlow(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/buy',
+      builder: (context, state) {
+        final walletDetailsCubit = state.extra as WalletDetailsCubit;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => BuyBloc(
+                initialState: BuyState(
+                  cryptoCurrency:
+                      walletDetailsCubit.state.selectedWallet!.currencySymbol,
+                ),
+                geniusApi: context.read<GeniusApi>(),
+              ),
+            ),
+            BlocProvider.value(value: walletDetailsCubit)
+          ],
+          child: const BuyFlow(),
         );
       },
     ),
