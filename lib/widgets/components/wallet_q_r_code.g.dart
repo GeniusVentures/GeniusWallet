@@ -55,7 +55,7 @@ class _WalletQRCode extends State<WalletQRCode> {
                 top: 23.0,
                 bottom: 48.0,
                 child: Container(
-                    decoration: BoxDecoration(color: Colors.red),
+                    decoration: BoxDecoration(),
                     child: Stack(children: [
                       Positioned(
                         left: widget.constraints.maxWidth * 0.266,

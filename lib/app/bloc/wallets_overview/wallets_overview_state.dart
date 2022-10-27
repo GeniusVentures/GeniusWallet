@@ -1,6 +1,7 @@
+import 'package:equatable/equatable.dart';
 import 'package:genius_api/genius_api.dart';
 
-class WalletsOverviewState {
+class WalletsOverviewState extends Equatable {
   final WalletsOverviewStatus fetchWalletsStatus;
   final List<Wallet> wallets;
 
@@ -18,6 +19,9 @@ class WalletsOverviewState {
       wallets: wallets ?? this.wallets,
     );
   }
+
+  @override
+  List<Object?> get props => [fetchWalletsStatus, wallets];
 }
 
 enum WalletsOverviewStatus {
