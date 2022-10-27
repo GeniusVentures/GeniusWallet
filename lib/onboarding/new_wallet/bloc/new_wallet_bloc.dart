@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:clipboard/clipboard.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -15,8 +15,6 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     required this.api,
   }) : super(initialState) {
     on<LoadRecoveryPhrase>(onLoadRecoveryPhrase);
-
-    on<CopyRecoveryPhrase>(onCopyRecoveryPhrase);
 
     on<RecoveryPhraseContinue>(((event, emit) {
       emit(state.copyWith(
@@ -71,23 +69,6 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       ));
     } catch (e) {
       emit(state.copyWith(recoveryPhraseStatus: NewWalletStatus.error));
-    }
-  }
-
-  FutureOr<void> onCopyRecoveryPhrase(
-      CopyRecoveryPhrase event, Emitter<NewWalletState> emit) async {
-    emit(state.copyWith(
-      recoveryPhraseCopied: NewWalletStatus.loading,
-    ));
-    try {
-      await FlutterClipboard.copy(state.recoveryWords.join(" "));
-      emit(state.copyWith(
-        recoveryPhraseCopied: NewWalletStatus.loaded,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        recoveryPhraseCopied: NewWalletStatus.error,
-      ));
     }
   }
 }

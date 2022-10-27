@@ -4,8 +4,6 @@ abstract class NewWalletEvent {}
 
 class LoadRecoveryPhrase extends NewWalletEvent {}
 
-class CopyRecoveryPhrase extends NewWalletEvent {}
-
 class RecoveryPhraseContinue extends NewWalletEvent {}
 
 class RecoveryWordTapped extends NewWalletEvent {
