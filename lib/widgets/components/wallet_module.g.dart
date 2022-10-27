@@ -6,25 +6,28 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/trend_line_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletModule extends StatefulWidget {
   final BoxConstraints constraints;
+  final Widget? ovrCoinImage;
   final String? ovrWalletBalance;
   final String? ovrCoinName;
   final String? ovrLastTransactionID;
   final String? ovrLastTransactionValue;
   final String? ovrTimestamp;
+  final Widget? ovrTrendLine;
   final String? ovrCoinSymbol;
   const WalletModule(
     this.constraints, {
     Key? key,
+    this.ovrCoinImage,
     this.ovrWalletBalance,
     this.ovrCoinName,
     this.ovrLastTransactionID,
     this.ovrLastTransactionValue,
     this.ovrTimestamp,
+    this.ovrTrendLine,
     this.ovrCoinSymbol,
   }) : super(key: key);
   @override
@@ -64,31 +67,24 @@ class _WalletModule extends State<WalletModule> {
                 width: widget.constraints.maxWidth * 0.113,
                 top: widget.constraints.maxHeight * 0.094,
                 height: widget.constraints.maxHeight * 0.118,
-                child: Container(
-                  height: widget.constraints.maxHeight * 0.11784511784511785,
-                  width: widget.constraints.maxWidth * 0.11254019292604502,
-                  decoration: BoxDecoration(
-                    color: Color(0xfff2921b),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x2dffffff),
-                        spreadRadius: 0.0,
-                        blurRadius: 0.0,
-                        offset: Offset(0.0, 2.0),
-                      ),
-                    ],
-                  ),
-                ),
+                child: widget.ovrCoinImage ??
+                    Image.asset(
+                      'assets/images/coinimage.png',
+                      package: 'genius_wallet',
+                      height:
+                          widget.constraints.maxHeight * 0.11784511784511785,
+                      width: widget.constraints.maxWidth * 0.11254019292604502,
+                      fit: BoxFit.fill,
+                    ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.556,
-                width: widget.constraints.maxWidth * 0.379,
+                left: widget.constraints.maxWidth * 0.514,
+                width: widget.constraints.maxWidth * 0.421,
                 top: widget.constraints.maxHeight * 0.155,
                 height: widget.constraints.maxHeight * 0.111,
                 child: Container(
                     height: widget.constraints.maxHeight * 0.1111111111111111,
-                    width: widget.constraints.maxWidth * 0.37942122186495175,
+                    width: widget.constraints.maxWidth * 0.4212218649517685,
                     child: AutoSizeText(
                       widget.ovrWalletBalance ?? '0.221746',
                       style: TextStyle(
@@ -103,12 +99,12 @@ class _WalletModule extends State<WalletModule> {
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.219,
-                width: widget.constraints.maxWidth * 0.199,
+                width: widget.constraints.maxWidth * 0.283,
                 top: widget.constraints.maxHeight * 0.114,
                 height: widget.constraints.maxHeight * 0.077,
                 child: Container(
                     height: widget.constraints.maxHeight * 0.07744107744107744,
-                    width: widget.constraints.maxWidth * 0.19935691318327975,
+                    width: widget.constraints.maxWidth * 0.2829581993569132,
                     child: AutoSizeText(
                       widget.ovrCoinName ?? 'Bitcoin',
                       style: TextStyle(
@@ -216,23 +212,23 @@ class _WalletModule extends State<WalletModule> {
                 width: widget.constraints.maxWidth * 0.871,
                 top: widget.constraints.maxHeight * 0.293,
                 height: widget.constraints.maxHeight * 0.296,
-                child: TrendLineCustom(
-                    child: SvgPicture.asset(
-                  'assets/images/trendlinecustom.svg',
-                  package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.2962962962962963,
-                  width: widget.constraints.maxWidth * 0.8713826366559485,
-                  fit: BoxFit.fill,
-                )),
+                child: widget.ovrTrendLine ??
+                    SvgPicture.asset(
+                      'assets/images/trendline.svg',
+                      package: 'genius_wallet',
+                      height: widget.constraints.maxHeight * 0.2962962962962963,
+                      width: widget.constraints.maxWidth * 0.8713826366559485,
+                      fit: BoxFit.fill,
+                    ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.859,
-                width: widget.constraints.maxWidth * 0.077,
+                left: widget.constraints.maxWidth * 0.727,
+                width: widget.constraints.maxWidth * 0.209,
                 top: widget.constraints.maxHeight * 0.094,
                 height: widget.constraints.maxHeight * 0.047,
                 child: Container(
                     height: widget.constraints.maxHeight * 0.04713804713804714,
-                    width: widget.constraints.maxWidth * 0.07717041800643087,
+                    width: widget.constraints.maxWidth * 0.2090032154340836,
                     child: AutoSizeText(
                       widget.ovrCoinSymbol ?? 'Btc',
                       style: TextStyle(

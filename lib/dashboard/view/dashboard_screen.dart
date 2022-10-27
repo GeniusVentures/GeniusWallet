@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
 import 'package:genius_wallet/dashboard/widgets/genius_tabbar.dart';
@@ -9,7 +12,24 @@ import 'package:genius_wallet/dashboard/wallets/view/wallets_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final NavbarItem? initialItem;
-  const DashboardScreen({
+  const DashboardScreen({Key? key, this.initialItem}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => WalletsOverviewCubit(
+        geniusApi: context.read<GeniusApi>(),
+      )..fetchWallets(context.read<AppBloc>().state.userModel.email),
+      child: DashboardView(
+        initialItem: initialItem,
+      ),
+    );
+  }
+}
+
+class DashboardView extends StatelessWidget {
+  final NavbarItem? initialItem;
+  const DashboardView({
     Key? key,
     this.initialItem,
   }) : super(key: key);

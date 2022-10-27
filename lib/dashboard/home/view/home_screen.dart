@@ -18,20 +18,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => WalletsOverviewCubit(
-        geniusApi: context.read<GeniusApi>(),
-      ),
-      child: const HomeView(),
-    );
-  }
-}
-
-class HomeView extends StatelessWidget {
-  const HomeView({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenView(
         body: BlocBuilder<WalletsOverviewCubit, WalletsOverviewState>(
@@ -46,11 +32,8 @@ class HomeView extends StatelessWidget {
                 return const Center(
                   child: Text('Something went wrong!'),
                 );
-              case WalletsOverviewStatus.initial:
-                context.read<WalletsOverviewCubit>().fetchWallets(
-                    context.read<AppBloc>().state.userModel.email);
-                return const LoadingScreen();
               case WalletsOverviewStatus.loading:
+              default:
                 return const LoadingScreen();
             }
           },
