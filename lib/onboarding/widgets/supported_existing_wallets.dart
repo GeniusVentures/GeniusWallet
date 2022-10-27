@@ -10,10 +10,10 @@ class SupportedExistingWallets extends StatelessWidget {
   Widget build(BuildContext context) {
     /// TODO: Fetch these dynamically?
     final supportedWallets = [
-      {'name': 'Ethereum', 'image': 'assets/images/ellipse1.png'},
-      {'name': 'XRP', 'image': 'assets/images/ellipse1.png'},
-      {'name': 'Stellar', 'image': 'assets/images/ellipse1.png'},
-      {'name': 'Tron', 'image': 'assets/images/ellipse1.png'},
+      {'name': 'Ethereum', 'image': 'assets/images/ethereum_icon.png'},
+      {'name': 'XRP', 'image': 'assets/images/xrp_icon.png'},
+      {'name': 'Stellar', 'image': 'assets/images/stellar_icon.png'},
+      {'name': 'Tron', 'image': 'assets/images/tron_icon.png'},
     ];
     return ListView.separated(
       itemCount: supportedWallets.length,
@@ -37,7 +37,6 @@ class SupportedExistingWallets extends StatelessWidget {
                   constraints,
                   ovrEllipse1: Image.asset(
                     supportedWallets[index]['image']!,
-                    package: 'genius_wallet',
                   ),
                   ovrEthereum: supportedWallets[index]['name'],
                 );

@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/widgets/components/%D0%B0dd_wallet_text.g.dart';
+import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
 import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
 
@@ -53,8 +54,20 @@ class WalletsScreen extends StatelessWidget {
                       child: ListView.separated(
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 20),
-                        itemCount: state.wallets.length,
+                        itemCount: state.wallets.length + 1,
                         itemBuilder: (context, index) {
+                          /// Last item should be an "Add Wallet"
+                          if (index == state.wallets.length) {
+                            return SizedBox(
+                              height: 300,
+                              child: LayoutBuilder(
+                                builder: (BuildContext context,
+                                    BoxConstraints constraints) {
+                                  return AddWalletBlock(constraints);
+                                },
+                              ),
+                            );
+                          }
                           final currentWallet = state.wallets[index];
                           return SizedBox(
                             height: 300,
@@ -69,7 +82,8 @@ class WalletsScreen extends StatelessWidget {
                                 );
                                 String timestamp = '';
                                 String transactionValue = '';
-                                String transactionId = '';
+                                String transactionId =
+                                    'No transactions for this wallet';
                                 if (currentWallet.transactions.isNotEmpty) {
                                   // TODO: May need to actually compare dates to get latest
                                   final lastTransaction =
