@@ -9,7 +9,6 @@ class ExistingWalletState {
 
   final String createdPin;
 
-
   const ExistingWalletState({
     this.acceptedLegal = false,
     this.currentStep = FlowStep.legal,

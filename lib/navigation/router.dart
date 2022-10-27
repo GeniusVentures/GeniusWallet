@@ -8,8 +8,10 @@ import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/receive/view/receive_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
+import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -23,7 +25,6 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/',
       builder: (context, state) {
-        // return const DashboardScreen(initialItem: NavbarItem.dashboard);
         return const Splash(
           onCompletion: '/landing_screen',
         );
@@ -113,6 +114,9 @@ final geniusWalletRouter = GoRouter(
                     timeStamp: '',
                     transactionDirection: TransactionDirection.sent,
                   ),
+                  flowStep: walletCubit.state.selectedWallet!.balance == 0
+                      ? SendFlowStep.noFunds
+                      : SendFlowStep.enterAddress,
                 ),
               ),
             ),
@@ -147,6 +151,26 @@ final geniusWalletRouter = GoRouter(
             BlocProvider.value(value: walletDetailsCubit)
           ],
           child: const BuyFlow(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/receive',
+      builder: (context, state) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: state.extra as WalletDetailsCubit),
+          ],
+          child: const ReceiveScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/not_enough_balance',
+      builder: (context, state) {
+        return BlocProvider.value(
+          value: state.extra as WalletDetailsCubit,
+          child: const NotEnoughBalanceScreen(),
         );
       },
     ),

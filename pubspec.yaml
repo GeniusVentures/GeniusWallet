@@ -108,3 +108,5 @@ flutter:
     - packages/genius_wallet/assets/images/showmoreicon.png
     - packages/genius_wallet/assets/images/arrow.svg
     - packages/genius_wallet/assets/images/transactiontypearrow.svg
+    - packages/genius_wallet/assets/images/walletqrcodecustom.svg
+    - packages/genius_wallet/assets/images/copyicon.svg

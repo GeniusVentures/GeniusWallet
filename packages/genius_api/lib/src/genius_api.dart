@@ -49,7 +49,8 @@ class GeniusApi {
         currencyName: 'Ethereum',
         currencySymbol: 'ETH',
         address: '0x0',
-        balance: 1000,
+        // balance: 1000,
+        balance: 0,
         transactions: await getTransactionsFor('0x0'),
       ),
     ];

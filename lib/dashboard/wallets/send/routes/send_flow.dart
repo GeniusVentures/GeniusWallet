@@ -10,6 +10,7 @@ import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/enter_wallet_address_screen.dart';
+import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/transaction_details_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/transaction_confirmation_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/transaction_summary_screen.dart';
@@ -32,6 +33,10 @@ class SendFlow extends StatelessWidget {
       child: FlowBuilder(
         onGeneratePages: (state, pages) {
           switch (state.flowStep) {
+            case SendFlowStep.noFunds:
+              return [
+                const MaterialPage(child: NotEnoughBalanceScreen()),
+              ];
             case SendFlowStep.transactionSummary:
               return [
                 const MaterialPage(child: DashboardScreen()),

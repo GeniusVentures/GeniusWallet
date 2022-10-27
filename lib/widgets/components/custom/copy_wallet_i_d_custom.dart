@@ -1,3 +1,5 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/copy_wallet_i_d.g.dart';
 
 import 'package:flutter/material.dart';
@@ -16,10 +18,11 @@ class CopyWalletIDCustom extends StatefulWidget {
 class _CopyWalletIDCustomState extends State<CopyWalletIDCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child ??
-        CopyWalletID(BoxConstraints(
-          maxWidth: 54.0,
-          maxHeight: 17.0,
-        ));
+    return MaterialButton(
+      onPressed: () {
+        context.read<WalletDetailsCubit>().copyWalletAddress();
+      },
+      child: widget.child!,
+    );
   }
 }
