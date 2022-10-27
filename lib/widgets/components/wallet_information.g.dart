@@ -5,15 +5,16 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/send/buttontype_send.g.dart';
-import 'package:genius_wallet/widgets/components/send/buttontype_buy.g.dart';
-import 'package:genius_wallet/widgets/components/send/buttontype_receive.g.dart';
+import 'package:genius_wallet/widgets/components/send/property1_default.g.dart';
+import 'package:genius_wallet/widgets/components/send/property1_buy.g.dart';
+import 'package:genius_wallet/widgets/components/send/property1_receive.g.dart';
 import 'package:genius_wallet/widgets/components/custom/total_balance_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/receive_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/q_r_code_button_custom.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
@@ -23,7 +24,6 @@ class WalletInformation extends StatefulWidget {
   final String? ovrQuantity;
   final String? ovrAddressField;
   final String? ovrYourbitcoinaddress;
-  final String? ovrQRcode;
   const WalletInformation(
     this.constraints, {
     Key? key,
@@ -33,7 +33,6 @@ class WalletInformation extends StatefulWidget {
     this.ovrQuantity,
     this.ovrAddressField,
     this.ovrYourbitcoinaddress,
-    this.ovrQRcode,
   }) : super(key: key);
   @override
   _WalletInformation createState() => _WalletInformation();
@@ -159,7 +158,7 @@ class _WalletInformation extends State<WalletInformation> {
                               width: 90.0,
                               child: SendButtonCustom(child: LayoutBuilder(
                                   builder: (context, constraints) {
-                                return ButtontypeSend(
+                                return Property1Default(
                                   constraints,
                                   ovrSend: 'Send ',
                                 );
@@ -169,7 +168,7 @@ class _WalletInformation extends State<WalletInformation> {
                               width: 90.0,
                               child: BuyButtonCustom(child: LayoutBuilder(
                                   builder: (context, constraints) {
-                                return ButtontypeBuy(
+                                return Property1Buy(
                                   constraints,
                                   ovrSend: 'Buy',
                                 );
@@ -179,7 +178,7 @@ class _WalletInformation extends State<WalletInformation> {
                               width: 90.0,
                               child: ReceiveButtonCustom(child: LayoutBuilder(
                                   builder: (context, constraints) {
-                                return ButtontypeReceive(
+                                return Property1Receive(
                                   constraints,
                                   ovrSend: 'Receive',
                                 );
@@ -262,20 +261,18 @@ class _WalletInformation extends State<WalletInformation> {
                 width: 63.0,
                 bottom: 49.0,
                 height: 14.0,
-                child: Container(
-                    height: 14.0,
-                    width: 63.0,
+                child: QRCodeButtonCustom(
                     child: AutoSizeText(
-                      widget.ovrQRcode ?? 'QR-code',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.30000001192092896,
-                        color: Color(0xff606166),
-                      ),
-                      textAlign: TextAlign.right,
-                    )),
+                  'QR-code',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.30000001192092896,
+                    color: Color(0xff606166),
+                  ),
+                  textAlign: TextAlign.right,
+                )),
               ),
             ]),
           ),

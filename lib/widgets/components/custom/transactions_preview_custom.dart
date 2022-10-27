@@ -18,7 +18,8 @@ class TransactionsPreviewCustom extends StatefulWidget {
 class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(builder: (context, state) {
+    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, state) {
       if (state.selectedWallet == null ||
           state.selectedWallet!.transactions.isEmpty) {
         return const Center(

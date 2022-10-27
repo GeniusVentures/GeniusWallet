@@ -3,18 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
-class ReceiveButtonCustom extends StatefulWidget {
+class QRCodeButtonCustom extends StatefulWidget {
   final Widget? child;
-  ReceiveButtonCustom({
+  QRCodeButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);
 
   @override
-  _ReceiveButtonCustomState createState() => _ReceiveButtonCustomState();
+  _QRCodeButtonCustomState createState() => _QRCodeButtonCustomState();
 }
 
-class _ReceiveButtonCustomState extends State<ReceiveButtonCustom> {
+class _QRCodeButtonCustomState extends State<QRCodeButtonCustom> {
   @override
   Widget build(BuildContext context) {
     return MaterialButton(

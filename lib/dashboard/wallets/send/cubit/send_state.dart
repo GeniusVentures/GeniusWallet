@@ -62,6 +62,7 @@ enum SendFlowStep {
   transactionConfirmation,
   enterPin,
   transactionSummary,
+  noFunds,
 }
 
 enum TransactionPostingStatus {
