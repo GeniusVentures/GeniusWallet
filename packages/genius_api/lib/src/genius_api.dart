@@ -53,6 +53,15 @@ class GeniusApi {
         balance: 0,
         transactions: await getTransactionsFor('0x0'),
       ),
+      Wallet(
+        walletName: 'My Bitcoin Wallet',
+        currencyName: 'Bitcoin',
+        currencySymbol: 'BTC',
+        address: '0x1234asdf5678jklp',
+        // balance: 1000,
+        balance: 12460,
+        transactions: [],
+      ),
     ];
   }
 

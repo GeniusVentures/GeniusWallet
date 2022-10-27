@@ -9,6 +9,8 @@ class Wallet with _$Wallet {
     required String walletName,
     required String currencySymbol,
     required String currencyName,
+
+    /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
     required int balance,
     required String address,
     required List<Transaction> transactions,
