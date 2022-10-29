@@ -38,6 +38,8 @@ class TextFormFieldLogic {
     this.autovalidateMode,
     this.scrollController,
     this.hintText = '',
+    this.textAlign = TextAlign.start,
+    this.textAlignVertical,
   });
 
   final BuildContext context;
@@ -89,4 +91,8 @@ class TextFormFieldLogic {
   final ScrollController? scrollController;
 
   final String hintText;
+
+  final TextAlign textAlign;
+
+  final TextAlignVertical? textAlignVertical;
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_state.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/date_selector.g.dart';
 import 'package:genius_wallet/widgets/components/detailed_transaction.g.dart';
 import 'package:genius_wallet/widgets/components/export_history.g.dart';
@@ -65,14 +68,36 @@ class TransactionsListView extends StatelessWidget {
             return Expanded(
               child: ListView.separated(
                 itemBuilder: (context, index) {
+                  final currentTransaction = state.transactions[index];
                   return SizedBox(
                     height: 190,
                     width: 320,
                     child: LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
-                        return DetailedTransaction(
-                          constraints,
+                        return BlocProvider(
+                          create: (context) => TransactionDetailsCubit(
+                            initialState: TransactionDetailsState(
+                              selectedTransaction: currentTransaction,
+                            ),
+                          ),
+                          child: DetailedTransaction(
+                            constraints,
+                            ovrCoinIcon: WalletUtils.currencySymbolToImage(
+                              currentTransaction.coinSymbol,
+                            ),
+                            ovrTimestamp: currentTransaction.timeStamp,
+                            ovrTransactionArrow:
+                                currentTransaction.transactionDirection ==
+                                        TransactionDirection.received
+                                    ? Image.asset(
+                                        'assets/images/green_arrow_right.png')
+                                    : Image.asset(
+                                        'assets/images/red_arrow_left.png'),
+                            ovrTransactionID: currentTransaction.hash,
+                            ovrTransactionValue:
+                                '${currentTransaction.amount} ${currentTransaction.coinSymbol}',
+                          ),
                         );
                       },
                     ),

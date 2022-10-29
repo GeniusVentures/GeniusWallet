@@ -23,6 +23,8 @@ mixin _$Wallet {
   String get walletName => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
   String get currencyName => throw _privateConstructorUsedError;
+
+  /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   int get balance => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
   List<Transaction> get transactions => throw _privateConstructorUsedError;
@@ -177,6 +179,8 @@ class _$_Wallet implements _Wallet {
   final String currencySymbol;
   @override
   final String currencyName;
+
+  /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   @override
   final int balance;
   @override
@@ -253,6 +257,8 @@ abstract class _Wallet implements Wallet {
   @override
   String get currencyName;
   @override
+
+  /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   int get balance;
   @override
   String get address;

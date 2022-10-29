@@ -13,6 +13,8 @@ class Transaction with _$Transaction {
     required TransactionDirection transactionDirection,
     required String amount,
     required String fees,
+    required String coinSymbol,
+    required TransactionStatus transactionStatus,
   }) = _Transaction;
 
   factory Transaction.fromJson(Map<String, Object?> json) =>
@@ -20,3 +22,5 @@ class Transaction with _$Transaction {
 }
 
 enum TransactionDirection { sent, received }
+
+enum TransactionStatus { pending, cancelled, completed }
