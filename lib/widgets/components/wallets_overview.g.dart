@@ -6,7 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/overview_buy_button_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 
 class WalletsOverview extends StatefulWidget {
   final BoxConstraints constraints;
@@ -276,7 +276,7 @@ class _WalletsOverview extends State<WalletsOverview> {
                 width: 47.0,
                 bottom: 27.0,
                 height: 23.0,
-                child: OverviewBuyButtonCustom(
+                child: BuyButtonCustom(
                     child: Container(
                         decoration: BoxDecoration(),
                         child: Stack(children: [

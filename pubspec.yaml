@@ -112,3 +112,6 @@ flutter:
     - packages/genius_wallet/assets/images/copyicon.svg
     - packages/genius_wallet/assets/images/coinimage.png
     - packages/genius_wallet/assets/images/trendline.svg
+    - packages/genius_wallet/assets/images/detailedtransactionoptionscustom.svg
+    - packages/genius_wallet/assets/images/transactionarrow.svg
+    - packages/genius_wallet/assets/images/coinicon.svg
