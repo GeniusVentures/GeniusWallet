@@ -12,6 +12,7 @@ import 'package:genius_wallet/widgets/components/export_history.g.dart';
 import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_counter.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
+import 'package:go_router/go_router.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({Key? key}) : super(key: key);
@@ -72,34 +73,14 @@ class TransactionsListView extends StatelessWidget {
                   return SizedBox(
                     height: 190,
                     width: 320,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return BlocProvider(
-                          create: (context) => TransactionDetailsCubit(
-                            initialState: TransactionDetailsState(
-                              selectedTransaction: currentTransaction,
-                            ),
-                          ),
-                          child: DetailedTransaction(
-                            constraints,
-                            ovrCoinIcon: WalletUtils.currencySymbolToImage(
-                              currentTransaction.coinSymbol,
-                            ),
-                            ovrTimestamp: currentTransaction.timeStamp,
-                            ovrTransactionArrow:
-                                currentTransaction.transactionDirection ==
-                                        TransactionDirection.received
-                                    ? Image.asset(
-                                        'assets/images/green_arrow_right.png')
-                                    : Image.asset(
-                                        'assets/images/red_arrow_left.png'),
-                            ovrTransactionID: currentTransaction.hash,
-                            ovrTransactionValue:
-                                '${currentTransaction.amount} ${currentTransaction.coinSymbol}',
-                          ),
-                        );
-                      },
+                    child: BlocProvider(
+                      create: (context) => TransactionDetailsCubit(
+                        initialState: TransactionDetailsState(
+                          selectedTransaction: currentTransaction,
+                        ),
+                      ),
+                      child: TransactionCard(
+                          currentTransaction: currentTransaction),
                     ),
                   );
                 },
@@ -120,6 +101,43 @@ class TransactionsListView extends StatelessWidget {
         }
       },
     );
+  }
+}
+
+class TransactionCard extends StatelessWidget {
+  const TransactionCard({
+    Key? key,
+    required this.currentTransaction,
+  }) : super(key: key);
+
+  final Transaction currentTransaction;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      return MaterialButton(
+        onPressed: () {
+          context.push(
+            '/transactions/${currentTransaction.hash}',
+            extra: context.read<TransactionDetailsCubit>(),
+          );
+        },
+        child: DetailedTransaction(
+          constraints,
+          ovrCoinIcon: WalletUtils.currencySymbolToImage(
+            currentTransaction.coinSymbol,
+          ),
+          ovrTimestamp: currentTransaction.timeStamp,
+          ovrTransactionArrow: currentTransaction.transactionDirection ==
+                  TransactionDirection.received
+              ? Image.asset('assets/images/green_arrow_right.png')
+              : Image.asset('assets/images/red_arrow_left.png'),
+          ovrTransactionID: currentTransaction.hash,
+          ovrTransactionValue:
+              '${currentTransaction.amount} ${currentTransaction.coinSymbol}',
+        ),
+      );
+    });
   }
 }
 
