@@ -4,6 +4,8 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/view/transaction_information_screen.dart';
 import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
@@ -88,6 +90,19 @@ final geniusWalletRouter = GoRouter(
       builder: ((context, state) {
         return const DashboardScreen(initialItem: NavbarItem.transactions);
       }),
+      routes: [
+        GoRoute(
+          path: ':transaction_id',
+          builder: (context, state) {
+            final cubit = (state.extra as TransactionDetailsCubit);
+            final transaction = cubit.state.selectedTransaction;
+            return BlocProvider.value(
+              value: cubit,
+              child: TransactionInformationScreen(transaction: transaction),
+            );
+          },
+        ),
+      ],
     ),
     GoRoute(
       path: '/trade',
