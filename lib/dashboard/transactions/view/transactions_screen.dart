@@ -94,7 +94,6 @@ class TransactionsListView extends StatelessWidget {
               child: Text('Something went wrong!'),
             );
           case WalletsOverviewStatus.initial:
-            context.read<WalletsOverviewCubit>().fetchTransactions();
             return Container();
           case WalletsOverviewStatus.loading:
             return const LoadingScreen();

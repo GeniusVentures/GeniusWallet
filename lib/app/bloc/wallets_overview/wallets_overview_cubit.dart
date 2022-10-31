@@ -18,6 +18,9 @@ class WalletsOverviewCubit extends Cubit<WalletsOverviewState> {
         wallets: userWallets,
         fetchWalletsStatus: WalletsOverviewStatus.success,
       ));
+
+      /// Also Fetch transactions
+      await _fetchTransactions();
     } catch (e) {
       emit(state.copyWith(fetchWalletsStatus: WalletsOverviewStatus.error));
     }
@@ -26,7 +29,7 @@ class WalletsOverviewCubit extends Cubit<WalletsOverviewState> {
   /// Gathers transactions and emits a new [WalletsOverviewState] with all aggregated transactions.
   ///
   /// !Note: Assumes that wallets have already been fetched
-  Future<void> fetchTransactions() async {
+  Future<void> _fetchTransactions() async {
     emit(
       state.copyWith(fetchTransactionsStatus: WalletsOverviewStatus.loading),
     );
