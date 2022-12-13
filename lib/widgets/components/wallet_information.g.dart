@@ -5,34 +5,33 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/widgets/components/send/property1_default.g.dart';
+import 'package:genius_wallet/widgets/components/send/property1_buy.g.dart';
+import 'package:genius_wallet/widgets/components/send/property1_receive.g.dart';
 import 'package:genius_wallet/widgets/components/custom/total_balance_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/send_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/receive_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/receive_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/q_r_code_button_custom.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
-  final Widget? ovrMask;
+  final Widget? ovrShowMoreIcon;
   final String? ovrTotalbalance;
   final String? ovrCurrency;
   final String? ovrQuantity;
-  final String? ovrRecive;
-  final String? ovrSend;
-  final String? ovr1Cs4wu6pu5qCZ35bSLNV;
-  final String? ovrQRcode;
+  final String? ovrAddressField;
   final String? ovrYourbitcoinaddress;
   const WalletInformation(
     this.constraints, {
     Key? key,
-    this.ovrMask,
+    this.ovrShowMoreIcon,
     this.ovrTotalbalance,
     this.ovrCurrency,
     this.ovrQuantity,
-    this.ovrRecive,
-    this.ovrSend,
-    this.ovr1Cs4wu6pu5qCZ35bSLNV,
-    this.ovrQRcode,
+    this.ovrAddressField,
     this.ovrYourbitcoinaddress,
   }) : super(key: key);
   @override
@@ -87,13 +86,13 @@ class _WalletInformation extends State<WalletInformation> {
                                         )),
                                   ),
                                   Positioned(
-                                    right: 39.0,
-                                    width: 24.0,
+                                    right: 29.0,
+                                    width: 50.0,
                                     top: 39.0,
                                     height: 14.0,
                                     child: Container(
                                         height: 14.0,
-                                        width: 24.0,
+                                        width: 50.0,
                                         child: AutoSizeText(
                                           widget.ovrCurrency ?? 'BTC ',
                                           style: TextStyle(
@@ -108,12 +107,12 @@ class _WalletInformation extends State<WalletInformation> {
                                   ),
                                   Positioned(
                                     left: 19.0,
-                                    width: 80.0,
+                                    width: 111.0,
                                     top: 2.0,
                                     height: 14.0,
                                     child: Container(
                                         height: 14.0,
-                                        width: 80.0,
+                                        width: 111.0,
                                         child: AutoSizeText(
                                           widget.ovrTotalbalance ??
                                               'Total balance:',
@@ -124,7 +123,7 @@ class _WalletInformation extends State<WalletInformation> {
                                             letterSpacing: 0.30000001192092896,
                                             color: Color(0xff606166),
                                           ),
-                                          textAlign: TextAlign.center,
+                                          textAlign: TextAlign.left,
                                         )),
                                   ),
                                   Positioned(
@@ -132,9 +131,9 @@ class _WalletInformation extends State<WalletInformation> {
                                     width: 4.0,
                                     top: 0,
                                     height: 16.0,
-                                    child: widget.ovrMask ??
+                                    child: widget.ovrShowMoreIcon ??
                                         Image.asset(
-                                          'assets/images/mask.png',
+                                          'assets/images/showmoreicon.png',
                                           package: 'genius_wallet',
                                           height: 16.0,
                                           width: 4.0,
@@ -144,193 +143,66 @@ class _WalletInformation extends State<WalletInformation> {
                                 ]))))),
               ),
               Positioned(
-                left: 0,
-                width: widget.constraints.maxWidth * 1.0,
-                top: widget.constraints.maxHeight * 0.512,
-                height: widget.constraints.maxHeight * 0.108,
-                child: Center(
-                    child: Container(
-                        padding: EdgeInsets.only(
-                          left: 20.0,
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                        ),
-                        width: 312.0,
-                        decoration: BoxDecoration(),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                  height: 23.0,
-                                  width: 90.0,
-                                  child: SendCustom(
-                                      child: Container(
-                                          height: 23.0,
-                                          width: 90.0,
-                                          decoration: BoxDecoration(),
-                                          child: Stack(children: [
-                                            Positioned(
-                                              left: 0,
-                                              width: 90.0,
-                                              top: 0,
-                                              height: 23.0,
-                                              child: Container(
-                                                height: 23.0,
-                                                width: 90.0,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(
-                                                              14.0)),
-                                                  border: Border.all(
-                                                    color: Color(0xff3f4048),
-                                                    width: 2.0,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              left: 31.0,
-                                              width: 29.0,
-                                              top: 4.0,
-                                              height: 14.0,
-                                              child: Container(
-                                                  height: 14.0,
-                                                  width: 29.0,
-                                                  child: AutoSizeText(
-                                                    widget.ovrSend ?? 'Send ',
-                                                    style: TextStyle(
-                                                      fontFamily: 'Roboto',
-                                                      fontSize: 12.0,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      letterSpacing:
-                                                          0.30000001192092896,
-                                                      color: Colors.white,
-                                                    ),
-                                                    textAlign: TextAlign.center,
-                                                  )),
-                                            ),
-                                          ])))),
-                              SizedBox(
-                                width: 18.0,
-                              ),
-                              Container(
-                                  height: 23.0,
-                                  width: 164.0,
-                                  child: ReceiveCustom(
-                                      child: Container(
-                                          height: 23.0,
-                                          width: 164.0,
-                                          decoration: BoxDecoration(),
-                                          child: Stack(children: [
-                                            Positioned(
-                                              left: 0,
-                                              width: 164.0,
-                                              top: 0,
-                                              height: 23.0,
-                                              child: Container(
-                                                height: 23.0,
-                                                width: 164.0,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(
-                                                              14.0)),
-                                                  border: Border.all(
-                                                    color: Color(0xff7ac231),
-                                                    width: 2.0,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              left: 48.0,
-                                              width: 67.0,
-                                              top: 5.0,
-                                              height: 14.0,
-                                              child: Container(
-                                                  height: 14.0,
-                                                  width: 67.0,
-                                                  child: AutoSizeText(
-                                                    widget.ovrRecive ??
-                                                        'Receive ',
-                                                    style: TextStyle(
-                                                      fontFamily: 'Roboto',
-                                                      fontSize: 12.0,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      letterSpacing:
-                                                          0.30000001192092896,
-                                                      color: Colors.white,
-                                                    ),
-                                                    textAlign: TextAlign.center,
-                                                  )),
-                                            ),
-                                          ])))),
-                            ]))),
+                left: 4.0,
+                right: 5.0,
+                top: 107.0,
+                height: 23.0,
+                child: Container(
+                    decoration: BoxDecoration(),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              height: 23.0,
+                              width: 90.0,
+                              child: SendButtonCustom(child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                return Property1Default(
+                                  constraints,
+                                  ovrSend: 'Send ',
+                                );
+                              }))),
+                          Container(
+                              height: 23.0,
+                              width: 90.0,
+                              child: BuyButtonCustom(child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                return Property1Buy(
+                                  constraints,
+                                  ovrSend: 'Buy',
+                                );
+                              }))),
+                          Container(
+                              height: 23.0,
+                              width: 90.0,
+                              child: ReceiveButtonCustom(child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                return Property1Receive(
+                                  constraints,
+                                  ovrSend: 'Receive',
+                                );
+                              }))),
+                        ])),
               ),
               Positioned(
-                left: 0,
-                width: widget.constraints.maxWidth * 1.0,
+                left: widget.constraints.maxWidth * 0.067,
+                width: widget.constraints.maxWidth * 0.865,
                 bottom: 0,
-                height: 63.0,
+                height: 35.0,
                 child: Center(
                     child: Container(
-                        height: 63.0,
-                        width: 312.0,
+                        height: 35.0,
+                        width: 270.0,
                         child: WalletAddressCustom(
                             child: Container(
                                 decoration: BoxDecoration(),
                                 child: Stack(children: [
                                   Positioned(
-                                    left: 26.0,
-                                    width: 113.0,
+                                    left: 0,
+                                    right: 0,
                                     top: 0,
-                                    height: 14.0,
-                                    child: Container(
-                                        height: 14.0,
-                                        width: 113.0,
-                                        child: AutoSizeText(
-                                          widget.ovrYourbitcoinaddress ??
-                                              'Your bitcoin adress:',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.w500,
-                                            letterSpacing: 0.30000001192092896,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        )),
-                                  ),
-                                  Positioned(
-                                    left: 228.0,
-                                    width: 48.0,
-                                    top: 3.0,
-                                    height: 14.0,
-                                    child: Container(
-                                        height: 14.0,
-                                        width: 48.0,
-                                        child: AutoSizeText(
-                                          widget.ovrQRcode ?? 'QR-code',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.w500,
-                                            letterSpacing: 0.30000001192092896,
-                                            color: Color(0xff606166),
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        )),
-                                  ),
-                                  Positioned(
-                                    left: 20.0,
-                                    width: 271.0,
-                                    top: 31.0,
-                                    height: 35.0,
+                                    bottom: 0,
                                     child: Container(
                                       height: 35.0,
                                       width: 271.0,
@@ -342,15 +214,15 @@ class _WalletInformation extends State<WalletInformation> {
                                     ),
                                   ),
                                   Positioned(
-                                    left: 28.0,
-                                    width: 263.0,
-                                    top: 42.0,
-                                    height: 14.0,
+                                    left: 8.0,
+                                    right: 0,
+                                    top: 11.0,
+                                    bottom: 10.0,
                                     child: Container(
                                         height: 14.0,
                                         width: 263.0,
                                         child: AutoSizeText(
-                                          widget.ovr1Cs4wu6pu5qCZ35bSLNV ??
+                                          widget.ovrAddressField ??
                                               '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
                                           style: TextStyle(
                                             fontFamily: 'Roboto',
@@ -363,6 +235,44 @@ class _WalletInformation extends State<WalletInformation> {
                                         )),
                                   ),
                                 ]))))),
+              ),
+              Positioned(
+                left: 20.0,
+                width: 139.0,
+                bottom: 49.0,
+                height: 14.0,
+                child: Container(
+                    height: 14.0,
+                    width: 139.0,
+                    child: AutoSizeText(
+                      widget.ovrYourbitcoinaddress ?? 'Your bitcoin adress:',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.30000001192092896,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.left,
+                    )),
+              ),
+              Positioned(
+                right: 21.0,
+                width: 63.0,
+                bottom: 49.0,
+                height: 14.0,
+                child: QRCodeButtonCustom(
+                    child: AutoSizeText(
+                  'QR-code',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.30000001192092896,
+                    color: Color(0xff606166),
+                  ),
+                  textAlign: TextAlign.right,
+                )),
               ),
             ]),
           ),

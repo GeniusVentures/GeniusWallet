@@ -1,6 +1,5 @@
-import 'package:genius_wallet/widgets/components/back_button_dashboard.g.dart';
-
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class BackButtonDashboardCustom extends StatefulWidget {
   final Widget? child;
@@ -17,10 +16,15 @@ class BackButtonDashboardCustom extends StatefulWidget {
 class _BackButtonDashboardCustomState extends State<BackButtonDashboardCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child ??
-        BackButtonDashboard(BoxConstraints(
-          maxWidth: 79.0,
-          maxHeight: 35.0,
-        ));
+    return MaterialButton(
+      onPressed: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.replace('/dashboard');
+        }
+      },
+      child: widget.child!,
+    );
   }
 }

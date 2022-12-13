@@ -11,14 +11,14 @@ class WalletPreview extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrCoinType;
   final String? ovrWalletBalance;
-  final Widget? ovrShape;
+  final Widget? ovrCoinIcon;
   final String? ovrCoinSymbol;
   const WalletPreview(
     this.constraints, {
     Key? key,
     this.ovrCoinType,
     this.ovrWalletBalance,
-    this.ovrShape,
+    this.ovrCoinIcon,
     this.ovrCoinSymbol,
   }) : super(key: key);
   @override
@@ -55,12 +55,12 @@ class _WalletPreview extends State<WalletPreview> {
               ),
               Positioned(
                 left: 12.0,
-                width: 51.0,
+                width: 73.0,
                 bottom: 13.0,
                 height: 19.0,
                 child: Container(
                     height: 19.0,
-                    width: 51.0,
+                    width: 73.0,
                     child: AutoSizeText(
                       widget.ovrCoinType ?? 'Bitcoin',
                       style: TextStyle(
@@ -129,12 +129,12 @@ class _WalletPreview extends State<WalletPreview> {
                         width: 16.484,
                         top: 7.656,
                         height: 21.82,
-                        child: widget.ovrShape ??
+                        child: widget.ovrCoinIcon ??
                             Image.asset(
-                              'assets/images/shape.png',
+                              'assets/images/coinicon.png',
                               package: 'genius_wallet',
-                              height: 21.8203125,
-                              width: 16.4844970703125,
+                              height: 21.82007598876953,
+                              width: 16.484375,
                               fit: BoxFit.none,
                             ),
                       ),

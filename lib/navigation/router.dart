@@ -1,5 +1,25 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
-import 'package:genius_wallet/landing/routes/landing_routes.dart';
+import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/view/transaction_information_screen.dart';
+import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
+import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
+import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/receive/view/receive_screen.dart';
+import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
+import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
+import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
+import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
+import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
+import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
 import 'package:go_router/go_router.dart';
 
 final geniusWalletRouter = GoRouter(
@@ -9,6 +29,166 @@ final geniusWalletRouter = GoRouter(
       builder: (context, state) {
         return const Splash(
           onCompletion: '/landing_screen',
+        );
+      },
+    ),
+    GoRoute(
+      path: '/import_existing_wallet',
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => ExistingWalletBloc(
+            geniusApi: context.read<GeniusApi>(),
+          ),
+          child: const ExistingWalletFlow(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/create_wallet',
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => NewWalletBloc(
+            api: context.read<GeniusApi>(),
+          ),
+          child: const NewWalletFlow(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/dashboard',
+      builder: ((context, state) {
+        return const DashboardScreen(initialItem: NavbarItem.dashboard);
+      }),
+    ),
+    GoRoute(
+        path: '/wallets',
+        builder: ((context, state) {
+          return const DashboardScreen(initialItem: NavbarItem.wallets);
+        }),
+        routes: [
+          GoRoute(
+            path: ':wallet_address',
+            builder: (context, state) {
+              final id = state.params['wallet_address'];
+              final wallet = context
+                  .read<AppBloc>()
+                  .state
+                  .wallets
+                  .firstWhere((element) => element.address == id);
+              return BlocProvider(
+                create: (context) => WalletDetailsCubit(
+                  initialState: WalletDetailsState(selectedWallet: wallet),
+                  geniusApi: context.read<GeniusApi>(),
+                ),
+                child: const WalletDetailsScreen(),
+              );
+            },
+          ),
+        ]),
+    GoRoute(
+      path: '/transactions',
+      builder: ((context, state) {
+        return const DashboardScreen(initialItem: NavbarItem.transactions);
+      }),
+      routes: [
+        GoRoute(
+          path: ':transaction_id',
+          builder: (context, state) {
+            final cubit = (state.extra as TransactionDetailsCubit);
+            final transaction = cubit.state.selectedTransaction;
+            return BlocProvider.value(
+              value: cubit,
+              child: TransactionInformationScreen(transaction: transaction),
+            );
+          },
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/trade',
+      builder: ((context, state) {
+        return const DashboardScreen(initialItem: NavbarItem.trade);
+      }),
+    ),
+    GoRoute(
+      path: '/send',
+      builder: (context, state) {
+        final walletCubit = state.extra as WalletDetailsCubit;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => SendCubit(
+                geniusApi: context.read<GeniusApi>(),
+                initialState: SendState(
+                  currentTransaction: Transaction(
+                    hash: '',
+                    fromAddress: walletCubit.state.selectedWallet!.address,
+                    toAddress: '',
+                    amount: '',
+                    fees: '',
+                    timeStamp: '',
+                    transactionDirection: TransactionDirection.sent,
+                    coinSymbol:
+                        walletCubit.state.selectedWallet!.currencySymbol,
+                    transactionStatus: TransactionStatus.pending,
+                  ),
+                  flowStep: walletCubit.state.selectedWallet!.balance == 0
+                      ? SendFlowStep.noFunds
+                      : SendFlowStep.enterAddress,
+                ),
+              ),
+            ),
+            BlocProvider.value(
+              value: walletCubit,
+            ),
+            BlocProvider(
+              create: (context) => WalletsOverviewCubit(
+                geniusApi: context.read<GeniusApi>(),
+              ),
+            ),
+          ],
+          child: const SendFlow(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/buy',
+      builder: (context, state) {
+        final walletDetailsCubit = state.extra as WalletDetailsCubit;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => BuyBloc(
+                initialState: BuyState(
+                  cryptoCurrency:
+                      walletDetailsCubit.state.selectedWallet!.currencySymbol,
+                ),
+                geniusApi: context.read<GeniusApi>(),
+              ),
+            ),
+            BlocProvider.value(value: walletDetailsCubit)
+          ],
+          child: const BuyFlow(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/receive',
+      builder: (context, state) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: state.extra as WalletDetailsCubit),
+          ],
+          child: const ReceiveScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/not_enough_balance',
+      builder: (context, state) {
+        return BlocProvider.value(
+          value: state.extra as WalletDetailsCubit,
+          child: const NotEnoughBalanceScreen(),
         );
       },
     ),

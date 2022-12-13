@@ -1,4 +1,7 @@
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 
 class WalletAddressCustom extends StatefulWidget {
   final Widget? child;
@@ -14,6 +17,40 @@ class WalletAddressCustom extends StatefulWidget {
 class _WalletAddressCustomState extends State<WalletAddressCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return BlocConsumer<WalletDetailsCubit, WalletDetailsState>(
+      listener: (context, state) {
+        var message = '';
+        switch (state.copyAddressStatus) {
+          case WalletStatus.error:
+            message = 'Something went wrong while copying the address!';
+            break;
+          case WalletStatus.successful:
+            message = 'Address copied successfully.';
+            break;
+          default:
+        }
+
+        /// Display snackbar if we have a change in status
+        if (message.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+            ),
+          );
+          context.read<WalletDetailsCubit>().messageShowed();
+        }
+      },
+      builder: (context, state) {
+        if (state.selectedWallet == null) {
+          return widget.child!;
+        }
+        return MaterialButton(
+          onPressed: () {
+            context.read<WalletDetailsCubit>().copyWalletAddress();
+          },
+          child: widget.child!,
+        );
+      },
+    );
   }
 }
