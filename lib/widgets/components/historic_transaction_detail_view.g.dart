@@ -7,7 +7,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:genius_wallet/widgets/components/transaction_type_arrow/incomingarrow.g.dart';
 
 class HistoricTransactionDetailView extends StatefulWidget {
   final BoxConstraints constraints;
@@ -121,12 +120,12 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 67.0,
+                width: 88.0,
                 top: 211.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 67.0,
+                    width: 88.0,
                     child: AutoSizeText(
                       widget.ovrTransactionIDLabel ?? 'Transaction',
                       style: TextStyle(
@@ -364,23 +363,19 @@ class _HistoricTransactionDetailView
                     )),
               ),
               Positioned(
-                left: 15.0,
-                width: 16.0,
-                top: 372.0,
-                height: 10.667,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return Incomingarrow(
-                    constraints,
-                    ovrMaskArrow2: SvgPicture.asset(
-                      'assets/images/maskarrow2.svg',
+                left: widget.constraints.maxWidth * 0.047,
+                width: widget.constraints.maxWidth * 0.05,
+                top: widget.constraints.maxHeight * 0.755,
+                height: widget.constraints.maxHeight * 0.022,
+                child: widget.ovrTransactionTypeArrow ??
+                    SvgPicture.asset(
+                      'assets/images/transactiontypearrow.svg',
                       package: 'genius_wallet',
                       height:
-                          widget.constraints.maxHeight * 0.021636900988843813,
+                          widget.constraints.maxHeight * 0.02163622006925076,
                       width: widget.constraints.maxWidth * 0.050473186119873815,
                       fit: BoxFit.fill,
                     ),
-                  );
-                }),
               ),
             ]),
           ),

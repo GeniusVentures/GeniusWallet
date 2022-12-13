@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ViewMoreCustom extends StatefulWidget {
   final Widget? child;
@@ -14,6 +15,11 @@ class ViewMoreCustom extends StatefulWidget {
 class _ViewMoreCustomState extends State<ViewMoreCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return MaterialButton(
+      onPressed: () {
+        context.push('/transactions');
+      },
+      child: widget.child!,
+    );
   }
 }

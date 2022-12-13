@@ -14,6 +14,9 @@ class SendCustom extends StatefulWidget {
 class _SendCustomState extends State<SendCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child!;
+    return MaterialButton(
+      onPressed: () {},
+      child: widget.child!,
+    );
   }
 }

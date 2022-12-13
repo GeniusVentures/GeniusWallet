@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 void main() {
   const geniusApi = GeniusApi();
@@ -22,15 +24,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return RepositoryProvider.value(
       value: geniusApi,
-      child: MaterialApp.router(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
-          primarySwatch: Colors.blue,
-          colorScheme: const ColorScheme
-              .dark(), //TODO: replace this once we have theme generated
+      child: BlocProvider(
+        create: (context) => AppBloc(),
+        child: MaterialApp.router(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
+            primarySwatch: Colors.blue,
+            scaffoldBackgroundColor: GeniusWalletColors.gray900,
+            colorScheme: const ColorScheme
+                .dark(), //TODO: replace this once we have theme generated
+          ),
+          routerConfig: geniusWalletRouter,
         ),
-        routerConfig: geniusWalletRouter,
       ),
     );
   }

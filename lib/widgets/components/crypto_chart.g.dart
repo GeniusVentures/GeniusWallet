@@ -623,7 +623,7 @@ class _CryptoChart extends State<CryptoChart> {
                                           'assets/images/combinedshape.png',
                                           package: 'genius_wallet',
                                           height: widget.constraints.maxHeight *
-                                              0.07993177739845939,
+                                              0.07993147820651698,
                                           width: 206.0,
                                           fit: BoxFit.fill,
                                         ),

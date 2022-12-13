@@ -1,9 +1,137 @@
 import 'dart:async';
 
+import 'package:genius_api/models/transaction.dart';
+import 'package:genius_api/models/user.dart';
+import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/src/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class GeniusApi {
   const GeniusApi();
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or proper gen.
     return List.generate(12, (index) => 'word${index + 1}');
+  }
+
+  ///
+  Future<List<Transaction>> getTransactionsFor(String address) async {
+    //TODO: Implement getting these from Genius API
+    return [
+      Transaction(
+        hash:
+            '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
+        fromAddress: '0x0',
+        toAddress: '0x1',
+        timeStamp: '13:26, 10 oct 2022',
+        transactionDirection: TransactionDirection.sent,
+        amount: '0.0002',
+        fees: '',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.pending,
+      ),
+      Transaction(
+          hash:
+              '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
+          fromAddress: '0x2',
+          toAddress: '0x0',
+          timeStamp: '15:20, 09 oct 2022',
+          transactionDirection: TransactionDirection.received,
+          amount: '0.0003',
+          fees: '',
+          coinSymbol: 'ETH',
+          transactionStatus: TransactionStatus.cancelled),
+      Transaction(
+        hash:
+            '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
+        fromAddress: '0x1',
+        toAddress: '0x0',
+        timeStamp: '15:22, 10 oct 2022',
+        transactionDirection: TransactionDirection.received,
+        amount: '0.0023',
+        fees: '0.000001',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.completed,
+      ),
+    ];
+  }
+
+  Future<List<Wallet>> getUserWallets(String id) async {
+    await Future.delayed(Duration(seconds: 5));
+    //TODO: Implement this with the Genius API
+    return [
+      Wallet(
+        walletName: 'My Ethereum Wallet',
+        currencyName: 'Ethereum',
+        currencySymbol: 'ETH',
+        address: '0x0',
+        // balance: 1000,
+        balance: 0,
+        transactions: await getTransactionsFor('0x0'),
+      ),
+      Wallet(
+        walletName: 'My Bitcoin Wallet',
+        currencyName: 'Bitcoin',
+        currencySymbol: 'BTC',
+        address: '0x1234asdf5678jklp',
+        // balance: 1000,
+        balance: 12460,
+        transactions: [],
+      ),
+    ];
+  }
+
+  Future<User> getUser() async {
+    //TODO: Implement this with Genius API. At the time of implementing,
+    //no authentication method was specified so mocking the method for now.
+
+    return User(
+      firstName: 'John',
+      lastName: 'Doe',
+      nickname: 'jdoe',
+      email: 'jdoe@email.com',
+      dateOfBirth: '01/01/1990',
+      profilePictureUrl: '',
+      wallets: await getUserWallets('some_id?'),
+    );
+  }
+
+  Future<int> getGasFees() async {
+    return 100;
+  }
+
+  Future<void> storeUserPin(String pin) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString(gnusPin, pin);
+  }
+
+  Future<String> getUserPin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      return prefs.getString(gnusPin) ?? '';
+    } catch (e) {
+      //TODO: Throw error for FE?
+      return '';
+    }
+  }
+
+  Future<Transaction> postTransaction(Transaction transaction) async {
+    await Future.delayed(Duration(seconds: 5));
+
+    ///TODO: Alter this method to actually post the transaction
+    return transaction.copyWith(
+      timeStamp: DateTime.now().toIso8601String(),
+      hash: transaction.hashCode.toString(),
+    );
+  }
+
+  /// Converts [fiatAmount] in USD to [cryptoCurrency].
+  ///
+  /// Returns a [num] of how many coins [fiatAmount] converts to.
+  Future<num> getConversion(num fiatAmount, String cryptoCurrency) async {
+    await Future.delayed(Duration(seconds: 1));
+
+    return fiatAmount / 1551.40;
   }
 }
