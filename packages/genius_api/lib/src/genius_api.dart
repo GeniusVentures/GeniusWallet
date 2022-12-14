@@ -5,9 +5,19 @@ import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/src/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wallet_storage_template/wallet_storage_template.dart';
 
 class GeniusApi {
-  const GeniusApi();
+  final WalletStorage _walletStorage;
+
+  /// Returns a [Stream] of the wallets that the device has saved.
+  Stream<List<Wallet>> getWallets() =>
+      _walletStorage.walletsController.asBroadcastStream();
+
+  GeniusApi({
+    required WalletStorage walletStorage,
+  }) : _walletStorage = walletStorage;
+
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or proper gen.
     return List.generate(12, (index) => 'word${index + 1}');
