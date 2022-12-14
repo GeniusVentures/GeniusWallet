@@ -24,4 +24,7 @@ dependencies:
     version: ^0.0.0
   freezed_annotation: ^2.1.0
   json_annotation: ^4.7.0
+  rxdart: ^0.27.7
   shared_preferences: ^2.0.15
+  wallet_storage_template:
+    path: "../wallet_storage_template"
