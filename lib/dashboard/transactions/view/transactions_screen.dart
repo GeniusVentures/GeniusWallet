@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
-import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_state.dart';
+import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
@@ -62,10 +61,10 @@ class TransactionsListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WalletsOverviewCubit, WalletsOverviewState>(
+    return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
-        switch (state.fetchTransactionsStatus) {
-          case WalletsOverviewStatus.success:
+        switch (state.subscribeToWalletStatus) {
+          case AppStatus.loaded:
             return Expanded(
               child: ListView.separated(
                 itemBuilder: (context, index) {
@@ -89,13 +88,13 @@ class TransactionsListView extends StatelessWidget {
                 itemCount: state.transactions.length,
               ),
             );
-          case WalletsOverviewStatus.error:
+          case AppStatus.error:
             return const Center(
               child: Text('Something went wrong!'),
             );
-          case WalletsOverviewStatus.initial:
+          case AppStatus.initial:
             return Container();
-          case WalletsOverviewStatus.loading:
+          case AppStatus.loading:
             return const LoadingScreen();
         }
       },

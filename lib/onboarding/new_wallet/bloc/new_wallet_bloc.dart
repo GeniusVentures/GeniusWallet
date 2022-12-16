@@ -55,6 +55,8 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
 
     on<ChangeStep>(
         (event, emit) => emit(state.copyWith(currentStep: event.step)));
+
+    on<AddWallet>(_onAddWallet);
   }
 
   FutureOr<void> onLoadRecoveryPhrase(
@@ -70,5 +72,9 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     } catch (e) {
       emit(state.copyWith(recoveryPhraseStatus: NewWalletStatus.error));
     }
+  }
+
+  Future<void> _onAddWallet(AddWallet event, Emitter emit) async {
+    await api.saveWallet(event.wallet);
   }
 }

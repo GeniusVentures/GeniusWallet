@@ -1,8 +1,8 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library wallet_storage_template;
+library local_secure_storage;
 
-export 'src/wallet_storage_template.dart';
+export 'src/local_secure_storage_base.dart';
 
 // TODO: Export any libraries intended for clients of this package.
