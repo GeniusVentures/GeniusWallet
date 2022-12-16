@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:wallet_storage_template/wallet_storage_template.dart';
+import 'package:secure_storage/secure_storage.dart';
 
-class LocalWalletStorage extends WalletStorage {
+class LocalWalletStorage extends SecureStorage {
   /// Key used for storing wallets locally.
   static const _walletCollectionKey = '__wallet_collection_key__';
+
+  /// Key used for storing user PIN locally.
+  static const _pinKey = '__pin_key__';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
@@ -42,7 +45,7 @@ class LocalWalletStorage extends WalletStorage {
 
     walletsController.add(currentWallets);
 
-    _secureStorage.write(
+    await _secureStorage.write(
         key: _walletCollectionKey, value: json.encode(currentWallets));
   }
 
@@ -60,7 +63,15 @@ class LocalWalletStorage extends WalletStorage {
     }
 
     walletsController.add(currentWallets);
-    _secureStorage.write(
+    await _secureStorage.write(
         key: _walletCollectionKey, value: json.encode(currentWallets));
   }
+
+  @override
+  Future<String> getUserPin() async =>
+      await _secureStorage.read(key: _pinKey) ?? '';
+
+  @override
+  Future<void> storeUserPin(String pin) async =>
+      await _secureStorage.write(key: _pinKey, value: pin);
 }

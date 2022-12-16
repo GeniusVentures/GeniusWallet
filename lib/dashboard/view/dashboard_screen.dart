@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
 import 'package:genius_wallet/dashboard/widgets/genius_tabbar.dart';
@@ -16,13 +13,8 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => WalletsOverviewCubit(
-        geniusApi: context.read<GeniusApi>(),
-      )..fetchWallets(context.read<AppBloc>().state.userModel.email),
-      child: DashboardView(
-        initialItem: initialItem,
-      ),
+    return DashboardView(
+      initialItem: initialItem,
     );
   }
 }

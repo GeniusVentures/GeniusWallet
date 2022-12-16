@@ -1,8 +1,8 @@
 import 'package:genius_api/genius_api.dart';
 import 'package:rxdart/rxdart.dart';
 
-abstract class WalletStorage {
-  /// [BehaviorSubject] used to stream the [List] of [Wallets]
+abstract class SecureStorage {
+  /// [BehaviorSubject] used to stream the [List] of {}
   final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
 
   Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
@@ -10,4 +10,8 @@ abstract class WalletStorage {
   Future<void> saveWallet(Wallet wallet);
 
   Future<void> deleteWallet(String walletAddress);
+
+  Future<void> storeUserPin(String pin);
+
+  Future<String> getUserPin();
 }

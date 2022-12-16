@@ -3,27 +3,27 @@ import 'dart:async';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
-import 'package:genius_api/src/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wallet_storage_template/wallet_storage_template.dart';
+import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
-  final WalletStorage _walletStorage;
+  final SecureStorage _secureStorage;
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() =>
-      _walletStorage.walletsController.asBroadcastStream();
+      _secureStorage.walletsController.asBroadcastStream();
+
+  Future<void> saveWallet(Wallet wallet) async =>
+      await _secureStorage.saveWallet(wallet);
 
   GeniusApi({
-    required WalletStorage walletStorage,
-  }) : _walletStorage = walletStorage;
+    required SecureStorage secureStorage,
+  }) : _secureStorage = secureStorage;
 
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or proper gen.
     return List.generate(12, (index) => 'word${index + 1}');
   }
 
-  ///
   Future<List<Transaction>> getTransactionsFor(String address) async {
     //TODO: Implement getting these from Genius API
     return [
@@ -109,22 +109,10 @@ class GeniusApi {
     return 100;
   }
 
-  Future<void> storeUserPin(String pin) async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> storeUserPin(String pin) async =>
+      await _secureStorage.storeUserPin(pin);
 
-    await prefs.setString(gnusPin, pin);
-  }
-
-  Future<String> getUserPin() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      return prefs.getString(gnusPin) ?? '';
-    } catch (e) {
-      //TODO: Throw error for FE?
-      return '';
-    }
-  }
+  Future<String> getUserPin() async => await _secureStorage.getUserPin();
 
   Future<Transaction> postTransaction(Transaction transaction) async {
     await Future.delayed(Duration(seconds: 5));
