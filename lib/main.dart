@@ -4,10 +4,13 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
-void main() {
-  const geniusApi = GeniusApi();
-  runApp(const MyApp(
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final secureStorage = await LocalWalletStorage.create();
+  final geniusApi = GeniusApi(secureStorage: secureStorage);
+  runApp(MyApp(
     geniusApi: geniusApi,
   ));
 }
@@ -25,7 +28,7 @@ class MyApp extends StatelessWidget {
     return RepositoryProvider.value(
       value: geniusApi,
       child: BlocProvider(
-        create: (context) => AppBloc(),
+        create: (context) => AppBloc(api: geniusApi),
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
