@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
-import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_state.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
@@ -12,6 +10,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
 import 'package:genius_wallet/widgets/components/markets_module.g.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -20,19 +19,16 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenView(
-        body: BlocBuilder<WalletsOverviewCubit, WalletsOverviewState>(
+        body: BlocBuilder<AppBloc, AppState>(
           builder: (context, state) {
-            switch (state.fetchWalletsStatus) {
-              case WalletsOverviewStatus.success:
-                context
-                    .read<AppBloc>()
-                    .add(CacheWallets(wallets: state.wallets));
+            switch (state.subscribeToWalletStatus) {
+              case AppStatus.loaded:
                 return const OnSuccessful();
-              case WalletsOverviewStatus.error:
+              case AppStatus.error:
                 return const Center(
                   child: Text('Something went wrong!'),
                 );
-              case WalletsOverviewStatus.loading:
+              case AppStatus.loading:
               default:
                 return const LoadingScreen();
             }
@@ -100,7 +96,7 @@ class OnSuccessful extends StatelessWidget {
                 const Text('My Wallets', style: TextStyle(fontSize: 16)),
                 MaterialButton(
                   onPressed: () {
-                    /// TODO: Take to create/add wallet
+                    context.push('/landing_screen');
                   },
                   child: const Text(
                     'Add Wallet',

@@ -18,6 +18,12 @@ class RecoveryVerificationContinue extends NewWalletEvent {}
 
 class ToggleCheckbox extends NewWalletEvent {}
 
+class AddWallet extends NewWalletEvent {
+  final Wallet wallet;
+
+  AddWallet({required this.wallet});
+}
+
 class ChangeStep extends NewWalletEvent {
   final NewWalletStep step;
 

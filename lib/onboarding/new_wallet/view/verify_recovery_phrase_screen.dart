@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
@@ -17,6 +21,24 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
     return BlocListener<NewWalletBloc, NewWalletState>(
       listener: (context, state) {
         if (state.verificationStatus == VerificationStatus.passed) {
+          /// TODO: probably want to create the wallet step-by-step
+          final random = Random();
+          final uuid = random.nextInt(99999999);
+          context.read<NewWalletBloc>().add(
+                AddWallet(
+                  wallet: Wallet(
+                    walletName: 'dummy_wallet',
+                    currencySymbol: 'ETH',
+                    currencyName: 'Ethereum',
+                    address: uuid.toString(),
+                    balance: 0,
+                    transactions: [],
+                  ),
+                ),
+              );
+
+          /// TODO: Save wallet here?
+          // context.read<NewWalletBloc>().add(AddWallet(wallet: state.));
           context.flow<NewWalletState>().complete();
         } else if (state.verificationStatus == VerificationStatus.failed) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

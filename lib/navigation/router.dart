@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/bloc/wallets_overview/wallets_overview_cubit.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
@@ -23,13 +22,28 @@ import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
 import 'package:go_router/go_router.dart';
 
 final geniusWalletRouter = GoRouter(
+  redirect: (context, state) {
+    final appBloc = context.read<AppBloc>();
+
+    if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
+      appBloc.add(SubscribeToWallets());
+    }
+
+    ///TODO: Make sure we're fetching the wallets if they are not cached.
+    // final appState = context.watch<AppBloc>().state;
+    // if (appState.subscribeToWalletStatus == AppStatus.initial) {
+    //   context.read<AppBloc>().add(SubscribeToWallets());
+    //   return '/';
+    // } else if (appState.wallets.isEmpty && state.subloc != '/landing_screen') {
+    //   return '/landing_screen';
+    // }
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/',
       builder: (context, state) {
-        return const Splash(
-          onCompletion: '/landing_screen',
-        );
+        return const Splash();
       },
     ),
     GoRoute(
@@ -140,11 +154,6 @@ final geniusWalletRouter = GoRouter(
             ),
             BlocProvider.value(
               value: walletCubit,
-            ),
-            BlocProvider(
-              create: (context) => WalletsOverviewCubit(
-                geniusApi: context.read<GeniusApi>(),
-              ),
             ),
           ],
           child: const SendFlow(),

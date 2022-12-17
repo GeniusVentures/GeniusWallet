@@ -1,34 +1,39 @@
 part of 'app_bloc.dart';
 
 class AppState extends Equatable {
-  //? We might not need this user model if we get rid of auth
-  final User userModel;
   //? Maybe we can add a bool to easily see if the user is authenticated in the state.
   final List<Wallet> wallets;
 
+  final List<Transaction> transactions;
+
+  final AppStatus subscribeToWalletStatus;
+
   const AppState({
-    this.userModel = const User(
-      firstName: '',
-      lastName: '',
-      dateOfBirth: '',
-      email: '',
-      nickname: '',
-      profilePictureUrl: '',
-      wallets: [],
-    ),
     this.wallets = const [],
+    this.subscribeToWalletStatus = AppStatus.initial,
+    this.transactions = const [],
   });
 
   AppState copyWith({
-    User? userModel,
     List<Wallet>? wallets,
+    List<Transaction>? transactions,
+    AppStatus? subscribeToWalletStatus,
   }) {
     return AppState(
-      userModel: userModel ?? this.userModel,
       wallets: wallets ?? this.wallets,
+      subscribeToWalletStatus:
+          subscribeToWalletStatus ?? this.subscribeToWalletStatus,
+      transactions: transactions ?? this.transactions,
     );
   }
 
   @override
-  List<Object?> get props => [userModel, wallets];
+  List<Object?> get props => [wallets, transactions, subscribeToWalletStatus];
+}
+
+enum AppStatus {
+  initial,
+  loading,
+  loaded,
+  error,
 }
