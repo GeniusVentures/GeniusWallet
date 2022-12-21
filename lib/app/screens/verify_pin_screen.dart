@@ -46,7 +46,7 @@ class VerifyPinView extends StatelessWidget {
       listener: verificationListener,
       child: PinScreen(
         text: 'Enter your pin',
-        onCompleted: context.read<PinCubit>().verifyPin,
+        onCompleted: (value) => context.read<PinCubit>().verifyPin,
       ),
     );
   }
