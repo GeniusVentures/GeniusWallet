@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
@@ -14,10 +15,11 @@ import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
+import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
+import 'package:genius_wallet/onboarding/new_wallet/routes/new_user_new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,6 +29,10 @@ final geniusWalletRouter = GoRouter(
 
     if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
       appBloc.add(SubscribeToWallets());
+    }
+
+    if (appBloc.state.loadUserStatus == AppStatus.initial) {
+      appBloc.add(CheckIfUserExists());
     }
 
     ///TODO: Make sure we're fetching the wallets if they are not cached.
@@ -60,11 +66,33 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/create_wallet',
       builder: (context, state) {
-        return BlocProvider(
-          create: (context) => NewWalletBloc(
-            api: context.read<GeniusApi>(),
-          ),
-          child: const NewWalletFlow(),
+        return BlocBuilder<AppBloc, AppState>(
+          builder: (context, state) {
+            /// Wait until we know if the user is new
+            if (state.loadUserStatus == AppStatus.loading) {
+              return const CircularProgressIndicator();
+            } else if (state.loadUserStatus == AppStatus.loaded) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (context) => NewWalletBloc(
+                      api: context.read<GeniusApi>(),
+                    ),
+                  ),
+                  BlocProvider(
+                    create: (context) => NewPinCubit(
+                      api: context.read<GeniusApi>(),
+                    ),
+                  ),
+                ],
+                child: const NewUserNewWalletFlow(),
+              );
+            } else {
+              return const Center(
+                child: Text('Something went wrong! Please reload the app.'),
+              );
+            }
+          },
         );
       },
     ),

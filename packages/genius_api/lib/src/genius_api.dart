@@ -112,8 +112,6 @@ class GeniusApi {
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.storeUserPin(pin);
 
-  Future<String> getUserPin() async => await _secureStorage.getUserPin();
-
   Future<Transaction> postTransaction(Transaction transaction) async {
     await Future.delayed(Duration(seconds: 5));
 
@@ -132,4 +130,9 @@ class GeniusApi {
 
     return fiatAmount / 1551.40;
   }
+
+  Future<bool> verifyUserPin(String pin) async =>
+      await _secureStorage.verifyUserPin(pin);
+
+  Future<bool> userExists() async => await _secureStorage.pinExists();
 }

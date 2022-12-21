@@ -13,6 +13,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     required this.api,
   }) : super(const AppState()) {
     on<SubscribeToWallets>(_onSubscribeToWallets);
+
+    on<CheckIfUserExists>(_onCheckIfUserExists);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -40,5 +42,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       transactions.addAll(wallet.transactions);
     }
     return transactions;
+  }
+
+  FutureOr<void> _onCheckIfUserExists(
+      CheckIfUserExists event, Emitter<AppState> emit) async {
+    emit(state.copyWith(loadUserStatus: AppStatus.loading));
+
+    try {
+      final userExists = await api.userExists();
+      emit(state.copyWith(
+        loadUserStatus: AppStatus.loaded,
+        userStatus: userExists ? UserStatus.exists : UserStatus.nonExistent,
+      ));
+    } catch (e) {
+      emit(state.copyWith(loadUserStatus: AppStatus.error));
+    }
   }
 }

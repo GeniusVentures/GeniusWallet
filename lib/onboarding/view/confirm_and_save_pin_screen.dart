@@ -4,13 +4,11 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/screens/pin_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
-import 'package:genius_wallet/onboarding/bloc/new_pin_state.dart';
 
-class CreatePinScreen extends StatelessWidget {
-  final void Function(String) onCompleted;
-  const CreatePinScreen({
+/// Confirms the pin entered and saves it to the user if it matches with the previous pin
+class ConfirmAndSavePinScreen extends StatelessWidget {
+  const ConfirmAndSavePinScreen({
     Key? key,
-    required this.onCompleted,
   }) : super(key: key);
 
   @override
@@ -20,16 +18,11 @@ class CreatePinScreen extends StatelessWidget {
         pinMaxLength: 6,
         geniusApi: context.read<GeniusApi>(),
       ),
-      child: BlocListener<NewPinCubit, NewPinState>(
-        listener: (context, state) {
-          if (state.pinConfirmStatus == PinConfirmStatus.failed) {
-            context.read<PinCubit>().pinConfirmFailed();
-          }
+      child: PinScreen(
+        text: 'Confirm PIN',
+        onCompleted: (value) {
+          context.read<NewPinCubit>().pinConfirmSubmitted(value);
         },
-        child: PinScreen(
-          text: 'Create PIN',
-          onCompleted: onCompleted,
-        ),
       ),
     );
   }
