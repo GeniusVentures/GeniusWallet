@@ -19,7 +19,7 @@ import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/new_wallet/routes/new_user_new_wallet_flow.dart';
+import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,11 +55,33 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/import_existing_wallet',
       builder: (context, state) {
-        return BlocProvider(
-          create: (context) => ExistingWalletBloc(
-            geniusApi: context.read<GeniusApi>(),
-          ),
-          child: const ExistingWalletFlow(),
+        /// TODO: Move the BlocListener logic to redirect, 
+        /// to clean up '/import_existing_wallet' and '/create_wallet'
+        return BlocBuilder<AppBloc, AppState>(
+          builder: (context, state) {
+            if (state.loadUserStatus == AppStatus.loading) {
+              return const CircularProgressIndicator();
+            } else if (state.loadUserStatus == AppStatus.loaded) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (context) => ExistingWalletBloc(
+                      geniusApi: context.read<GeniusApi>(),
+                    ),
+                  ),
+                  BlocProvider(
+                    create: (context) => NewPinCubit(
+                      api: context.read<GeniusApi>(),
+                    ),
+                  ),
+                ],
+                child: const ExistingWalletFlow(),
+              );
+            }
+            return const Center(
+              child: Text('Something went wrong! Please reload the app.'),
+            );
+          },
         );
       },
     ),
@@ -85,7 +107,7 @@ final geniusWalletRouter = GoRouter(
                     ),
                   ),
                 ],
-                child: const NewUserNewWalletFlow(),
+                child: const NewWalletFlow(),
               );
             } else {
               return const Center(
