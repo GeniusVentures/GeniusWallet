@@ -1,4 +1,3 @@
-import 'package:genius_wallet/onboarding/existing_wallet/view/create_passcode_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_wallet_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
@@ -39,12 +38,6 @@ class LandingRoutes {
           path: '/legal',
           builder: (context, state) {
             return const LegalScreen();
-          },
-        ),
-        GoRoute(
-          path: '/create_passcode',
-          builder: (context, state) {
-            return const CreatePasscodeScreen();
           },
         ),
         GoRoute(

@@ -7,35 +7,32 @@ class ExistingWalletState {
 
   final String selectedWallet;
 
-  final String createdPin;
+  final ExistingWalletStatus importWalletStatus;
 
   const ExistingWalletState({
     this.acceptedLegal = false,
     this.currentStep = FlowStep.legal,
     this.selectedWallet = '',
-    this.createdPin = '',
+    this.importWalletStatus = ExistingWalletStatus.initial,
   });
 
   ExistingWalletState copyWith({
     bool? acceptedLegal,
     FlowStep? currentStep,
     String? selectedWallet,
-    String? createdPin,
-    ExistingWalletStatus? savePinStatus,
+    ExistingWalletStatus? importWalletStatus,
   }) {
     return ExistingWalletState(
       acceptedLegal: acceptedLegal ?? this.acceptedLegal,
       currentStep: currentStep ?? this.currentStep,
       selectedWallet: selectedWallet ?? this.selectedWallet,
-      createdPin: createdPin ?? this.createdPin,
+      importWalletStatus: importWalletStatus ?? this.importWalletStatus,
     );
   }
 }
 
 enum FlowStep {
   legal,
-  createPasscode,
-  confirmPasscode,
   importWallet,
   importWalletSecurity,
   createPin,

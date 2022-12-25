@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
@@ -135,4 +136,30 @@ class GeniusApi {
       await _secureStorage.verifyUserPin(pin);
 
   Future<bool> userExists() async => await _secureStorage.pinExists();
+
+  //TODO: solidify the wallet security options into a class once we know how this will be handled in the API.
+  Future<Wallet?> validateWalletImport({
+    required String walletName,
+    required String walletType,
+    required String securityType,
+    required String securityValue,
+    String? password,
+  }) async {
+    await Future.delayed(Duration(seconds: 5));
+
+    final random = Random().nextInt(999999);
+
+    final importedWallet = Wallet(
+      walletName: walletName,
+      currencySymbol: walletType,
+      currencyName: walletType,
+      balance: 10,
+      address: random.toString(),
+      transactions: [],
+    );
+
+    await _secureStorage.saveWallet(importedWallet);
+
+    return importedWallet;
+  }
 }
