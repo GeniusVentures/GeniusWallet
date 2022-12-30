@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
@@ -45,9 +47,16 @@ class LandingScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(40),
                   child: ElevatedButton(
                       onPressed: () {
-                        final FFIBridge ffiBridge = FFIBridge();
-                        final valueFromC = ffiBridge.getValueFromNative();
-                        debugPrint('Getting Value From C++: $valueFromC');
+                        final dylib = DynamicLibrary.open('libnative.so');
+                        final getTemperature = dylib.lookupFunction<
+                            TemperatureFunction,
+                            TemperatureFunctionDart>('get_temperature');
+                        final valueTest = getTemperature();
+                        debugPrint('Getting valueTest From C++: $valueTest');
+
+                        // final FFIBridge ffiBridge = FFIBridge();
+                        // final valueFromC = ffiBridge.getValueFromNative();
+                        // debugPrint('Getting Value From C++: $valueFromC');
                       },
                       child: Text("Test C++ code in iOS!")))
             ],
