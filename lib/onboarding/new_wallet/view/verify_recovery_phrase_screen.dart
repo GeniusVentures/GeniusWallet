@@ -21,7 +21,7 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
     return BlocListener<NewWalletBloc, NewWalletState>(
       listener: (context, state) {
         if (state.verificationStatus == VerificationStatus.passed) {
-          /// TODO: probably want to create the wallet step-by-step
+          /// TODO: probably want to create the wallet step-by-step once the API is available
           final random = Random();
           final uuid = random.nextInt(99999999);
           context.read<NewWalletBloc>().add(
@@ -37,8 +37,6 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
                 ),
               );
 
-          /// TODO: Save wallet here?
-          // context.read<NewWalletBloc>().add(AddWallet(wallet: state.));
           context.flow<NewWalletState>().complete();
         } else if (state.verificationStatus == VerificationStatus.failed) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
