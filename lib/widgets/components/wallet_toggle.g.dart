@@ -90,8 +90,8 @@ class _WalletToggle extends State<WalletToggle> {
                                         Image.asset(
                                           'assets/images/shape.png',
                                           package: 'genius_wallet',
-                                          height: 21.8203125,
-                                          width: 16.4844970703125,
+                                          height: 21.820068359375,
+                                          width: 16.484375,
                                           fit: BoxFit.none,
                                         ),
                                   ),

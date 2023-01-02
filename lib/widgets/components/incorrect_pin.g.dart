@@ -48,10 +48,10 @@ class _IncorrectPin extends State<IncorrectPin> {
                 ),
               ),
               Positioned(
-                left: 35.0,
-                right: 34.0,
-                top: 6.0,
-                bottom: 9.0,
+                left: 34.0,
+                right: 35.0,
+                top: 7.0,
+                bottom: 8.0,
                 child: Container(
                     height: widget.constraints.maxHeight * 0.5588235294117647,
                     width: widget.constraints.maxWidth * 0.56875,

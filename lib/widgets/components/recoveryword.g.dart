@@ -60,8 +60,8 @@ class _Recoveryword extends State<Recoveryword> {
                     height: widget.constraints.maxHeight * 0.464,
                     child: Container(
                         height:
-                            widget.constraints.maxHeight * 0.4642857142857143,
-                        width: widget.constraints.maxWidth * 0.7843137174039274,
+                            widget.constraints.maxHeight * 0.4642866853983504,
+                        width: widget.constraints.maxWidth * 0.7843116554054054,
                         child: AutoSizeText(
                           widget.ovrWord ?? '1 limb',
                           style: TextStyle(

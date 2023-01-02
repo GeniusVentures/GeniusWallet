@@ -81,6 +81,8 @@ class LastNameWidget extends StatelessWidget {
       scrollPhysics: logic.scrollPhysics,
       autovalidateMode: logic.autovalidateMode,
       scrollController: logic.scrollController,
+      textAlign: logic.textAlign,
+      textAlignVertical: logic.textAlignVertical,
     );
   }
 }

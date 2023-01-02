@@ -6,16 +6,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/custom/copy_wallet_i_d_custom.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CopyWalletID extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrCopyWalletLabel;
+  final Widget? ovrCopyIcon;
   const CopyWalletID(
     this.constraints, {
     Key? key,
     this.ovrCopyWalletLabel,
+    this.ovrCopyIcon,
   }) : super(key: key);
   @override
   _CopyWalletID createState() => _CopyWalletID();
@@ -37,19 +39,6 @@ class _CopyWalletID extends State<CopyWalletID> {
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: 0,
-                width: 11.0,
-                top: 1.0,
-                height: 13.5,
-                child: SvgPicture.asset(
-                  'assets/images/copywalletsymbol.svg',
-                  package: 'genius_wallet',
-                  height: 13.5,
-                  width: 11.0,
-                  fit: BoxFit.none,
-                ),
-              ),
-              Positioned(
                 left: 20.0,
                 width: 32.0,
                 top: 0,
@@ -68,6 +57,20 @@ class _CopyWalletID extends State<CopyWalletID> {
                       ),
                       textAlign: TextAlign.left,
                     )),
+              ),
+              Positioned(
+                left: 0,
+                width: 13.5,
+                top: 1.0,
+                height: 16.0,
+                child: widget.ovrCopyIcon ??
+                    SvgPicture.asset(
+                      'assets/images/copyicon.svg',
+                      package: 'genius_wallet',
+                      height: 16.0,
+                      width: 13.5,
+                      fit: BoxFit.none,
+                    ),
               ),
             ]),
           ),

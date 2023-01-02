@@ -5,31 +5,32 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/custom/transaction_options_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/detailed_transaction_options_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:genius_wallet/widgets/components/custom/transaction_type_icon_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/transaction_status_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/detailed_transaction_status_custom.dart';
 
 class DetailedTransaction extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrTimestamp;
   final String? ovrTransactionID;
+  final Widget? ovrTransactionArrow;
   final String? ovrTransactionValue;
+  final Widget? ovrMask2;
   final Widget? ovrMask3;
-  final Widget? ovrMask4;
   final String? ovrCompleted;
-  final Widget? ovrShape;
+  final Widget? ovrCoinIcon;
   const DetailedTransaction(
     this.constraints, {
     Key? key,
     this.ovrTimestamp,
     this.ovrTransactionID,
+    this.ovrTransactionArrow,
     this.ovrTransactionValue,
+    this.ovrMask2,
     this.ovrMask3,
-    this.ovrMask4,
     this.ovrCompleted,
-    this.ovrShape,
+    this.ovrCoinIcon,
   }) : super(key: key);
   @override
   _DetailedTransaction createState() => _DetailedTransaction();
@@ -68,32 +69,14 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                 width: 4.0,
                 top: 18.0,
                 height: 16.0,
-                child: TransactionOptionsCustom(
+                child: DetailedTransactionOptionsCustom(
                     child: SvgPicture.asset(
-                  'assets/images/transactionoptionscustom.svg',
+                  'assets/images/detailedtransactionoptionscustom.svg',
                   package: 'genius_wallet',
                   height: 16.0,
                   width: 4.0,
                   fit: BoxFit.none,
                 )),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.079,
-                width: widget.constraints.maxWidth * 0.051,
-                top: widget.constraints.maxHeight * 0.46,
-                height: widget.constraints.maxHeight * 0.056,
-                child: Center(
-                    child: Container(
-                        height: 10.66650390625,
-                        width: 16.0,
-                        child: TransactionTypeIconCustom(
-                            child: SvgPicture.asset(
-                          'assets/images/transactiontypeiconcustom.svg',
-                          package: 'genius_wallet',
-                          height: 10.66650390625,
-                          width: 16.0,
-                          fit: BoxFit.scaleDown,
-                        )))),
               ),
               Positioned(
                 left: 39.0,
@@ -116,35 +99,60 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                     )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.149,
-                width: widget.constraints.maxWidth * 0.829,
+                left: 25.0,
+                right: 7.0,
                 top: widget.constraints.maxHeight * 0.444,
                 height: widget.constraints.maxHeight * 0.159,
                 child: Center(
                     child: Container(
-                        height: 30.0,
-                        width: 262.0,
-                        child: AutoSizeText(
-                          widget.ovrTransactionID ??
-                              '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 13.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.32499998807907104,
-                            color: Colors.white,
+                        decoration: BoxDecoration(),
+                        child: Stack(children: [
+                          Positioned(
+                            left: 0,
+                            width: 16.0,
+                            top: 3.0,
+                            height: 10.667,
+                            child: widget.ovrTransactionArrow ??
+                                SvgPicture.asset(
+                                  'assets/images/transactionarrow.svg',
+                                  package: 'genius_wallet',
+                                  height: 10.666748046875,
+                                  width: 16.0,
+                                  fit: BoxFit.none,
+                                ),
                           ),
-                          textAlign: TextAlign.left,
-                        ))),
+                          Positioned(
+                            left: 22.0,
+                            right: 0,
+                            top: 0,
+                            height: 30.0,
+                            child: Container(
+                                height: 30.0,
+                                width: widget.constraints.maxWidth *
+                                    0.8291139240506329,
+                                child: AutoSizeText(
+                                  widget.ovrTransactionID ??
+                                      '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 0.32499998807907104,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.left,
+                                )),
+                          ),
+                        ]))),
               ),
               Positioned(
                 left: 9.0,
-                width: 123.0,
+                width: 141.0,
                 bottom: 29.0,
                 height: 23.0,
                 child: Container(
                     height: 23.0,
-                    width: 123.0,
+                    width: 141.0,
                     child: AutoSizeText(
                       widget.ovrTransactionValue ?? '0.0094 LTC',
                       style: TextStyle(
@@ -162,7 +170,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                 width: 121.0,
                 bottom: 24.0,
                 height: 35.0,
-                child: TransactionStatusCustom(
+                child: DetailedTransactionStatusCustom(
                     child: Container(
                         clipBehavior: Clip.hardEdge,
                         decoration: BoxDecoration(),
@@ -207,12 +215,12 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                             width: 17.6,
                             top: 10.0,
                             height: 13.4,
-                            child: widget.ovrMask4 ??
+                            child: widget.ovrMask3 ??
                                 SvgPicture.asset(
-                                  'assets/images/mask4.svg',
+                                  'assets/images/mask3.svg',
                                   package: 'genius_wallet',
                                   height: 13.39990234375,
-                                  width: 17.60009765625,
+                                  width: 17.599609375,
                                   fit: BoxFit.none,
                                 ),
                           ),
@@ -221,63 +229,30 @@ class _DetailedTransaction extends State<DetailedTransaction> {
                             width: 17.6,
                             top: 10.0,
                             height: 13.4,
-                            child: widget.ovrMask3 ??
+                            child: widget.ovrMask2 ??
                                 SvgPicture.asset(
-                                  'assets/images/mask3.svg',
+                                  'assets/images/mask2.svg',
                                   package: 'genius_wallet',
                                   height: 13.39990234375,
-                                  width: 17.60009765625,
+                                  width: 17.599609375,
                                   fit: BoxFit.none,
                                 ),
                           ),
                         ]))),
               ),
               Positioned(
-                left: 260.094,
+                right: 20.906,
                 width: 35.0,
-                top: 16.233,
+                top: 16.234,
                 height: 35.0,
-                child: Container(
-                    decoration: BoxDecoration(),
-                    child: Stack(children: [
-                      Positioned(
-                        right: 0,
-                        width: 35.0,
-                        top: 0,
-                        height: 35.0,
-                        child: Container(
-                          height: 35.0,
-                          width: 35.0,
-                          decoration: BoxDecoration(
-                            color: Color(0xff4c4d55),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(2.0)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x2dffffff),
-                                spreadRadius: 0.0,
-                                blurRadius: 0.0,
-                                offset: Offset(0.0, 2.0),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 9.0,
-                        width: 15.0,
-                        top: 9.0,
-                        height: 18.0,
-                        child: widget.ovrShape ??
-                            SvgPicture.asset(
-                              'assets/images/shape.svg',
-                              package: 'genius_wallet',
-                              height: 18.0,
-                              width: 15.0,
-                              fit: BoxFit.none,
-                            ),
-                      ),
-                    ])),
+                child: widget.ovrCoinIcon ??
+                    SvgPicture.asset(
+                      'assets/images/coinicon.svg',
+                      package: 'genius_wallet',
+                      height: 35.0,
+                      width: 35.0,
+                      fit: BoxFit.none,
+                    ),
               ),
             ]),
           ),
