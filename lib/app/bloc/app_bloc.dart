@@ -13,6 +13,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     required this.api,
   }) : super(const AppState()) {
     on<SubscribeToWallets>(_onSubscribeToWallets);
+    on<FFIOnInit>(_onFFIInit);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -40,5 +41,18 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       transactions.addAll(wallet.transactions);
     }
     return transactions;
+  }
+
+  FutureOr<void> _onFFIInit(FFIOnInit event, Emitter<AppState> emit) async {
+    ///TODO: @David, change this where needed to call the FFI functions you need
+    emit(state.copyWith(ffiStatus: AppStatus.loading));
+
+    try {
+      final response = await api.ffiFunction();
+
+      emit(state.copyWith(information: response, ffiStatus: AppStatus.loaded));
+    } catch (e) {
+      emit(state.copyWith(ffiStatus: AppStatus.error));
+    }
   }
 }

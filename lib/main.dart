@@ -28,7 +28,9 @@ class MyApp extends StatelessWidget {
     return RepositoryProvider.value(
       value: geniusApi,
       child: BlocProvider(
-        create: (context) => AppBloc(api: geniusApi),
+        create: (context) => AppBloc(api: geniusApi)
+          ..add(
+              FFIOnInit()), // TODO: @David Add an [FFIOnInit] event to the bloc as soon as we create it
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
