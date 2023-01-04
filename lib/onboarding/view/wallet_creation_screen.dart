@@ -1,10 +1,8 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/ffi_bridge_prebuilt.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
-import 'package:genius_wallet/ffi_bridge.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -47,18 +45,19 @@ class LandingScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(40),
                   child: ElevatedButton(
                       onPressed: () {
-                        final dylib = DynamicLibrary.open('libnative.so');
-                        final getTemperature = dylib.lookupFunction<
-                            TemperatureFunction,
-                            TemperatureFunctionDart>('get_temperature');
-                        final valueTest = getTemperature();
-                        debugPrint('Getting valueTest From C++: $valueTest');
+                        final FFIBridgePrebuilt ffiBridgePrebuilt =
+                            FFIBridgePrebuilt();
+                        final valueTest =
+                            ffiBridgePrebuilt.getValueFromNative();
+                        debugPrint(
+                            'Getting Value From Prebuilt library: $valueTest');
 
                         // final FFIBridge ffiBridge = FFIBridge();
                         // final valueFromC = ffiBridge.getValueFromNative();
                         // debugPrint('Getting Value From C++: $valueFromC');
                       },
-                      child: Text("Test C++ code in iOS!")))
+                      child: const Text(
+                          "Call function directly from prebuilt library!")))
             ],
           ),
         ),
