@@ -132,4 +132,10 @@ class GeniusApi {
 
     return fiatAmount / 1551.40;
   }
+
+  /// TODO: @David, you can change the name and logic of this function
+  /// to call your C Code
+  Future ffiFunction() async {
+    /// Call C code here.
+  }
 }
