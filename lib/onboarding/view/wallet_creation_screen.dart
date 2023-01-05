@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/ffi_bridge_prebuilt.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
@@ -17,8 +16,9 @@ class LandingScreen extends StatelessWidget {
         if (state.ffiStatus == AppStatus.loading) {
           return const CircularProgressIndicator();
         } else if (state.ffiStatus == AppStatus.loaded) {
-          final informationFromFFI =
+          final ffiBridgePrebuilt =
               context.read<AppBloc>().state.ffiInformation;
+
           return Scaffold(
             body: AppScreenView(
               body: SizedBox(
@@ -56,17 +56,10 @@ class LandingScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(40),
                         child: ElevatedButton(
                             onPressed: () {
-                              final dylib = DynamicLibrary.open('libnative.so');
-                              final getTemperature = dylib.lookupFunction<
-                                  TemperatureFunction,
-                                  TemperatureFunctionDart>('get_temperature');
-                              final valueTest = getTemperature();
+                              final valueTest =
+                                  ffiBridgePrebuilt?.getValueFromNative();
                               debugPrint(
-                                  'Getting valueTest From C++: $valueTest');
-
-                              // final FFIBridge ffiBridge = FFIBridge();
-                              // final valueFromC = ffiBridge.getValueFromNative();
-                              // debugPrint('Getting Value From C++: ');
+                                  'Getting valueTest From xxx C++: $valueTest');
                             },
                             child: Text("Test C++ code in iOS!")))
                   ],

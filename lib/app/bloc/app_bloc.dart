@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/ffi_bridge_prebuilt.dart';
 
+import 'package:genius_api/genius_api.dart';
 part 'app_event.dart';
 part 'app_state.dart';
 
@@ -44,13 +45,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   FutureOr<void> _onFFIInit(FFIOnInit event, Emitter<AppState> emit) async {
-    ///TODO: @David, change this where needed to call the FFI functions you need
     emit(state.copyWith(ffiStatus: AppStatus.loading));
-
     try {
-      final response = await api.ffiFunction();
-
-      emit(state.copyWith(information: response, ffiStatus: AppStatus.loaded));
+      final ffiBridgePrebuilt = await api.loadFFIBridgePrebuilt();
+      emit(state.copyWith(
+          information: ffiBridgePrebuilt, ffiStatus: AppStatus.loaded));
     } catch (e) {
       emit(state.copyWith(ffiStatus: AppStatus.error));
     }

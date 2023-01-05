@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
@@ -133,9 +134,8 @@ class GeniusApi {
     return fiatAmount / 1551.40;
   }
 
-  /// TODO: @David, you can change the name and logic of this function
-  /// to call your C Code
-  Future ffiFunction() async {
-    /// Call C code here.
+  Future<FFIBridgePrebuilt> loadFFIBridgePrebuilt() async {
+    final FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
+    return ffiBridgePrebuilt;
   }
 }
