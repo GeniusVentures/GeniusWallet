@@ -9,7 +9,8 @@ class AppState extends Equatable {
   final AppStatus subscribeToWalletStatus;
 
   ///TODO: Change these to the proper types and names if needed
-  final String ffiInformation;
+  // final String ffiInformation;
+  final FFIBridgePrebuilt? ffiInformation;
 
   final AppStatus ffiStatus;
 
@@ -18,14 +19,15 @@ class AppState extends Equatable {
       this.subscribeToWalletStatus = AppStatus.initial,
       this.ffiStatus = AppStatus.initial,
       this.transactions = const [],
-      this.ffiInformation = ''});
+      this.ffiInformation});
 
   AppState copyWith({
     List<Wallet>? wallets,
     List<Transaction>? transactions,
     AppStatus? subscribeToWalletStatus,
     AppStatus? ffiStatus,
-    String? information,
+    FFIBridgePrebuilt? information,
+    // String? information,
   }) {
     return AppState(
       wallets: wallets ?? this.wallets,
