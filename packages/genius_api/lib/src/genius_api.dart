@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:genius_api/models/currency.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
@@ -131,5 +132,25 @@ class GeniusApi {
     await Future.delayed(Duration(seconds: 1));
 
     return fiatAmount / 1551.40;
+  }
+
+  /// Returns a list of supported [Currencies] for calculating conversions
+  Future<List<Currency>> getCalculatorCurrencies() async {
+    return [
+      Currency(
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '16949.30',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+      Currency(
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '1268.94',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+    ];
   }
 }
