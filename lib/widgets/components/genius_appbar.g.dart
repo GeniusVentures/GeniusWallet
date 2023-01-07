@@ -91,7 +91,7 @@ class _GeniusAppbar extends State<GeniusAppbar> {
                             height: 1.5,
                             child: Container(
                               height: 1.5,
-                              width: 24.60009765625,
+                              width: 24.599609375,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                               ),
@@ -104,7 +104,7 @@ class _GeniusAppbar extends State<GeniusAppbar> {
                             height: 1.5,
                             child: Container(
                               height: 1.5,
-                              width: 8.60009765625,
+                              width: 8.599609375,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                               ),
@@ -117,7 +117,7 @@ class _GeniusAppbar extends State<GeniusAppbar> {
                             height: 1.5,
                             child: Container(
                               height: 1.5,
-                              width: 36.60009765625,
+                              width: 36.599609375,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                               ),
