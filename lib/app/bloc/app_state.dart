@@ -10,7 +10,7 @@ class AppState extends Equatable {
 
   ///TODO: Change these to the proper types and names if needed
   // final String ffiInformation;
-  final FFIBridgePrebuilt? ffiInformation;
+  final bool? ffiInformation;
 
   final AppStatus ffiStatus;
 
@@ -26,7 +26,7 @@ class AppState extends Equatable {
     List<Transaction>? transactions,
     AppStatus? subscribeToWalletStatus,
     AppStatus? ffiStatus,
-    FFIBridgePrebuilt? information,
+    bool? information,
     // String? information,
   }) {
     return AppState(
