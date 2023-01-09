@@ -10,14 +10,12 @@ class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    /// TODO: @David, edit this BlocBuilder according to your needs with FFI lib.
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
         if (state.ffiStatus == AppStatus.loading) {
           return const CircularProgressIndicator();
-        } else if (state.ffiStatus == AppStatus.loaded) {
-          // final ffiBridgePrebuilt =
-          //     context.read<AppBloc>().state.ffiInformation;
+        } else if (state.ffiStatus == AppStatus.loaded ||
+            state.ffiStatus == AppStatus.error) {
           final api = context.read<GeniusApi>();
           return Scaffold(
             body: AppScreenView(
@@ -52,15 +50,19 @@ class LandingScreen extends StatelessWidget {
                             TypeExisting(constraints),
                       ),
                     ),
-                    Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: ElevatedButton(
-                            onPressed: () {
-                              final valueTest = api.getNativeValue();
-                              debugPrint(
-                                  'Getting valueTest From xxx C++: $valueTest');
-                            },
-                            child: Text("Test C++ code in iOS!")))
+                    Visibility(
+                        visible: state.ffiStatus == AppStatus.loaded,
+                        child: Container(
+                            margin: const EdgeInsets.only(top: 10.0),
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  // This part is only to test FFI bridge to call native C function.
+                                  // We will remove this part later.
+                                  final valueTest = api.getNativeValue();
+                                  debugPrint(
+                                      'Getting valueTest From xxx C++: $valueTest');
+                                },
+                                child: Text("Test C++ code in Android!"))))
                   ],
                 ),
               ),

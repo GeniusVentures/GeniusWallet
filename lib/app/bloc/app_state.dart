@@ -8,34 +8,39 @@ class AppState extends Equatable {
 
   final AppStatus subscribeToWalletStatus;
 
-  ///TODO: Change these to the proper types and names if needed
-  // final String ffiInformation;
-  final bool? ffiInformation;
+  final AppStatus loadUserStatus;
 
+  final UserStatus userStatus;
   final AppStatus ffiStatus;
+  final bool? ffiInformation;
 
   const AppState(
       {this.wallets = const [],
       this.subscribeToWalletStatus = AppStatus.initial,
-      this.ffiStatus = AppStatus.initial,
       this.transactions = const [],
+      this.ffiStatus = AppStatus.initial,
+      this.loadUserStatus = AppStatus.initial,
+      this.userStatus = UserStatus.initial,
       this.ffiInformation});
 
   AppState copyWith({
     List<Wallet>? wallets,
-    List<Transaction>? transactions,
     AppStatus? subscribeToWalletStatus,
+    List<Transaction>? transactions,
     AppStatus? ffiStatus,
+    AppStatus? loadUserStatus,
+    UserStatus? userStatus,
     bool? information,
-    // String? information,
   }) {
     return AppState(
       wallets: wallets ?? this.wallets,
       subscribeToWalletStatus:
           subscribeToWalletStatus ?? this.subscribeToWalletStatus,
       transactions: transactions ?? this.transactions,
-      ffiInformation: information ?? this.ffiInformation,
+      loadUserStatus: loadUserStatus ?? this.loadUserStatus,
+      userStatus: userStatus ?? this.userStatus,
       ffiStatus: ffiStatus ?? this.ffiStatus,
+      ffiInformation: information ?? ffiInformation,
     );
   }
 
@@ -44,8 +49,9 @@ class AppState extends Equatable {
         wallets,
         transactions,
         subscribeToWalletStatus,
-        ffiStatus,
-        ffiInformation,
+        loadUserStatus,
+        userStatus,
+        ffiStatus
       ];
 }
 
@@ -54,4 +60,10 @@ enum AppStatus {
   loading,
   loaded,
   error,
+}
+
+enum UserStatus {
+  initial,
+  exists,
+  nonExistent,
 }

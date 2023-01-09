@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/models/transaction.dart';
@@ -115,8 +116,6 @@ class GeniusApi {
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.storeUserPin(pin);
 
-  Future<String> getUserPin() async => await _secureStorage.getUserPin();
-
   Future<Transaction> postTransaction(Transaction transaction) async {
     await Future.delayed(Duration(seconds: 5));
 
@@ -136,8 +135,38 @@ class GeniusApi {
     return fiatAmount / 1551.40;
   }
 
+  Future<bool> verifyUserPin(String pin) async =>
+      await _secureStorage.verifyUserPin(pin);
+
+  Future<bool> userExists() async => await _secureStorage.pinExists();
+
+  //TODO: solidify the wallet security options into a class once we know how this will be handled in the API.
+  Future<Wallet?> validateWalletImport({
+    required String walletName,
+    required String walletType,
+    required String securityType,
+    required String securityValue,
+    String? password,
+  }) async {
+    await Future.delayed(Duration(seconds: 5));
+
+    final random = Random().nextInt(999999);
+
+    final importedWallet = Wallet(
+      walletName: walletName,
+      currencySymbol: walletType,
+      currencyName: walletType,
+      balance: 10,
+      address: random.toString(),
+      transactions: [],
+    );
+
+    await _secureStorage.saveWallet(importedWallet);
+
+    return importedWallet;
+  }
+
   Future<bool> loadFFIBridgePrebuilt() async {
-    // final FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
     ffiBridgePrebuilt = FFIBridgePrebuilt();
     return true;
   }

@@ -14,6 +14,7 @@ class RecoveryWordTapped extends NewWalletEvent {
   });
 }
 
+/// Event thrown when the user acknowledges the recovery phrase they received
 class RecoveryVerificationContinue extends NewWalletEvent {}
 
 class ToggleCheckbox extends NewWalletEvent {}
@@ -24,10 +25,14 @@ class AddWallet extends NewWalletEvent {
   AddWallet({required this.wallet});
 }
 
-class ChangeStep extends NewWalletEvent {
-  final NewWalletStep step;
+class AgreementAccepted extends NewWalletEvent {
+  final bool userExists;
 
-  ChangeStep({
-    required this.step,
-  });
+  AgreementAccepted({required this.userExists});
 }
+
+class PinCreated extends NewWalletEvent {}
+
+class PinConfirmPassed extends NewWalletEvent {}
+
+class PinConfirmFailed extends NewWalletEvent {}

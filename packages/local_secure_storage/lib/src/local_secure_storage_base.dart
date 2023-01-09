@@ -68,10 +68,27 @@ class LocalWalletStorage extends SecureStorage {
   }
 
   @override
-  Future<String> getUserPin() async =>
-      await _secureStorage.read(key: _pinKey) ?? '';
-
-  @override
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.write(key: _pinKey, value: pin);
+
+  @override
+  Future<bool> verifyUserPin(String pin) async {
+    try {
+      final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
+
+      return storedPin.isNotEmpty && storedPin == pin;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> pinExists() async {
+    try {
+      final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
+      return storedPin.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
 }
