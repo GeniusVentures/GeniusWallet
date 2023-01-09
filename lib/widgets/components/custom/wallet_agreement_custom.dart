@@ -4,11 +4,13 @@ class WalletAgreementCustom extends StatefulWidget {
   final Widget? child;
   final bool? value;
   final void Function(bool?)? onChanged;
+  final String? text;
   WalletAgreementCustom({
     Key? key,
     this.value,
     this.onChanged,
     this.child,
+    this.text,
   }) : super(key: key);
 
   @override
@@ -25,10 +27,11 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
           value: widget.value ?? false,
           onChanged: widget.onChanged,
         ),
-        const Flexible(
+        Flexible(
           flex: 10,
           child: Text(
-            'I’ve read and accept the Terms of Service and Privacy Policy',
+            widget.text ??
+                'I’ve read and accept the Terms of Service and Privacy Policy',
           ),
         ),
       ],

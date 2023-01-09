@@ -13,5 +13,7 @@ abstract class SecureStorage {
 
   Future<void> storeUserPin(String pin);
 
-  Future<String> getUserPin();
+  Future<bool> verifyUserPin(String pin);
+
+  Future<bool> pinExists();
 }
