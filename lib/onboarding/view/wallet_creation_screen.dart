@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
@@ -7,7 +8,6 @@ import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.d
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     /// TODO: @David, edit this BlocBuilder according to your needs with FFI lib.
@@ -16,9 +16,9 @@ class LandingScreen extends StatelessWidget {
         if (state.ffiStatus == AppStatus.loading) {
           return const CircularProgressIndicator();
         } else if (state.ffiStatus == AppStatus.loaded) {
-          final ffiBridgePrebuilt =
-              context.read<AppBloc>().state.ffiInformation;
-
+          // final ffiBridgePrebuilt =
+          //     context.read<AppBloc>().state.ffiInformation;
+          final api = context.read<GeniusApi>();
           return Scaffold(
             body: AppScreenView(
               body: SizedBox(
@@ -56,8 +56,7 @@ class LandingScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(40),
                         child: ElevatedButton(
                             onPressed: () {
-                              final valueTest =
-                                  ffiBridgePrebuilt?.getValueFromNative();
+                              final valueTest = api.getNativeValue();
                               debugPrint(
                                   'Getting valueTest From xxx C++: $valueTest');
                             },

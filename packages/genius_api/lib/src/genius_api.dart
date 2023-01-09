@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/models/transaction.dart';
@@ -8,6 +9,7 @@ import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
   final SecureStorage _secureStorage;
+  FFIBridgePrebuilt? ffiBridgePrebuilt;
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() =>
@@ -134,8 +136,13 @@ class GeniusApi {
     return fiatAmount / 1551.40;
   }
 
-  Future<FFIBridgePrebuilt> loadFFIBridgePrebuilt() async {
-    final FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
-    return ffiBridgePrebuilt;
+  Future<bool> loadFFIBridgePrebuilt() async {
+    // final FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
+    ffiBridgePrebuilt = FFIBridgePrebuilt();
+    return true;
+  }
+
+  double? getNativeValue() {
+    return ffiBridgePrebuilt?.getValueFromNative();
   }
 }
