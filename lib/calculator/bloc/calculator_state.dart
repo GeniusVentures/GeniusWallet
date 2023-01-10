@@ -41,7 +41,7 @@ class CalculatorState extends Equatable {
       currencyTo: currencyTo ?? this.currencyTo,
       getCurrenciesStatus: getCurrenciesStatus ?? this.getCurrenciesStatus,
       amountToConvert: amountToConvert ?? this.amountToConvert,
-      getResultStatus: getResultStatus ?? this.getCurrenciesStatus,
+      getResultStatus: getResultStatus ?? this.getResultStatus,
       conversionResult: conversionResult ?? this.conversionResult,
     );
   }
