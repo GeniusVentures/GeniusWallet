@@ -4,6 +4,4 @@ abstract class AppEvent {}
 
 class SubscribeToWallets extends AppEvent {}
 
-class FFIOnInit extends AppEvent {}
-
 class CheckIfUserExists extends AppEvent {}
