@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/widgets/currency_dropdown.dart';
-import 'package:genius_wallet/calculator/bloc/calculator_cubit.dart';
+import 'package:genius_wallet/calculator/bloc/calculator_bloc.dart';
+import 'package:genius_wallet/calculator/bloc/calculator_event.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 
 class CurrencyDropdownFromCustom extends StatefulWidget {
@@ -20,11 +21,13 @@ class _CurrencyDropdownFromCustomState
     extends State<CurrencyDropdownFromCustom> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalculatorCubit, CalculatorState>(
+    return BlocBuilder<CalculatorBloc, CalculatorState>(
       builder: (context, state) {
         return CurrencyDropdown(
           currencies: state.currencies,
-          onChanged: context.read<CalculatorCubit>().fromCurrencySelected,
+          onChanged: (currency) => context
+              .read<CalculatorBloc>()
+              .add(FromCurrencySelected(currency: currency)),
           value: state.currencyFrom,
         );
       },
