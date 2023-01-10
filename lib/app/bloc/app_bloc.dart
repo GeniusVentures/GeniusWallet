@@ -15,7 +15,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<SubscribeToWallets>(_onSubscribeToWallets);
 
     on<CheckIfUserExists>(_onCheckIfUserExists);
-    on<FFIOnInit>(_onFFIInit);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -57,17 +56,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       ));
     } catch (e) {
       emit(state.copyWith(loadUserStatus: AppStatus.error));
-    }
-  }
-
-  FutureOr<void> _onFFIInit(FFIOnInit event, Emitter<AppState> emit) async {
-    emit(state.copyWith(ffiStatus: AppStatus.loading));
-    try {
-      final ffiBridgePrebuilt = await api.loadFFIBridgePrebuilt();
-      emit(state.copyWith(
-          information: ffiBridgePrebuilt, ffiStatus: AppStatus.loaded));
-    } catch (e) {
-      emit(state.copyWith(ffiStatus: AppStatus.error));
     }
   }
 }

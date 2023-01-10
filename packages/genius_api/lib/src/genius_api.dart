@@ -21,7 +21,8 @@ class GeniusApi {
 
   GeniusApi({
     required SecureStorage secureStorage,
-  }) : _secureStorage = secureStorage;
+  })  : _secureStorage = secureStorage,
+        ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or proper gen.
@@ -164,11 +165,6 @@ class GeniusApi {
     await _secureStorage.saveWallet(importedWallet);
 
     return importedWallet;
-  }
-
-  Future<bool> loadFFIBridgePrebuilt() async {
-    ffiBridgePrebuilt = FFIBridgePrebuilt();
-    return true;
   }
 
   double? getNativeValue() {
