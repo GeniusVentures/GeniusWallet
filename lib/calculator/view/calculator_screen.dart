@@ -107,7 +107,8 @@ class _CalculatorView extends StatelessWidget {
                             builder: (context, state) {
                               if (state.getResultStatus ==
                                   CalculatorStatus.loading) {
-                                return const Center(child: CircularProgressIndicator());
+                                return const Center(
+                                    child: CircularProgressIndicator());
                               }
                               if (state.conversionResult.isNotEmpty) {
                                 return ConversionResult(
