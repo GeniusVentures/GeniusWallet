@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:genius_api/models/currency.dart';
 import 'package:genius_api/models/transaction.dart';
@@ -136,6 +137,7 @@ class GeniusApi {
 
   /// Returns a list of supported [Currencies] for calculating conversions
   Future<List<Currency>> getCalculatorCurrencies() async {
+    await Future.delayed(Duration(seconds: 2));
     return [
       Currency(
         symbol: 'BTC',
@@ -152,5 +154,13 @@ class GeniusApi {
         priceDate: DateTime.now().toIso8601String(),
       ),
     ];
+  }
+
+  Future<String> convertCurrencies(
+      {required Currency fromCurrency, required Currency toCurrency}) async {
+    await Future.delayed(Duration(seconds: 1));
+    final randomNum = Random().nextDouble() * 500;
+
+    return randomNum.toString();
   }
 }
