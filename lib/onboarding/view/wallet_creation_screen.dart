@@ -41,19 +41,17 @@ class LandingScreen extends StatelessWidget {
                   builder: (context, constraints) => TypeExisting(constraints),
                 ),
               ),
-              Visibility(
-                  visible: true,
-                  child: Container(
-                      margin: const EdgeInsets.only(top: 10.0),
-                      child: ElevatedButton(
-                          onPressed: () {
-                            // This part is only to test FFI bridge to call native C function.
-                            // We will remove this part later.
-                            final valueTest = api.getNativeValue();
-                            debugPrint(
-                                'Getting valueTest From xxx C++: $valueTest');
-                          },
-                          child: Text("Test C++ code in Android!"))))
+              Container(
+                  margin: const EdgeInsets.only(top: 10.0),
+                  child: ElevatedButton(
+                      onPressed: () {
+                        // This part is only to test FFI bridge to call native C function.
+                        // We will remove this part later.
+                        final valueTest = api.getNativeValue();
+                        debugPrint(
+                            'Getting valueTest From xxx C++: $valueTest');
+                      },
+                      child: Text("Test C++ code in Android!")))
             ],
           ),
         ),
