@@ -8,27 +8,42 @@ class AppState extends Equatable {
 
   final AppStatus subscribeToWalletStatus;
 
+  final AppStatus loadUserStatus;
+
+  final UserStatus userStatus;
+
   const AppState({
     this.wallets = const [],
     this.subscribeToWalletStatus = AppStatus.initial,
     this.transactions = const [],
+    this.loadUserStatus = AppStatus.initial,
+    this.userStatus = UserStatus.initial,
   });
 
-  AppState copyWith({
-    List<Wallet>? wallets,
-    List<Transaction>? transactions,
-    AppStatus? subscribeToWalletStatus,
-  }) {
+  AppState copyWith(
+      {List<Wallet>? wallets,
+      List<Transaction>? transactions,
+      AppStatus? subscribeToWalletStatus,
+      AppStatus? loadUserStatus,
+      UserStatus? userStatus}) {
     return AppState(
       wallets: wallets ?? this.wallets,
       subscribeToWalletStatus:
           subscribeToWalletStatus ?? this.subscribeToWalletStatus,
       transactions: transactions ?? this.transactions,
+      loadUserStatus: loadUserStatus ?? this.loadUserStatus,
+      userStatus: userStatus ?? this.userStatus,
     );
   }
 
   @override
-  List<Object?> get props => [wallets, transactions, subscribeToWalletStatus];
+  List<Object?> get props => [
+        wallets,
+        transactions,
+        subscribeToWalletStatus,
+        loadUserStatus,
+        userStatus,
+      ];
 }
 
 enum AppStatus {
@@ -36,4 +51,10 @@ enum AppStatus {
   loading,
   loaded,
   error,
+}
+
+enum UserStatus {
+  initial,
+  exists,
+  nonExistent,
 }

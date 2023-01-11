@@ -4,12 +4,6 @@ abstract class ExistingWalletEvent {}
 
 class ToggleLegal extends ExistingWalletEvent {}
 
-class ChangeStep extends ExistingWalletEvent {
-  FlowStep step;
-
-  ChangeStep({required this.step});
-}
-
 class ImportWalletSelected extends ExistingWalletEvent {
   String walletName;
 
@@ -44,6 +38,12 @@ class PinCreated extends ExistingWalletEvent {
   PinCreated({required this.pin});
 }
 
-class PinCheckSuccessful extends ExistingWalletEvent {}
+class PinConfirmPassed extends ExistingWalletEvent {}
 
-class PinCheckFailed extends ExistingWalletEvent {}
+class PinConfirmFailed extends ExistingWalletEvent {}
+
+class LegalAccepted extends ExistingWalletEvent {
+  final bool userExists;
+
+  LegalAccepted({required this.userExists});
+}
