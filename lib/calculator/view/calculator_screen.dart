@@ -7,6 +7,7 @@ import 'package:genius_wallet/calculator/bloc/calculator_bloc.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_event.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
+import 'package:genius_wallet/widgets/components/coin_stats_card.g.dart';
 import 'package:genius_wallet/widgets/components/conversion_result.g.dart';
 import 'package:genius_wallet/widgets/components/currency_selector/mode_from.g.dart';
 import 'package:genius_wallet/widgets/components/currency_selector/mode_to.g.dart';
@@ -118,12 +119,14 @@ class _CalculatorView extends StatelessWidget {
                                       '${state.currencyFrom!.symbol} = ${state.conversionResult} ${state.currencyTo!.symbol}',
                                 );
                               }
-                              return Container();
+                              return const SizedBox();
                             },
                           );
                         },
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    const CoinsOverview(),
                   ],
                 ),
               ),
@@ -136,6 +139,60 @@ class _CalculatorView extends StatelessWidget {
             ),
           );
         }
+      },
+    );
+  }
+}
+
+class CoinsOverview extends StatelessWidget {
+  const CoinsOverview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CalculatorBloc, CalculatorState>(
+      builder: (context, state) {
+        if (state.getResultStatus == CalculatorStatus.loaded) {
+          return Column(
+            children: [
+              SizedBox(
+                height: 200,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return CoinStatsCard(
+                      constraints,
+                      ovrCoinName: state.currencyFrom!.name,
+                      ovrCurrencySymbol: state.currencyFrom!.symbol,
+                      ovrAmountchanged: '', //TODO:
+                      ovrShape: state.currencyFrom!.logoUrl == null
+                          ? Container()
+                          : Image.network(state.currencyFrom!.logoUrl!),
+                      ovrPrice: state.currencyFrom!.price,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 200,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return CoinStatsCard(
+                      constraints,
+                      ovrCoinName: state.currencyTo!.name,
+                      ovrCurrencySymbol: state.currencyTo!.symbol,
+                      ovrAmountchanged: '', //TODO:
+                      ovrShape: state.currencyTo!.logoUrl == null
+                          ? Container()
+                          : Image.network(state.currencyTo!.logoUrl!),
+                      ovrPrice: state.currencyTo!.price,
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        }
+        return const SizedBox();
       },
     );
   }
