@@ -26,5 +26,6 @@ dependencies:
   freezed_annotation: ^2.1.0
   json_annotation: ^4.7.0
   rxdart: ^0.27.7
+  ffi: ^2.0.1
   secure_storage:
     path: ../secure_storage

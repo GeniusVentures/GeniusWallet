@@ -22,7 +22,6 @@ dependencies:
   url_launcher: ^6.1.6
   local_secure_storage:
     path: packages/local_secure_storage
-  ffi: ^2.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
