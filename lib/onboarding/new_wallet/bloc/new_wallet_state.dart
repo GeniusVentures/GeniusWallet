@@ -12,8 +12,6 @@ class NewWalletState extends Equatable {
 
   final bool acceptedWarning;
 
-  final String createdPin;
-
   const NewWalletState({
     this.currentStep = NewWalletStep.agreement,
     this.recoveryPhraseStatus = NewWalletStatus.initial,
@@ -22,7 +20,6 @@ class NewWalletState extends Equatable {
     this.selectedWords = const [],
     this.verificationStatus = VerificationStatus.intial,
     this.acceptedWarning = false,
-    this.createdPin = '',
   });
 
   NewWalletState copyWith({
@@ -33,7 +30,6 @@ class NewWalletState extends Equatable {
     List<String>? selectedWords,
     VerificationStatus? verificationStatus,
     bool? acceptedWarning,
-    String? createdPin,
   }) {
     return NewWalletState(
       currentStep: currentStep ?? this.currentStep,
@@ -43,7 +39,6 @@ class NewWalletState extends Equatable {
       selectedWords: selectedWords ?? this.selectedWords,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       acceptedWarning: acceptedWarning ?? this.acceptedWarning,
-      createdPin: createdPin ?? this.createdPin,
     );
   }
 
@@ -56,7 +51,6 @@ class NewWalletState extends Equatable {
         selectedWords,
         verificationStatus,
         acceptedWarning,
-        createdPin,
       ];
 }
 

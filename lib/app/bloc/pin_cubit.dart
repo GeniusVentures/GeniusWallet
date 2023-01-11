@@ -57,25 +57,14 @@ class PinCubit extends Cubit<PinState> {
   }
 
   /// Verifies [pin] with the user-set pin
-  Future<void> verifyPin(String pin) async {
-    final userPin = await geniusApi.getUserPin();
+  Future<void> verifyPin() async {
+    final pin = state.controller.text;
+    final isVerified = await geniusApi.verifyUserPin(pin);
 
-    if (pin == userPin) {
+    if (isVerified) {
       emit(state.copyWith(verificationStatus: VerificationStatus.pass));
     } else {
       pinConfirmFailed();
-    }
-  }
-
-  FutureOr<void> onPinCheckSuccessful() async {
-    try {
-      emit(state.copyWith(
-        savePinStatus: SavePinStatus.loading,
-      ));
-      await geniusApi.storeUserPin(state.controller.text);
-      emit(state.copyWith(savePinStatus: SavePinStatus.success));
-    } catch (e) {
-      emit(state.copyWith(savePinStatus: SavePinStatus.error));
     }
   }
 }

@@ -114,8 +114,6 @@ class GeniusApi {
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.storeUserPin(pin);
 
-  Future<String> getUserPin() async => await _secureStorage.getUserPin();
-
   Future<Transaction> postTransaction(Transaction transaction) async {
     await Future.delayed(Duration(seconds: 5));
 
@@ -156,11 +154,44 @@ class GeniusApi {
     ];
   }
 
+  /// Converts [fromCurrency] to [toCurrency] and returns a [String] representation of the conversion.
   Future<String> convertCurrencies(
       {required Currency fromCurrency, required Currency toCurrency}) async {
     await Future.delayed(Duration(seconds: 1));
     final randomNum = Random().nextDouble() * 500;
 
     return randomNum.toString();
+  }
+
+  /// Verifies that the saved user pin matches [pin].
+  Future<bool> verifyUserPin(String pin) async =>
+      await _secureStorage.verifyUserPin(pin);
+
+  Future<bool> userExists() async => await _secureStorage.pinExists();
+
+  //TODO: solidify the wallet security options into a class once we know how this will be handled in the API.
+  Future<Wallet?> validateWalletImport({
+    required String walletName,
+    required String walletType,
+    required String securityType,
+    required String securityValue,
+    String? password,
+  }) async {
+    await Future.delayed(Duration(seconds: 5));
+
+    final random = Random().nextInt(999999);
+
+    final importedWallet = Wallet(
+      walletName: walletName,
+      currencySymbol: walletType,
+      currencyName: walletType,
+      balance: 10,
+      address: random.toString(),
+      transactions: [],
+    );
+
+    await _secureStorage.saveWallet(importedWallet);
+
+    return importedWallet;
   }
 }
