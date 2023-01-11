@@ -15,6 +15,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<SubscribeToWallets>(_onSubscribeToWallets);
 
     on<CheckIfUserExists>(_onCheckIfUserExists);
+
+    on<FFITestEvent>(_onFFITestEvent);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -57,5 +59,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     } catch (e) {
       emit(state.copyWith(loadUserStatus: AppStatus.error));
     }
+  }
+
+  FutureOr<void> _onFFITestEvent(FFITestEvent event, Emitter<AppState> emit) {
+    //NOTE: No asyncs/awaits here since this method is synchronous.
+    //NOTE: If they were async, we'd need to have a loading status
+    final ffiDouble = api.getNativeValue();
+
+    emit(state.copyWith(ffiDouble: ffiDouble));
   }
 }

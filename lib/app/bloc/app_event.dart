@@ -5,3 +5,6 @@ abstract class AppEvent {}
 class SubscribeToWallets extends AppEvent {}
 
 class CheckIfUserExists extends AppEvent {}
+
+/// Class whose purpose is to test FFI Bridge functionality
+class FFITestEvent extends AppEvent {}
