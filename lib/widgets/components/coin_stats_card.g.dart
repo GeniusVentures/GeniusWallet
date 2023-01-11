@@ -166,12 +166,12 @@ class _CoinStatsCard extends State<CoinStatsCard> {
               ),
               Positioned(
                 right: 20.0,
-                width: 24.0,
+                width: 66.0,
                 bottom: 51.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
-                    width: 24.0,
+                    width: 66.0,
                     child: AutoSizeText(
                       widget.ovrCurrencySymbol ?? 'USD',
                       style: TextStyle(
