@@ -11,7 +11,8 @@ class LandingScreen extends StatelessWidget {
     //TODO: Can make this future based instead
     return Scaffold(
       body: AppScreenView(
-        body: SizedBox(
+        body: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
           height: MediaQuery.of(context).size.height,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -24,8 +25,8 @@ class LandingScreen extends StatelessWidget {
                 height: 50,
               ),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
                 height: 50,
+                width: 450,
                 child: LayoutBuilder(
                   builder: (context, constraints) => TypeCreate(constraints),
                 ),
@@ -34,8 +35,8 @@ class LandingScreen extends StatelessWidget {
                 height: 50,
               ),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
                 height: 50,
+                width: 450,
                 child: LayoutBuilder(
                   builder: (context, constraints) => TypeExisting(constraints),
                 ),
