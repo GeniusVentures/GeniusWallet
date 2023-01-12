@@ -16,6 +16,7 @@ import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
+import 'package:genius_wallet/markets/view/markets_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -250,6 +251,12 @@ final geniusWalletRouter = GoRouter(
           value: state.extra as WalletDetailsCubit,
           child: const NotEnoughBalanceScreen(),
         );
+      },
+    ),
+    GoRoute(
+      path: '/markets',
+      builder: (context, state) {
+        return const MarketsScreen();
       },
     ),
     GoRoute(
