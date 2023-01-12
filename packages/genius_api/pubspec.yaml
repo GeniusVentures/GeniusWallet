@@ -19,7 +19,6 @@ dev_dependencies:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_secure_storage: ^4.2.1
   flutter_test:
     sdk: flutter
     version: ^0.0.0
