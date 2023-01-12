@@ -22,6 +22,7 @@ dependencies:
   url_launcher: ^6.1.6
   local_secure_storage: 
     path: packages/local_secure_storage
+  responsive_framework: ^0.2.0
 dev_dependencies: 
   flutter_test: 
     sdk: flutter
