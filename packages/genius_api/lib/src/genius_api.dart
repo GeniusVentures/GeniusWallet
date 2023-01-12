@@ -194,4 +194,24 @@ class GeniusApi {
 
     return importedWallet;
   }
+
+  Future<List<Currency>> getMarkets() async {
+    await Future.delayed(Duration(seconds: 2));
+    return [
+      Currency(
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '17000',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+      Currency(
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '1300',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+    ];
+  }
 }
