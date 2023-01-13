@@ -6,26 +6,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/currency_dropdown_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/currency_dropdown_to_custom.dart';
 
-class CurrencySelector extends StatefulWidget {
+class ModeTo extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrTitle;
-  final String? ovrBitcoinBTC;
+  final String? ovrcurrency;
   final Widget? ovrMaskCurrencySelector;
-  const CurrencySelector(
+  const ModeTo(
     this.constraints, {
     Key? key,
     this.ovrTitle,
-    this.ovrBitcoinBTC,
+    this.ovrcurrency,
     this.ovrMaskCurrencySelector,
   }) : super(key: key);
   @override
-  _CurrencySelector createState() => _CurrencySelector();
+  _ModeTo createState() => _ModeTo();
 }
 
-class _CurrencySelector extends State<CurrencySelector> {
-  _CurrencySelector();
+class _ModeTo extends State<ModeTo> {
+  _ModeTo();
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class _CurrencySelector extends State<CurrencySelector> {
                     height: 14.0,
                     width: 68.0,
                     child: AutoSizeText(
-                      widget.ovrTitle ?? 'FROM',
+                      widget.ovrTitle ?? 'TO',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,
@@ -63,7 +63,7 @@ class _CurrencySelector extends State<CurrencySelector> {
                 width: 311.0,
                 top: 43.0,
                 height: 35.0,
-                child: CurrencyDropdownCustom(
+                child: CurrencyDropdownToCustom(
                     child: Container(
                         decoration: BoxDecoration(),
                         child: Stack(children: [
@@ -98,8 +98,7 @@ class _CurrencySelector extends State<CurrencySelector> {
                                         height: 35.0,
                                         width: 178.0,
                                         child: AutoSizeText(
-                                          widget.ovrBitcoinBTC ??
-                                              'Bitcoin (BTC)',
+                                          widget.ovrcurrency ?? 'Bitcoin (BTC)',
                                           style: TextStyle(
                                             fontFamily: 'Roboto',
                                             fontSize: 30.0,
