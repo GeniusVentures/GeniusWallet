@@ -46,7 +46,7 @@ class LandingScreen extends StatelessWidget {
                   onPressed: () {
                     context.read<AppBloc>().add(FFITestEvent());
                   },
-                  child: const Text("Test C++ code in Android!"),
+                  child: const Text("Test C++ native code!"),
                 ),
               ),
               BlocBuilder<AppBloc, AppState>(
