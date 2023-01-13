@@ -133,7 +133,7 @@ class _WalletPreview extends State<WalletPreview> {
                             Image.asset(
                               'assets/images/coinicon.png',
                               package: 'genius_wallet',
-                              height: 21.82007598876953,
+                              height: 21.820068359375,
                               width: 16.484375,
                               fit: BoxFit.none,
                             ),

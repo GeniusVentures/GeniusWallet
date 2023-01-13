@@ -5,6 +5,7 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/app/widgets/hamburger_menu.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
@@ -18,6 +19,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      endDrawer: const HamburgerMenu(),
       body: AppScreenView(
         body: BlocBuilder<AppBloc, AppState>(
           builder: (context, state) {

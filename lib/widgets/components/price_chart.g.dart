@@ -1203,7 +1203,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0.892,
                                             height: 8.574,
                                             child: Container(
-                                              height: 8.573837280273438,
+                                              height: 8.5738525390625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffc11e0f),
@@ -1216,7 +1216,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 1.143,
                                             child: Container(
-                                              height: 1.1431732177734375,
+                                              height: 1.1431884765625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffc11e0f),
@@ -1391,7 +1391,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 12.499,
                                             height: 7.249,
                                             child: Container(
-                                              height: 7.249420166015625,
+                                              height: 7.24945068359375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1417,7 +1417,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 1.0,
                                             height: 12.811,
                                             child: Container(
-                                              height: 12.811065673828125,
+                                              height: 12.81109619140625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1460,7 +1460,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 1.0,
                                             height: 16.04,
                                             child: Container(
-                                              height: 16.039718627929688,
+                                              height: 16.03973388671875,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1502,7 +1502,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 91.743,
                                             height: 13.382,
                                             child: Container(
-                                              height: 13.381790161132812,
+                                              height: 13.38177490234375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1515,7 +1515,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 93.912,
                                             child: Container(
-                                              height: 93.91206359863281,
+                                              height: 93.91204833984375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1558,7 +1558,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 9.559,
                                             height: 6.097,
                                             child: Container(
-                                              height: 6.096954345703125,
+                                              height: 6.096923828125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1584,7 +1584,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 6.976,
                                             child: Container(
-                                              height: 6.9758758544921875,
+                                              height: 6.97589111328125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1600,7 +1600,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 6.786,
                                             height: 8.002,
                                             child: Container(
-                                              height: 8.002243041992188,
+                                              height: 8.00225830078125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1642,7 +1642,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 82.534,
                                             child: Container(
-                                              height: 82.53445434570312,
+                                              height: 82.534423828125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1668,7 +1668,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 24.028,
                                             child: Container(
-                                              height: 24.027725219726562,
+                                              height: 24.0277099609375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1681,7 +1681,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 17.064,
                                             height: 44.229,
                                             child: Container(
-                                              height: 44.229461669921875,
+                                              height: 44.2294921875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1708,7 +1708,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 41.253,
                                             height: 24.11,
                                             child: Container(
-                                              height: 24.110183715820312,
+                                              height: 24.11016845703125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1748,7 +1748,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 38.277,
                                             height: 24.321,
                                             child: Container(
-                                              height: 24.320999145507812,
+                                              height: 24.32098388671875,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1761,7 +1761,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 71.464,
                                             child: Container(
-                                              height: 71.46406555175781,
+                                              height: 71.46405029296875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1788,7 +1788,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 6.842,
                                             height: 4.031,
                                             child: Container(
-                                              height: 4.0313262939453125,
+                                              height: 4.03131103515625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1801,7 +1801,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 10.115,
                                             child: Container(
-                                              height: 10.114639282226562,
+                                              height: 10.1146240234375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1828,7 +1828,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 7.153,
                                             height: 2.334,
                                             child: Container(
-                                              height: 2.334381103515625,
+                                              height: 2.33441162109375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1868,7 +1868,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 16.806,
                                             height: 2.724,
                                             child: Container(
-                                              height: 2.7240142822265625,
+                                              height: 2.7239990234375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1884,7 +1884,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 19.348,
                                             height: 6.055,
                                             child: Container(
-                                              height: 6.0546112060546875,
+                                              height: 6.05462646484375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1926,7 +1926,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 8.635,
                                             child: Container(
-                                              height: 8.635452270507812,
+                                              height: 8.63543701171875,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1939,7 +1939,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 2.234,
                                             height: 4.603,
                                             child: Container(
-                                              height: 4.6027984619140625,
+                                              height: 4.602783203125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -1966,7 +1966,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 2.858,
                                             height: 9.858,
                                             child: Container(
-                                              height: 9.857940673828125,
+                                              height: 9.85791015625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -1982,7 +1982,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 2.858,
                                             child: Container(
-                                              height: 2.857940673828125,
+                                              height: 2.85797119140625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2008,7 +2008,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 1.891,
                                             height: 2.197,
                                             child: Container(
-                                              height: 2.1970672607421875,
+                                              height: 2.19708251953125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2021,7 +2021,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 7.263,
                                             child: Container(
-                                              height: 7.262542724609375,
+                                              height: 7.26251220703125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2048,7 +2048,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 50.908,
                                             height: 25.096,
                                             child: Container(
-                                              height: 25.096405029296875,
+                                              height: 25.09637451171875,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2080,7 +2080,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 51.164,
                                             child: Container(
-                                              height: 51.16435241699219,
+                                              height: 51.16436767578125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2106,7 +2106,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 18.724,
                                             child: Container(
-                                              height: 18.723983764648438,
+                                              height: 18.7239990234375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2119,7 +2119,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 4.548,
                                             height: 14.176,
                                             child: Container(
-                                              height: 14.175735473632812,
+                                              height: 14.17572021484375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2132,7 +2132,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 2.24,
                                             height: 4.616,
                                             child: Container(
-                                              height: 4.6155853271484375,
+                                              height: 4.6156005859375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2214,7 +2214,7 @@ class _PriceChart extends State<PriceChart> {
                                           Positioned(
                                             left: 0,
                                             width: 2.808,
-                                            top: 9.437,
+                                            top: 9.438,
                                             height: 8.033,
                                             child: Container(
                                               height: 8.0325927734375,
@@ -2259,7 +2259,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 9.642,
                                             height: 2.022,
                                             child: Container(
-                                              height: 2.0222320556640625,
+                                              height: 2.022216796875,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2275,7 +2275,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 9.886,
                                             child: Container(
-                                              height: 9.885604858398438,
+                                              height: 9.8856201171875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2349,7 +2349,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 4.415,
                                             child: Container(
-                                              height: 4.4150238037109375,
+                                              height: 4.4150390625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2365,7 +2365,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 4.414,
                                             height: 8.197,
                                             child: Container(
-                                              height: 8.196517944335938,
+                                              height: 8.196533203125,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2391,7 +2391,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 6.867,
                                             height: 4.6,
                                             child: Container(
-                                              height: 4.599700927734375,
+                                              height: 4.59967041015625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2404,7 +2404,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 10.151,
                                             child: Container(
-                                              height: 10.151412963867188,
+                                              height: 10.15142822265625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2444,7 +2444,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 15.797,
                                             child: Container(
-                                              height: 15.796646118164062,
+                                              height: 15.796630859375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2484,7 +2484,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 5.54,
                                             child: Container(
-                                              height: 5.540008544921875,
+                                              height: 5.5400390625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2511,7 +2511,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 3.194,
                                             height: 7.577,
                                             child: Container(
-                                              height: 7.577423095703125,
+                                              height: 7.57745361328125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2527,7 +2527,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 3.195,
                                             child: Container(
-                                              height: 3.1952056884765625,
+                                              height: 3.1951904296875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2569,7 +2569,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0.999,
                                             height: 2.84,
                                             child: Container(
-                                              height: 2.840179443359375,
+                                              height: 2.8402099609375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2595,7 +2595,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 15.035,
                                             height: 1.194,
                                             child: Container(
-                                              height: 1.194122314453125,
+                                              height: 1.19415283203125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2611,7 +2611,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 15.255,
                                             child: Container(
-                                              height: 15.254745483398438,
+                                              height: 15.2547607421875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2679,7 +2679,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 18.58,
                                             child: Container(
-                                              height: 18.579544067382812,
+                                              height: 18.57952880859375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2695,7 +2695,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 18.579,
                                             height: 1.299,
                                             child: Container(
-                                              height: 1.298553466796875,
+                                              height: 1.298583984375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2721,7 +2721,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 13.303,
                                             child: Container(
-                                              height: 13.302642822265625,
+                                              height: 13.30267333984375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2737,7 +2737,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 13.114,
                                             height: 1.363,
                                             child: Container(
-                                              height: 1.363494873046875,
+                                              height: 1.36346435546875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2763,7 +2763,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 1.363,
                                             height: 4.026,
                                             child: Container(
-                                              height: 4.0258636474609375,
+                                              height: 4.02587890625,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2779,7 +2779,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 1.363,
                                             child: Container(
-                                              height: 1.363494873046875,
+                                              height: 1.36346435546875,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2805,7 +2805,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 7.438,
                                             child: Container(
-                                              height: 7.437652587890625,
+                                              height: 7.43768310546875,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2863,7 +2863,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 1.14,
                                             height: 14.021,
                                             child: Container(
-                                              height: 14.021133422851562,
+                                              height: 14.0211181640625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
@@ -2889,7 +2889,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 13.489,
                                             height: 2.133,
                                             child: Container(
-                                              height: 2.1333160400390625,
+                                              height: 2.13330078125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2902,7 +2902,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 15.383,
                                             child: Container(
-                                              height: 15.382888793945312,
+                                              height: 15.38287353515625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2919,7 +2919,7 @@ class _PriceChart extends State<PriceChart> {
                                     left: 234.0,
                                     width: 2.808,
                                     top: 71.214,
-                                    height: 16.363,
+                                    height: 16.362,
                                     child: Container(
                                         decoration: BoxDecoration(),
                                         child: Stack(children: [
@@ -2942,7 +2942,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0.485,
                                             height: 15.877,
                                             child: Container(
-                                              height: 15.877349853515625,
+                                              height: 15.8773193359375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2969,7 +2969,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 9.33,
                                             child: Container(
-                                              height: 9.330047607421875,
+                                              height: 9.33001708984375,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -2982,7 +2982,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 4.555,
                                             height: 6.002,
                                             child: Container(
-                                              height: 6.001678466796875,
+                                              height: 6.001708984375,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -3022,7 +3022,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 4.555,
                                             height: 9.322,
                                             child: Container(
-                                              height: 9.322250366210938,
+                                              height: 9.322265625,
                                               width: 1.0,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
@@ -3049,7 +3049,7 @@ class _PriceChart extends State<PriceChart> {
                                             top: 0,
                                             height: 6.542,
                                             child: Container(
-                                              height: 6.5420989990234375,
+                                              height: 6.5421142578125,
                                               width: 2.8076171875,
                                               decoration: BoxDecoration(
                                                 color: Color(0xffda0a0a),
