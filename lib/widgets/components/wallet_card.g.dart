@@ -5,11 +5,11 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/white_arrow/pointing_right.g.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_card_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/white_arrow_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/widgets/components/white_arrow/pointing_right.g.dart';
 
 class WalletCard extends StatefulWidget {
   final BoxConstraints constraints;

@@ -50,14 +50,14 @@ class _ConversionResult extends State<ConversionResult> {
                 ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.248,
-                width: widget.constraints.maxWidth * 0.52,
+                left: widget.constraints.maxWidth * 0.075,
+                width: widget.constraints.maxWidth * 0.846,
                 top: widget.constraints.maxHeight * 0.568,
-                height: widget.constraints.maxHeight * 0.182,
+                height: widget.constraints.maxHeight * 0.341,
                 child: Center(
                     child: Container(
-                        height: 24.0,
-                        width: 159.0,
+                        height: 45.0,
+                        width: 259.0,
                         child: AutoSizeText(
                           widget.ovrResult ?? 'BTC = 3748.76 USD',
                           style: TextStyle(
@@ -74,10 +74,10 @@ class _ConversionResult extends State<ConversionResult> {
                 left: widget.constraints.maxWidth * 0.075,
                 width: widget.constraints.maxWidth * 0.846,
                 top: widget.constraints.maxHeight * 0.189,
-                height: widget.constraints.maxHeight * 0.197,
+                height: widget.constraints.maxHeight * 0.303,
                 child: Center(
                     child: Container(
-                        height: 26.0,
+                        height: 40.0,
                         width: 259.0,
                         child: AutoSizeText(
                           widget.ovrAmountentered ?? '0.3333333333',

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
+import 'package:genius_api/models/currency.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
@@ -135,6 +136,37 @@ class GeniusApi {
     return fiatAmount / 1551.40;
   }
 
+  /// Returns a list of supported [Currencies] for calculating conversions
+  Future<List<Currency>> getCalculatorCurrencies() async {
+    await Future.delayed(Duration(seconds: 2));
+    return [
+      Currency(
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '16949.30',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+      Currency(
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '1268.94',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+    ];
+  }
+
+  /// Converts [fromCurrency] to [toCurrency] and returns a [String] representation of the conversion.
+  Future<String> convertCurrencies(
+      {required Currency fromCurrency, required Currency toCurrency}) async {
+    await Future.delayed(Duration(seconds: 1));
+    final randomNum = Random().nextDouble() * 500;
+
+    return randomNum.toString();
+  }
+
+  /// Verifies that the saved user pin matches [pin].
   Future<bool> verifyUserPin(String pin) async =>
       await _secureStorage.verifyUserPin(pin);
 
@@ -166,7 +198,27 @@ class GeniusApi {
     return importedWallet;
   }
 
-  double getNativeValue() {
+  double? getNativeValue() {
     return ffiBridgePrebuilt.getValueFromNative();
+  }
+
+  Future<List<Currency>> getMarkets() async {
+    await Future.delayed(Duration(seconds: 2));
+    return [
+      Currency(
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '17000',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+      Currency(
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '1300',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+    ];
   }
 }
