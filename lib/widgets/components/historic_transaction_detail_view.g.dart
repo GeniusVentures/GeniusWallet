@@ -372,7 +372,7 @@ class _HistoricTransactionDetailView
                       'assets/images/transactiontypearrow.svg',
                       package: 'genius_wallet',
                       height:
-                          widget.constraints.maxHeight * 0.02163622006925076,
+                          widget.constraints.maxHeight * 0.02163640577459432,
                       width: widget.constraints.maxWidth * 0.050473186119873815,
                       fit: BoxFit.fill,
                     ),

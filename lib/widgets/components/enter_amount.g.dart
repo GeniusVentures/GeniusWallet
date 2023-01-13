@@ -61,7 +61,7 @@ class _EnterAmount extends State<EnterAmount> {
               ),
               Positioned(
                 left: 0,
-                width: 315.0,
+                width: 357.0,
                 top: 43.0,
                 height: 61.0,
                 child: EnterAmountWidget(
