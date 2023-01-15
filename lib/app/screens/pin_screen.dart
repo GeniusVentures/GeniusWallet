@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/bloc/pin_state.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
+import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
@@ -17,6 +22,122 @@ class PinScreen extends StatelessWidget {
     required this.text,
     required this.onCompleted,
   }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (GeniusBreakpoints.useDesktopLayout(context)) {
+          return _PinViewDesktop(
+            text: text,
+            onCompleted: onCompleted,
+          );
+        }
+        return _PinViewMobile(
+          text: text,
+          onCompleted: onCompleted,
+        );
+      },
+    );
+  }
+}
+
+class _PinViewDesktop extends StatelessWidget {
+  const _PinViewDesktop({
+    Key? key,
+    required this.onCompleted,
+    required this.text,
+  }) : super(key: key);
+
+  final String text;
+  final Function(String p1) onCompleted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: AppScreenWithHeader(
+        title: text,
+        subtitle: '',
+        bodyWidgets: [
+          Container(
+            color: GeniusWalletColors.containerGray,
+            height: 380,
+            width: 500,
+            child: Center(
+              child: SizedBox(
+                width: 320,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(text),
+                    PinCodeTextField(
+                      appContext: context,
+                      length: 6,
+                      pinTheme: PinTheme(
+                        activeColor: Colors.white,
+                        selectedColor: Colors.white,
+                        disabledColor: Colors.white,
+                        inactiveColor: Colors.white,
+                      ),
+                      cursorColor: Colors.white,
+                      obscureText: true,
+                      onChanged: context.read<PinCubit>().desktopOnChanged,
+                      controller: context.watch<PinCubit>().state.controller,
+                      inputFormatters: [Formatters.allowIntegers],
+                      autoDisposeControllers: false,
+                    ),
+                    BlocBuilder<PinCubit, PinState>(builder: (context, state) {
+                      if (state.displayIncorrectPin) {
+                        return const Text(
+                          'Incorrect PIN',
+                          style: TextStyle(
+                            color: GeniusWalletColors.foundationError,
+                          ),
+                        );
+                      }
+                      return const SizedBox();
+                    }),
+                    SizedBox(
+                      height: 50,
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          return BlocBuilder<PinCubit, PinState>(
+                            builder: (context, state) {
+                              if (state.pinFullness == PinFullness.completed) {
+                                return MaterialButton(
+                                  padding: const EdgeInsets.all(0),
+                                  onPressed: () =>
+                                      onCompleted(state.controller.text),
+                                  child: IsactiveTrue(constraints),
+                                );
+                              }
+                              return IsactiveFalse(constraints);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PinViewMobile extends StatelessWidget {
+  const _PinViewMobile({
+    Key? key,
+    required this.text,
+    required this.onCompleted,
+  }) : super(key: key);
+
+  final String text;
+  final Function(String p1) onCompleted;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +215,7 @@ class PinScreen extends StatelessWidget {
                     readOnly: true,
                     controller: context.watch<PinCubit>().state.controller,
                     onCompleted: onCompleted,
+                    autoDisposeControllers: false,
                   ),
                 ),
               ),

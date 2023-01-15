@@ -94,9 +94,9 @@ class _RegistrationHeader extends State<RegistrationHeader> {
               ),
               Positioned(
                 left: 30.0,
-                width: 5.0,
+                width: 10.0,
                 top: 22.0,
-                height: 9.0,
+                height: 18.0,
                 child: GeniusBackButtonCustom(
                     child: LayoutBuilder(builder: (context, constraints) {
                   return GeniusBackButton(
@@ -105,8 +105,8 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                       'assets/images/whitearrowback.svg',
                       package: 'genius_wallet',
                       height:
-                          widget.constraints.maxHeight * 0.04736842105263158,
-                      width: widget.constraints.maxWidth * 0.013333333333333334,
+                          widget.constraints.maxHeight * 0.09473684210526316,
+                      width: widget.constraints.maxWidth * 0.02666666666666667,
                       fit: BoxFit.fill,
                     ),
                   );
