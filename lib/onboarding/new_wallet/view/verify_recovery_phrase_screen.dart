@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/wallet.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words_input.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {
@@ -49,22 +51,61 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
           subtitle:
               'Tap the words to put them next to each other in the correct order',
           bodyWidgets: [
-            RecoveryWordsInput(
-              selectedWords: context.watch<NewWalletBloc>().state.selectedWords,
-            ),
-            const SizedBox(
-              height: 50,
-            ),
-            RecoveryWords(
-              recoveryWords: context.read<NewWalletBloc>().state.shuffledWords,
-              inputEnabled: true,
-            ),
+            LayoutBuilder(builder: (context, constraints) {
+              if (GeniusBreakpoints.useDesktopLayout(context)) {
+                return const _VerifyRecoveryPhraseViewDesktop();
+              }
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 40.0),
+                child: _InputAndWords(),
+              );
+            }),
             const SizedBox(
               height: 100,
             ),
           ],
-          footer: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
+          footer: Builder(builder: (context) {
+            if (!GeniusBreakpoints.useDesktopLayout(context)) {
+              return SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 50,
+                child: MaterialButton(
+                  onPressed: () {
+                    context
+                        .read<NewWalletBloc>()
+                        .add(RecoveryVerificationContinue());
+                  },
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    return IsactiveTrue(constraints);
+                  }),
+                ),
+              );
+            }
+            return const SizedBox();
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
+  const _VerifyRecoveryPhraseViewDesktop({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 600,
+      color: GeniusWalletColors.containerGray,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 100,
+        vertical: 40,
+      ),
+      child: Column(
+        children: [
+          const _InputAndWords(),
+          const SizedBox(height: 100),
+          SizedBox(
             height: 50,
             child: MaterialButton(
               onPressed: () {
@@ -72,13 +113,37 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
                     .read<NewWalletBloc>()
                     .add(RecoveryVerificationContinue());
               },
-              child: LayoutBuilder(builder: (context, constraints) {
-                return IsactiveTrue(constraints);
-              }),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return IsactiveTrue(constraints);
+                },
+              ),
             ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+}
+
+class _InputAndWords extends StatelessWidget {
+  const _InputAndWords({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        RecoveryWordsInput(
+          selectedWords: context.watch<NewWalletBloc>().state.selectedWords,
+        ),
+        const SizedBox(
+          height: 50,
+        ),
+        RecoveryWords(
+          recoveryWords: context.read<NewWalletBloc>().state.shuffledWords,
+          inputEnabled: true,
+        ),
+      ],
     );
   }
 }
