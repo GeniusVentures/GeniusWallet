@@ -40,15 +40,18 @@ class LandingScreen extends StatelessWidget {
                   builder: (context, constraints) => TypeExisting(constraints),
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(top: 10.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.read<AppBloc>().add(FFITestEvent());
-                  },
-                  child: const Text("Test C++ native code!"),
-                ),
-              ),
+
+              /***  Below is the test code to test native c/c++ code ***/
+
+              // Container(
+              //   margin: const EdgeInsets.only(top: 10.0),
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       context.read<AppBloc>().add(FFITestEvent());
+              //     },
+              //     child: const Text("Test C++ native code!"),
+              //   ),
+              // ),
               BlocBuilder<AppBloc, AppState>(
                 builder: (context, state) {
                   if (state.ffiDouble != null) {
