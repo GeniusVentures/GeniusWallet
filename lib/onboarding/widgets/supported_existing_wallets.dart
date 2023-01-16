@@ -19,6 +19,8 @@ class SupportedExistingWallets extends StatelessWidget {
       itemCount: supportedWallets.length,
       separatorBuilder: (context, index) => const SizedBox(height: 20),
       physics: const NeverScrollableScrollPhysics(),
+      //NOTE: This can be made more efficient by making `shrinkWrap` false but implementing a [CustomScrollview]
+      shrinkWrap: true,
       itemBuilder: (context, index) {
         return MaterialButton(
           onPressed: () {
