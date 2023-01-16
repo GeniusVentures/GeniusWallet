@@ -48,35 +48,38 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
           'Write down or copy these words in the right order and save them somewhere safe',
       bodyWidgets: [
         Container(
+          constraints: const BoxConstraints(minHeight: 520),
           color: GeniusWalletColors.containerGray,
           width: 600,
-          height: MediaQuery.of(context).size.height * 0.6,
           child: Center(
             child: SizedBox(
               width: 400,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const _WordsAndCopy(),
-                    SizedBox(
-                      height: 50,
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return MaterialButton(
-                            onPressed: () {
-                              context
-                                  .read<NewWalletBloc>()
-                                  .add(RecoveryPhraseContinue());
-                            },
-                            child: IsactiveTrue(constraints),
-                          );
-                        },
-                      ),
-                    )
-                  ],
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 20),
+                    child: const _WordsAndCopy(),
+                  ),
+                  const SizedBox(height: 80),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    height: 50,
+                    child: LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return MaterialButton(
+                          onPressed: () {
+                            context
+                                .read<NewWalletBloc>()
+                                .add(RecoveryPhraseContinue());
+                          },
+                          child: IsactiveTrue(constraints),
+                        );
+                      },
+                    ),
+                  )
+                ],
               ),
             ),
           ),
@@ -109,7 +112,8 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
               },
             ),
           ),
-          SizedBox(
+          Container(
+            padding: const EdgeInsets.only(top: 20),
             width: MediaQuery.of(context).size.width * 0.8,
             child: const _WordsAndCopy(),
           ),
