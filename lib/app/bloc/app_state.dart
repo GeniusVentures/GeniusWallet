@@ -12,20 +12,26 @@ class AppState extends Equatable {
 
   final UserStatus userStatus;
 
+  /// [double] used for testing FFI Bridge
+  final double? ffiDouble;
+
   const AppState({
     this.wallets = const [],
     this.subscribeToWalletStatus = AppStatus.initial,
     this.transactions = const [],
     this.loadUserStatus = AppStatus.initial,
     this.userStatus = UserStatus.initial,
+    this.ffiDouble,
   });
 
-  AppState copyWith(
-      {List<Wallet>? wallets,
-      List<Transaction>? transactions,
-      AppStatus? subscribeToWalletStatus,
-      AppStatus? loadUserStatus,
-      UserStatus? userStatus}) {
+  AppState copyWith({
+    List<Wallet>? wallets,
+    AppStatus? subscribeToWalletStatus,
+    List<Transaction>? transactions,
+    AppStatus? loadUserStatus,
+    UserStatus? userStatus,
+    double? ffiDouble,
+  }) {
     return AppState(
       wallets: wallets ?? this.wallets,
       subscribeToWalletStatus:
@@ -33,6 +39,7 @@ class AppState extends Equatable {
       transactions: transactions ?? this.transactions,
       loadUserStatus: loadUserStatus ?? this.loadUserStatus,
       userStatus: userStatus ?? this.userStatus,
+      ffiDouble: ffiDouble ?? this.ffiDouble,
     );
   }
 
@@ -43,6 +50,7 @@ class AppState extends Equatable {
         subscribeToWalletStatus,
         loadUserStatus,
         userStatus,
+        ffiDouble,
       ];
 }
 

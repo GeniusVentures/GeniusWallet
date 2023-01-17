@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
-    //TODO: Can make this future based instead
     return Scaffold(
       body: AppScreenView(
         body: SizedBox(
@@ -39,6 +39,26 @@ class LandingScreen extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, constraints) => TypeExisting(constraints),
                 ),
+              ),
+
+              /***  Below is the test code to test native c/c++ code ***/
+
+              // Container(
+              //   margin: const EdgeInsets.only(top: 10.0),
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       context.read<AppBloc>().add(FFITestEvent());
+              //     },
+              //     child: const Text("Test C++ native code!"),
+              //   ),
+              // ),
+              BlocBuilder<AppBloc, AppState>(
+                builder: (context, state) {
+                  if (state.ffiDouble != null) {
+                    return Text('Value: ${state.ffiDouble}');
+                  }
+                  return const SizedBox();
+                },
               ),
             ],
           ),
