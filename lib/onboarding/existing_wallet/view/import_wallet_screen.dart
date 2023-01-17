@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/widgets/supported_existing_wallets.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class ImportWalletScreen extends StatelessWidget {
   const ImportWalletScreen({Key? key}) : super(key: key);
@@ -16,14 +16,8 @@ class ImportWalletScreen extends StatelessWidget {
         bodyWidgets: [
           Builder(builder: (context) {
             if (GeniusBreakpoints.useDesktopLayout(context)) {
-              return Container(
-                width: 600,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 100,
-                  vertical: 80,
-                ),
-                color: GeniusWalletColors.containerGray,
-                child: const SupportedExistingWallets(),
+              return const DesktopBodyContainer(
+                child: SupportedExistingWallets(),
               );
             }
             return ConstrainedBox(

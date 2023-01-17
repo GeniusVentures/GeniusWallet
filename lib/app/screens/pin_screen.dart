@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
@@ -59,68 +60,63 @@ class _PinViewDesktop extends StatelessWidget {
         title: text,
         subtitle: '',
         bodyWidgets: [
-          Container(
-            color: GeniusWalletColors.containerGray,
-            height: 380,
-            width: 500,
-            child: Center(
-              child: SizedBox(
-                width: 320,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(text),
-                    PinCodeTextField(
-                      appContext: context,
-                      length: 6,
-                      pinTheme: PinTheme(
-                        activeColor: Colors.white,
-                        selectedColor: Colors.white,
-                        disabledColor: Colors.white,
-                        inactiveColor: Colors.white,
-                      ),
-                      cursorColor: Colors.white,
-                      obscureText: true,
-                      onChanged: context.read<PinCubit>().desktopOnChanged,
-                      controller: context.watch<PinCubit>().state.controller,
-                      inputFormatters: [Formatters.allowIntegers],
-                      autoDisposeControllers: false,
-                    ),
-                    BlocBuilder<PinCubit, PinState>(builder: (context, state) {
-                      if (state.displayIncorrectPin) {
-                        return const Text(
-                          'Incorrect PIN',
-                          style: TextStyle(
-                            color: GeniusWalletColors.foundationError,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    }),
-                    SizedBox(
-                      height: 50,
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return BlocBuilder<PinCubit, PinState>(
-                            builder: (context, state) {
-                              if (state.pinFullness == PinFullness.completed) {
-                                return MaterialButton(
-                                  padding: const EdgeInsets.all(0),
-                                  onPressed: () =>
-                                      onCompleted(state.controller.text),
-                                  child: IsactiveTrue(constraints),
-                                );
-                              }
-                              return IsactiveFalse(constraints);
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+          DesktopBodyContainer(
+            height: 400,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(text),
+                const SizedBox(height: 10),
+                PinCodeTextField(
+                  appContext: context,
+                  length: 6,
+                  pinTheme: PinTheme(
+                    activeColor: Colors.white,
+                    selectedColor: Colors.white,
+                    disabledColor: Colors.white,
+                    inactiveColor: Colors.white,
+                  ),
+                  cursorColor: Colors.white,
+                  obscureText: true,
+                  onChanged: context.read<PinCubit>().desktopOnChanged,
+                  controller: context.watch<PinCubit>().state.controller,
+                  inputFormatters: [Formatters.allowIntegers],
+                  autoDisposeControllers: false,
                 ),
-              ),
+                BlocBuilder<PinCubit, PinState>(builder: (context, state) {
+                  if (state.displayIncorrectPin) {
+                    return const Text(
+                      'Incorrect PIN',
+                      style: TextStyle(
+                        color: GeniusWalletColors.foundationError,
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                }),
+                const SizedBox(height: 50),
+                SizedBox(
+                  height: 50,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return BlocBuilder<PinCubit, PinState>(
+                        builder: (context, state) {
+                          if (state.pinFullness == PinFullness.completed) {
+                            return MaterialButton(
+                              padding: const EdgeInsets.all(0),
+                              onPressed: () =>
+                                  onCompleted(state.controller.text),
+                              child: IsactiveTrue(constraints),
+                            );
+                          }
+                          return IsactiveFalse(constraints);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],

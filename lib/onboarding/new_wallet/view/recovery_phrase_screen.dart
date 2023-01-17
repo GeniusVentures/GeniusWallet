@@ -5,9 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/registration_header.g.dart';
 
@@ -47,41 +47,32 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
       subtitle:
           'Write down or copy these words in the right order and save them somewhere safe',
       bodyWidgets: [
-        Container(
-          constraints: const BoxConstraints(minHeight: 520),
-          color: GeniusWalletColors.containerGray,
-          width: 600,
-          child: Center(
-            child: SizedBox(
-              width: 400,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    child: const _WordsAndCopy(),
-                  ),
-                  const SizedBox(height: 80),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    height: 50,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return MaterialButton(
-                          onPressed: () {
-                            context
-                                .read<NewWalletBloc>()
-                                .add(RecoveryPhraseContinue());
-                          },
-                          child: IsactiveTrue(constraints),
-                        );
-                      },
-                    ),
-                  )
-                ],
+        DesktopBodyContainer(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 20),
+                child: const _WordsAndCopy(),
               ),
-            ),
+              const SizedBox(height: 80),
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                height: 50,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return MaterialButton(
+                      onPressed: () {
+                        context
+                            .read<NewWalletBloc>()
+                            .add(RecoveryPhraseContinue());
+                      },
+                      child: IsactiveTrue(constraints),
+                    );
+                  },
+                ),
+              )
+            ],
           ),
         ),
       ],
