@@ -9,7 +9,7 @@ class DesktopBodyContainer extends StatelessWidget {
   const DesktopBodyContainer({
     Key? key,
     this.child = const SizedBox(),
-    this.padding = const EdgeInsets.symmetric(horizontal: 100, vertical: 80),
+    this.padding = defaultPadding,
     this.width = 600,
     this.height,
   }) : super(key: key);
@@ -24,4 +24,7 @@ class DesktopBodyContainer extends StatelessWidget {
       child: child,
     );
   }
+
+  static const defaultPadding =
+      EdgeInsets.symmetric(horizontal: 100, vertical: 80);
 }

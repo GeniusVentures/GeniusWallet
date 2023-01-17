@@ -7,10 +7,10 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words_input.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {
@@ -94,13 +94,8 @@ class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 600,
-      color: GeniusWalletColors.containerGray,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 100,
-        vertical: 40,
-      ),
+    return DesktopBodyContainer(
+      padding: DesktopBodyContainer.defaultPadding.copyWith(top: 40),
       child: Column(
         children: [
           const _InputAndWords(),

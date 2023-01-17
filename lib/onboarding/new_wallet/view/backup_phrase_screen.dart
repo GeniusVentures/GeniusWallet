@@ -4,8 +4,8 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.dart';
@@ -112,10 +112,7 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
       subtitle:
           'In the next step you will see 12 words that allow you to recover a wallet.',
       bodyWidgets: [
-        Container(
-          color: GeniusWalletColors.containerGray,
-          height: 600,
-          width: 600,
+        DesktopBodyContainer(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
