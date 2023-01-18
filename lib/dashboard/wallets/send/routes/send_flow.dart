@@ -17,75 +17,66 @@ class SendFlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        // BlocListener<WalletsOverviewCubit, WalletsOverviewState>(
-        //   listener: appBlocListener,
-        // ),
-      ],
-      child: FlowBuilder(
-        onGeneratePages: (state, pages) {
-          switch (state.flowStep) {
-            case SendFlowStep.noFunds:
-              return [
-                const MaterialPage(child: NotEnoughBalanceScreen()),
-              ];
-            case SendFlowStep.transactionSummary:
-              return [
-                const MaterialPage(child: DashboardScreen()),
-                MaterialPage(
-                  child: TransactionSummaryScreen(
-                    transaction: state.currentTransaction,
-                    wallet: context
-                        .watch<WalletDetailsCubit>()
-                        .state
-                        .selectedWallet!,
-                  ),
+    return FlowBuilder(
+      onGeneratePages: (state, pages) {
+        switch (state.flowStep) {
+          case SendFlowStep.noFunds:
+            return [
+              const MaterialPage(child: NotEnoughBalanceScreen()),
+            ];
+          case SendFlowStep.transactionSummary:
+            return [
+              const MaterialPage(child: DashboardScreen()),
+              MaterialPage(
+                child: TransactionSummaryScreen(
+                  transaction: state.currentTransaction,
+                  wallet:
+                      context.watch<WalletDetailsCubit>().state.selectedWallet!,
                 ),
-              ];
-            case SendFlowStep.enterPin:
-              return [
-                const MaterialPage(child: EnterWalletAddressScreen()),
-                const MaterialPage(child: TransactionDetailsScreen()),
-                const MaterialPage(child: TransactionConfirmationScreen()),
-                MaterialPage(
-                  child: BlocBuilder<SendCubit, SendState>(
-                    builder: (context, state) {
-                      return VerifyPinScreen(
-                        onPass: () {
-                          context.read<SendCubit>().verificationPassed(context
-                              .read<WalletDetailsCubit>()
-                              .state
-                              .selectedWallet!);
-                        },
-                      );
-                    },
-                  ),
+              ),
+            ];
+          case SendFlowStep.enterPin:
+            return [
+              const MaterialPage(child: EnterWalletAddressScreen()),
+              const MaterialPage(child: TransactionDetailsScreen()),
+              const MaterialPage(child: TransactionConfirmationScreen()),
+              MaterialPage(
+                child: BlocBuilder<SendCubit, SendState>(
+                  builder: (context, state) {
+                    return VerifyPinScreen(
+                      onPass: () {
+                        context.read<SendCubit>().verificationPassed(context
+                            .read<WalletDetailsCubit>()
+                            .state
+                            .selectedWallet!);
+                      },
+                    );
+                  },
                 ),
-              ];
-            case SendFlowStep.transactionConfirmation:
-              return [
-                const MaterialPage(child: EnterWalletAddressScreen()),
-                const MaterialPage(child: TransactionDetailsScreen()),
-                const MaterialPage(child: TransactionConfirmationScreen())
-              ];
-            case SendFlowStep.transactionDetails:
-              return [
-                const MaterialPage(child: EnterWalletAddressScreen()),
-                const MaterialPage(child: TransactionDetailsScreen()),
-              ];
-            case SendFlowStep.enterAddress:
-            default:
-              return [
-                const MaterialPage(child: EnterWalletAddressScreen()),
-              ];
-          }
-        },
-        state: context.watch<SendCubit>().state,
-        onComplete: (state) {
-          GoRouter.of(context).go('/dashboard');
-        },
-      ),
+              ),
+            ];
+          case SendFlowStep.transactionConfirmation:
+            return [
+              const MaterialPage(child: EnterWalletAddressScreen()),
+              const MaterialPage(child: TransactionDetailsScreen()),
+              const MaterialPage(child: TransactionConfirmationScreen())
+            ];
+          case SendFlowStep.transactionDetails:
+            return [
+              const MaterialPage(child: EnterWalletAddressScreen()),
+              const MaterialPage(child: TransactionDetailsScreen()),
+            ];
+          case SendFlowStep.enterAddress:
+          default:
+            return [
+              const MaterialPage(child: EnterWalletAddressScreen()),
+            ];
+        }
+      },
+      state: context.watch<SendCubit>().state,
+      onComplete: (state) {
+        GoRouter.of(context).go('/dashboard');
+      },
     );
   }
 
