@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
@@ -11,72 +12,89 @@ import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
 class LegalScreen extends StatelessWidget {
+  static const title = 'Legal';
+  static const subtitle =
+      'Please review the Privacy Policy and Terms of Service of the GNUS wallet before proceeding';
   const LegalScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppScreenWithHeader(
-        title: 'Legal',
-        subtitle:
-            'Please review the Privacy Policy and Terms of Service of the GNUS wallet before proceeding',
-        bodyWidgets: [
-          LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              if (GeniusBreakpoints.useDesktopLayout(context)) {
-                return const _LegalViewDesktop();
-              }
-              return const _LegalViewMobile();
-            },
-          ),
-        ],
-        footer: Builder(builder: (context) {
-          if (!GeniusBreakpoints.useDesktopLayout(context)) {
-            return const _Agreement();
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (GeniusBreakpoints.useDesktopLayout(context)) {
+            return const _LegalViewDesktop(
+              title: title,
+              subtitle: subtitle,
+            );
           }
-          return const SizedBox();
-        }),
+          return const _LegalViewMobile(
+            title: title,
+            subtitle: subtitle,
+          );
+        },
       ),
     );
   }
 }
 
 class _LegalViewMobile extends StatelessWidget {
+  final String title;
+  final String subtitle;
   const _LegalViewMobile({
     Key? key,
+    required this.title,
+    required this.subtitle,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: 50,
-        minWidth: MediaQuery.of(context).size.width * 0.8,
-        maxHeight: MediaQuery.of(context).size.width * 0.5,
-        maxWidth: MediaQuery.of(context).size.width * 0.8,
+    return AppScreenWithHeaderMobile(
+      title: title,
+      subtitle: subtitle,
+      body: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: 50,
+          minWidth: MediaQuery.of(context).size.width * 0.8,
+          maxHeight: MediaQuery.of(context).size.width * 0.5,
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
+        ),
+        child: const _ToSButtons(),
       ),
-      child: const _ToSButtons(),
+      footer: const _Agreement(),
     );
   }
 }
 
 class _LegalViewDesktop extends StatelessWidget {
-  const _LegalViewDesktop({Key? key}) : super(key: key);
+  final String title;
+  final String subtitle;
+  const _LegalViewDesktop({
+    Key? key,
+    required this.title,
+    required this.subtitle,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return DesktopBodyContainer(
-      padding: const EdgeInsets.symmetric(
-        vertical: 80,
-        horizontal: 100,
-      ),
-      height: 500,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          _ToSButtons(),
-          _Agreement(),
-        ],
+    return AppScreenWithHeaderDesktop(
+      title: title,
+      subtitle: subtitle,
+      body: Center(
+        child: DesktopBodyContainer(
+          padding: const EdgeInsets.symmetric(
+            vertical: 80,
+            horizontal: 100,
+          ),
+          height: 500,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              _ToSButtons(),
+              _Agreement(),
+            ],
+          ),
+        ),
       ),
     );
   }

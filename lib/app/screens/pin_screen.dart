@@ -56,14 +56,14 @@ class _PinViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppScreenWithHeader(
+      body: AppScreenWithHeaderDesktop(
         title: text,
         subtitle: '',
-        bodyWidgets: [
-          DesktopBodyContainer(
-            height: 400,
+        body: Center(
+          child: DesktopBodyContainer(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(text),
                 const SizedBox(height: 10),
@@ -119,7 +119,7 @@ class _PinViewDesktop extends StatelessWidget {
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

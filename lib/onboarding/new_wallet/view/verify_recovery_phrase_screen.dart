@@ -7,6 +7,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
@@ -14,6 +15,9 @@ import 'package:genius_wallet/onboarding/widgets/recovery_words_input.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {
+  static const title = 'Verify Your Recovery Phrase';
+  static const subtitle =
+      'Tap the words to put them next to each other in the correct order';
   const VerifyRecoveryPhraseScreen({
     Key? key,
   }) : super(key: key);
@@ -46,43 +50,19 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-        body: AppScreenWithHeader(
-          title: 'Verify Your Recovery Phrase',
-          subtitle:
-              'Tap the words to put them next to each other in the correct order',
-          bodyWidgets: [
-            LayoutBuilder(builder: (context, constraints) {
-              if (GeniusBreakpoints.useDesktopLayout(context)) {
-                return const _VerifyRecoveryPhraseViewDesktop();
-              }
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40.0),
-                child: _InputAndWords(),
-              );
-            }),
-            const SizedBox(
-              height: 100,
-            ),
-          ],
-          footer: Builder(builder: (context) {
-            if (!GeniusBreakpoints.useDesktopLayout(context)) {
-              return SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: 50,
-                child: MaterialButton(
-                  onPressed: () {
-                    context
-                        .read<NewWalletBloc>()
-                        .add(RecoveryVerificationContinue());
-                  },
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return IsactiveTrue(constraints);
-                  }),
-                ),
+        body: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            if (GeniusBreakpoints.useDesktopLayout(context)) {
+              return const _VerifyRecoveryPhraseViewDesktop(
+                title: title,
+                subtitle: subtitle,
               );
             }
-            return const SizedBox();
-          }),
+            return const _VerifyRecoveryPhraseViewMobile(
+              title: title,
+              subtitle: subtitle,
+            );
+          },
         ),
       ),
     );
@@ -90,32 +70,90 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
 }
 
 class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
-  const _VerifyRecoveryPhraseViewDesktop({Key? key}) : super(key: key);
+  final String title;
+  final String subtitle;
+  const _VerifyRecoveryPhraseViewDesktop({
+    required this.title,
+    required this.subtitle,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return DesktopBodyContainer(
-      padding: DesktopBodyContainer.defaultPadding.copyWith(top: 40),
-      child: Column(
-        children: [
-          const _InputAndWords(),
-          const SizedBox(height: 100),
-          SizedBox(
-            height: 50,
-            child: MaterialButton(
-              onPressed: () {
-                context
-                    .read<NewWalletBloc>()
-                    .add(RecoveryVerificationContinue());
-              },
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return IsactiveTrue(constraints);
-                },
+    return AppScreenWithHeaderDesktop(
+      title: title,
+      subtitle: subtitle,
+      body: Center(
+        child: DesktopBodyContainer(
+          padding: DesktopBodyContainer.defaultPadding.copyWith(top: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _InputAndWords(),
+              const SizedBox(height: 100),
+              SizedBox(
+                height: 50,
+                child: MaterialButton(
+                  onPressed: () {
+                    context
+                        .read<NewWalletBloc>()
+                        .add(RecoveryVerificationContinue());
+                  },
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return IsactiveTrue(constraints);
+                    },
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VerifyRecoveryPhraseViewMobile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  const _VerifyRecoveryPhraseViewMobile({
+    required this.title,
+    required this.subtitle,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScreenWithHeaderMobile(
+      title: 'Verify Your Recovery Phrase',
+      subtitle:
+          'Tap the words to put them next to each other in the correct order',
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Padding(
+            padding: EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0),
+            child: _InputAndWords(),
+          ),
+          SizedBox(
+            height: 100,
           ),
         ],
+      ),
+      footer: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        height: 50,
+        child: MaterialButton(
+          onPressed: () {
+            context.read<NewWalletBloc>().add(RecoveryVerificationContinue());
+          },
+          child: LayoutBuilder(builder: (context, constraints) {
+            return IsactiveTrue(constraints);
+          }),
+        ),
       ),
     );
   }

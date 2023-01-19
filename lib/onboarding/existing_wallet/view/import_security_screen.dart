@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
@@ -67,37 +68,27 @@ class ImportSecurityScreen extends StatelessWidget {
               length: 4,
               child: Form(
                 key: formKey,
-                child: AppScreenWithHeader(
-                  title: 'Import $walletType Wallet',
-                  subtitle: '',
-                  bodyWidgets: [
-                    Builder(builder: (context) {
-                      if (GeniusBreakpoints.useDesktopLayout(context)) {
-                        return _ImportSecurityViewDesktop(
-                          walletNameController: walletNameController,
-                          tabControllers: tabControllers,
-                          formKey: formKey,
-                          walletType: walletType,
-                        );
-                      }
-                      return _ImportSecurityBody(
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final title = 'Import $walletType Wallet';
+                  const subtitle = '';
+                  if (GeniusBreakpoints.useDesktopLayout(context)) {
+                    return _ImportSecurityViewDesktop(
+                        title: title,
+                        subtitle: subtitle,
                         walletNameController: walletNameController,
                         tabControllers: tabControllers,
-                      );
-                    }),
-                  ],
-                  footer: Builder(builder: (context) {
-                    if (GeniusBreakpoints.useDesktopLayout(context)) {
-                      return const SizedBox();
-                    }
-                    return _ImportSecurityContinueButton(
-                      formKey: formKey,
-                      tabControllers: tabControllers,
-                      walletNameController: walletNameController,
-                      walletType: walletType,
-                    );
-                  }),
-                ),
+                        formKey: formKey,
+                        walletType: walletType);
+                  }
+                  return _ImportSecurityViewMobile(
+                    title: title,
+                    subtitle: subtitle,
+                    walletNameController: walletNameController,
+                    tabControllers: tabControllers,
+                    formKey: formKey,
+                    walletType: walletType,
+                  );
+                }),
               ),
             ),
           ),
@@ -126,8 +117,12 @@ class ImportSecurityScreen extends StatelessWidget {
 }
 
 class _ImportSecurityViewDesktop extends StatelessWidget {
+  final String title;
+  final String subtitle;
   const _ImportSecurityViewDesktop({
     Key? key,
+    required this.title,
+    required this.subtitle,
     required this.walletNameController,
     required this.tabControllers,
     required this.formKey,
@@ -141,20 +136,67 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DesktopBodyContainer(
-      child: Column(
-        children: [
-          _ImportSecurityBody(
-            walletNameController: walletNameController,
-            tabControllers: tabControllers,
+    return AppScreenWithHeaderDesktop(
+      title: title,
+      subtitle: subtitle,
+      body: Center(
+        child: DesktopBodyContainer(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ImportSecurityBody(
+                walletNameController: walletNameController,
+                tabControllers: tabControllers,
+              ),
+              _ImportSecurityContinueButton(
+                formKey: formKey,
+                tabControllers: tabControllers,
+                walletNameController: walletNameController,
+                walletType: walletType,
+              )
+            ],
           ),
-          _ImportSecurityContinueButton(
-            formKey: formKey,
-            tabControllers: tabControllers,
-            walletNameController: walletNameController,
-            walletType: walletType,
-          )
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImportSecurityViewMobile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final TextEditingController walletNameController;
+  final Map<String, Map<String, TextEditingController>> tabControllers;
+  final GlobalKey<FormState> formKey;
+  final String walletType;
+
+  const _ImportSecurityViewMobile({
+    Key? key,
+    required this.title,
+    required this.subtitle,
+    required this.walletNameController,
+    required this.tabControllers,
+    required this.formKey,
+    required this.walletType,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScreenWithHeaderMobile(
+      title: title,
+      subtitle: subtitle,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: _ImportSecurityBody(
+          walletNameController: walletNameController,
+          tabControllers: tabControllers,
+        ),
+      ),
+      footer: _ImportSecurityContinueButton(
+        formKey: formKey,
+        tabControllers: tabControllers,
+        walletNameController: walletNameController,
+        walletType: walletType,
       ),
     );
   }

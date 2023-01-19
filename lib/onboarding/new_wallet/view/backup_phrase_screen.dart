@@ -107,23 +107,27 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenWithHeader(
+    return AppScreenWithHeaderDesktop(
       title: 'Back up your wallet now!',
       subtitle:
           'In the next step you will see 12 words that allow you to recover a wallet.',
-      bodyWidgets: [
-        DesktopBodyContainer(
+      body: Center(
+        child: DesktopBodyContainer(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/images/shield_icon.png',
-                package: 'genius_wallet',
+              SizedBox(
+                height: 300,
+                child: Image.asset(
+                  'assets/images/shield_icon.png',
+                  package: 'genius_wallet',
+                ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(
+                height: 30,
+              ),
               SizedBox(
                 height: 50,
-                // width: MediaQuery.of(context).size.width * 0.8,
                 width: 400,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -139,7 +143,6 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
               SizedBox(
                 width: 400,
                 height: 46,
@@ -172,7 +175,7 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
