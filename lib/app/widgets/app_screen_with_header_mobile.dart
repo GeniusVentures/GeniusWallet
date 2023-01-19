@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/registration_header.g.dart';
 
-class AppScreenWithHeaderDesktop extends StatelessWidget {
+class AppScreenWithHeaderMobile extends StatelessWidget {
   final String title;
   final String subtitle;
   final Widget body;
   final Widget footer;
 
-  const AppScreenWithHeaderDesktop({
+  const AppScreenWithHeaderMobile({
     Key? key,
     required this.title,
     required this.subtitle,
@@ -34,10 +34,7 @@ class AppScreenWithHeaderDesktop extends StatelessWidget {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: body,
-          ),
+          SliverToBoxAdapter(child: body),
           SliverFillRemaining(
             hasScrollBody: false,
             child: Container(

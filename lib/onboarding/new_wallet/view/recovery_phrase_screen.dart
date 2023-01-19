@@ -42,19 +42,17 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenWithHeader(
+    return AppScreenWithHeaderDesktop(
       title: 'Your Recovery Phrase',
       subtitle:
           'Write down or copy these words in the right order and save them somewhere safe',
-      bodyWidgets: [
-        DesktopBodyContainer(
+      body: Center(
+        child: DesktopBodyContainer(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                margin: const EdgeInsets.only(top: 20),
-                child: const _WordsAndCopy(),
-              ),
+              const _WordsAndCopy(),
               const SizedBox(height: 80),
               Container(
                 margin: const EdgeInsets.only(bottom: 20),
@@ -71,11 +69,11 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
                     );
                   },
                 ),
-              )
+              ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -161,7 +159,7 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
               ),
             );
           },
-          child: const AutoSizeText(
+          child: const Text(
             'Copy',
             style: TextStyle(
               fontSize: 18,

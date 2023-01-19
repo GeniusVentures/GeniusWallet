@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-class GeniusBreakpoints {
-  /// [480] and above considered [mobile]
-  static const mobile = 480;
+abstract class GeniusBreakpoints {
+  /// Max width for a small layout.
+  static const double small = 760;
 
-  // /// [800] and above considered [tablet]
-  // static const tablet = 800;
+  /// Max width for a medium layout.
+  static const double medium = 1644;
 
-  /// [1000] and above considered [desktop]
-  static const desktop = 1000;
+  /// Max width for a large layout.
+  static const double large = 1920;
 
   static bool useDesktopLayout(BuildContext context) {
-    return MediaQuery.of(context).size.width > desktop;
+    return MediaQuery.of(context).size.width > small;
   }
 }
