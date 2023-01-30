@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
+import 'package:genius_wallet/app/widgets/app_screen_desktop.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/genius_back_button.g.dart';
 import 'package:go_router/go_router.dart';
 
 class NotEnoughBalanceScreen extends StatelessWidget {
@@ -91,63 +90,42 @@ class _NotEnoughBalanceViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenView(
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return AppScreenDesktop(
+      title: 'Send Bitcoin',
+      bodyWidgets: [
+        DesktopBodyContainer(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              const SizedBox(height: 50),
+              SvgPicture.asset('assets/images/not_enough_balance.svg'),
+              const SizedBox(height: 30),
+              Text(
+                  'You don\'t have any ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}'),
+              const SizedBox(height: 60),
               SizedBox(
                 height: 50,
-                width: 200,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
-                    return BackButtonHeader(
-                      constraints,
-                      ovrTitle: '',
+                    return MaterialButton(
+                      onPressed: () {
+                        context.push(
+                          '/buy',
+                          extra: context.read<WalletDetailsCubit>(),
+                        );
+                      },
+                      child: IsactiveTrue(
+                        constraints,
+                        ovrContinue: 'Buy',
+                      ),
                     );
                   },
                 ),
               ),
-              Text(
-                  'You don\'t have any ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}'),
             ],
           ),
-          const SizedBox(height: 240),
-          DesktopBodyContainer(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                const SizedBox(height: 50),
-                SvgPicture.asset('assets/images/not_enough_balance.svg'),
-                const SizedBox(height: 30),
-                Text(
-                    'You don\'t have any ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}'),
-                SizedBox(
-                  height: 50,
-                  child: LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return MaterialButton(
-                        onPressed: () {
-                          context.push(
-                            '/buy',
-                            extra: context.read<WalletDetailsCubit>(),
-                          );
-                        },
-                        child: IsactiveTrue(
-                          constraints,
-                          ovrContinue: 'Buy',
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        )
+      ],
     );
   }
 }
