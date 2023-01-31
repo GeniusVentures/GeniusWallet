@@ -35,7 +35,7 @@ class _NotEnoughBalanceViewMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScreenView(
       body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
+        padding: const EdgeInsets.all(30),
         height: MediaQuery.of(context).size.height,
         child: Column(
           children: [
@@ -106,7 +106,8 @@ class _NotEnoughBalanceViewDesktop extends StatelessWidget {
               SizedBox(
                 height: 50,
                 child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
+                  builder:
+                      (BuildContext context, BoxConstraints constraints) {
                     return MaterialButton(
                       onPressed: () {
                         context.push(
