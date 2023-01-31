@@ -20,7 +20,8 @@ class AppScreenDesktop extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
+              Container(
+                margin: const EdgeInsets.only(top: 30, left: 30, right: 30),
                 height: 50,
                 width: 100,
                 child: LayoutBuilder(
