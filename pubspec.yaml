@@ -2,10 +2,10 @@ name: genius_wallet
 description: A new Flutter project.
 publish_to: none
 version: 1.0.0+1
-environment: 
-  sdk: '>=2.18.1 <3.0.0'
-dependencies: 
-  flutter: 
+environment:
+  sdk: ">=2.18.1 <3.0.0"
+dependencies:
+  flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
   auto_size_text: 3.0.0
@@ -15,21 +15,21 @@ dependencies:
   pin_code_fields: ^7.4.0
   flow_builder: ^0.0.9
   clipboard: ^0.1.3
-  genius_api: 
+  genius_api:
     path: packages/genius_api
   equatable: ^2.0.5
   bloc_concurrency: ^0.2.0
   url_launcher: ^6.1.6
-  local_secure_storage: 
+  local_secure_storage:
     path: packages/local_secure_storage
   responsive_framework: ^0.2.0
-dev_dependencies: 
-  flutter_test: 
+dev_dependencies:
+  flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-flutter: 
+flutter:
   uses-material-design: true
-  assets: 
+  assets:
     - assets/images/
     - packages/genius_wallet/assets/images/mask2.png
     - packages/genius_wallet/assets/images/mask4.png
@@ -118,3 +118,34 @@ flutter:
     - packages/genius_wallet/assets/images/detailedtransactionoptionscustom.svg
     - packages/genius_wallet/assets/images/transactionarrow.svg
     - packages/genius_wallet/assets/images/coinicon.svg
+    - packages/genius_wallet/assets/images/group3.svg
+    - packages/genius_wallet/assets/images/group2.svg
+    - packages/genius_wallet/assets/images/oval5.png
+    - packages/genius_wallet/assets/images/oval45.svg
+    - packages/genius_wallet/assets/images/path8.svg
+    - packages/genius_wallet/assets/images/path2.svg
+    - packages/genius_wallet/assets/images/path5.svg
+    - packages/genius_wallet/assets/images/path10.svg
+    - packages/genius_wallet/assets/images/navdashboardbuttoncustom.png
+    - packages/genius_wallet/assets/images/navwalletbuttoncustom.png
+    - packages/genius_wallet/assets/images/navstatsbuttoncustom.png
+    - packages/genius_wallet/assets/images/navstatsbuttonactive.png
+    - packages/genius_wallet/assets/images/navtimerbuttoncustom.png
+    - packages/genius_wallet/assets/images/navtimerbuttonactive.png
+    - packages/genius_wallet/assets/images/navcalculatorbuttoncustom.png
+    - packages/genius_wallet/assets/images/navcalculatorbuttonactive.png
+    - packages/genius_wallet/assets/images/navcalendarbuttoncustom.png
+    - packages/genius_wallet/assets/images/navcalendarbuttonactive.png
+    - packages/genius_wallet/assets/images/navwalletbuttoncustom2.png
+    - packages/genius_wallet/assets/images/navnewsbuttoncustom.png
+    - packages/genius_wallet/assets/images/navnewsbuttonactive.png
+    - packages/genius_wallet/assets/images/combinedshape2.png
+    - packages/genius_wallet/assets/images/navcalendarbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navcalculatorbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navnewsbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navtimerbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navstatsbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navwalletbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navwalletbuttonactive.png
+    - packages/genius_wallet/assets/images/navdashboardbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navdashboardbuttonactive.png

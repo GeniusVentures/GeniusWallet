@@ -105,8 +105,9 @@ class _PinViewDesktop extends StatelessWidget {
                           if (state.pinFullness == PinFullness.completed) {
                             return MaterialButton(
                               padding: const EdgeInsets.all(0),
-                              onPressed: () =>
-                                  onCompleted(state.controller.text),
+                              onPressed: () {
+                                onCompleted(state.controller.text);
+                              },
                               child: IsactiveTrue(constraints),
                             );
                           }
