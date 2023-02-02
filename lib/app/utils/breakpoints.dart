@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 abstract class GeniusBreakpoints {
@@ -13,4 +16,21 @@ abstract class GeniusBreakpoints {
   static bool useDesktopLayout(BuildContext context) {
     return MediaQuery.of(context).size.width > small;
   }
+
+  static Platforms getPlaform(BuildContext context) {
+    if (kIsWeb) {
+      return MediaQuery.of(context).size.width >= small
+          ? Platforms.desktop
+          : Platforms.mobile;
+    } else {
+      return isMobileApp() ? Platforms.mobile : Platforms.desktop;
+    }
+  }
+
+  static bool isMobileApp() => Platform.isAndroid || Platform.isIOS;
+}
+
+enum Platforms {
+  mobile,
+  desktop,
 }

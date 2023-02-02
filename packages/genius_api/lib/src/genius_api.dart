@@ -185,7 +185,7 @@ class GeniusApi {
       walletName: walletName,
       currencySymbol: walletType,
       currencyName: walletType,
-      balance: 10,
+      balance: 1000,
       address: random.toString(),
       transactions: [],
     );
