@@ -45,6 +45,7 @@ class TransactionSummaryScreen extends StatelessWidget {
               const SizedBox(height: 30),
               SizedBox(
                 height: 430,
+                width: 400,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return SuccessfulTransactionDetails(
