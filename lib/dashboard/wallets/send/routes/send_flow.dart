@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/screens/verify_pin_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
@@ -41,14 +42,27 @@ class SendFlow extends StatelessWidget {
               const MaterialPage(child: TransactionDetailsScreen()),
               const MaterialPage(child: TransactionConfirmationScreen()),
               MaterialPage(
-                child: BlocBuilder<SendCubit, SendState>(
+                child: BlocConsumer<SendCubit, SendState>(
+                  listener: (context, state) {
+                    /// Notify cubit when transaction is successfully posted
+                    if (state.transactionPostingStatus ==
+                        TransactionPostingStatus.success) {
+                      context.read<SendCubit>().walletsUpdatedSuccessfully();
+                    }
+                  },
                   builder: (context, state) {
+                    if (state.transactionPostingStatus ==
+                        TransactionPostingStatus.loading) {
+                      return const LoadingScreen();
+                    }
                     return VerifyPinScreen(
                       onPass: () {
-                        context.read<SendCubit>().verificationPassed(context
-                            .read<WalletDetailsCubit>()
-                            .state
-                            .selectedWallet!);
+                        context.read<SendCubit>().verificationPassed(
+                              context
+                                  .read<WalletDetailsCubit>()
+                                  .state
+                                  .selectedWallet!,
+                            );
                       },
                     );
                   },
