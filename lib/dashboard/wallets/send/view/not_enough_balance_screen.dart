@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/widgets/app_screen_desktop.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_back_button_header.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
@@ -90,14 +90,14 @@ class _NotEnoughBalanceViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenDesktop(
+    return AppScreenWithBackButtonHeader(
       title: 'Send Bitcoin',
-      bodyWidgets: [
-        DesktopBodyContainer(
+      body: Center(
+        child: DesktopBodyContainer(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 50),
               SvgPicture.asset('assets/images/not_enough_balance.svg'),
               const SizedBox(height: 30),
               Text(
@@ -106,8 +106,7 @@ class _NotEnoughBalanceViewDesktop extends StatelessWidget {
               SizedBox(
                 height: 50,
                 child: LayoutBuilder(
-                  builder:
-                      (BuildContext context, BoxConstraints constraints) {
+                  builder: (BuildContext context, BoxConstraints constraints) {
                     return MaterialButton(
                       onPressed: () {
                         context.push(
@@ -125,8 +124,8 @@ class _NotEnoughBalanceViewDesktop extends StatelessWidget {
               ),
             ],
           ),
-        )
-      ],
+        ),
+      ),
     );
   }
 }
