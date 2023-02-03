@@ -18,9 +18,7 @@ class DesktopOverlay extends StatelessWidget {
         body: Row(
           children: [
             const _DesktopSideRail(),
-            Expanded(
-              child: child,
-            ),
+            Expanded(child: child),
           ],
         ),
       ),
