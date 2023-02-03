@@ -8,7 +8,6 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_c
 import 'package:genius_wallet/widgets/components/date_selector.g.dart';
 import 'package:genius_wallet/widgets/components/detailed_transaction.g.dart';
 import 'package:genius_wallet/widgets/components/export_history.g.dart';
-import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_counter.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
 import 'package:go_router/go_router.dart';
@@ -24,14 +23,6 @@ class TransactionsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             children: [
-              SizedBox(
-                height: 50,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return GeniusAppbar(constraints);
-                  },
-                ),
-              ),
               const TransactionsToggle(),
               const SizedBox(height: 30),
               const TransactionsAndHistory(),
