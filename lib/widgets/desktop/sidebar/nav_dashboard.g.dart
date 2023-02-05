@@ -288,6 +288,19 @@ class _NavDashboard extends State<NavDashboard> {
                           ),
                         ]))),
               ),
+              Positioned(
+                left: widget.constraints.maxWidth * 0.422,
+                width: widget.constraints.maxWidth * 0.178,
+                top: widget.constraints.maxHeight * 0.518,
+                height: widget.constraints.maxHeight * 0.014,
+                child: SvgPicture.asset(
+                  'assets/images/group18.svg',
+                  package: 'genius_wallet',
+                  height: widget.constraints.maxHeight * 0.01432408236347359,
+                  width: widget.constraints.maxWidth * 0.17777777777777778,
+                  fit: BoxFit.fill,
+                ),
+              ),
             ]),
           ),
         ]));

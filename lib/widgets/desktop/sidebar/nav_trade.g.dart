@@ -5,27 +5,29 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/desktop/custom/nav_calendar_button_custom.dart';
+import 'package:genius_wallet/widgets/desktop/custom/nav_news_button_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_dashboard_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_wallet_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_stats_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_timer_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_calculator_button_custom.dart';
-import 'package:genius_wallet/widgets/desktop/custom/nav_news_button_custom.dart';
+import 'package:genius_wallet/widgets/desktop/custom/nav_calendar_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/alerts_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
-class NavEvents extends StatefulWidget {
+class NavTrade extends StatefulWidget {
   final BoxConstraints constraints;
+  final Widget? ovrTradeDesktopIconSelected;
   final Widget? ovrGeniusAppbarLogo;
   final Widget? ovrMask;
   final Widget? ovrMask2;
   final String? ovr1;
   final Widget? ovrOval;
-  const NavEvents(
+  const NavTrade(
     this.constraints, {
     Key? key,
+    this.ovrTradeDesktopIconSelected,
     this.ovrGeniusAppbarLogo,
     this.ovrMask,
     this.ovrMask2,
@@ -33,11 +35,11 @@ class NavEvents extends StatefulWidget {
     this.ovrOval,
   }) : super(key: key);
   @override
-  _NavEvents createState() => _NavEvents();
+  _NavTrade createState() => _NavTrade();
 }
 
-class _NavEvents extends State<NavEvents> {
-  _NavEvents();
+class _NavTrade extends State<NavTrade> {
+  _NavTrade();
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +48,12 @@ class _NavEvents extends State<NavEvents> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.011,
+            width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: widget.constraints.maxWidth * 0.011,
+                left: 0,
                 width: widget.constraints.maxWidth * 0.999,
                 top: 0,
                 height: widget.constraints.maxHeight * 1.0,
@@ -64,34 +66,49 @@ class _NavEvents extends State<NavEvents> {
                 ),
               ),
               Positioned(
-                left: 38.859,
-                width: 15.2,
-                top: 344.928,
-                height: 15.6,
-                child: NavCalendarButtonCustom(
+                left: 37.953,
+                width: 15.014,
+                top: 520.229,
+                height: 15.2,
+                child: NavNewsButtonCustom(
                     child: SvgPicture.asset(
-                  'assets/images/navcalendarbuttoncustom.svg',
+                  'assets/images/navnewsbuttoncustom.svg',
                   package: 'genius_wallet',
-                  height: 15.60009765625,
-                  width: 15.2001953125,
+                  height: 15.199951171875,
+                  width: 15.013671875,
                   fit: BoxFit.none,
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.433,
-                width: widget.constraints.maxWidth * 0.178,
-                top: widget.constraints.maxHeight * 0.518,
-                height: widget.constraints.maxHeight * 0.014,
-                child: SvgPicture.asset(
-                  'assets/images/group18.svg',
-                  package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.01432408236347359,
-                  width: widget.constraints.maxWidth * 0.17765440666204024,
-                  fit: BoxFit.fill,
+                left: 0,
+                right: 0.063,
+                top: 557.0,
+                height: 60.317,
+                child: Container(
+                  height: 60.3173828125,
+                  width: widget.constraints.maxWidth * 0.9993060374739764,
+                  decoration: BoxDecoration(
+                    color: Color(0xff2a2b31),
+                  ),
                 ),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.289,
+                left: widget.constraints.maxWidth * 0.422,
+                width: widget.constraints.maxWidth * 0.178,
+                top: widget.constraints.maxHeight * 0.518,
+                height: widget.constraints.maxHeight * 0.014,
+                child: widget.ovrTradeDesktopIconSelected ??
+                    SvgPicture.asset(
+                      'assets/images/tradedesktopiconselected.svg',
+                      package: 'genius_wallet',
+                      height:
+                          widget.constraints.maxHeight * 0.01432408236347359,
+                      width: widget.constraints.maxWidth * 0.17765982824427481,
+                      fit: BoxFit.fill,
+                    ),
+              ),
+              Positioned(
+                left: widget.constraints.maxWidth * 0.278,
                 width: widget.constraints.maxWidth * 0.422,
                 top: widget.constraints.maxHeight * 0.046,
                 height: widget.constraints.maxHeight * 0.034,
@@ -106,20 +123,7 @@ class _NavEvents extends State<NavEvents> {
                     ),
               ),
               Positioned(
-                left: 0,
-                width: widget.constraints.maxWidth * 0.999,
-                top: widget.constraints.maxHeight * 0.289,
-                height: widget.constraints.maxHeight * 0.054,
-                child: Container(
-                  height: widget.constraints.maxHeight * 0.053999447459713516,
-                  width: widget.constraints.maxWidth * 0.9993060374739764,
-                  decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.431,
+                left: widget.constraints.maxWidth * 0.42,
                 width: widget.constraints.maxWidth * 0.169,
                 top: widget.constraints.maxHeight * 0.152,
                 height: widget.constraints.maxHeight * 0.014,
@@ -133,7 +137,7 @@ class _NavEvents extends State<NavEvents> {
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.431,
+                left: widget.constraints.maxWidth * 0.42,
                 width: widget.constraints.maxWidth * 0.169,
                 top: widget.constraints.maxHeight * 0.205,
                 height: widget.constraints.maxHeight * 0.014,
@@ -147,7 +151,7 @@ class _NavEvents extends State<NavEvents> {
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.431,
+                left: widget.constraints.maxWidth * 0.42,
                 width: widget.constraints.maxWidth * 0.169,
                 top: widget.constraints.maxHeight * 0.257,
                 height: widget.constraints.maxHeight * 0.014,
@@ -161,7 +165,7 @@ class _NavEvents extends State<NavEvents> {
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.436,
+                left: widget.constraints.maxWidth * 0.425,
                 width: widget.constraints.maxWidth * 0.16,
                 top: widget.constraints.maxHeight * 0.361,
                 height: widget.constraints.maxHeight * 0.014,
@@ -170,12 +174,12 @@ class _NavEvents extends State<NavEvents> {
                   'assets/images/navtimerbuttoncustom.png',
                   package: 'genius_wallet',
                   height: widget.constraints.maxHeight * 0.014101361417300807,
-                  width: widget.constraints.maxWidth * 0.15994751908396945,
+                  width: widget.constraints.maxWidth * 0.15995294066620402,
                   fit: BoxFit.fill,
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.432,
+                left: widget.constraints.maxWidth * 0.421,
                 width: widget.constraints.maxWidth * 0.168,
                 top: widget.constraints.maxHeight * 0.413,
                 height: widget.constraints.maxHeight * 0.014,
@@ -189,21 +193,21 @@ class _NavEvents extends State<NavEvents> {
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.433,
-                width: widget.constraints.maxWidth * 0.167,
-                top: widget.constraints.maxHeight * 0.466,
+                left: widget.constraints.maxWidth * 0.42,
+                width: widget.constraints.maxWidth * 0.169,
+                top: widget.constraints.maxHeight * 0.309,
                 height: widget.constraints.maxHeight * 0.014,
-                child: NavNewsButtonCustom(
+                child: NavCalendarButtonCustom(
                     child: Image.asset(
-                  'assets/images/navnewsbuttoncustom.png',
+                  'assets/images/navcalendarbuttoncustom.png',
                   package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.01360783453166965,
-                  width: widget.constraints.maxWidth * 0.16670281054823038,
+                  height: widget.constraints.maxHeight * 0.01396606773164727,
+                  width: widget.constraints.maxWidth * 0.16877385496183206,
                   fit: BoxFit.fill,
                 )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.312,
+                left: widget.constraints.maxWidth * 0.3,
                 width: widget.constraints.maxWidth * 0.455,
                 top: widget.constraints.maxHeight * 0.611,
                 height: widget.constraints.maxHeight * 0.037,

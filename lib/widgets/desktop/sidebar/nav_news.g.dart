@@ -5,20 +5,21 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/widgets/desktop/custom/nav_news_button_custom.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_dashboard_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_wallet_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_stats_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_timer_button_custom.dart';
+import 'package:genius_wallet/widgets/desktop/custom/nav_calculator_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/nav_calendar_button_custom.dart';
-import 'package:genius_wallet/widgets/desktop/custom/nav_news_button_custom.dart';
 import 'package:genius_wallet/widgets/desktop/custom/alerts_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/desktop/custom/nav_calculator_button_custom.dart';
 
 class NavNews extends StatefulWidget {
   final BoxConstraints constraints;
+  final Widget? ovrTradeDesktopIconUnselected;
   final Widget? ovrGeniusAppbarLogo;
-  final Widget? ovrNavCalculatorButtonccustom;
   final Widget? ovrMask;
   final Widget? ovrMask2;
   final String? ovr1;
@@ -26,8 +27,8 @@ class NavNews extends StatefulWidget {
   const NavNews(
     this.constraints, {
     Key? key,
+    this.ovrTradeDesktopIconUnselected,
     this.ovrGeniusAppbarLogo,
-    this.ovrNavCalculatorButtonccustom,
     this.ovrMask,
     this.ovrMask2,
     this.ovr1,
@@ -65,6 +66,35 @@ class _NavNews extends State<NavNews> {
                 ),
               ),
               Positioned(
+                left: 37.953,
+                width: 15.014,
+                top: 520.229,
+                height: 15.2,
+                child: NavNewsButtonCustom(
+                    child: SvgPicture.asset(
+                  'assets/images/navnewsbuttoncustom.svg',
+                  package: 'genius_wallet',
+                  height: 15.199951171875,
+                  width: 15.013671875,
+                  fit: BoxFit.none,
+                )),
+              ),
+              Positioned(
+                left: widget.constraints.maxWidth * 0.422,
+                width: widget.constraints.maxWidth * 0.178,
+                top: widget.constraints.maxHeight * 0.518,
+                height: widget.constraints.maxHeight * 0.014,
+                child: widget.ovrTradeDesktopIconUnselected ??
+                    SvgPicture.asset(
+                      'assets/images/tradedesktopiconunselected.svg',
+                      package: 'genius_wallet',
+                      height:
+                          widget.constraints.maxHeight * 0.01432408236347359,
+                      width: widget.constraints.maxWidth * 0.17765440666204024,
+                      fit: BoxFit.fill,
+                    ),
+              ),
+              Positioned(
                 left: widget.constraints.maxWidth * 0.278,
                 width: widget.constraints.maxWidth * 0.422,
                 top: widget.constraints.maxHeight * 0.046,
@@ -78,6 +108,19 @@ class _NavNews extends State<NavNews> {
                       width: widget.constraints.maxWidth * 0.4219292158223456,
                       fit: BoxFit.fill,
                     ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0.063,
+                top: 498.0,
+                height: 60.317,
+                child: Container(
+                  height: 60.3173828125,
+                  width: widget.constraints.maxWidth * 0.9993060374739764,
+                  decoration: BoxDecoration(
+                    color: Color(0xff2a2b31),
+                  ),
+                ),
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.42,
@@ -106,19 +149,6 @@ class _NavNews extends State<NavNews> {
                   width: widget.constraints.maxWidth * 0.16877385496183206,
                   fit: BoxFit.fill,
                 )),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.001,
-                width: widget.constraints.maxWidth * 0.999,
-                top: widget.constraints.maxHeight * 0.341,
-                height: widget.constraints.maxHeight * 0.054,
-                child: Container(
-                  height: widget.constraints.maxHeight * 0.053999447459713516,
-                  width: widget.constraints.maxWidth * 0.9993060374739764,
-                  decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                  ),
-                ),
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.42,
@@ -153,15 +183,14 @@ class _NavNews extends State<NavNews> {
                 width: widget.constraints.maxWidth * 0.168,
                 top: widget.constraints.maxHeight * 0.413,
                 height: widget.constraints.maxHeight * 0.014,
-                child: widget.ovrNavCalculatorButtonccustom ??
-                    Image.asset(
-                      'assets/images/navcalculatorbuttonccustom.png',
-                      package: 'genius_wallet',
-                      height:
-                          widget.constraints.maxHeight * 0.01396606773164727,
-                      width: widget.constraints.maxWidth * 0.16765700902151284,
-                      fit: BoxFit.fill,
-                    ),
+                child: NavCalculatorButtonCustom(
+                    child: Image.asset(
+                  'assets/images/navcalculatorbuttoncustom.png',
+                  package: 'genius_wallet',
+                  height: widget.constraints.maxHeight * 0.01396606773164727,
+                  width: widget.constraints.maxWidth * 0.16765700902151284,
+                  fit: BoxFit.fill,
+                )),
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.42,
@@ -174,20 +203,6 @@ class _NavNews extends State<NavNews> {
                   package: 'genius_wallet',
                   height: widget.constraints.maxHeight * 0.01396606773164727,
                   width: widget.constraints.maxWidth * 0.16877385496183206,
-                  fit: BoxFit.fill,
-                )),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.421,
-                width: widget.constraints.maxWidth * 0.167,
-                top: widget.constraints.maxHeight * 0.466,
-                height: widget.constraints.maxHeight * 0.014,
-                child: NavNewsButtonCustom(
-                    child: Image.asset(
-                  'assets/images/navnewsbuttoncustom.png',
-                  package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.01360783453166965,
-                  width: widget.constraints.maxWidth * 0.16670281054823038,
                   fit: BoxFit.fill,
                 )),
               ),
@@ -289,20 +304,6 @@ class _NavNews extends State<NavNews> {
                                 ),
                           ),
                         ]))),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.421,
-                width: widget.constraints.maxWidth * 0.168,
-                top: widget.constraints.maxHeight * 0.413,
-                height: widget.constraints.maxHeight * 0.014,
-                child: NavCalculatorButtonCustom(
-                    child: Image.asset(
-                  'assets/images/navcalculatorbuttoncustom.png',
-                  package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.01396606773164727,
-                  width: widget.constraints.maxWidth * 0.16765700902151284,
-                  fit: BoxFit.fill,
-                )),
               ),
             ]),
           ),

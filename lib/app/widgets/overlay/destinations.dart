@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_destination.dart';
 
 class GeniusTabDestinations {
@@ -36,6 +37,18 @@ class GeniusTabDestinations {
       label: const Text('Transactions'),
       selectedIcon: Image.asset(
         'assets/images/navtimerbuttonactive.png',
+        package: 'genius_wallet',
+      ),
+    ),
+    GeniusDestination(
+      destination: '/trade',
+      icon: SvgPicture.asset(
+        'assets/images/tradedesktopiconunselected.svg',
+        package: 'genius_wallet',
+      ),
+      label: const Text('Trade'),
+      selectedIcon: SvgPicture.asset(
+        'assets/images/tradedesktopiconselected.svg',
         package: 'genius_wallet',
       ),
     ),

@@ -149,3 +149,5 @@ flutter:
     - packages/genius_wallet/assets/images/navwalletbuttonactive.png
     - packages/genius_wallet/assets/images/navdashboardbuttoncustom.svg
     - packages/genius_wallet/assets/images/navdashboardbuttonactive.png
+    - packages/genius_wallet/assets/images/tradedesktopiconselected.svg
+    - packages/genius_wallet/assets/images/tradedesktopiconunselected.svg
