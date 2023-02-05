@@ -21,3 +21,5 @@ class AmountEntered extends CalculatorEvent {
 }
 
 class GetCurrencies extends CalculatorEvent {}
+
+class ClearPressed extends CalculatorEvent {}

@@ -1,4 +1,5 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_event.dart';
@@ -6,10 +7,12 @@ import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 
 class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
   final GeniusApi geniusApi;
+  late final TextEditingController controller;
   CalculatorBloc({
     CalculatorState initialState = const CalculatorState(),
     required this.geniusApi,
   }) : super(initialState) {
+    controller = TextEditingController();
     on<FromCurrencySelected>(_onfromCurrencySelected);
     on<ToCurrencySelected>(_onToCurrencySelected);
     on<AmountEntered>(
@@ -17,6 +20,7 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
       transformer: restartable(),
     );
     on<GetCurrencies>(_onGetCurrencies);
+    on<ClearPressed>(_onClearPressed);
   }
 
   bool _canRunConversion(CalculatorState state) =>
@@ -85,5 +89,10 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     } catch (e) {
       emit(state.copyWith(getCurrenciesStatus: CalculatorStatus.error));
     }
+  }
+
+  Future<void> _onClearPressed(ClearPressed event, Emitter emit) async {
+    controller.clear();
+    emit(state.copyWith(amountToConvert: ''));
   }
 }

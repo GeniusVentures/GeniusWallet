@@ -151,3 +151,6 @@ flutter:
     - packages/genius_wallet/assets/images/navdashboardbuttonactive.png
     - packages/genius_wallet/assets/images/tradedesktopiconselected.svg
     - packages/genius_wallet/assets/images/tradedesktopiconunselected.svg
+    - packages/genius_wallet/assets/images/desktoptradebuttonactive.svg
+    - packages/genius_wallet/assets/images/arrowright.png
+    - packages/genius_wallet/assets/images/arrowleft.png
