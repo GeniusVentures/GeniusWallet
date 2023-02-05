@@ -78,6 +78,19 @@ class _NavTransactions extends State<NavTransactions> {
                 )),
               ),
               Positioned(
+                left: widget.constraints.maxWidth * 0.422,
+                width: widget.constraints.maxWidth * 0.178,
+                top: widget.constraints.maxHeight * 0.518,
+                height: widget.constraints.maxHeight * 0.014,
+                child: SvgPicture.asset(
+                  'assets/images/group18.svg',
+                  package: 'genius_wallet',
+                  height: widget.constraints.maxHeight * 0.01432408236347359,
+                  width: widget.constraints.maxWidth * 0.17765440666204024,
+                  fit: BoxFit.fill,
+                ),
+              ),
+              Positioned(
                 left: widget.constraints.maxWidth * 0.278,
                 width: widget.constraints.maxWidth * 0.422,
                 top: widget.constraints.maxHeight * 0.046,

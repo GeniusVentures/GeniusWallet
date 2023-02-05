@@ -26,6 +26,7 @@ enum NavigationScreen {
   dashboard,
   wallets,
   transactions,
+  trade,
   markets,
   events,
   calculator,

@@ -173,8 +173,7 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/trade',
       builder: ((context, state) {
-        //TODO: initialize [ResponsiveOverlay] once we have an updated Navigation Rail with [trade]
-        return const ResponsiveOverlay();
+        return const ResponsiveOverlay(selectedScreen: NavigationScreen.trade);
       }),
     ),
     GoRoute(

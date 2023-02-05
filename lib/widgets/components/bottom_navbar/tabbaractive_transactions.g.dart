@@ -5,13 +5,14 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/widgets/components/custom/nav_wallet_button_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/widgets/components/custom/nav_timer_button_custom.dart';
 
 class TabbaractiveTransactions extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrWallets;
-  final Widget? ovrVector;
   final String? ovrTransactions;
   final String? ovrTrade;
   final String? ovrDashboard;
@@ -19,7 +20,6 @@ class TabbaractiveTransactions extends StatefulWidget {
     this.constraints, {
     Key? key,
     this.ovrWallets,
-    this.ovrVector,
     this.ovrTransactions,
     this.ovrTrade,
     this.ovrDashboard,
@@ -84,18 +84,19 @@ class _TabbaractiveTransactions extends State<TabbaractiveTransactions> {
                         child: Stack(children: [
                           Positioned(
                             left: widget.constraints.maxWidth * 0.032,
-                            width: widget.constraints.maxWidth * 0.048,
+                            width: widget.constraints.maxWidth * 0.047,
                             top: 0,
                             height: widget.constraints.maxHeight * 0.286,
-                            child: widget.ovrVector ??
-                                SvgPicture.asset(
-                                  'assets/images/vector.svg',
-                                  package: 'genius_wallet',
-                                  height: widget.constraints.maxHeight *
-                                      0.2857142857142857,
-                                  width: widget.constraints.maxWidth * 0.048,
-                                  fit: BoxFit.fill,
-                                ),
+                            child: NavWalletButtonCustom(
+                                child: SvgPicture.asset(
+                              'assets/images/navwalletbuttoncustom.svg',
+                              package: 'genius_wallet',
+                              height: widget.constraints.maxHeight *
+                                  0.2857142857142857,
+                              width: widget.constraints.maxWidth *
+                                  0.04676822916666667,
+                              fit: BoxFit.fill,
+                            )),
                           ),
                           Positioned(
                             left: 0,
@@ -123,30 +124,15 @@ class _TabbaractiveTransactions extends State<TabbaractiveTransactions> {
                   Positioned(
                     left: widget.constraints.maxWidth * 0.531,
                     width: widget.constraints.maxWidth * 0.195,
-                    top: widget.constraints.maxHeight * 0.127,
-                    height: widget.constraints.maxHeight * 0.651,
+                    top: widget.constraints.maxHeight * 0.159,
+                    height: widget.constraints.maxHeight * 0.619,
                     child: Container(
                         decoration: BoxDecoration(),
                         child: Stack(children: [
                           Positioned(
-                            left: widget.constraints.maxWidth * 0.064,
-                            width: widget.constraints.maxWidth * 0.053,
-                            top: 0,
-                            height: widget.constraints.maxHeight * 0.317,
-                            child: SvgPicture.asset(
-                              'assets/images/ribookletfill.svg',
-                              package: 'genius_wallet',
-                              height: widget.constraints.maxHeight *
-                                  0.31746031746031744,
-                              width: widget.constraints.maxWidth *
-                                  0.05333333333333334,
-                              fit: BoxFit.fill,
-                            ),
-                          ),
-                          Positioned(
                             left: 0,
                             width: widget.constraints.maxWidth * 0.195,
-                            top: widget.constraints.maxHeight * 0.429,
+                            top: widget.constraints.maxHeight * 0.397,
                             height: widget.constraints.maxHeight * 0.222,
                             child: Container(
                                 height: widget.constraints.maxHeight *
@@ -163,6 +149,34 @@ class _TabbaractiveTransactions extends State<TabbaractiveTransactions> {
                                   ),
                                   textAlign: TextAlign.center,
                                 )),
+                          ),
+                          Positioned(
+                            left: widget.constraints.maxWidth * 0.067,
+                            width: widget.constraints.maxWidth * 0.064,
+                            top: 0,
+                            height: widget.constraints.maxHeight * 0.381,
+                            child: Container(
+                                clipBehavior: Clip.hardEdge,
+                                decoration: BoxDecoration(),
+                                child: Stack(children: [
+                                  Positioned(
+                                    left: widget.constraints.maxWidth * 0.008,
+                                    width: widget.constraints.maxWidth * 0.048,
+                                    top: widget.constraints.maxHeight * 0.032,
+                                    height:
+                                        widget.constraints.maxHeight * 0.312,
+                                    child: NavTimerButtonCustom(
+                                        child: SvgPicture.asset(
+                                      'assets/images/navtimerbuttoncustom.svg',
+                                      package: 'genius_wallet',
+                                      height: widget.constraints.maxHeight *
+                                          0.3123992435515873,
+                                      width:
+                                          widget.constraints.maxWidth * 0.048,
+                                      fit: BoxFit.fill,
+                                    )),
+                                  ),
+                                ])),
                           ),
                         ])),
                   ),

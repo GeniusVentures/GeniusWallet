@@ -50,55 +50,45 @@ class _WalletQRCode extends State<WalletQRCode> {
                 ),
               ),
               Positioned(
+                left: 81.0,
+                right: 114.75,
+                top: widget.constraints.maxHeight * 0.099,
+                height: widget.constraints.maxHeight * 0.435,
+                child: Center(
+                    child: Container(
+                        height: 101.25,
+                        width: widget.constraints.maxWidth * 0.3409090909090909,
+                        child: WalletQRCodeCustom(
+                            child: SvgPicture.asset(
+                          'assets/images/walletqrcodecustom.svg',
+                          package: 'genius_wallet',
+                          height: 101.25,
+                          width:
+                              widget.constraints.maxWidth * 0.3409090909090909,
+                          fit: BoxFit.fitWidth,
+                        )))),
+              ),
+              Positioned(
                 left: 2.0,
                 right: 4.0,
-                top: 23.0,
-                bottom: 48.0,
-                child: Container(
-                    decoration: BoxDecoration(),
-                    child: Stack(children: [
-                      Positioned(
-                        left: widget.constraints.maxWidth * 0.266,
-                        width: widget.constraints.maxWidth * 0.341,
-                        top: 0,
-                        height: widget.constraints.maxHeight * 0.435,
-                        child: Center(
-                            child: Container(
-                                height: 101.25,
-                                width: 101.25,
-                                child: WalletQRCodeCustom(
-                                    child: SvgPicture.asset(
-                                  'assets/images/walletqrcodecustom.svg',
-                                  package: 'genius_wallet',
-                                  height: 101.25,
-                                  width: 101.25,
-                                  fit: BoxFit.scaleDown,
-                                )))),
-                      ),
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: widget.constraints.maxHeight * 0.627,
-                        height: widget.constraints.maxHeight * 0.069,
-                        child: Center(
-                            child: Container(
-                                height: 16.0,
-                                width: widget.constraints.maxWidth *
-                                    0.9797979797979798,
-                                child: AutoSizeText(
-                                  widget.ovrWalletID ??
-                                      '3HP94BwsdMHifjdsfJksdndaJhd oopskd',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.w400,
-                                    letterSpacing: 0.0,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ))),
-                      ),
-                    ])),
+                top: widget.constraints.maxHeight * 0.725,
+                height: widget.constraints.maxHeight * 0.069,
+                child: Center(
+                    child: Container(
+                        height: 16.0,
+                        width: widget.constraints.maxWidth * 0.9797979797979798,
+                        child: AutoSizeText(
+                          widget.ovrWalletID ??
+                              '3HP94BwsdMHifjdsfJksdndaJhd oopskd',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.0,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ))),
               ),
             ]),
           ),

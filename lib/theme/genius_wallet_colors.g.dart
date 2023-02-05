@@ -28,6 +28,8 @@ static const Color red = Color(0xfff40000);
 
 static const Color foundationError = Color(0xff920000);
 
+static const Color white = Color(0xffffffff);
+
 static const Color darkBlue500 = Color(0xff0068ef);
 
 static const Color successGreen = Color(0xff00bf13);
