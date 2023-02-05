@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
+import 'package:genius_wallet/app/widgets/string_button.dart';
 
 class NumberPad extends StatelessWidget {
   const NumberPad({
@@ -15,32 +16,59 @@ class NumberPad extends StatelessWidget {
       child: Column(
         children: [
           Row(
-            children: const [
-              StringButton(value: '1'),
-              Spacer(),
-              StringButton(value: '2'),
-              Spacer(),
-              StringButton(value: '3'),
+            children: [
+              StringButton(
+                value: '1',
+                onPressed: context.read<PinCubit>().add,
+              ),
+              const Spacer(),
+              StringButton(
+                value: '2',
+                onPressed: context.read<PinCubit>().add,
+              ),
+              const Spacer(),
+              StringButton(
+                value: '3',
+                onPressed: context.read<PinCubit>().add,
+              ),
             ],
           ),
           const Spacer(),
           Row(
-            children: const [
-              StringButton(value: '4'),
-              Spacer(),
-              StringButton(value: '5'),
-              Spacer(),
-              StringButton(value: '6'),
+            children: [
+              StringButton(
+                value: '4',
+                onPressed: context.read<PinCubit>().add,
+              ),
+              const Spacer(),
+              StringButton(
+                value: '5',
+                onPressed: context.read<PinCubit>().add,
+              ),
+              const Spacer(),
+              StringButton(
+                value: '6',
+                onPressed: context.read<PinCubit>().add,
+              ),
             ],
           ),
           const Spacer(),
           Row(
-            children: const [
-              StringButton(value: '7'),
-              Spacer(),
-              StringButton(value: '8'),
-              Spacer(),
-              StringButton(value: '9'),
+            children: [
+              StringButton(
+                value: '7',
+                onPressed: context.read<PinCubit>().add,
+              ),
+              const Spacer(),
+              StringButton(
+                value: '8',
+                onPressed: context.read<PinCubit>().add,
+              ),
+              const Spacer(),
+              StringButton(
+                value: '9',
+                onPressed: context.read<PinCubit>().add,
+              ),
             ],
           ),
           const Spacer(),
@@ -55,7 +83,10 @@ class NumberPad extends StatelessWidget {
               ),
 
               const Spacer(),
-              const StringButton(value: '0'),
+              StringButton(
+                value: '0',
+                onPressed: context.read<PinCubit>().add,
+              ),
               const Spacer(),
 
               /// Backspace
@@ -68,29 +99,6 @@ class NumberPad extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Button that holds a string as value and appends value to provided controller
-class StringButton extends StatelessWidget {
-  final String value;
-  const StringButton({
-    Key? key,
-    required this.value,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialButton(
-      onPressed: () {
-        context.read<PinCubit>().add(value);
-      },
-      height: 60,
-      child: Text(
-        value,
-        style: TextStyle(fontSize: 22 * MediaQuery.of(context).textScaleFactor),
       ),
     );
   }

@@ -18,7 +18,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 class NavTrade extends StatefulWidget {
   final BoxConstraints constraints;
-  final Widget? ovrTradeDesktopIconSelected;
+  final Widget? ovrDesktopTradeButtonActive;
   final Widget? ovrGeniusAppbarLogo;
   final Widget? ovrMask;
   final Widget? ovrMask2;
@@ -27,7 +27,7 @@ class NavTrade extends StatefulWidget {
   const NavTrade(
     this.constraints, {
     Key? key,
-    this.ovrTradeDesktopIconSelected,
+    this.ovrDesktopTradeButtonActive,
     this.ovrGeniusAppbarLogo,
     this.ovrMask,
     this.ovrMask2,
@@ -97,9 +97,9 @@ class _NavTrade extends State<NavTrade> {
                 width: widget.constraints.maxWidth * 0.178,
                 top: widget.constraints.maxHeight * 0.518,
                 height: widget.constraints.maxHeight * 0.014,
-                child: widget.ovrTradeDesktopIconSelected ??
+                child: widget.ovrDesktopTradeButtonActive ??
                     SvgPicture.asset(
-                      'assets/images/tradedesktopiconselected.svg',
+                      'assets/images/desktoptradebuttonactive.svg',
                       package: 'genius_wallet',
                       height:
                           widget.constraints.maxHeight * 0.01432408236347359,

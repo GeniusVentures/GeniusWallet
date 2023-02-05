@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';

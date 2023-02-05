@@ -5,7 +5,7 @@ import 'package:genius_wallet/app/bloc/pin_state.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header.dart';
+import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
