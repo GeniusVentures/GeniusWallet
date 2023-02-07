@@ -1,6 +1,8 @@
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class FFIBridgePrebuilt {
   late double? Function() _libFunction;
 
@@ -11,7 +13,7 @@ class FFIBridgePrebuilt {
     } else if (Platform.isIOS) {
       dylib = DynamicLibrary.process();
     } else {
-      dylib = null;
+      dylib = DynamicLibrary.process();
     }
     if (dylib != null) {
       _libFunction = dylib.lookupFunction<Double Function(), double Function()>(
