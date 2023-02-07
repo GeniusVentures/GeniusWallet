@@ -14,8 +14,8 @@ class FFIBridge {
     } else if (Platform.isIOS) {
       dl = DynamicLibrary.process();
     } else {
-      dl = null;
-      // TO DO, Add some code for MacOS version
+      // mac OS
+      dl = DynamicLibrary.process();
     }
     if (dl != null) {
       _getTemperature =
