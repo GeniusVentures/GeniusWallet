@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'package:path/path.dart' as path;
 
 class FFIBridgePrebuilt {
   late double? Function() _libFunction;
@@ -10,6 +11,9 @@ class FFIBridgePrebuilt {
       dylib = DynamicLibrary.open('libnative.so');
     } else if (Platform.isIOS) {
       dylib = DynamicLibrary.process();
+    } else if (Platform.isWindows) {
+      var libraryPath = path.join(Directory.current.path, 'hello.dll');
+      dylib = DynamicLibrary.open(libraryPath);
     } else {
       dylib = null;
     }
