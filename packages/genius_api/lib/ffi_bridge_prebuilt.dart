@@ -14,6 +14,9 @@ class FFIBridgePrebuilt {
     } else if (Platform.isWindows) {
       var libraryPath = path.join(Directory.current.path, 'hello.dll');
       dylib = DynamicLibrary.open(libraryPath);
+    } else if (Platform.isLinux) {
+      var libraryPath = path.join(Directory.current.path, 'libhello.so');
+      dylib = DynamicLibrary.open(libraryPath);
     } else {
       dylib = null;
     }
