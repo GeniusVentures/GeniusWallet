@@ -23,6 +23,7 @@ dependencies:
   local_secure_storage:
     path: packages/local_secure_storage
   responsive_framework: ^0.2.0
+  ffi: ^2.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

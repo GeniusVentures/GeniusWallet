@@ -21,6 +21,20 @@ class GeniusApi {
     required SecureStorage secureStorage,
   }) : _secureStorage = secureStorage;
 
+  // Loading FFI functions ( dll, shared object )
+  final dyLib = DynamicLibrary.open(
+    // TODO REAL PATH FOR wallet_core shared object
+    'lib/genius_api.so',
+  );
+
+  // FFI Call Example
+  //dyLib.lookup<NativeFunction<func_to_call>>(
+  //  'func_to_call',
+  //);
+
+  //final ffiDartFunc = fetchNumberPointer.asFunction<FuncToCall>();
+  //ffiDartFunc(); // Call the function
+
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or proper gen.
     return List.generate(12, (index) => 'word${index + 1}');
