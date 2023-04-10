@@ -5,7 +5,6 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/widgets/components/%D0%B0dd_wallet_text.g.dart';
 import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
-import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
 
 class WalletsScreen extends StatelessWidget {
@@ -19,14 +18,6 @@ class WalletsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             children: [
-              SizedBox(
-                height: 100,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return GeniusAppbar(constraints);
-                  },
-                ),
-              ),
               Row(
                 children: [
                   const Text(

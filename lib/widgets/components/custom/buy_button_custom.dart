@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
-import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BuyButtonCustom extends StatefulWidget {
   final Widget? child;
@@ -18,8 +16,9 @@ class _BuyButtonCustomState extends State<BuyButtonCustom> {
   @override
   Widget build(BuildContext context) {
     return MaterialButton(
-      onPressed: () {
-        context.push('/buy', extra: context.read<WalletDetailsCubit>());
+      onPressed: () async {
+        await launchUrl(Uri.parse('https://moonpay.com/buy'));
+        // context.push('/buy', extra: context.read<WalletDetailsCubit>());
       },
       child: widget.child!,
     );

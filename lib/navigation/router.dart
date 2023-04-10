@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
+import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
-import 'package:genius_wallet/calculator/view/calculator_screen.dart';
-import 'package:genius_wallet/dashboard/cubit/bottom_navigation_bar_cubit.dart';
+import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transaction_information_screen.dart';
-import 'package:genius_wallet/dashboard/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
@@ -16,7 +16,6 @@ import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
-import 'package:genius_wallet/markets/view/markets_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -57,8 +56,6 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/import_existing_wallet',
       builder: (context, state) {
-        /// TODO: Move the BlocListener logic to redirect,
-        /// to clean up '/import_existing_wallet' and '/create_wallet'
         return BlocBuilder<AppBloc, AppState>(
           builder: (context, state) {
             if (state.loadUserStatus == AppStatus.loading) {
@@ -123,13 +120,14 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/dashboard',
       builder: ((context, state) {
-        return const DashboardScreen(initialItem: NavbarItem.dashboard);
+        return const ResponsiveOverlay();
       }),
     ),
     GoRoute(
         path: '/wallets',
         builder: ((context, state) {
-          return const DashboardScreen(initialItem: NavbarItem.wallets);
+          return const ResponsiveOverlay(
+              selectedScreen: NavigationScreen.wallets);
         }),
         routes: [
           GoRoute(
@@ -154,7 +152,9 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/transactions',
       builder: ((context, state) {
-        return const DashboardScreen(initialItem: NavbarItem.transactions);
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.transactions,
+        );
       }),
       routes: [
         GoRoute(
@@ -173,7 +173,7 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/trade',
       builder: ((context, state) {
-        return const DashboardScreen(initialItem: NavbarItem.trade);
+        return const ResponsiveOverlay(selectedScreen: NavigationScreen.trade);
       }),
     ),
     GoRoute(
@@ -256,13 +256,17 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/markets',
       builder: (context, state) {
-        return const MarketsScreen();
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.markets,
+        );
       },
     ),
     GoRoute(
       path: '/calculator',
       builder: (context, state) {
-        return const CalculatorScreen();
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.calculator,
+        );
       },
     ),
     ...LandingRoutes().landingRoutes,

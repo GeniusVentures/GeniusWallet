@@ -12,6 +12,7 @@ class HamburgerMenu extends StatelessWidget {
         textTheme: Theme.of(context).textTheme.copyWith(
               bodyText1: const TextStyle(
                 fontSize: 16,
+                color: Colors.white,
               ),
             ),
       ),
@@ -19,6 +20,9 @@ class HamburgerMenu extends StatelessWidget {
         backgroundColor: GeniusWalletColors.blue500,
         child: ListView(
           children: [
+            const SizedBox(
+              height: 40,
+            ),
             ListTile(
               title: const Text(
                 'Markets',
@@ -29,7 +33,7 @@ class HamburgerMenu extends StatelessWidget {
                 context.go('/markets');
               },
             ),
-            const Divider(color: Colors.white),
+            const OpaqueWhiteDivider(),
             ListTile(
               title: const Text(
                 'Crypto News',
@@ -40,7 +44,7 @@ class HamburgerMenu extends StatelessWidget {
                 context.go('/crypto_news');
               },
             ),
-            const Divider(color: Colors.white),
+            const OpaqueWhiteDivider(),
             ListTile(
               title: const Text(
                 'Blockchain Events',
@@ -51,7 +55,7 @@ class HamburgerMenu extends StatelessWidget {
                 context.go('/events');
               },
             ),
-            const Divider(color: Colors.white),
+            const OpaqueWhiteDivider(),
             ListTile(
               title: const Text(
                 'Calculator',
@@ -62,10 +66,21 @@ class HamburgerMenu extends StatelessWidget {
                 context.go('/calculator');
               },
             ),
-            const Divider(color: Colors.white),
+            const OpaqueWhiteDivider(),
           ],
         ),
       ),
     );
+  }
+}
+
+class OpaqueWhiteDivider extends StatelessWidget {
+  const OpaqueWhiteDivider({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(color: Colors.white.withOpacity(0.2));
   }
 }

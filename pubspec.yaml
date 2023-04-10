@@ -118,3 +118,39 @@ flutter:
     - packages/genius_wallet/assets/images/detailedtransactionoptionscustom.svg
     - packages/genius_wallet/assets/images/transactionarrow.svg
     - packages/genius_wallet/assets/images/coinicon.svg
+    - packages/genius_wallet/assets/images/group3.svg
+    - packages/genius_wallet/assets/images/group2.svg
+    - packages/genius_wallet/assets/images/oval5.png
+    - packages/genius_wallet/assets/images/oval45.svg
+    - packages/genius_wallet/assets/images/path8.svg
+    - packages/genius_wallet/assets/images/path2.svg
+    - packages/genius_wallet/assets/images/path5.svg
+    - packages/genius_wallet/assets/images/path10.svg
+    - packages/genius_wallet/assets/images/navdashboardbuttoncustom.png
+    - packages/genius_wallet/assets/images/navwalletbuttoncustom.png
+    - packages/genius_wallet/assets/images/navstatsbuttoncustom.png
+    - packages/genius_wallet/assets/images/navstatsbuttonactive.png
+    - packages/genius_wallet/assets/images/navtimerbuttoncustom.png
+    - packages/genius_wallet/assets/images/navtimerbuttonactive.png
+    - packages/genius_wallet/assets/images/navcalculatorbuttoncustom.png
+    - packages/genius_wallet/assets/images/navcalculatorbuttonactive.png
+    - packages/genius_wallet/assets/images/navcalendarbuttoncustom.png
+    - packages/genius_wallet/assets/images/navcalendarbuttonactive.png
+    - packages/genius_wallet/assets/images/navwalletbuttoncustom2.png
+    - packages/genius_wallet/assets/images/navnewsbuttoncustom.png
+    - packages/genius_wallet/assets/images/navnewsbuttonactive.png
+    - packages/genius_wallet/assets/images/combinedshape2.png
+    - packages/genius_wallet/assets/images/navcalendarbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navcalculatorbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navnewsbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navtimerbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navstatsbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navwalletbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navwalletbuttonactive.png
+    - packages/genius_wallet/assets/images/navdashboardbuttoncustom.svg
+    - packages/genius_wallet/assets/images/navdashboardbuttonactive.png
+    - packages/genius_wallet/assets/images/tradedesktopiconselected.svg
+    - packages/genius_wallet/assets/images/tradedesktopiconunselected.svg
+    - packages/genius_wallet/assets/images/desktoptradebuttonactive.svg
+    - packages/genius_wallet/assets/images/arrowright.png
+    - packages/genius_wallet/assets/images/arrowleft.png

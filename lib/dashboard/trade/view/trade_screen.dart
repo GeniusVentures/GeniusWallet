@@ -5,6 +5,6 @@ class TradeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Trade');
+    return const Center(child: Text('Coming soon'));
   }
 }

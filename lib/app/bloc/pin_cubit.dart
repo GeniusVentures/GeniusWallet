@@ -67,4 +67,18 @@ class PinCubit extends Cubit<PinState> {
       pinConfirmFailed();
     }
   }
+
+  void desktopOnChanged(String value) {
+    if (value.length >= pinMaxLength) {
+      emit(state.copyWith(pinFullness: PinFullness.completed));
+    } else {
+      emit(state.copyWith(pinFullness: PinFullness.inProgress));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    state.controller.dispose();
+    return super.close();
+  }
 }
