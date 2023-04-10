@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/recoveryword.g.dart';
 
 class RecoveryWords extends StatelessWidget {
   final List<String> recoveryWords;
   final bool inputEnabled;
+
+  static const _numCols = 3;
+
   const RecoveryWords({
     super.key,
     required this.recoveryWords,
@@ -14,16 +18,17 @@ class RecoveryWords extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final numRows = (recoveryWords.length / _numCols).ceil();
     return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.4,
-      width: MediaQuery.of(context).size.width * 0.8,
+      height: GeniusBreakpoints.useDesktopLayout(context) ? numRows * 50 : null,
       child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          mainAxisSpacing: 20,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: _numCols,
+          mainAxisSpacing: 10,
           crossAxisSpacing: 20,
-          childAspectRatio: MediaQuery.of(context).size.width /
-              (MediaQuery.of(context).size.height / 4),
+          childAspectRatio: 3,
         ),
         itemCount: recoveryWords.length,
         itemBuilder: (context, index) {

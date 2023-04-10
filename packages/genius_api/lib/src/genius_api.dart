@@ -163,7 +163,7 @@ class GeniusApi {
     await Future.delayed(Duration(seconds: 1));
     final randomNum = Random().nextDouble() * 500;
 
-    return randomNum.toString();
+    return randomNum.toStringAsFixed(2);
   }
 
   /// Verifies that the saved user pin matches [pin].
@@ -188,7 +188,7 @@ class GeniusApi {
       walletName: walletName,
       currencySymbol: walletType,
       currencyName: walletType,
-      balance: 10,
+      balance: 1000,
       address: random.toString(),
       transactions: [],
     );

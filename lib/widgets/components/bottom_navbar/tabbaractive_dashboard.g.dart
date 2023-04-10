@@ -7,13 +7,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/widgets/components/custom/nav_wallet_button_custom.dart';
+import 'package:genius_wallet/widgets/components/custom/nav_timer_button_custom.dart';
 
 class TabbaractiveDashboard extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrTrade;
   final String? ovrTransactions;
   final String? ovrWallets;
-  final Widget? ovrWalletIcon;
   final String? ovrDashboard;
   const TabbaractiveDashboard(
     this.constraints, {
@@ -21,7 +22,6 @@ class TabbaractiveDashboard extends StatefulWidget {
     this.ovrTrade,
     this.ovrTransactions,
     this.ovrWallets,
-    this.ovrWalletIcon,
     this.ovrDashboard,
   }) : super(key: key);
   @override
@@ -134,18 +134,20 @@ class _TabbaractiveDashboard extends State<TabbaractiveDashboard> {
                                   decoration: BoxDecoration(),
                                   child: Stack(children: [
                                     Positioned(
-                                      left: 17.0,
-                                      width: 18.0,
+                                      left: 18.0,
+                                      width: 17.538,
                                       top: 0,
                                       height: 18.0,
-                                      child: widget.ovrWalletIcon ??
-                                          SvgPicture.asset(
-                                            'assets/images/walleticon.svg',
-                                            package: 'genius_wallet',
-                                            height: 18.0,
-                                            width: 18.0,
-                                            fit: BoxFit.none,
-                                          ),
+                                      child: NavWalletButtonCustom(
+                                          child: SvgPicture.asset(
+                                        'assets/images/navwalletbuttoncustom.svg',
+                                        package: 'genius_wallet',
+                                        height: widget.constraints.maxHeight *
+                                            0.2857142857142857,
+                                        width: widget.constraints.maxWidth *
+                                            0.04676822916666667,
+                                        fit: BoxFit.fill,
+                                      )),
                                     ),
                                     Positioned(
                                       left: 0,
@@ -178,19 +180,6 @@ class _TabbaractiveDashboard extends State<TabbaractiveDashboard> {
                                   decoration: BoxDecoration(),
                                   child: Stack(children: [
                                     Positioned(
-                                      left: 24.0,
-                                      width: 20.0,
-                                      top: 0,
-                                      height: 20.0,
-                                      child: SvgPicture.asset(
-                                        'assets/images/ribookletfill.svg',
-                                        package: 'genius_wallet',
-                                        height: 20.0,
-                                        width: 20.0,
-                                        fit: BoxFit.none,
-                                      ),
-                                    ),
-                                    Positioned(
                                       left: 0,
                                       width: 73.0,
                                       top: 27.0,
@@ -211,6 +200,43 @@ class _TabbaractiveDashboard extends State<TabbaractiveDashboard> {
                                             ),
                                             textAlign: TextAlign.center,
                                           )),
+                                    ),
+                                    Positioned(
+                                      left: 24.0,
+                                      width: 24.0,
+                                      top: 0,
+                                      height: 24.0,
+                                      child: Container(
+                                          clipBehavior: Clip.hardEdge,
+                                          decoration: BoxDecoration(),
+                                          child: Stack(children: [
+                                            Positioned(
+                                              left:
+                                                  widget.constraints.maxWidth *
+                                                      0.008,
+                                              width:
+                                                  widget.constraints.maxWidth *
+                                                      0.048,
+                                              top:
+                                                  widget.constraints.maxHeight *
+                                                      0.063,
+                                              height:
+                                                  widget.constraints.maxHeight *
+                                                      0.312,
+                                              child: NavTimerButtonCustom(
+                                                  child: SvgPicture.asset(
+                                                'assets/images/navtimerbuttoncustom.svg',
+                                                package: 'genius_wallet',
+                                                height: widget
+                                                        .constraints.maxHeight *
+                                                    0.3123992435515873,
+                                                width: widget
+                                                        .constraints.maxWidth *
+                                                    0.048,
+                                                fit: BoxFit.fill,
+                                              )),
+                                            ),
+                                          ])),
                                     ),
                                   ])),
                               SizedBox(

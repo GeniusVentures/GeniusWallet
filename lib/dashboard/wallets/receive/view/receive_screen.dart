@@ -33,6 +33,7 @@ class ReceiveScreen extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 height: 300,
+                width: 500,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return WalletQRCode(

@@ -20,11 +20,15 @@ static const Color gray500 = Color(0xff73788c);
 
 static const Color darkGreen = Color(0xff7ac231);
 
+static const Color containerGray = Color(0xff1e2025);
+
 static const Color gray800 = Color(0xff2a2b31);
 
 static const Color red = Color(0xfff40000);
 
 static const Color foundationError = Color(0xff920000);
+
+static const Color white = Color(0xffffffff);
 
 static const Color darkBlue500 = Color(0xff0068ef);
 
