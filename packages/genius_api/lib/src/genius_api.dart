@@ -7,6 +7,9 @@ import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:secure_storage/secure_storage.dart';
 
+import 'dart:ffi'; // FFI
+import 'dart:io'; // Platform.isX
+
 class GeniusApi {
   final SecureStorage _secureStorage;
 
@@ -20,20 +23,6 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   }) : _secureStorage = secureStorage;
-
-  // Loading FFI functions ( dll, shared object )
-  final dyLib = DynamicLibrary.open(
-    // TODO REAL PATH FOR wallet_core shared object
-    'lib/genius_api.so',
-  );
-
-  // FFI Call Example
-  //dyLib.lookup<NativeFunction<func_to_call>>(
-  //  'func_to_call',
-  //);
-
-  //final ffiDartFunc = fetchNumberPointer.asFunction<FuncToCall>();
-  //ffiDartFunc(); // Call the function
 
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or proper gen.

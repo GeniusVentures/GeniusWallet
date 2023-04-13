@@ -6,7 +6,6 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
-import 'package:ffi/ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
