@@ -4,7 +4,7 @@ A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Para
 
 ## Quick start
 
-### Build on Linux
+### Build on Linux and Android on Linux
 
 ### Install the prerequisites
         
@@ -12,10 +12,14 @@ A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Para
         sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa openjdk-11-jdk wget default-jdk
         sudo apt-get clean
 
-### Install Flutter using snapd
+### Install Flutter from thirdparty directory, it should be one level up from GeniusWallet
 
-        sudo snap install flutter --classic
-        
+       pushd ../thirdparty
+       # save flutter path for later.
+       echo 'export PATH="$PATH:`pwd`/flutter/bin' >>~/.bash_profile
+       export PATH="$PATH:`pwd`/flutter/bin
+       popd
+       
 #### Check android sdk is present or not
         flutter sdk-path
         flutter doctor
