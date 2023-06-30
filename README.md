@@ -19,10 +19,13 @@ A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Para
        echo "export PATH=\"\$PATH:`pwd`/flutter/bin\"" >>~/.bash_profile
        export PATH="$PATH:`pwd`/flutter/bin"
        popd
-       
-#### Check android sdk is present or not
-        flutter sdk-path
+       flutter channel stable
+
+#### Check if flutter is working.
         flutter doctor
+        
+#### Android ONLY - Check android sdk is present or not
+        flutter sdk-path
 
 ### Install Android SDK if required
 
@@ -59,7 +62,7 @@ A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Para
 
         cd <path to genius wallet>
         flutter pub get
-        flutter build apk 
+        flutter build apk -OR- flutter build linux
 
 
 ## Resources
