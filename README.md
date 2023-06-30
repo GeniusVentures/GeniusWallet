@@ -16,8 +16,8 @@ A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Para
 
        pushd ../thirdparty
        # save flutter path for later.
-       echo 'export PATH="$PATH:`pwd`/flutter/bin' >>~/.bash_profile
-       export PATH="$PATH:`pwd`/flutter/bin
+       echo "export PATH=\"\$PATH:`pwd`/flutter/bin\"" >>~/.bash_profile
+       export PATH="$PATH:`pwd`/flutter/bin"
        popd
        
 #### Check android sdk is present or not
