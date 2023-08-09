@@ -21,6 +21,7 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+
 //def my_test_lib = new File(projectDir, 'lal')
 
 
@@ -43,15 +44,19 @@ android {
         jvmTarget = '1.8'
     }
 
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
     defaultConfig {
+            ndk {
+            abiFilters "arm64-v8a" // put only the architectures that your lib is targeting
+        }
 
         externalNativeBuild {
             cmake {
-                arguments "-DWALLET_CORE_LIB_DIR=${projectDir}/../../../thirdparty/wallet-core"
+                arguments "-DWALLET_CORE_LIB_DIR=${projectDir}/../../../thirdparty/build/Android/Release/arm64-v8a/wallet-core"
                 arguments "-DWALLET_CORE_WRAPPER_DIR=${projectDir}/../lal"
             }
         }
