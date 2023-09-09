@@ -6,14 +6,20 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
+import 'package:keep_screen_on/keep_screen_on.dart'; //flutter pub add keep_screen_on
+import 'package:wakelock/wakelock.dart';  //flutter pub add wakelock
 
 void main() async {
+  //Wakelock.enable();
+  KeepScreenOn.turnOn();
   WidgetsFlutterBinding.ensureInitialized();
   final secureStorage = await LocalWalletStorage.create();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
   runApp(MyApp(
     geniusApi: geniusApi,
   ));
+  KeepScreenOn.turnOff();
+  //Wakelock.disable();
 }
 
 class MyApp extends StatelessWidget {
