@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
@@ -8,10 +10,34 @@ import 'package:genius_wallet/widgets/components/crypto_chart.g.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
+class WalletDetailsScreenStateful extends StatefulWidget {
+  @override
+  State<WalletDetailsScreenStateful> createState() => WalletDetailsScreen();
+}
+class WalletDetailsScreen extends State<WalletDetailsScreenStateful> {
 
-class WalletDetailsScreen extends StatelessWidget {
-  const WalletDetailsScreen({Key? key}) : super(key: key);
+  static double _fakeBalance = 0.0;
+  
+  get timer => null;
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Start a timer to refresh the value every 5 seconds
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      // Update the value and trigger a rebuild
+      setState(() {
+        _fakeBalance+= 0.0001;
+      });
+    });
+  }
+    @override
+  void dispose() {
+    // Cancel the timer when the widget is disposed
+    timer.cancel();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
@@ -66,7 +92,7 @@ class WalletDetailsScreen extends StatelessWidget {
                           constraints,
                           ovrYourbitcoinaddress:
                               'Your ${selectedWallet.currencyName} Wallet Address',
-                          ovrQuantity: selectedWallet.balance.toString(),
+                          ovrQuantity: (_fakeBalance.toDouble()).toStringAsFixed(4),
                           ovrCurrency: selectedWallet.currencySymbol,
                           ovrAddressField: selectedWallet.address,
                         );

@@ -144,7 +144,7 @@ final geniusWalletRouter = GoRouter(
                   initialState: WalletDetailsState(selectedWallet: wallet),
                   geniusApi: context.read<GeniusApi>(),
                 ),
-                child: const WalletDetailsScreen(),
+                child: WalletDetailsScreenStateful(),
               );
             },
           ),

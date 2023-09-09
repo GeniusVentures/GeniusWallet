@@ -34,8 +34,8 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
                 AddWallet(
                   wallet: Wallet(
                     walletName: 'dummy_wallet',
-                    currencySymbol: 'ETH',
-                    currencyName: 'Ethereum',
+                    currencySymbol: 'GNU',
+                    currencyName: 'GNUS',
                     address: uuid.toString(),
                     balance: 0,
                     transactions: [],
