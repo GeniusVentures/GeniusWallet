@@ -25,6 +25,9 @@ dependencies:
   local_secure_storage:
     path: packages/local_secure_storage
   responsive_framework: ^0.2.0
+  keep_screen_on: ^2.1.0
+  wakelock: ^0.6.2
+  influxdb_client: ^2.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

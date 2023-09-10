@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
@@ -10,14 +12,20 @@ import 'package:genius_wallet/widgets/components/crypto_chart.g.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
+import 'package:influxdb_client/api.dart';
+
 class WalletDetailsScreenStateful extends StatefulWidget {
+  late Wallet curr_wallet;
+
+  WalletDetailsScreenStateful(this.curr_wallet);
+
   @override
   State<WalletDetailsScreenStateful> createState() => WalletDetailsScreen();
 }
 class WalletDetailsScreen extends State<WalletDetailsScreenStateful> {
 
   static double _fakeBalance = 0.0;
-  
+
   get timer => null;
 
   @override
@@ -27,8 +35,81 @@ class WalletDetailsScreen extends State<WalletDetailsScreenStateful> {
     // Start a timer to refresh the value every 5 seconds
     Timer.periodic(Duration(seconds: 5), (timer) {
       // Update the value and trigger a rebuild
+
+      void postWallet() async{
+        final dbClient = InfluxDBClient(
+          url: 'http://localhost:8086',
+          token: '0sdXuQ_hGQV-Xeho-i7kbvdoPX9mpomc7V8DgcihaBykIpD6YMdlcf-TZKJq6XIQaB4nlFIzJFHnLarOD_s4NA==',
+          org: 'GeniusVentures',
+          bucket: 'WalletInfo',
+          debug: true
+        );
+
+        var writeApi = dbClient.getWriteService(WriteOptions().merge(
+        precision: WritePrecision.s,
+        batchSize: 100,
+        flushInterval: 5000,
+        gzip: true));
+
+
+        var data = List<Point>.empty(growable: true);
+          data.add(Point('wallet')
+            .addTag('address', widget.curr_wallet.address)
+            .addField('balance', _fakeBalance));
+
+          print(
+            '\n\n-------------------------------- Write data -------------------------------\n');
+        await writeApi.write(data).then((value) {
+          print('Write completed 1');
+        }).catchError((exception) {
+          print('Handle write error here!');
+          print(exception);
+        });
+
+            // Create Query service and query
+        //var queryService = dbClient.getQueryService();
+        //var fluxQuery = '''
+        //    from(bucket: "my-bucket")
+        //          |> range(start: -20d)
+        //          |> filter(fn: (r) => r["_measurement"] == "weather" 
+        //                          and r["location"] == "Prague")''';
+//
+        //// query to stream and iterate all records
+        //print(
+        //    '\n\n---------------------------------- Query ---------------------------------\n');
+        //var recordStream = await queryService.query(fluxQuery);
+//
+        //print(
+        //    '\n\n------------------------------ Query result ------------------------------\n');
+        //await recordStream.forEach((record) {
+        //  print(
+        //      'Temperature in ${record['location']} at ${record['_time']} is ${record['_value']} °C');
+        //});
+//
+        //// delete data
+        //print(
+        //    '\n\n------------------------------- Delete data -------------------------------\n');
+        //await dbClient
+        //    .getDeleteService()
+        //    .delete(
+        //        predicate: '_measurement="weather"',
+        //        start: DateTime.parse('1970-01-01T00:00:00Z'),
+        //        stop: DateTime.now().toUtc(),
+        //        bucket: 'my-bucket',
+        //        org: 'my-org')
+        //    .catchError((e) => print(e));
+//
+        //await Future.delayed(Duration(seconds: 10));
+        dbClient.close();
+      }
       setState(() {
-        _fakeBalance+= 0.0001;
+        //print('Fake balance in $_fakeBalance');
+        //print('Fake balance in ${widget.curr_wallet.balance}');
+        //print('Fake balance in ${widget.curr_wallet.address}');
+        //_fakeBalance = widget.curr_wallet.balance;
+        _fakeBalance+=0.0001;
+        //widget.curr_wallet = widget.curr_wallet.copyWith(balance: _fakeBalance);
+        postWallet();
       });
     });
   }
@@ -92,7 +173,7 @@ class WalletDetailsScreen extends State<WalletDetailsScreenStateful> {
                           constraints,
                           ovrYourbitcoinaddress:
                               'Your ${selectedWallet.currencyName} Wallet Address',
-                          ovrQuantity: (_fakeBalance.toDouble()).toStringAsFixed(4),
+                          ovrQuantity: _fakeBalance.toStringAsFixed(4),
                           ovrCurrency: selectedWallet.currencySymbol,
                           ovrAddressField: selectedWallet.address,
                         );
