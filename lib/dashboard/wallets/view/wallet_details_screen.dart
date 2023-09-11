@@ -38,9 +38,9 @@ class WalletDetailsScreen extends State<WalletDetailsScreenStateful> {
 
       void postWallet() async{
         final dbClient = InfluxDBClient(
-          url: 'http://localhost:8086',
-          token: '0sdXuQ_hGQV-Xeho-i7kbvdoPX9mpomc7V8DgcihaBykIpD6YMdlcf-TZKJq6XIQaB4nlFIzJFHnLarOD_s4NA==',
-          org: 'GeniusVentures',
+          url: 'http://192.168.16.33:8086',
+          token: 'fdLxG5FIZnDDVOBl4gozJr5wy6mXDlBgbvOtAdzG3XfcmMzwP3_RVdHiTuK4s39pIrYoTuiJRexpQpTUTr1U1w==',
+          org: 'GNUS.AI',
           bucket: 'WalletInfo',
           debug: true
         );
