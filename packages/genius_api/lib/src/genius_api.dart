@@ -8,12 +8,11 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:secure_storage/secure_storage.dart';
-import 'package:genius_api/genius_api_ffi.dart';
+
 
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
-  final NativeLibrary ffiWalletCore;
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() =>
@@ -25,8 +24,7 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt(),
-        ffiWalletCore = NativeLibrary(ffi.DynamicLibrary.executable());
+        ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or   gen.
@@ -204,6 +202,9 @@ class GeniusApi {
 
   double? getNativeValue() {
     return ffiBridgePrebuilt.getValueFromNative();
+  }
+  ffi.Pointer<ffi.Void> createWallet() {
+    return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(500);
   }
 
   Future<List<Currency>> getMarkets() async {

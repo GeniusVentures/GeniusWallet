@@ -15,6 +15,8 @@ class AppState extends Equatable {
   /// [double] used for testing FFI Bridge
   final double? ffiDouble;
 
+  final Pointer<Void>? testWallet;
+
   const AppState({
     this.wallets = const [],
     this.subscribeToWalletStatus = AppStatus.initial,
@@ -22,6 +24,7 @@ class AppState extends Equatable {
     this.loadUserStatus = AppStatus.initial,
     this.userStatus = UserStatus.initial,
     this.ffiDouble,
+    this.testWallet,
   });
 
   AppState copyWith({
@@ -31,6 +34,7 @@ class AppState extends Equatable {
     AppStatus? loadUserStatus,
     UserStatus? userStatus,
     double? ffiDouble,
+    Pointer<Void>? testWallet,
   }) {
     return AppState(
       wallets: wallets ?? this.wallets,
@@ -40,6 +44,7 @@ class AppState extends Equatable {
       loadUserStatus: loadUserStatus ?? this.loadUserStatus,
       userStatus: userStatus ?? this.userStatus,
       ffiDouble: ffiDouble ?? this.ffiDouble,
+      testWallet: testWallet,
     );
   }
 
@@ -51,6 +56,7 @@ class AppState extends Equatable {
         loadUserStatus,
         userStatus,
         ffiDouble,
+        testWallet,
       ];
 }
 

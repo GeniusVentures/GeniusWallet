@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,7 +66,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     //NOTE: No asyncs/awaits here since this method is synchronous.
     //NOTE: If they were async, we'd need to have a loading status
     final ffiDouble = api.getNativeValue();
+    final ffiWallet = api.createWallet();
 
     emit(state.copyWith(ffiDouble: ffiDouble));
+    emit(state.copyWith(testWallet: ffiWallet));
   }
 }
