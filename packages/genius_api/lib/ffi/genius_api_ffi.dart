@@ -35,7 +35,7 @@ class NativeLibrary {
   late final _TWDataCreateWithBytesPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<TWData> Function(
-              ffi.Pointer<ffi.Uint8>, ffi.Size)>>('TWDataCreateWithBytes');
+              ffi.Pointer<ffi.Uint8>, ffi.Size)>>('TWDataCreateWithBytesNative');
   late final _TWDataCreateWithBytes = _TWDataCreateWithBytesPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<ffi.Uint8>, int)>();
 
@@ -53,7 +53,7 @@ class NativeLibrary {
 
   late final _TWDataCreateWithSizePtr =
       _lookup<ffi.NativeFunction<ffi.Pointer<TWData> Function(ffi.Size)>>(
-          'TWDataCreateWithSize');
+          'TWDataCreateWithSizeNative');
   late final _TWDataCreateWithSize =
       _TWDataCreateWithSizePtr.asFunction<ffi.Pointer<TWData> Function(int)>();
 
@@ -72,7 +72,7 @@ class NativeLibrary {
   late final _TWDataCreateWithDataPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWDataCreateWithData');
+              ffi.Pointer<TWData>)>>('TWDataCreateWithDataNative');
   late final _TWDataCreateWithData = _TWDataCreateWithDataPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -91,7 +91,7 @@ class NativeLibrary {
   late final _TWDataCreateWithHexStringPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWDataCreateWithHexString');
+              ffi.Pointer<TWString>)>>('TWDataCreateWithHexStringNative');
   late final _TWDataCreateWithHexString = _TWDataCreateWithHexStringPtr
       .asFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 
@@ -109,7 +109,7 @@ class NativeLibrary {
 
   late final _TWDataSizePtr =
       _lookup<ffi.NativeFunction<ffi.Size Function(ffi.Pointer<TWData>)>>(
-          'TWDataSize');
+          'TWDataSizeNative');
   late final _TWDataSize =
       _TWDataSizePtr.asFunction<int Function(ffi.Pointer<TWData>)>();
 
@@ -127,7 +127,7 @@ class NativeLibrary {
 
   late final _TWDataBytesPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Uint8> Function(ffi.Pointer<TWData>)>>('TWDataBytes');
+          ffi.Pointer<ffi.Uint8> Function(ffi.Pointer<TWData>)>>('TWDataBytesNative');
   late final _TWDataBytes = _TWDataBytesPtr.asFunction<
       ffi.Pointer<ffi.Uint8> Function(ffi.Pointer<TWData>)>();
 
@@ -148,7 +148,7 @@ class NativeLibrary {
 
   late final _TWDataGetPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Uint8 Function(ffi.Pointer<TWData>, ffi.Size)>>('TWDataGet');
+          ffi.Uint8 Function(ffi.Pointer<TWData>, ffi.Size)>>('TWDataGetNative');
   late final _TWDataGet =
       _TWDataGetPtr.asFunction<int Function(ffi.Pointer<TWData>, int)>();
 
@@ -172,7 +172,7 @@ class NativeLibrary {
   late final _TWDataSetPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(
-              ffi.Pointer<TWData>, ffi.Size, ffi.Uint8)>>('TWDataSet');
+              ffi.Pointer<TWData>, ffi.Size, ffi.Uint8)>>('TWDataSetNative');
   late final _TWDataSet =
       _TWDataSetPtr.asFunction<void Function(ffi.Pointer<TWData>, int, int)>();
 
@@ -199,7 +199,7 @@ class NativeLibrary {
   late final _TWDataCopyBytesPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<TWData>, ffi.Size, ffi.Size,
-              ffi.Pointer<ffi.Uint8>)>>('TWDataCopyBytes');
+              ffi.Pointer<ffi.Uint8>)>>('TWDataCopyBytesNative');
   late final _TWDataCopyBytes = _TWDataCopyBytesPtr.asFunction<
       void Function(ffi.Pointer<TWData>, int, int, ffi.Pointer<ffi.Uint8>)>();
 
@@ -226,7 +226,7 @@ class NativeLibrary {
   late final _TWDataReplaceBytesPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<TWData>, ffi.Size, ffi.Size,
-              ffi.Pointer<ffi.Uint8>)>>('TWDataReplaceBytes');
+              ffi.Pointer<ffi.Uint8>)>>('TWDataReplaceBytesNative');
   late final _TWDataReplaceBytes = _TWDataReplaceBytesPtr.asFunction<
       void Function(ffi.Pointer<TWData>, int, int, ffi.Pointer<ffi.Uint8>)>();
 
@@ -250,7 +250,7 @@ class NativeLibrary {
   late final _TWDataAppendBytesPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<TWData>, ffi.Pointer<ffi.Uint8>,
-              ffi.Size)>>('TWDataAppendBytes');
+              ffi.Size)>>('TWDataAppendBytesNative');
   late final _TWDataAppendBytes = _TWDataAppendBytesPtr.asFunction<
       void Function(ffi.Pointer<TWData>, ffi.Pointer<ffi.Uint8>, int)>();
 
@@ -271,7 +271,7 @@ class NativeLibrary {
   late final _TWDataAppendBytePtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(
-              ffi.Pointer<TWData>, ffi.Uint8)>>('TWDataAppendByte');
+              ffi.Pointer<TWData>, ffi.Uint8)>>('TWDataAppendByteNative');
   late final _TWDataAppendByte = _TWDataAppendBytePtr.asFunction<
       void Function(ffi.Pointer<TWData>, int)>();
 
@@ -292,7 +292,7 @@ class NativeLibrary {
   late final _TWDataAppendDataPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(
-              ffi.Pointer<TWData>, ffi.Pointer<TWData>)>>('TWDataAppendData');
+              ffi.Pointer<TWData>, ffi.Pointer<TWData>)>>('TWDataAppendDataNative');
   late final _TWDataAppendData = _TWDataAppendDataPtr.asFunction<
       void Function(ffi.Pointer<TWData>, ffi.Pointer<TWData>)>();
 
@@ -309,7 +309,7 @@ class NativeLibrary {
 
   late final _TWDataReversePtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<TWData>)>>(
-          'TWDataReverse');
+          'TWDataReverseNative');
   late final _TWDataReverse =
       _TWDataReversePtr.asFunction<void Function(ffi.Pointer<TWData>)>();
 
@@ -326,7 +326,7 @@ class NativeLibrary {
 
   late final _TWDataResetPtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<TWData>)>>(
-          'TWDataReset');
+          'TWDataResetNative');
   late final _TWDataReset =
       _TWDataResetPtr.asFunction<void Function(ffi.Pointer<TWData>)>();
 
@@ -343,7 +343,7 @@ class NativeLibrary {
 
   late final _TWDataDeletePtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<TWData>)>>(
-          'TWDataDelete');
+          'TWDataDeleteNative');
   late final _TWDataDelete =
       _TWDataDeletePtr.asFunction<void Function(ffi.Pointer<TWData>)>();
 
@@ -365,7 +365,7 @@ class NativeLibrary {
   late final _TWDataEqualPtr = _lookup<
       ffi.NativeFunction<
           ffi.Bool Function(
-              ffi.Pointer<TWData>, ffi.Pointer<TWData>)>>('TWDataEqual');
+              ffi.Pointer<TWData>, ffi.Pointer<TWData>)>>('TWDataEqualNative');
   late final _TWDataEqual = _TWDataEqualPtr.asFunction<
       bool Function(ffi.Pointer<TWData>, ffi.Pointer<TWData>)>();
 
