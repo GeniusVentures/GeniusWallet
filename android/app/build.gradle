@@ -53,7 +53,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DWALLET_CORE_LIB_DIR=${projectDir}/../../../thirdparty/build/Android/Release"
-                arguments "-DWALLET_CORE_WRAPPER_DIR=${projectDir}/../lal"
+                arguments "-DPRJ_WRAPPER_DIR=${projectDir}/../../src"
             }
         }
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
