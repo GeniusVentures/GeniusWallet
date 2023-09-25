@@ -15,7 +15,8 @@ set_target_properties(wallet_core_rust PROPERTIES
 add_library( 
     walletWrapper
     SHARED
-    ${PRJ_WRAPPER_DIR}/native_wallet.cpp
+    ${PRJ_WRAPPER_DIR}/native_tw_data.cpp
+    ${PRJ_WRAPPER_DIR}/native_tw_string.cpp
 
 )
 target_link_libraries( walletWrapper
