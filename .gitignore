@@ -45,3 +45,6 @@ app.*.map.json
 
 # Build output on android
 /android/app/.cxx
+
+# Test dependencies build output
+/test/**/.build
