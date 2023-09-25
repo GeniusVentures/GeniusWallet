@@ -16,6 +16,8 @@ class FFIBridgePrebuilt {
       dylib = DynamicLibrary.open('libwalletWrapper.so');
     } else if (Platform.isIOS) {
       dylib = DynamicLibrary.process();
+    } else if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      dylib = DynamicLibrary.open('build/test/${Platform.operatingSystem}/.build/libwalletWrapper.so');
     } else {
       dylib = null;
     }
