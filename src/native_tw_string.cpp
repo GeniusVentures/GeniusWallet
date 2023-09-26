@@ -1,4 +1,3 @@
-#include "TWData.h"
 #include "TWString.h"
 
 #ifndef EXPORT_API
