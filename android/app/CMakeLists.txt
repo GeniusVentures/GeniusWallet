@@ -11,15 +11,22 @@ add_library(wallet_core_rust STATIC IMPORTED)
 set_target_properties(wallet_core_rust PROPERTIES 
     IMPORTED_LOCATION ${WALLET_CORE_LIB_DIR}/${ANDROID_ABI}/wallet-core/lib/libwallet_core_rs.a
 )
+add_library(wallet_core_trezor STATIC IMPORTED)
+set_target_properties(wallet_core_trezor PROPERTIES 
+    IMPORTED_LOCATION ${WALLET_CORE_LIB_DIR}/${ANDROID_ABI}/wallet-core/lib/libTrezorCrypto.a
+)
 
 add_library( 
     walletWrapper
     SHARED
     ${PRJ_WRAPPER_DIR}/native_tw_data.cpp
     ${PRJ_WRAPPER_DIR}/native_tw_string.cpp
-
+    ${PRJ_WRAPPER_DIR}/native_tw_filecoin.cpp
+    ${PRJ_WRAPPER_DIR}/native_tw_hdversion.cpp
+    ${PRJ_WRAPPER_DIR}/native_tw_hrp.cpp
 )
 target_link_libraries( walletWrapper
     walletcore
+    wallet_core_trezor
     wallet_core_rust
 )
