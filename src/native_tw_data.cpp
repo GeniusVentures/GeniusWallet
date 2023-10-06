@@ -5,6 +5,12 @@
     extern "C" __attribute__((visibility("default"))) __attribute__((used))
 #endif
 
+EXPORT_API
+double get_temperature(void)
+{
+    return 35.0;
+}
+
 /**
  * @brief Creates a block of data from a byte array.
  * 
