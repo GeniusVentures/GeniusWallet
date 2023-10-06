@@ -9,11 +9,13 @@ class FFIBridgePrebuilt {
   //late double? Function() _libFunction;
   //late Pointer<Void> Function(Pointer<Uint8>, int) CreateTWBytes;
   late NativeLibrary wallet_lib;
+        late double? Function() _libFunction;
 
   FFIBridgePrebuilt() {
     DynamicLibrary? dylib;
     if (Platform.isAndroid) {
-      dylib = DynamicLibrary.open('libwalletWrapper.so');
+      //dylib = DynamicLibrary.process();
+      dylib = DynamicLibrary.open('libGeniusWallet.so');
     } else if (Platform.isIOS) {
       dylib = DynamicLibrary.process();
     } else if (Platform.environment.containsKey('FLUTTER_TEST')) {
@@ -23,6 +25,8 @@ class FFIBridgePrebuilt {
     }
     if (dylib != null) {
       wallet_lib = NativeLibrary(dylib);
+      _libFunction = dylib.lookupFunction<Double Function(), double Function()>(
+        'get_temperature');
       //_lookup = dylib.lookup;
       //_libFunction = dylib.lookupFunction<Double Function(), double Function()>(
       //    'TWDataCreateWithBytes');
@@ -49,10 +53,7 @@ class FFIBridgePrebuilt {
 //      bytes,
 //      size,
 //    );
-  double? getValueFromNative() 
-  {
-    return 12.0;
-  }
+double? getValueFromNative() => _libFunction();
   //Pointer<Void> TWDataCreateWithBytes(
   //  Pointer<Uint8> bytes,
   //  int size,
