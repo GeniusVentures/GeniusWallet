@@ -52,15 +52,14 @@ android {
     defaultConfig {
         externalNativeBuild {
             cmake {
-                arguments "-DWALLET_CORE_LIB_DIR=${projectDir}/../../../thirdparty/build/Android/Release"
-                arguments "-DPRJ_WRAPPER_DIR=${projectDir}/../../src"
+            arguments "-DWALLET_CORE_LIB_DIR=${projectDir}/../../../thirdparty/build/Android/Release"
             }
         }
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.genius_wallet"
+        applicationId "ai.gnus.genius_wallet"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
-        minSdkVersion 19
+        minSdkVersion 24
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -73,7 +72,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-     externalNativeBuild {
+    externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
         }
