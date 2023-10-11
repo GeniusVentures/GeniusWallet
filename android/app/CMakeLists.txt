@@ -2,6 +2,21 @@
 cmake_minimum_required(VERSION 3.4.1)  
 set(CMAKE_VERBOSE_MAKEFILE on)
 
+# --------------------------------------------------------
+# define third party directory
+if (NOT DEFINED THIRDPARTY_DIR)
+  if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../../thirdparty/README.md")
+    message("Setting default third party directory")
+    set(THIRDPARTY_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../thirdparty")
+    ## get absolute path
+    #cmake_path(SET THIRDPARTY_DIR NORMALIZE "${THIRDPARTY_DIR}") # Doesn't work in Cmake 3.18 (Android SDK's installed version here)
+  else()
+    message( FATAL_ERROR "Cannot find thirdparty directory required to build" )
+  endif()
+endif()
+
+set(WALLET_CORE_LIB_DIR ${THIRDPARTY_DIR}/build/Android/Release)
+
 find_library(log-lib log)
 
 add_library(walletcore STATIC IMPORTED)

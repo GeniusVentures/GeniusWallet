@@ -22,9 +22,6 @@ if (flutterVersionName == null) {
 }
 
 
-//def my_test_lib = new File(projectDir, 'lal')
-
-
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
@@ -52,7 +49,9 @@ android {
     defaultConfig {
         externalNativeBuild {
             cmake {
-            arguments "-DWALLET_CORE_LIB_DIR=${projectDir}/../../../thirdparty/build/Android/Release"
+                // "projectDir" contains by default the build.gradle path on gradle.
+                // Uncomment this and put your definition of path if anything other than the default ("GeniusWallet" on same level as "thirdparty")
+                //arguments "-DTHIRDPARTY_DIR=${projectDir}/../../../thirdparty"
             }
         }
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
