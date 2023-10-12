@@ -8,27 +8,21 @@ class FFIBridgePrebuilt {
   late NativeLibrary wallet_lib;
 
   FFIBridgePrebuilt() {
-    DynamicLibrary? dylib;
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      dylib = DynamicLibrary.open('test/${Platform.operatingSystem}/.build/lib$_libName.so');
-    } else if (Platform.isAndroid || Platform.isLinux) {
-      dylib = DynamicLibrary.open('lib$_libName.so');
-    } else if (Platform.isMacOS || Platform.isIOS) {
-      dylib = DynamicLibrary.process();
-    } else if (Platform.isWindows) {
-      dylib = DynamicLibrary.open('$_libName.dll');
-    } else {
-      dylib = null;
-    }
-    if (dylib != null) {
-      wallet_lib = NativeLibrary(dylib);
 
-    } else {
-    }
-  }
-  double? getValueFromNative() 
-  {
-    return 12.0;
-  }
+    final DynamicLibrary _dylib = () {
+      if (Platform.environment.containsKey('FLUTTER_TEST')) {
+        return DynamicLibrary.open('test/${Platform.operatingSystem}/.build/lib$_libName.so');
+      } else if (Platform.isAndroid || Platform.isLinux) {
+      return DynamicLibrary.open('lib$_libName.so');
+      } else if (Platform.isMacOS || Platform.isIOS) {
+      return DynamicLibrary.process();
+      } else if (Platform.isWindows) {
+      return DynamicLibrary.open('$_libName.dll');
+      }
+      throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+    }();
 
+    wallet_lib = NativeLibrary(_dylib);
+
+  }
 }

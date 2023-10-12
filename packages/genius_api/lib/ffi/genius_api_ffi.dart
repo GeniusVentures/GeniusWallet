@@ -596,6 +596,7 @@ class NativeLibrary {
   late final _TWHDVersionIsPrivate =
       _TWHDVersionIsPrivatePtr.asFunction<bool Function(int)>();
 
+/**
   late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_BITCOIN =
       _lookup<ffi.Pointer<ffi.Char>>('HRP_BITCOIN');
 
@@ -941,10 +942,10 @@ class NativeLibrary {
 
   late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_NEUTRON =
       _lookup<ffi.Pointer<ffi.Char>>('HRP_NEUTRON');
-
   ffi.Pointer<ffi.Char> get HRP_NEUTRON => _HRP_NEUTRON.value;
 
   set HRP_NEUTRON(ffi.Pointer<ffi.Char> value) => _HRP_NEUTRON.value = value;
+**/
 
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,

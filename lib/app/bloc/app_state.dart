@@ -13,7 +13,7 @@ class AppState extends Equatable {
   final UserStatus userStatus;
 
   /// [double] used for testing FFI Bridge
-  final double? ffiDouble;
+  final String? ffiString;
 
   final Pointer<Void>? testWallet;
 
@@ -23,7 +23,7 @@ class AppState extends Equatable {
     this.transactions = const [],
     this.loadUserStatus = AppStatus.initial,
     this.userStatus = UserStatus.initial,
-    this.ffiDouble,
+    this.ffiString,
     this.testWallet,
   });
 
@@ -33,7 +33,7 @@ class AppState extends Equatable {
     List<Transaction>? transactions,
     AppStatus? loadUserStatus,
     UserStatus? userStatus,
-    double? ffiDouble,
+    String? ffiString,
     Pointer<Void>? testWallet,
   }) {
     return AppState(
@@ -43,7 +43,7 @@ class AppState extends Equatable {
       transactions: transactions ?? this.transactions,
       loadUserStatus: loadUserStatus ?? this.loadUserStatus,
       userStatus: userStatus ?? this.userStatus,
-      ffiDouble: ffiDouble ?? this.ffiDouble,
+      ffiString: ffiString ?? this.ffiString,
       testWallet: testWallet,
     );
   }
@@ -55,7 +55,7 @@ class AppState extends Equatable {
         subscribeToWalletStatus,
         loadUserStatus,
         userStatus,
-        ffiDouble,
+        ffiString,
         testWallet,
       ];
 }
