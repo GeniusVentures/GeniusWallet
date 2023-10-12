@@ -8,6 +8,8 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:secure_storage/secure_storage.dart';
+import 'package:ffi/ffi.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 
 
 class GeniusApi {
@@ -200,8 +202,8 @@ class GeniusApi {
     return importedWallet;
   }
 
-  double? getNativeValue() {
-    return ffiBridgePrebuilt.getValueFromNative();
+  String? getNativeValue() {
+    return ffiBridgePrebuilt.wallet_lib.stringForHRP(TWHRP.TWHRPStride).cast<Utf8>().toDartString();
   }
   ffi.Pointer<ffi.Void> createWallet() {
     return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(500);

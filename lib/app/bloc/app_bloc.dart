@@ -65,10 +65,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   FutureOr<void> _onFFITestEvent(FFITestEvent event, Emitter<AppState> emit) {
     //NOTE: No asyncs/awaits here since this method is synchronous.
     //NOTE: If they were async, we'd need to have a loading status
-    final ffiDouble = api.getNativeValue();
+    final ffiString = api.getNativeValue();
     final ffiWallet = api.createWallet();
 
-    emit(state.copyWith(ffiDouble: ffiDouble));
+    emit(state.copyWith(ffiString: ffiString));
     emit(state.copyWith(testWallet: ffiWallet));
   }
 }
