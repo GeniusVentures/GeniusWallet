@@ -1,6 +1,7 @@
-# Genius Wallet
+# GeniusWallet
 
-A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Parabeac](https://parabeac.com/).
+A new Flutter project.
 
-## Resources
-* [Figma File](https://www.figma.com/file/YFBxDHU58kCfKP5TiHXWsz/GNUS-Build?node-id=81%3A1121) 
+## Getting Started
+
+FlutterFlow projects are built to run on the Flutter _stable_ release.
