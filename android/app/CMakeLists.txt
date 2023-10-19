@@ -2,6 +2,24 @@
 cmake_minimum_required(VERSION 3.4.1)  
 set(CMAKE_VERBOSE_MAKEFILE on)
 
+MACRO (TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE target)
+  IF (WIN32)
+    FOREACH (arg IN LISTS ARGN)
+      SET_TARGET_PROPERTIES(
+        ${target} PROPERTIES LINK_FLAGS "/WHOLEARCHIVE:${lib}"
+      )
+    ENDFOREACH ()
+  ELSE ()
+    IF (APPLE)
+      SET(LINK_FLAGS "-Wl,-all_load")
+      SET(UNDO_FLAGS "-Wl,-noall_load")
+    ELSE ()
+      SET(LINK_FLAGS "-Wl,--whole-archive")
+      SET(UNDO_FLAGS "-Wl,--no-whole-archive")
+    ENDIF ()
+    TARGET_LINK_LIBRARIES(${target} ${LINK_FLAGS} ${ARGN} ${UNDO_FLAGS})
+  ENDIF ()
+ENDMACRO ()
 # --------------------------------------------------------
 # define third party directory
 if (NOT DEFINED THIRDPARTY_DIR)
@@ -59,9 +77,10 @@ add_library(
     null.cpp
 )
 
-target_link_libraries( GeniusWallet
-${log-lib}
--Wl,--whole-archive walletcore -Wl,--no-whole-archive
+
+target_link_libraries( GeniusWallet ${log-lib})
+TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet walletcore)
+target_link_libraries( GeniusWallet 
 wallet_core_rust
 wallet_core_trezor
 protobuf_lib
