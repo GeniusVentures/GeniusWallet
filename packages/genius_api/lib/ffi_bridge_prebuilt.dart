@@ -15,7 +15,7 @@ class FFIBridgePrebuilt {
       } else if (Platform.isAndroid || Platform.isLinux) {
       return DynamicLibrary.open('lib$_libName.so');
       } else if (Platform.isMacOS || Platform.isIOS) {
-      return DynamicLibrary.process();
+      return DynamicLibrary.executable();
       } else if (Platform.isWindows) {
       return DynamicLibrary.open('$_libName.dll');
       }
