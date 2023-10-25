@@ -12,9 +12,11 @@ class FFIBridgePrebuilt {
     final DynamicLibrary _dylib = () {
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
         return DynamicLibrary.open('test/${Platform.operatingSystem}/.build/lib$_libName.so');
-      } else if (Platform.isAndroid || Platform.isLinux) {
+      } else if (Platform.isAndroid) {
       return DynamicLibrary.open('lib$_libName.so');
       } else if (Platform.isMacOS || Platform.isIOS) {
+      return DynamicLibrary.executable();
+      } else if (Platform.isLinux) {
       return DynamicLibrary.executable();
       } else if (Platform.isWindows) {
       return DynamicLibrary.open('$_libName.dll');
