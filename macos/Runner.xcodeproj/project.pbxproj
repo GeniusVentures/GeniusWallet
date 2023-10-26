@@ -430,6 +430,18 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"flutter_secure_storage_macos\"",
+					"-framework",
+					"\"url_launcher_macos\"",
+					"-lc++",
+					"-Wl,-force_load,${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrustWalletCore.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrezorCrypto.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libwallet_core_rs.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/grpc/lib/libprotobuf.a",
+				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
@@ -563,6 +575,18 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"flutter_secure_storage_macos\"",
+					"-framework",
+					"\"url_launcher_macos\"",
+					"-lc++",
+					"-Wl,-force_load,${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrustWalletCore.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrezorCrypto.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libwallet_core_rs.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/grpc/lib/libprotobuf.a",
+				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -586,6 +610,18 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"flutter_secure_storage_macos\"",
+					"-framework",
+					"\"url_launcher_macos\"",
+					"-lc++",
+					"-Wl,-force_load,${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrustWalletCore.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrezorCrypto.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libwallet_core_rs.a",
+					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/grpc/lib/libprotobuf.a",
+				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
