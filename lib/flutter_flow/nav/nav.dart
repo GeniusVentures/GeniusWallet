@@ -36,17 +36,122 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       initialLocation: '/',
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
-      errorBuilder: (context, state) => HomePageWidget(),
+      errorBuilder: (context, state) => SplashWidget(),
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
-          builder: (context, _) => HomePageWidget(),
+          builder: (context, _) => SplashWidget(),
         ),
         FFRoute(
-          name: 'HomePage',
-          path: '/homePage',
-          builder: (context, params) => HomePageWidget(),
+          name: 'Splash',
+          path: '/splash',
+          builder: (context, params) => SplashWidget(),
+        ),
+        FFRoute(
+          name: 'WalletCreationScreen',
+          path: '/WalletCreationSc',
+          builder: (context, params) => WalletCreationScreenWidget(),
+        ),
+        FFRoute(
+          name: 'BackupPhrase',
+          path: '/backupPhrase',
+          builder: (context, params) => BackupPhraseWidget(),
+        ),
+        FFRoute(
+          name: 'Transaction',
+          path: '/transaction',
+          builder: (context, params) => TransactionWidget(),
+        ),
+        FFRoute(
+          name: 'TransactionHistoryCompleted',
+          path: '/transactionHistoryCompleted',
+          builder: (context, params) => TransactionHistoryCompletedWidget(),
+        ),
+        FFRoute(
+          name: 'TransactionHistoryPending',
+          path: '/transactionHistoryPending',
+          builder: (context, params) => TransactionHistoryPendingWidget(),
+        ),
+        FFRoute(
+          name: 'TransactionHistoryCancelled',
+          path: '/transactionHistoryCancelled',
+          builder: (context, params) => TransactionHistoryCancelledWidget(),
+        ),
+        FFRoute(
+          name: 'Trading',
+          path: '/trading',
+          builder: (context, params) => TradingWidget(),
+        ),
+        FFRoute(
+          name: 'VerifyRecoveryPhase',
+          path: '/verifyRecoveryPhase',
+          builder: (context, params) => VerifyRecoveryPhaseWidget(),
+        ),
+        FFRoute(
+          name: 'CopyPhase',
+          path: '/copyPhase',
+          builder: (context, params) => CopyPhaseWidget(),
+        ),
+        FFRoute(
+          name: 'ExistingWalletLegal',
+          path: '/existingWalletLegal',
+          builder: (context, params) => ExistingWalletLegalWidget(),
+        ),
+        FFRoute(
+          name: 'ExistingWalletCreatePIN',
+          path: '/existingWalletCreatePIN',
+          builder: (context, params) => ExistingWalletCreatePINWidget(),
+        ),
+        FFRoute(
+          name: 'Markets',
+          path: '/markets',
+          builder: (context, params) => MarketsWidget(),
+        ),
+        FFRoute(
+          name: 'Events',
+          path: '/events',
+          builder: (context, params) => EventsWidget(),
+        ),
+        FFRoute(
+          name: 'CyptoNews',
+          path: '/cyptoNews',
+          builder: (context, params) => CyptoNewsWidget(),
+        ),
+        FFRoute(
+          name: 'ExistingWalletConfirmPIN',
+          path: '/existingWalletConfirmPIN',
+          builder: (context, params) => ExistingWalletConfirmPINWidget(),
+        ),
+        FFRoute(
+          name: 'ExistingWalletImport',
+          path: '/existingWalletImport',
+          builder: (context, params) => ExistingWalletImportWidget(),
+        ),
+        FFRoute(
+          name: 'ExistingWalletImportCopy',
+          path: '/ExistingWallet/Phrase',
+          builder: (context, params) => ExistingWalletImportCopyWidget(),
+        ),
+        FFRoute(
+          name: 'BitcoinWallet',
+          path: '/bitcoinWallet',
+          builder: (context, params) => BitcoinWalletWidget(),
+        ),
+        FFRoute(
+          name: 'Calculator',
+          path: '/calculator',
+          builder: (context, params) => CalculatorWidget(),
+        ),
+        FFRoute(
+          name: 'Wallet',
+          path: '/wallet',
+          builder: (context, params) => WalletWidget(),
+        ),
+        FFRoute(
+          name: 'TransactionCopy',
+          path: '/transactionCopy',
+          builder: (context, params) => TransactionCopyWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );
