@@ -18,7 +18,7 @@ set(WALLET_RUST_LIB_NAME wallet_core_rs)
 set(WALLET_RUST_LIB_NAME ${WALLET_RUST_LIB_NAME} PARENT_SCOPE)
 set(WALLET_TREZOR_LIB_NAME TrezorCrypto)
 set(WALLET_TREZOR_LIB_NAME ${WALLET_TREZOR_LIB_NAME} PARENT_SCOPE)
-set(PROTOBUF_LIB_NAME libprotobuf)
+set(PROTOBUF_LIB_NAME protobuf)
 set(PROTOBUF_LIB_NAME ${PROTOBUF_LIB_NAME} PARENT_SCOPE)
 
 
@@ -50,10 +50,10 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_link_libraries( GeniusWallet ${LOG_LIB})
     endif()
 
-    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet ${WALLET_CORE_LIB_NANE})
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet ${walletcore})
     target_link_libraries(GeniusWallet 
-    ${WALLET_RUST_LIB_NAME}
-    ${WALLET_TREZOR_LIB_NAME}
-    ${PROTOBUF_LIB_NAME}
+    ${wallet_core_rust}
+    ${wallet_core_trezor}
+    ${protobuf_lib}
     )
 endif()
