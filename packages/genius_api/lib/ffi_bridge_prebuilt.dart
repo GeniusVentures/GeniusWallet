@@ -14,10 +14,8 @@ class FFIBridgePrebuilt {
         return DynamicLibrary.open('test/${Platform.operatingSystem}/.build/lib$_libName.so');
       } else if (Platform.isAndroid) {
       return DynamicLibrary.open('lib$_libName.so');
-      } else if (Platform.isMacOS || Platform.isIOS || Platform.isLinux) {
+      } else if (Platform.isMacOS || Platform.isIOS || Platform.isLinux || Platform.isWindows) {
       return DynamicLibrary.executable();
-      } else if (Platform.isWindows) {
-      return DynamicLibrary.open('$_libName.dll');
       }
       throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
     }();
