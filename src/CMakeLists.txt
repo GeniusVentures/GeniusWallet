@@ -5,56 +5,55 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 include(../cmake/Utilities.cmake)
 include(../cmake/CommonCompilerOptions.cmake)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
+endif()
+
 
 set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}/${ARCH_OUTPUT_DIR})
 
-
-add_library(walletcore STATIC IMPORTED)
-set_target_properties(walletcore PROPERTIES 
-    INTERFACE_INCLUDE_DIRECTORIES ${THIRDPARTY_RELEASE_DIR}/wallet-core/include/TrustWalletCore
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib/libTrustWalletCore.a
-)
-
-add_library(wallet_core_rust STATIC IMPORTED)
-set_target_properties(wallet_core_rust PROPERTIES 
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib/libwallet_core_rs.a
-)
-add_library(wallet_core_trezor STATIC IMPORTED)
-set_target_properties(wallet_core_trezor PROPERTIES 
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib/libTrezorCrypto.a
-)
-add_library(protobuf_lib STATIC IMPORTED)
-set_target_properties(protobuf_lib PROPERTIES 
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/grpc/lib/libprotobuf.a
-)
-add_library(protobuf_lite_lib STATIC IMPORTED)
-set_target_properties(protobuf_lite_lib PROPERTIES 
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/grpc/lib/libprotobuf-lite.a
-)
-add_library(protoc_lib STATIC IMPORTED)
-set_target_properties(protoc_lib PROPERTIES 
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/grpc/lib/libprotoc.a
-)
-add_library(zlib STATIC IMPORTED)
-set_target_properties(zlib PROPERTIES 
-    IMPORTED_LOCATION ${THIRDPARTY_RELEASE_DIR}/grpc/lib/libz.a
-)
+set(WALLET_CORE_LIB_NANE TrustWalletCore)
+set(WALLET_CORE_LIB_NANE ${WALLET_CORE_LIB_NANE} PARENT_SCOPE)
+set(WALLET_RUST_LIB_NAME wallet_core_rs)
+set(WALLET_RUST_LIB_NAME ${WALLET_RUST_LIB_NAME} PARENT_SCOPE)
+set(WALLET_TREZOR_LIB_NAME TrezorCrypto)
+set(WALLET_TREZOR_LIB_NAME ${WALLET_TREZOR_LIB_NAME} PARENT_SCOPE)
+set(PROTOBUF_LIB_NAME libprotobuf)
+set(PROTOBUF_LIB_NAME ${PROTOBUF_LIB_NAME} PARENT_SCOPE)
 
 
-add_library( 
-    GeniusWallet
-    SHARED
-    null.cpp
-)
+find_library(walletcore HINTS ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib NAMES ${WALLET_CORE_LIB_NANE} lib${WALLET_CORE_LIB_NANE})
+add_library(${WALLET_CORE_LIB_NANE} INTERFACE)
+target_link_libraries(${WALLET_CORE_LIB_NANE} INTERFACE ${walletcore})
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    find_library(log-lib log)
-    target_link_libraries( GeniusWallet ${log-lib})
+find_library(wallet_core_rust HINTS ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib NAMES ${WALLET_RUST_LIB_NAME} lib${WALLET_RUST_LIB_NAME})
+add_library(${WALLET_RUST_LIB_NAME} INTERFACE)
+target_link_libraries(${WALLET_RUST_LIB_NAME} INTERFACE ${wallet_core_rust})
+
+find_library(wallet_core_trezor HINTS ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib NAMES ${WALLET_TREZOR_LIB_NAME} lib${WALLET_TREZOR_LIB_NAME})
+add_library(${WALLET_TREZOR_LIB_NAME} INTERFACE)
+target_link_libraries(${WALLET_TREZOR_LIB_NAME} INTERFACE ${wallet_core_trezor})
+
+find_library(protobuf_lib HINTS ${THIRDPARTY_RELEASE_DIR}/grpc/lib NAMES ${PROTOBUF_LIB_NAME} lib${PROTOBUF_LIB_NAME})
+add_library(${PROTOBUF_LIB_NAME} INTERFACE)
+target_link_libraries(${PROTOBUF_LIB_NAME} INTERFACE ${protobuf_lib})
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_library( 
+        GeniusWallet
+        SHARED
+        null.cpp
+    )
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        find_library(LOG_LIB log)
+        target_link_libraries( GeniusWallet ${LOG_LIB})
+    endif()
+
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet ${WALLET_CORE_LIB_NANE})
+    target_link_libraries(GeniusWallet 
+    ${WALLET_RUST_LIB_NAME}
+    ${WALLET_TREZOR_LIB_NAME}
+    ${PROTOBUF_LIB_NAME}
+    )
 endif()
-
-TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet walletcore)
-target_link_libraries( GeniusWallet 
-wallet_core_rust
-wallet_core_trezor
-protobuf_lib
-)
