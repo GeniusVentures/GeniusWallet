@@ -202,11 +202,11 @@ class GeniusApi {
     return importedWallet;
   }
 
-  String? getNativeValue() {
+  String? getHRPStrideValue() {
     return ffiBridgePrebuilt.wallet_lib.stringForHRP(TWHRP.TWHRPStride).cast<Utf8>().toDartString();
   }
-  ffi.Pointer<ffi.Void> createWallet() {
-    return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(500);
+  ffi.Pointer<ffi.Void> createWalletWithSize(int size) {
+    return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(size);
   }
 
   Future<List<Currency>> getMarkets() async {
