@@ -2,6 +2,11 @@
 cmake_minimum_required(VERSION 3.4.1)  
 set(CMAKE_VERBOSE_MAKEFILE on)
 
+if (MSVC)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG  ${CMAKE_CURRENT_BINARY_DIR}/ffi)
+endif (MSVC)
+
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(SYSTEM_FOLDER "OSX")
 else()
@@ -16,15 +21,18 @@ set(FFI_LAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 set(FFI_LIB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/ffi")
 add_subdirectory(${FFI_LAYER_DIR} ${FFI_LIB_OUT_DIR})
 
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library( 
         GeniusWallet
         SHARED
         ../src/null.cpp
     )
+
     message(WARNING "Forcing file to be name libGeniusWallet.so")
     set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")
     set_target_properties(GeniusWallet PROPERTIES PREFIX "lib")
+
 
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE(GeniusWallet ${WALLET_CORE_LIB_NANE})
     target_link_libraries(GeniusWallet  
