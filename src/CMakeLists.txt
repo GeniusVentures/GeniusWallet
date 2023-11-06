@@ -44,6 +44,12 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         SHARED
         null.cpp
     )
+    if (SET_NAME_UNIX_FORCE)
+        message(WARNING "Forcing file to be name libGeniusWallet.so")
+        set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")
+        set_target_properties(GeniusWallet PROPERTIES PREFIX "lib")
+    endif()
+
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         find_library(LOG_LIB log)
