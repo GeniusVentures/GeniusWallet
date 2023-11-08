@@ -40,8 +40,6 @@ void main() {
       Pointer<Char>? addressString = tWallet.wallet_lib.TWStringUTF8Bytes(tWallet.wallet_lib.TWHDWalletGetAddressForCoin(newWallet,TWCoinType.TWCoinTypeEthereum));
       Pointer<Char>? addressStringImported = tWallet.wallet_lib.TWStringUTF8Bytes(tWallet.wallet_lib.TWHDWalletGetAddressForCoin(importWallet,TWCoinType.TWCoinTypeEthereum));
       expect( addressString.cast<Utf8>().toDartString(), addressStringImported.cast<Utf8>().toDartString());
-      calloc.free(addressString);
-      calloc.free(addressStringImported);
       tWallet.wallet_lib.TWHDWalletDelete(importWallet);
       tWallet.wallet_lib.TWHDWalletDelete(newWallet);
     });
