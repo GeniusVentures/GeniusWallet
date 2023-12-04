@@ -48,6 +48,9 @@ android {
 
     defaultConfig {
         externalNativeBuild {
+            ndk {
+                abiFilters 'arm64-v8a', 'x86_64', 'armeabi-v7a'
+            }
             cmake {
                 // "projectDir" contains by default the build.gradle path on gradle.
                 // Uncomment this and put your definition of path if anything other than the default ("GeniusWallet" on same level as "thirdparty")
