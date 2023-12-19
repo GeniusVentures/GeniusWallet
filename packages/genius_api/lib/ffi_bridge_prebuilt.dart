@@ -1,25 +1,26 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 
 class FFIBridgePrebuilt {
-  late double? Function() _libFunction;
+
+  static const String _libName = 'GeniusWallet';
+  late NativeLibrary wallet_lib;
 
   FFIBridgePrebuilt() {
-    DynamicLibrary? dylib;
-    if (Platform.isAndroid) {
-      dylib = DynamicLibrary.open('libnative.so');
-    } else if (Platform.isIOS) {
-      dylib = DynamicLibrary.process();
-    } else {
-      dylib = null;
-    }
-    if (dylib != null) {
-      _libFunction = dylib.lookupFunction<Double Function(), double Function()>(
-          'get_temperature');
-    } else {
-      _libFunction = () => null;
-    }
-  }
 
-  double? getValueFromNative() => _libFunction();
+    final DynamicLibrary _dylib = () {
+      if (Platform.environment.containsKey('FLUTTER_TEST')) {
+        return DynamicLibrary.open('test/.build/ffi/lib$_libName.so');
+      } else if (Platform.isAndroid) {
+      return DynamicLibrary.open('lib$_libName.so');
+      } else if (Platform.isMacOS || Platform.isIOS || Platform.isLinux || Platform.isWindows) {
+      return DynamicLibrary.executable();
+      }
+      throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+    }();
+
+    wallet_lib = NativeLibrary(_dylib);
+
+  }
 }

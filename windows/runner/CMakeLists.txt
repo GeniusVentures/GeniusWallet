@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(runner LANGUAGES CXX)
+include(../../cmake/Utilities.cmake)
+
+set(ARCH_OUTPUT_DIR /build/Windows/Release)
+
 
 # Define the application target. To change its name, change BINARY_NAME in the
 # top-level CMakeLists.txt, not the value here, or `flutter run` will no longer
@@ -15,6 +19,12 @@ add_executable(${BINARY_NAME} WIN32
   "Runner.rc"
   "runner.exe.manifest"
 )
+
+
+set(FFI_LAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
+set(FFI_LIB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/../ffi")
+add_subdirectory(${FFI_LAYER_DIR} ${FFI_LIB_OUT_DIR})
+
 
 # Apply the standard set of build settings. This can be removed for applications
 # that need different build settings.
@@ -33,6 +43,15 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
+
+TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_PUB(${BINARY_NAME} ${WALLET_CORE_LIB_NANE})
+target_link_libraries(${BINARY_NAME} PUBLIC 
+${WALLET_RUST_LIB_NAME} 
+ws2_32 userenv ntdll
+${WALLET_TREZOR_LIB_NAME}
+${PROTOBUF_LIB_NAME}
+)
+
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.

@@ -55,8 +55,8 @@ class LandingScreen extends StatelessWidget {
               // ),
               BlocBuilder<AppBloc, AppState>(
                 builder: (context, state) {
-                  if (state.ffiDouble != null) {
-                    return Text('Value: ${state.ffiDouble}');
+                  if (state.ffiString != null) {
+                    return Text('Value: ${state.ffiString}');
                   }
                   return const SizedBox();
                 },
