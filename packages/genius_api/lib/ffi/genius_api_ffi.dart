@@ -596,6 +596,7 @@ class NativeLibrary {
   late final _TWHDVersionIsPrivate =
       _TWHDVersionIsPrivatePtr.asFunction<bool Function(int)>();
 
+/**
   late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_BITCOIN =
       _lookup<ffi.Pointer<ffi.Char>>('HRP_BITCOIN');
 
@@ -812,6 +813,76 @@ class NativeLibrary {
 
   set HRP_TERRAV2(ffi.Pointer<ffi.Char> value) => _HRP_TERRAV2.value = value;
 
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_COREUM =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_COREUM');
+
+  ffi.Pointer<ffi.Char> get HRP_COREUM => _HRP_COREUM.value;
+
+  set HRP_COREUM(ffi.Pointer<ffi.Char> value) => _HRP_COREUM.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_NATIVECANTO =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_NATIVECANTO');
+
+  ffi.Pointer<ffi.Char> get HRP_NATIVECANTO => _HRP_NATIVECANTO.value;
+
+  set HRP_NATIVECANTO(ffi.Pointer<ffi.Char> value) => _HRP_NATIVECANTO.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_SOMMELIER =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_SOMMELIER');
+
+  ffi.Pointer<ffi.Char> get HRP_SOMMELIER => _HRP_SOMMELIER.value;
+
+  set HRP_SOMMELIER(ffi.Pointer<ffi.Char> value) => _HRP_SOMMELIER.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_FETCHAI =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_FETCHAI');
+
+  ffi.Pointer<ffi.Char> get HRP_FETCHAI => _HRP_FETCHAI.value;
+
+  set HRP_FETCHAI(ffi.Pointer<ffi.Char> value) => _HRP_FETCHAI.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_MARS =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_MARS');
+
+  ffi.Pointer<ffi.Char> get HRP_MARS => _HRP_MARS.value;
+
+  set HRP_MARS(ffi.Pointer<ffi.Char> value) => _HRP_MARS.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_UMEE =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_UMEE');
+
+  ffi.Pointer<ffi.Char> get HRP_UMEE => _HRP_UMEE.value;
+
+  set HRP_UMEE(ffi.Pointer<ffi.Char> value) => _HRP_UMEE.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_QUASAR =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_QUASAR');
+
+  ffi.Pointer<ffi.Char> get HRP_QUASAR => _HRP_QUASAR.value;
+
+  set HRP_QUASAR(ffi.Pointer<ffi.Char> value) => _HRP_QUASAR.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_PERSISTENCE =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_PERSISTENCE');
+
+  ffi.Pointer<ffi.Char> get HRP_PERSISTENCE => _HRP_PERSISTENCE.value;
+
+  set HRP_PERSISTENCE(ffi.Pointer<ffi.Char> value) => _HRP_PERSISTENCE.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_AKASH =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_AKASH');
+
+  ffi.Pointer<ffi.Char> get HRP_AKASH => _HRP_AKASH.value;
+
+  set HRP_AKASH(ffi.Pointer<ffi.Char> value) => _HRP_AKASH.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_NOBLE =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_NOBLE');
+
+  ffi.Pointer<ffi.Char> get HRP_NOBLE => _HRP_NOBLE.value;
+
+  set HRP_NOBLE(ffi.Pointer<ffi.Char> value) => _HRP_NOBLE.value = value;
+
   late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_STARGAZE =
       _lookup<ffi.Pointer<ffi.Char>>('HRP_STARGAZE');
 
@@ -861,6 +932,20 @@ class NativeLibrary {
   ffi.Pointer<ffi.Char> get HRP_KUJIRA => _HRP_KUJIRA.value;
 
   set HRP_KUJIRA(ffi.Pointer<ffi.Char> value) => _HRP_KUJIRA.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_COMDEX =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_COMDEX');
+
+  ffi.Pointer<ffi.Char> get HRP_COMDEX => _HRP_COMDEX.value;
+
+  set HRP_COMDEX(ffi.Pointer<ffi.Char> value) => _HRP_COMDEX.value = value;
+
+  late final ffi.Pointer<ffi.Pointer<ffi.Char>> _HRP_NEUTRON =
+      _lookup<ffi.Pointer<ffi.Char>>('HRP_NEUTRON');
+  ffi.Pointer<ffi.Char> get HRP_NEUTRON => _HRP_NEUTRON.value;
+
+  set HRP_NEUTRON(ffi.Pointer<ffi.Char> value) => _HRP_NEUTRON.value = value;
+**/
 
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
@@ -9363,13 +9448,25 @@ abstract class TWHRP {
   static const int TWHRPNativeInjective = 28;
   static const int TWHRPOsmosis = 29;
   static const int TWHRPTerraV2 = 30;
-  static const int TWHRPStargaze = 31;
-  static const int TWHRPNativeEvmos = 32;
-  static const int TWHRPJuno = 33;
-  static const int TWHRPStride = 34;
-  static const int TWHRPAxelar = 35;
-  static const int TWHRPCrescent = 36;
-  static const int TWHRPKujira = 37;
+  static const int TWHRPCoreum = 31;
+  static const int TWHRPNativeCanto = 32;
+  static const int TWHRPSommelier = 33;
+  static const int TWHRPFetchAI = 34;
+  static const int TWHRPMars = 35;
+  static const int TWHRPUmee = 36;
+  static const int TWHRPQuasar = 37;
+  static const int TWHRPPersistence = 38;
+  static const int TWHRPAkash = 39;
+  static const int TWHRPNoble = 40;
+  static const int TWHRPStargaze = 41;
+  static const int TWHRPNativeEvmos = 42;
+  static const int TWHRPJuno = 43;
+  static const int TWHRPStride = 44;
+  static const int TWHRPAxelar = 45;
+  static const int TWHRPCrescent = 46;
+  static const int TWHRPKujira = 47;
+  static const int TWHRPComdex = 48;
+  static const int TWHRPNeutron = 49;
 }
 
 /// HD wallet purpose

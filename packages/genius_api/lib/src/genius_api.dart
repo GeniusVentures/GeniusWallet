@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ffi' as ffi;
 
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/models/currency.dart';
@@ -7,6 +8,9 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:secure_storage/secure_storage.dart';
+import 'package:ffi/ffi.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
+
 
 class GeniusApi {
   final SecureStorage _secureStorage;
@@ -25,7 +29,7 @@ class GeniusApi {
         ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   Future<List<String>> getRecoveryPhrase() async {
-    ///TODO: Implement recovery phrase generation here with API or proper gen.
+    ///TODO: Implement recovery phrase generation here with API or   gen.
     return List.generate(12, (index) => 'word${index + 1}');
   }
 
@@ -198,8 +202,11 @@ class GeniusApi {
     return importedWallet;
   }
 
-  double? getNativeValue() {
-    return ffiBridgePrebuilt.getValueFromNative();
+  String? getHRPStrideValue() {
+    return ffiBridgePrebuilt.wallet_lib.stringForHRP(TWHRP.TWHRPStride).cast<Utf8>().toDartString();
+  }
+  ffi.Pointer<ffi.Void> createWalletWithSize(int size) {
+    return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(size);
   }
 
   Future<List<Currency>> getMarkets() async {
