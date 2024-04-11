@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class ProfilePictureButtonCustom extends StatefulWidget {
   final Widget? child;
-  ProfilePictureButtonCustom({
+  const ProfilePictureButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -19,7 +19,7 @@ class _ProfilePictureButtonCustomState
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        ProfilePictureButton(BoxConstraints(
+        const ProfilePictureButton(BoxConstraints(
           maxWidth: 35.0,
           maxHeight: 35.0,
         ));

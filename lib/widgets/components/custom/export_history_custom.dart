@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class ExportHistoryCustom extends StatefulWidget {
   final Widget? child;
-  ExportHistoryCustom({
+  const ExportHistoryCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _ExportHistoryCustomState extends State<ExportHistoryCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        ExportHistory(BoxConstraints(
+        const ExportHistory(BoxConstraints(
           maxWidth: 120.0,
           maxHeight: 35.0,
         ));

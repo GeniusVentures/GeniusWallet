@@ -5,7 +5,7 @@ import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 
 class TransactionsPreviewCustom extends StatefulWidget {
   final Widget? child;
-  TransactionsPreviewCustom({
+  const TransactionsPreviewCustom({
     Key? key,
     this.child,
   }) : super(key: key);

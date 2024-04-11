@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PINMaskCustom extends StatefulWidget {
   final Widget? child;
-  PINMaskCustom({
+  const PINMaskCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class SaveButtonCustom extends StatefulWidget {
   final Widget? child;
-  SaveButtonCustom({
+  const SaveButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _SaveButtonCustomState extends State<SaveButtonCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        SaveButton(BoxConstraints(
+        const SaveButton(BoxConstraints(
           maxWidth: 311.0,
           maxHeight: 35.0,
         ));

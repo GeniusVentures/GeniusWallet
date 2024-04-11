@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 class BackButtonDashboardCustom extends StatefulWidget {
   final Widget? child;
-  BackButtonDashboardCustom({
+  const BackButtonDashboardCustom({
     Key? key,
     this.child,
   }) : super(key: key);

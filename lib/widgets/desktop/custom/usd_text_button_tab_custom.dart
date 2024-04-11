@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class UsdTextButtonTabCustom extends StatefulWidget {
   final Widget? child;
-  UsdTextButtonTabCustom({
+  const UsdTextButtonTabCustom({
     Key? key,
     this.child,
   }) : super(key: key);

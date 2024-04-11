@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class DecreaseCustom extends StatefulWidget {
   final Widget? child;
-  DecreaseCustom({
+  const DecreaseCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class HarmburgerMenuCustom extends StatefulWidget {
   final Widget? child;
-  HarmburgerMenuCustom({
+  const HarmburgerMenuCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _HarmburgerMenuCustomState extends State<HarmburgerMenuCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        HarmburgerMenu(BoxConstraints(
+        const HarmburgerMenu(BoxConstraints(
           maxWidth: 18.0,
           maxHeight: 12.0,
         ));

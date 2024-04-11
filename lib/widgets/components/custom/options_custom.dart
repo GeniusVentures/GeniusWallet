@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class OptionsCustom extends StatefulWidget {
   final Widget? child;
-  OptionsCustom({
+  const OptionsCustom({
     Key? key,
     this.child,
   }) : super(key: key);

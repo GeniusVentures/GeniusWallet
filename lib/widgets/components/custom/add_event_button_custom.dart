@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AddEventButtonCustom extends StatefulWidget {
   final Widget? child;
-  AddEventButtonCustom({
+  const AddEventButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

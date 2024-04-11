@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CurrencyToggleCustom extends StatefulWidget {
   final Widget? child;
-  CurrencyToggleCustom({
+  const CurrencyToggleCustom({
     Key? key,
     this.child,
   }) : super(key: key);

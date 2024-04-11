@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ReceiveCustom extends StatefulWidget {
   final Widget? child;
-  ReceiveCustom({
+  const ReceiveCustom({
     Key? key,
     this.child,
   }) : super(key: key);
