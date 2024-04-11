@@ -7,7 +7,7 @@ import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 
 class CurrencyDropdownFromCustom extends StatefulWidget {
   final Widget? child;
-  CurrencyDropdownFromCustom({
+  const CurrencyDropdownFromCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class PasscodeEntryCustom extends StatefulWidget {
   final Widget? child;
-  PasscodeEntryCustom({
+  const PasscodeEntryCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _PasscodeEntryCustomState extends State<PasscodeEntryCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        PasscodeEntry(BoxConstraints(
+        const PasscodeEntry(BoxConstraints(
           maxWidth: 317.0,
           maxHeight: 50.0,
         ));

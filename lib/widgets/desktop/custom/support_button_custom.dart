@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class SupportButtonCustom extends StatefulWidget {
   final Widget? child;
-  SupportButtonCustom({
+  const SupportButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _SupportButtonCustomState extends State<SupportButtonCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        SupportButton(BoxConstraints(
+        const SupportButton(BoxConstraints(
           maxWidth: 96.0,
           maxHeight: 35.0,
         ));

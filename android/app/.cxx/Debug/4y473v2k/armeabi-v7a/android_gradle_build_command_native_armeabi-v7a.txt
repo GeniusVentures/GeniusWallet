@@ -1,0 +1,7 @@
+Executable : C:\Users\Matth\AppData\Local\Android\sdk\cmake\3.18.1\bin\ninja.exe
+arguments : 
+-C
+C:\Users\Matth\Documents\Github\GeniusWallet\android\app\.cxx\Debug\4y473v2k\armeabi-v7a
+native
+jvmArgs : 
+

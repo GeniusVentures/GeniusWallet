@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class HamburgerMenuIconCustom extends StatefulWidget {
   final Widget? child;
-  HamburgerMenuIconCustom({
+  const HamburgerMenuIconCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PointingLeftCustom extends StatefulWidget {
   final Widget? child;
-  PointingLeftCustom({
+  const PointingLeftCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class IsactiveFalseCustom extends StatefulWidget {
   final Widget? child;
-  IsactiveFalseCustom({
+  const IsactiveFalseCustom({
     Key? key,
     this.child,
   }) : super(key: key);

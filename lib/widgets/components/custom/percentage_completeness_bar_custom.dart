@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PercentageCompletenessBarCustom extends StatefulWidget {
   final Widget? child;
-  PercentageCompletenessBarCustom({
+  const PercentageCompletenessBarCustom({
     Key? key,
     this.child,
   }) : super(key: key);

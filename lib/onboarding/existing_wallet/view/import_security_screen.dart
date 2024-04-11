@@ -95,11 +95,11 @@ class ImportSecurityScreen extends StatelessWidget {
           BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
             builder: (context, state) {
               if (state.importWalletStatus == ExistingWalletStatus.loading) {
-                return Center(
+                return const Center(
                   child: AlertDialog(
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         CircularProgressIndicator(),
                         Text('Importing wallet'),
                       ],
@@ -324,7 +324,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
               if (formKey.currentState!.validate()) {
                 /// Get currently selected tab
                 final selectedIndex =
-                    DefaultTabController.of(context)?.index ?? 0;
+                    DefaultTabController.of(context).index ?? 0;
 
                 /// Get current entry to access [TextEditingControllers]
                 final selectedEntry =

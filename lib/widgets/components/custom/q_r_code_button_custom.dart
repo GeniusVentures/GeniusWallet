@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 class QRCodeButtonCustom extends StatefulWidget {
   final Widget? child;
-  QRCodeButtonCustom({
+  const QRCodeButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

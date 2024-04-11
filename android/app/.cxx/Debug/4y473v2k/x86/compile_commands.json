@@ -1,0 +1,7 @@
+[
+{
+  "directory": "C:/Users/Matth/Documents/Github/GeniusWallet/android/app/.cxx/Debug/4y473v2k/x86",
+  "command": "C:\\Users\\Matth\\AppData\\Local\\Android\\Sdk\\ndk\\23.1.7779620\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android19 --gcc-toolchain=C:/Users/Matth/AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=C:/Users/Matth/AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dnative_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\native.dir\\C_\\Users\\Matth\\Documents\\Github\\GeniusWallet\\src\\native.cpp.o -c C:\\Users\\Matth\\Documents\\Github\\GeniusWallet\\src\\native.cpp",
+  "file": "C:\\Users\\Matth\\Documents\\Github\\GeniusWallet\\src\\native.cpp"
+}
+]

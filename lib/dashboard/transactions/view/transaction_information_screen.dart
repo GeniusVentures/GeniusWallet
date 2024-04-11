@@ -38,7 +38,7 @@ class TransactionInformationScreen extends StatelessWidget {
                 width: 121,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
-                    return DetailedTransactionStatusCustom();
+                    return const DetailedTransactionStatusCustom();
                   },
                 ),
               ),

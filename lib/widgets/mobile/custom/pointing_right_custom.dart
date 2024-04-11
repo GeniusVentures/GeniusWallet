@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PointingRightCustom extends StatefulWidget {
   final Widget? child;
-  PointingRightCustom({
+  const PointingRightCustom({
     Key? key,
     this.child,
   }) : super(key: key);

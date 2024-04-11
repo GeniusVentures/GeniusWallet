@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ChangePasswordButtonCustom extends StatefulWidget {
   final Widget? child;
-  ChangePasswordButtonCustom({
+  const ChangePasswordButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TransactionflowOutgoingCustom extends StatefulWidget {
   final Widget? child;
-  TransactionflowOutgoingCustom({
+  const TransactionflowOutgoingCustom({
     Key? key,
     this.child,
   }) : super(key: key);

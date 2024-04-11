@@ -8,7 +8,7 @@ import 'package:genius_wallet/widgets/components/transaction_status/pending.g.da
 
 class DetailedTransactionStatusCustom extends StatefulWidget {
   final Widget? child;
-  DetailedTransactionStatusCustom({
+  const DetailedTransactionStatusCustom({
     Key? key,
     this.child,
   }) : super(key: key);

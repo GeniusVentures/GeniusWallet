@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class WalletAgreementCustom extends StatefulWidget {
   final Widget? child;
-  WalletAgreementCustom({
+  const WalletAgreementCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        WalletAgreement(BoxConstraints(
+        const WalletAgreement(BoxConstraints(
           maxWidth: 327.0,
           maxHeight: 34.0,
         ));

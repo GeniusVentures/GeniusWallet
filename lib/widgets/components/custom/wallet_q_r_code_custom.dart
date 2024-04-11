@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class WalletQRCodeCustom extends StatefulWidget {
   final Widget? child;
-  WalletQRCodeCustom({
+  const WalletQRCodeCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -27,8 +27,9 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     // compileSdkVersion flutter.compileSdkVersion
-    compileSdkVersion 33
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
+    ext.kotlin_version = '1.9.23'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

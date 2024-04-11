@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class IncreaseCustom extends StatefulWidget {
   final Widget? child;
-  IncreaseCustom({
+  const IncreaseCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class EurTextButtonTabCustom extends StatefulWidget {
   final Widget? child;
-  EurTextButtonTabCustom({
+  const EurTextButtonTabCustom({
     Key? key,
     this.child,
   }) : super(key: key);
