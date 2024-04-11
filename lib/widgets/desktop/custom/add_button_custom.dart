@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class AddButtonCustom extends StatefulWidget {
   final Widget? child;
-  const AddButtonCustom({
+  AddButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _AddButtonCustomState extends State<AddButtonCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        const AddButton(BoxConstraints(
+        AddButton(BoxConstraints(
           maxWidth: 35.0,
           maxHeight: 35.0,
         ));

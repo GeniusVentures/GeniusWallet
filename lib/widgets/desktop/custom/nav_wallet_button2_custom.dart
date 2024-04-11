@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NavWalletButton2Custom extends StatefulWidget {
   final Widget? child;
-  const NavWalletButton2Custom({
+  NavWalletButton2Custom({
     Key? key,
     this.child,
   }) : super(key: key);

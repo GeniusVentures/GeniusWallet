@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AlertsCustom extends StatefulWidget {
   final Widget? child;
-  const AlertsCustom({
+  AlertsCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -5,7 +5,7 @@ class WalletAgreementCustom extends StatefulWidget {
   final bool? value;
   final void Function(bool?)? onChanged;
   final String? text;
-  const WalletAgreementCustom({
+  WalletAgreementCustom({
     Key? key,
     this.value,
     this.onChanged,

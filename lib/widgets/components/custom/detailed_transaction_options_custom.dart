@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class DetailedTransactionOptionsCustom extends StatefulWidget {
   final Widget? child;
-  const DetailedTransactionOptionsCustom({
+  DetailedTransactionOptionsCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class UpdateCustom extends StatefulWidget {
   final Widget? child;
-  const UpdateCustom({
+  UpdateCustom({
     Key? key,
     this.child,
   }) : super(key: key);

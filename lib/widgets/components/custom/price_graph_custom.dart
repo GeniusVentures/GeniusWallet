@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PriceGraphCustom extends StatefulWidget {
   final Widget? child;
-  const PriceGraphCustom({
+  PriceGraphCustom({
     Key? key,
     this.child,
   }) : super(key: key);

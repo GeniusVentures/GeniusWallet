@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class DateSelectorCustom extends StatefulWidget {
   final Widget? child;
-  const DateSelectorCustom({
+  DateSelectorCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _DateSelectorCustomState extends State<DateSelectorCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        const DateSelector(BoxConstraints(
+        DateSelector(BoxConstraints(
           maxWidth: 271.0,
           maxHeight: 21.0,
         ));

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TrendlineHoverCustom extends StatefulWidget {
   final Widget? child;
-  const TrendlineHoverCustom({
+  TrendlineHoverCustom({
     Key? key,
     this.child,
   }) : super(key: key);

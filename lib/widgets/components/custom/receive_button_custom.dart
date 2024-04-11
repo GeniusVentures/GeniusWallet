@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 class ReceiveButtonCustom extends StatefulWidget {
   final Widget? child;
-  const ReceiveButtonCustom({
+  ReceiveButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

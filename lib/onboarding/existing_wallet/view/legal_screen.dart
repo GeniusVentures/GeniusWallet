@@ -80,16 +80,16 @@ class _LegalViewDesktop extends StatelessWidget {
     return AppScreenWithHeaderDesktop(
       title: title,
       subtitle: subtitle,
-      body: const Center(
+      body: Center(
         child: DesktopBodyContainer(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             vertical: 80,
             horizontal: 100,
           ),
           height: 500,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: const [
               _ToSButtons(),
               _Agreement(),
             ],

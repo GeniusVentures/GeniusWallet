@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 class ViewMoreCustom extends StatefulWidget {
   final Widget? child;
-  const ViewMoreCustom({
+  ViewMoreCustom({
     Key? key,
     this.child,
   }) : super(key: key);

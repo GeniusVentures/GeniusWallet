@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/wallet.dart';
 
 class WalletUtils {
   /// Iterates [wallets] and returns the number of transactions as an [int].

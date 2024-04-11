@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ChartOptionsCustom extends StatefulWidget {
   final Widget? child;
-  const ChartOptionsCustom({
+  ChartOptionsCustom({
     Key? key,
     this.child,
   }) : super(key: key);

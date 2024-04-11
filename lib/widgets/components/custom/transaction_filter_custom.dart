@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TransactionFilterCustom extends StatefulWidget {
   final Widget? child;
-  const TransactionFilterCustom({
+  TransactionFilterCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class DateRangeCustom extends StatefulWidget {
   final Widget? child;
-  const DateRangeCustom({
+  DateRangeCustom({
     Key? key,
     this.child,
   }) : super(key: key);

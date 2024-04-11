@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class DaySelectorCustom extends StatefulWidget {
   final Widget? child;
-  const DaySelectorCustom({
+  DaySelectorCustom({
     Key? key,
     this.child,
   }) : super(key: key);

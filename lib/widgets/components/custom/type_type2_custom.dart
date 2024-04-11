@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TypeType2Custom extends StatefulWidget {
   final Widget? child;
-  const TypeType2Custom({
+  TypeType2Custom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NavTimerButtonCustom extends StatefulWidget {
   final Widget? child;
-  const NavTimerButtonCustom({
+  NavTimerButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

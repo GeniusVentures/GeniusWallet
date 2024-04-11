@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class OrderHistoryCustom extends StatefulWidget {
   final Widget? child;
-  const OrderHistoryCustom({
+  OrderHistoryCustom({
     Key? key,
     this.child,
   }) : super(key: key);

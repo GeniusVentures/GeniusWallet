@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NavDashboardButtonCustom extends StatefulWidget {
   final Widget? child;
-  const NavDashboardButtonCustom({
+  NavDashboardButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

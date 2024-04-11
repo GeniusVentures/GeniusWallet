@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PriceCustom extends StatefulWidget {
   final Widget? child;
-  const PriceCustom({
+  PriceCustom({
     Key? key,
     this.child,
   }) : super(key: key);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class UploadPictureButtonCustom extends StatefulWidget {
   final Widget? child;
-  const UploadPictureButtonCustom({
+  UploadPictureButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

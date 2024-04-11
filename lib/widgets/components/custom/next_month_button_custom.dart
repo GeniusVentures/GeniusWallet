@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NextMonthButtonCustom extends StatefulWidget {
   final Widget? child;
-  const NextMonthButtonCustom({
+  NextMonthButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

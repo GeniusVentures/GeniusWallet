@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class SendCustom extends StatefulWidget {
   final Widget? child;
-  const SendCustom({
+  SendCustom({
     Key? key,
     this.child,
   }) : super(key: key);

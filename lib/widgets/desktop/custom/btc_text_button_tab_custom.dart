@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class BtcTextButtonTabCustom extends StatefulWidget {
   final Widget? child;
-  const BtcTextButtonTabCustom({
+  BtcTextButtonTabCustom({
     Key? key,
     this.child,
   }) : super(key: key);

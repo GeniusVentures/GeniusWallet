@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class WhiteArrowCustom extends StatefulWidget {
   final Widget? child;
-  const WhiteArrowCustom({
+  WhiteArrowCustom({
     Key? key,
     this.child,
   }) : super(key: key);

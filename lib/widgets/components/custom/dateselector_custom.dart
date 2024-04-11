@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class DateselectorCustom extends StatefulWidget {
   final Widget? child;
-  const DateselectorCustom({
+  DateselectorCustom({
     Key? key,
     this.child,
   }) : super(key: key);

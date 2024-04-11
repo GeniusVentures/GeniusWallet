@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class GraphCustom extends StatefulWidget {
   final Widget? child;
-  const GraphCustom({
+  GraphCustom({
     Key? key,
     this.child,
   }) : super(key: key);

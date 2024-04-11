@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TotalBalanceCustom extends StatefulWidget {
   final Widget? child;
-  const TotalBalanceCustom({
+  TotalBalanceCustom({
     Key? key,
     this.child,
   }) : super(key: key);

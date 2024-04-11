@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 class TypeCreateCustom extends StatefulWidget {
   final Widget? child;
-  const TypeCreateCustom({
+  TypeCreateCustom({
     Key? key,
     this.child,
   }) : super(key: key);

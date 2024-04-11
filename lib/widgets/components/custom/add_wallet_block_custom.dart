@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class AddWalletBlockCustom extends StatefulWidget {
   final Widget? child;
-  const AddWalletBlockCustom({
+  AddWalletBlockCustom({
     Key? key,
     this.child,
   }) : super(key: key);
@@ -17,7 +17,7 @@ class _AddWalletBlockCustomState extends State<AddWalletBlockCustom> {
   @override
   Widget build(BuildContext context) {
     return widget.child ??
-        const AddWalletBlock(BoxConstraints(
+        AddWalletBlock(BoxConstraints(
           maxWidth: 311.0,
           maxHeight: 297.0,
         ));

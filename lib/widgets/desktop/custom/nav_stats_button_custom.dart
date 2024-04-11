@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NavStatsButtonCustom extends StatefulWidget {
   final Widget? child;
-  const NavStatsButtonCustom({
+  NavStatsButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

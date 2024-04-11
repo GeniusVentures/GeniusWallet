@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ProfilePictureCustom extends StatefulWidget {
   final Widget? child;
-  const ProfilePictureCustom({
+  ProfilePictureCustom({
     Key? key,
     this.child,
   }) : super(key: key);

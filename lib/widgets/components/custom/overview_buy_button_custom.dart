@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class OverviewBuyButtonCustom extends StatefulWidget {
   final Widget? child;
-  const OverviewBuyButtonCustom({
+  OverviewBuyButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

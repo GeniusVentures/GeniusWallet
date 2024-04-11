@@ -4,7 +4,7 @@ import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 
 class GeniusCloseButtonCustom extends StatefulWidget {
   final Widget? child;
-  const GeniusCloseButtonCustom({
+  GeniusCloseButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

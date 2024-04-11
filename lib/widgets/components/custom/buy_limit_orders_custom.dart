@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class BuyLimitOrdersCustom extends StatefulWidget {
   final Widget? child;
-  const BuyLimitOrdersCustom({
+  BuyLimitOrdersCustom({
     Key? key,
     this.child,
   }) : super(key: key);

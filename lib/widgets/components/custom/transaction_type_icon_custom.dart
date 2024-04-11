@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TransactionTypeIconCustom extends StatefulWidget {
   final Widget? child;
-  const TransactionTypeIconCustom({
+  TransactionTypeIconCustom({
     Key? key,
     this.child,
   }) : super(key: key);

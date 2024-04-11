@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class DdWalletTextCustom extends StatefulWidget {
   final Widget? child;
-  const DdWalletTextCustom({
+  DdWalletTextCustom({
     Key? key,
     this.child,
   }) : super(key: key);

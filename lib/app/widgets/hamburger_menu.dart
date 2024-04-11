@@ -10,7 +10,7 @@ class HamburgerMenu extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(
         textTheme: Theme.of(context).textTheme.copyWith(
-              bodyLarge: const TextStyle(
+              bodyText1: const TextStyle(
                 fontSize: 16,
                 color: Colors.white,
               ),

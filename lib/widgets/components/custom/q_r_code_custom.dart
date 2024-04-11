@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class QRCodeCustom extends StatefulWidget {
   final Widget? child;
-  const QRCodeCustom({
+  QRCodeCustom({
     Key? key,
     this.child,
   }) : super(key: key);

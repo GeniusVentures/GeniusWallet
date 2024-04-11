@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NavCalendarButtonCustom extends StatefulWidget {
   final Widget? child;
-  const NavCalendarButtonCustom({
+  NavCalendarButtonCustom({
     Key? key,
     this.child,
   }) : super(key: key);

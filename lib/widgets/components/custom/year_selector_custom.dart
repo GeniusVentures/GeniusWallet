@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class YearSelectorCustom extends StatefulWidget {
   final Widget? child;
-  const YearSelectorCustom({
+  YearSelectorCustom({
     Key? key,
     this.child,
   }) : super(key: key);
