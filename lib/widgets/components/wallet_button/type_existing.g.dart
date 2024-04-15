@@ -27,11 +27,9 @@ class _TypeExisting extends State<TypeExisting> {
   Widget build(BuildContext context) {
     return Container(
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Color(0xff0068ef),
-            width: 1.0,
-          ),
-        ),
+            borderRadius: BorderRadius.circular(48),
+            border: Border.all(
+                width: 1.0, color: const Color.fromRGBO(0, 234, 174, 1))),
         child: TypeExistingCustom(
             child: Stack(children: [
           Positioned(
@@ -46,9 +44,9 @@ class _TypeExisting extends State<TypeExisting> {
                     child: AutoSizeText(
                       widget.ovrIalreadyhaveawallet ??
                           'I already have a wallet',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 11.0,
+                        fontSize: 14.0,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
                         color: Colors.white,

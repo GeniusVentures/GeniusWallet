@@ -10,57 +10,61 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(0, 11, 24, 1),
       body: AppScreenView(
         body: Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          height: MediaQuery.of(context).size.height - 80,
+          child: Stack(
             children: [
-              Image.asset(
-                'assets/images/logo_and_title.png',
-                package: 'genius_wallet',
-              ),
-              const SizedBox(
-                height: 50,
-              ),
-              SizedBox(
-                height: 50,
-                width: 450,
-                child: LayoutBuilder(
-                  builder: (context, constraints) => TypeCreate(constraints),
+              Align(
+                alignment: Alignment.center,
+                child: Image.asset(
+                  'assets/images/logo_and_title.png',
+                  package: 'genius_wallet',
                 ),
               ),
-              const SizedBox(
-                height: 50,
-              ),
-              SizedBox(
-                height: 50,
-                width: 450,
-                child: LayoutBuilder(
-                  builder: (context, constraints) => TypeExisting(constraints),
+              Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                SizedBox(
+                  height: 50,
+                  width: 450,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) =>
+                        TypeExisting(constraints),
+                  ),
                 ),
-              ),
+                const SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
+                  height: 50,
+                  width: 450,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => TypeCreate(constraints),
+                  ),
+                ),
 
-              /***  Below is the test code to test native c/c++ code ***/
+                /***  Below is the test code to test native c/c++ code ***/
 
-              // Container(
-              //   margin: const EdgeInsets.only(top: 10.0),
-              //   child: ElevatedButton(
-              //     onPressed: () {
-              //       context.read<AppBloc>().add(FFITestEvent());
-              //     },
-              //     child: const Text("Test C++ native code!"),
-              //   ),
-              // ),
-              BlocBuilder<AppBloc, AppState>(
-                builder: (context, state) {
-                  if (state.ffiDouble != null) {
-                    return Text('Value: ${state.ffiDouble}');
-                  }
-                  return const SizedBox();
-                },
-              ),
+                // Container(
+                //   margin: const EdgeInsets.only(top: 10.0),
+                //   child: ElevatedButton(r
+                //     onPressed: () {
+                //       context.read<AppBloc>().add(FFITestEvent());
+                //     },
+                //     child: const Text("Test C++ native code!"),
+                //   ),
+                // ),
+
+                BlocBuilder<AppBloc, AppState>(
+                  builder: (context, state) {
+                    if (state.ffiDouble != null) {
+                      return Text('Value: ${state.ffiDouble}');
+                    }
+                    return const SizedBox();
+                  },
+                ),
+              ])
             ],
           ),
         ),

@@ -20,6 +20,7 @@ class Splash extends StatelessWidget {
         }
       },
       child: Scaffold(
+        backgroundColor: const Color.fromRGBO(0, 11, 24, 1),
         body: AppScreenView(
           body: SizedBox(
             width: MediaQuery.of(context).size.width,
