@@ -10,7 +10,6 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(0, 11, 24, 1),
       body: AppScreenView(
         body: Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),

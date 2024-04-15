@@ -5,6 +5,8 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/widgets/components/custom/type_existing_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -29,7 +31,7 @@ class _TypeExisting extends State<TypeExisting> {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(48),
             border: Border.all(
-                width: 1.0, color: const Color.fromRGBO(0, 234, 174, 1))),
+                width: 1.0, color: GeniusWalletColors.lightGreenPrimary)),
         child: TypeExistingCustom(
             child: Stack(children: [
           Positioned(
@@ -46,7 +48,7 @@ class _TypeExisting extends State<TypeExisting> {
                           'I already have a wallet',
                       style: const TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 14.0,
+                        fontSize: GeniusWalletFontSize.base,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
                         color: Colors.white,
