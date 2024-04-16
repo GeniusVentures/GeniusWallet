@@ -33,7 +33,7 @@ class GeniusWalletColors {
 
   static const Color successGreen = Color(0xff00bf13);
 
-  static const Color deepBlue = Color.fromRGBO(0, 11, 24, 1);
+  static const Color deepBlue = Color.fromRGBO(18, 33, 54, 1);
 
   static const Color lightGreenPrimary = Color.fromRGBO(0, 234, 174, 1);
 
