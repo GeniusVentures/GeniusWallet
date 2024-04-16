@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
             primarySwatch: Colors.blue,
-            scaffoldBackgroundColor: GeniusWalletColors.gray900,
+            scaffoldBackgroundColor: GeniusWalletColors.deepBlue,
             colorScheme: const ColorScheme
                 .dark(), //TODO: replace this once we have theme generated
           ),
