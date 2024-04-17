@@ -11,9 +11,13 @@ class RecoveryWordsInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: GeniusWalletColors.blue500.withOpacity(0.1),
-      height: 200,
-      width: MediaQuery.of(context).size.width * 0.8,
+      decoration: BoxDecoration(
+          border: Border.all(color: GeniusWalletColors.gray500),
+          borderRadius: const BorderRadius.all(Radius.circular(15)),
+          color: GeniusWalletColors.grayPrimary),
+      padding: const EdgeInsets.all(16),
+      height: 180,
+      width: MediaQuery.of(context).size.width,
       child: Text(selectedWords.join(' ')),
     );
   }

@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/custom/isactive_false_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -63,7 +64,7 @@ class _IsactiveFalse extends State<IsactiveFalse> {
                       widget.ovrContinue ?? GeniusWalletText.btnContinue,
                       style: const TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 11.0,
+                        fontSize: GeniusWalletFontSize.medium,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
                         color: GeniusWalletColors.btnTextDisabled,
