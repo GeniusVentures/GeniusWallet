@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.dart';
@@ -45,16 +46,11 @@ class _BackupPhraseViewMobile extends StatelessWidget {
             }),
           ),
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.2,
+            height: MediaQuery.of(context).size.height * 0.55,
           ),
-          Image.asset(
-            'assets/images/shield_icon.png',
-            package: 'genius_wallet',
-          ),
-          const SizedBox(height: 30),
           SizedBox(
-            height: 50,
-            width: MediaQuery.of(context).size.width * 0.8,
+            height: 60,
+            width: MediaQuery.of(context).size.width * 0.86,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return WalletAgreementCustom(
@@ -62,13 +58,11 @@ class _BackupPhraseViewMobile extends StatelessWidget {
                   onChanged: (value) {
                     context.read<NewWalletBloc>().add(ToggleCheckbox());
                   },
-                  text:
-                      'I understand that if I lose my recovery words, I will not be able to access my wallet.',
+                  text: GeniusWalletText.helpRecoveryWords,
                 );
               },
             ),
           ),
-          const SizedBox(height: 20)
         ],
       ),
       footer: SizedBox(
@@ -137,8 +131,7 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
                       onChanged: (value) {
                         context.read<NewWalletBloc>().add(ToggleCheckbox());
                       },
-                      text:
-                          'I understand that if I lose my recovery words, I will not be able to access my wallet.',
+                      text: GeniusWalletText.helpRecoveryWords,
                     );
                   },
                 ),
