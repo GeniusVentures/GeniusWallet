@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class WalletAgreementCustom extends StatefulWidget {
   final Widget? child;
