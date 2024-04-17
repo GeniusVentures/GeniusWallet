@@ -5,6 +5,7 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/custom/isactive_true_custom.dart';
@@ -66,7 +67,7 @@ class _IsactiveTrue extends State<IsactiveTrue> {
                         fontSize: 11.0,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
-                        color: Colors.white,
+                        color: GeniusWalletColors.btnText,
                       ),
                       textAlign: TextAlign.center,
                     )),

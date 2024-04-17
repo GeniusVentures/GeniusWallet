@@ -54,6 +54,26 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                 ),
               ),
               Positioned(
+                left: 30.0,
+                right: 30.0,
+                top: 100.0,
+                height: 32.0,
+                child: Container(
+                    height: 32.0,
+                    width: widget.constraints.maxWidth * 0.84,
+                    child: AutoSizeText(
+                      widget.ovrSubtitle ??
+                          'In the next step you will see 12 words that allows you to recover a wallet.',
+                      style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.13750000298023224,
+                        color: Colors.white,
+                      ),
+                    )),
+              ),
+              Positioned(
                 left: 74.0,
                 right: 74.0,
                 top: 16,

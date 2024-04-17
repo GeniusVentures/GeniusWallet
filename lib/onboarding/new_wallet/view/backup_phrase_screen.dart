@@ -40,18 +40,16 @@ class _BackupPhraseViewMobile extends StatelessWidget {
         children: [
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 100,
+            height: 190,
             child: LayoutBuilder(builder: (context, constraints) {
-              return RegistrationHeader(constraints);
+              return RegistrationHeader(
+                constraints,
+                ovrSubtitle: GeniusWalletText.helpTextWalletBackup,
+              );
             }),
           ),
           SizedBox(
-            width: MediaQuery.of(context).size.width * .86,
-            height: 50,
-            child: const Text(GeniusWalletText.helpTextWalletBackup),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.62,
+            height: MediaQuery.of(context).size.height * 0.58,
           ),
           SizedBox(
             height: 60,

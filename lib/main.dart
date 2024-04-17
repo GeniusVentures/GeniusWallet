@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
                   if (!states.contains(MaterialState.selected)) {
                     return Colors.transparent;
                   }
-                  return GeniusWalletColors.deepBlue;
+                  return GeniusWalletColors.btnText;
                 }),
                 fillColor: MaterialStateProperty.resolveWith((states) {
                   if (!states.contains(MaterialState.selected)) {

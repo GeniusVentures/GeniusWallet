@@ -43,6 +43,8 @@ class GeniusWalletColors {
 
   static const Color grayPrimary = Color.fromRGBO(255, 255, 255, 0.05);
 
+  static const Color btnText = Color.fromRGBO(0, 11, 24, 1);
+
   static const Color btnDisabled = Color.fromRGBO(188, 188, 188, 1);
 
   static const Color btnTextDisabled = Color.fromRGBO(101, 101, 101, 1);
