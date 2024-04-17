@@ -5,6 +5,8 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/widgets/components/custom/type_create_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -27,8 +29,14 @@ class _TypeCreate extends State<TypeCreate> {
   Widget build(BuildContext context) {
     return Container(
         decoration: BoxDecoration(
-          color: Color(0xff0068ef),
-        ),
+            borderRadius: BorderRadius.circular(48),
+            gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[
+                  GeniusWalletColors.lightGreenPrimary,
+                  GeniusWalletColors.lightGreenSecondary
+                ])),
         child: TypeCreateCustom(
             child: Stack(children: [
           Positioned(
@@ -41,13 +49,13 @@ class _TypeCreate extends State<TypeCreate> {
                     height: 13.0,
                     width: 131.0,
                     child: AutoSizeText(
-                      widget.ovrCreateaWallet ?? 'Create a Wallet',
-                      style: TextStyle(
+                      widget.ovrCreateaWallet ?? 'Continue',
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 11.0,
+                        fontSize: GeniusWalletFontSize.base,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
-                        color: Colors.white,
+                        color: GeniusWalletColors.deepBlue,
                       ),
                       textAlign: TextAlign.center,
                     ))),
