@@ -93,13 +93,6 @@ class _RegistrationHeader extends State<RegistrationHeader> {
               ),
             ]),
           ),
-          Positioned(
-            left: 30,
-            width: widget.constraints.maxWidth * 0.9,
-            top: 100,
-            height: widget.constraints.maxHeight * 1.0,
-            child: const Text(GeniusWalletText.helpTextWalletBackup),
-          )
         ]));
   }
 
