@@ -7,6 +7,9 @@ import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/registration_header.g.dart';
 
@@ -42,9 +45,8 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: 'Your Recovery Phrase',
-      subtitle:
-          'Write down or copy these words in the right order and save them somewhere safe',
+      title: GeniusWalletText.titleRecovery,
+      subtitle: GeniusWalletText.helpRecoveryPhrase,
       body: Center(
         child: DesktopBodyContainer(
           child: Column(
@@ -88,14 +90,13 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
         children: [
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 190,
+            height: 280,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return RegistrationHeader(
                   constraints,
-                  ovrTitle: 'Your Recovery Phrase',
-                  ovrSubtitle:
-                      'Write down or copy these words in the right order and save them somewhere safe',
+                  ovrTitle: GeniusWalletText.titleRecovery,
+                  ovrSubtitle: GeniusWalletText.helpRecoveryPhrase,
                 );
               },
             ),
@@ -145,7 +146,10 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
             return const CircularProgressIndicator();
           },
         ),
-        MaterialButton(
+        const SizedBox(
+          height: 20,
+        ),
+        TextButton.icon(
           onPressed: () async {
             await FlutterClipboard.copy(
                 context.read<NewWalletBloc>().state.recoveryWords.join(' '));
@@ -158,11 +162,19 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
               ),
             );
           },
-          child: const Text(
-            'Copy',
+          style: OutlinedButton.styleFrom(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+            side: const BorderSide(
+                width: 1.0, color: GeniusWalletColors.btnCopyBorder),
+          ),
+          icon: const Icon(Icons.content_copy,
+              color: Colors.white, size: GeniusWalletFontSize.base),
+          label: const Text(
+            ' ${GeniusWalletText.btnCopy}',
             style: TextStyle(
-              fontSize: 18,
-            ),
+                fontSize: GeniusWalletFontSize.medium, color: Colors.white),
           ),
         ),
       ],

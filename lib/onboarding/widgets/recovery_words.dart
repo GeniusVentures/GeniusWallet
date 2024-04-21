@@ -27,8 +27,8 @@ class RecoveryWords extends StatelessWidget {
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: _numCols,
           mainAxisSpacing: 10,
-          crossAxisSpacing: 20,
-          childAspectRatio: 3,
+          crossAxisSpacing: 10,
+          childAspectRatio: 2.5,
         ),
         itemCount: recoveryWords.length,
         itemBuilder: (context, index) {
