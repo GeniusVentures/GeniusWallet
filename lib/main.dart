@@ -40,9 +40,24 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
+            checkboxTheme: CheckboxThemeData(
+                side: const BorderSide(
+                    color: GeniusWalletColors.lightGreenPrimary),
+                checkColor: MaterialStateProperty.resolveWith((states) {
+                  if (!states.contains(MaterialState.selected)) {
+                    return Colors.transparent;
+                  }
+                  return GeniusWalletColors.btnText;
+                }),
+                fillColor: MaterialStateProperty.resolveWith((states) {
+                  if (!states.contains(MaterialState.selected)) {
+                    return Colors.transparent;
+                  }
+                  return GeniusWalletColors.lightGreenPrimary;
+                })),
             buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
             primarySwatch: Colors.blue,
-            scaffoldBackgroundColor: GeniusWalletColors.deepBlue,
+            scaffoldBackgroundColor: GeniusWalletColors.deepBlueSecondary,
             colorScheme: const ColorScheme
                 .dark(), //TODO: replace this once we have theme generated
           ),

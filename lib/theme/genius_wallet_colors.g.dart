@@ -35,7 +35,23 @@ class GeniusWalletColors {
 
   static const Color deepBlue = Color.fromRGBO(18, 33, 54, 1);
 
+  static const Color deepBlueSecondary = Color.fromRGBO(11, 20, 32, 1);
+
   static const Color lightGreenPrimary = Color.fromRGBO(0, 234, 174, 1);
 
   static const Color lightGreenSecondary = Color.fromRGBO(1, 204, 149, 1);
+
+  static const Color grayPrimary = Color.fromRGBO(21, 30, 41, 1);
+
+  static const Color btnText = Color.fromRGBO(0, 11, 24, 1);
+
+  static const Color btnDisabled = Color.fromRGBO(188, 188, 188, 1);
+
+  static const Color btnTextDisabled = Color.fromRGBO(101, 101, 101, 1);
+
+  static const Color btnGradientBlue = Color.fromRGBO(0, 104, 239, 1);
+
+  static const Color btnGradientGreen = Color.fromRGBO(1, 221, 166, 1);
+
+  static const Color btnCopyBorder = Color.fromRGBO(255, 255, 255, 0.30);
 }

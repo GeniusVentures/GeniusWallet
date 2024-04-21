@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:go_router/go_router.dart';
 
 class Splash extends StatelessWidget {
@@ -20,6 +21,7 @@ class Splash extends StatelessWidget {
         }
       },
       child: Scaffold(
+        backgroundColor: GeniusWalletColors.deepBlue,
         body: AppScreenView(
           body: SizedBox(
             width: MediaQuery.of(context).size.width,
