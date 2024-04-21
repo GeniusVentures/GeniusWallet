@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
                 })),
             buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
             primarySwatch: Colors.blue,
-            scaffoldBackgroundColor: GeniusWalletColors.deepBlue,
+            scaffoldBackgroundColor: GeniusWalletColors.deepBlueSecondary,
             colorScheme: const ColorScheme
                 .dark(), //TODO: replace this once we have theme generated
           ),

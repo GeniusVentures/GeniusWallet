@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class Recoveryword extends StatefulWidget {
   final BoxConstraints constraints;
@@ -25,7 +26,7 @@ class _Recoveryword extends State<Recoveryword> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(),
+        decoration: const BoxDecoration(),
         child: Stack(children: [
           Positioned(
             left: 0,
@@ -34,7 +35,7 @@ class _Recoveryword extends State<Recoveryword> {
             height: widget.constraints.maxHeight * 1.0,
             child: Container(
                 clipBehavior: Clip.hardEdge,
-                decoration: BoxDecoration(),
+                decoration: const BoxDecoration(),
                 child: Stack(children: [
                   Positioned(
                     left: 0,
@@ -45,9 +46,10 @@ class _Recoveryword extends State<Recoveryword> {
                       height: widget.constraints.maxHeight * 1.0,
                       width: widget.constraints.maxWidth * 1.0,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(48)),
                         border: Border.all(
-                          color: Color(0xff00efae),
+                          color: GeniusWalletColors.lightGreenPrimary,
                           width: 1.0,
                         ),
                       ),
@@ -58,13 +60,13 @@ class _Recoveryword extends State<Recoveryword> {
                     width: widget.constraints.maxWidth * 0.784,
                     top: widget.constraints.maxHeight * 0.286,
                     height: widget.constraints.maxHeight * 0.464,
-                    child: Container(
+                    child: SizedBox(
                         height:
                             widget.constraints.maxHeight * 0.4642866853983504,
                         width: widget.constraints.maxWidth * 0.7843116554054054,
                         child: AutoSizeText(
                           widget.ovrWord ?? '1 limb',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
                             fontSize: 16.0,
                             fontWeight: FontWeight.w300,
