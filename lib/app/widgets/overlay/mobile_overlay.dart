@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/hamburger_menu.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_tabbar.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/genius_appbar.g.dart';
 
 class MobileOverlay extends StatelessWidget {
@@ -14,11 +16,14 @@ class MobileOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       endDrawer: const HamburgerMenu(),
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: Column(
         children: [
+          const SizedBox(height: 60),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            height: 40,
+            padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.horizontalPadding),
+            height: 50,
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 return GeniusAppbar(constraints);
