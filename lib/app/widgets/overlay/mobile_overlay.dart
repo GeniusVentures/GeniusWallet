@@ -23,7 +23,7 @@ class MobileOverlay extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: GeniusWalletConsts.horizontalPadding),
-            height: 50,
+            height: 40,
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 return GeniusAppbar(constraints);
