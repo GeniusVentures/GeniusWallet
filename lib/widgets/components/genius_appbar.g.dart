@@ -120,9 +120,9 @@ class _GeniusAppbar extends State<GeniusAppbar> {
                           ]))),
                 ),
                 Positioned(
-                  left: 0,
+                  left: 2,
                   width: 38.0,
-                  top: 1.0,
+                  top: 5.0,
                   height: 38.0,
                   child: widget.ovrGeniusAppbarLogo ??
                       Image.asset(
