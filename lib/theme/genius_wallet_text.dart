@@ -2,6 +2,7 @@ class GeniusWalletText {
   // Title Text
   static const String titleWalletBackup = 'Wallet Backup';
   static const String titleRecovery = 'Your Recovery Phrase';
+  static const String wallets = 'Wallets';
 
   // Help Text
   static const String helpTextWalletBackup =
