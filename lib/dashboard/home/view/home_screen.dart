@@ -6,9 +6,11 @@ import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/app/widgets/hamburger_menu.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/markets_module.g.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +48,8 @@ class OnSuccessful extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      padding: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.horizontalPadding),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -58,7 +61,7 @@ class OnSuccessful extends StatelessWidget {
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Dashboard',
-                style: TextStyle(fontSize: 24),
+                style: TextStyle(fontSize: GeniusWalletFontSize.sectionHeader),
               ),
             );
           }),
@@ -86,11 +89,13 @@ class OnSuccessful extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           SizedBox(
-            height: 20,
+            height: 55,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('My Wallets', style: TextStyle(fontSize: 16)),
+                const Text(GeniusWalletText.wallets,
+                    style: TextStyle(
+                        fontSize: GeniusWalletFontSize.sectionHeader)),
                 MaterialButton(
                   onPressed: () {
                     context.push('/landing_screen');
@@ -103,7 +108,6 @@ class OnSuccessful extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 14),
           const HorizontalWalletsScrollview(),
           const SizedBox(height: 14),
           SizedBox(

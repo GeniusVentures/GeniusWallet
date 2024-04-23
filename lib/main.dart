@@ -40,6 +40,13 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+                backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                type: BottomNavigationBarType.fixed,
+                selectedLabelStyle: TextStyle(fontSize: 12),
+                unselectedLabelStyle: TextStyle(fontSize: 12),
+                selectedIconTheme: IconThemeData(size: 24),
+                unselectedIconTheme: IconThemeData(size: 24)),
             checkboxTheme: CheckboxThemeData(
                 side: const BorderSide(
                     color: GeniusWalletColors.lightGreenPrimary),

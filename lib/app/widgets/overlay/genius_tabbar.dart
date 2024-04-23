@@ -12,30 +12,23 @@ class GeniusTabbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final destinations = _buildDestinations();
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: GeniusWalletColors.blue500,
-            width: 2,
-          ),
-        ),
-      ),
-      child: BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
-        builder: (context, state) {
-          return BottomNavigationBar(
-            onTap: (int index) {
-              context.read<NavigationOverlayCubit>().navigationTapped(index);
-            },
-            currentIndex: state.selectedScreen.index >= _numTabs
-                ? 0
-                : state.selectedScreen.index,
-            backgroundColor: GeniusWalletColors.gray800,
-            type: BottomNavigationBarType.fixed,
-            items: destinations,
-          );
-        },
-      ),
+    return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
+      builder: (context, state) {
+        return Container(
+            decoration: const BoxDecoration(
+                color: GeniusWalletColors.deepBlueCardColor),
+            padding:
+                const EdgeInsets.only(top: 12, bottom: 12, left: 30, right: 30),
+            child: BottomNavigationBar(
+              onTap: (int index) {
+                context.read<NavigationOverlayCubit>().navigationTapped(index);
+              },
+              currentIndex: state.selectedScreen.index >= _numTabs
+                  ? 0
+                  : state.selectedScreen.index,
+              items: destinations,
+            ));
+      },
     );
   }
 
@@ -44,8 +37,11 @@ class GeniusTabbar extends StatelessWidget {
         .take(_numTabs)
         .map(
           (e) => BottomNavigationBarItem(
-            icon: e.icon,
-            activeIcon: e.selectedIcon,
+            icon: Container(
+                padding: const EdgeInsets.only(bottom: 8), child: e.icon),
+            activeIcon: Container(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: e.selectedIcon),
             label: e.label.data,
           ),
         )
