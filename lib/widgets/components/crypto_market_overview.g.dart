@@ -41,7 +41,7 @@ class _CryptoMarketOverview extends State<CryptoMarketOverview> {
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: 2.0,
+                left: -5,
                 width: 70.0,
                 top: 1.0,
                 height: 12.0,
