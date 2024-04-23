@@ -41,6 +41,8 @@ class GeniusWalletColors {
 
   static const Color deepBlueCardColor = Color(0xff0A121F);
 
+  static const Color deepBlueMenu = Color(0xff0F1B2E);
+
   static const Color lightGreenPrimary = Color.fromRGBO(0, 234, 174, 1);
 
   static const Color lightGreenSecondary = Color.fromRGBO(1, 204, 149, 1);
