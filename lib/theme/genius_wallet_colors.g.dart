@@ -60,4 +60,6 @@ class GeniusWalletColors {
   static const Color btnGradientGreen = Color.fromRGBO(1, 221, 166, 1);
 
   static const Color btnCopyBorder = Color.fromRGBO(255, 255, 255, 0.30);
+
+  static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 }
