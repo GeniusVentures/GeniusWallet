@@ -77,10 +77,10 @@ class ExistingWalletBloc
 
   FutureOr<void> _onLegalAccepted(
       LegalAccepted event, Emitter<ExistingWalletState> emit) {
-    //if (event.userExists) {
-    //emit(state.copyWith(currentStep: FlowStep.importWallet));
-    //} else {
-    emit(state.copyWith(currentStep: FlowStep.createPin));
-    //}
+    if (event.userExists) {
+      emit(state.copyWith(currentStep: FlowStep.importWallet));
+    } else {
+      emit(state.copyWith(currentStep: FlowStep.createPin));
+    }
   }
 }
