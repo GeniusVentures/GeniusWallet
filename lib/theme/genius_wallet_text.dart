@@ -11,6 +11,7 @@ class GeniusWalletText {
       'I understand that if I lose my recovery words, I will not be able to access my wallet.';
   static const String helpRecoveryPhrase =
       'Write down or copy these words in the right order and save them somewhere safe';
+  static const String helpPin = 'Create a PIN';
 
   // Button Text
   static const String btnContinue = 'Continue';
