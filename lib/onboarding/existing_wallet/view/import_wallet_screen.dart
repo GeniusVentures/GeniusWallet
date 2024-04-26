@@ -62,7 +62,7 @@ class _ImportWalletViewMobile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       body: Container(
-        padding: const EdgeInsets.only(top: 40),
+        padding: const EdgeInsets.only(top: 40, left: 40, right: 40),
         constraints: BoxConstraints(
           minHeight: 100,
           maxHeight: MediaQuery.of(context).size.height * 0.6,

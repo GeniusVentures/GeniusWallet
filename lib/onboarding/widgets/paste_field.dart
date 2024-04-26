@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:clipboard/clipboard.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 
 class PasteField extends StatelessWidget {
   final String hintText;
@@ -30,14 +27,11 @@ class PasteField extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
           decoration: BoxDecoration(
-            color: GeniusWalletColors.grayPrimary,
-            border: Border.all(color: GeniusWalletColors.borderGrey),
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
+            color: GeniusWalletColors.blue500.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(5),
           ),
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.of(context).size.width * 0.8,
           height: 200,
           child: Stack(
             children: [
@@ -51,27 +45,19 @@ class PasteField extends StatelessWidget {
                 maxLines: 10,
               ),
               Positioned(
-                bottom: 10,
-                right: 0,
-                child: TextButton.icon(
+                bottom: 25,
+                right: 25,
+                child: MaterialButton(
                   onPressed: () async {
                     final textValue = await FlutterClipboard.paste();
                     controller.text = textValue;
                   },
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                    side: const BorderSide(
-                        width: 1.0, color: GeniusWalletColors.btnCopyBorder),
-                  ),
-                  icon: const Icon(Icons.content_copy,
-                      color: Colors.white, size: GeniusWalletFontSize.base),
-                  label: const Text(
-                    GeniusWalletText.btnPaste,
+                  child: const Text(
+                    'Paste',
                     style: TextStyle(
-                        fontSize: GeniusWalletFontSize.medium,
-                        color: Colors.white),
+                      color: GeniusWalletColors.blue500,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
@@ -80,12 +66,10 @@ class PasteField extends StatelessWidget {
         ),
         ...addon,
         const SizedBox(height: 20),
-        SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: Text(
-              subtitle,
-              textAlign: TextAlign.left,
-            )),
+        Text(
+          subtitle,
+          textAlign: TextAlign.left,
+        ),
       ],
     );
   }

@@ -5,8 +5,6 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_card_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/white_arrow_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -50,22 +48,21 @@ class _WalletCard extends State<WalletCard> {
                 child: Container(
                   height: widget.constraints.maxHeight * 1.0,
                   width: widget.constraints.maxWidth * 1.0,
-                  decoration: const BoxDecoration(
-                    color: GeniusWalletColors.blue500,
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(GeniusWalletConsts.borderRadiusButton)),
+                  decoration: BoxDecoration(
+                    color: Color(0xff2a2b31),
+                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
                   ),
                 ),
               ),
               Positioned(
                 right: 19.0,
-                width: 7.0,
+                width: 5.0,
                 top: widget.constraints.maxHeight * 0.436,
                 height: widget.constraints.maxHeight * 0.164,
                 child: Center(
                     child: Container(
-                        height: 12.0,
-                        width: 7.0,
+                        height: 9.0,
+                        width: 5.0,
                         child: WhiteArrowCustom(child:
                             LayoutBuilder(builder: (context, constraints) {
                           return PointingRight(
@@ -73,8 +70,8 @@ class _WalletCard extends State<WalletCard> {
                             ovrWhiteArrowRight: SvgPicture.asset(
                               'assets/images/whitearrowright.svg',
                               package: 'genius_wallet',
-                              height: 12.0,
-                              width: 7.0,
+                              height: 9.0,
+                              width: 5.0,
                               fit: BoxFit.none,
                             ),
                           );

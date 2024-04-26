@@ -5,14 +5,13 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/widgets/components/custom/text_entry_field_logic.dart';
 import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
 class TextEntryFieldWidget extends StatelessWidget {
   final TextFormFieldLogic logic;
 
-  const TextEntryFieldWidget({
+  TextEntryFieldWidget({
     Key? key,
     required this.logic,
   }) : super(key: key);
@@ -20,7 +19,7 @@ class TextEntryFieldWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Roboto',
         fontSize: 14.0,
         fontWeight: FontWeight.w400,
@@ -28,35 +27,37 @@ class TextEntryFieldWidget extends StatelessWidget {
         color: Colors.white,
       ),
       decoration: InputDecoration(
-          hintText: logic.hintText,
-          hintStyle: const TextStyle(
-            fontFamily: 'Roboto',
-            fontSize: 14.0,
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.0,
-            color: Colors.white,
-          ),
-          prefixIcon: null,
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: GeniusWalletColors.lightGreenPrimary,
-              width: 1.0,
+        hintText: logic.hintText,
+        hintStyle: TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 14.0,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.0,
+          color: Colors.white,
+        ),
+        prefixIcon: null,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(
+              0x00ffffff,
             ),
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
+            width: 1.0,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: GeniusWalletColors.borderGrey,
-              width: 1.0,
+          borderRadius: BorderRadius.circular(1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(
+              0x00ffffff,
             ),
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
+            width: 1.0,
           ),
-          filled: true,
-          fillColor: GeniusWalletColors.grayPrimary,
-          suffixIcon: null,
-          contentPadding: const EdgeInsets.all(16)),
+          borderRadius: BorderRadius.circular(1),
+        ),
+        filled: true,
+        fillColor: Color(0xff2a2b31),
+        suffixIcon: null,
+      ),
       controller: logic.controller,
       initialValue: logic.initialValue,
       keyboardType: logic.keyboardType,

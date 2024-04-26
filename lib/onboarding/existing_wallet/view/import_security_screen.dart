@@ -10,8 +10,6 @@ import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
 import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
@@ -187,9 +185,12 @@ class _ImportSecurityViewMobile extends StatelessWidget {
     return AppScreenWithHeaderMobile(
       title: title,
       subtitle: subtitle,
-      body: _ImportSecurityBody(
-        walletNameController: walletNameController,
-        tabControllers: tabControllers,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: _ImportSecurityBody(
+          walletNameController: walletNameController,
+          tabControllers: tabControllers,
+        ),
       ),
       footer: _ImportSecurityContinueButton(
         formKey: formKey,
@@ -216,16 +217,13 @@ class _ImportSecurityBody extends StatelessWidget {
       children: [
         SizedBox(
           height: 20,
-          width: MediaQuery.of(context).size.width * 0.9,
-          child: const Text(
-            'Name',
-            style: TextStyle(fontSize: GeniusWalletFontSize.medium),
-          ),
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: const Text('Name'),
         ),
         const SizedBox(height: 10),
         SizedBox(
           height: 50,
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.of(context).size.width * 0.8,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               return TextEntryFieldWidget(
@@ -245,17 +243,13 @@ class _ImportSecurityBody extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         SizedBox(
-          width: MediaQuery.of(context).size.width,
+          width: MediaQuery.of(context).size.width * 0.8,
           height: 50,
           child: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
             bottom: const TabBar(
-              labelPadding: EdgeInsets.all(0),
-              indicatorSize: TabBarIndicatorSize.label,
-              indicatorColor: GeniusWalletColors.lightGreenPrimary,
-              indicatorWeight: 2,
-              indicatorPadding: EdgeInsets.symmetric(vertical: 8),
+              indicatorColor: Colors.white,
               tabs: [
                 Tab(text: 'Phrase'),
                 Tab(text: 'Keystore'),
@@ -266,12 +260,12 @@ class _ImportSecurityBody extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.of(context).size.width * 0.8,
           height: 400,
           child: TabBarView(
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(top: 25),
                 child: PhraseTabView(
                   controller: tabControllers['phrase']!['pasteField']!,
                 ),
