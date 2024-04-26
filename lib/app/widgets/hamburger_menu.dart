@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:go_router/go_router.dart';
 
 class HamburgerMenu extends StatelessWidget {
@@ -10,63 +11,44 @@ class HamburgerMenu extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(
         textTheme: Theme.of(context).textTheme.copyWith(
-              bodyText1: const TextStyle(
-                fontSize: 16,
+              bodyLarge: const TextStyle(
+                fontSize: GeniusWalletFontSize.medium,
                 color: Colors.white,
               ),
             ),
       ),
       child: Drawer(
-        backgroundColor: GeniusWalletColors.blue500,
+        backgroundColor: GeniusWalletColors.deepBlueMenu,
         child: ListView(
-          children: [
-            const SizedBox(
-              height: 40,
+          children: const [
+            SizedBox(
+              height: 20,
             ),
-            ListTile(
-              title: const Text(
-                'Markets',
-                textAlign: TextAlign.end,
-              ),
-              trailing: Image.asset('assets/images/markets_icon.png'),
-              onTap: () {
-                context.go('/markets');
-              },
+            MenuListTile(
+              menuTitle: 'Markets',
+              menuIcon: 'assets/images/chart.png',
+              menuRoute: '/markets',
             ),
-            const OpaqueWhiteDivider(),
-            ListTile(
-              title: const Text(
-                'Crypto News',
-                textAlign: TextAlign.end,
-              ),
-              trailing: Image.asset('assets/images/crypto_news_icon.png'),
-              onTap: () {
-                context.go('/crypto_news');
-              },
+            MenuListTile(
+              menuTitle: 'Crypto News',
+              menuIcon: 'assets/images/news.png',
+              menuRoute: '/news',
             ),
-            const OpaqueWhiteDivider(),
-            ListTile(
-              title: const Text(
-                'Blockchain Events',
-                textAlign: TextAlign.end,
-              ),
-              trailing: Image.asset('assets/images/calendar_icon.png'),
-              onTap: () {
-                context.go('/events');
-              },
+            MenuListTile(
+              menuTitle: 'Blockchain Events',
+              menuIcon: 'assets/images/calendar.png',
+              menuRoute: '/events',
             ),
-            const OpaqueWhiteDivider(),
-            ListTile(
-              title: const Text(
-                'Calculator',
-                textAlign: TextAlign.end,
-              ),
-              trailing: Image.asset('assets/images/calculator_icon.png'),
-              onTap: () {
-                context.go('/calculator');
-              },
+            MenuListTile(
+              menuTitle: 'Calculator',
+              menuIcon: 'assets/images/calculator.png',
+              menuRoute: '/calculator',
             ),
-            const OpaqueWhiteDivider(),
+            MenuListTile(
+              menuTitle: 'Settings',
+              menuIcon: 'assets/images/settings.png',
+              menuRoute: '/settings',
+            )
           ],
         ),
       ),
@@ -74,13 +56,24 @@ class HamburgerMenu extends StatelessWidget {
   }
 }
 
-class OpaqueWhiteDivider extends StatelessWidget {
-  const OpaqueWhiteDivider({
-    Key? key,
-  }) : super(key: key);
+class MenuListTile extends ListTile {
+  final String menuTitle;
+  final String menuIcon;
+  final String menuRoute;
+
+  const MenuListTile(
+      {Key? key, this.menuTitle = '', this.menuIcon = '', this.menuRoute = ''})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Divider(color: Colors.white.withOpacity(0.2));
+    return ListTile(
+        title: Text(menuTitle),
+        titleAlignment: ListTileTitleAlignment.center,
+        leading: Image.asset(menuIcon),
+        minLeadingWidth: 18,
+        onTap: () {
+          context.go(menuRoute);
+        });
   }
 }

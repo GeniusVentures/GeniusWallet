@@ -31,4 +31,5 @@ enum NavigationScreen {
   events,
   calculator,
   news,
+  settings
 }
