@@ -43,10 +43,15 @@ class MyApp extends StatelessWidget {
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 backgroundColor: GeniusWalletColors.deepBlueCardColor,
                 type: BottomNavigationBarType.fixed,
-                selectedLabelStyle: TextStyle(fontSize: 12),
-                unselectedLabelStyle: TextStyle(fontSize: 12),
-                selectedIconTheme: IconThemeData(size: 24),
-                unselectedIconTheme: IconThemeData(size: 24)),
+                selectedLabelStyle:
+                    TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                unselectedLabelStyle:
+                    TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                selectedItemColor: GeniusWalletColors.blue500,
+                selectedIconTheme:
+                    IconThemeData(size: 24, color: GeniusWalletColors.blue500),
+                unselectedIconTheme:
+                    IconThemeData(size: 24, color: Colors.white)),
             checkboxTheme: CheckboxThemeData(
                 side: const BorderSide(
                     color: GeniusWalletColors.lightGreenPrimary),
