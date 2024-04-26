@@ -9,6 +9,7 @@ import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/app/widgets/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/incorrect_pin.g.dart';
@@ -66,10 +67,9 @@ class _PinViewDesktop extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(text),
-                const SizedBox(height: 10),
                 PinCodeTextField(
                   appContext: context,
-                  length: 6,
+                  length: GeniusWalletConsts.pinCount,
                   pinTheme: PinTheme(
                     activeColor: Colors.white,
                     selectedColor: Colors.white,
@@ -139,7 +139,7 @@ class _PinViewMobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GeniusWalletColors.blue500,
+      backgroundColor: GeniusWalletColors.deepBlueSecondary,
       body: AppScreenView(
         body: ConstrainedBox(
           constraints: BoxConstraints(
@@ -150,11 +150,11 @@ class _PinViewMobile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 50, left: 40),
+                padding: const EdgeInsets.only(top: 20, left: 20),
                 child: IconButton(
                   alignment: Alignment.center,
                   onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close, size: 40),
+                  icon: const Icon(Icons.close, size: 32),
                 ),
               ),
               BlocBuilder<PinCubit, PinState>(
@@ -177,7 +177,7 @@ class _PinViewMobile extends StatelessWidget {
                 },
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.1,
+                height: MediaQuery.of(context).size.height * 0.2,
               ),
               Center(
                 child: Text(
@@ -188,26 +188,32 @@ class _PinViewMobile extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: 28),
               Center(
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
+                  width: MediaQuery.of(context).size.width * 0.4,
                   child: PinCodeTextField(
                     appContext: context,
                     obscureText: true,
+                    cursorColor: Colors.transparent,
+                    enableActiveFill: true,
                     obscuringWidget: Container(
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white,
+                        color: GeniusWalletColors.lightGreenPrimary,
                       ),
                     ),
                     pinTheme: PinTheme(
-                      shape: PinCodeFieldShape.circle,
-                      activeColor: Colors.white,
-                      disabledColor: Colors.white,
-                      inactiveColor: Colors.white,
-                    ),
-                    length: 6,
+                        selectedColor: GeniusWalletColors.borderGrey,
+                        selectedFillColor: GeniusWalletColors.borderGrey,
+                        inactiveFillColor: GeniusWalletColors.borderGrey,
+                        inactiveColor: GeniusWalletColors.borderGrey,
+                        activeColor: GeniusWalletColors.lightGreenPrimary,
+                        activeFillColor: GeniusWalletColors.lightGreenPrimary,
+                        borderWidth: 0,
+                        fieldWidth: 16,
+                        shape: PinCodeFieldShape.circle),
+                    length: GeniusWalletConsts.pinCount,
                     onChanged: (passcode) {},
                     readOnly: true,
                     controller: context.watch<PinCubit>().state.controller,
