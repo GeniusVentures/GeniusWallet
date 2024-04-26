@@ -37,7 +37,7 @@ class SupportedExistingWallets extends StatelessWidget {
             },
             child: SizedBox(
               height: 50,
-              width: MediaQuery.of(context).size.width * 0.8,
+              width: MediaQuery.of(context).size.width * 0.85,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return WalletCard(
