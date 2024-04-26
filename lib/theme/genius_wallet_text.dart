@@ -15,4 +15,5 @@ class GeniusWalletText {
   // Button Text
   static const String btnContinue = 'Continue';
   static const String btnCopy = 'Copy';
+  static const String btnPaste = 'Paste';
 }
