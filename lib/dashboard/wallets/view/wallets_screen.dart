@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
-import 'package:genius_wallet/widgets/components/%D0%B0dd_wallet_text.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
 
@@ -13,9 +14,10 @@ class WalletsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
               Row(
@@ -25,16 +27,30 @@ class WalletsScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 24),
                   ),
                   const Spacer(),
-                  SizedBox(
-                    width: 80,
-                    height: 15,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return DdWalletText(constraints);
-                      },
-                    ),
-                  ),
+                  TextButton.icon(
+                      onPressed: null,
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.resolveWith((states) {
+                            if (!states.contains(MaterialState.selected)) {
+                              return GeniusWalletColors.lightGreenPrimary;
+                            }
+                            return GeniusWalletColors.lightGreenSecondary;
+                          }),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ))),
+                      label: const Text(
+                        GeniusWalletText.btnAddWallet,
+                        style: TextStyle(
+                            color: GeniusWalletColors.deepBlueTertiary),
+                      ),
+                      icon: const Icon(
+                        Icons.add_circle_outlined,
+                        color: GeniusWalletColors.deepBlueTertiary,
+                      )),
                 ],
               ),
               const SizedBox(height: 20),
@@ -45,12 +61,13 @@ class WalletsScreen extends StatelessWidget {
                       child: ListView.separated(
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 20),
+                        padding: const EdgeInsets.only(bottom: 20),
                         itemCount: state.wallets.length + 1,
                         itemBuilder: (context, index) {
                           /// Last item should be an "Add Wallet"
                           if (index == state.wallets.length) {
                             return SizedBox(
-                              height: 300,
+                              height: 350,
                               child: LayoutBuilder(
                                 builder: (BuildContext context,
                                     BoxConstraints constraints) {
@@ -61,7 +78,7 @@ class WalletsScreen extends StatelessWidget {
                           }
                           final currentWallet = state.wallets[index];
                           return SizedBox(
-                            height: 300,
+                            height: 350,
                             child: LayoutBuilder(
                               builder: (BuildContext context,
                                   BoxConstraints constraints) {
@@ -108,7 +125,7 @@ class WalletsScreen extends StatelessWidget {
                   }
                   return const Text('No Wallets');
                 },
-              )
+              ),
             ],
           ),
         ),

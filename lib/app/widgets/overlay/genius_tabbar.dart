@@ -14,20 +14,14 @@ class GeniusTabbar extends StatelessWidget {
     final destinations = _buildDestinations();
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
-        return Container(
-            decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor),
-            padding:
-                const EdgeInsets.only(top: 12, bottom: 12, left: 30, right: 30),
-            child: BottomNavigationBar(
-              onTap: (int index) {
-                context.read<NavigationOverlayCubit>().navigationTapped(index);
-              },
-              currentIndex: state.selectedScreen.index >= _numTabs
-                  ? 0
-                  : state.selectedScreen.index,
-              items: destinations,
-            ));
+        return BottomNavigationBar(
+            onTap: (int index) {
+              context.read<NavigationOverlayCubit>().navigationTapped(index);
+            },
+            currentIndex: state.selectedScreen.index >= _numTabs
+                ? 0
+                : state.selectedScreen.index,
+            items: destinations);
       },
     );
   }
