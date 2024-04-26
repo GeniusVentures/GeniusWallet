@@ -4,6 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/bloc/pin_state.dart';
 import 'package:genius_wallet/app/screens/pin_screen.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 /// Class that wraps [PinScreen] to verify the user's pin to perform an action
 class VerifyPinScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class VerifyPinScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => PinCubit(
-        pinMaxLength: 6,
+        pinMaxLength: GeniusWalletConsts.pinCount,
         geniusApi: context.read<GeniusApi>(),
       ),
       child: VerifyPinView(

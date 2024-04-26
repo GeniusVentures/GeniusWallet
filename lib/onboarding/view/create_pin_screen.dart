@@ -5,6 +5,8 @@ import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/screens/pin_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_state.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 
 class CreatePinScreen extends StatelessWidget {
   final void Function(String) onCompleted;
@@ -17,7 +19,7 @@ class CreatePinScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => PinCubit(
-        pinMaxLength: 6,
+        pinMaxLength: GeniusWalletConsts.pinCount,
         geniusApi: context.read<GeniusApi>(),
       ),
       child: BlocListener<NewPinCubit, NewPinState>(
@@ -27,7 +29,7 @@ class CreatePinScreen extends StatelessWidget {
           }
         },
         child: PinScreen(
-          text: 'Create PIN',
+          text: GeniusWalletText.helpPin,
           onCompleted: onCompleted,
         ),
       ),
