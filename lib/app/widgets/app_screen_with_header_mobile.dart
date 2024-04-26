@@ -22,7 +22,7 @@ class AppScreenWithHeaderMobile extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 140,
+              height: 100,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return RegistrationHeader(
