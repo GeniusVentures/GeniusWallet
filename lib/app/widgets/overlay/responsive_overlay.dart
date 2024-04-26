@@ -51,6 +51,9 @@ class ResponsiveOverlay extends StatelessWidget {
           case NavigationScreen.trade:
             child = const TradeScreen();
             break;
+          case NavigationScreen.settings:
+            child = const Center(child: Text('Coming soon'));
+            break;
           case NavigationScreen.dashboard:
           default:
             child = const HomeScreen();

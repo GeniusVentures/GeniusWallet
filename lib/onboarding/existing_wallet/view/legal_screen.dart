@@ -56,7 +56,7 @@ class _LegalViewMobile extends StatelessWidget {
         constraints: BoxConstraints(
           minHeight: 50,
           minWidth: MediaQuery.of(context).size.width * 0.8,
-          maxHeight: MediaQuery.of(context).size.width * 0.5,
+          maxHeight: MediaQuery.of(context).size.width * 0.8,
           maxWidth: MediaQuery.of(context).size.width * 0.8,
         ),
         child: const _ToSButtons(),
@@ -106,7 +106,7 @@ class _ToSButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         SizedBox(
           height: 50,
