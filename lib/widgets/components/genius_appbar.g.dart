@@ -1,11 +1,4 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/alerts_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/hamburger_menu_icon_custom.dart';
 
@@ -72,52 +65,12 @@ class _GeniusAppbar extends State<GeniusAppbar> {
                 Positioned(
                   right: 0,
                   width: 36.6,
-                  top: 16.0,
-                  height: 14.5,
+                  top: 7.5,
                   child: HamburgerMenuIconCustom(
-                      child: Container(
-                          decoration: BoxDecoration(),
-                          child: Stack(children: [
-                            Positioned(
-                              right: 0,
-                              width: 24.6,
-                              top: 0,
-                              height: 1.5,
-                              child: Container(
-                                height: 1.5,
-                                width: 24.599609375,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              width: 8.6,
-                              top: 13.0,
-                              height: 1.5,
-                              child: Container(
-                                height: 1.5,
-                                width: 8.599609375,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              width: 36.6,
-                              top: 7.0,
-                              height: 1.5,
-                              child: Container(
-                                height: 1.5,
-                                width: 36.599609375,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ]))),
+                      child: const Icon(
+                    Icons.menu,
+                    size: 30,
+                  )),
                 ),
                 Positioned(
                   left: 2,
