@@ -22,8 +22,9 @@ class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
         builder: (context, state) {
       if (state.selectedWallet == null ||
           state.selectedWallet!.transactions.isEmpty) {
-        return const Center(
-          child: Text('No Transactions detected.'),
+        return Container(
+          alignment: Alignment.center,
+          child: const Text('No Transactions detected.'),
         );
       }
       final transactions = state.selectedWallet!.transactions;

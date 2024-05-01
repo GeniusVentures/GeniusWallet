@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_q_r_code_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,73 +20,23 @@ class _WalletQRCode extends State<WalletQRCode> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: BoxDecoration(),
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: widget.constraints.maxWidth * 1.0,
-            top: 0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: Stack(children: [
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
-                  decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 81.0,
-                right: 114.75,
-                top: widget.constraints.maxHeight * 0.099,
-                height: widget.constraints.maxHeight * 0.435,
-                child: Center(
-                    child: Container(
-                        height: 101.25,
-                        width: widget.constraints.maxWidth * 0.3409090909090909,
-                        child: WalletQRCodeCustom(
-                            child: SvgPicture.asset(
-                          'assets/images/walletqrcodecustom.svg',
-                          package: 'genius_wallet',
-                          height: 101.25,
-                          width:
-                              widget.constraints.maxWidth * 0.3409090909090909,
-                          fit: BoxFit.fitWidth,
-                        )))),
-              ),
-              Positioned(
-                left: 2.0,
-                right: 4.0,
-                top: widget.constraints.maxHeight * 0.725,
-                height: widget.constraints.maxHeight * 0.069,
-                child: Center(
-                    child: Container(
-                        height: 16.0,
-                        width: widget.constraints.maxWidth * 0.9797979797979798,
-                        child: AutoSizeText(
-                          widget.ovrWalletID ??
-                              '3HP94BwsdMHifjdsfJksdndaJhd oopskd',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ))),
-              ),
-            ]),
-          ),
-        ]));
+    return Column(children: [
+      WalletQRCodeCustom(
+          child: SvgPicture.asset(
+        'assets/images/walletqrcodecustom.svg',
+        package: 'genius_wallet',
+        width: widget.constraints.maxWidth * 0.3409090909090909,
+      )),
+      AutoSizeText(
+        widget.ovrWalletID ?? '3HP94BwsdMHifjdsfJksdndaJhd oopskd',
+        style: const TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 14.0,
+          fontWeight: FontWeight.w400,
+          color: Colors.white,
+        ),
+      ),
+    ]);
   }
 
   @override

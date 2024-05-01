@@ -5,6 +5,7 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/back_button_dashboard.g.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/back_button_dashboard_custom.dart';
@@ -28,28 +29,26 @@ class _BackButtonHeader extends State<BackButtonHeader> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(),
+        decoration: BoxDecoration(color: GeniusWalletColors.grayPrimary),
         child: Stack(children: [
           Positioned(
             left: 0,
             width: widget.constraints.maxWidth * 1.0,
-            top: 0,
+            top: 5,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
                 left: 88.0,
                 right: 88.0,
                 top: 10.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: widget.constraints.maxWidth * 0.43769968051118213,
                     child: AutoSizeText(
                       widget.ovrTitle ?? 'Send Bitcoin',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -59,7 +58,7 @@ class _BackButtonHeader extends State<BackButtonHeader> {
               Positioned(
                 left: 0,
                 width: 79.0,
-                top: 0,
+                top: 5,
                 height: 35.0,
                 child: BackButtonDashboardCustom(
                     child: LayoutBuilder(builder: (context, constraints) {
