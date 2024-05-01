@@ -82,16 +82,6 @@ class WalletDetailsScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    height: 720,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return CryptoChart(constraints);
-                      },
-                    ),
-                  ),
                 ],
               ),
             ),
