@@ -13,13 +13,12 @@ class ReceiveScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenView(
-        body: Container(
-          height: MediaQuery.of(context).size.height,
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+        body: SizedBox(
+          height: MediaQuery.of(context).size.height - 100,
           child: Column(
             children: [
               SizedBox(
-                height: 40,
+                height: 50,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return BackButtonHeader(
@@ -31,33 +30,27 @@ class ReceiveScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              SizedBox(
-                height: 300,
-                width: 500,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return WalletQRCode(
-                      constraints,
-                      ovrWalletID: context
-                          .read<WalletDetailsCubit>()
-                          .state
-                          .selectedWallet!
-                          .address,
-                    );
-                  },
-                ),
+              LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return WalletQRCode(
+                    constraints,
+                    ovrWalletID: context
+                        .read<WalletDetailsCubit>()
+                        .state
+                        .selectedWallet!
+                        .address,
+                  );
+                },
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 50),
               SizedBox(
-                height: 20,
-                width: 60,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return CopyWalletID(constraints);
                   },
                 ),
               ),
-              const Spacer(flex: 2),
+              const Spacer(),
             ],
           ),
         ),
