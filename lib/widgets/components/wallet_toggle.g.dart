@@ -51,7 +51,7 @@ class _WalletToggle extends State<WalletToggle> {
                         decoration: BoxDecoration(),
                         child: Stack(children: [
                           Positioned(
-                            right: 13.0,
+                            right: 16.0,
                             width: 35.0,
                             top: 0,
                             height: 35.0,
@@ -99,34 +99,28 @@ class _WalletToggle extends State<WalletToggle> {
                           ),
                           Positioned(
                             right: 0,
-                            width: 7.0,
-                            top: 15.0,
+                            width: 8.0,
+                            top: 12.0,
                             height: 5.0,
                             child: widget.ovrArrowToggle ??
-                                SvgPicture.asset(
-                                  'assets/images/arrowtoggle.svg',
-                                  package: 'genius_wallet',
-                                  height: 5.0,
-                                  width: 7.0,
-                                  fit: BoxFit.none,
-                                ),
+                                const Icon(Icons.arrow_drop_down, size: 14),
                           ),
                           Positioned(
-                            right: 71.0,
+                            right: 60.0,
                             width: 120.0,
-                            top: 9.0,
+                            top: 10.0,
                             height: 16.0,
-                            child: Container(
+                            child: SizedBox(
                                 height: 16.0,
                                 width: 120.0,
                                 child: AutoSizeText(
                                   widget.ovrWalletName ?? 'My Bitcoin Wallet',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'Roboto',
                                     fontSize: 14.0,
                                     fontWeight: FontWeight.w400,
                                     letterSpacing: 0.32307693362236023,
-                                    color: Color(0xff42434b),
+                                    color: Colors.white,
                                   ),
                                   textAlign: TextAlign.center,
                                 )),
@@ -138,16 +132,16 @@ class _WalletToggle extends State<WalletToggle> {
                 width: 110.0,
                 top: 7.0,
                 height: 28.0,
-                child: Container(
+                child: SizedBox(
                     height: 28.0,
                     width: 110.0,
                     child: AutoSizeText(
                       widget.ovrCoinName ?? 'Bitcoin',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 24.0,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 0.30000001192092896,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.left,
