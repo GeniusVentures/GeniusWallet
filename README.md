@@ -2,20 +2,22 @@
 
 A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Parabeac](https://parabeac.com/).
 
-# Download Genius Wallet project
+## Download Genius Wallet project
 
 ```bash
 git clone git@github.com:GeniusVentures/GeniusWallet.git --recursive 
 cd GeniusWallet
 ```
 
-# Setting up the environment
+## Setting up the environment
 
-The flutter dependency is dealt with by downloading and building th thirdparty project.
+The flutter dependency is dealt with by downloading and building the thirdparty project.
  
-# [Build thirdparty project](../../../thirdparty/blob/master/README.md)
+[Build thirdparty project](../../../thirdparty/blob/master/README.md)
 
-# Run on Linux
+Simply add `thidparty/build/PLATFORM/Release` to `PATH`. 
+
+## Run on Linux
 
 ```bash
     flutter run
