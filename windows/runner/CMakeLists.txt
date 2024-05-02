@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(runner LANGUAGES CXX)
 include(../../cmake/Utilities.cmake)
 
-set(ARCH_OUTPUT_DIR /build/Windows/Release)
+set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
 
 
 # Define the application target. To change its name, change BINARY_NAME in the
