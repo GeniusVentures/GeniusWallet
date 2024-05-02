@@ -9,7 +9,7 @@ set(BINARY_NAME "genius_wallet")
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.example.genius_wallet")
 
-set(ARCH_OUTPUT_DIR /build/Linux/Release)
+set(ARCH_OUTPUT_DIR /build/Linux/${CMAKE_BUILD_TYPE})
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
