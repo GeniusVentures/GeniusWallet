@@ -20,8 +20,7 @@ class _BackButtonDashboard extends State<BackButtonDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return const Positioned(
-        left: 0, child: Icon(Icons.arrow_back_outlined, size: 24));
+    return const Icon(Icons.arrow_back_outlined, size: 24);
   }
 
   @override
