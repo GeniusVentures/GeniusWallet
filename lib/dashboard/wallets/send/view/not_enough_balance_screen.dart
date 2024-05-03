@@ -35,8 +35,7 @@ class _NotEnoughBalanceViewMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScreenView(
       body: Container(
-        padding: const EdgeInsets.all(30),
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height - 100,
         child: Column(
           children: [
             SizedBox(
@@ -51,13 +50,14 @@ class _NotEnoughBalanceViewMobile extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            SvgPicture.asset('assets/images/not_enough_balance.svg'),
+            Image.asset('assets/images/megacreator.png', height: 160),
             const SizedBox(height: 30),
             Text(
                 'You don\'t have any ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}'),
             const SizedBox(height: 60),
             SizedBox(
               height: 50,
+              width: MediaQuery.of(context).size.width - 50,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return MaterialButton(
@@ -69,7 +69,8 @@ class _NotEnoughBalanceViewMobile extends StatelessWidget {
                     },
                     child: IsactiveTrue(
                       constraints,
-                      ovrContinue: 'Buy',
+                      ovrContinue:
+                          'Buy ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}',
                     ),
                   );
                 },

@@ -58,7 +58,7 @@ class _IsactiveTrue extends State<IsactiveTrue> {
                 right: 112.0,
                 top: 16.0,
                 bottom: 17.0,
-                child: Container(
+                child: SizedBox(
                     height: widget.constraints.maxHeight * 0.2826086956521739,
                     width: widget.constraints.maxWidth * 0.27936507936507937,
                     child: AutoSizeText(
@@ -66,8 +66,8 @@ class _IsactiveTrue extends State<IsactiveTrue> {
                       style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: GeniusWalletFontSize.medium,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.13750000298023224,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.138,
                         color: GeniusWalletColors.btnText,
                       ),
                       textAlign: TextAlign.center,

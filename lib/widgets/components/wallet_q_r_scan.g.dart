@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/q_r_code_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -39,15 +40,14 @@ class _WalletQRScan extends State<WalletQRScan> {
                 left: 0,
                 right: 0,
                 top: 0,
-                height: 14.0,
+                height: 16.0,
                 child: Container(
-                    height: 14.0,
                     width: widget.constraints.maxWidth * 1.0,
                     child: AutoSizeText(
                       widget.ovrQRScanPrompt ?? 'Scan wallet instead ?',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
+                        fontSize: 14.0,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
@@ -76,6 +76,8 @@ class _WalletQRScan extends State<WalletQRScan> {
                                     height: 34.0,
                                     child: SvgPicture.asset(
                                       'assets/images/group.svg',
+                                      color:
+                                          GeniusWalletColors.lightGreenPrimary,
                                       package: 'genius_wallet',
                                       height: 34.0,
                                       width: 34.0,
