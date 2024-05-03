@@ -34,7 +34,7 @@ class TextEntryFieldWidget extends StatelessWidget {
             fontSize: 14.0,
             fontWeight: FontWeight.w400,
             letterSpacing: 0.0,
-            color: Colors.white,
+            color: GeniusWalletColors.gray500,
           ),
           prefixIcon: null,
           focusedBorder: OutlineInputBorder(

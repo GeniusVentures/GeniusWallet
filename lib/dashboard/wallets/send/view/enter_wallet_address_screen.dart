@@ -15,90 +15,89 @@ class EnterWalletAddressScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppScreenView(
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 50,
-                  child: LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return BackButtonHeader(
-                        constraints,
-                        ovrTitle: 'Enter Wallet Address',
-                      );
-                    },
-                  ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
+        height: 75,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return BlocBuilder<SendCubit, SendState>(
+            builder: (context, state) {
+              if (state.currentTransaction.toAddress.isEmpty) {
+                return IsactiveFalse(
+                  constraints,
+                  ovrContinue: 'Continue',
+                );
+              }
+              return MaterialButton(
+                onPressed: () {
+                  context.read<SendCubit>().addressConfirmed();
+                },
+                child: IsactiveTrue(
+                  constraints,
+                  ovrContinue: 'Continue',
                 ),
-                const Spacer(),
-                Column(
-                  children: [
-                    SizedBox(
-                      height: 20,
-                      width: MediaQuery.of(context).size.width,
-                      child: const Text(
-                        'Enter wallet address to send to',
-                        textAlign: TextAlign.start,
-                      ),
-                    ),
-                    TextEntryFieldWidget(
-                      logic: TextFormFieldLogic(
-                        context,
-                        hintText: 'Paste Address',
-                        onChanged: context.read<SendCubit>().addressUpdated,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 50,
-                    ),
-                    SizedBox(
-                      height: 62,
-                      width: MediaQuery.of(context).size.width,
-                      child: Center(
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return WalletQRScan(constraints);
-                          },
+              );
+            },
+          );
+        }),
+      ),
+      body: AppScreenView(
+        body: SizedBox(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 50,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return BackButtonHeader(
+                      constraints,
+                      ovrTitle: 'Enter Wallet Address',
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              const Text('Enter the Wallet address to send to'),
+              const SizedBox(height: 100),
+              Container(
+                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 30,
+                        width: MediaQuery.of(context).size.width,
+                        child: const Text(
+                          'Wallet address to send to',
+                          textAlign: TextAlign.start,
                         ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 50,
-                    ),
-                    SizedBox(
-                      height: 50,
-                      child: LayoutBuilder(builder: (context, constraints) {
-                        return BlocBuilder<SendCubit, SendState>(
-                          builder: (context, state) {
-                            if (state.currentTransaction.toAddress.isEmpty) {
-                              return IsactiveFalse(
-                                constraints,
-                                ovrContinue: 'Proceed',
-                              );
-                            }
-                            return MaterialButton(
-                              onPressed: () {
-                                context.read<SendCubit>().addressConfirmed();
-                              },
-                              child: IsactiveTrue(
-                                constraints,
-                                ovrContinue: 'Proceed',
-                              ),
-                            );
-                          },
-                        );
-                      }),
-                    ),
-                  ],
-                ),
-                const Spacer(flex: 3),
-              ],
-            ),
+                      TextEntryFieldWidget(
+                        logic: TextFormFieldLogic(
+                          context,
+                          hintText: 'Type the wallet address',
+                          onChanged: context.read<SendCubit>().addressUpdated,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        height: 62,
+                        width: MediaQuery.of(context).size.width,
+                        child: Center(
+                          child: LayoutBuilder(
+                            builder: (BuildContext context,
+                                BoxConstraints constraints) {
+                              return WalletQRScan(constraints);
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                    ],
+                  )),
+            ],
           ),
         ),
       ),
