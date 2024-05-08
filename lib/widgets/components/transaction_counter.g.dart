@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/custom/transaction_counter_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -33,30 +27,10 @@ class _TransactionCounter extends State<TransactionCounter> {
             child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.01,
+            width: widget.constraints.maxWidth,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxHeight,
             child: Stack(children: [
-              Positioned(
-                left: 111.0,
-                width: 87.0,
-                top: 21.0,
-                height: 14.0,
-                child: Container(
-                    height: 14.0,
-                    width: 87.0,
-                    child: AutoSizeText(
-                      widget.ovrTransactions ?? 'Transactions',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.30000001192092896,
-                        color: Color(0xff42434b),
-                      ),
-                      textAlign: TextAlign.center,
-                    )),
-              ),
               Positioned(
                 left: 0,
                 width: 109.0,
@@ -67,10 +41,10 @@ class _TransactionCounter extends State<TransactionCounter> {
                     width: 109.0,
                     child: AutoSizeText(
                       widget.ovr2345 ?? '2,345 ',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 34.0,
-                        fontWeight: FontWeight.w300,
+                        fontSize: 32.0,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0.0,
                         color: Colors.white,
                       ),
