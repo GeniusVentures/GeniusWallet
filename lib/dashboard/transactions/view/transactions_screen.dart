@@ -5,6 +5,7 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/date_selector.g.dart';
 import 'package:genius_wallet/widgets/components/detailed_transaction.g.dart';
 import 'package:genius_wallet/widgets/components/export_history.g.dart';
@@ -18,6 +19,7 @@ class TransactionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -178,7 +180,6 @@ class TransactionsToggle extends StatelessWidget {
         ),
         const Spacer(),
         SizedBox(
-          width: 150,
           height: 20,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
