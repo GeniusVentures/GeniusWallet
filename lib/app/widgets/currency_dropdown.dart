@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class CurrencyDropdown extends StatelessWidget {
   final List<Currency> currencies;
@@ -17,28 +19,28 @@ class CurrencyDropdown extends StatelessWidget {
     final items = currencies.map((currency) {
       return DropdownMenuItem<Currency>(
         value: currency,
-        child: Text(
-          currency.name,
-          style: const TextStyle(
-            fontSize: 30,
-          ),
+        child: Container(
+          padding: const EdgeInsets.all(5),
+          child: Text(currency.name,
+              style: const TextStyle(
+                fontSize: 24,
+              )),
         ),
       );
     }).toList();
 
     return DropdownButton<Currency>(
+      dropdownColor: GeniusWalletColors.containerGray,
+      borderRadius: BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
       underline: const SizedBox(),
-      icon: Image.asset(
-        'assets/images/maskcurrencyselector.png',
-        package: 'genius_wallet',
-      ),
+      icon: const Icon(Icons.arrow_drop_down),
       items: items,
       onChanged: (currency) => onChanged(currency!),
       value: value,
       hint: const Text(
         'Select a Currency',
         style: TextStyle(
-          fontSize: 30,
+          fontSize: 24,
         ),
       ),
     );

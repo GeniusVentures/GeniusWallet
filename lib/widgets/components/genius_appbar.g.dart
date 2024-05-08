@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/custom/alerts_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/hamburger_menu_icon_custom.dart';
+import 'package:go_router/go_router.dart';
 
 class GeniusAppbar extends StatefulWidget {
   final BoxConstraints constraints;
@@ -74,17 +75,20 @@ class _GeniusAppbar extends State<GeniusAppbar> {
                 ),
                 Positioned(
                   left: 2,
-                  width: 38.0,
-                  top: 5.0,
-                  height: 38.0,
+                  top: 0,
                   child: widget.ovrGeniusAppbarLogo ??
-                      Image.asset(
-                        'assets/images/geniusappbarlogo.png',
-                        package: 'genius_wallet',
-                        height: 38.0,
-                        width: 38.0,
-                        fit: BoxFit.none,
-                      ),
+                      IconButton(
+                          onPressed: () {
+                            null;
+                            // TODO: fix this routing.. not working - context.go("/dashboard");
+                          },
+                          iconSize: 30,
+                          icon: Image.asset(
+                            'assets/images/geniusappbarlogo.png',
+                            package: 'genius_wallet',
+                            height: 30,
+                            width: 30,
+                          )),
                 ),
               ])),
         ]));
