@@ -1,10 +1,6 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/enter_amount_logic.dart';
 import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
@@ -21,41 +17,39 @@ class EnterAmountWidget extends StatelessWidget {
     return TextFormField(
       style: TextStyle(
         fontFamily: 'Roboto',
-        fontSize: 30.0,
-        fontWeight: FontWeight.w300,
-        letterSpacing: 0.45000001788139343,
+        fontSize: 20.0,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.3,
         color: Colors.white,
       ),
       decoration: InputDecoration(
         hintText: logic.hintText,
         hintStyle: TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 30.0,
-          fontWeight: FontWeight.w300,
-          letterSpacing: 0.45000001788139343,
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.3,
           color: Colors.white,
         ),
         prefixIcon: null,
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: Color(
-              0x00ffffff,
-            ),
+            color: GeniusWalletColors.containerGray,
             width: 1.0,
           ),
-          borderRadius: BorderRadius.circular(1),
+          borderRadius:
+              BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
         ),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: Color(
-              0x00ffffff,
-            ),
+            color: GeniusWalletColors.containerGray,
             width: 1.0,
           ),
-          borderRadius: BorderRadius.circular(1),
+          borderRadius:
+              BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
         ),
         filled: true,
-        fillColor: Color(0xff2a2b31),
+        fillColor: GeniusWalletColors.containerGray,
         suffixIcon: null,
       ),
       controller: logic.controller,

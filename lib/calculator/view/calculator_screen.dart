@@ -7,6 +7,7 @@ import 'package:genius_wallet/calculator/bloc/calculator_bloc.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_event.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 import 'package:genius_wallet/calculator/widgets/desktop_calculator.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/coin_stats_card.g.dart';
 import 'package:genius_wallet/widgets/components/conversion_result.g.dart';
@@ -21,6 +22,7 @@ class CalculatorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: BlocProvider(
         create: (context) => CalculatorBloc(
           geniusApi: context.read<GeniusApi>(),
@@ -84,86 +86,82 @@ class _CalculatorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenView(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 50,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return BackButtonHeader(
-                    constraints,
-                    ovrTitle: '',
-                  );
-                },
-              ),
-            ),
-            SizedBox(
-              height: 30,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return Header(
-                    constraints,
-                    ovrHeaderName: 'Calculator',
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 120,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return ModeFrom(constraints);
-                },
-              ),
-            ),
-            SizedBox(
-              height: 120,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return ModeTo(constraints);
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 120,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return EnterAmount(constraints);
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 115,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return BlocBuilder<CalculatorBloc, CalculatorState>(
-                    builder: (context, state) {
-                      if (state.getResultStatus == CalculatorStatus.loading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (state.conversionResult.isNotEmpty) {
-                        return ConversionResult(
-                          constraints,
-                          ovrAmountentered: state.amountToConvert,
-                          ovrResult:
-                              '${state.currencyFrom!.symbol} = ${state.conversionResult} ${state.currencyTo!.symbol}',
-                        );
-                      }
-                      return const SizedBox();
+      body: Column(
+        children: [
+          Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: Column(children: [
+                SizedBox(
+                  height: 30,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return Header(
+                        constraints,
+                        ovrHeaderName: 'Calculator',
+                      );
                     },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            const CoinsOverview(),
-          ],
-        ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                SizedBox(
+                  height: 120,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return ModeFrom(constraints);
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: 120,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return ModeTo(constraints);
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: 120,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return EnterAmount(constraints);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 115,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return BlocBuilder<CalculatorBloc, CalculatorState>(
+                        builder: (context, state) {
+                          if (state.getResultStatus ==
+                              CalculatorStatus.loading) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (state.conversionResult.isNotEmpty) {
+                            return ConversionResult(
+                              constraints,
+                              ovrAmountentered: state.amountToConvert,
+                              ovrResult:
+                                  '${state.currencyFrom!.symbol} = ${state.conversionResult} ${state.currencyTo!.symbol}',
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const CoinsOverview(),
+              ]))
+        ],
       ),
     );
   }
@@ -180,7 +178,7 @@ class CoinsOverview extends StatelessWidget {
           return Column(
             children: [
               SizedBox(
-                height: 200,
+                height: 225,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return CoinStatsCard(
@@ -198,7 +196,7 @@ class CoinsOverview extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                height: 200,
+                height: 225,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return CoinStatsCard(

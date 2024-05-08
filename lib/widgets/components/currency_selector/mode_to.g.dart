@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/widgets/components/custom/currency_dropdown_to_custom.dart';
@@ -34,7 +28,7 @@ class _ModeTo extends State<ModeTo> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.047,
+            width: widget.constraints.maxWidth,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
@@ -42,17 +36,15 @@ class _ModeTo extends State<ModeTo> {
                 left: 0,
                 width: 68.0,
                 top: 0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 68.0,
                     child: AutoSizeText(
-                      widget.ovrTitle ?? 'TO',
+                      widget.ovrTitle ?? 'To',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.25714290142059326,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.3,
                         color: Color(0xff3a3c43),
                       ),
                       textAlign: TextAlign.left,
@@ -60,8 +52,7 @@ class _ModeTo extends State<ModeTo> {
               ),
               Positioned(
                 left: 0,
-                width: 311.0,
-                top: 43.0,
+                top: 30,
                 height: 35.0,
                 child: CurrencyDropdownToCustom(
                     child: Container(
@@ -101,9 +92,9 @@ class _ModeTo extends State<ModeTo> {
                                           widget.ovrcurrency ?? 'Bitcoin (BTC)',
                                           style: TextStyle(
                                             fontFamily: 'Roboto',
-                                            fontSize: 30.0,
-                                            fontWeight: FontWeight.w300,
-                                            letterSpacing: 0.45000001788139343,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w500,
+                                            letterSpacing: 0.3,
                                             color: Colors.white,
                                           ),
                                           textAlign: TextAlign.left,
