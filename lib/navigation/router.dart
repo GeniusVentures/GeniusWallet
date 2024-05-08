@@ -268,6 +268,30 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
+    GoRoute(
+      path: '/news',
+      builder: (context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.news,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/events',
+      builder: (context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.events,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.settings,
+        );
+      },
+    ),
     ...LandingRoutes().landingRoutes,
   ],
 );
