@@ -1,10 +1,5 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/export_history_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -31,9 +26,9 @@ class _ExportHistory extends State<ExportHistory> {
             child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxHeight,
             child: Stack(children: [
               Positioned(
                 left: 0,
@@ -41,18 +36,18 @@ class _ExportHistory extends State<ExportHistory> {
                 top: 0,
                 bottom: 0,
                 child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
+                  height: widget.constraints.maxHeight,
+                  width: widget.constraints.maxWidth,
                   decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
+                    color: GeniusWalletColors.grayPrimary,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                 ),
               ),
               Positioned(
                 left: 9.0,
                 width: 102.0,
-                top: 10.0,
+                top: 12.0,
                 height: 15.0,
                 child: Container(
                     height: 15.0,

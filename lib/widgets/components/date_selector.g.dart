@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/custom/date_selector_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -37,9 +31,9 @@ class _DateSelector extends State<DateSelector> {
             child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxHeight,
             child: Stack(children: [
               Positioned(
                 left: 0,
@@ -53,16 +47,16 @@ class _DateSelector extends State<DateSelector> {
                       widget.ovrfrom ?? 'from',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 11.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4124999940395355,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.4,
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     )),
               ),
               Positioned(
-                left: 42.0,
+                left: 44.0,
                 width: 90.0,
                 top: 0,
                 height: 29.0,
@@ -79,13 +73,12 @@ class _DateSelector extends State<DateSelector> {
                           width: 90.0,
                           decoration: BoxDecoration(
                             color: Color(0xff2a2b31),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(2.0)),
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
                           ),
                         ),
                       ),
                       Positioned(
-                        left: 4.0,
+                        left: 8,
                         width: 82.0,
                         top: 8.0,
                         height: 14.0,
@@ -98,7 +91,7 @@ class _DateSelector extends State<DateSelector> {
                                 fontFamily: 'Roboto',
                                 fontSize: 12.0,
                                 fontWeight: FontWeight.w400,
-                                letterSpacing: 0.30000001192092896,
+                                letterSpacing: 0.3,
                                 color: Colors.white,
                               ),
                               textAlign: TextAlign.left,
@@ -118,9 +111,9 @@ class _DateSelector extends State<DateSelector> {
                       widget.ovrTo ?? 'To',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 11.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4124999940395355,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.4,
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
@@ -144,13 +137,12 @@ class _DateSelector extends State<DateSelector> {
                           width: 90.0,
                           decoration: BoxDecoration(
                             color: Color(0xff2a2b31),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(2.0)),
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
                           ),
                         ),
                       ),
                       Positioned(
-                        left: 5.0,
+                        left: 8.0,
                         width: 81.0,
                         top: 8.0,
                         height: 14.0,
@@ -163,7 +155,7 @@ class _DateSelector extends State<DateSelector> {
                                 fontFamily: 'Roboto',
                                 fontSize: 12.0,
                                 fontWeight: FontWeight.w400,
-                                letterSpacing: 0.30000001192092896,
+                                letterSpacing: 0.3,
                                 color: Colors.white,
                               ),
                               textAlign: TextAlign.left,
