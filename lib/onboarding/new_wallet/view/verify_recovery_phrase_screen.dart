@@ -81,17 +81,18 @@ class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: title,
-      subtitle: subtitle,
+      title: '',
+      subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
-          padding: DesktopBodyContainer.defaultPadding.copyWith(top: 40),
+          title: title,
+          subText: subtitle,
+          width: 650,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.min,
             children: [
               const _InputAndWords(),
-              const SizedBox(height: 100),
               SizedBox(
                 height: 50,
                 child: MaterialButton(

@@ -8,54 +8,32 @@ class RecoveryWords extends StatelessWidget {
   final List<String> recoveryWords;
   final bool inputEnabled;
 
-  static const _numCols = 3;
-
-  const RecoveryWords({
-    super.key,
-    required this.recoveryWords,
-    this.inputEnabled = false,
-  });
+  const RecoveryWords(
+      {super.key, required this.recoveryWords, this.inputEnabled = false});
 
   @override
   Widget build(BuildContext context) {
-    final numRows = (recoveryWords.length / _numCols).ceil();
-    return SizedBox(
-      height: GeniusBreakpoints.useDesktopLayout(context) ? numRows * 50 : null,
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: _numCols,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 2.5,
-        ),
-        itemCount: recoveryWords.length,
-        itemBuilder: (context, index) {
-          final currentWord = recoveryWords[index];
-          if (inputEnabled) {
-            return MaterialButton(
-              onPressed: () {
-                context
-                    .read<NewWalletBloc>()
-                    .add(RecoveryWordTapped(wordTapped: currentWord));
-              },
+    return Container(
+        alignment: Alignment.topCenter,
+        height: 150,
+        width: 450,
+        child: Wrap(alignment: WrapAlignment.center, runSpacing: 8, children: [
+          for (var word in recoveryWords)
+            MaterialButton(
+              onPressed: inputEnabled
+                  ? () {
+                      context
+                          .read<NewWalletBloc>()
+                          .add(RecoveryWordTapped(wordTapped: word));
+                    }
+                  : null,
               child: LayoutBuilder(builder: (context, constraints) {
                 return Recoveryword(
                   constraints,
-                  ovrWord: currentWord,
+                  ovrWord: word,
                 );
               }),
-            );
-          }
-          return LayoutBuilder(builder: (context, constraints) {
-            return Recoveryword(
-              constraints,
-              ovrWord: '${index + 1}. $currentWord',
-            );
-          });
-        },
-      ),
-    );
+            )
+        ]));
   }
 }

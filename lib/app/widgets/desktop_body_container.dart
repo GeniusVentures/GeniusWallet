@@ -1,30 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class DesktopBodyContainer extends StatelessWidget {
   final Widget child;
-  final EdgeInsetsGeometry padding;
   final double? width;
   final double? height;
-  const DesktopBodyContainer({
-    Key? key,
-    this.child = const SizedBox(),
-    this.padding = defaultPadding,
-    this.width = 600,
-    this.height,
-  }) : super(key: key);
+  final String? title;
+  final String? subText;
+  const DesktopBodyContainer(
+      {Key? key,
+      this.child = const SizedBox(),
+      this.width = 600,
+      this.height,
+      this.subText,
+      this.title})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: GeniusWalletColors.containerGray,
-      padding: padding,
-      width: width,
-      height: height,
-      child: child,
-    );
+    return SizedBox(
+        width: width,
+        height: height,
+        child: Column(children: [
+          Text(title ?? "",
+              style:
+                  const TextStyle(fontSize: 48, fontWeight: FontWeight.w500)),
+          const SizedBox(
+            height: 20,
+          ),
+          Text(subText ?? ""),
+          const SizedBox(
+            height: 20,
+          ),
+          child
+        ]));
   }
-
-  static const defaultPadding =
-      EdgeInsets.symmetric(horizontal: 100, vertical: 80);
 }

@@ -36,11 +36,13 @@ class _ImportWalletViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: title,
-      subtitle: subtitle,
-      body: const Center(
+      title: '',
+      subtitle: '',
+      body: Center(
         child: DesktopBodyContainer(
-          child: SupportedExistingWallets(),
+          title: title,
+          subText: subtitle,
+          child: const SupportedExistingWallets(),
         ),
       ),
     );

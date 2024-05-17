@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -27,58 +21,26 @@ class _Recoveryword extends State<Recoveryword> {
   Widget build(BuildContext context) {
     return Container(
         decoration: const BoxDecoration(),
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: widget.constraints.maxWidth * 1.0,
-            top: 0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: Container(
-                clipBehavior: Clip.hardEdge,
-                decoration: const BoxDecoration(),
-                child: Stack(children: [
-                  Positioned(
-                    left: 0,
-                    width: widget.constraints.maxWidth * 1.0,
-                    top: 0,
-                    height: widget.constraints.maxHeight * 1.0,
-                    child: Container(
-                      height: widget.constraints.maxHeight * 1.0,
-                      width: widget.constraints.maxWidth * 1.0,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(48)),
-                        border: Border.all(
-                          color: GeniusWalletColors.lightGreenPrimary,
-                          width: 1.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: widget.constraints.maxWidth * 0.118,
-                    width: widget.constraints.maxWidth * 0.784,
-                    top: widget.constraints.maxHeight * 0.286,
-                    height: widget.constraints.maxHeight * 0.464,
-                    child: SizedBox(
-                        height:
-                            widget.constraints.maxHeight * 0.4642866853983504,
-                        width: widget.constraints.maxWidth * 0.7843116554054054,
-                        child: AutoSizeText(
-                          widget.ovrWord ?? '1 limb',
-                          style: const TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )),
-                  ),
-                ])),
-          ),
-        ]));
+        child: Container(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(48)),
+              border: Border.all(
+                color: GeniusWalletColors.lightGreenSecondary,
+                width: 1.0,
+              ),
+            ),
+            child: AutoSizeText(
+              widget.ovrWord ?? '1 limb',
+              style: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 16.0,
+                fontWeight: FontWeight.w300,
+                letterSpacing: 0.0,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            )));
   }
 
   @override

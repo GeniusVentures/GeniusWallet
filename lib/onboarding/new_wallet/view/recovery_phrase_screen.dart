@@ -45,16 +45,18 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: GeniusWalletText.titleRecovery,
-      subtitle: GeniusWalletText.helpRecoveryPhrase,
+      title: '',
+      subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
+          title: GeniusWalletText.titleRecovery,
+          subText: GeniusWalletText.helpRecoveryPhrase,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.min,
             children: [
               const _WordsAndCopy(),
-              const SizedBox(height: 80),
+              const SizedBox(height: 20),
               Container(
                 margin: const EdgeInsets.only(bottom: 20),
                 height: 50,
@@ -135,8 +137,6 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         BlocBuilder<NewWalletBloc, NewWalletState>(
           builder: (context, state) {
