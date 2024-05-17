@@ -22,7 +22,7 @@ class AppScreenWithHeaderDesktop extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 190,
+              height: 120,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return RegistrationHeader(
@@ -42,7 +42,6 @@ class AppScreenWithHeaderDesktop extends StatelessWidget {
             hasScrollBody: false,
             child: Container(
               alignment: Alignment.bottomCenter,
-              padding: const EdgeInsets.only(bottom: 50),
               child: footer,
             ),
           ),

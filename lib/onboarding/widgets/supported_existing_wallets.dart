@@ -17,6 +17,7 @@ class SupportedExistingWallets extends StatelessWidget {
       {'name': 'Tron', 'image': 'assets/images/tron_icon.png'},
     ];
     return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.25,
       height: GeniusBreakpoints.useDesktopLayout(context)
           ? (70 * supportedWallets.length).toDouble()
           : null,
