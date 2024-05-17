@@ -139,12 +139,14 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: title,
-      subtitle: subtitle,
+      title: '',
+      subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
+          width: 530,
+          title: title,
+          subText: subtitle,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               _ImportSecurityBody(
                 walletNameController: walletNameController,
@@ -267,7 +269,7 @@ class _ImportSecurityBody extends StatelessWidget {
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
-          height: 400,
+          height: 330,
           child: TabBarView(
             children: [
               Padding(

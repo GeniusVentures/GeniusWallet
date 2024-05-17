@@ -27,6 +27,7 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
           value: widget.value ?? false,
           onChanged: widget.onChanged,
         ),
+        const SizedBox(width: 5),
         Flexible(
           flex: 10,
           child: Text(
