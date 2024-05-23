@@ -7,12 +7,15 @@ import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
+import 'package:genius_wallet/dashboard/home/widgets/wallet_distribution.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/markets_module.g.dart';
+import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
+import 'package:genius_wallet/widgets/desktop/asset_percentage_card.g.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -25,6 +28,9 @@ class HomeScreen extends StatelessWidget {
         builder: (context, state) {
           switch (state.subscribeToWalletStatus) {
             case AppStatus.loaded:
+              if (GeniusBreakpoints.useDesktopLayout(context)) {
+                return const OnSuccessfulDesktop();
+              }
               return const OnSuccessful();
             case AppStatus.error:
               return const Center(
@@ -36,6 +42,124 @@ class HomeScreen extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+}
+
+class OnSuccessfulDesktop extends StatelessWidget {
+  const OnSuccessfulDesktop({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.horizontalDesktopPadding,
+          vertical: GeniusWalletConsts.verticalDesktopPadding),
+      child: Wrap(
+          spacing: GeniusWalletConsts.itemSpacing,
+          runSpacing: GeniusWalletConsts.itemSpacing,
+          children: [
+            SizedBox(
+                width: 1170,
+                child: Wrap(
+                  spacing: GeniusWalletConsts.itemSpacing,
+                  runSpacing: GeniusWalletConsts.itemSpacing,
+                  children: [
+                    SizedBox(
+                      height: 350,
+                      width: 350,
+                      child: LayoutBuilder(builder: (context, constraints) {
+                        return BlocBuilder<AppBloc, AppState>(
+                          builder: (context, state) {
+                            return WalletsOverview(
+                              constraints,
+                              ovrTotalWalletBalance: WalletUtils.totalBalance(
+                                context.read<GeniusApi>(),
+                                state.wallets,
+                              ).toString(),
+                              ovrWalletCounter: state.wallets.length.toString(),
+                              ovrTransactionCounter:
+                                  WalletUtils.getTransactionNumber(
+                                          state.wallets)
+                                      .toString(),
+                            );
+                          },
+                        );
+                      }),
+                    ),
+                    SizedBox(
+                      width: 800,
+                      child: Wrap(
+                        runSpacing: GeniusWalletConsts.itemSpacing,
+                        children: [
+                          const HorizontalWalletsScrollview(),
+                          Wrap(
+                            direction: Axis.horizontal,
+                            spacing: GeniusWalletConsts.itemSpacing,
+                            runSpacing: GeniusWalletConsts.itemSpacing,
+                            children: [
+                              const SizedBox(
+                                  height: 230,
+                                  width: 350 - GeniusWalletConsts.itemSpacing,
+                                  child: WalletDistribution()),
+                              SizedBox(
+                                height: 230,
+                                width: 450,
+                                child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                  return AssetPercentageCard(constraints,
+                                      ovrsend: 'Send',
+                                      ovrSendto: 'Send To',
+                                      ovrAmount: 'Amount',
+                                      ovrWallet: 'Wallet',
+                                      sendAmount: '12',
+                                      toAddress: 'asdfg',
+                                      ovrBTC: '1',
+                                      ovrReceiveBitcoin: 'Receive Bitcoin');
+                                }),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Wrap(
+                        spacing: GeniusWalletConsts.itemSpacing,
+                        runSpacing: GeniusWalletConsts.itemSpacing,
+                        // TODO: Wire the bitcoin chart here, "wallet distibution" is a empty placeholder
+                        children: [
+                          const SizedBox(
+                            height: 500,
+                            width: 700,
+                            child: WalletDistribution(),
+                          ),
+                          SizedBox(
+                            height: 500,
+                            width: 450,
+                            child: LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                return MarketsModule(constraints);
+                              },
+                            ),
+                          )
+                        ]),
+                  ],
+                )),
+            // TODO: Wire the transactions here, "wallet distibution" is a empty placeholder
+            const SizedBox(
+              height: 865,
+              width: 350,
+              child: WalletDistribution(),
+              // child: LayoutBuilder(
+              //   builder: (BuildContext context, BoxConstraints constraints) {
+              //     return Transactions(constraints);
+              //   },
+              // )
+            )
+          ]),
     );
   }
 }
