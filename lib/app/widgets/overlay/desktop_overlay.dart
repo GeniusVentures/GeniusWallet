@@ -15,6 +15,7 @@ class DesktopOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: GeniusWalletColors.deepBlueTertiary,
         body: Row(
           children: [
             const _DesktopSideRail(),
@@ -36,16 +37,12 @@ class _DesktopSideRail extends StatelessWidget {
       destinations: destinations,
       onDestinationSelected:
           context.read<NavigationOverlayCubit>().navigationTapped,
-      minWidth: 90,
       selectedIndex:
           context.watch<NavigationOverlayCubit>().state.selectedScreen.index,
-      labelType: NavigationRailLabelType.none,
-      useIndicator: true,
-      indicatorColor: GeniusWalletColors.gray800,
-      backgroundColor: const Color(0xFF1D2024),
-      leading: Image.asset(
-        'assets/images/geniusappbarlogo.png',
-        package: 'genius_wallet',
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 50, bottom: 30),
+        child: Image.asset('assets/images/geniusappbarlogo.png',
+            package: 'genius_wallet'),
       ),
     );
   }
