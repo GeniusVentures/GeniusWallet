@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
@@ -31,32 +32,17 @@ class Desktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return DesktopContainer(
       title: 'Wallets',
-      child: Container(
-        child: BlocBuilder<AppBloc, AppState>(
-          builder: (context, state) {
-            if (state.wallets.isNotEmpty) {
-              return Expanded(
-                child: ListView.separated(
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 20),
-                  padding: const EdgeInsets.only(bottom: 20),
-                  itemCount: state.wallets.length + 1,
-                  itemBuilder: (context, index) {
-                    /// Last item should be an "Add Wallet"
-                    if (index == state.wallets.length) {
-                      return SizedBox(
-                        height: 350,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return AddWalletBlock(constraints);
-                          },
-                        ),
-                      );
-                    }
-                    final currentWallet = state.wallets[index];
-                    return SizedBox(
+      child: BlocBuilder<AppBloc, AppState>(
+        builder: (context, state) {
+          if (state.wallets.isNotEmpty) {
+            return Wrap(
+                spacing: GeniusWalletConsts.itemSpacing,
+                runSpacing: GeniusWalletConsts.itemSpacing,
+                children: [
+                  for (var wallet in state.wallets)
+                    SizedBox(
                       height: 350,
+                      width: 350,
                       child: LayoutBuilder(
                         builder:
                             (BuildContext context, BoxConstraints constraints) {
@@ -70,10 +56,9 @@ class Desktop extends StatelessWidget {
                           String transactionValue = '';
                           String transactionId =
                               'No transactions for this wallet';
-                          if (currentWallet.transactions.isNotEmpty) {
+                          if (wallet.transactions.isNotEmpty) {
                             // TODO: May need to actually compare dates to get latest
-                            final lastTransaction =
-                                currentWallet.transactions.last;
+                            final lastTransaction = wallet.transactions.last;
 
                             timestamp = lastTransaction.timeStamp;
                             transactionValue = lastTransaction.amount;
@@ -81,27 +66,33 @@ class Desktop extends StatelessWidget {
                           }
                           return WalletModule(
                             constraints,
-                            ovrCoinName: currentWallet.currencyName,
-                            ovrCoinSymbol: currentWallet.currencySymbol,
-                            ovrWalletBalance: currentWallet.balance.toString(),
+                            ovrCoinName: wallet.currencyName,
+                            ovrCoinSymbol: wallet.currencySymbol,
+                            ovrWalletBalance: wallet.balance.toString(),
                             ovrLastTransactionID: transactionId,
                             ovrLastTransactionValue: transactionValue,
                             ovrTimestamp: timestamp,
                             ovrTrendLine: trendLine,
                             ovrCoinImage: WalletUtils.currencySymbolToImage(
-                              currentWallet.currencySymbol,
+                              wallet.currencySymbol,
                             ),
                           );
                         },
                       ),
-                    );
-                  },
-                ),
-              );
-            }
-            return const Text('No Wallets');
-          },
-        ),
+                    ),
+                  SizedBox(
+                      height: 350,
+                      width: 350,
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          return AddWalletBlock(constraints);
+                        },
+                      )),
+                ]);
+          }
+          return const Text('No Wallets');
+        },
       ),
     );
   }

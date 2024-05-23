@@ -13,59 +13,63 @@ class DesktopContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: GeniusWalletColors.deepBlueTertiary,
-        body: SafeArea(
-            child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Wrap(
-                        spacing: 40,
+        body: SingleChildScrollView(
+            child: SafeArea(
+                child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(title ?? "Title",
-                              style: const TextStyle(
-                                  fontSize: 48, fontWeight: FontWeight.w500)),
-                          const SizedBox(
-                              width: 300,
-                              child: SearchBar(
-                                hintText: 'Search ...',
-                                trailing: [
-                                  Icon(
-                                    Icons.search,
-                                    color: GeniusWalletColors.gray500,
-                                  )
-                                ],
-                              )),
+                          Wrap(
+                            spacing: 40,
+                            children: [
+                              Text(title ?? "Title",
+                                  style: const TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.w500)),
+                              const SizedBox(
+                                  width: 300,
+                                  child: SearchBar(
+                                    hintText: 'Search ...',
+                                    trailing: [
+                                      Icon(
+                                        Icons.search,
+                                        color: GeniusWalletColors.gray500,
+                                      )
+                                    ],
+                                  )),
+                            ],
+                          ),
+                          const Wrap(
+                              spacing: GeniusWalletConsts.itemSpacing,
+                              runSpacing: GeniusWalletConsts.itemSpacing,
+                              children: [
+                                HeaderButton(
+                                  color: GeniusWalletColors.deepBlueTertiary,
+                                  text: GeniusWalletText.btnSupport,
+                                  textColor:
+                                      GeniusWalletColors.lightGreenPrimary,
+                                  icon: Icons.question_mark_outlined,
+                                  isAddBorder: true,
+                                ),
+                                HeaderButton(
+                                    color: GeniusWalletColors.lightGreenPrimary,
+                                    text: GeniusWalletText.btnAddWallet,
+                                    textColor:
+                                        GeniusWalletColors.deepBlueTertiary,
+                                    icon: Icons.add_circle_outlined),
+                                HeaderButton(
+                                    color: GeniusWalletColors.gray900,
+                                    text: 'Genius 1',
+                                    textColor: Colors.white,
+                                    icon: Icons.person),
+                              ]),
                         ],
                       ),
-                      const Wrap(
-                          spacing: GeniusWalletConsts.itemSpacing,
-                          runSpacing: GeniusWalletConsts.itemSpacing,
-                          children: [
-                            HeaderButton(
-                              color: GeniusWalletColors.deepBlueTertiary,
-                              text: GeniusWalletText.btnSupport,
-                              textColor: GeniusWalletColors.lightGreenPrimary,
-                              icon: Icons.question_mark_outlined,
-                              isAddBorder: true,
-                            ),
-                            HeaderButton(
-                                color: GeniusWalletColors.lightGreenPrimary,
-                                text: GeniusWalletText.btnAddWallet,
-                                textColor: GeniusWalletColors.deepBlueTertiary,
-                                icon: Icons.add_circle_outlined),
-                            HeaderButton(
-                                color: GeniusWalletColors.gray900,
-                                text: 'Genius 1',
-                                textColor: Colors.white,
-                                icon: Icons.person),
-                          ]),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  child
-                ]))));
+                      const SizedBox(height: 40),
+                      child
+                    ])))));
   }
 }
 
