@@ -11,14 +11,15 @@ endif()
 
 
 set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}/${ARCH_OUTPUT_DIR})
-
+message("Walletcore dir  ${THIRDPARTY_RELEASE_DIR}")
 set(WALLET_CORE_LIB_NANE TrustWalletCore)
 set(WALLET_CORE_LIB_NANE ${WALLET_CORE_LIB_NANE} PARENT_SCOPE)
 set(WALLET_RUST_LIB_NAME wallet_core_rs)
 set(WALLET_RUST_LIB_NAME ${WALLET_RUST_LIB_NAME} PARENT_SCOPE)
 set(WALLET_TREZOR_LIB_NAME TrezorCrypto)
 set(WALLET_TREZOR_LIB_NAME ${WALLET_TREZOR_LIB_NAME} PARENT_SCOPE)
-
+set(CMAKE_BUILD_TYPE "Debug")
+message("FLUTTER BUILD MODE ${FLUTTER_BUILD_MODE}")
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(PROTOBUF_LIB_NAME protobufd)
 else()
@@ -44,6 +45,11 @@ find_library(protobuf_lib HINTS ${THIRDPARTY_RELEASE_DIR}/grpc/lib NAMES ${PROTO
 add_library(${PROTOBUF_LIB_NAME} INTERFACE)
 target_link_libraries(${PROTOBUF_LIB_NAME} INTERFACE ${protobuf_lib})
 
+SET(SuperGenius_DIR "C:/gnus/sgnsnode/SuperGenius/build/Windows/Debug/SuperGenius/lib/cmake/SuperGenius")
+SET(SuperGenius_INCLUDE_DIR "C:/gnus/sgnsnode/SuperGenius/build/Windows/Debug/SuperGenius/include")
+find_package(SuperGenius CONFIG REQUIRED)
+include_directories(${SuperGenius_INCLUDE_DIR})
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library( 
         GeniusWallet
@@ -61,11 +67,12 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         find_library(LOG_LIB log)
         target_link_libraries( GeniusWallet ${LOG_LIB})
     endif()
-
+	message(WARNING "LINKING")
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet ${walletcore})
     target_link_libraries(GeniusWallet 
     ${wallet_core_rust}
     ${wallet_core_trezor}
     ${protobuf_lib}
+	sgns::processing_service
     )
 endif()
