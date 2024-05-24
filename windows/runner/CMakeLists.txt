@@ -16,9 +16,9 @@ set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
 
 if (NOT DEFINED THIRDPARTY_DIR)
 	message("CUR DIR ${CMAKE_CURRENT_LIST_DIR}")
-  if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../../thirdparty/README.md")
+  if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../../thirdpartytest/thirdparty/README.md")
     message("Setting default third party directory")
-    set(THIRDPARTY_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../thirdparty")
+    set(THIRDPARTY_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../thirdpartytest/thirdparty")
     ## get absolute path
     #cmake_path(SET THIRDPARTY_DIR NORMALIZE "${THIRDPARTY_DIR}") # Doesn't work in Cmake 3.18 (Android SDK's installed version here)
   else()
@@ -45,6 +45,11 @@ add_executable(${BINARY_NAME} WIN32
 set(FFI_LAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
 set(FFI_LIB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/../ffi")
 add_subdirectory(${FFI_LAYER_DIR} ${FFI_LIB_OUT_DIR})
+
+set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
+set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
+find_package(GTest CONFIG REQUIRED)
+include_directories(${GTest_INCLUDE_DIR})
 # --------------------------------------------------------
 # Set config of protobuf project
 set(Protobuf_DIR  "${THIRDPARTY_RELEASE_DIR}/grpc/cmake")
@@ -76,14 +81,14 @@ if ( Protobuf_FOUND )
 endif()
 
 
-set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/Windows" PATH "Path to OpenSSL install folder")
-set(OPENSSL_USE_STATIC_LIBS ON BOOL "OpenSSL use static libs")
-set(OPENSSL_MSVC_STATIC_RT ON BOOL "OpenSSL use static RT")
-set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" PATH "Path to OpenSSL install root folder")
-set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" PATH "Path to OpenSSL include folder")
-set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" PATH "Path to OpenSSL lib folder")
-set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} PATH "Path to OpenSSL crypto lib")
-set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} PATH "Path to OpenSSL ssl lib")
+set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/Windows")
+set(OPENSSL_USE_STATIC_LIBS ON)
+set(OPENSSL_MSVC_STATIC_RT ON)
+set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}")
+set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include")
+set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib")
+set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX})
 message("OpenSSL DIR: ${OPENSSL_DIR}")
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
@@ -329,6 +334,7 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
+
 TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_PUB(${BINARY_NAME} ${WALLET_CORE_LIB_NANE})
 target_link_libraries(${BINARY_NAME} PUBLIC 
 ${WALLET_RUST_LIB_NAME} 
@@ -336,6 +342,7 @@ ws2_32 userenv ntdll
 ${WALLET_TREZOR_LIB_NAME}
 ${PROTOBUF_LIB_NAME}
 sgns::processing_service
+sgns::crdt_globaldb
 )
 
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
