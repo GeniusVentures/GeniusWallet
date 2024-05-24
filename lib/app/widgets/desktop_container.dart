@@ -16,7 +16,8 @@ class DesktopContainer extends StatelessWidget {
         body: SingleChildScrollView(
             child: SafeArea(
                 child: Padding(
-                    padding: const EdgeInsets.all(40),
+                    padding: const EdgeInsets.only(
+                        left: 80, top: 40, right: 40, bottom: 40),
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

@@ -5,11 +5,11 @@ import 'package:genius_wallet/calculator/bloc/calculator_bloc.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_event.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 import 'package:genius_wallet/calculator/widgets/calculator_numpad.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/currency_selector/mode_from.g.dart';
 import 'package:genius_wallet/widgets/components/currency_selector/mode_to.g.dart';
 import 'package:genius_wallet/widgets/components/enter_amount.g.dart';
 import 'package:genius_wallet/widgets/desktop/desktop_conversion_result.g.dart';
-import 'package:genius_wallet/widgets/desktop/transaction_arrows.g.dart';
 
 class DesktopCalculator extends StatelessWidget {
   const DesktopCalculator({Key? key}) : super(key: key);
@@ -18,29 +18,29 @@ class DesktopCalculator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             SizedBox(
               height: 120,
-              width: 250,
+              width: 180,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return ModeFrom(constraints);
                 },
               ),
             ),
-            SizedBox(
-              width: 80,
-              height: 25,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return TransactionArrows(constraints);
-                },
-              ),
-            ),
+            const SizedBox(
+                width: 130,
+                height: 120,
+                child: Icon(
+                  Icons.compare_arrows,
+                  color: GeniusWalletColors.lightGreenPrimary,
+                  size: 32,
+                )),
             SizedBox(
               height: 120,
-              width: 250,
+              width: 230,
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
                   return ModeTo(constraints);
@@ -50,14 +50,13 @@ class DesktopCalculator extends StatelessWidget {
           ],
         ),
         SizedBox(
-          height: 120,
+          height: 100,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               return EnterAmount(constraints);
             },
           ),
         ),
-        const SizedBox(height: 20),
         SizedBox(
           child: CalculatorNumpad(
             onNumPressed: (value) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/enter_amount_logic.dart';
 import 'package:genius_wallet/widgets/components/enter_amount_widget.g.dart';
 
@@ -44,7 +45,7 @@ class _EnterAmount extends State<EnterAmount> {
                     fontSize: 16.0,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3,
-                    color: Color(0xff3a3c43),
+                    color: GeniusWalletColors.gray500,
                   ),
                   textAlign: TextAlign.left,
                 )),

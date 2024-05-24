@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/currency_dropdown_to_custom.dart';
 
 class ModeTo extends StatefulWidget {
@@ -34,71 +35,48 @@ class _ModeTo extends State<ModeTo> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 68.0,
                 top: 0,
                 child: Container(
-                    width: 68.0,
                     child: AutoSizeText(
-                      widget.ovrTitle ?? 'To',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.3,
-                        color: Color(0xff3a3c43),
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
+                  widget.ovrTitle ?? 'To',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                    color: GeniusWalletColors.gray500,
+                  ),
+                  textAlign: TextAlign.left,
+                )),
               ),
               Positioned(
                 left: 0,
                 top: 30,
-                height: 35.0,
                 child: CurrencyDropdownToCustom(
                     child: Container(
                         decoration: BoxDecoration(),
                         child: Stack(children: [
                           Positioned(
-                            left: 181.0,
-                            width: 7.0,
-                            top: 11.0,
-                            height: 14.0,
-                            child: widget.ovrMaskCurrencySelector ??
-                                Image.asset(
-                                  'assets/images/maskcurrencyselector.png',
-                                  package: 'genius_wallet',
-                                  height: 14.0,
-                                  width: 7.0,
-                                  fit: BoxFit.none,
-                                ),
-                          ),
-                          Positioned(
                             left: 0,
-                            width: 188.0,
                             top: 0,
-                            height: 35.0,
                             child: Container(
                                 decoration: BoxDecoration(),
                                 child: Stack(children: [
                                   Positioned(
                                     left: 0,
-                                    width: 178.0,
                                     top: 0,
-                                    height: 35.0,
                                     child: Container(
-                                        height: 35.0,
-                                        width: 178.0,
                                         child: AutoSizeText(
-                                          widget.ovrcurrency ?? 'Bitcoin (BTC)',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w500,
-                                            letterSpacing: 0.3,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        )),
+                                      widget.ovrcurrency ?? 'Bitcoin (BTC)',
+                                      style: TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: 0.3,
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    )),
                                   ),
                                 ])),
                           ),
