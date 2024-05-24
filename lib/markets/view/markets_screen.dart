@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/markets/bloc/markets_cubit.dart';
 import 'package:genius_wallet/markets/bloc/markets_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/market_graph.g.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,21 +17,69 @@ class MarketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
-      body: AppScreenView(
-        body: BlocProvider(
-          create: (context) =>
-              MarketsCubit(api: context.read<GeniusApi>())..loadMarkets(),
-          child: const _CalculatorView(),
-        ),
+    if (GeniusBreakpoints.useDesktopLayout(context)) {
+      return BlocProvider(
+        create: (context) =>
+            MarketsCubit(api: context.read<GeniusApi>())..loadMarkets(),
+        child: const Desktop(),
+      );
+    }
+    return AppScreenView(
+      body: BlocProvider(
+        create: (context) =>
+            MarketsCubit(api: context.read<GeniusApi>())..loadMarkets(),
+        child: const Mobile(),
       ),
     );
   }
 }
 
-class _CalculatorView extends StatelessWidget {
-  const _CalculatorView({Key? key}) : super(key: key);
+class Desktop extends StatelessWidget {
+  const Desktop({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DesktopContainer(
+        title: 'Markets',
+        child:
+            BlocBuilder<MarketsCubit, MarketsState>(builder: (context, state) {
+          if (state.marketLoadingStatus == MarketsStatus.loading) {
+            return const LoadingScreen();
+          }
+          return Wrap(
+              spacing: GeniusWalletConsts.itemSpacing,
+              runSpacing: GeniusWalletConsts.itemSpacing,
+              children: [
+                for (var market in state.markets)
+                  SizedBox(
+                    height: 350,
+                    width: 350,
+                    child: LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        //TODO: Get volume, get negative or positive
+                        return MarketGraph(
+                          constraints,
+                          ovrPriceCurrency: market.priceCurrency,
+                          ovrPricePerCoin: market.price,
+                          ovrCoinToFiat:
+                              '${market.symbol}/${market.priceCurrency}',
+                          ovrVolume: null,
+                        );
+                      },
+                    ),
+                  ),
+              ]);
+        }));
+  }
+}
+
+class Mobile extends StatelessWidget {
+  const Mobile({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
