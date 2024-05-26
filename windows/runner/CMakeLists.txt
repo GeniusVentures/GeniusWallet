@@ -42,6 +42,18 @@ add_executable(${BINARY_NAME} WIN32
 )
 
 
+# --------------------------------------------------------
+# Set config of protobuf project
+if (NOT DEFINED Protobuf_DIR)
+    set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/cmake")
+endif()
+if (NOT DEFINED grpc_INCLUDE_DIR)
+    set(grpc_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
+endif()
+if (NOT DEFINED Protobuf_INCLUDE_DIR)
+    set(Protobuf_INCLUDE_DIR "${grpc_INCLUDE_DIR}/google/protobuf")
+endif()
+
 set(FFI_LAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
 set(FFI_LIB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/../ffi")
 add_subdirectory(${FFI_LAYER_DIR} ${FFI_LIB_OUT_DIR})
@@ -50,13 +62,9 @@ set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
 set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
 find_package(GTest CONFIG REQUIRED)
 include_directories(${GTest_INCLUDE_DIR})
-# --------------------------------------------------------
-# Set config of protobuf project
-set(Protobuf_DIR  "${THIRDPARTY_RELEASE_DIR}/grpc/cmake")
-set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
-if (NOT DEFINED grpc_INCLUDE_DIR)
-    set(grpc_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
-endif()
+
+
+
 
 find_package(Protobuf CONFIG REQUIRED )
 
