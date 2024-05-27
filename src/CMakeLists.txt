@@ -90,15 +90,18 @@ if ( Protobuf_FOUND )
 endif()
 
 
-set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}")
-set(OPENSSL_USE_STATIC_LIBS ON)
-set(OPENSSL_MSVC_STATIC_RT ON )
-set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" )
-set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" )
-set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" )
-set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} )
-set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX})
-message("OpenSSL DIR: ${OPENSSL_DIR}")
+set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install folder")
+set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
+set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "OpenSSL use static RT")
+set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" CACHE PATH "Path to OpenSSL install root folder")
+set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" CACHE PATH "Path to OpenSSL include folder")
+set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
+set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
+set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
+set(OPENSSL_SHARED_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_SHARED_LIBRARY_SUFFIX}.1.1 CACHE PATH "Path to OpenSSL crypto lib")
+set(OPENSSL_SHARED_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_SHARED_LIBRARY_SUFFIX}.1.1 CACHE PATH "Path to OpenSSL ssl lib")
+set(OPENSSL_SHARED_CRYPTO_LIBRARY_LINK ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
+set(OPENSSL_SHARED_SSL_LIBRARY_LINK ${OPENSSL_LIBRARIES}/libssl${CMAKE_SHARED_LIBRARY_SUFFIX}.1.1 CACHE PATH "Path to OpenSSL ssl lib")
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
@@ -318,6 +321,13 @@ set(AsyncIOManager_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/include
 set(AsyncIOManager_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib")
 set(AsyncIOManager_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib/cmake/AsyncIOManager")
 find_package(AsyncIOManager CONFIG REQUIRED)
+
+# --------------------------------------------------------
+# Set config of wallet-core - DOESN'T HAVE CONFIG YET
+#set(wallet-core_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core/include")
+#set(wallet-core_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core/lib")
+#set(wallet-core_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core/lib/cmake/wallet-core")
+#find_package(wallet-core CONFIG REQUIRED)
 
 
 #set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
