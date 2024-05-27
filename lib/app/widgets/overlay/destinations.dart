@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_destination.dart';
 
 class GeniusTabDestinations {
@@ -26,53 +25,28 @@ class GeniusTabDestinations {
       label: Text('Trade'),
       selectedIcon: Icon(Icons.candlestick_chart),
     ),
-    GeniusDestination(
-      destination: '/markets',
-      icon: Image.asset(
-        'assets/images/navstatsbuttoncustom.png',
-        package: 'genius_wallet',
-      ),
-      label: const Text('Markets'),
-      selectedIcon: Image.asset(
-        'assets/images/navstatsbuttonactive.png',
-        package: 'genius_wallet',
-      ),
-    ),
-    GeniusDestination(
+    const GeniusDestination(
+        destination: '/markets',
+        label: Text('Markets'),
+        icon: Icon(Icons.stacked_line_chart),
+        selectedIcon: Icon(Icons.stacked_line_chart)),
+    const GeniusDestination(
       destination: '/events',
-      icon: Image.asset(
-        'assets/images/navcalendarbuttoncustom.png',
-        package: 'genius_wallet',
-      ),
-      label: const Text('Events'),
-      selectedIcon: Image.asset(
-        'assets/images/navcalendarbuttonactive.png',
-        package: 'genius_wallet',
-      ),
+      label: Text('Events'),
+      icon: Icon(Icons.calendar_month),
+      selectedIcon: Icon(Icons.calendar_month),
     ),
-    GeniusDestination(
+    const GeniusDestination(
       destination: '/calculator',
-      icon: Image.asset(
-        'assets/images/navcalculatorbuttoncustom.png',
-        package: 'genius_wallet',
-      ),
-      label: const Text('Calculator'),
-      selectedIcon: Image.asset(
-        'assets/images/navcalculatorbuttonactive.png',
-        package: 'genius_wallet',
-      ),
+      label: Text('Calculator'),
+      icon: Icon(Icons.calculate),
+      selectedIcon: Icon(Icons.calculate),
     ),
-    GeniusDestination(
+    const GeniusDestination(
       destination: '/news',
-      icon: Image.asset(
-        'assets/images/navnewsbuttoncustom.png',
-        package: 'genius_wallet',
-      ),
-      label: const Text('News'),
-      selectedIcon: Image.asset(
-        'assets/images/navnewsbuttonactive.png',
-        package: 'genius_wallet',
-      ),
+      label: Text('News'),
+      icon: Icon(Icons.newspaper),
+      selectedIcon: Icon(Icons.newspaper),
     ),
   ];
 }
