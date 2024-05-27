@@ -18,6 +18,7 @@ class GeniusWalletText {
   static const String btnCopy = 'Copy';
   static const String btnPaste = 'Paste';
   static const String btnAddWallet = 'Add Wallet';
+  static const String btnSupport = 'Support';
 
   // Misc.
   static const String walletCardHeader = 'Total balance:';

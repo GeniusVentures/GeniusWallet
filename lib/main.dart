@@ -41,8 +41,18 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
-            textSelectionTheme:
-                const TextSelectionThemeData(cursorColor: Colors.white),
+            searchBarTheme: const SearchBarThemeData(
+                padding: MaterialStatePropertyAll(
+                    EdgeInsets.only(left: 15, right: 15)),
+                textStyle: MaterialStatePropertyAll(TextStyle(
+                    fontWeight: FontWeight.normal, color: Colors.white)),
+                shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4)))),
+                backgroundColor:
+                    MaterialStatePropertyAll(GeniusWalletColors.gray800)),
+            textSelectionTheme: const TextSelectionThemeData(
+                cursorColor: Colors.white,
+                selectionColor: GeniusWalletColors.gray500),
             dropdownMenuTheme: DropdownMenuThemeData(
                 textStyle: const TextStyle(color: Colors.white),
                 menuStyle: MenuStyle(
