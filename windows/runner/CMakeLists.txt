@@ -65,7 +65,7 @@ include_directories(${GTest_INCLUDE_DIR})
 
 
 
-
+message("PROTOBUF DIR ${Protobuf_DIR}")
 find_package(Protobuf CONFIG REQUIRED )
 
 if (NOT DEFINED PROTOC_EXECUTABLE)
@@ -89,15 +89,14 @@ if ( Protobuf_FOUND )
 endif()
 
 
-set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/Windows")
-set(OPENSSL_USE_STATIC_LIBS ON)
-set(OPENSSL_MSVC_STATIC_RT ON)
-set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}")
-set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include")
-set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib")
-set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX})
-message("OpenSSL DIR: ${OPENSSL_DIR}")
+set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install folder")
+set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
+set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "OpenSSL use static RT")
+set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" CACHE PATH "Path to OpenSSL install root folder")
+set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" CACHE PATH "Path to OpenSSL include folder")
+set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
+set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
+set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
@@ -325,6 +324,12 @@ SET(SuperGenius_INCLUDE_DIR "C:/gnus/sgnsnode/SuperGenius/build/Windows/Debug/Su
 find_package(SuperGenius CONFIG REQUIRED)
 include_directories(${SuperGenius_INCLUDE_DIR})
 
+#set(GENIUSSDK_SRC_DIR "C:/gnus/GeniusSDK")
+#set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
+#set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
+#find_package(GeniusSDK CONFIG REQUIRED)
+#include_directories(${GeniusSDK_INCLUDE_DIR})
+
 # Apply the standard set of build settings. This can be removed for applications
 # that need different build settings.
 apply_standard_settings(${BINARY_NAME})
@@ -344,15 +349,17 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
 
 TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_PUB(${BINARY_NAME} ${WALLET_CORE_LIB_NANE})
+get_target_property(GeniusSDK_LIB_PATH sgns::GeniusSDK IMPORTED_LOCATION_DEBUG)
+TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_PUB(${BINARY_NAME} ${GeniusSDK_LIB_PATH})
 target_link_libraries(${BINARY_NAME} PUBLIC 
 ${WALLET_RUST_LIB_NAME} 
 ws2_32 userenv ntdll
 ${WALLET_TREZOR_LIB_NAME}
 ${PROTOBUF_LIB_NAME}
-sgns::processing_service
-sgns::crdt_globaldb
+sgns::sgns_account
+sgns::GeniusSDK
 )
-
+#target_link_options(${BINARY_NAME} PRIVATE /WHOLEARCHIVE:sgns::GeniusSDK)
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
