@@ -20,7 +20,7 @@ class CurrencyDropdown extends StatelessWidget {
       return DropdownMenuItem<Currency>(
         value: currency,
         child: Container(
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.only(left: 15, right: 15),
           child: Text(currency.name,
               style: const TextStyle(
                 fontSize: 24,
@@ -37,12 +37,14 @@ class CurrencyDropdown extends StatelessWidget {
       items: items,
       onChanged: (currency) => onChanged(currency!),
       value: value,
-      hint: const Text(
-        'Select a Currency',
-        style: TextStyle(
-          fontSize: 24,
-        ),
-      ),
+      hint: const Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: Text(
+            'Select a Currency',
+            style: TextStyle(
+              fontSize: 20,
+            ),
+          )),
     );
   }
 }
