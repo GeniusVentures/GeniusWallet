@@ -947,6 +947,24 @@ class NativeLibrary {
   set HRP_NEUTRON(ffi.Pointer<ffi.Char> value) => _HRP_NEUTRON.value = value;
 **/
 
+  void GeniusSDKInit( ) {
+    _GeniusSDKInit();
+  }
+
+  late final _GeniusSDKInitPtr = _lookup<
+      ffi.NativeFunction<ffi.Void Function( )>>('GeniusSDKInit');
+  late final _GeniusSDKInit =
+      _GeniusSDKInitPtr.asFunction<void Function()>();
+
+  void GeniusSDKProcess(ffi.Pointer<ffi.Char> path, int amount ) {
+  _GeniusSDKProcess(path, amount);    
+  }
+
+  late final _GeniusSDKProcessPtr = _lookup<
+      ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char> path, ffi.Uint64 amount)>>('GeniusSDKProcess');
+  late final _GeniusSDKProcess =
+      _GeniusSDKProcessPtr.asFunction<void Function(ffi.Pointer<ffi.Char> path, int amount)>();
+
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {
