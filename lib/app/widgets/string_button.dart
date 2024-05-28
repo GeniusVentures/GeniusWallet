@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 /// Button that holds a string as value and appends value to provided controller
 class StringButton extends StatelessWidget {
@@ -22,6 +23,9 @@ class StringButton extends StatelessWidget {
       onPressed: () {
         onPressed(value);
       },
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+              Radius.circular(GeniusWalletConsts.borderRadiusCard))),
       height: 60,
       child: Text(
         value,

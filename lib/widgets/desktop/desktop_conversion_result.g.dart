@@ -6,6 +6,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class DesktopConversionResult extends StatefulWidget {
   final BoxConstraints constraints;
@@ -39,15 +41,15 @@ class _DesktopConversionResult extends State<DesktopConversionResult> {
             child: Stack(children: [
               Positioned(
                 left: 0,
-                width: 568.5,
+                width: 540,
                 top: 0,
                 height: 68.0,
                 child: Container(
                   height: 68.0,
-                  width: 568.5,
                   decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
+                    color: GeniusWalletColors.gray900,
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(GeniusWalletConsts.borderRadiusCard)),
                   ),
                 ),
               ),

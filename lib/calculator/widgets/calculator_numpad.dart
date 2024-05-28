@@ -97,14 +97,14 @@ class CalculatorNumpad extends StatelessWidget {
           Row(
             children: [
               StringButton(
-                value: '0',
+                value: '.',
                 onPressed: onNumPressed,
                 color: GeniusWalletColors.gray800,
                 minWidth: _buttonWidth,
               ),
               const Spacer(),
               StringButton(
-                value: '.',
+                value: '0',
                 onPressed: onNumPressed,
                 color: GeniusWalletColors.gray800,
                 minWidth: _buttonWidth,
@@ -116,7 +116,7 @@ class CalculatorNumpad extends StatelessWidget {
                 onPressed: (value) => onClearPressed(),
                 value: 'C',
                 minWidth: _buttonWidth,
-                color: GeniusWalletColors.darkGreen,
+                color: GeniusWalletColors.gray500,
               ),
             ],
           ),

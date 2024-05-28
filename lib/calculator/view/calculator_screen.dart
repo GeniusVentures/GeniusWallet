@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_bloc.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_event.dart';
 import 'package:genius_wallet/calculator/bloc/calculator_state.dart';
 import 'package:genius_wallet/calculator/widgets/desktop_calculator.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/coin_stats_card.g.dart';
 import 'package:genius_wallet/widgets/components/conversion_result.g.dart';
 import 'package:genius_wallet/widgets/components/currency_selector/mode_from.g.dart';
@@ -58,19 +59,23 @@ class _CalculatorViewDesktop extends StatelessWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return AppScreenView(
-      body: Row(
+    return const DesktopContainer(
+      title: 'Calculator',
+      child: Wrap(
+        runAlignment: WrapAlignment.spaceBetween,
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.start,
+        spacing: GeniusWalletConsts.itemSpacing,
+        runSpacing: 80,
         children: [
-          Container(
-            margin: const EdgeInsets.only(left: 40, top: 40),
-            width: 580,
-            child: const DesktopCalculator(),
+          SizedBox(
+            width: 540,
+            child: DesktopCalculator(),
           ),
-          const Spacer(),
-          Container(
-            margin: const EdgeInsets.only(right: 40),
-            width: 580,
-            child: const CoinsOverview(),
+          SizedBox(width: 200),
+          SizedBox(
+            width: 660,
+            child: CoinsOverview(),
           ),
         ],
       ),
@@ -175,10 +180,13 @@ class CoinsOverview extends StatelessWidget {
     return BlocBuilder<CalculatorBloc, CalculatorState>(
       builder: (context, state) {
         if (state.getResultStatus == CalculatorStatus.loaded) {
-          return Column(
+          return Wrap(
+            spacing: GeniusWalletConsts.itemSpacing,
+            runSpacing: GeniusWalletConsts.itemSpacing,
             children: [
               SizedBox(
-                height: 225,
+                height: 250,
+                width: 320,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return CoinStatsCard(
@@ -194,9 +202,9 @@ class CoinsOverview extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
               SizedBox(
-                height: 225,
+                height: 250,
+                width: 320,
                 child: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return CoinStatsCard(
