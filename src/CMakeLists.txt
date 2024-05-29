@@ -98,10 +98,6 @@ set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" CACHE PATH "Path to OpenSSL inc
 set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
 set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
 set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
-set(OPENSSL_SHARED_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_SHARED_LIBRARY_SUFFIX}.1.1 CACHE PATH "Path to OpenSSL crypto lib")
-set(OPENSSL_SHARED_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_SHARED_LIBRARY_SUFFIX}.1.1 CACHE PATH "Path to OpenSSL ssl lib")
-set(OPENSSL_SHARED_CRYPTO_LIBRARY_LINK ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
-set(OPENSSL_SHARED_SSL_LIBRARY_LINK ${OPENSSL_LIBRARIES}/libssl${CMAKE_SHARED_LIBRARY_SUFFIX}.1.1 CACHE PATH "Path to OpenSSL ssl lib")
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
@@ -360,12 +356,13 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_link_libraries( GeniusWallet ${LOG_LIB})
     endif()
 	message(WARNING "LINKING")
-    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet ${walletcore})
-    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet sgns::GeniusSDK)
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet 
+    ${walletcore}
+    sgns::GeniusSDK
+    )
     target_link_libraries(GeniusWallet 
     ${wallet_core_rust}
     ${wallet_core_trezor}
     ${protobuf_lib}
-	sgns::sgns_account
     )
 endif()
