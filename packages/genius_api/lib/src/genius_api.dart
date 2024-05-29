@@ -27,7 +27,10 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt();
+        ffiBridgePrebuilt = FFIBridgePrebuilt()
+        {
+          ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
+        }
 
   Future<List<String>> getRecoveryPhrase() async {
     ///TODO: Implement recovery phrase generation here with API or   gen.
