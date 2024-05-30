@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
+import 'package:go_router/go_router.dart';
 
 class DesktopContainer extends StatelessWidget {
   final Widget child;
@@ -61,6 +62,7 @@ class DesktopContainer extends StatelessWidget {
                                         color: GeniusWalletColors
                                             .lightGreenPrimary,
                                         text: GeniusWalletText.btnAddWallet,
+                                        route: '/landing_screen',
                                         textColor:
                                             GeniusWalletColors.deepBlueTertiary,
                                         icon: Icons.add_circle_outlined),
@@ -85,6 +87,7 @@ class HeaderButton extends StatelessWidget {
   final Color? color;
   final IconData? icon;
   final bool? isAddBorder;
+  final String? route;
   const HeaderButton(
       {Key? key,
       this.child = const SizedBox(),
@@ -92,13 +95,14 @@ class HeaderButton extends StatelessWidget {
       this.textColor,
       this.color,
       this.isAddBorder = false,
+      this.route,
       this.icon})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-        onPressed: null,
+        onPressed: () => context.push(route ?? ''),
         style: ButtonStyle(
             padding: const MaterialStatePropertyAll(EdgeInsets.all(20)),
             backgroundColor: MaterialStateProperty.resolveWith((states) {
