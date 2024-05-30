@@ -156,7 +156,7 @@ class _Transactions extends State<Transactions> {
             ),
             Positioned(
               right: 20.0,
-              width: 150.0,
+              width: 180.0,
               top: 28.0,
               height: 13.0,
               child: TransactionFilterCustom(
