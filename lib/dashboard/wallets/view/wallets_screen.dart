@@ -10,6 +10,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
+import 'package:go_router/go_router.dart';
 
 class WalletsScreen extends StatelessWidget {
   const WalletsScreen({Key? key}) : super(key: key);
@@ -120,7 +121,7 @@ class Mobile extends StatelessWidget {
                   ),
                   const Spacer(),
                   TextButton.icon(
-                      onPressed: null,
+                      onPressed: () => context.push('/landing_screen'),
                       style: ButtonStyle(
                           backgroundColor:
                               MaterialStateProperty.resolveWith((states) {
