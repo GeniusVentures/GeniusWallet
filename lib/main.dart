@@ -41,6 +41,18 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Flutter Demo',
           theme: ThemeData(
+            textButtonTheme: const TextButtonThemeData(
+                style: ButtonStyle(
+                    padding: MaterialStatePropertyAll(EdgeInsets.only(
+                        left: 12, right: 12, top: 6, bottom: 6)),
+                    shape: MaterialStatePropertyAll(ContinuousRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(
+                            GeniusWalletConsts.borderRadiusButton)))),
+                    backgroundColor:
+                        MaterialStatePropertyAll(GeniusWalletColors.gray900),
+                    foregroundColor: MaterialStatePropertyAll(Colors.white),
+                    iconSize: MaterialStatePropertyAll(14),
+                    iconColor: MaterialStatePropertyAll(Colors.white))),
             searchBarTheme: const SearchBarThemeData(
                 padding: MaterialStatePropertyAll(
                     EdgeInsets.only(left: 15, right: 15)),
