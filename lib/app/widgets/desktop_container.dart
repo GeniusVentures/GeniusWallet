@@ -7,7 +7,12 @@ import 'package:go_router/go_router.dart';
 class DesktopContainer extends StatelessWidget {
   final Widget child;
   final String? title;
-  const DesktopContainer({Key? key, this.child = const SizedBox(), this.title})
+  final bool? isIncludeBackButton;
+  const DesktopContainer(
+      {Key? key,
+      this.child = const SizedBox(),
+      this.title,
+      this.isIncludeBackButton = false})
       : super(key: key);
 
   @override
@@ -28,10 +33,25 @@ class DesktopContainer extends StatelessWidget {
                               Wrap(
                                 spacing: 40,
                                 children: [
-                                  Text(title ?? "Title",
-                                      style: const TextStyle(
-                                          fontSize: 48,
-                                          fontWeight: FontWeight.w500)),
+                                  Wrap(
+                                    direction: Axis.vertical,
+                                    spacing: 16,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.start,
+                                    children: [
+                                      Text(title ?? "Title",
+                                          style: const TextStyle(
+                                              fontSize: 48,
+                                              fontWeight: FontWeight.w500)),
+                                      if (isIncludeBackButton!)
+                                        TextButton.icon(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            icon: const Icon(
+                                                Icons.arrow_back_ios),
+                                            label: const Text('Back'))
+                                    ],
+                                  ),
                                   const SizedBox(
                                       width: 300,
                                       child: SearchBar(

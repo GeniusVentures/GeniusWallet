@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
@@ -39,62 +40,76 @@ class Desktop extends StatelessWidget {
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
       return DesktopContainer(
+          isIncludeBackButton: true,
           title: state.selectedWallet?.walletName,
-          child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-              builder: (context, state) {
-            final selectedWallet = state.selectedWallet!;
-            return SizedBox(
-                width: 500,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      height: 40,
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return WalletToggle(
-                            constraints,
-                            ovrCoinName: selectedWallet.currencyName,
-                            ovrWalletName: selectedWallet.walletName,
-                            ovrShape: WalletUtils.currencySymbolToImage(
-                              selectedWallet.currencySymbol,
-                            ),
-                          );
-                        },
+          child: Wrap(spacing: 20, runSpacing: 20, children: [
+            BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                builder: (context, state) {
+              final selectedWallet = state.selectedWallet!;
+              return SizedBox(
+                  width: 500,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        height: 40,
+                        child: LayoutBuilder(
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            return WalletToggle(
+                              constraints,
+                              ovrCoinName: selectedWallet.currencyName,
+                              ovrWalletName: selectedWallet.walletName,
+                              ovrShape: WalletUtils.currencySymbolToImage(
+                                selectedWallet.currencySymbol,
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      height: 240,
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return WalletInformation(
-                            constraints,
-                            ovrYourbitcoinaddress:
-                                'Your ${selectedWallet.currencyName} Wallet Address',
-                            ovrQuantity: selectedWallet.balance.toString(),
-                            ovrCurrency: selectedWallet.currencySymbol,
-                            ovrAddressField: selectedWallet.address,
-                          );
-                        },
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        height: 240,
+                        child: LayoutBuilder(
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            return WalletInformation(
+                              constraints,
+                              ovrYourbitcoinaddress:
+                                  'Your ${selectedWallet.currencyName} Wallet Address',
+                              ovrQuantity: selectedWallet.balance.toString(),
+                              ovrCurrency: selectedWallet.currencySymbol,
+                              ovrAddressField: selectedWallet.address,
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      height: 370,
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return Transactions(constraints);
-                        },
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        height: 370,
+                        child: LayoutBuilder(
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            return Transactions(constraints);
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ));
-          }));
+                    ],
+                  ));
+            }),
+            Container(
+                width: 1000,
+                height: 705,
+                decoration: const BoxDecoration(
+                  color: GeniusWalletColors.deepBlueCardColor,
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(GeniusWalletConsts.borderRadiusCard)),
+                ),
+                child: const Center(
+                  child: Text('Coming Soon'),
+                ))
+          ]));
     });
   }
 }
