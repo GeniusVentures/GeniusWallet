@@ -965,6 +965,25 @@ class NativeLibrary {
   late final _GeniusSDKProcess =
       _GeniusSDKProcessPtr.asFunction<void Function(ffi.Pointer<ffi.Char> path, int amount)>();
 
+    void GeniusSDKMint( int amount  ) {
+    _GeniusSDKMint(amount);
+  }
+
+  late final _GeniusSDKMintPtr = _lookup<
+      ffi.NativeFunction<ffi.Void Function( ffi.Uint64 amount )>>('GeniusSDKMint');
+  late final _GeniusSDKMint =
+      _GeniusSDKMintPtr.asFunction<void Function( int amount)>();
+
+
+  //  void GeniusSDKAddPeer( ffi.Pointer<ffi.Char> peer ) {
+  //  _GeniusSDKAddPeer(peer);
+  //}
+
+  //late final _GeniusSDKAddPeerPtr = _lookup<
+  //    ffi.NativeFunction<ffi.Void Function( ffi.Pointer<ffi.Char> peer)>>('GeniusSDKAddPeer');
+  //late final _GeniusSDKAddPeer =
+  //    _GeniusSDKAddPeerPtr.asFunction<void Function( ffi.Pointer<ffi.Char> peer)>();
+  
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {

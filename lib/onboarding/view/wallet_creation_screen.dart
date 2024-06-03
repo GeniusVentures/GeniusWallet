@@ -52,20 +52,45 @@ class LandingScreen extends StatelessWidget {
 
                         /***  Below is the test code to test native c/c++ code ***/
 
-                        // Container(
+                        //SizedBox(
+                        //  width: 450,
+                        //  height: 50,
+                        // child: Container(
+                        //    decoration: BoxDecoration(
+                        //    borderRadius: BorderRadius.circular(68),
+                        //    border: Border.all(
+                        //        width: 1.0, color: GeniusWalletColors.lightGreenPrimary)),
                         //   margin: const EdgeInsets.only(top: 10.0),
-                        //   child: ElevatedButton(r
+                        //   child: ElevatedButton(
+                        //      style: ButtonStyle(
+                        //        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent), // Set the background color to transparent
+                        //        foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Set the text color to white
+                        //        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0)), // Add some padding
+                        //        textStyle: MaterialStateProperty.all<TextStyle>(
+                        //          TextStyle(
+                        //            fontSize: 8.0, // Set the font size
+                        //          ),
+                        //        ),
+                        //        shadowColor: MaterialStateProperty.all<Color>(Colors.transparent), // Remove the shadow
+                        //      ),
                         //     onPressed: () {
                         //       context.read<AppBloc>().add(FFITestEvent());
                         //     },
-                        //     child: const Text("Test C++ native code!"),
+                        //     child: 
+                        //      const Text("Test Process MNN",
+                        //      style: TextStyle(
+                        //        color: Colors.white, // Set the text color to white
+                        //        fontSize: 13.0, // Set the font size
+                        //      ), )
                         //   ),
                         // ),
+                        //),
+
 
                         BlocBuilder<AppBloc, AppState>(
                           builder: (context, state) {
                             if (state.ffiString != null) {
-                              return Text('Value: ${state.ffiString}');
+                              return Text(' ${state.ffiString}');
                             }
                             return const SizedBox();
                           },
