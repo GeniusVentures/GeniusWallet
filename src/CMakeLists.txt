@@ -280,14 +280,6 @@ set(jsonrpc_lean_INCLUDE_DIR "${_THIRDPARTY_DIR}/jsonrpc-lean/include")
 include_directories(${jsonrpc_lean_INCLUDE_DIR})
 
 # --------------------------------------------------------
-# Set config of binaryen
-#set(binaryen_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/binaryen/include")
-#set(binaryen_LIBRARIES "${THIRDPARTY_RELEASE_DIR}/binaryen/lib")
-#set(binaryen_DIR "${THIRDPARTY_RELEASE_DIR}/binaryen/lib/cmake/binaryen")
-#find_package(binaryen CONFIG REQUIRED)
-#include_directories(${binaryen_INCLUDE_DIR} ${binaryen_INCLUDE_DIR}/binaryen)
-
-# --------------------------------------------------------
 # Set config of secp256k1
 set(libsecp256k1_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/libsecp256k1/include")
 set(libsecp256k1_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/libsecp256k1/lib")
@@ -326,8 +318,7 @@ find_package(AsyncIOManager CONFIG REQUIRED)
 #find_package(wallet-core CONFIG REQUIRED)
 
 
-#set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
-set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/.build)
+set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
 set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
 find_package(SuperGenius CONFIG REQUIRED)
 include_directories(${SuperGenius_INCLUDE_DIR})
