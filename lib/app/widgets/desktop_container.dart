@@ -45,8 +45,15 @@ class DesktopContainer extends StatelessWidget {
                                               fontWeight: FontWeight.w500)),
                                       if (isIncludeBackButton!)
                                         TextButton.icon(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
+                                            onPressed: () => {
+                                                  if (context.canPop())
+                                                    {context.pop()}
+                                                  else
+                                                    {
+                                                      context
+                                                          .replace('/dashboard')
+                                                    }
+                                                },
                                             icon: const Icon(
                                                 Icons.arrow_back_ios),
                                             label: const Text('Back'))
