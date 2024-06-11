@@ -5,7 +5,10 @@ import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_back_button_header.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
+import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:go_router/go_router.dart';
@@ -91,42 +94,53 @@ class _NotEnoughBalanceViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenWithBackButtonHeader(
-      title: 'Send Bitcoin',
-      body: Center(
-        child: DesktopBodyContainer(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset('assets/images/not_enough_balance.svg'),
-              const SizedBox(height: 30),
-              Text(
-                  'You don\'t have any ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}'),
-              const SizedBox(height: 60),
-              SizedBox(
-                height: 50,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return MaterialButton(
-                      onPressed: () {
-                        context.push(
-                          '/buy',
-                          extra: context.read<WalletDetailsCubit>(),
-                        );
-                      },
-                      child: IsactiveTrue(
-                        constraints,
-                        ovrContinue: 'Buy',
-                      ),
-                    );
-                  },
-                ),
+    return DesktopContainer(
+      isIncludeBackButton: true,
+      title: context
+          .read<WalletDetailsCubit>()
+          .state
+          .selectedWallet!
+          .currencySymbol,
+      child: Center(
+          child: Container(
+        margin: const EdgeInsets.only(top: 40),
+        padding: const EdgeInsets.all(40),
+        decoration: const BoxDecoration(
+            color: GeniusWalletColors.deepBlueCardColor,
+            borderRadius: BorderRadius.all(
+                Radius.circular(GeniusWalletConsts.borderRadiusCard))),
+        width: 500,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Image.asset('assets/images/megacreator.png', height: 200),
+            const SizedBox(height: 30),
+            Text(
+                'You don\'t have any ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}'),
+            const SizedBox(height: 60),
+            SizedBox(
+              height: 50,
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return MaterialButton(
+                    onPressed: () {
+                      context.push(
+                        '/buy',
+                        extra: context.read<WalletDetailsCubit>(),
+                      );
+                    },
+                    child: IsactiveTrue(
+                      constraints,
+                      ovrContinue: 'Buy',
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+      )),
     );
   }
 }
