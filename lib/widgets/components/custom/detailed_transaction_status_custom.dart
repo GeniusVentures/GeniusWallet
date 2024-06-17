@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
-import 'package:genius_wallet/widgets/components/transaction_status/cancelled.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_status/completed.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_status/pending.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/widgets/components/transaction_status/status.dart';
 
 class DetailedTransactionStatusCustom extends StatefulWidget {
   final Widget? child;
@@ -27,11 +26,22 @@ class _DetailedTransactionStatusCustomState
         builder: (context, state) {
           switch (state.selectedTransaction.transactionStatus) {
             case TransactionStatus.pending:
-              return Pending(constraints);
+              return Status(constraints,
+                  status: 'Pending',
+                  textColor: GeniusWalletColors.deepBlueTertiary,
+                  color: Colors.white,
+                  icon: const Icon(Icons.refresh,
+                      color: GeniusWalletColors.deepBlueTertiary));
             case TransactionStatus.cancelled:
-              return Cancelled(constraints);
+              return Status(constraints,
+                  status: 'Cancelled',
+                  color: GeniusWalletColors.cancelled,
+                  icon: const Icon(Icons.block_flipped));
             case TransactionStatus.completed:
-              return Completed(constraints);
+              return Status(constraints,
+                  status: 'Completed',
+                  color: GeniusWalletColors.completed,
+                  icon: const Icon(Icons.check));
           }
         },
       );

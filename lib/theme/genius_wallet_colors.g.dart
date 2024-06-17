@@ -25,6 +25,10 @@ class GeniusWalletColors {
 
   static const Color red = Color(0xfff40000);
 
+  static const Color cancelled = Color(0xff4A121C);
+
+  static const Color completed = Color(0xff085D51);
+
   static const Color foundationError = Color(0xff920000);
 
   static const Color white = Color(0xffffffff);

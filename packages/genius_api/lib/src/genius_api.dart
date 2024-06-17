@@ -11,7 +11,6 @@ import 'package:secure_storage/secure_storage.dart';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 
-
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
@@ -203,8 +202,12 @@ class GeniusApi {
   }
 
   String? getHRPStrideValue() {
-    return ffiBridgePrebuilt.wallet_lib.stringForHRP(TWHRP.TWHRPStride).cast<Utf8>().toDartString();
+    return ffiBridgePrebuilt.wallet_lib
+        .stringForHRP(TWHRP.TWHRPStride)
+        .cast<Utf8>()
+        .toDartString();
   }
+
   ffi.Pointer<ffi.Void> createWalletWithSize(int size) {
     return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(size);
   }

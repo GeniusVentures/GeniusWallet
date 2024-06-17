@@ -44,7 +44,7 @@ class _DateSelector extends State<DateSelector> {
                     height: 13.0,
                     width: 38.0,
                     child: AutoSizeText(
-                      widget.ovrfrom ?? 'from',
+                      widget.ovrfrom ?? 'From',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,
