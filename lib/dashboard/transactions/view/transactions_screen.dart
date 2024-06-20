@@ -8,14 +8,15 @@ import 'package:genius_wallet/app/utils/wallet_utils.dart';
 
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/view/transaction_information_screen.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/date_selector.g.dart';
 import 'package:genius_wallet/widgets/components/detailed_transaction.g.dart';
 
 import 'package:genius_wallet/widgets/components/export_history.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_counter.g.dart';
 import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
-import 'package:go_router/go_router.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({Key? key}) : super(key: key);
@@ -142,13 +143,29 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    BuildContext mainContext = context;
     return LayoutBuilder(builder: (context, constraints) {
       return MaterialButton(
         onPressed: () {
-          context.push(
-            '/transactions/${currentTransaction.hash}',
-            extra: context.read<TransactionDetailsCubit>(),
-          );
+          showDialog<String>(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                  backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(
+                          GeniusWalletConsts.borderRadiusCard))),
+                  title: const Text('Transaction Information',
+                      textAlign: TextAlign.center),
+                  content: SizedBox(
+                      width: 400,
+                      height: 600,
+                      // Make the cubit available for this adjacent component
+                      child: BlocProvider<TransactionDetailsCubit>.value(
+                        value: BlocProvider.of<TransactionDetailsCubit>(
+                            mainContext),
+                        child: TransactionInformationScreen(
+                            transaction: currentTransaction),
+                      ))));
         },
         child: DetailedTransaction(
           constraints,
