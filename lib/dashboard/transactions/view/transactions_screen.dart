@@ -154,7 +154,7 @@ class TransactionCard extends StatelessWidget {
                   shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(
                           GeniusWalletConsts.borderRadiusCard))),
-                  title: const Text('Transaction History',
+                  title: const Text('Transaction Information',
                       textAlign: TextAlign.center),
                   content: SizedBox(
                       width: 400,
