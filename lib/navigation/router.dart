@@ -155,19 +155,6 @@ final geniusWalletRouter = GoRouter(
           selectedScreen: NavigationScreen.transactions,
         );
       }),
-      routes: [
-        GoRoute(
-          path: ':transaction_id',
-          builder: (context, state) {
-            final cubit = (state.extra as TransactionDetailsCubit);
-            final transaction = cubit.state.selectedTransaction;
-            return BlocProvider.value(
-              value: cubit,
-              child: TransactionInformationScreen(transaction: transaction),
-            );
-          },
-        ),
-      ],
     ),
     GoRoute(
       path: '/trade',
