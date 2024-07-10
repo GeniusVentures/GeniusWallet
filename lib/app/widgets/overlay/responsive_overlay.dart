@@ -6,7 +6,9 @@ import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/overlay/desktop_overlay.dart';
 import 'package:genius_wallet/app/widgets/overlay/mobile_overlay.dart';
 import 'package:genius_wallet/calculator/view/calculator_screen.dart';
+import 'package:genius_wallet/dashboard/events/view/events_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
+import 'package:genius_wallet/dashboard/news/view/news_screen.dart';
 import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallets_screen.dart';
@@ -37,13 +39,13 @@ class ResponsiveOverlay extends StatelessWidget {
             child = const TransactionsScreen();
             break;
           case NavigationScreen.news:
-            child = const Center(child: Text('Coming soon'));
+            child = const NewsScreen();
             break;
           case NavigationScreen.markets:
             child = const MarketsScreen();
             break;
           case NavigationScreen.events:
-            child = const Center(child: Text('Coming soon'));
+            child = const EventsScreen();
             break;
           case NavigationScreen.calculator:
             child = const CalculatorScreen();

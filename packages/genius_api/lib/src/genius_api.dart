@@ -4,6 +4,8 @@ import 'dart:ffi' as ffi;
 
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/models/currency.dart';
+import 'package:genius_api/models/events.dart';
+import 'package:genius_api/models/news.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
@@ -229,6 +231,44 @@ class GeniusApi {
         priceCurrency: 'USD',
         priceDate: DateTime.now().toIso8601String(),
       ),
+    ];
+  }
+
+  Future<List<Currency>> get() async {
+    await Future.delayed(Duration(seconds: 2));
+    return [
+      Currency(
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '17000',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+      Currency(
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '1300',
+        priceCurrency: 'USD',
+        priceDate: DateTime.now().toIso8601String(),
+      ),
+    ];
+  }
+
+  Future<List<News>> getNews() async {
+    await Future.delayed(Duration(seconds: 2));
+    return [
+      News(headline: 'headline1', body: 'body1', date: '01/01/01'),
+      News(headline: 'headline2', body: 'body2', date: '01/02/01'),
+      News(headline: 'headline3', body: 'body3', date: '01/03/01')
+    ];
+  }
+
+  Future<List<Events>> getEvents() async {
+    await Future.delayed(Duration(seconds: 2));
+    return [
+      Events(headline: 'headline1', body: 'body1', date: '01/01/01'),
+      Events(headline: 'headline2', body: 'body2', date: '01/02/01'),
+      Events(headline: 'headline3', body: 'body3', date: '01/03/01')
     ];
   }
 }
