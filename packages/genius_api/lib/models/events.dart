@@ -1,10 +1,15 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-@freezed
-class Events {
-  final String headline = 'headline placeholder';
-  final String body = 'body placeholdeer';
-  final String date = '1/01/2001';
+part 'events.freezed.dart';
+part 'events.g.dart';
 
-  Events({headline, body, date});
+@freezed
+class Events with _$Events {
+  const factory Events(
+      {String? location,
+      String? body,
+      String? weekDay,
+      String? date}) = _Events;
+
+  factory Events.fromJson(Map<String, Object?> json) => _$EventsFromJson(json);
 }

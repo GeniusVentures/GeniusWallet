@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/events.dart';
+import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/dashboard/events/view/bloc/events_cubit.dart';
+import 'package:genius_wallet/dashboard/events/view/bloc/events_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/widgets/components/date_selector.g.dart';
-import 'package:genius_wallet/widgets/components/transaction_filter.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class EventsScreen extends StatelessWidget {
   const EventsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (GeniusBreakpoints.useDesktopLayout(context)) {
+    if (!GeniusBreakpoints.isNativeApp(context)) {
       return BlocProvider(
         create: (context) =>
             EventsCubit(api: context.read<GeniusApi>())..loadEvents(),
@@ -37,23 +39,29 @@ class Desktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DesktopContainer(
-      title: 'Events',
-      child: Column(
-        children: [
-          const SizedBox(height: 30),
-          const SizedBox(height: 50),
-          SizedBox(
-            height: 20,
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                return TransactionFilter(constraints);
-              },
-            ),
-          ),
-          const SizedBox(height: 50),
-        ],
-      ),
-    );
+        title: 'Events',
+        child: BlocBuilder<EventsCubit, EventsState>(builder: (context, state) {
+          if (state.eventsLoadingStatus == EventsStatus.loading) {
+            return const LoadingScreen();
+          }
+          double screenWidth = MediaQuery.of(context).size.width;
+          int axisCount =
+              screenWidth < 750 || GeniusBreakpoints.isNativeApp(context)
+                  ? 1
+                  : screenWidth < 1000
+                      ? 2
+                      : screenWidth < 1400
+                          ? 3
+                          : 4;
+          return GridView.count(
+              shrinkWrap: true,
+              crossAxisCount: axisCount,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+              children: [
+                for (var event in state.events) EventsCard(event: event)
+              ]);
+        }));
   }
 }
 
@@ -62,28 +70,49 @@ class Mobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
-      body: SafeArea(
+    return BlocBuilder<EventsCubit, EventsState>(builder: (context, state) {
+      if (state.eventsLoadingStatus == EventsStatus.loading) {
+        return const LoadingScreen();
+      }
+      return Wrap(
+          runSpacing: GeniusWalletConsts.itemSpacing,
+          alignment: WrapAlignment.center,
+          children: [for (var event in state.events) EventsCard(event: event)]);
+    });
+  }
+}
+
+class EventsCard extends StatelessWidget {
+  final Events event;
+  const EventsCard({Key? key, required this.event}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+        color: GeniusWalletColors.deepBlueCardColor,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              const SizedBox(height: 30),
-              SizedBox(
-                height: 30,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return DateSelector(constraints);
-                  },
-                ),
+            padding:
+                const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 24),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text(event.date ?? "", style: const TextStyle(fontSize: 20)),
+                Text(event.weekDay ?? "")
+              ]),
+              const SizedBox(height: 4),
+              const Divider(),
+              const SizedBox(height: 4),
+              ListTile(
+                horizontalTitleGap: 1,
+                contentPadding: const EdgeInsets.only(left: 0),
+                leading: const Icon(Icons.pin_drop),
+                title: Text(event.location ?? ''),
               ),
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
-      ),
-    );
+              const SizedBox(height: 16),
+              Text(
+                event.body ?? "",
+                style: const TextStyle(fontSize: 20),
+              )
+            ])));
   }
 }

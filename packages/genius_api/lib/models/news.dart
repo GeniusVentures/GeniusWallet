@@ -1,6 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-@freezed
 class News {
   final String headline = 'headline placeholder';
   final String body = 'body placeholdeer';

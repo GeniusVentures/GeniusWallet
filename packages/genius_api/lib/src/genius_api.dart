@@ -266,9 +266,31 @@ class GeniusApi {
   Future<List<Events>> getEvents() async {
     await Future.delayed(Duration(seconds: 2));
     return [
-      Events(headline: 'headline1', body: 'body1', date: '01/01/01'),
-      Events(headline: 'headline2', body: 'body2', date: '01/02/01'),
-      Events(headline: 'headline3', body: 'body3', date: '01/03/01')
+      Events(
+          body: 'Blockchain in Energy Conference',
+          date: 'October 5',
+          location: 'Rome',
+          weekDay: "Monday"),
+      Events(
+          body: 'Blockchain in Energy Conference 2',
+          date: 'October 8',
+          location: 'Rome',
+          weekDay: "Thursday"),
+      Events(
+          body: 'Blockchain in Energy Conference 3',
+          date: 'October 9',
+          location: 'Rome',
+          weekDay: "Friday"),
+      Events(
+          body: 'Blockchain in Energy Conference 4',
+          date: 'October 22',
+          location: 'Rome',
+          weekDay: "Monday"),
+      Events(
+          body: 'Blockchain in Energy Conference 5',
+          date: 'October 23',
+          location: 'Rome',
+          weekDay: "Tuesday"),
     ];
   }
 }
