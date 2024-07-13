@@ -22,14 +22,15 @@ class NavigationOverlayState {
   }
 }
 
+// This order determines what screen to select on when clicking on the navigation rail, this order must match the order in `destinations`
 enum NavigationScreen {
   dashboard,
   wallets,
   transactions,
   trade,
   markets,
-  events,
   calculator,
   news,
+  events,
   settings
 }

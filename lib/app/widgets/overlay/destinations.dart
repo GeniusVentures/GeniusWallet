@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_destination.dart';
 
+// This order must match whats in `navigation_overlay_state/NavigationScreen` enum
 class GeniusTabDestinations {
   static final destinations = [
     const GeniusDestination(
