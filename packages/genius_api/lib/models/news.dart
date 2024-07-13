@@ -1,9 +1,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-class News {
-  final String headline = 'headline placeholder';
-  final String body = 'body placeholdeer';
-  final String date = '1/01/2001';
+part 'news.freezed.dart';
+part 'news.g.dart';
 
-  News({headline, body, date});
+@freezed
+class News with _$News {
+  const factory News({String? headline, String? body, String? date}) = _News;
+
+  factory News.fromJson(Map<String, Object?> json) => _$NewsFromJson(json);
 }

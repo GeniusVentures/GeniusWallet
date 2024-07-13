@@ -77,7 +77,7 @@ class Mobile extends StatelessWidget {
                         child: LayoutBuilder(
                           builder: (BuildContext context,
                               BoxConstraints constraints) {
-                            return Text(news.body);
+                            return Text(news.body ?? '');
                           },
                         ),
                       ),
@@ -94,6 +94,6 @@ class NewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(child: Text(news.date));
+    return SizedBox(child: Text(news.date ?? ''));
   }
 }

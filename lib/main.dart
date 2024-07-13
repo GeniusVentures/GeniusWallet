@@ -89,7 +89,7 @@ class MyApp extends StatelessWidget {
                 backgroundColor: GeniusWalletColors.deepBlueCardColor,
                 useIndicator: true,
                 indicatorColor: GeniusWalletColors.blue500,
-                minWidth: 90,
+                minWidth: 70,
                 labelType: NavigationRailLabelType.none,
                 selectedIconTheme: IconThemeData(color: Colors.white),
                 unselectedIconTheme:
