@@ -38,6 +38,7 @@ class DesktopContainer extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 spacing: 40,
                                 children: [
                                   Wrap(
@@ -66,9 +67,11 @@ class DesktopContainer extends StatelessWidget {
                                             label: const Text('Back'))
                                     ],
                                   ),
-                                  const SizedBox(
-                                      width: 300,
-                                      child: SearchBar(
+                                  SizedBox(
+                                      height: 50,
+                                      width: MediaQuery.of(context).size.width *
+                                          .3,
+                                      child: const SearchBar(
                                         hintText: 'Search ...',
                                         trailing: [
                                           Icon(
