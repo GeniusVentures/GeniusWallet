@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
+import 'package:genius_wallet/app/widgets/responsive_grid.dart';
 import 'package:genius_wallet/dashboard/events/view/bloc/events_cubit.dart';
 import 'package:genius_wallet/dashboard/events/view/bloc/events_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -44,23 +45,10 @@ class Desktop extends StatelessWidget {
           if (state.eventsLoadingStatus == EventsStatus.loading) {
             return const LoadingScreen();
           }
-          double screenWidth = MediaQuery.of(context).size.width;
-          int axisCount =
-              screenWidth < 750 || GeniusBreakpoints.isNativeApp(context)
-                  ? 1
-                  : screenWidth < 1000
-                      ? 2
-                      : screenWidth < 1400
-                          ? 3
-                          : 4;
-          return GridView.count(
-              shrinkWrap: true,
-              crossAxisCount: axisCount,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-              children: [
-                for (var event in state.events) EventsCard(event: event)
-              ]);
+
+          return ResponsiveGrid(children: [
+            for (var event in state.events) EventsCard(event: event)
+          ]);
         }));
   }
 }

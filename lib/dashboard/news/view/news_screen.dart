@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
+import 'package:genius_wallet/app/widgets/responsive_grid.dart';
 import 'package:genius_wallet/dashboard/news/view/bloc/news_cubit.dart';
 import 'package:genius_wallet/dashboard/news/view/bloc/news_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -66,22 +67,19 @@ class Mobile extends StatelessWidget {
               if (state.newsLoadingStatus == NewsStatus.loading) {
                 return const LoadingScreen();
               }
-              return Wrap(
-                  spacing: GeniusWalletConsts.itemSpacing,
-                  runSpacing: GeniusWalletConsts.itemSpacing,
-                  children: [
-                    for (var news in state.news)
-                      SizedBox(
-                        height: 350,
-                        width: 350,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return Text(news.body ?? '');
-                          },
-                        ),
-                      ),
-                  ]);
+              return ResponsiveGrid(children: [
+                for (var news in state.news)
+                  SizedBox(
+                    height: 350,
+                    width: 350,
+                    child: LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return Text(news.body ?? '');
+                      },
+                    ),
+                  ),
+              ]);
             })),
       ),
     );
