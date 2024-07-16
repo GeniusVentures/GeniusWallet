@@ -46,6 +46,12 @@ class Desktop extends StatelessWidget {
           if (state.newsLoadingStatus == NewsStatus.loading) {
             return const LoadingScreen();
           }
+          double screenWidth = MediaQuery.of(context).size.width;
+          if (screenWidth < 1400) {
+            return ResponsiveGrid(children: [
+              for (var news in state.news) NewsCard(news: news, height: 400)
+            ]);
+          }
           return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
                 flex: 3,
