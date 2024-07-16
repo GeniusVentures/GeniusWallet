@@ -40,14 +40,14 @@ class GeniusTabDestinations {
     const GeniusDestination(
       destination: '/news',
       label: Text('News'),
-      icon: Icon(Icons.calendar_month),
-      selectedIcon: Icon(Icons.calendar_month),
+      icon: Icon(Icons.library_books),
+      selectedIcon: Icon(Icons.library_books),
     ),
     const GeniusDestination(
       destination: '/events',
       label: Text('Events'),
-      icon: Icon(Icons.library_books),
-      selectedIcon: Icon(Icons.library_books),
+      icon: Icon(Icons.calendar_month),
+      selectedIcon: Icon(Icons.calendar_month),
     ),
   ];
 }
