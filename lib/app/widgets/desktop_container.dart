@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
@@ -17,13 +18,19 @@ class DesktopContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double horizontalPadding = GeniusBreakpoints.useDesktopLayout(context)
+        ? GeniusWalletConsts.horizontalPadding
+        : 20;
     return Scaffold(
         backgroundColor: GeniusWalletColors.deepBlueTertiary,
         body: SingleChildScrollView(
             child: SafeArea(
                 child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 80, top: 40, right: 40, bottom: 40),
+                    padding: EdgeInsets.only(
+                        left: horizontalPadding,
+                        top: 40,
+                        right: horizontalPadding,
+                        bottom: 40),
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -31,6 +38,7 @@ class DesktopContainer extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 spacing: 40,
                                 children: [
                                   Wrap(
@@ -59,9 +67,11 @@ class DesktopContainer extends StatelessWidget {
                                             label: const Text('Back'))
                                     ],
                                   ),
-                                  const SizedBox(
-                                      width: 300,
-                                      child: SearchBar(
+                                  SizedBox(
+                                      height: 50,
+                                      width: MediaQuery.of(context).size.width *
+                                          .3,
+                                      child: const SearchBar(
                                         hintText: 'Search ...',
                                         trailing: [
                                           Icon(

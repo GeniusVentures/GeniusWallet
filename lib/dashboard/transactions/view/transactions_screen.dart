@@ -23,7 +23,7 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (GeniusBreakpoints.useDesktopLayout(context)) {
+    if (!GeniusBreakpoints.isNativeApp(context)) {
       return const Desktop();
     }
     return const Mobile();
@@ -70,8 +70,9 @@ class Mobile extends StatelessWidget {
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               const TransactionsToggle(),
@@ -93,7 +94,7 @@ class Mobile extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

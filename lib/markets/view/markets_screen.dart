@@ -5,10 +5,10 @@ import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
+import 'package:genius_wallet/app/widgets/responsive_grid.dart';
 import 'package:genius_wallet/markets/bloc/markets_cubit.dart';
 import 'package:genius_wallet/markets/bloc/markets_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/market_graph.g.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,7 +17,7 @@ class MarketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (GeniusBreakpoints.useDesktopLayout(context)) {
+    if (!GeniusBreakpoints.isNativeApp(context)) {
       return BlocProvider(
         create: (context) =>
             MarketsCubit(api: context.read<GeniusApi>())..loadMarkets(),
@@ -48,30 +48,25 @@ class Desktop extends StatelessWidget {
           if (state.marketLoadingStatus == MarketsStatus.loading) {
             return const LoadingScreen();
           }
-          return Wrap(
-              spacing: GeniusWalletConsts.itemSpacing,
-              runSpacing: GeniusWalletConsts.itemSpacing,
-              children: [
-                for (var market in state.markets)
-                  SizedBox(
-                    height: 350,
-                    width: 350,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        //TODO: Get volume, get negative or positive
-                        return MarketGraph(
-                          constraints,
-                          ovrPriceCurrency: market.priceCurrency,
-                          ovrPricePerCoin: market.price,
-                          ovrCoinToFiat:
-                              '${market.symbol}/${market.priceCurrency}',
-                          ovrVolume: null,
-                        );
-                      },
-                    ),
-                  ),
-              ]);
+          return ResponsiveGrid(children: [
+            for (var market in state.markets)
+              SizedBox(
+                height: 350,
+                width: 350,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    //TODO: Get volume, get negative or positive
+                    return MarketGraph(
+                      constraints,
+                      ovrPriceCurrency: market.priceCurrency,
+                      ovrPricePerCoin: market.price,
+                      ovrCoinToFiat: '${market.symbol}/${market.priceCurrency}',
+                      ovrVolume: null,
+                    );
+                  },
+                ),
+              ),
+          ]);
         }));
   }
 }

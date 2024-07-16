@@ -17,6 +17,10 @@ abstract class GeniusBreakpoints {
     return MediaQuery.of(context).size.width > small;
   }
 
+  static bool isNativeApp(BuildContext context) {
+    return getPlaform(context) == Platforms.mobile;
+  }
+
   static Platforms getPlaform(BuildContext context) {
     if (kIsWeb) {
       return MediaQuery.of(context).size.width >= small
