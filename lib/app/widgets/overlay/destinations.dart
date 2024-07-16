@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_destination.dart';
 
+// This order must match whats in `navigation_overlay_state/NavigationScreen` enum
 class GeniusTabDestinations {
   static final destinations = [
     const GeniusDestination(
@@ -31,12 +32,6 @@ class GeniusTabDestinations {
         icon: Icon(Icons.stacked_line_chart),
         selectedIcon: Icon(Icons.stacked_line_chart)),
     const GeniusDestination(
-      destination: '/events',
-      label: Text('Events'),
-      icon: Icon(Icons.calendar_month),
-      selectedIcon: Icon(Icons.calendar_month),
-    ),
-    const GeniusDestination(
       destination: '/calculator',
       label: Text('Calculator'),
       icon: Icon(Icons.calculate),
@@ -45,8 +40,14 @@ class GeniusTabDestinations {
     const GeniusDestination(
       destination: '/news',
       label: Text('News'),
-      icon: Icon(Icons.newspaper),
-      selectedIcon: Icon(Icons.newspaper),
+      icon: Icon(Icons.calendar_month),
+      selectedIcon: Icon(Icons.calendar_month),
+    ),
+    const GeniusDestination(
+      destination: '/events',
+      label: Text('Events'),
+      icon: Icon(Icons.library_books),
+      selectedIcon: Icon(Icons.library_books),
     ),
   ];
 }

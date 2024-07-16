@@ -33,18 +33,26 @@ class _DesktopSideRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final destinations = _buildDestinations();
-    return NavigationRail(
-      destinations: destinations,
-      onDestinationSelected:
-          context.read<NavigationOverlayCubit>().navigationTapped,
-      selectedIndex:
-          context.watch<NavigationOverlayCubit>().state.selectedScreen.index,
-      leading: Padding(
-        padding: const EdgeInsets.only(top: 50, bottom: 30),
-        child: Image.asset('assets/images/geniusappbarlogo.png',
-            package: 'genius_wallet'),
-      ),
-    );
+    return SingleChildScrollView(
+        child: ConstrainedBox(
+            constraints:
+                BoxConstraints(minHeight: MediaQuery.of(context).size.height),
+            child: IntrinsicHeight(
+                child: NavigationRail(
+              destinations: destinations,
+              onDestinationSelected:
+                  context.read<NavigationOverlayCubit>().navigationTapped,
+              selectedIndex: context
+                  .watch<NavigationOverlayCubit>()
+                  .state
+                  .selectedScreen
+                  .index,
+              leading: Padding(
+                padding: const EdgeInsets.only(top: 40, bottom: 20),
+                child: Image.asset('assets/images/geniusappbarlogo.png',
+                    package: 'genius_wallet'),
+              ),
+            ))));
   }
 
   List<NavigationRailDestination> _buildDestinations() {
