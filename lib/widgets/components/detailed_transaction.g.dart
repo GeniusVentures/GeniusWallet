@@ -39,7 +39,7 @@ class _DetailedTransaction extends State<DetailedTransaction> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: MediaQuery.of(context).size.width - 110,
+        width: MediaQuery.of(context).size.width - 60,
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           color: GeniusWalletColors.deepBlueCardColor,
