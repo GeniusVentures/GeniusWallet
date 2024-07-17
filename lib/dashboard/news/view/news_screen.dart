@@ -63,10 +63,13 @@ class Desktop extends StatelessWidget {
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(
                         flex: 1,
-                        child:
-                            NewsCard(news: state.news[0], height: halfHeight)),
+                        child: NewsCard(
+                          news: state.news[0],
+                          height: halfHeight,
+                          isBackgroundImage: true,
+                        )),
                     Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: NewsCard(
                           news: state.news[1],
                           height: halfHeight,
@@ -76,7 +79,7 @@ class Desktop extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: NewsCard(
                           news: state.news[2],
                           height: halfHeight,
@@ -84,8 +87,11 @@ class Desktop extends StatelessWidget {
                         )),
                     Expanded(
                         flex: 1,
-                        child:
-                            NewsCard(news: state.news[3], height: halfHeight))
+                        child: NewsCard(
+                          news: state.news[3],
+                          height: halfHeight,
+                          isBackgroundImage: true,
+                        ))
                   ])
                 ])),
             Expanded(
