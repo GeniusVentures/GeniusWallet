@@ -51,7 +51,7 @@ class Desktop extends StatelessWidget {
               for (var news in state.news) NewsCard(news: news, height: 400)
             ]);
           }
-          double rowGap = 12;
+          double rowGap = 4;
           double padding = 200;
           double height = MediaQuery.of(context).size.height;
           double fullHeight = height - padding + rowGap;
