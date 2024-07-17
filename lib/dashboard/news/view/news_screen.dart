@@ -10,7 +10,6 @@ import 'package:genius_wallet/app/widgets/responsive_grid.dart';
 import 'package:genius_wallet/dashboard/news/view/bloc/news_cubit.dart';
 import 'package:genius_wallet/dashboard/news/view/bloc/news_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class NewsScreen extends StatelessWidget {
   const NewsScreen({Key? key}) : super(key: key);
@@ -107,31 +106,16 @@ class Mobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
-      body: SafeArea(
-        child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: BlocBuilder<NewsCubit, NewsState>(builder: (context, state) {
-              if (state.newsLoadingStatus == NewsStatus.loading) {
-                return const LoadingScreen();
-              }
-              return Column(children: [
-                for (var news in state.news)
-                  SizedBox(
-                    height: 350,
-                    width: 350,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return Text(news.body ?? '');
-                      },
-                    ),
-                  ),
-              ]);
-            })),
-      ),
-    );
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: BlocBuilder<NewsCubit, NewsState>(builder: (context, state) {
+          if (state.newsLoadingStatus == NewsStatus.loading) {
+            return const LoadingScreen();
+          }
+          return Column(children: [
+            for (var news in state.news) NewsCard(news: news, height: 600)
+          ]);
+        }));
   }
 }
 

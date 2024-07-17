@@ -65,7 +65,12 @@ class Mobile extends StatelessWidget {
       return Wrap(
           runSpacing: GeniusWalletConsts.itemSpacing,
           alignment: WrapAlignment.center,
-          children: [for (var event in state.events) EventsCard(event: event)]);
+          children: [
+            for (var event in state.events)
+              Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  child: EventsCard(event: event))
+          ]);
     });
   }
 }
