@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -7,11 +6,11 @@ import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
-import 'package:genius_wallet/app/widgets/responsive_dashboard_layout.dart';
 import 'package:genius_wallet/app/widgets/responsive_grid.dart';
 import 'package:genius_wallet/dashboard/news/view/bloc/news_cubit.dart';
 import 'package:genius_wallet/dashboard/news/view/bloc/news_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class NewsScreen extends StatelessWidget {
   const NewsScreen({Key? key}) : super(key: key);
@@ -52,6 +51,11 @@ class Desktop extends StatelessWidget {
               for (var news in state.news) NewsCard(news: news, height: 400)
             ]);
           }
+          double rowGap = 12;
+          double padding = 200;
+          double height = MediaQuery.of(context).size.height;
+          double fullHeight = height - padding + rowGap;
+          double halfHeight = height * .5 - padding * .5;
           return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
                 flex: 3,
@@ -59,22 +63,34 @@ class Desktop extends StatelessWidget {
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(
                         flex: 1,
-                        child: NewsCard(news: state.news[0], height: 400)),
+                        child:
+                            NewsCard(news: state.news[0], height: halfHeight)),
                     Expanded(
                         flex: 3,
-                        child: NewsCard(news: state.news[1], height: 400))
+                        child: NewsCard(
+                          news: state.news[1],
+                          height: halfHeight,
+                          isBackgroundImage: true,
+                        ))
                   ]),
-                  Row(children: [
+                  const SizedBox(height: 4),
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(
                         flex: 3,
-                        child: NewsCard(news: state.news[2], height: 400)),
+                        child: NewsCard(
+                          news: state.news[2],
+                          height: halfHeight,
+                          isBackgroundImage: true,
+                        )),
                     Expanded(
                         flex: 1,
-                        child: NewsCard(news: state.news[3], height: 400))
+                        child:
+                            NewsCard(news: state.news[3], height: halfHeight))
                   ])
                 ])),
             Expanded(
-                flex: 1, child: NewsCard(news: state.news[4], height: 800)),
+                flex: 1,
+                child: NewsCard(news: state.news[4], height: fullHeight)),
           ]);
         }));
   }
@@ -116,7 +132,12 @@ class Mobile extends StatelessWidget {
 class NewsCard extends StatelessWidget {
   final News news;
   final double height;
-  const NewsCard({Key? key, required this.news, required this.height})
+  final bool isBackgroundImage;
+  const NewsCard(
+      {Key? key,
+      required this.news,
+      required this.height,
+      this.isBackgroundImage = false})
       : super(key: key);
 
   @override
@@ -128,13 +149,28 @@ class NewsCard extends StatelessWidget {
               hasScrollBody: false,
               child: Flex(direction: Axis.horizontal, children: [
                 Expanded(
-                    child: Card(
-                        color: GeniusWalletColors.deepBlueCardColor,
+                    child: Container(
+                        decoration: isBackgroundImage == true
+                            ? BoxDecoration(
+                                image: DecorationImage(
+                                  image: NetworkImage(news.imgSrc ?? ""),
+                                  fit: BoxFit.cover,
+                                  colorFilter: ColorFilter.mode(
+                                      GeniusWalletColors.deepBlueCardColor
+                                          .withOpacity(.6),
+                                      BlendMode.darken),
+                                ),
+                                color: GeniusWalletColors.deepBlueCardColor,
+                              )
+                            : const BoxDecoration(
+                                color: GeniusWalletColors.deepBlueCardColor),
+                        margin: const EdgeInsets.all(8),
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (news.imgSrc != null)
+                              if (news.imgSrc != null &&
+                                  isBackgroundImage == false)
                                 Image.network(news.imgSrc ?? ""),
                               Padding(
                                   padding: const EdgeInsets.only(
@@ -156,7 +192,7 @@ class NewsCard extends StatelessWidget {
                                         const SizedBox(height: 8),
                                         Text(news.body ?? '',
                                             style:
-                                                const TextStyle(fontSize: 14))
+                                                const TextStyle(fontSize: 14)),
                                       ])),
                             ])))
               ]))
