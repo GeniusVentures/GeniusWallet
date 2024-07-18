@@ -38,9 +38,8 @@ class _DetailedTransaction extends State<DetailedTransaction> {
 
   @override
   Widget build(BuildContext context) {
-    double padding = GeniusBreakpoints.useDesktopLayout(context) ? 220 : 150;
     return Container(
-        width: MediaQuery.of(context).size.width - padding,
+        width: MediaQuery.of(context).size.width - 60,
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           color: GeniusWalletColors.deepBlueCardColor,

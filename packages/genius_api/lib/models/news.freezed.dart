@@ -23,6 +23,7 @@ mixin _$News {
   String? get headline => throw _privateConstructorUsedError;
   String? get body => throw _privateConstructorUsedError;
   String? get date => throw _privateConstructorUsedError;
+  String? get imgSrc => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -34,7 +35,7 @@ abstract class $NewsCopyWith<$Res> {
   factory $NewsCopyWith(News value, $Res Function(News) then) =
       _$NewsCopyWithImpl<$Res, News>;
   @useResult
-  $Res call({String? headline, String? body, String? date});
+  $Res call({String? headline, String? body, String? date, String? imgSrc});
 }
 
 /// @nodoc
@@ -53,6 +54,7 @@ class _$NewsCopyWithImpl<$Res, $Val extends News>
     Object? headline = freezed,
     Object? body = freezed,
     Object? date = freezed,
+    Object? imgSrc = freezed,
   }) {
     return _then(_value.copyWith(
       headline: freezed == headline
@@ -67,6 +69,10 @@ class _$NewsCopyWithImpl<$Res, $Val extends News>
           ? _value.date
           : date // ignore: cast_nullable_to_non_nullable
               as String?,
+      imgSrc: freezed == imgSrc
+          ? _value.imgSrc
+          : imgSrc // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -78,7 +84,7 @@ abstract class _$$NewsImplCopyWith<$Res> implements $NewsCopyWith<$Res> {
       __$$NewsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? headline, String? body, String? date});
+  $Res call({String? headline, String? body, String? date, String? imgSrc});
 }
 
 /// @nodoc
@@ -94,6 +100,7 @@ class __$$NewsImplCopyWithImpl<$Res>
     Object? headline = freezed,
     Object? body = freezed,
     Object? date = freezed,
+    Object? imgSrc = freezed,
   }) {
     return _then(_$NewsImpl(
       headline: freezed == headline
@@ -108,6 +115,10 @@ class __$$NewsImplCopyWithImpl<$Res>
           ? _value.date
           : date // ignore: cast_nullable_to_non_nullable
               as String?,
+      imgSrc: freezed == imgSrc
+          ? _value.imgSrc
+          : imgSrc // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -115,7 +126,7 @@ class __$$NewsImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$NewsImpl implements _News {
-  const _$NewsImpl({this.headline, this.body, this.date});
+  const _$NewsImpl({this.headline, this.body, this.date, this.imgSrc});
 
   factory _$NewsImpl.fromJson(Map<String, dynamic> json) =>
       _$$NewsImplFromJson(json);
@@ -126,10 +137,12 @@ class _$NewsImpl implements _News {
   final String? body;
   @override
   final String? date;
+  @override
+  final String? imgSrc;
 
   @override
   String toString() {
-    return 'News(headline: $headline, body: $body, date: $date)';
+    return 'News(headline: $headline, body: $body, date: $date, imgSrc: $imgSrc)';
   }
 
   @override
@@ -140,12 +153,13 @@ class _$NewsImpl implements _News {
             (identical(other.headline, headline) ||
                 other.headline == headline) &&
             (identical(other.body, body) || other.body == body) &&
-            (identical(other.date, date) || other.date == date));
+            (identical(other.date, date) || other.date == date) &&
+            (identical(other.imgSrc, imgSrc) || other.imgSrc == imgSrc));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, headline, body, date);
+  int get hashCode => Object.hash(runtimeType, headline, body, date, imgSrc);
 
   @JsonKey(ignore: true)
   @override
@@ -165,7 +179,8 @@ abstract class _News implements News {
   const factory _News(
       {final String? headline,
       final String? body,
-      final String? date}) = _$NewsImpl;
+      final String? date,
+      final String? imgSrc}) = _$NewsImpl;
 
   factory _News.fromJson(Map<String, dynamic> json) = _$NewsImpl.fromJson;
 
@@ -175,6 +190,8 @@ abstract class _News implements News {
   String? get body;
   @override
   String? get date;
+  @override
+  String? get imgSrc;
   @override
   @JsonKey(ignore: true)
   _$$NewsImplCopyWith<_$NewsImpl> get copyWith =>

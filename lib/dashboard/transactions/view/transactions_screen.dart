@@ -110,7 +110,7 @@ class TransactionsListView extends StatelessWidget {
       builder: (context, state) {
         switch (state.subscribeToWalletStatus) {
           case AppStatus.loaded:
-            return Wrap(direction: Axis.vertical, spacing: 20, children: [
+            return Wrap(direction: Axis.vertical, spacing: 12, children: [
               for (var transaction in state.transactions)
                 BlocProvider(
                     create: (context) => TransactionDetailsCubit(
