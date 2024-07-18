@@ -10,6 +10,7 @@ _$NewsImpl _$$NewsImplFromJson(Map<String, dynamic> json) => _$NewsImpl(
       headline: json['headline'] as String?,
       body: json['body'] as String?,
       date: json['date'] as String?,
+      imgSrc: json['imgSrc'] as String?,
     );
 
 Map<String, dynamic> _$$NewsImplToJson(_$NewsImpl instance) =>
@@ -17,4 +18,5 @@ Map<String, dynamic> _$$NewsImplToJson(_$NewsImpl instance) =>
       'headline': instance.headline,
       'body': instance.body,
       'date': instance.date,
+      'imgSrc': instance.imgSrc,
     };
