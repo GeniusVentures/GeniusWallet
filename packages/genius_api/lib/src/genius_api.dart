@@ -29,7 +29,7 @@ class GeniusApi {
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt()
         {
-          ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
+          //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
         }
 
   Future<List<String>> getRecoveryPhrase() async {
@@ -219,23 +219,23 @@ class GeniusApi {
 
   void mintTokens(int amount)
   {
-    ffiBridgePrebuilt.wallet_lib.GeniusSDKMint(amount);
+    //ffiBridgePrebuilt.wallet_lib.GeniusSDKMint(amount);
 
   }
   void requestAIProcess()
   {
-    String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
-
-    ffi.Pointer<ffi.Char> charPointer = malloc.allocate<ffi.Char>(job_id.length + 1);
-
-    for (int i = 0; i < job_id.length; i++) {
-      charPointer.elementAt(i).value = job_id.codeUnitAt(i);
-    }
-    charPointer.elementAt(job_id.length).value = 0;
-
-    ffiBridgePrebuilt.wallet_lib.GeniusSDKProcess(charPointer, 100);
-
-    malloc.free(charPointer);
+    //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
+//
+    //ffi.Pointer<ffi.Char> charPointer = malloc.allocate<ffi.Char>(job_id.length + 1);
+//
+    //for (int i = 0; i < job_id.length; i++) {
+    //  charPointer.elementAt(i).value = job_id.codeUnitAt(i);
+    //}
+    //charPointer.elementAt(job_id.length).value = 0;
+//
+    //ffiBridgePrebuilt.wallet_lib.GeniusSDKProcess(charPointer, 100);
+//
+    //malloc.free(charPointer);
 
   }
 

@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.4.1)  
+cmake_minimum_required(VERSION 3.18)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 include(../cmake/Utilities.cmake)
@@ -7,88 +7,50 @@ include(../cmake/CommonCompilerOptions.cmake)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
+    set(ABI_SUBFOLDER_NAME "/${ANDROID_ABI}")
 endif()
-
 
 set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
-message("Walletcore dir  ${THIRDPARTY_RELEASE_DIR}")
-set(WALLET_CORE_LIB_NANE TrustWalletCore)
-set(WALLET_CORE_LIB_NANE ${WALLET_CORE_LIB_NANE} PARENT_SCOPE)
-set(WALLET_RUST_LIB_NAME wallet_core_rs)
-set(WALLET_RUST_LIB_NAME ${WALLET_RUST_LIB_NAME} PARENT_SCOPE)
-set(WALLET_TREZOR_LIB_NAME TrezorCrypto)
-set(WALLET_TREZOR_LIB_NAME ${WALLET_TREZOR_LIB_NAME} PARENT_SCOPE)
-set(CMAKE_BUILD_TYPE "Debug")
-message("FLUTTER BUILD MODE ${FLUTTER_BUILD_MODE}")
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(PROTOBUF_LIB_NAME protobufd)
-else()
-    set(PROTOBUF_LIB_NAME protobuf)
-endif()
+set(WALLET_CORE_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core" CACHE PATH "Path to WalletCore install folder")
+set(WALLET_CORE_INCLUDE_DIR "${WALLET_CORE_DIR}/include" CACHE PATH "Path to WalletCore include folder")
+set(WALLET_CORE_LIB_DIR "${WALLET_CORE_DIR}/lib" CACHE PATH "Path to WalletCore lib folder")
+set(WALLET_CORE_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}TrustWalletCore${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to WalletCore main lib")
+set(WALLET_CORE_TREZOR_CRYPTO_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}TrezorCrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to TrezorCrypto lib")
+set(WALLET_CORE_RUST_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}wallet_core_rs${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to WalletCore rust lib")
+include_directories(${WALLET_CORE_INCLUDE_DIR})
 
-set(PROTOBUF_LIB_NAME ${PROTOBUF_LIB_NAME} PARENT_SCOPE)
-
-
-find_library(walletcore HINTS ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib NAMES ${WALLET_CORE_LIB_NANE} lib${WALLET_CORE_LIB_NANE})
-add_library(${WALLET_CORE_LIB_NANE} INTERFACE)
-target_link_libraries(${WALLET_CORE_LIB_NANE} INTERFACE ${walletcore})
-
-find_library(wallet_core_rust HINTS ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib NAMES ${WALLET_RUST_LIB_NAME} lib${WALLET_RUST_LIB_NAME})
-add_library(${WALLET_RUST_LIB_NAME} INTERFACE)
-target_link_libraries(${WALLET_RUST_LIB_NAME} INTERFACE ${wallet_core_rust})
-
-find_library(wallet_core_trezor HINTS ${THIRDPARTY_RELEASE_DIR}/wallet-core/lib NAMES ${WALLET_TREZOR_LIB_NAME} lib${WALLET_TREZOR_LIB_NAME})
-add_library(${WALLET_TREZOR_LIB_NAME} INTERFACE)
-target_link_libraries(${WALLET_TREZOR_LIB_NAME} INTERFACE ${wallet_core_trezor})
-
-find_library(protobuf_lib HINTS ${THIRDPARTY_RELEASE_DIR}/grpc/lib NAMES ${PROTOBUF_LIB_NAME} lib${PROTOBUF_LIB_NAME})
-add_library(${PROTOBUF_LIB_NAME} INTERFACE)
-target_link_libraries(${PROTOBUF_LIB_NAME} INTERFACE ${protobuf_lib})
-
-
-#Set Boost Versions
+# Set Boost Versions
 set(BOOST_MAJOR_VERSION "1" CACHE STRING "Boost Major Version")
-set(BOOST_MINOR_VERSION "80" CACHE STRING "Boost Minor Version")
+set(BOOST_MINOR_VERSION "85" CACHE STRING "Boost Minor Version")
 set(BOOST_PATCH_VERSION "0" CACHE STRING "Boost Patch Version")
+
 # convenience settings
 set(BOOST_VERSION "${BOOST_MAJOR_VERSION}.${BOOST_MINOR_VERSION}.${BOOST_PATCH_VERSION}")
 set(BOOST_VERSION_3U "${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}_${BOOST_PATCH_VERSION}")
 set(BOOST_VERSION_2U "${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}")
 
+if(NOT DEFINED absl_DIR)
+    set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
+    set(absl_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/absl")
+    find_package(absl CONFIG REQUIRED)
+    include_directories(${absl_INCLUDE_DIR})
+endif()
+
+if(NOT DEFINED utf8_range_DIR)
+    set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
+    set(utf8_range_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/utf8_range")
+    find_package(utf8_range CONFIG REQUIRED)
+    include_directories(${utf8_range_INCLUDE_DIR})
+endif()
+
 # --------------------------------------------------------
 # Set config of protobuf project
-if (NOT DEFINED Protobuf_DIR)
+if(NOT DEFINED Protobuf_DIR)
     set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/protobuf")
+    set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include//google/protobuf")
+    find_package(Protobuf CONFIG REQUIRED)
+    include_directories(${Protobuf_INCLUDE_DIR})
 endif()
-if (NOT DEFINED grpc_INCLUDE_DIR)
-    set(grpc_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
-endif()
-if (NOT DEFINED Protobuf_INCLUDE_DIR)
-    set(Protobuf_INCLUDE_DIR "${grpc_INCLUDE_DIR}/google/protobuf")
-endif()
-
-find_package(Protobuf CONFIG REQUIRED )
-
-if (NOT DEFINED PROTOC_EXECUTABLE)
-    set(PROTOC_EXECUTABLE "${THIRDPARTY_RELEASE_DIR}/grpc/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
-endif()
-
-set(Protobuf_PROTOC_EXECUTABLE ${PROTOC_EXECUTABLE} CACHE PATH "Initial cache" FORCE)
-if(NOT TARGET protobuf::protoc)
-  add_executable(protobuf::protoc IMPORTED)
-endif()
-if(EXISTS "${Protobuf_PROTOC_EXECUTABLE}")
-  set_target_properties(protobuf::protoc PROPERTIES
-              IMPORTED_LOCATION ${Protobuf_PROTOC_EXECUTABLE})
-endif()
-
-# protoc definition #####################################################################################
-get_target_property(PROTOC_LOCATION protobuf::protoc IMPORTED_LOCATION)
-if ( Protobuf_FOUND )
-    message( STATUS "Protobuf version : ${Protobuf_VERSION}" )
-    message( STATUS "Protobuf compiler : ${Protobuf_PROTOC_EXECUTABLE}")
-endif()
-
 
 set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install folder")
 set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
@@ -184,13 +146,19 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_NO_SYSTEM_PATHS ON)
 option(Boost_USE_STATIC_RUNTIME "Use static runtimes" ON)
 
-option (SGNS_STACKTRACE_BACKTRACE "Use BOOST_STACKTRACE_USE_BACKTRACE in stacktraces, for POSIX" OFF)
-if (SGNS_STACKTRACE_BACKTRACE)
-	add_definitions(-DSGNS_STACKTRACE_BACKTRACE=1)
-	if (BACKTRACE_INCLUDE)
-		add_definitions(-DBOOST_STACKTRACE_BACKTRACE_INCLUDE_FILE=${BACKTRACE_INCLUDE})
-	endif()
-endif ()
+if(NOT DEFINED Boost_COMPILER)
+    set(Boost_COMPILER "-clang")
+endif()
+
+option(SGNS_STACKTRACE_BACKTRACE "Use BOOST_STACKTRACE_USE_BACKTRACE in stacktraces, for POSIX" OFF)
+
+if(SGNS_STACKTRACE_BACKTRACE)
+    add_definitions(-DSGNS_STACKTRACE_BACKTRACE=1)
+
+    if(BACKTRACE_INCLUDE)
+        add_definitions(-DBOOST_STACKTRACE_BACKTRACE_INCLUDE_FILE=${BACKTRACE_INCLUDE})
+    endif()
+endif()
 
 # header only libraries must not be added here
 find_package(Boost REQUIRED COMPONENTS date_time filesystem random regex system thread log log_setup program_options)
@@ -219,15 +187,16 @@ set(c-ares_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/cares/include" CACHE PATH "Pat
 # Set config of libp2p
 set(libp2p_DIR "${THIRDPARTY_RELEASE_DIR}/libp2p/lib/cmake/libp2p")
 set(libp2p_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/libp2p/lib")
-set(libp2p_INCLUDE_DIR    "${THIRDPARTY_RELEASE_DIR}/libp2p/include")
+set(libp2p_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/libp2p/include")
 find_package(libp2p CONFIG REQUIRED)
 include_directories(${libp2p_INCLUDE_DIR})
 
 # --------------------------------------------------------
 # Find and include cares if libp2p have not included it
-if (NOT TARGET c-ares::cares_static)
-  find_package(c-ares CONFIG REQUIRED)
+if(NOT TARGET c-ares::cares_static)
+    find_package(c-ares CONFIG REQUIRED)
 endif()
+
 include_directories(${c-ares_INCLUDE_DIR})
 
 # --------------------------------------------------------
@@ -310,50 +279,53 @@ set(AsyncIOManager_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib")
 set(AsyncIOManager_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib/cmake/AsyncIOManager")
 find_package(AsyncIOManager CONFIG REQUIRED)
 
-# --------------------------------------------------------
-# Set config of wallet-core - DOESN'T HAVE CONFIG YET
-#set(wallet-core_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core/include")
-#set(wallet-core_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core/lib")
-#set(wallet-core_DIR "${THIRDPARTY_RELEASE_DIR}/wallet-core/lib/cmake/wallet-core")
-#find_package(wallet-core CONFIG REQUIRED)
+# set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
+# set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
+# find_package(SuperGenius CONFIG REQUIRED)
+# include_directories(${SuperGenius_INCLUDE_DIR})
 
-
-set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
-set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
-find_package(SuperGenius CONFIG REQUIRED)
-include_directories(${SuperGenius_INCLUDE_DIR})
-
-
-set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
-set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
-find_package(GeniusSDK CONFIG REQUIRED)
-include_directories(${GeniusSDK_INCLUDE_DIR})
-
+# set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
+# set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
+# find_package(GeniusSDK CONFIG REQUIRED)
+# include_directories(${GeniusSDK_INCLUDE_DIR})
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    add_library( 
+    add_library(
         GeniusWallet
         SHARED
         null.cpp
     )
-    if (SET_NAME_UNIX_FORCE)
+
+    if(SET_NAME_UNIX_FORCE)
         message(WARNING "Forcing file to be name libGeniusWallet.so")
         set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")
         set_target_properties(GeniusWallet PROPERTIES PREFIX "lib")
     endif()
 
-
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         find_library(LOG_LIB log)
-        target_link_libraries( GeniusWallet ${LOG_LIB})
+        target_link_libraries(GeniusWallet ${LOG_LIB})
     endif()
-	message(WARNING "LINKING")
-    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE( GeniusWallet 
-    ${walletcore}
-    sgns::GeniusSDK
+
+    message(WARNING "LINKING")
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE(GeniusWallet
+        ${WALLET_CORE_LIBRARY}
+
+        # sgns::GeniusSDK
     )
-    target_link_libraries(GeniusWallet 
-    ${wallet_core_rust}
-    ${wallet_core_trezor}
-    ${protobuf_lib}
+    target_link_libraries(GeniusWallet
+        ${WALLET_CORE_RUST_LIBRARY}
+        ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
+        protobuf::libprotobuf
+        absl::status
+        absl::statusor
+        absl::hash
+        absl::log
+        absl::cord
+        absl::raw_hash_set
+        absl::base
+        absl::strings
+        absl::synchronization
+        absl::log_internal_check_op
+        utf8_range::utf8_validity
     )
 endif()
