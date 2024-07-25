@@ -947,32 +947,32 @@ class NativeLibrary {
   set HRP_NEUTRON(ffi.Pointer<ffi.Char> value) => _HRP_NEUTRON.value = value;
 **/
 
-  void GeniusSDKInit( ) {
-    _GeniusSDKInit();
-  }
-
-  late final _GeniusSDKInitPtr = _lookup<
-      ffi.NativeFunction<ffi.Void Function( )>>('GeniusSDKInit');
-  late final _GeniusSDKInit =
-      _GeniusSDKInitPtr.asFunction<void Function()>();
-
-  void GeniusSDKProcess(ffi.Pointer<ffi.Char> path, int amount ) {
-  _GeniusSDKProcess(path, amount);    
-  }
-
-  late final _GeniusSDKProcessPtr = _lookup<
-      ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char> path, ffi.Uint64 amount)>>('GeniusSDKProcess');
-  late final _GeniusSDKProcess =
-      _GeniusSDKProcessPtr.asFunction<void Function(ffi.Pointer<ffi.Char> path, int amount)>();
-
-    void GeniusSDKMint( int amount  ) {
-    _GeniusSDKMint(amount);
-  }
-
-  late final _GeniusSDKMintPtr = _lookup<
-      ffi.NativeFunction<ffi.Void Function( ffi.Uint64 amount )>>('GeniusSDKMint');
-  late final _GeniusSDKMint =
-      _GeniusSDKMintPtr.asFunction<void Function( int amount)>();
+  //void GeniusSDKInit( ) {
+  //  _GeniusSDKInit();
+  //}
+//
+  //late final _GeniusSDKInitPtr = _lookup<
+  //    ffi.NativeFunction<ffi.Void Function( )>>('GeniusSDKInit');
+  //late final _GeniusSDKInit =
+  //    _GeniusSDKInitPtr.asFunction<void Function()>();
+//
+  //void GeniusSDKProcess(ffi.Pointer<ffi.Char> path, int amount ) {
+  //_GeniusSDKProcess(path, amount);    
+  //}
+//
+  //late final _GeniusSDKProcessPtr = _lookup<
+  //    ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char> path, ffi.Uint64 amount)>>('GeniusSDKProcess');
+  //late final _GeniusSDKProcess =
+  //    _GeniusSDKProcessPtr.asFunction<void Function(ffi.Pointer<ffi.Char> path, int amount)>();
+//
+  //  void GeniusSDKMint( int amount  ) {
+  //  _GeniusSDKMint(amount);
+  //}
+//
+  //late final _GeniusSDKMintPtr = _lookup<
+  //    ffi.NativeFunction<ffi.Void Function( ffi.Uint64 amount )>>('GeniusSDKMint');
+  //late final _GeniusSDKMint =
+  //    _GeniusSDKMintPtr.asFunction<void Function( int amount)>();
 
 
   //  void GeniusSDKAddPeer( ffi.Pointer<ffi.Char> peer ) {
