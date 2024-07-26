@@ -38,7 +38,7 @@ endif()
 
 if(NOT DEFINED utf8_range_DIR)
     set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
-    set(utf8_range_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/utf8_range")
+    set(utf8_range_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
     find_package(utf8_range CONFIG REQUIRED)
     include_directories(${utf8_range_INCLUDE_DIR})
 endif()
