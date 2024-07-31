@@ -22,7 +22,7 @@ class _Recoveryword extends State<Recoveryword> {
     return Container(
         decoration: const BoxDecoration(),
         child: Container(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(48)),
               border: Border.all(

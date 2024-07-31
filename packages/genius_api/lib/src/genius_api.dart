@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/models/currency.dart';
 import 'package:genius_api/models/events.dart';
@@ -9,13 +11,13 @@ import 'package:genius_api/models/news.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/util/tw_string_impl.dart';
 import 'package:secure_storage/secure_storage.dart';
-import 'package:ffi/ffi.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
+  final String passphrase = "gnusai";
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() =>
@@ -27,14 +29,8 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt()
-        {
-          //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
-        }
-
-  Future<List<String>> getRecoveryPhrase() async {
-    ///TODO: Implement recovery phrase generation here with API or   gen.
-    return List.generate(12, (index) => 'word${index + 1}');
+        ffiBridgePrebuilt = FFIBridgePrebuilt() {
+    //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
   }
 
   Future<List<Transaction>> getTransactionsFor(String address) async {
@@ -213,20 +209,17 @@ class GeniusApi {
         .toDartString();
   }
 
-  ffi.Pointer<ffi.Void> createWalletWithSize(int size) {
+  Pointer<Void> createWalletWithSize(int size) {
     return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(size);
   }
 
-  void mintTokens(int amount)
-  {
+  void mintTokens(int amount) {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKMint(amount);
-
   }
-  void requestAIProcess()
-  {
+  void requestAIProcess() {
     //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
 //
-    //ffi.Pointer<ffi.Char> charPointer = malloc.allocate<ffi.Char>(job_id.length + 1);
+    //Pointer<Char> charPointer = malloc.allocate<Char>(job_id.length + 1);
 //
     //for (int i = 0; i < job_id.length; i++) {
     //  charPointer.elementAt(i).value = job_id.codeUnitAt(i);
@@ -236,7 +229,6 @@ class GeniusApi {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKProcess(charPointer, 100);
 //
     //malloc.free(charPointer);
-
   }
 
   Future<List<Currency>> getMarkets() async {
@@ -350,5 +342,29 @@ class GeniusApi {
           location: 'Rome',
           weekDay: "Tuesday"),
     ];
+  }
+
+  Pointer<TWHDWallet> createNewWallet() {
+    Pointer<Utf8> passphraseTWString = TWStringImpl.toTWString(passphrase);
+    Pointer<TWHDWallet> wallet = ffiBridgePrebuilt.wallet_lib
+        .TWHDWalletCreate(128, passphraseTWString.cast());
+
+    TWStringImpl.delete(passphraseTWString);
+    // print(mnemonic.toDartString());
+
+// delete wallet
+    //ffiBridgePrebuilt.wallet_lib.TWHDWalletDelete(wallet);
+    return wallet;
+  }
+
+  // Take in a created wallet, generate the mnemonic and send back the words
+  Future<List<String>> getRecoveryPhrase(Pointer<TWHDWallet> wallet) async {
+    Pointer<TWString1> walletMnemonic =
+        ffiBridgePrebuilt.wallet_lib.TWHDWalletMnemonic(wallet);
+    // TODO: fix this casting ( fix in wallet-core to return the correct type )
+    Pointer<Utf8> mnemonic = ffiBridgePrebuilt.wallet_lib
+        .TWStringUTF8Bytes(walletMnemonic) as Pointer<Utf8>;
+    String mnemonicStr = mnemonic.toDartString();
+    return mnemonicStr.split(' ');
   }
 }
