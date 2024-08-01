@@ -1,6 +1,8 @@
 // ignore_for_file: type=lint
 import 'dart:ffi' as ffi;
 
+import 'package:ffi/ffi.dart';
+
 /// TWAccount
 class NativeLibrary {
   /// Holds the symbol lookup function.
@@ -70,9 +72,9 @@ class NativeLibrary {
   }
 
   late final _TWDataCreateWithDataPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWDataCreateWithData');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWDataCreateWithData');
   late final _TWDataCreateWithData = _TWDataCreateWithDataPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -89,9 +91,9 @@ class NativeLibrary {
   }
 
   late final _TWDataCreateWithHexStringPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWDataCreateWithHexString');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>>(
+      'TWDataCreateWithHexString');
   late final _TWDataCreateWithHexString = _TWDataCreateWithHexStringPtr
       .asFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 
@@ -269,9 +271,9 @@ class NativeLibrary {
   }
 
   late final _TWDataAppendBytePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(
-              ffi.Pointer<TWData>, ffi.Uint8)>>('TWDataAppendByte');
+          ffi
+          .NativeFunction<ffi.Void Function(ffi.Pointer<TWData>, ffi.Uint8)>>(
+      'TWDataAppendByte');
   late final _TWDataAppendByte = _TWDataAppendBytePtr.asFunction<
       void Function(ffi.Pointer<TWData>, int)>();
 
@@ -373,7 +375,7 @@ class NativeLibrary {
   ///
   /// \param bytes a null-terminated UTF8 byte array.
   ffi.Pointer<TWString> TWStringCreateWithUTF8Bytes(
-    ffi.Pointer<ffi.Char> bytes,
+    ffi.Pointer<Utf8> bytes,
   ) {
     return _TWStringCreateWithUTF8Bytes(
       bytes,
@@ -381,11 +383,11 @@ class NativeLibrary {
   }
 
   late final _TWStringCreateWithUTF8BytesPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<ffi.Char>)>>('TWStringCreateWithUTF8Bytes');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<Utf8>)>>(
+      'TWStringCreateWithUTF8Bytes');
   late final _TWStringCreateWithUTF8Bytes = _TWStringCreateWithUTF8BytesPtr
-      .asFunction<ffi.Pointer<TWString> Function(ffi.Pointer<ffi.Char>)>();
+      .asFunction<ffi.Pointer<TWString> Function(ffi.Pointer<Utf8>)>();
 
   /// Creates a string from a raw byte array and size. It must be deleted at the end.
   ///
@@ -421,9 +423,9 @@ class NativeLibrary {
   }
 
   late final _TWStringCreateWithHexDataPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<TWData>)>>('TWStringCreateWithHexData');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>>(
+      'TWStringCreateWithHexData');
   late final _TWStringCreateWithHexData = _TWStringCreateWithHexDataPtr
       .asFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>();
 
@@ -467,7 +469,7 @@ class NativeLibrary {
   /// Returns the raw pointer to the string's UTF8 bytes (null-terminated).
   ///
   /// \param string a TWString pointer.
-  ffi.Pointer<ffi.Char> TWStringUTF8Bytes(
+  ffi.Pointer<TWString> TWStringUTF8Bytes(
     ffi.Pointer<TWString> string,
   ) {
     return _TWStringUTF8Bytes(
@@ -477,10 +479,10 @@ class NativeLibrary {
 
   late final _TWStringUTF8BytesPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<TWString> Function(
               ffi.Pointer<TWString>)>>('TWStringUTF8Bytes');
   late final _TWStringUTF8Bytes = _TWStringUTF8BytesPtr.asFunction<
-      ffi.Pointer<ffi.Char> Function(ffi.Pointer<TWString>)>();
+      ffi.Pointer<TWString> Function(ffi.Pointer<TWString>)>();
 
   /// Deletes a string created with a `TWStringCreate*` method and frees the memory.
   ///
@@ -957,7 +959,7 @@ class NativeLibrary {
   //    _GeniusSDKInitPtr.asFunction<void Function()>();
 //
   //void GeniusSDKProcess(ffi.Pointer<ffi.Char> path, int amount ) {
-  //_GeniusSDKProcess(path, amount);    
+  //_GeniusSDKProcess(path, amount);
   //}
 //
   //late final _GeniusSDKProcessPtr = _lookup<
@@ -974,7 +976,6 @@ class NativeLibrary {
   //late final _GeniusSDKMint =
   //    _GeniusSDKMintPtr.asFunction<void Function( int amount)>();
 
-
   //  void GeniusSDKAddPeer( ffi.Pointer<ffi.Char> peer ) {
   //  _GeniusSDKAddPeer(peer);
   //}
@@ -983,7 +984,7 @@ class NativeLibrary {
   //    ffi.NativeFunction<ffi.Void Function( ffi.Pointer<ffi.Char> peer)>>('GeniusSDKAddPeer');
   //late final _GeniusSDKAddPeer =
   //    _GeniusSDKAddPeerPtr.asFunction<void Function( ffi.Pointer<ffi.Char> peer)>();
-  
+
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {
@@ -1890,9 +1891,9 @@ class NativeLibrary {
   }
 
   late final _TWPublicKeyIsValidPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Bool Function(
-              ffi.Pointer<TWData>, ffi.Int32)>>('TWPublicKeyIsValid');
+          ffi
+          .NativeFunction<ffi.Bool Function(ffi.Pointer<TWData>, ffi.Int32)>>(
+      'TWPublicKeyIsValid');
   late final _TWPublicKeyIsValid = _TWPublicKeyIsValidPtr.asFunction<
       bool Function(ffi.Pointer<TWData>, int)>();
 
@@ -2205,9 +2206,9 @@ class NativeLibrary {
   }
 
   late final _TWPrivateKeyIsValidPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Bool Function(
-              ffi.Pointer<TWData>, ffi.Int32)>>('TWPrivateKeyIsValid');
+          ffi
+          .NativeFunction<ffi.Bool Function(ffi.Pointer<TWData>, ffi.Int32)>>(
+      'TWPrivateKeyIsValid');
   late final _TWPrivateKeyIsValid = _TWPrivateKeyIsValidPtr.asFunction<
       bool Function(ffi.Pointer<TWData>, int)>();
 
@@ -2782,9 +2783,9 @@ class NativeLibrary {
   }
 
   late final _TWBitcoinAddressPrefixPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint8 Function(
-              ffi.Pointer<TWBitcoinAddress>)>>('TWBitcoinAddressPrefix');
+          ffi
+          .NativeFunction<ffi.Uint8 Function(ffi.Pointer<TWBitcoinAddress>)>>(
+      'TWBitcoinAddressPrefix');
   late final _TWBitcoinAddressPrefix = _TWBitcoinAddressPrefixPtr.asFunction<
       int Function(ffi.Pointer<TWBitcoinAddress>)>();
 
@@ -3711,9 +3712,9 @@ class NativeLibrary {
   }
 
   late final _TWDerivationPathIndicesCountPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<TWDerivationPath>)>>('TWDerivationPathIndicesCount');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<TWDerivationPath>)>>(
+      'TWDerivationPathIndicesCount');
   late final _TWDerivationPathIndicesCount = _TWDerivationPathIndicesCountPtr
       .asFunction<int Function(ffi.Pointer<TWDerivationPath>)>();
 
@@ -3730,9 +3731,9 @@ class NativeLibrary {
   }
 
   late final _TWDerivationPathPurposePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Int32 Function(
-              ffi.Pointer<TWDerivationPath>)>>('TWDerivationPathPurpose');
+          ffi
+          .NativeFunction<ffi.Int32 Function(ffi.Pointer<TWDerivationPath>)>>(
+      'TWDerivationPathPurpose');
   late final _TWDerivationPathPurpose = _TWDerivationPathPurposePtr.asFunction<
       int Function(ffi.Pointer<TWDerivationPath>)>();
 
@@ -3749,9 +3750,9 @@ class NativeLibrary {
   }
 
   late final _TWDerivationPathCoinPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<TWDerivationPath>)>>('TWDerivationPathCoin');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<TWDerivationPath>)>>(
+      'TWDerivationPathCoin');
   late final _TWDerivationPathCoin = _TWDerivationPathCoinPtr.asFunction<
       int Function(ffi.Pointer<TWDerivationPath>)>();
 
@@ -3768,9 +3769,9 @@ class NativeLibrary {
   }
 
   late final _TWDerivationPathAccountPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<TWDerivationPath>)>>('TWDerivationPathAccount');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<TWDerivationPath>)>>(
+      'TWDerivationPathAccount');
   late final _TWDerivationPathAccount = _TWDerivationPathAccountPtr.asFunction<
       int Function(ffi.Pointer<TWDerivationPath>)>();
 
@@ -3787,9 +3788,9 @@ class NativeLibrary {
   }
 
   late final _TWDerivationPathChangePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<TWDerivationPath>)>>('TWDerivationPathChange');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<TWDerivationPath>)>>(
+      'TWDerivationPathChange');
   late final _TWDerivationPathChange = _TWDerivationPathChangePtr.asFunction<
       int Function(ffi.Pointer<TWDerivationPath>)>();
 
@@ -3806,9 +3807,9 @@ class NativeLibrary {
   }
 
   late final _TWDerivationPathAddressPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<TWDerivationPath>)>>('TWDerivationPathAddress');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<TWDerivationPath>)>>(
+      'TWDerivationPathAddress');
   late final _TWDerivationPathAddress = _TWDerivationPathAddressPtr.asFunction<
       int Function(ffi.Pointer<TWDerivationPath>)>();
 
@@ -5449,9 +5450,9 @@ class NativeLibrary {
   }
 
   late final _TWRippleXAddressTagPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<TWRippleXAddress>)>>('TWRippleXAddressTag');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<TWRippleXAddress>)>>(
+      'TWRippleXAddressTag');
   late final _TWRippleXAddressTag = _TWRippleXAddressTagPtr.asFunction<
       int Function(ffi.Pointer<TWRippleXAddress>)>();
 
@@ -5468,9 +5469,9 @@ class NativeLibrary {
   }
 
   late final _TWBase64DecodePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWBase64Decode');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>>(
+      'TWBase64Decode');
   late final _TWBase64Decode = _TWBase64DecodePtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 
@@ -5487,9 +5488,9 @@ class NativeLibrary {
   }
 
   late final _TWBase64DecodeUrlPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWBase64DecodeUrl');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>>(
+      'TWBase64DecodeUrl');
   late final _TWBase64DecodeUrl = _TWBase64DecodeUrlPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 
@@ -5506,9 +5507,9 @@ class NativeLibrary {
   }
 
   late final _TWBase64EncodePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<TWData>)>>('TWBase64Encode');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>>(
+      'TWBase64Encode');
   late final _TWBase64Encode = _TWBase64EncodePtr.asFunction<
       ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>();
 
@@ -5525,9 +5526,9 @@ class NativeLibrary {
   }
 
   late final _TWBase64EncodeUrlPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<TWData>)>>('TWBase64EncodeUrl');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>>(
+      'TWBase64EncodeUrl');
   late final _TWBase64EncodeUrl = _TWBase64EncodeUrlPtr.asFunction<
       ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>();
 
@@ -6452,9 +6453,9 @@ class NativeLibrary {
   }
 
   late final _TWHashSHA512_256Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashSHA512_256');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashSHA512_256');
   late final _TWHashSHA512_256 = _TWHashSHA512_256Ptr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6471,9 +6472,9 @@ class NativeLibrary {
   }
 
   late final _TWHashKeccak256Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashKeccak256');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashKeccak256');
   late final _TWHashKeccak256 = _TWHashKeccak256Ptr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6490,9 +6491,9 @@ class NativeLibrary {
   }
 
   late final _TWHashKeccak512Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashKeccak512');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashKeccak512');
   late final _TWHashKeccak512 = _TWHashKeccak512Ptr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6602,9 +6603,9 @@ class NativeLibrary {
   }
 
   late final _TWHashGroestl512Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashGroestl512');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashGroestl512');
   late final _TWHashGroestl512 = _TWHashGroestl512Ptr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6621,9 +6622,9 @@ class NativeLibrary {
   }
 
   late final _TWHashSHA256SHA256Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashSHA256SHA256');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashSHA256SHA256');
   late final _TWHashSHA256SHA256 = _TWHashSHA256SHA256Ptr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6640,9 +6641,9 @@ class NativeLibrary {
   }
 
   late final _TWHashSHA256RIPEMDPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashSHA256RIPEMD');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashSHA256RIPEMD');
   late final _TWHashSHA256RIPEMD = _TWHashSHA256RIPEMDPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6659,9 +6660,9 @@ class NativeLibrary {
   }
 
   late final _TWHashSHA3_256RIPEMDPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashSHA3_256RIPEMD');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashSHA3_256RIPEMD');
   late final _TWHashSHA3_256RIPEMD = _TWHashSHA3_256RIPEMDPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6678,9 +6679,9 @@ class NativeLibrary {
   }
 
   late final _TWHashBlake256Blake256Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashBlake256Blake256');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashBlake256Blake256');
   late final _TWHashBlake256Blake256 = _TWHashBlake256Blake256Ptr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6697,9 +6698,9 @@ class NativeLibrary {
   }
 
   late final _TWHashBlake256RIPEMDPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashBlake256RIPEMD');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashBlake256RIPEMD');
   late final _TWHashBlake256RIPEMD = _TWHashBlake256RIPEMDPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6716,9 +6717,9 @@ class NativeLibrary {
   }
 
   late final _TWHashGroestl512Groestl512Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWHashGroestl512Groestl512');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWHashGroestl512Groestl512');
   late final _TWHashGroestl512Groestl512 = _TWHashGroestl512Groestl512Ptr
       .asFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -6790,9 +6791,9 @@ class NativeLibrary {
   }
 
   late final _TWEthereumAbiValueEncodeInt256Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData1> Function(
-              ffi.Pointer<TWData1>)>>('TWEthereumAbiValueEncodeInt256');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>>(
+      'TWEthereumAbiValueEncodeInt256');
   late final _TWEthereumAbiValueEncodeInt256 =
       _TWEthereumAbiValueEncodeInt256Ptr.asFunction<
           ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>();
@@ -6810,9 +6811,9 @@ class NativeLibrary {
   }
 
   late final _TWEthereumAbiValueEncodeUInt256Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData1> Function(
-              ffi.Pointer<TWData1>)>>('TWEthereumAbiValueEncodeUInt256');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>>(
+      'TWEthereumAbiValueEncodeUInt256');
   late final _TWEthereumAbiValueEncodeUInt256 =
       _TWEthereumAbiValueEncodeUInt256Ptr.asFunction<
           ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>();
@@ -6830,9 +6831,9 @@ class NativeLibrary {
   }
 
   late final _TWEthereumAbiValueEncodeAddressPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData1> Function(
-              ffi.Pointer<TWData1>)>>('TWEthereumAbiValueEncodeAddress');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>>(
+      'TWEthereumAbiValueEncodeAddress');
   late final _TWEthereumAbiValueEncodeAddress =
       _TWEthereumAbiValueEncodeAddressPtr.asFunction<
           ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>();
@@ -6870,9 +6871,9 @@ class NativeLibrary {
   }
 
   late final _TWEthereumAbiValueEncodeBytesPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData1> Function(
-              ffi.Pointer<TWData1>)>>('TWEthereumAbiValueEncodeBytes');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>>(
+      'TWEthereumAbiValueEncodeBytes');
   late final _TWEthereumAbiValueEncodeBytes = _TWEthereumAbiValueEncodeBytesPtr
       .asFunction<ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>();
 
@@ -6889,9 +6890,9 @@ class NativeLibrary {
   }
 
   late final _TWEthereumAbiValueEncodeBytesDynPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData1> Function(
-              ffi.Pointer<TWData1>)>>('TWEthereumAbiValueEncodeBytesDyn');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>>(
+      'TWEthereumAbiValueEncodeBytesDyn');
   late final _TWEthereumAbiValueEncodeBytesDyn =
       _TWEthereumAbiValueEncodeBytesDynPtr.asFunction<
           ffi.Pointer<TWData1> Function(ffi.Pointer<TWData1>)>();
@@ -6977,9 +6978,9 @@ class NativeLibrary {
   }
 
   late final _TWTHORChainSwapBuildSwapPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWData>)>>('TWTHORChainSwapBuildSwap');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>>(
+      'TWTHORChainSwapBuildSwap');
   late final _TWTHORChainSwapBuildSwap = _TWTHORChainSwapBuildSwapPtr
       .asFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWData>)>();
 
@@ -8719,9 +8720,9 @@ class NativeLibrary {
   }
 
   late final _TWBase32DecodePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWBase32Decode');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>>(
+      'TWBase32Decode');
   late final _TWBase32Decode = _TWBase32DecodePtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 
@@ -8764,9 +8765,9 @@ class NativeLibrary {
   }
 
   late final _TWBase32EncodePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<TWData>)>>('TWBase32Encode');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>>(
+      'TWBase32Encode');
   late final _TWBase32Encode = _TWBase32EncodePtr.asFunction<
       ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>();
 
@@ -9095,9 +9096,9 @@ class NativeLibrary {
   }
 
   late final _TWBase58EncodePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<TWData>)>>('TWBase58Encode');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>>(
+      'TWBase58Encode');
   late final _TWBase58Encode = _TWBase58EncodePtr.asFunction<
       ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>();
 
@@ -9114,9 +9115,9 @@ class NativeLibrary {
   }
 
   late final _TWBase58EncodeNoCheckPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWString> Function(
-              ffi.Pointer<TWData>)>>('TWBase58EncodeNoCheck');
+          ffi
+          .NativeFunction<ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>>(
+      'TWBase58EncodeNoCheck');
   late final _TWBase58EncodeNoCheck = _TWBase58EncodeNoCheckPtr.asFunction<
       ffi.Pointer<TWString> Function(ffi.Pointer<TWData>)>();
 
@@ -9133,9 +9134,9 @@ class NativeLibrary {
   }
 
   late final _TWBase58DecodePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWBase58Decode');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>>(
+      'TWBase58Decode');
   late final _TWBase58Decode = _TWBase58DecodePtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 
@@ -9152,9 +9153,9 @@ class NativeLibrary {
   }
 
   late final _TWBase58DecodeNoCheckPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<TWData> Function(
-              ffi.Pointer<TWString>)>>('TWBase58DecodeNoCheck');
+          ffi
+          .NativeFunction<ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>>(
+      'TWBase58DecodeNoCheck');
   late final _TWBase58DecodeNoCheck = _TWBase58DecodeNoCheckPtr.asFunction<
       ffi.Pointer<TWData> Function(ffi.Pointer<TWString>)>();
 

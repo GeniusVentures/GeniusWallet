@@ -132,9 +132,9 @@ class _VerifyRecoveryPhraseViewMobile extends StatelessWidget {
       title: 'Verify Your Recovery Phrase',
       subtitle:
           'Tap the words to put them next to each other in the correct order',
-      body: Column(
+      body: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Padding(
             padding: EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0),
             child: _InputAndWords(),
@@ -174,9 +174,8 @@ class _InputAndWords extends StatelessWidget {
           height: 50,
         ),
         RecoveryWords(
-          recoveryWords: context.read<NewWalletBloc>().state.shuffledWords,
-          inputEnabled: true,
-        ),
+            recoveryWords: context.read<NewWalletBloc>().state.shuffledWords,
+            isIncludeIndex: false),
       ],
     );
   }
