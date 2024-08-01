@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
-import 'package:genius_api/impl/tw_string_impl.dart';
+import 'package:genius_api/tw/string_util.dart';
 
-class TWPublicKeyImpl {
+class PublicKeyImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
   static bool isValid(Uint8List data, int publicKeyType) {
     final twData = ffiBridgePrebuilt.wallet_lib
@@ -70,7 +70,7 @@ class TWPublicKeyImpl {
   }
 
   static String description(Pointer<Void> publicKey) {
-    return TWStringImpl.toDartString(ffiBridgePrebuilt.wallet_lib
+    return StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
         .TWPublicKeyDescription(publicKey.cast())
         .cast());
   }

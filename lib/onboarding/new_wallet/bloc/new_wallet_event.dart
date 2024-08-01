@@ -31,8 +31,6 @@ class AgreementAccepted extends NewWalletEvent {
   AgreementAccepted({required this.userExists});
 }
 
-class CreateNewWallet extends NewWalletEvent {}
-
 class PinCreated extends NewWalletEvent {}
 
 class PinConfirmPassed extends NewWalletEvent {}

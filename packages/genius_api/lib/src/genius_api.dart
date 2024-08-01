@@ -11,20 +11,16 @@ import 'package:genius_api/models/news.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
-import 'package:genius_api/util/tw_string_impl.dart';
+import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
-  final String passphrase = "gnusai";
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() =>
       _secureStorage.walletsController.asBroadcastStream();
-
-  Future<void> saveWallet(Wallet wallet) async =>
-      await _secureStorage.saveWallet(wallet);
 
   GeniusApi({
     required SecureStorage secureStorage,
@@ -344,27 +340,15 @@ class GeniusApi {
     ];
   }
 
-  Pointer<TWHDWallet> createNewWallet() {
-    Pointer<Utf8> passphraseTWString = TWStringImpl.toTWString(passphrase);
-    Pointer<TWHDWallet> wallet = ffiBridgePrebuilt.wallet_lib
-        .TWHDWalletCreate(128, passphraseTWString.cast());
-
-    TWStringImpl.delete(passphraseTWString);
-    // print(mnemonic.toDartString());
-
-// delete wallet
-    //ffiBridgePrebuilt.wallet_lib.TWHDWalletDelete(wallet);
-    return wallet;
+  HDWallet createNewWallet() {
+    return HDWallet();
   }
 
-  // Take in a created wallet, generate the mnemonic and send back the words
-  Future<List<String>> getRecoveryPhrase(Pointer<TWHDWallet> wallet) async {
-    Pointer<TWString1> walletMnemonic =
-        ffiBridgePrebuilt.wallet_lib.TWHDWalletMnemonic(wallet);
-    // TODO: fix this casting ( fix in wallet-core to return the correct type )
-    Pointer<Utf8> mnemonic = ffiBridgePrebuilt.wallet_lib
-        .TWStringUTF8Bytes(walletMnemonic) as Pointer<Utf8>;
-    String mnemonicStr = mnemonic.toDartString();
-    return mnemonicStr.split(' ');
+  // Take in a created wallet and return the mnemonic
+  Future<List<String>> getRecoveryPhrase(HDWallet wallet) async {
+    return wallet.mnemonic().split(' ');
   }
+
+  Future<void> saveWallet(Wallet wallet) async =>
+      await _secureStorage.saveWallet(wallet);
 }

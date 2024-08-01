@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
@@ -96,8 +97,8 @@ final geniusWalletRouter = GoRouter(
                 providers: [
                   BlocProvider(
                     create: (context) => NewWalletBloc(
-                      api: context.read<GeniusApi>(),
-                    ),
+                        api: context.read<GeniusApi>(),
+                        wallet: context.read<GeniusApi>().createNewWallet()),
                   ),
                   BlocProvider(
                     create: (context) => NewPinCubit(

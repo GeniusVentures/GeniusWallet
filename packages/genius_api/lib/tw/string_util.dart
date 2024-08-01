@@ -1,9 +1,8 @@
-// part of 'package:genius_api/src/genius_api.dart';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 
-class TWStringImpl {
+class StringUtil {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   /// It must be deleted at the end.

@@ -175,7 +175,6 @@ class _InputAndWords extends StatelessWidget {
         ),
         RecoveryWords(
             recoveryWords: context.read<NewWalletBloc>().state.shuffledWords,
-            inputEnabled: true,
             isIncludeIndex: false),
       ],
     );

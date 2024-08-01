@@ -3,32 +3,32 @@ import 'dart:typed_data';
 
 import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
-import 'package:genius_api/impl/tw_mnemonic_impl.dart';
-import 'package:genius_api/impl/tw_string_impl.dart';
+import 'package:genius_api/tw/mnemonic_impl.dart';
+import 'package:genius_api/tw/string_util.dart';
 
-class TWHDWalletImpl {
+class HDWalletImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   static Pointer<Void> create({int strength = 128, String passphrase = ""}) {
     assert(strength >= 128 && strength <= 256 && strength % 32 == 0);
-    final passphraseTWString = TWStringImpl.toTWString(passphrase);
+    final passphraseTWString = StringUtil.toTWString(passphrase);
     final wallet = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletCreate(strength, passphraseTWString.cast());
-    TWStringImpl.delete(passphraseTWString);
+    StringUtil.delete(passphraseTWString);
     return wallet.cast();
   }
 
   static Pointer<Void> createWithMnemonic(String mnemonic,
       {String passphrase = ""}) {
-    if (!TWMnemonicImpl.isValid(mnemonic)) {
+    if (!MnemonicImpl.isValid(mnemonic)) {
       throw Exception(["mnemonic is invalid"]);
     }
-    final passphraseTWString = TWStringImpl.toTWString(passphrase);
-    final mnemonicTWString = TWStringImpl.toTWString(mnemonic);
+    final passphraseTWString = StringUtil.toTWString(passphrase);
+    final mnemonicTWString = StringUtil.toTWString(mnemonic);
     final wallet = ffiBridgePrebuilt.wallet_lib.TWHDWalletCreateWithMnemonic(
         mnemonicTWString.cast(), passphraseTWString.cast());
-    TWStringImpl.delete(passphraseTWString);
-    TWStringImpl.delete(mnemonicTWString);
+    StringUtil.delete(passphraseTWString);
+    StringUtil.delete(mnemonicTWString);
     return wallet.cast();
   }
 
@@ -36,10 +36,10 @@ class TWHDWalletImpl {
       {String passphrase = ""}) {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(bytes.toPointerUint8(), bytes.length);
-    final passphraseTWString = TWStringImpl.toTWString(passphrase);
+    final passphraseTWString = StringUtil.toTWString(passphrase);
     final wallet = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletCreateWithEntropy(data, passphraseTWString.cast());
-    TWStringImpl.delete(passphraseTWString);
+    StringUtil.delete(passphraseTWString);
     ffiBridgePrebuilt.wallet_lib.TWDataDelete(data);
     return wallet.cast();
   }
@@ -48,7 +48,7 @@ class TWHDWalletImpl {
     final address = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletGetAddressForCoin(wallet.cast(), coinType);
 
-    return TWStringImpl.toDartString(address.cast());
+    return StringUtil.toDartString(address.cast());
   }
 
   static Pointer<Void> getDerivedKey(
@@ -79,12 +79,12 @@ class TWHDWalletImpl {
 
   static Pointer<Void> getKey(
       Pointer<Void> wallet, int coin, String derivationPath) {
-    final twDerivationPath = TWStringImpl.toTWString(derivationPath);
+    final twDerivationPath = StringUtil.toTWString(derivationPath);
 
     final Pointer<Void> privateKey = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletGetKey(wallet.cast(), coin, twDerivationPath.cast())
         .cast();
-    TWStringImpl.delete(twDerivationPath);
+    StringUtil.delete(twDerivationPath);
     return privateKey;
   }
 
@@ -96,7 +96,7 @@ class TWHDWalletImpl {
   }
 
   static String mnemonic(Pointer<Void> wallet) {
-    return TWStringImpl.toDartString(
+    return StringUtil.toDartString(
         ffiBridgePrebuilt.wallet_lib.TWHDWalletMnemonic(wallet.cast()).cast());
   }
 
@@ -106,6 +106,6 @@ class TWHDWalletImpl {
         .TWHDWalletGetExtendedPublicKey(
             wallet.cast(), purpose, coinType, twHdVersion);
 
-    return TWStringImpl.toDartString(publicKey.cast());
+    return StringUtil.toDartString(publicKey.cast());
   }
 }

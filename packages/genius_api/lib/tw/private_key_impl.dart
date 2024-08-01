@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 
-class TWPrivateKeyImpl {
+class PrivateKeyImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
   static Pointer<Void> create() {
     return ffiBridgePrebuilt.wallet_lib.TWPrivateKeyCreate().cast();

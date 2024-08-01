@@ -1,21 +1,22 @@
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/tw/hd_wallet.dart';
 
 part 'new_wallet_event.dart';
 part 'new_wallet_state.dart';
 
 class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
   final GeniusApi api;
-  NewWalletBloc({
-    NewWalletState initialState = const NewWalletState(),
-    required this.api,
-  }) : super(initialState) {
+  final HDWallet wallet;
+  NewWalletBloc(
+      {NewWalletState initialState = const NewWalletState(),
+      required this.api,
+      required this.wallet})
+      : super(initialState) {
     on<LoadRecoveryPhrase>(onLoadRecoveryPhrase);
 
     on<RecoveryPhraseContinue>(_onRecoveryPhraseContinue);
@@ -35,12 +36,6 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     on<PinConfirmPassed>(_onPinConfirmPassed);
 
     on<PinConfirmFailed>(_onPinConfirmFailed);
-
-    on<CreateNewWallet>(_onCreateNewWallet);
-  }
-
-  FutureOr<void> _onCreateNewWallet(CreateNewWallet event, emit) {
-    Pointer<TWHDWallet> wallet = api.createNewWallet();
   }
 
   FutureOr<void> _onToggleCheckbox(event, emit) {
@@ -86,10 +81,9 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       LoadRecoveryPhrase event, Emitter<NewWalletState> emit) async {
     emit(state.copyWith(recoveryPhraseStatus: NewWalletStatus.loading));
 
-    Pointer<TWHDWallet> wallet = api.createNewWallet();
-
     try {
       final recoveryWords = await api.getRecoveryPhrase(wallet);
+
       emit(state.copyWith(
           recoveryPhraseStatus: NewWalletStatus.loaded,
           recoveryWords: recoveryWords));
