@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ffi';
-
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
@@ -11,6 +10,7 @@ import 'package:genius_api/models/news.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/models/wallet_stored.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:secure_storage/secure_storage.dart';
 
@@ -193,7 +193,15 @@ class GeniusApi {
       transactions: [],
     );
 
-    await _secureStorage.saveWallet(importedWallet);
+    final storedWallet = WalletStored(
+      walletName: walletName,
+      currencySymbol: walletType,
+      currencyName: walletType,
+      mnemonic: "123",
+      address: random.toString(),
+    );
+
+    await _secureStorage.saveWallet(storedWallet);
 
     return importedWallet;
   }
@@ -349,6 +357,30 @@ class GeniusApi {
     return wallet.mnemonic().split(' ');
   }
 
-  Future<void> saveWallet(Wallet wallet) async =>
-      await _secureStorage.saveWallet(wallet);
+  // TODO: should we save the wallet in local storage encrypted with the users password/pin?
+  // Will save the mnemonic of the wallet for now.
+
+  // TODO: matt - pass in the real wallet
+  Future<void> saveWallet(HDWallet? wallet) async {
+    HDWallet wallet = HDWallet.createWithMnemonic(
+        "post noise disagree grape skirt swallow imitate token math ivory produce mass");
+    String mnemonic = wallet.mnemonic();
+    // TODO: how many coin addresses do we want to save / support, for now just ETH
+    // maybe allow users to add new networks through the UI?
+    String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
+
+    final walletStored = WalletStored(
+        walletName:
+            "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}",
+        currencySymbol: ffiBridgePrebuilt.wallet_lib
+            .TWCoinTypeConfigurationGetSymbol(TWCoinType.TWCoinTypeEthereum)
+            .cast<Utf8>()
+            .toDartString(),
+        currencyName: "Ethereum",
+        mnemonic: mnemonic,
+        address: ethAddress);
+    print(mnemonic);
+    print(walletStored.toString());
+    await _secureStorage.saveWallet(walletStored);
+  }
 }

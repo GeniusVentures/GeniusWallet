@@ -30,18 +30,18 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
           /// TODO: probably want to create the wallet step-by-step once the API is available
           final random = Random();
           final uuid = random.nextInt(99999999);
-          context.read<NewWalletBloc>().add(
-                AddWallet(
-                  wallet: Wallet(
-                    walletName: 'dummy_wallet',
-                    currencySymbol: 'ETH',
-                    currencyName: 'Ethereum',
-                    address: uuid.toString(),
-                    balance: 0,
-                    transactions: [],
-                  ),
-                ),
-              );
+          // context.read<NewWalletBloc>().add(
+          //       AddWallet(
+          //         wallet: Wallet(
+          //           walletName: 'dummy_wallet',
+          //           currencySymbol: 'ETH',
+          //           currencyName: 'Ethereum',
+          //           address: uuid.toString(),
+          //           balance: 0,
+          //           transactions: [],
+          //         ),
+          //       ),
+          //     );
 
           context.flow<NewWalletState>().complete();
         } else if (state.verificationStatus == VerificationStatus.failed) {

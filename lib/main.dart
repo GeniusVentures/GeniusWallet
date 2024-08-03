@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp.router(
-          title: 'Flutter Demo',
+          title: 'Gnus AI',
           theme: ThemeData(
             textButtonTheme: const TextButtonThemeData(
                 style: ButtonStyle(

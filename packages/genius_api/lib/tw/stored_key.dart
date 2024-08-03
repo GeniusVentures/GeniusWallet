@@ -56,8 +56,8 @@ class StoredKey {
   }
 
   static StoredKey? importJson(String json) {
-    final _j = Uint8List.fromList(json.codeUnits);
-    final pointer = StoredKeyImpl.importJson(_j);
+    final codeUnits = Uint8List.fromList(json.codeUnits);
+    final pointer = StoredKeyImpl.importJson(codeUnits);
     if (pointer == null) {
       return null;
     }
@@ -102,9 +102,9 @@ class StoredKey {
   }
 
   void addAccount(String address, int coin, String derivationPath,
-      String publicKey, String extetndedPublicKey) {
+      String publicKey, String extendedPublicKey) {
     StoredKeyImpl.addAccount(nativehandle, address, coin, derivationPath,
-        publicKey, extetndedPublicKey);
+        publicKey, extendedPublicKey);
   }
 
   bool store(String path) {
