@@ -64,6 +64,7 @@ class Desktop extends StatelessWidget {
                       }
                       return WalletModule(
                         constraints,
+                        walletAddress: wallet.address,
                         ovrCoinName: wallet.currencyName,
                         ovrCoinSymbol: wallet.currencySymbol,
                         ovrWalletBalance: wallet.balance.toString(),
@@ -193,6 +194,7 @@ class Mobile extends StatelessWidget {
                                 }
                                 return WalletModule(
                                   constraints,
+                                  walletAddress: currentWallet.address,
                                   ovrCoinName: currentWallet.currencyName,
                                   ovrCoinSymbol: currentWallet.currencySymbol,
                                   ovrWalletBalance:

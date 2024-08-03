@@ -66,4 +66,6 @@ class GeniusWalletColors {
   static const Color btnCopyBorder = Color.fromRGBO(255, 255, 255, 0.30);
 
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
+
+  static const Color currencyBackground = Color(0xff0050b7);
 }

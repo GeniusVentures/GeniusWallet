@@ -12,6 +12,7 @@ import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/models/wallet_stored.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
+import 'package:genius_api/tw/string_util.dart';
 import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
@@ -19,55 +20,15 @@ class GeniusApi {
   final FFIBridgePrebuilt ffiBridgePrebuilt;
 
   /// Returns a [Stream] of the wallets that the device has saved.
-  Stream<List<Wallet>> getWallets() =>
-      _secureStorage.walletsController.asBroadcastStream();
+  Stream<List<Wallet>> getWallets() {
+    return _secureStorage.walletsController.asBroadcastStream();
+  }
 
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt() {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
-  }
-
-  Future<List<Transaction>> getTransactionsFor(String address) async {
-    //TODO: Implement getting these from Genius API
-    return [
-      Transaction(
-        hash:
-            '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
-        fromAddress: '0x0',
-        toAddress: '0x1',
-        timeStamp: '13:26, 10 oct 2022',
-        transactionDirection: TransactionDirection.sent,
-        amount: '0.0002',
-        fees: '',
-        coinSymbol: 'ETH',
-        transactionStatus: TransactionStatus.pending,
-      ),
-      Transaction(
-          hash:
-              '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
-          fromAddress: '0x2',
-          toAddress: '0x0',
-          timeStamp: '15:20, 09 oct 2022',
-          transactionDirection: TransactionDirection.received,
-          amount: '0.0003',
-          fees: '',
-          coinSymbol: 'ETH',
-          transactionStatus: TransactionStatus.cancelled),
-      Transaction(
-        hash:
-            '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
-        fromAddress: '0x1',
-        toAddress: '0x0',
-        timeStamp: '15:22, 10 oct 2022',
-        transactionDirection: TransactionDirection.received,
-        amount: '0.0023',
-        fees: '0.000001',
-        coinSymbol: 'ETH',
-        transactionStatus: TransactionStatus.completed,
-      ),
-    ];
   }
 
   Future<List<Wallet>> getUserWallets(String id) async {
@@ -359,28 +320,64 @@ class GeniusApi {
 
   // TODO: should we save the wallet in local storage encrypted with the users password/pin?
   // Will save the mnemonic of the wallet for now.
-
-  // TODO: matt - pass in the real wallet
-  Future<void> saveWallet(HDWallet? wallet) async {
-    HDWallet wallet = HDWallet.createWithMnemonic(
-        "post noise disagree grape skirt swallow imitate token math ivory produce mass");
+  // TODO: how many coin addresses do we want to save / support, for now just ETH
+  // maybe allow users to add new networks through the UI?
+  // TODO: add support for multiple currencies in a single wallet
+  //       convert currenty symbol, currency name, address to a list
+  Future<void> saveWallet(HDWallet wallet) async {
     String mnemonic = wallet.mnemonic();
-    // TODO: how many coin addresses do we want to save / support, for now just ETH
-    // maybe allow users to add new networks through the UI?
     String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
+    String currencySymbol = StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
+        .TWCoinTypeConfigurationGetSymbol(TWCoinType.TWCoinTypeEthereum)
+        .cast());
 
     final walletStored = WalletStored(
         walletName:
             "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}",
-        currencySymbol: ffiBridgePrebuilt.wallet_lib
-            .TWCoinTypeConfigurationGetSymbol(TWCoinType.TWCoinTypeEthereum)
-            .cast<Utf8>()
-            .toDartString(),
+        currencySymbol: currencySymbol,
         currencyName: "Ethereum",
         mnemonic: mnemonic,
         address: ethAddress);
-    print(mnemonic);
-    print(walletStored.toString());
     await _secureStorage.saveWallet(walletStored);
+  }
+
+  Future<List<Transaction>> getTransactionsFor(String address) async {
+    return [
+      Transaction(
+        hash:
+            '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
+        fromAddress: '0x0',
+        toAddress: '0x1',
+        timeStamp: '13:26, 10 oct 2022',
+        transactionDirection: TransactionDirection.sent,
+        amount: '0.0002',
+        fees: '',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.pending,
+      ),
+      Transaction(
+          hash:
+              '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
+          fromAddress: '0x2',
+          toAddress: '0x0',
+          timeStamp: '15:20, 09 oct 2022',
+          transactionDirection: TransactionDirection.received,
+          amount: '0.0003',
+          fees: '',
+          coinSymbol: 'ETH',
+          transactionStatus: TransactionStatus.cancelled),
+      Transaction(
+        hash:
+            '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
+        fromAddress: '0x1',
+        toAddress: '0x0',
+        timeStamp: '15:22, 10 oct 2022',
+        transactionDirection: TransactionDirection.received,
+        amount: '0.0023',
+        fees: '0.000001',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.completed,
+      ),
+    ];
   }
 }

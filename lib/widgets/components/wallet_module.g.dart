@@ -18,18 +18,19 @@ class WalletModule extends StatefulWidget {
   final String? ovrTimestamp;
   final Widget? ovrTrendLine;
   final String? ovrCoinSymbol;
-  const WalletModule(
-    this.constraints, {
-    Key? key,
-    this.ovrCoinImage,
-    this.ovrWalletBalance,
-    this.ovrCoinName,
-    this.ovrLastTransactionID,
-    this.ovrLastTransactionValue,
-    this.ovrTimestamp,
-    this.ovrTrendLine,
-    this.ovrCoinSymbol,
-  }) : super(key: key);
+  final String? walletAddress;
+  const WalletModule(this.constraints,
+      {Key? key,
+      this.ovrCoinImage,
+      this.ovrWalletBalance,
+      this.ovrCoinName,
+      this.ovrLastTransactionID,
+      this.ovrLastTransactionValue,
+      this.ovrTimestamp,
+      this.ovrTrendLine,
+      this.ovrCoinSymbol,
+      this.walletAddress})
+      : super(key: key);
   @override
   _WalletModule createState() => _WalletModule();
 }
@@ -128,8 +129,8 @@ class _WalletModule extends State<WalletModule> {
           Positioned(
             left: 20.0,
             right: 20.0,
-            bottom: 22.0,
-            height: 72.0,
+            bottom: 0,
+            height: 100.0,
             child: Container(
                 decoration: BoxDecoration(),
                 child: Stack(children: [
@@ -185,6 +186,23 @@ class _WalletModule extends State<WalletModule> {
                         width: widget.constraints.maxWidth * 0.7877813504823151,
                         child: AutoSizeText(
                           widget.ovrLastTransactionID ??
+                              '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.30000001192092896,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                  Positioned(
+                    top: 85.0,
+                    child: Container(
+                        width: widget.constraints.maxWidth * 0.7877813504823151,
+                        child: AutoSizeText(
+                          widget.walletAddress ??
                               '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
                           style: TextStyle(
                             fontFamily: 'Roboto',

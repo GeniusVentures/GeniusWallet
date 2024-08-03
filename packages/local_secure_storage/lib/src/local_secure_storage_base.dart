@@ -31,11 +31,9 @@ class LocalWalletStorage extends SecureStorage {
           List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr));
 
       final storedWallets = walletsMap.map(WalletStored.fromJson).toList();
-      final wallets = storedWallets
+      List<Wallet> wallets = storedWallets
           .map((storedWallet) => mapStoredWalletToWallet(storedWallet))
           .toList();
-
-      print(wallets.toString());
 
       // only load non sensitive data into the controller for the app
       localWalletStorage.walletsController.add(wallets);
@@ -44,30 +42,43 @@ class LocalWalletStorage extends SecureStorage {
     return localWalletStorage;
   }
 
-  // TODO:  matt - fix delete... delete from controller but also from storage
   @override
   Future<void> deleteWallet(String walletAddress) async {
-    // final currentWallets = [...walletsController.value];
+    final currentWallets = [...walletsController.value];
 
-    // currentWallets.removeWhere((element) => element.address == walletAddress);
+    currentWallets.removeWhere((element) => element.address == walletAddress);
 
-    // walletsController.add(currentWallets);
+    final walletJsonStr = await _secureStorage.read(key: _walletCollectionKey);
 
-    // await _secureStorage.write(
-    //     key: _walletCollectionKey, value: json.encode(currentWallets));
+    if (walletJsonStr == null) {
+      return;
+    }
+
+    walletsController.add(currentWallets);
+
+    final walletsMap =
+        List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr));
+
+    List<WalletStored> storedWallets =
+        walletsMap.map(WalletStored.fromJson).toList();
+
+    storedWallets.removeWhere((element) => element.address == walletAddress);
+
+    await _secureStorage.write(
+        key: _walletCollectionKey, value: json.encode(storedWallets));
   }
 
   @override
   Future<void> saveWallet(WalletStored wallet) async {
-    final currentWallets = [...walletsController.value];
+    final isExistingWallet = walletsController.value
+            .indexWhere((element) => element.address == wallet.address) >=
+        0;
 
-    final index = currentWallets
-        .indexWhere((element) => element.address == wallet.address);
-
-    // wallet already exists.. return ( TODO: maybe show error / warning )
-    if (index >= 0) {
-      return;
+    if (isExistingWallet) {
+      await deleteWallet(wallet.address);
     }
+
+    final currentWallets = [...walletsController.value];
 
     currentWallets.add(mapStoredWalletToWallet(wallet));
 

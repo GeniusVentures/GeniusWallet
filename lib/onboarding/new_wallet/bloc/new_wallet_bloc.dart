@@ -17,7 +17,6 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       required this.api,
       required this.wallet})
       : super(initialState) {
-    api.saveWallet(null);
     on<LoadRecoveryPhrase>(onLoadRecoveryPhrase);
 
     on<RecoveryPhraseContinue>(_onRecoveryPhraseContinue);

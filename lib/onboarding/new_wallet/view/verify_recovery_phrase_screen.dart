@@ -27,21 +27,10 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
     return BlocListener<NewWalletBloc, NewWalletState>(
       listener: (context, state) {
         if (state.verificationStatus == VerificationStatus.passed) {
-          /// TODO: probably want to create the wallet step-by-step once the API is available
-          final random = Random();
-          final uuid = random.nextInt(99999999);
-          // context.read<NewWalletBloc>().add(
-          //       AddWallet(
-          //         wallet: Wallet(
-          //           walletName: 'dummy_wallet',
-          //           currencySymbol: 'ETH',
-          //           currencyName: 'Ethereum',
-          //           address: uuid.toString(),
-          //           balance: 0,
-          //           transactions: [],
-          //         ),
-          //       ),
-          //     );
+          final newWalletBloc = context.read<NewWalletBloc>();
+          newWalletBloc.add(
+            AddWallet(wallet: newWalletBloc.wallet),
+          );
 
           context.flow<NewWalletState>().complete();
         } else if (state.verificationStatus == VerificationStatus.failed) {

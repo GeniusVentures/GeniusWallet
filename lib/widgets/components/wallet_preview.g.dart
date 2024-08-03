@@ -15,14 +15,15 @@ class WalletPreview extends StatefulWidget {
   final String? ovrWalletBalance;
   final Widget? ovrCoinIcon;
   final String? ovrCoinSymbol;
-  const WalletPreview(
-    this.constraints, {
-    Key? key,
-    this.ovrCoinType,
-    this.ovrWalletBalance,
-    this.ovrCoinIcon,
-    this.ovrCoinSymbol,
-  }) : super(key: key);
+  final String? walletName;
+  const WalletPreview(this.constraints,
+      {Key? key,
+      this.ovrCoinType,
+      this.ovrWalletBalance,
+      this.ovrCoinIcon,
+      this.ovrCoinSymbol,
+      this.walletName = ""})
+      : super(key: key);
   @override
   _WalletPreview createState() => _WalletPreview();
 }
@@ -61,12 +62,12 @@ class _WalletPreview extends State<WalletPreview> {
                 width: 73.0,
                 bottom: 13.0,
                 height: 19.0,
-                child: Container(
+                child: SizedBox(
                     height: 19.0,
                     width: 73.0,
                     child: AutoSizeText(
-                      widget.ovrCoinType ?? 'Bitcoin',
-                      style: TextStyle(
+                      widget.walletName ?? "",
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 16.0,
                         fontWeight: FontWeight.w300,
@@ -81,12 +82,12 @@ class _WalletPreview extends State<WalletPreview> {
                 width: 102.0,
                 bottom: 12.0,
                 height: 28.0,
-                child: Container(
+                child: SizedBox(
                     height: 28.0,
                     width: 102.0,
                     child: AutoSizeText(
                       widget.ovrWalletBalance ?? '0.221746',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 24.0,
                         fontWeight: FontWeight.w300,
@@ -101,47 +102,29 @@ class _WalletPreview extends State<WalletPreview> {
                 width: 35.0,
                 top: 9.0,
                 height: 35.0,
-                child: Container(
-                    decoration: BoxDecoration(),
+                child: SizedBox(
                     child: Stack(children: [
-                      Positioned(
-                        right: 0,
-                        width: 35.0,
-                        top: 0,
-                        height: 35.0,
-                        child: Container(
-                          height: 35.0,
-                          width: 35.0,
-                          decoration: const BoxDecoration(
-                            color: Color(0xff0050b7),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(2.0)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x2dffffff),
-                                spreadRadius: 0.0,
-                                blurRadius: 0.0,
-                                offset: Offset(0.0, 2.0),
-                              ),
-                            ],
-                          ),
-                        ),
+                  Positioned(
+                    right: 0,
+                    width: 35.0,
+                    top: 0,
+                    height: 35.0,
+                    child: Container(
+                      height: 35.0,
+                      width: 35.0,
+                      decoration: const BoxDecoration(
+                        color: GeniusWalletColors.currencyBackground,
+                        borderRadius: BorderRadius.all(Radius.circular(2.0)),
                       ),
-                      Positioned(
-                        left: 8.922,
-                        width: 16.484,
-                        top: 7.656,
-                        height: 21.82,
-                        child: widget.ovrCoinIcon ??
-                            Image.asset(
-                              'assets/images/coinicon.png',
-                              package: 'genius_wallet',
-                              height: 21.820068359375,
-                              width: 16.484375,
-                              fit: BoxFit.none,
-                            ),
-                      ),
-                    ])),
+                    ),
+                  ),
+                  Positioned(
+                      left: 8.922,
+                      width: 16.484,
+                      top: 7.656,
+                      height: 21.82,
+                      child: widget.ovrCoinIcon ?? const SizedBox()),
+                ])),
               ),
               Positioned(
                 left: 12.0,
