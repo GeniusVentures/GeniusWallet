@@ -84,17 +84,16 @@ class LocalWalletStorage extends SecureStorage {
 
     final walletJsonStr = await _secureStorage.read(key: _walletCollectionKey);
 
-    if (walletJsonStr == null) {
-      return;
-    }
-
     walletsController.add(currentWallets);
 
-    final walletsMap =
-        List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr));
+    final walletsMap = walletJsonStr != null
+        ? List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr))
+        : null;
 
-    List<WalletStored> storedWallets =
-        walletsMap.map(WalletStored.fromJson).toList();
+    List<WalletStored> storedWallets = walletsMap != null
+        ? walletsMap.map(WalletStored.fromJson).toList()
+        : [];
+
     storedWallets.add(wallet);
 
     await _secureStorage.write(
