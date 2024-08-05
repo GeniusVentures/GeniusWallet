@@ -11,7 +11,7 @@ class HDWallet {
     nativehandle = pointer;
   }
 
-  HDWallet({int strength = 128, String passphrase = "gnusai"}) {
+  HDWallet({int strength = 128, String passphrase = ""}) {
     nativehandle =
         HDWalletImpl.create(strength: strength, passphrase: passphrase);
     if (nativehandle.hashCode == 0) {
@@ -19,7 +19,7 @@ class HDWallet {
     }
   }
 
-  HDWallet.createWithMnemonic(String mnemonic, {String passphrase = "gnusai"}) {
+  HDWallet.createWithMnemonic(String mnemonic, {String passphrase = ""}) {
     nativehandle =
         HDWalletImpl.createWithMnemonic(mnemonic, passphrase: passphrase);
     if (nativehandle.hashCode == 0) {
@@ -27,7 +27,7 @@ class HDWallet {
     }
   }
 
-  HDWallet.createWithData(Uint8List bytes, {String passphrase = "gnusai"}) {
+  HDWallet.createWithData(Uint8List bytes, {String passphrase = ""}) {
     nativehandle =
         HDWalletImpl.createWithEntropy(bytes, passphrase: passphrase);
     if (nativehandle.hashCode == 0) {
