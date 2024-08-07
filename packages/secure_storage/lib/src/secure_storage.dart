@@ -6,7 +6,6 @@ abstract class SecureStorage {
   /// [BehaviorSubject] used to stream the [List] of {}
   final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
 
-  // TODO: do not return the mnemonic here for the wallets, need to filter it out..
   Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
 
   Future<void> saveWallet(WalletStored wallet);
