@@ -28,14 +28,13 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                     onPressed: () {
                       context.push('/wallets/${currentWallet.address}');
                     },
-                    child: WalletPreview(
-                      constraints,
-                      ovrWalletBalance: currentWallet.balance.toString(),
-                      ovrCoinType: currentWallet.currencyName,
-                      ovrCoinSymbol: currentWallet.currencySymbol,
-                      ovrCoinIcon: WalletUtils.currencySymbolToImage(
-                          currentWallet.currencySymbol),
-                    ),
+                    child: WalletPreview(constraints,
+                        ovrWalletBalance: currentWallet.balance.toString(),
+                        ovrCoinType: currentWallet.currencyName,
+                        ovrCoinSymbol: currentWallet.currencySymbol,
+                        ovrCoinIcon: WalletUtils.currencySymbolToImage(
+                            currentWallet.currencySymbol),
+                        walletName: currentWallet.walletName),
                   );
                 }),
               );

@@ -41,11 +41,12 @@ class RecoveryWordButton extends StatefulWidget {
   final bool isIncludeIndex;
   final int index;
   final String value;
-  const RecoveryWordButton(
-      {super.key,
-      required this.index,
-      required this.value,
-      required this.isIncludeIndex});
+  const RecoveryWordButton({
+    super.key,
+    required this.index,
+    required this.value,
+    required this.isIncludeIndex,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -62,8 +63,19 @@ class _RecoveryWordButton extends State<RecoveryWordButton> {
     });
   }
 
+  void enable() {
+    setState(() {
+      isEnabled = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (context.read<NewWalletBloc>().state.verificationStatus ==
+        VerificationStatus.failed) {
+      enable();
+    }
+
     return MaterialButton(
       onPressed: isEnabled
           ? () {

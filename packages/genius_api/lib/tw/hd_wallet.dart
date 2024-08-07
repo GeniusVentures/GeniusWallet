@@ -11,7 +11,7 @@ class HDWallet {
     nativehandle = pointer;
   }
 
-  HDWallet({int strength = 128, String passphrase = "gnusai"}) {
+  HDWallet({int strength = 128, String passphrase = ""}) {
     nativehandle =
         HDWalletImpl.create(strength: strength, passphrase: passphrase);
     if (nativehandle.hashCode == 0) {
@@ -55,7 +55,7 @@ class HDWallet {
     return PrivateKey.pointer(pointer);
   }
 
-  PrivateKey getMaterKey(int curve) {
+  PrivateKey getMasterKey(int curve) {
     final pointer = HDWalletImpl.getMasterKey(nativehandle, curve);
     return PrivateKey.pointer(pointer);
   }

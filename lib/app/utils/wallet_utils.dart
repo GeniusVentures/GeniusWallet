@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/wallet.dart';
+
+final symbolImageMap = {
+  'ETH': Image.asset(
+    'assets/images/ethereum_icon.png',
+    package: 'genius_wallet',
+  ),
+  'BTC': Image.asset(
+    'assets/images/bitcoin_icon.png',
+    package: 'genius_wallet',
+  ),
+  null: const SizedBox()
+};
 
 class WalletUtils {
   /// Iterates [wallets] and returns the number of transactions as an [int].
@@ -34,20 +45,7 @@ class WalletUtils {
   /// ```
   /// currencySymbolToImage('ETH') -> Image.asset('path/to/ETH.png')
   /// ```
-  static Widget currencySymbolToImage(String symbol) {
-    switch (symbol) {
-      case 'ETH':
-        return Image.asset(
-          'assets/images/ethereum_icon.png',
-          package: 'genius_wallet',
-        );
-      case 'BTC':
-        return Image.asset(
-          'assets/images/bitcoin_icon.png',
-          package: 'genius_wallet',
-        );
-      default:
-        return const SizedBox();
-    }
+  static Widget? currencySymbolToImage(String symbol) {
+    return symbolImageMap[symbol.trim()];
   }
 }

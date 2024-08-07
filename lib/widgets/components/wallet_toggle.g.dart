@@ -1,12 +1,6 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/coin_toggle_custom.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class WalletToggle extends StatefulWidget {
@@ -56,7 +50,7 @@ class _WalletToggle extends State<WalletToggle> {
                   width: 35.0,
                   padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(
-                    color: Color(0xfff2921b),
+                    color: GeniusWalletColors.currencyBackground,
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
                   ),
                   child: widget.ovrShape ??
