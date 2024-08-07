@@ -23,8 +23,8 @@ class PublicKey {
         .cast();
   }
 
-  static bool isValid(Uint8List data, int publivKeyType) {
-    return PublicKeyImpl.isValid(data, publivKeyType);
+  static bool isValid(Uint8List data, int publicKeyType) {
+    return PublicKeyImpl.isValid(data, publicKeyType);
   }
 
   Uint8List data() {

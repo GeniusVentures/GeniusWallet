@@ -20,7 +20,7 @@ class RecoveryVerificationContinue extends NewWalletEvent {}
 class ToggleCheckbox extends NewWalletEvent {}
 
 class AddWallet extends NewWalletEvent {
-  final Wallet wallet;
+  final HDWallet wallet;
 
   AddWallet({required this.wallet});
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/wallet_stored.dart';
 import 'package:secure_storage/secure_storage.dart';
 
 class LocalWalletStorage extends SecureStorage {
@@ -29,8 +30,12 @@ class LocalWalletStorage extends SecureStorage {
       final walletsMap =
           List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr));
 
-      final wallets = walletsMap.map(Wallet.fromJson).toList();
+      final storedWallets = walletsMap.map(WalletStored.fromJson).toList();
+      List<Wallet> wallets = storedWallets
+          .map((storedWallet) => mapStoredWalletToWallet(storedWallet))
+          .toList();
 
+      // only load non sensitive data into the controller for the app
       localWalletStorage.walletsController.add(wallets);
     }
 
@@ -43,28 +48,56 @@ class LocalWalletStorage extends SecureStorage {
 
     currentWallets.removeWhere((element) => element.address == walletAddress);
 
-    walletsController.add(currentWallets);
+    final walletJsonStr = await _secureStorage.read(key: _walletCollectionKey);
 
-    await _secureStorage.write(
-        key: _walletCollectionKey, value: json.encode(currentWallets));
-  }
-
-  @override
-  Future<void> saveWallet(Wallet wallet) async {
-    final currentWallets = [...walletsController.value];
-
-    final index = currentWallets
-        .indexWhere((element) => element.address == wallet.address);
-
-    if (index >= 0) {
-      currentWallets[index] = wallet;
-    } else {
-      currentWallets.add(wallet);
+    if (walletJsonStr == null) {
+      return;
     }
 
     walletsController.add(currentWallets);
+
+    final walletsMap =
+        List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr));
+
+    List<WalletStored> storedWallets =
+        walletsMap.map(WalletStored.fromJson).toList();
+
+    storedWallets.removeWhere((element) => element.address == walletAddress);
+
     await _secureStorage.write(
-        key: _walletCollectionKey, value: json.encode(currentWallets));
+        key: _walletCollectionKey, value: json.encode(storedWallets));
+  }
+
+  @override
+  Future<void> saveWallet(WalletStored wallet) async {
+    final isExistingWallet = walletsController.value
+            .indexWhere((element) => element.address == wallet.address) >=
+        0;
+
+    if (isExistingWallet) {
+      await deleteWallet(wallet.address);
+    }
+
+    final currentWallets = [...walletsController.value];
+
+    currentWallets.add(mapStoredWalletToWallet(wallet));
+
+    final walletJsonStr = await _secureStorage.read(key: _walletCollectionKey);
+
+    walletsController.add(currentWallets);
+
+    final walletsMap = walletJsonStr != null
+        ? List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr))
+        : null;
+
+    List<WalletStored> storedWallets = walletsMap != null
+        ? walletsMap.map(WalletStored.fromJson).toList()
+        : [];
+
+    storedWallets.add(wallet);
+
+    await _secureStorage.write(
+        key: _walletCollectionKey, value: json.encode(storedWallets));
   }
 
   @override
@@ -91,4 +124,14 @@ class LocalWalletStorage extends SecureStorage {
       return false;
     }
   }
+}
+
+Wallet mapStoredWalletToWallet(WalletStored wallet) {
+  return Wallet(
+      walletName: wallet.walletName,
+      currencySymbol: wallet.currencySymbol,
+      currencyName: wallet.currencyName,
+      balance: 0,
+      address: wallet.address,
+      transactions: []);
 }

@@ -5,7 +5,7 @@ import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart' as ffi;
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/private_key_impl.dart';
-import 'package:genius_api/tw/tw_public_key.dart';
+import 'package:genius_api/tw/public_key.dart';
 
 class PrivateKey {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
@@ -52,7 +52,7 @@ class PrivateKey {
         .asTypedList(ffiBridgePrebuilt.wallet_lib.TWDataSize(data));
   }
 
-  TWPublicKey getTWPublicKey(int curve, [bool compressed = false]) {
+  PublicKey getTWPublicKey(int curve, [bool compressed = false]) {
     switch (curve) {
       case ffi.TWCurve.TWCurveSECP256k1:
         return getTWPublicKeySecp256k1(compressed);
@@ -71,46 +71,46 @@ class PrivateKey {
     }
   }
 
-  TWPublicKey getTWPublicKeySecp256k1(bool compressed) {
+  PublicKey getTWPublicKeySecp256k1(bool compressed) {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetPublicKeySecp256k1(nativehandle.cast(), compressed);
-    return TWPublicKey(data.cast());
+    return PublicKey(data.cast());
   }
 
-  TWPublicKey getTWPublicKeyNist256p1() {
+  PublicKey getTWPublicKeyNist256p1() {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetPublicKeyNist256p1(nativehandle.cast());
-    return TWPublicKey(data.cast());
+    return PublicKey(data.cast());
   }
 
-  TWPublicKey getTWPublicKeyNistEd25519() {
+  PublicKey getTWPublicKeyNistEd25519() {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetPublicKeyEd25519(nativehandle.cast());
-    return TWPublicKey(data.cast());
+    return PublicKey(data.cast());
   }
 
-  TWPublicKey getTWPublicKeyNistEd25519Blake2b() {
+  PublicKey getTWPublicKeyNistEd25519Blake2b() {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetPublicKeyEd25519Blake2b(nativehandle.cast());
-    return TWPublicKey(data.cast());
+    return PublicKey(data.cast());
   }
 
-  TWPublicKey getTWPublicKeyEd25519Cardano() {
+  PublicKey getTWPublicKeyEd25519Cardano() {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetPublicKeyEd25519Cardano(nativehandle.cast());
-    return TWPublicKey(data.cast());
+    return PublicKey(data.cast());
   }
 
-  TWPublicKey getTWPublicKeyCurve25519() {
+  PublicKey getTWPublicKeyCurve25519() {
     final data = ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetPublicKeyCurve25519(nativehandle.cast());
-    return TWPublicKey(data.cast());
+    return PublicKey(data.cast());
   }
 
-  TWPublicKey getShareKey(TWPublicKey twPublicKey, int curve) {
+  PublicKey getShareKey(PublicKey twPublicKey, int curve) {
     final data =
         PrivateKeyImpl.getShareKey(nativehandle, twPublicKey.pointer, curve);
-    return TWPublicKey(data);
+    return PublicKey(data);
   }
 
   Uint8List sign(Uint8List digest, int curve) {
