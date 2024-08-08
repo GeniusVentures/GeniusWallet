@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
@@ -10,6 +11,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
+import 'package:go_router/go_router.dart';
 
 class WalletDetailsScreen extends StatelessWidget {
   const WalletDetailsScreen({Key? key}) : super(key: key);
@@ -177,6 +179,27 @@ class Mobile extends StatelessWidget {
                       },
                     ),
                   ),
+                  const SizedBox(height: 18),
+                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    MaterialButton(
+                      padding: const EdgeInsets.only(
+                          left: 24, top: 12, bottom: 12, right: 24),
+                      color: Colors.red,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(
+                              GeniusWalletConsts.borderRadiusButton))),
+                      onPressed: () {
+                        context
+                            .read<GeniusApi>()
+                            .deleteWallet(selectedWallet.address);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                'Wallet ${selectedWallet.walletName} deleted!')));
+                        context.go('/dashboard');
+                      },
+                      child: const Text("Delete Wallet"),
+                    )
+                  ])
                 ],
               ),
             ),

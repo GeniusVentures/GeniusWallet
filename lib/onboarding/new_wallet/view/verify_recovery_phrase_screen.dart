@@ -1,10 +1,6 @@
-import 'dart:math';
-
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';

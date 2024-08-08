@@ -18,7 +18,7 @@ class KeystoreTabView extends StatelessWidget {
       controller: pasteFieldController,
       hintText: 'Keystore JSON',
       additionalWidget: SizedBox(
-        height: 50,
+        height: 60,
         child: LayoutBuilder(builder: (context, constraints) {
           return TextEntryFieldWidget(
             logic: TextFormFieldLogic(

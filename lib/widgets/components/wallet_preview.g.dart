@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -59,12 +53,11 @@ class _WalletPreview extends State<WalletPreview> {
               ),
               Positioned(
                 left: 12.0,
-                width: 73.0,
                 bottom: 13.0,
                 height: 19.0,
                 child: SizedBox(
                     height: 19.0,
-                    width: 73.0,
+                    width: 100.0,
                     child: AutoSizeText(
                       widget.walletName ?? "",
                       style: const TextStyle(
@@ -98,9 +91,9 @@ class _WalletPreview extends State<WalletPreview> {
                     )),
               ),
               Positioned(
-                left: 156.0,
+                right: 16,
                 width: 35.0,
-                top: 9.0,
+                top: 12.0,
                 height: 35.0,
                 child: SizedBox(
                     child: Stack(children: [
@@ -127,7 +120,7 @@ class _WalletPreview extends State<WalletPreview> {
                 ])),
               ),
               Positioned(
-                left: 12.0,
+                left: 16.0,
                 width: 49.0,
                 top: 21.0,
                 height: 14.0,

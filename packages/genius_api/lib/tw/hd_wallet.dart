@@ -6,6 +6,7 @@ import 'package:genius_api/tw/private_key.dart';
 
 class HDWallet {
   late Pointer<Void> nativehandle;
+  String? name;
 
   HDWallet.pointer(Pointer<Void> pointer) {
     nativehandle = pointer;
@@ -75,6 +76,14 @@ class HDWallet {
   String getExtendedPublicKey(int purpose, int coinType, int twHdVersion) {
     return HDWalletImpl.getExtendedPublicKey(
         nativehandle, purpose, coinType, twHdVersion);
+  }
+
+  void setName(String name) {
+    this.name = name;
+  }
+
+  String? getName() {
+    return name;
   }
 
   Pointer<Void> getNativeHandle() {
