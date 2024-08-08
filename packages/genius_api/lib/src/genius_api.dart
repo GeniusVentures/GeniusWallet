@@ -48,9 +48,13 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt() {
-    //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
-  }
+        ffiBridgePrebuilt = FFIBridgePrebuilt()
+        {
+          String basePath = "";
+          final basePathPtr = basePath.toNativeUtf8();
+          ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
+          malloc.free(basePathPtr);
+        }
 
   Future<double> getGasFees() async {
     return .001;
