@@ -33,9 +33,13 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt() {
-    //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
-  }
+        ffiBridgePrebuilt = FFIBridgePrebuilt()
+        {
+          String basePath = "";
+          final basePathPtr = basePath.toNativeUtf8();
+          ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
+          malloc.free(basePathPtr);
+        }
 
   Future<List<Wallet>> getUserWallets(String id) async {
     await Future.delayed(Duration(seconds: 5));
