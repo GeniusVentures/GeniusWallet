@@ -31,25 +31,21 @@ set(BOOST_VERSION_2U "${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}")
 
 if(NOT DEFINED absl_DIR)
     set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
-    set(absl_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/absl")
-    find_package(absl CONFIG REQUIRED)
-    include_directories(${absl_INCLUDE_DIR})
 endif()
 
 if(NOT DEFINED utf8_range_DIR)
     set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
-    set(utf8_range_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
-    find_package(utf8_range CONFIG REQUIRED)
-    include_directories(${utf8_range_INCLUDE_DIR})
 endif()
 
 # --------------------------------------------------------
 # Set config of protobuf project
 if(NOT DEFINED Protobuf_DIR)
     set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/protobuf")
-    set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include//google/protobuf")
-    find_package(Protobuf CONFIG REQUIRED)
-    include_directories(${Protobuf_INCLUDE_DIR})
+endif()
+
+
+if(NOT DEFINED Protobuf_INCLUDE_DIR)
+    set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
 endif()
 
 set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install folder")
@@ -201,7 +197,7 @@ include_directories(${c-ares_INCLUDE_DIR})
 
 # --------------------------------------------------------
 # Set config of ipfs-lite-cpp
-set(ipfs-lite-cpp_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/cmake/ipfs-lite-cpp")
+set(ipfs-lite-cpp_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/lib/cmake/ipfs-lite-cpp")
 set(ipfs-lite-cpp_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/include")
 set(ipfs-lite-cpp_LIB_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/lib")
 set(CBOR_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/include/deps/tinycbor/src")
@@ -279,15 +275,25 @@ set(AsyncIOManager_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib")
 set(AsyncIOManager_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib/cmake/AsyncIOManager")
 find_package(AsyncIOManager CONFIG REQUIRED)
 
-# set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
-# set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
-# find_package(SuperGenius CONFIG REQUIRED)
-# include_directories(${SuperGenius_INCLUDE_DIR})
+# --------------------------------------------------------
+# Set config of gnus_upnp
+set(gnus_upnp_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/include")
+set(gnus_upnp_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/lib")
+set(gnus_upnp_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
+find_package(gnus_upnp CONFIG REQUIRED)
+include_directories(${gnus_upnp_INCLUDE_DIR})
 
-# set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
-# set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
-# find_package(GeniusSDK CONFIG REQUIRED)
-# include_directories(${GeniusSDK_INCLUDE_DIR})
+set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
+set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
+set(GeniusKDF_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/GeniusKDF/")
+find_package(GeniusKDF CONFIG REQUIRED)
+find_package(SuperGenius CONFIG REQUIRED)
+include_directories(${SuperGenius_INCLUDE_DIR})
+
+set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
+set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
+find_package(GeniusSDK CONFIG REQUIRED)
+include_directories(${GeniusSDK_INCLUDE_DIR})
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
@@ -308,24 +314,25 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     message(WARNING "LINKING")
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE(GeniusWallet
-        ${WALLET_CORE_LIBRARY}
+        #${WALLET_CORE_LIBRARY}
 
-        # sgns::GeniusSDK
+        sgns::GeniusSDK
     )
+
     target_link_libraries(GeniusWallet
-        ${WALLET_CORE_RUST_LIBRARY}
-        ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
-        protobuf::libprotobuf
-        absl::status
-        absl::statusor
-        absl::hash
-        absl::log
-        absl::cord
-        absl::raw_hash_set
-        absl::base
-        absl::strings
-        absl::synchronization
-        absl::log_internal_check_op
-        utf8_range::utf8_validity
+        #${WALLET_CORE_RUST_LIBRARY}
+        #${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
+        #protobuf::libprotobuf
+        #absl::status
+        #absl::statusor
+        #absl::hash
+        #absl::log
+        #absl::cord
+        #absl::raw_hash_set
+        #absl::base
+        #absl::strings
+        #absl::synchronization
+        #absl::log_internal_check_op
+        #utf8_range::utf8_validity
     )
 endif()
