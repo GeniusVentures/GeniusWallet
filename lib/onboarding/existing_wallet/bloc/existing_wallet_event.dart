@@ -16,7 +16,7 @@ class WalletSecurityEntered extends ExistingWalletEvent {
 
   final String walletType;
 
-  final String securityType;
+  final SecurityType securityType;
 
   final String pasteFieldText;
 

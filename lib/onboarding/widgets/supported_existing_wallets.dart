@@ -9,12 +9,12 @@ class SupportedExistingWallets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// TODO: Fetch these dynamically?
+    /// TODO: Support for other networks - fetch these dynamically?
     final supportedWallets = [
       {'name': 'Ethereum', 'image': 'assets/images/ethereum_icon.png'},
-      {'name': 'XRP', 'image': 'assets/images/xrp_icon.png'},
-      {'name': 'Stellar', 'image': 'assets/images/stellar_icon.png'},
-      {'name': 'Tron', 'image': 'assets/images/tron_icon.png'},
+      // {'name': 'XRP', 'image': 'assets/images/xrp_icon.png'},
+      // {'name': 'Stellar', 'image': 'assets/images/stellar_icon.png'},
+      // {'name': 'Tron', 'image': 'assets/images/tron_icon.png'},
     ];
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.25,

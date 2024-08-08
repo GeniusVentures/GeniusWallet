@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/security_type.dart';
 
 part 'existing_wallet_event.dart';
 part 'existing_wallet_state.dart';

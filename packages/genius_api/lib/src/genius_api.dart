@@ -13,6 +13,7 @@ import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/models/wallet_stored.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_api/tw/string_util.dart';
+import 'package:genius_api/types/security_type.dart';
 import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
@@ -132,40 +133,6 @@ class GeniusApi {
       await _secureStorage.verifyUserPin(pin);
 
   Future<bool> userExists() async => await _secureStorage.pinExists();
-
-  //TODO: solidify the wallet security options into a class once we know how this will be handled in the API.
-  Future<Wallet?> validateWalletImport({
-    required String walletName,
-    required String walletType,
-    required String securityType,
-    required String securityValue,
-    String? password,
-  }) async {
-    await Future.delayed(Duration(seconds: 5));
-
-    final random = Random().nextInt(999999);
-
-    final importedWallet = Wallet(
-      walletName: walletName,
-      currencySymbol: walletType,
-      currencyName: walletType,
-      balance: 1000,
-      address: random.toString(),
-      transactions: [],
-    );
-
-    final storedWallet = WalletStored(
-      walletName: walletName,
-      currencySymbol: walletType,
-      currencyName: walletType,
-      mnemonic: "123",
-      address: random.toString(),
-    );
-
-    await _secureStorage.saveWallet(storedWallet);
-
-    return importedWallet;
-  }
 
   String? getHRPStrideValue() {
     return ffiBridgePrebuilt.wallet_lib
@@ -330,10 +297,11 @@ class GeniusApi {
     String currencySymbol = StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
         .TWCoinTypeConfigurationGetSymbol(TWCoinType.TWCoinTypeEthereum)
         .cast());
+    String walletName = wallet.name ??
+        "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}";
 
     final walletStored = WalletStored(
-        walletName:
-            "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}",
+        walletName: walletName,
         currencySymbol: currencySymbol,
         currencyName: "Ethereum",
         mnemonic: mnemonic,
@@ -341,6 +309,7 @@ class GeniusApi {
     await _secureStorage.saveWallet(walletStored);
   }
 
+  // TODO: this still needs implemented from GNUS sdk
   Future<List<Transaction>> getTransactionsFor(String address) async {
     return [
       Transaction(
@@ -379,5 +348,46 @@ class GeniusApi {
         transactionStatus: TransactionStatus.completed,
       ),
     ];
+  }
+
+  // TODO: add other import methods (security types)
+  Future<Wallet?> validateWalletImport({
+    required String walletName,
+    required String walletType,
+    required SecurityType securityType,
+    required String securityValue,
+    String? password,
+  }) async {
+    if (!ffiBridgePrebuilt.wallet_lib
+        .TWMnemonicIsValid(StringUtil.toTWString(securityValue).cast())) {
+      return null;
+    }
+
+    HDWallet wallet =
+        HDWallet.createWithMnemonic(securityValue, passphrase: "");
+    wallet.setName(walletName);
+
+    // TODO: add support for other coin types
+    String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
+    String currencySymbol = StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
+        .TWCoinTypeConfigurationGetSymbol(TWCoinType.TWCoinTypeEthereum)
+        .cast());
+
+    final importedWallet = Wallet(
+      walletName: walletName,
+      currencySymbol: currencySymbol,
+      currencyName: "Ethereum",
+      balance: 0,
+      address: ethAddress,
+      transactions: [],
+    );
+
+    await saveWallet(wallet);
+
+    return importedWallet;
+  }
+
+  Future<void> deleteWallet(String address) async {
+    await _secureStorage.deleteWallet(address);
   }
 }

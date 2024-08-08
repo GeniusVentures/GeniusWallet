@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
@@ -67,7 +68,8 @@ class ImportSecurityScreen extends StatelessWidget {
               }
             },
             child: DefaultTabController(
-              length: 4,
+              // TODO add other methods of import .. change this to 4
+              length: 1,
               child: Form(
                 key: formKey,
                 child: LayoutBuilder(builder: (context, constraints) {
@@ -97,11 +99,11 @@ class ImportSecurityScreen extends StatelessWidget {
           BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
             builder: (context, state) {
               if (state.importWalletStatus == ExistingWalletStatus.loading) {
-                return Center(
+                return const Center(
                   child: AlertDialog(
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         CircularProgressIndicator(),
                         Text('Importing wallet'),
                       ],
@@ -249,27 +251,27 @@ class _ImportSecurityBody extends StatelessWidget {
         SizedBox(
           width: MediaQuery.of(context).size.width,
           height: 50,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            bottom: const TabBar(
-              labelPadding: EdgeInsets.all(0),
-              indicatorSize: TabBarIndicatorSize.label,
-              indicatorColor: GeniusWalletColors.lightGreenPrimary,
-              indicatorWeight: 2,
-              indicatorPadding: EdgeInsets.symmetric(vertical: 8),
-              tabs: [
-                Tab(text: 'Phrase'),
-                Tab(text: 'Keystore'),
-                Tab(text: 'Private Key'),
-                Tab(text: 'Address'),
-              ],
-            ),
+          child: const TabBar(
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorColor: GeniusWalletColors.lightGreenPrimary,
+            indicatorWeight: 2,
+            indicatorPadding: EdgeInsets.symmetric(vertical: 8),
+            labelColor: Colors.white,
+            tabAlignment: TabAlignment.start,
+            labelPadding: EdgeInsets.only(left: 22, right: 20),
+            isScrollable: true,
+            tabs: [
+              Tab(text: 'Phrase'),
+              // TODO: add support for other import methods
+              // Tab(text: 'Keystore'),
+              // Tab(text: 'Private Key'),
+              // Tab(text: 'Address'),
+            ],
           ),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
-          height: 330,
+          height: 350,
           child: TabBarView(
             children: [
               Padding(
@@ -278,26 +280,27 @@ class _ImportSecurityBody extends StatelessWidget {
                   controller: tabControllers['phrase']!['pasteField']!,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: KeystoreTabView(
-                  passwordController:
-                      tabControllers['keystore']!['passwordField']!,
-                  pasteFieldController:
-                      tabControllers['keystore']!['pasteField']!,
-                ),
-              ),
-              Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: PrivateKeyTabView(
-                    controller: tabControllers['privatekey']!['pasteField']!,
-                  )),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: AddressTabView(
-                  controller: tabControllers['address']!['pasteField']!,
-                ),
-              ),
+              // TODO: add other import types
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 10),
+              //   child: KeystoreTabView(
+              //     passwordController:
+              //         tabControllers['keystore']!['passwordField']!,
+              //     pasteFieldController:
+              //         tabControllers['keystore']!['pasteField']!,
+              //   ),
+              // ),
+              // Padding(
+              //     padding: const EdgeInsets.only(top: 10),
+              //     child: PrivateKeyTabView(
+              //       controller: tabControllers['privatekey']!['pasteField']!,
+              //     )),
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 10),
+              //   child: AddressTabView(
+              //     controller: tabControllers['address']!['pasteField']!,
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -343,7 +346,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
                       WalletSecurityEntered(
                         walletName: walletNameController.text,
                         walletType: walletType,
-                        securityType: selectedEntry.key,
+                        securityType: getSecurityTypeFromTab(selectedEntry.key),
                         pasteFieldText: selectedEntry.value['pasteField']!.text,
                         password: selectedEntry.value['passwordField']?.text,
                       ),
