@@ -314,25 +314,12 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     message(WARNING "LINKING")
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
-        #${WALLET_CORE_LIBRARY}
-
+        ${WALLET_CORE_LIBRARY}
         sgns::GeniusSDK
     )
 
-    target_link_libraries(GeniusWallet
-        #${WALLET_CORE_RUST_LIBRARY}
-        #${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
-        #protobuf::libprotobuf
-        #absl::status
-        #absl::statusor
-        #absl::hash
-        #absl::log
-        #absl::cord
-        #absl::raw_hash_set
-        #absl::base
-        #absl::strings
-        #absl::synchronization
-        #absl::log_internal_check_op
-        #utf8_range::utf8_validity
+    target_link_libraries(GeniusWallet PRIVATE
+        ${WALLET_CORE_RUST_LIBRARY}
+        ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
     )
 endif()
