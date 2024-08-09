@@ -44,6 +44,19 @@ class HDWalletImpl {
     return wallet.cast();
   }
 
+  // TODO: CREATE WITH PRIVATE KEY
+  // static Pointer<Void> createWithPrivateKey(String privateKey,
+  //     {String passphrase = ""}) {
+  //   final data = ffiBridgePrebuilt.wallet_lib
+  //       .TWDataCreateWithBytes(bytes.toPointerUint8(), bytes.length);
+  //   final passphraseTWString = StringUtil.toTWString(passphrase);
+  //   final wallet = ffiBridgePrebuilt.wallet_lib
+  //       .TWHDWalletCreateWithEntropy(data, passphraseTWString.cast());
+  //   StringUtil.delete(passphraseTWString);
+  //   ffiBridgePrebuilt.wallet_lib.TWDataDelete(data);
+  //   return wallet.cast();
+  // }
+
   static String getAddressForCoin(Pointer<Void> wallet, int coinType) {
     final address = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletGetAddressForCoin(wallet.cast(), coinType);

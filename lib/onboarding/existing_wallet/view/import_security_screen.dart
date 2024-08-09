@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
@@ -19,8 +20,10 @@ import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
+  final int coinType;
   const ImportSecurityScreen({
     required this.walletType,
+    required this.coinType,
     Key? key,
   }) : super(key: key);
 
@@ -69,7 +72,7 @@ class ImportSecurityScreen extends StatelessWidget {
             },
             child: DefaultTabController(
               // TODO add other methods of import .. change this to 4
-              length: 1,
+              length: 2,
               child: Form(
                 key: formKey,
                 child: LayoutBuilder(builder: (context, constraints) {
@@ -82,16 +85,17 @@ class ImportSecurityScreen extends StatelessWidget {
                         walletNameController: walletNameController,
                         tabControllers: tabControllers,
                         formKey: formKey,
-                        walletType: walletType);
+                        walletType: walletType,
+                        coinType: coinType);
                   }
                   return _ImportSecurityViewMobile(
-                    title: title,
-                    subtitle: subtitle,
-                    walletNameController: walletNameController,
-                    tabControllers: tabControllers,
-                    formKey: formKey,
-                    walletType: walletType,
-                  );
+                      title: title,
+                      subtitle: subtitle,
+                      walletNameController: walletNameController,
+                      tabControllers: tabControllers,
+                      formKey: formKey,
+                      walletType: walletType,
+                      coinType: coinType);
                 }),
               ),
             ),
@@ -123,20 +127,22 @@ class ImportSecurityScreen extends StatelessWidget {
 class _ImportSecurityViewDesktop extends StatelessWidget {
   final String title;
   final String subtitle;
-  const _ImportSecurityViewDesktop({
-    Key? key,
-    required this.title,
-    required this.subtitle,
-    required this.walletNameController,
-    required this.tabControllers,
-    required this.formKey,
-    required this.walletType,
-  }) : super(key: key);
-
   final TextEditingController walletNameController;
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final GlobalKey<FormState> formKey;
   final String walletType;
+  final int coinType;
+
+  const _ImportSecurityViewDesktop(
+      {Key? key,
+      required this.title,
+      required this.subtitle,
+      required this.walletNameController,
+      required this.tabControllers,
+      required this.formKey,
+      required this.walletType,
+      required this.coinType})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -155,11 +161,11 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
                 tabControllers: tabControllers,
               ),
               _ImportSecurityContinueButton(
-                formKey: formKey,
-                tabControllers: tabControllers,
-                walletNameController: walletNameController,
-                walletType: walletType,
-              )
+                  formKey: formKey,
+                  tabControllers: tabControllers,
+                  walletNameController: walletNameController,
+                  walletType: walletType,
+                  coinType: coinType)
             ],
           ),
         ),
@@ -175,16 +181,18 @@ class _ImportSecurityViewMobile extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final GlobalKey<FormState> formKey;
   final String walletType;
+  final int coinType;
 
-  const _ImportSecurityViewMobile({
-    Key? key,
-    required this.title,
-    required this.subtitle,
-    required this.walletNameController,
-    required this.tabControllers,
-    required this.formKey,
-    required this.walletType,
-  }) : super(key: key);
+  const _ImportSecurityViewMobile(
+      {Key? key,
+      required this.title,
+      required this.subtitle,
+      required this.walletNameController,
+      required this.tabControllers,
+      required this.formKey,
+      required this.walletType,
+      required this.coinType})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -196,11 +204,11 @@ class _ImportSecurityViewMobile extends StatelessWidget {
         tabControllers: tabControllers,
       ),
       footer: _ImportSecurityContinueButton(
-        formKey: formKey,
-        tabControllers: tabControllers,
-        walletNameController: walletNameController,
-        walletType: walletType,
-      ),
+          formKey: formKey,
+          tabControllers: tabControllers,
+          walletNameController: walletNameController,
+          walletType: walletType,
+          coinType: coinType),
     );
   }
 }
@@ -262,9 +270,9 @@ class _ImportSecurityBody extends StatelessWidget {
             isScrollable: true,
             tabs: [
               Tab(text: 'Phrase'),
+              Tab(text: 'Private Key'),
               // TODO: add support for other import methods
               // Tab(text: 'Keystore'),
-              // Tab(text: 'Private Key'),
               // Tab(text: 'Address'),
             ],
           ),
@@ -280,6 +288,11 @@ class _ImportSecurityBody extends StatelessWidget {
                   controller: tabControllers['phrase']!['pasteField']!,
                 ),
               ),
+              Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: PrivateKeyTabView(
+                    controller: tabControllers['privatekey']!['pasteField']!,
+                  )),
               // TODO: add other import types
               // Padding(
               //   padding: const EdgeInsets.only(top: 10),
@@ -290,11 +303,6 @@ class _ImportSecurityBody extends StatelessWidget {
               //         tabControllers['keystore']!['pasteField']!,
               //   ),
               // ),
-              // Padding(
-              //     padding: const EdgeInsets.only(top: 10),
-              //     child: PrivateKeyTabView(
-              //       controller: tabControllers['privatekey']!['pasteField']!,
-              //     )),
               // Padding(
               //   padding: const EdgeInsets.only(top: 10),
               //   child: AddressTabView(
@@ -310,18 +318,20 @@ class _ImportSecurityBody extends StatelessWidget {
 }
 
 class _ImportSecurityContinueButton extends StatelessWidget {
-  const _ImportSecurityContinueButton({
-    Key? key,
-    required this.formKey,
-    required this.tabControllers,
-    required this.walletNameController,
-    required this.walletType,
-  }) : super(key: key);
-
   final GlobalKey<FormState> formKey;
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final TextEditingController walletNameController;
   final String walletType;
+  final int coinType;
+
+  const _ImportSecurityContinueButton(
+      {Key? key,
+      required this.formKey,
+      required this.tabControllers,
+      required this.walletNameController,
+      required this.walletType,
+      required this.coinType})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -344,6 +354,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
                 /// Send event with currently selected tab information
                 context.read<ExistingWalletBloc>().add(
                       WalletSecurityEntered(
+                        coinType: coinType,
                         walletName: walletNameController.text,
                         walletType: walletType,
                         securityType: getSecurityTypeFromTab(selectedEntry.key),

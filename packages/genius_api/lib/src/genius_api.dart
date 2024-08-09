@@ -11,7 +11,9 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/models/wallet_stored.dart';
+import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
+import 'package:genius_api/tw/mnemonic_impl.dart';
 import 'package:genius_api/tw/string_util.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:secure_storage/secure_storage.dart';
@@ -38,8 +40,8 @@ class GeniusApi {
     return [
       Wallet(
         walletName: 'My Ethereum Wallet',
-        currencyName: 'Ethereum',
         currencySymbol: 'ETH',
+        coinType: TWCoinType.TWCoinTypeEthereum,
         address: '0x0',
         // balance: 1000,
         balance: 0,
@@ -47,7 +49,7 @@ class GeniusApi {
       ),
       Wallet(
         walletName: 'My Bitcoin Wallet',
-        currencyName: 'Bitcoin',
+        coinType: TWCoinType.TWCoinTypeBitcoin,
         currencySymbol: 'BTC',
         address: '0x1234asdf5678jklp',
         // balance: 1000,
@@ -303,10 +305,23 @@ class GeniusApi {
     final walletStored = WalletStored(
         walletName: walletName,
         currencySymbol: currencySymbol,
-        currencyName: "Ethereum",
+        coinType: TWCoinType.TWCoinTypeEthereum,
         mnemonic: mnemonic,
         address: ethAddress);
     await _secureStorage.saveWallet(walletStored);
+  }
+
+  Future<void> saveImportedWallet(HDWallet wallet, int coinType) async {
+    String address = wallet.getAddressForCoin(coinType);
+    String walletName = wallet.name ??
+        "${address.substring(0, 5)}...${address.substring(address.length - 4)}";
+
+    await _secureStorage.saveWallet(WalletStored(
+        walletName: walletName,
+        currencySymbol: CoinUtil.getSymbol(coinType),
+        coinType: coinType,
+        mnemonic: wallet.mnemonic(),
+        address: wallet.getAddressForCoin(coinType)));
   }
 
   // TODO: this still needs implemented from GNUS sdk
@@ -352,40 +367,55 @@ class GeniusApi {
 
   // TODO: add other import methods (security types)
   Future<Wallet?> validateWalletImport({
+    required int coinType,
     required String walletName,
     required String walletType,
     required SecurityType securityType,
     required String securityValue,
     String? password,
   }) async {
-    if (!ffiBridgePrebuilt.wallet_lib
-        .TWMnemonicIsValid(StringUtil.toTWString(securityValue).cast())) {
+    if (securityType == SecurityType.passphrase) {
+      return await importWalletFromMnemonic(
+          securityValue, walletName, coinType);
+    }
+
+    if (securityType == SecurityType.privateKey) {
+      return await importWalletFromPrivateKey(
+          securityValue, walletName, coinType);
+    }
+
+    return null;
+  }
+
+  Future<Wallet?> importWalletFromMnemonic(
+      String mnemonic, String walletName, int coinType) async {
+    if (!MnemonicImpl.isValid(mnemonic)) {
+      print('not valid');
+      print(mnemonic);
       return null;
     }
 
-    HDWallet wallet =
-        HDWallet.createWithMnemonic(securityValue, passphrase: "");
+    HDWallet wallet = HDWallet.createWithMnemonic(mnemonic, passphrase: "");
     wallet.setName(walletName);
 
-    // TODO: add support for other coin types
-    String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
-    String currencySymbol = StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
-        .TWCoinTypeConfigurationGetSymbol(TWCoinType.TWCoinTypeEthereum)
-        .cast());
+    String address = wallet.getAddressForCoin(coinType);
+    String currencySymbol = CoinUtil.getSymbol(coinType);
 
-    final importedWallet = Wallet(
+    await saveImportedWallet(wallet, coinType);
+
+    // TODO: pass cointype ( regenerate these models )
+    return Wallet(
+      coinType: coinType,
       walletName: walletName,
       currencySymbol: currencySymbol,
-      currencyName: "Ethereum",
       balance: 0,
-      address: ethAddress,
+      address: address,
       transactions: [],
     );
-
-    await saveWallet(wallet);
-
-    return importedWallet;
   }
+
+  Future<Wallet?> importWalletFromPrivateKey(
+      String privateKey, String walletName, int coinType) async {}
 
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);

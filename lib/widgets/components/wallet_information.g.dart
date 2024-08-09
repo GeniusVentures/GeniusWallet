@@ -51,78 +51,71 @@ class _WalletInformation extends State<WalletInformation> {
                 top: 0,
                 height: 91.0,
                 child: Center(
-                    child: Container(
+                    child: SizedBox(
                         child: TotalBalanceCustom(
-                            child: Container(
-                                decoration: BoxDecoration(),
+                            child: SizedBox(
                                 child: Stack(children: [
-                                  Positioned(
-                                    left: 0,
-                                    top: 35.0,
-                                    child: Row(children: [
-                                      AutoSizeText(
-                                        widget.ovrQuantity ?? '0.221746',
-                                        style: const TextStyle(
-                                          fontFamily: 'Roboto',
-                                          fontSize: 48.0,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 1.0,
-                                          color: Colors.white,
-                                        ),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      Padding(
-                                          padding: const EdgeInsets.only(
-                                              top: 30, left: 4),
-                                          child: AutoSizeText(
-                                            widget.ovrCurrency ?? 'BTC ',
-                                            style: const TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 12.0,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing:
-                                                  0.25714290142059326,
-                                              color: GeniusWalletColors
-                                                  .btnTextDisabled,
-                                            ),
-                                          ))
-                                    ]),
-                                  ),
-                                  Positioned(
-                                    left: 0,
-                                    width: widget.constraints.maxWidth,
-                                    top: 6.0,
-                                    height: 16.0,
-                                    child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          AutoSizeText(
-                                            widget.ovrTotalbalance ??
-                                                'Total balance:',
-                                            style: const TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 12.0,
-                                              fontWeight: FontWeight.w500,
-                                              letterSpacing: 0.3,
-                                              color: Colors.white,
-                                            ),
-                                            textAlign: TextAlign.left,
-                                          ),
-                                          widget.ovrShowMoreIcon ??
-                                              Image.asset(
-                                                'assets/images/showmoreicon.png',
-                                                package: 'genius_wallet',
-                                                height: 16.0,
-                                                width: 4.0,
-                                                color: Colors.white,
-                                                fit: BoxFit.none,
-                                              ),
-                                        ]),
-                                  ),
-                                ]))))),
+                  Positioned(
+                    left: 0,
+                    top: 35.0,
+                    child: Row(children: [
+                      AutoSizeText(
+                        widget.ovrQuantity ?? '0.221746',
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 48.0,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      Padding(
+                          padding: const EdgeInsets.only(top: 30, left: 4),
+                          child: AutoSizeText(
+                            widget.ovrCurrency ?? 'BTC ',
+                            style: const TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.25714290142059326,
+                              color: GeniusWalletColors.btnTextDisabled,
+                            ),
+                          ))
+                    ]),
+                  ),
+                  Positioned(
+                    left: 0,
+                    width: widget.constraints.maxWidth,
+                    top: 6.0,
+                    height: 16.0,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          AutoSizeText(
+                            widget.ovrTotalbalance ?? 'Total balance:',
+                            style: const TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.3,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                          widget.ovrShowMoreIcon ??
+                              Image.asset(
+                                'assets/images/showmoreicon.png',
+                                package: 'genius_wallet',
+                                height: 16.0,
+                                width: 4.0,
+                                color: Colors.white,
+                                fit: BoxFit.none,
+                              ),
+                        ]),
+                  ),
+                ]))))),
               ),
               Positioned(
                 left: 4.0,
@@ -188,61 +181,55 @@ class _WalletInformation extends State<WalletInformation> {
                 bottom: 0,
                 height: 35.0,
                 child: Center(
-                    child: Container(
+                    child: SizedBox(
                         height: 35.0,
                         child: WalletAddressCustom(
-                            child: Container(
-                                decoration: BoxDecoration(),
+                            child: SizedBox(
                                 child: Stack(children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          GeniusWalletColors.deepBlueCardColor,
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(GeniusWalletConsts
-                                              .borderRadiusButton)),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    left: 0,
-                                    right: 0,
-                                    top: 11.0,
-                                    bottom: 10.0,
-                                    child: SizedBox(
-                                        height: 14.0,
-                                        width: widget.constraints.maxWidth,
-                                        child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              AutoSizeText(
-                                                widget.ovrAddressField ??
-                                                    '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
-                                                style: const TextStyle(
-                                                  fontFamily: 'Roboto',
-                                                  fontSize: 12.0,
-                                                  fontWeight: FontWeight.w400,
-                                                  letterSpacing:
-                                                      0.30000001192092896,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              const Icon(Icons.copy_rounded,
-                                                  size: 14)
-                                            ])),
-                                  ),
-                                ]))))),
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: GeniusWalletColors.deepBlueCardColor,
+                              borderRadius: BorderRadius.all(Radius.circular(
+                                  GeniusWalletConsts.borderRadiusButton)),
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 11.0,
+                            bottom: 10.0,
+                            child: SizedBox(
+                                height: 14.0,
+                                width: widget.constraints.maxWidth,
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      AutoSizeText(
+                                        widget.ovrAddressField ??
+                                            '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
+                                        style: const TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 12.0,
+                                          fontWeight: FontWeight.w400,
+                                          letterSpacing: 0.30000001192092896,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Icon(Icons.copy_rounded, size: 14)
+                                    ])),
+                          ),
+                        ]))))),
               ),
               Positioned(
                 left: 0,
                 bottom: 49.0,
                 height: 14.0,
-                child: Container(
+                child: SizedBox(
                     height: 14.0,
                     child: AutoSizeText(
                       widget.ovrYourbitcoinaddress ?? 'Your bitcoin adress:',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,
                         fontWeight: FontWeight.w500,

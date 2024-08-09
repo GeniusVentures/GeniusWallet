@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -139,13 +137,13 @@ class _WalletModule extends State<WalletModule> {
                     width: widget.constraints.maxWidth * 0.338,
                     top: 13.0,
                     height: 12.0,
-                    child: Container(
+                    child: SizedBox(
                         height: 12.0,
                         width:
                             widget.constraints.maxWidth * 0.33762057877813506,
                         child: AutoSizeText(
                           widget.ovrTimestamp ?? '16:01, 12 dec 2018',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
                             fontSize: 10.0,
                             fontWeight: FontWeight.w400,
@@ -160,13 +158,13 @@ class _WalletModule extends State<WalletModule> {
                     width: widget.constraints.maxWidth * 0.244,
                     top: 13.0,
                     height: 14.0,
-                    child: Container(
+                    child: SizedBox(
                         height: 14.0,
                         width:
                             widget.constraints.maxWidth * 0.24437299035369775,
                         child: AutoSizeText(
                           widget.ovrLastTransactionValue ?? '+1.045 BTC',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
                             fontSize: 12.0,
                             fontWeight: FontWeight.w400,
@@ -181,13 +179,13 @@ class _WalletModule extends State<WalletModule> {
                     width: widget.constraints.maxWidth * 0.788,
                     top: 55.0,
                     height: 14.0,
-                    child: Container(
+                    child: SizedBox(
                         height: 14.0,
                         width: widget.constraints.maxWidth * 0.7877813504823151,
                         child: AutoSizeText(
                           widget.ovrLastTransactionID ??
                               '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
                             fontSize: 12.0,
                             fontWeight: FontWeight.w400,
@@ -199,12 +197,12 @@ class _WalletModule extends State<WalletModule> {
                   ),
                   Positioned(
                     top: 85.0,
-                    child: Container(
+                    child: SizedBox(
                         width: widget.constraints.maxWidth * 0.7877813504823151,
                         child: AutoSizeText(
                           widget.walletAddress ??
                               '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
                             fontSize: 12.0,
                             fontWeight: FontWeight.w400,

@@ -124,7 +124,7 @@ class _WalletPreview extends State<WalletPreview> {
                 width: 49.0,
                 top: 21.0,
                 height: 14.0,
-                child: Container(
+                child: SizedBox(
                     height: 14.0,
                     width: 49.0,
                     child: AutoSizeText(

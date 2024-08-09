@@ -98,6 +98,7 @@ class LocalWalletStorage extends SecureStorage {
 
     await _secureStorage.write(
         key: _walletCollectionKey, value: json.encode(storedWallets));
+    //twenty jungle lazy consider valid dirt mimic firm rail clerk normal number
   }
 
   @override
@@ -126,11 +127,12 @@ class LocalWalletStorage extends SecureStorage {
   }
 }
 
+// TODO: wire up fetching balance, transactions
 Wallet mapStoredWalletToWallet(WalletStored wallet) {
   return Wallet(
       walletName: wallet.walletName,
       currencySymbol: wallet.currencySymbol,
-      currencyName: wallet.currencyName,
+      coinType: wallet.coinType,
       balance: 0,
       address: wallet.address,
       transactions: []);
