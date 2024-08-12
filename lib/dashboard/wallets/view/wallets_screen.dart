@@ -7,7 +7,6 @@ import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/app/widgets/responsive_grid.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/add_wallet_block.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_module.g.dart';
@@ -65,7 +64,7 @@ class Desktop extends StatelessWidget {
                       return WalletModule(
                         constraints,
                         walletAddress: wallet.address,
-                        ovrCoinName: wallet.currencyName,
+                        ovrCoinName: wallet.currencySymbol,
                         ovrCoinSymbol: wallet.currencySymbol,
                         ovrWalletBalance: wallet.balance.toString(),
                         ovrLastTransactionID: transactionId,
@@ -195,7 +194,7 @@ class Mobile extends StatelessWidget {
                                 return WalletModule(
                                   constraints,
                                   walletAddress: currentWallet.address,
-                                  ovrCoinName: currentWallet.currencyName,
+                                  ovrCoinName: currentWallet.currencySymbol,
                                   ovrCoinSymbol: currentWallet.currencySymbol,
                                   ovrWalletBalance:
                                       currentWallet.balance.toString(),

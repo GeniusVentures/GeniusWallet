@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/tw/hd_wallet_impl.dart';
 import 'package:genius_api/tw/private_key.dart';
 
@@ -27,6 +28,14 @@ class HDWallet {
       throw Exception(["HDWallet nativehandle is null"]);
     }
   }
+
+  // HDWallet.createWithPrivateKey(String privateKey, {String passphrase = ""}) {
+  //   nativehandle =
+  //       HDWalletImpl.createWithPrivateKey(privateKey, passphrase: passphrase);
+  //   if (nativehandle.hashCode == 0) {
+  //     throw Exception(["HDWallet nativehandle is null"]);
+  //   }
+  // }
 
   HDWallet.createWithData(Uint8List bytes, {String passphrase = ""}) {
     nativehandle =

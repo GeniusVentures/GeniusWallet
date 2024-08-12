@@ -61,7 +61,7 @@ class Desktop extends StatelessWidget {
                               BoxConstraints constraints) {
                             return WalletToggle(
                               constraints,
-                              ovrCoinName: selectedWallet.currencyName,
+                              ovrCoinName: selectedWallet.currencySymbol,
                               ovrWalletName: selectedWallet.walletName,
                               ovrShape: WalletUtils.currencySymbolToImage(
                                 selectedWallet.currencySymbol,
@@ -79,7 +79,7 @@ class Desktop extends StatelessWidget {
                             return WalletInformation(
                               constraints,
                               ovrYourbitcoinaddress:
-                                  'Your ${selectedWallet.currencyName} Wallet Address',
+                                  'Your ${selectedWallet.currencySymbol} Wallet Address',
                               ovrQuantity: selectedWallet.balance.toString(),
                               ovrCurrency: selectedWallet.currencySymbol,
                               ovrAddressField: selectedWallet.address,
@@ -143,7 +143,7 @@ class Mobile extends StatelessWidget {
                           (BuildContext context, BoxConstraints constraints) {
                         return WalletToggle(
                           constraints,
-                          ovrCoinName: selectedWallet.currencyName,
+                          ovrCoinName: selectedWallet.currencySymbol,
                           ovrWalletName: selectedWallet.walletName,
                           ovrShape: WalletUtils.currencySymbolToImage(
                             selectedWallet.currencySymbol,
@@ -161,7 +161,7 @@ class Mobile extends StatelessWidget {
                         return WalletInformation(
                           constraints,
                           ovrYourbitcoinaddress:
-                              'Your ${selectedWallet.currencyName} Wallet Address',
+                              'Your ${selectedWallet.currencySymbol} Wallet Address',
                           ovrQuantity: selectedWallet.balance.toString(),
                           ovrCurrency: selectedWallet.currencySymbol,
                           ovrAddressField: selectedWallet.address,

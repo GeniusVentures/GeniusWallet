@@ -22,9 +22,9 @@ WalletStored _$WalletStoredFromJson(Map<String, dynamic> json) {
 mixin _$WalletStored {
   String get walletName => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
-  String get currencyName => throw _privateConstructorUsedError;
   String get mnemonic => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
+  int get coinType => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -41,9 +41,9 @@ abstract class $WalletStoredCopyWith<$Res> {
   $Res call(
       {String walletName,
       String currencySymbol,
-      String currencyName,
       String mnemonic,
-      String address});
+      String address,
+      int coinType});
 }
 
 /// @nodoc
@@ -61,9 +61,9 @@ class _$WalletStoredCopyWithImpl<$Res, $Val extends WalletStored>
   $Res call({
     Object? walletName = null,
     Object? currencySymbol = null,
-    Object? currencyName = null,
     Object? mnemonic = null,
     Object? address = null,
+    Object? coinType = null,
   }) {
     return _then(_value.copyWith(
       walletName: null == walletName
@@ -74,10 +74,6 @@ class _$WalletStoredCopyWithImpl<$Res, $Val extends WalletStored>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyName: null == currencyName
-          ? _value.currencyName
-          : currencyName // ignore: cast_nullable_to_non_nullable
-              as String,
       mnemonic: null == mnemonic
           ? _value.mnemonic
           : mnemonic // ignore: cast_nullable_to_non_nullable
@@ -86,6 +82,10 @@ class _$WalletStoredCopyWithImpl<$Res, $Val extends WalletStored>
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
               as String,
+      coinType: null == coinType
+          ? _value.coinType
+          : coinType // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -101,9 +101,9 @@ abstract class _$$WalletStoredImplCopyWith<$Res>
   $Res call(
       {String walletName,
       String currencySymbol,
-      String currencyName,
       String mnemonic,
-      String address});
+      String address,
+      int coinType});
 }
 
 /// @nodoc
@@ -119,9 +119,9 @@ class __$$WalletStoredImplCopyWithImpl<$Res>
   $Res call({
     Object? walletName = null,
     Object? currencySymbol = null,
-    Object? currencyName = null,
     Object? mnemonic = null,
     Object? address = null,
+    Object? coinType = null,
   }) {
     return _then(_$WalletStoredImpl(
       walletName: null == walletName
@@ -132,10 +132,6 @@ class __$$WalletStoredImplCopyWithImpl<$Res>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
-      currencyName: null == currencyName
-          ? _value.currencyName
-          : currencyName // ignore: cast_nullable_to_non_nullable
-              as String,
       mnemonic: null == mnemonic
           ? _value.mnemonic
           : mnemonic // ignore: cast_nullable_to_non_nullable
@@ -144,6 +140,10 @@ class __$$WalletStoredImplCopyWithImpl<$Res>
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
               as String,
+      coinType: null == coinType
+          ? _value.coinType
+          : coinType // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -154,9 +154,9 @@ class _$WalletStoredImpl implements _WalletStored {
   const _$WalletStoredImpl(
       {required this.walletName,
       required this.currencySymbol,
-      required this.currencyName,
       required this.mnemonic,
-      required this.address});
+      required this.address,
+      required this.coinType});
 
   factory _$WalletStoredImpl.fromJson(Map<String, dynamic> json) =>
       _$$WalletStoredImplFromJson(json);
@@ -166,15 +166,15 @@ class _$WalletStoredImpl implements _WalletStored {
   @override
   final String currencySymbol;
   @override
-  final String currencyName;
-  @override
   final String mnemonic;
   @override
   final String address;
+  @override
+  final int coinType;
 
   @override
   String toString() {
-    return 'WalletStored(walletName: $walletName, currencySymbol: $currencySymbol, currencyName: $currencyName, mnemonic: $mnemonic, address: $address)';
+    return 'WalletStored(walletName: $walletName, currencySymbol: $currencySymbol, mnemonic: $mnemonic, address: $address, coinType: $coinType)';
   }
 
   @override
@@ -186,17 +186,17 @@ class _$WalletStoredImpl implements _WalletStored {
                 other.walletName == walletName) &&
             (identical(other.currencySymbol, currencySymbol) ||
                 other.currencySymbol == currencySymbol) &&
-            (identical(other.currencyName, currencyName) ||
-                other.currencyName == currencyName) &&
             (identical(other.mnemonic, mnemonic) ||
                 other.mnemonic == mnemonic) &&
-            (identical(other.address, address) || other.address == address));
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.coinType, coinType) ||
+                other.coinType == coinType));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType, walletName, currencySymbol, currencyName, mnemonic, address);
+      runtimeType, walletName, currencySymbol, mnemonic, address, coinType);
 
   @JsonKey(ignore: true)
   @override
@@ -216,9 +216,9 @@ abstract class _WalletStored implements WalletStored {
   const factory _WalletStored(
       {required final String walletName,
       required final String currencySymbol,
-      required final String currencyName,
       required final String mnemonic,
-      required final String address}) = _$WalletStoredImpl;
+      required final String address,
+      required final int coinType}) = _$WalletStoredImpl;
 
   factory _WalletStored.fromJson(Map<String, dynamic> json) =
       _$WalletStoredImpl.fromJson;
@@ -228,11 +228,11 @@ abstract class _WalletStored implements WalletStored {
   @override
   String get currencySymbol;
   @override
-  String get currencyName;
-  @override
   String get mnemonic;
   @override
   String get address;
+  @override
+  int get coinType;
   @override
   @JsonKey(ignore: true)
   _$$WalletStoredImplCopyWith<_$WalletStoredImpl> get copyWith =>

@@ -50,6 +50,7 @@ class LandingRoutes {
           path: '/import_security',
           builder: (context, state) {
             return const ImportSecurityScreen(
+              coinType: -1,
               walletType: '',
             );
           },
