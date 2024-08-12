@@ -29,7 +29,7 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                     },
                     child: WalletPreview(constraints,
                         ovrWalletBalance: currentWallet.balance.toString(),
-                        ovrCoinType: currentWallet.currencyName,
+                        ovrCoinType: currentWallet.currencySymbol,
                         ovrCoinSymbol: currentWallet.currencySymbol,
                         ovrCoinIcon: WalletUtils.currencySymbolToImage(
                             currentWallet.currencySymbol),

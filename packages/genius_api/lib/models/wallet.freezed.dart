@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'wallet.dart';
 
@@ -12,7 +12,7 @@ part of 'wallet.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Wallet _$WalletFromJson(Map<String, dynamic> json) {
   return _Wallet.fromJson(json);
@@ -20,9 +20,9 @@ Wallet _$WalletFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Wallet {
+  int get coinType => throw _privateConstructorUsedError;
   String get walletName => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
-  String get currencyName => throw _privateConstructorUsedError;
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   int get balance => throw _privateConstructorUsedError;
@@ -40,9 +40,9 @@ abstract class $WalletCopyWith<$Res> {
       _$WalletCopyWithImpl<$Res, Wallet>;
   @useResult
   $Res call(
-      {String walletName,
+      {int coinType,
+      String walletName,
       String currencySymbol,
-      String currencyName,
       int balance,
       String address,
       List<Transaction> transactions});
@@ -61,14 +61,18 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? coinType = null,
     Object? walletName = null,
     Object? currencySymbol = null,
-    Object? currencyName = null,
     Object? balance = null,
     Object? address = null,
     Object? transactions = null,
   }) {
     return _then(_value.copyWith(
+      coinType: null == coinType
+          ? _value.coinType
+          : coinType // ignore: cast_nullable_to_non_nullable
+              as int,
       walletName: null == walletName
           ? _value.walletName
           : walletName // ignore: cast_nullable_to_non_nullable
@@ -76,10 +80,6 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
       currencySymbol: null == currencySymbol
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
-              as String,
-      currencyName: null == currencyName
-          ? _value.currencyName
-          : currencyName // ignore: cast_nullable_to_non_nullable
               as String,
       balance: null == balance
           ? _value.balance
@@ -98,38 +98,44 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
 }
 
 /// @nodoc
-abstract class _$$_WalletCopyWith<$Res> implements $WalletCopyWith<$Res> {
-  factory _$$_WalletCopyWith(_$_Wallet value, $Res Function(_$_Wallet) then) =
-      __$$_WalletCopyWithImpl<$Res>;
+abstract class _$$WalletImplCopyWith<$Res> implements $WalletCopyWith<$Res> {
+  factory _$$WalletImplCopyWith(
+          _$WalletImpl value, $Res Function(_$WalletImpl) then) =
+      __$$WalletImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
-      {String walletName,
+      {int coinType,
+      String walletName,
       String currencySymbol,
-      String currencyName,
       int balance,
       String address,
       List<Transaction> transactions});
 }
 
 /// @nodoc
-class __$$_WalletCopyWithImpl<$Res>
-    extends _$WalletCopyWithImpl<$Res, _$_Wallet>
-    implements _$$_WalletCopyWith<$Res> {
-  __$$_WalletCopyWithImpl(_$_Wallet _value, $Res Function(_$_Wallet) _then)
+class __$$WalletImplCopyWithImpl<$Res>
+    extends _$WalletCopyWithImpl<$Res, _$WalletImpl>
+    implements _$$WalletImplCopyWith<$Res> {
+  __$$WalletImplCopyWithImpl(
+      _$WalletImpl _value, $Res Function(_$WalletImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? coinType = null,
     Object? walletName = null,
     Object? currencySymbol = null,
-    Object? currencyName = null,
     Object? balance = null,
     Object? address = null,
     Object? transactions = null,
   }) {
-    return _then(_$_Wallet(
+    return _then(_$WalletImpl(
+      coinType: null == coinType
+          ? _value.coinType
+          : coinType // ignore: cast_nullable_to_non_nullable
+              as int,
       walletName: null == walletName
           ? _value.walletName
           : walletName // ignore: cast_nullable_to_non_nullable
@@ -137,10 +143,6 @@ class __$$_WalletCopyWithImpl<$Res>
       currencySymbol: null == currencySymbol
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
-              as String,
-      currencyName: null == currencyName
-          ? _value.currencyName
-          : currencyName // ignore: cast_nullable_to_non_nullable
               as String,
       balance: null == balance
           ? _value.balance
@@ -160,25 +162,25 @@ class __$$_WalletCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Wallet implements _Wallet {
-  const _$_Wallet(
-      {required this.walletName,
+class _$WalletImpl implements _Wallet {
+  const _$WalletImpl(
+      {required this.coinType,
+      required this.walletName,
       required this.currencySymbol,
-      required this.currencyName,
       required this.balance,
       required this.address,
       required final List<Transaction> transactions})
       : _transactions = transactions;
 
-  factory _$_Wallet.fromJson(Map<String, dynamic> json) =>
-      _$$_WalletFromJson(json);
+  factory _$WalletImpl.fromJson(Map<String, dynamic> json) =>
+      _$$WalletImplFromJson(json);
 
+  @override
+  final int coinType;
   @override
   final String walletName;
   @override
   final String currencySymbol;
-  @override
-  final String currencyName;
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   @override
@@ -188,26 +190,27 @@ class _$_Wallet implements _Wallet {
   final List<Transaction> _transactions;
   @override
   List<Transaction> get transactions {
+    if (_transactions is EqualUnmodifiableListView) return _transactions;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_transactions);
   }
 
   @override
   String toString() {
-    return 'Wallet(walletName: $walletName, currencySymbol: $currencySymbol, currencyName: $currencyName, balance: $balance, address: $address, transactions: $transactions)';
+    return 'Wallet(coinType: $coinType, walletName: $walletName, currencySymbol: $currencySymbol, balance: $balance, address: $address, transactions: $transactions)';
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Wallet &&
+            other is _$WalletImpl &&
+            (identical(other.coinType, coinType) ||
+                other.coinType == coinType) &&
             (identical(other.walletName, walletName) ||
                 other.walletName == walletName) &&
             (identical(other.currencySymbol, currencySymbol) ||
                 other.currencySymbol == currencySymbol) &&
-            (identical(other.currencyName, currencyName) ||
-                other.currencyName == currencyName) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.address, address) || other.address == address) &&
             const DeepCollectionEquality()
@@ -218,9 +221,9 @@ class _$_Wallet implements _Wallet {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      coinType,
       walletName,
       currencySymbol,
-      currencyName,
       balance,
       address,
       const DeepCollectionEquality().hash(_transactions));
@@ -228,12 +231,12 @@ class _$_Wallet implements _Wallet {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_WalletCopyWith<_$_Wallet> get copyWith =>
-      __$$_WalletCopyWithImpl<_$_Wallet>(this, _$identity);
+  _$$WalletImplCopyWith<_$WalletImpl> get copyWith =>
+      __$$WalletImplCopyWithImpl<_$WalletImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_WalletToJson(
+    return _$$WalletImplToJson(
       this,
     );
   }
@@ -241,21 +244,21 @@ class _$_Wallet implements _Wallet {
 
 abstract class _Wallet implements Wallet {
   const factory _Wallet(
-      {required final String walletName,
+      {required final int coinType,
+      required final String walletName,
       required final String currencySymbol,
-      required final String currencyName,
       required final int balance,
       required final String address,
-      required final List<Transaction> transactions}) = _$_Wallet;
+      required final List<Transaction> transactions}) = _$WalletImpl;
 
-  factory _Wallet.fromJson(Map<String, dynamic> json) = _$_Wallet.fromJson;
+  factory _Wallet.fromJson(Map<String, dynamic> json) = _$WalletImpl.fromJson;
 
+  @override
+  int get coinType;
   @override
   String get walletName;
   @override
   String get currencySymbol;
-  @override
-  String get currencyName;
   @override
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
@@ -266,6 +269,6 @@ abstract class _Wallet implements Wallet {
   List<Transaction> get transactions;
   @override
   @JsonKey(ignore: true)
-  _$$_WalletCopyWith<_$_Wallet> get copyWith =>
+  _$$WalletImplCopyWith<_$WalletImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

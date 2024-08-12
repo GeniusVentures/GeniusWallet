@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/security_type.dart';
 
@@ -41,6 +42,7 @@ class ExistingWalletBloc
   FutureOr<void> _onImportWalletSelected(event, emit) => emit(
         state.copyWith(
           currentStep: FlowStep.importWalletSecurity,
+          selectedCoinType: event.coinType,
           selectedWallet: event.walletName,
         ),
       );
@@ -50,11 +52,11 @@ class ExistingWalletBloc
 
   FutureOr<void> _onWalletSecurityEntered(
       WalletSecurityEntered event, Emitter<ExistingWalletState> emit) async {
-    //TODO: Import wallet endpoints here
     emit(state.copyWith(importWalletStatus: ExistingWalletStatus.loading));
 
     try {
       final wallet = await geniusApi.validateWalletImport(
+        coinType: event.coinType,
         walletName: event.walletName,
         walletType: event.walletType,
         securityType: event.securityType,

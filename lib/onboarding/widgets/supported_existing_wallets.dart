@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/widgets/components/wallet_card.g.dart';
@@ -10,19 +11,22 @@ class SupportedExistingWallets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     /// TODO: Support for other networks - fetch these dynamically?
-    final supportedWallets = [
-      {'name': 'Ethereum', 'image': 'assets/images/ethereum_icon.png'},
-      // {'name': 'XRP', 'image': 'assets/images/xrp_icon.png'},
-      // {'name': 'Stellar', 'image': 'assets/images/stellar_icon.png'},
-      // {'name': 'Tron', 'image': 'assets/images/tron_icon.png'},
+    final List<SupportedWallet> supportedNetworks = [
+      SupportedWallet(
+          name: 'Ethereum',
+          image: 'assets/images/ethereum_icon.png',
+          coinType: TWCoinType.TWCoinTypeEthereum),
+      // SupportedWallet(name: 'XRP', image: 'assets/images/xrp_icon.png', coinType: TWCoinType.TWCoinTypeXRP)
+      // SupportedWallet(name: 'Stellar', image: 'assets/images/stellar_icon.png', coinType: TWCoinType.TWCoinTypeStellar)
+      // SupportedWallet(name: 'Tron', image: 'assets/images/tron_icon.png', coinType: TWCoinType.TWCoinTypeTron)
     ];
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.25,
       height: GeniusBreakpoints.useDesktopLayout(context)
-          ? (70 * supportedWallets.length).toDouble()
+          ? (70 * supportedNetworks.length).toDouble()
           : null,
       child: ListView.separated(
-        itemCount: supportedWallets.length,
+        itemCount: supportedNetworks.length,
         separatorBuilder: (context, index) => const SizedBox(height: 20),
         physics: const NeverScrollableScrollPhysics(),
         //NOTE: This can be made more efficient by making `shrinkWrap` false but implementing a [CustomScrollview]
@@ -32,8 +36,8 @@ class SupportedExistingWallets extends StatelessWidget {
             onPressed: () {
               context.read<ExistingWalletBloc>().add(
                     ImportWalletSelected(
-                      walletName: supportedWallets[index]['name']!,
-                    ),
+                        walletName: supportedNetworks[index].name,
+                        coinType: supportedNetworks[index].coinType),
                   );
             },
             child: SizedBox(
@@ -44,9 +48,9 @@ class SupportedExistingWallets extends StatelessWidget {
                   return WalletCard(
                     constraints,
                     ovrEllipse1: Image.asset(
-                      supportedWallets[index]['image']!,
+                      supportedNetworks[index].image,
                     ),
-                    ovrEthereum: supportedWallets[index]['name'],
+                    ovrEthereum: supportedNetworks[index].name,
                   );
                 },
               ),
@@ -56,4 +60,13 @@ class SupportedExistingWallets extends StatelessWidget {
       ),
     );
   }
+}
+
+class SupportedWallet {
+  final String name;
+  final String image;
+  final int coinType;
+
+  SupportedWallet(
+      {required this.name, required this.image, required this.coinType});
 }
