@@ -309,7 +309,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         find_library(LOG_LIB log)
-        target_link_libraries(GeniusWallet ${LOG_LIB})
+        target_link_libraries(GeniusWallet PRIVATE ${LOG_LIB})
     endif()
 
     message(WARNING "LINKING")
