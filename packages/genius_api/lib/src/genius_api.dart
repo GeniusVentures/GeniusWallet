@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
@@ -19,10 +20,13 @@ import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:secure_storage/secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
+  late final String jsonFilePath;
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
@@ -48,13 +52,30 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt()
-        {
-          String basePath = "";
-          final basePathPtr = basePath.toNativeUtf8();
-          ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
-          malloc.free(basePathPtr);
-        }
+        ffiBridgePrebuilt = FFIBridgePrebuilt();
+
+  Future<void> initSDK() async {
+    jsonFilePath = await copyJsonToWritableDirectory();
+    final basePathPtr = jsonFilePath.toNativeUtf8();
+    final retVal = ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
+    String dartString = retVal.toDartString();
+    print(dartString);
+    malloc.free(basePathPtr);
+  }
+
+  Future<String> copyJsonToWritableDirectory() async {
+    // Get the directory to store files
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/dev_config.json';
+
+    // Copy the asset file to the directory
+    final jsonString = await rootBundle.loadString('assets/dev_config.json');
+    final file = File(filePath);
+    await file.writeAsString(jsonString);
+
+    // Return the file path to be used in FFI
+    return '${directory.path}/';
+  }
 
   Future<double> getGasFees() async {
     return .001;
