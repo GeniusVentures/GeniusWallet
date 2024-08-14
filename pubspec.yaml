@@ -168,3 +168,4 @@ flutter:
     - packages/genius_wallet/assets/images/desktoptradebuttonactive.svg
     - packages/genius_wallet/assets/images/arrowright.png
     - packages/genius_wallet/assets/images/arrowleft.png
+    - assets/dev_config.json
