@@ -70,29 +70,11 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
 
-TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE ${WALLET_CORE_LIBRARY})
+TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
 target_link_libraries(${BINARY_NAME} PRIVATE 
-sgns::GeniusSDK
 ${WALLET_CORE_RUST_LIBRARY} 
-ws2_32 userenv ntdll
 ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
-protobuf::libprotobuf
-absl::status
-absl::statusor
-absl::hash
-absl::log
-absl::cord
-absl::raw_hash_set
-absl::base
-absl::strings
-absl::synchronization
-absl::log_internal_check_op
-utf8_range::utf8_validity
-#sgns::sgns_account
-#sgns::GeniusSDK
-)
-target_link_options(${BINARY_NAME} PRIVATE
-$<$<CXX_COMPILER_ID:MSVC>:/WHOLEARCHIVE:$<TARGET_FILE:sgns::GeniusSDK>>
+ws2_32 userenv ntdll
 )
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
