@@ -9,7 +9,7 @@ SecurityType getSecurityTypeFromTab(String tab) {
     return SecurityType.keystore;
   }
 
-  if (tab.toLowerCase() == 'private key') {
+  if (tab.toLowerCase() == 'privatekey') {
     return SecurityType.privateKey;
   }
 

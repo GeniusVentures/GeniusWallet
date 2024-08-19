@@ -23,6 +23,8 @@ mixin _$WalletStored {
   String get walletName => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
   String get mnemonic => throw _privateConstructorUsedError;
+  String get privateKey => throw _privateConstructorUsedError;
+  WalletType get walletType => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
   int get coinType => throw _privateConstructorUsedError;
 
@@ -42,6 +44,8 @@ abstract class $WalletStoredCopyWith<$Res> {
       {String walletName,
       String currencySymbol,
       String mnemonic,
+      String privateKey,
+      WalletType walletType,
       String address,
       int coinType});
 }
@@ -62,6 +66,8 @@ class _$WalletStoredCopyWithImpl<$Res, $Val extends WalletStored>
     Object? walletName = null,
     Object? currencySymbol = null,
     Object? mnemonic = null,
+    Object? privateKey = null,
+    Object? walletType = null,
     Object? address = null,
     Object? coinType = null,
   }) {
@@ -78,6 +84,14 @@ class _$WalletStoredCopyWithImpl<$Res, $Val extends WalletStored>
           ? _value.mnemonic
           : mnemonic // ignore: cast_nullable_to_non_nullable
               as String,
+      privateKey: null == privateKey
+          ? _value.privateKey
+          : privateKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      walletType: null == walletType
+          ? _value.walletType
+          : walletType // ignore: cast_nullable_to_non_nullable
+              as WalletType,
       address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -102,6 +116,8 @@ abstract class _$$WalletStoredImplCopyWith<$Res>
       {String walletName,
       String currencySymbol,
       String mnemonic,
+      String privateKey,
+      WalletType walletType,
       String address,
       int coinType});
 }
@@ -120,6 +136,8 @@ class __$$WalletStoredImplCopyWithImpl<$Res>
     Object? walletName = null,
     Object? currencySymbol = null,
     Object? mnemonic = null,
+    Object? privateKey = null,
+    Object? walletType = null,
     Object? address = null,
     Object? coinType = null,
   }) {
@@ -136,6 +154,14 @@ class __$$WalletStoredImplCopyWithImpl<$Res>
           ? _value.mnemonic
           : mnemonic // ignore: cast_nullable_to_non_nullable
               as String,
+      privateKey: null == privateKey
+          ? _value.privateKey
+          : privateKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      walletType: null == walletType
+          ? _value.walletType
+          : walletType // ignore: cast_nullable_to_non_nullable
+              as WalletType,
       address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -154,7 +180,9 @@ class _$WalletStoredImpl implements _WalletStored {
   const _$WalletStoredImpl(
       {required this.walletName,
       required this.currencySymbol,
-      required this.mnemonic,
+      this.mnemonic = "",
+      this.privateKey = "",
+      required this.walletType,
       required this.address,
       required this.coinType});
 
@@ -166,7 +194,13 @@ class _$WalletStoredImpl implements _WalletStored {
   @override
   final String currencySymbol;
   @override
+  @JsonKey()
   final String mnemonic;
+  @override
+  @JsonKey()
+  final String privateKey;
+  @override
+  final WalletType walletType;
   @override
   final String address;
   @override
@@ -174,7 +208,7 @@ class _$WalletStoredImpl implements _WalletStored {
 
   @override
   String toString() {
-    return 'WalletStored(walletName: $walletName, currencySymbol: $currencySymbol, mnemonic: $mnemonic, address: $address, coinType: $coinType)';
+    return 'WalletStored(walletName: $walletName, currencySymbol: $currencySymbol, mnemonic: $mnemonic, privateKey: $privateKey, walletType: $walletType, address: $address, coinType: $coinType)';
   }
 
   @override
@@ -188,6 +222,10 @@ class _$WalletStoredImpl implements _WalletStored {
                 other.currencySymbol == currencySymbol) &&
             (identical(other.mnemonic, mnemonic) ||
                 other.mnemonic == mnemonic) &&
+            (identical(other.privateKey, privateKey) ||
+                other.privateKey == privateKey) &&
+            (identical(other.walletType, walletType) ||
+                other.walletType == walletType) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.coinType, coinType) ||
                 other.coinType == coinType));
@@ -195,8 +233,8 @@ class _$WalletStoredImpl implements _WalletStored {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, walletName, currencySymbol, mnemonic, address, coinType);
+  int get hashCode => Object.hash(runtimeType, walletName, currencySymbol,
+      mnemonic, privateKey, walletType, address, coinType);
 
   @JsonKey(ignore: true)
   @override
@@ -216,7 +254,9 @@ abstract class _WalletStored implements WalletStored {
   const factory _WalletStored(
       {required final String walletName,
       required final String currencySymbol,
-      required final String mnemonic,
+      final String mnemonic,
+      final String privateKey,
+      required final WalletType walletType,
       required final String address,
       required final int coinType}) = _$WalletStoredImpl;
 
@@ -229,6 +269,10 @@ abstract class _WalletStored implements WalletStored {
   String get currencySymbol;
   @override
   String get mnemonic;
+  @override
+  String get privateKey;
+  @override
+  WalletType get walletType;
   @override
   String get address;
   @override

@@ -23,6 +23,7 @@ mixin _$Wallet {
   int get coinType => throw _privateConstructorUsedError;
   String get walletName => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
+  WalletType get walletType => throw _privateConstructorUsedError;
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   int get balance => throw _privateConstructorUsedError;
@@ -43,6 +44,7 @@ abstract class $WalletCopyWith<$Res> {
       {int coinType,
       String walletName,
       String currencySymbol,
+      WalletType walletType,
       int balance,
       String address,
       List<Transaction> transactions});
@@ -64,6 +66,7 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
     Object? coinType = null,
     Object? walletName = null,
     Object? currencySymbol = null,
+    Object? walletType = null,
     Object? balance = null,
     Object? address = null,
     Object? transactions = null,
@@ -81,6 +84,10 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
+      walletType: null == walletType
+          ? _value.walletType
+          : walletType // ignore: cast_nullable_to_non_nullable
+              as WalletType,
       balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
@@ -108,6 +115,7 @@ abstract class _$$WalletImplCopyWith<$Res> implements $WalletCopyWith<$Res> {
       {int coinType,
       String walletName,
       String currencySymbol,
+      WalletType walletType,
       int balance,
       String address,
       List<Transaction> transactions});
@@ -127,6 +135,7 @@ class __$$WalletImplCopyWithImpl<$Res>
     Object? coinType = null,
     Object? walletName = null,
     Object? currencySymbol = null,
+    Object? walletType = null,
     Object? balance = null,
     Object? address = null,
     Object? transactions = null,
@@ -144,6 +153,10 @@ class __$$WalletImplCopyWithImpl<$Res>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
+      walletType: null == walletType
+          ? _value.walletType
+          : walletType // ignore: cast_nullable_to_non_nullable
+              as WalletType,
       balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
@@ -167,6 +180,7 @@ class _$WalletImpl implements _Wallet {
       {required this.coinType,
       required this.walletName,
       required this.currencySymbol,
+      required this.walletType,
       required this.balance,
       required this.address,
       required final List<Transaction> transactions})
@@ -181,6 +195,8 @@ class _$WalletImpl implements _Wallet {
   final String walletName;
   @override
   final String currencySymbol;
+  @override
+  final WalletType walletType;
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   @override
@@ -197,7 +213,7 @@ class _$WalletImpl implements _Wallet {
 
   @override
   String toString() {
-    return 'Wallet(coinType: $coinType, walletName: $walletName, currencySymbol: $currencySymbol, balance: $balance, address: $address, transactions: $transactions)';
+    return 'Wallet(coinType: $coinType, walletName: $walletName, currencySymbol: $currencySymbol, walletType: $walletType, balance: $balance, address: $address, transactions: $transactions)';
   }
 
   @override
@@ -211,6 +227,8 @@ class _$WalletImpl implements _Wallet {
                 other.walletName == walletName) &&
             (identical(other.currencySymbol, currencySymbol) ||
                 other.currencySymbol == currencySymbol) &&
+            (identical(other.walletType, walletType) ||
+                other.walletType == walletType) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.address, address) || other.address == address) &&
             const DeepCollectionEquality()
@@ -224,6 +242,7 @@ class _$WalletImpl implements _Wallet {
       coinType,
       walletName,
       currencySymbol,
+      walletType,
       balance,
       address,
       const DeepCollectionEquality().hash(_transactions));
@@ -247,6 +266,7 @@ abstract class _Wallet implements Wallet {
       {required final int coinType,
       required final String walletName,
       required final String currencySymbol,
+      required final WalletType walletType,
       required final int balance,
       required final String address,
       required final List<Transaction> transactions}) = _$WalletImpl;
@@ -259,6 +279,8 @@ abstract class _Wallet implements Wallet {
   String get walletName;
   @override
   String get currencySymbol;
+  @override
+  WalletType get walletType;
   @override
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed

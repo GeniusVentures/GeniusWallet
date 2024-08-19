@@ -1,12 +1,14 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:convert/convert.dart';
 import 'package:genius_api/tw/hd_wallet_impl.dart';
 import 'package:genius_api/tw/private_key.dart';
+import 'package:genius_api/types/wallet_type.dart';
 
 class HDWallet {
   late Pointer<Void> nativehandle;
+  final WalletType walletType = WalletType.mnemonic;
   String? name;
 
   HDWallet.pointer(Pointer<Void> pointer) {
@@ -29,14 +31,6 @@ class HDWallet {
     }
   }
 
-  // HDWallet.createWithPrivateKey(String privateKey, {String passphrase = ""}) {
-  //   nativehandle =
-  //       HDWalletImpl.createWithPrivateKey(privateKey, passphrase: passphrase);
-  //   if (nativehandle.hashCode == 0) {
-  //     throw Exception(["HDWallet nativehandle is null"]);
-  //   }
-  // }
-
   HDWallet.createWithData(Uint8List bytes, {String passphrase = ""}) {
     nativehandle =
         HDWalletImpl.createWithEntropy(bytes, passphrase: passphrase);
@@ -58,6 +52,10 @@ class HDWallet {
   PrivateKey getKeyForCoin(int coinType) {
     final pointer = HDWalletImpl.getKeyForCoin(nativehandle, coinType);
     return PrivateKey.pointer(pointer);
+  }
+
+  String getKeyForCoinHex(int coinType) {
+    return hex.encode(getKeyForCoin(coinType).data());
   }
 
   PrivateKey getKey(int coinType, String derivationPath) {
@@ -93,6 +91,10 @@ class HDWallet {
 
   String? getName() {
     return name;
+  }
+
+  WalletType getWalletType() {
+    return walletType;
   }
 
   Pointer<Void> getNativeHandle() {

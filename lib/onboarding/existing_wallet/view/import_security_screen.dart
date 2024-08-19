@@ -35,12 +35,12 @@ class ImportSecurityScreen extends StatelessWidget {
       'phrase': {
         'pasteField': TextEditingController(),
       },
+      'privatekey': {
+        'pasteField': TextEditingController(),
+      },
       'keystore': {
         'pasteField': TextEditingController(),
         'passwordField': TextEditingController(),
-      },
-      'privatekey': {
-        'pasteField': TextEditingController(),
       },
       'address': {
         'pasteField': TextEditingController(),
