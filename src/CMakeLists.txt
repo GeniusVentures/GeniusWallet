@@ -18,6 +18,8 @@ set(WALLET_CORE_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Tru
 set(WALLET_CORE_TREZOR_CRYPTO_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}TrezorCrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to TrezorCrypto lib")
 set(WALLET_CORE_RUST_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}wallet_core_rs${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to WalletCore rust lib")
 include_directories(${WALLET_CORE_INCLUDE_DIR})
+add_library(TrustWalletCore STATIC IMPORTED)
+set_target_properties(TrustWalletCore PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_LIBRARY})
 
 # Set Boost Versions
 set(BOOST_MAJOR_VERSION "1" CACHE STRING "Boost Major Version")
@@ -298,7 +300,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
         SHARED
-        null.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/null.cpp
     )
 
     if(SET_NAME_UNIX_FORCE)
@@ -314,8 +316,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     message(WARNING "LINKING")
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
-        ${WALLET_CORE_LIBRARY}
+        TrustWalletCore
         sgns::GeniusSDK
+        
     )
 
     target_link_libraries(GeniusWallet PRIVATE

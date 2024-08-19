@@ -3,9 +3,9 @@ MACRO (TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE target)
   IF (WIN32)
     FOREACH (arg ${ARGN})
       TARGET_LINK_LIBRARIES(${target} ${arg})
-      SET_TARGET_PROPERTIES(
-        ${target} PROPERTIES LINK_FLAGS "/WHOLEARCHIVE:${arg}"
-      )
+      target_link_options(${target} 
+      /WHOLEARCHIVE:$<TARGET_FILE:${arg}>
+    )
     ENDFOREACH ()
   ELSE ()
     IF (APPLE)
@@ -23,9 +23,9 @@ MACRO (TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE target link_type)
   IF (WIN32)
     FOREACH (arg ${ARGN})
       TARGET_LINK_LIBRARIES(${target} ${link_type} ${arg})
-      SET_TARGET_PROPERTIES(
-        ${target} PROPERTIES LINK_FLAGS "/WHOLEARCHIVE:${arg}"
-      )
+      target_link_options(${target} ${link_type}
+      /WHOLEARCHIVE:$<TARGET_FILE:${arg}>
+    )
     ENDFOREACH ()
   ELSE ()
     IF (APPLE)
