@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ffi';
+import 'dart:typed_data';
+import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
@@ -11,11 +13,15 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/models/wallet_stored.dart';
+import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_api/tw/mnemonic_impl.dart';
+import 'package:genius_api/tw/private_key.dart';
+import 'package:genius_api/tw/public_key.dart';
 import 'package:genius_api/tw/string_util.dart';
 import 'package:genius_api/types/security_type.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
@@ -45,6 +51,7 @@ class GeniusApi {
         address: '0x0',
         // balance: 1000,
         balance: 0,
+        walletType: WalletType.privateKey,
         transactions: await getTransactionsFor('0x0'),
       ),
       Wallet(
@@ -54,6 +61,8 @@ class GeniusApi {
         address: '0x1234asdf5678jklp',
         // balance: 1000,
         balance: 12460,
+        walletType: WalletType.privateKey,
+
         transactions: [],
       ),
     ];
@@ -287,12 +296,7 @@ class GeniusApi {
     return wallet.mnemonic().split(' ');
   }
 
-  // TODO: should we save the wallet in local storage encrypted with the users password/pin?
-  // Will save the mnemonic of the wallet for now.
-  // TODO: how many coin addresses do we want to save / support, for now just ETH
-  // maybe allow users to add new networks through the UI?
-  // TODO: add support for multiple currencies in a single wallet
-  //       convert currenty symbol, currency name, address to a list
+  // Currently we just create a new Ethereum wallet for the user
   Future<void> saveWallet(HDWallet wallet) async {
     String mnemonic = wallet.mnemonic();
     String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
@@ -306,6 +310,8 @@ class GeniusApi {
         walletName: walletName,
         currencySymbol: currencySymbol,
         coinType: TWCoinType.TWCoinTypeEthereum,
+        walletType: wallet.getWalletType(),
+        privateKey: wallet.getKeyForCoinHex(TWCoinType.TWCoinTypeEthereum),
         mnemonic: mnemonic,
         address: ethAddress);
     await _secureStorage.saveWallet(walletStored);
@@ -321,6 +327,8 @@ class GeniusApi {
         currencySymbol: CoinUtil.getSymbol(coinType),
         coinType: coinType,
         mnemonic: wallet.mnemonic(),
+        privateKey: wallet.getKeyForCoinHex(coinType),
+        walletType: wallet.getWalletType(),
         address: wallet.getAddressForCoin(coinType)));
   }
 
@@ -390,8 +398,6 @@ class GeniusApi {
   Future<Wallet?> importWalletFromMnemonic(
       String mnemonic, String walletName, int coinType) async {
     if (!MnemonicImpl.isValid(mnemonic)) {
-      print('not valid');
-      print(mnemonic);
       return null;
     }
 
@@ -403,19 +409,57 @@ class GeniusApi {
 
     await saveImportedWallet(wallet, coinType);
 
-    // TODO: pass cointype ( regenerate these models )
     return Wallet(
       coinType: coinType,
       walletName: walletName,
       currencySymbol: currencySymbol,
       balance: 0,
       address: address,
+      walletType: wallet.getWalletType(),
       transactions: [],
     );
   }
 
   Future<Wallet?> importWalletFromPrivateKey(
-      String privateKey, String walletName, int coinType) async {}
+      String privateKey, String walletName, int coinType) async {
+    final privateKeyData = Uint8List.fromList(hex.decode(privateKey));
+
+    // TODO: add support for other coin type curves!
+    final curve = coinType == TWCoinType.TWCoinTypeEthereum
+        ? TWCurve.TWCurveSECP256k1
+        : TWCurve.TWCurveNone;
+
+    if (!PrivateKey.isValid(privateKeyData, curve)) {
+      return null;
+    }
+
+    String currencySymbol = CoinUtil.getSymbol(coinType);
+    AnyAddress anyAddress =
+        AnyAddress.createWithPrivateKeyData(privateKeyData, coinType, curve);
+
+    // https://success.skyhighsecurity.com/Skyhigh_Data_Loss_Prevention/Data_Identifiers/Cryptocurrency_Addresses#:~:text=This%20is%20a%20hexadecimal%20format,transparency%20we%20encourage%20their%20use.
+    // TODO: support other coin types prefixes
+    String appendString = coinType == TWCoinType.TWCoinTypeEthereum ? "0x" : "";
+    String address = "$appendString${hex.encode(anyAddress.data())}";
+
+    await _secureStorage.saveWallet(WalletStored(
+        walletName: walletName,
+        currencySymbol: CoinUtil.getSymbol(coinType),
+        coinType: coinType,
+        privateKey: privateKey,
+        walletType: WalletType.privateKey,
+        address: address));
+
+    return Wallet(
+      coinType: coinType,
+      walletName: walletName,
+      currencySymbol: currencySymbol,
+      balance: 0,
+      address: address,
+      walletType: WalletType.privateKey,
+      transactions: [],
+    );
+  }
 
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);

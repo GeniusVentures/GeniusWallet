@@ -17,4 +17,6 @@ abstract class SecureStorage {
   Future<bool> verifyUserPin(String pin);
 
   Future<bool> pinExists();
+
+  Future<void> deleteAllWallets();
 }
