@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/wallet_stored.dart';
@@ -46,7 +45,8 @@ class LocalWalletStorage extends SecureStorage {
   Future<void> deleteWallet(String walletAddress) async {
     final currentWallets = [...walletsController.value];
 
-    currentWallets.removeWhere((element) => element.address == walletAddress);
+    currentWallets.removeWhere((element) =>
+        element.address.toLowerCase() == walletAddress.toLowerCase());
 
     final walletJsonStr = await _secureStorage.read(key: _walletCollectionKey);
 
@@ -62,7 +62,8 @@ class LocalWalletStorage extends SecureStorage {
     List<WalletStored> storedWallets =
         walletsMap.map(WalletStored.fromJson).toList();
 
-    storedWallets.removeWhere((element) => element.address == walletAddress);
+    storedWallets.removeWhere((element) =>
+        element.address.toLowerCase() == walletAddress.toLowerCase());
 
     await _secureStorage.write(
         key: _walletCollectionKey, value: json.encode(storedWallets));
@@ -70,8 +71,8 @@ class LocalWalletStorage extends SecureStorage {
 
   @override
   Future<void> saveWallet(WalletStored wallet) async {
-    final isExistingWallet = walletsController.value
-            .indexWhere((element) => element.address == wallet.address) >=
+    final isExistingWallet = walletsController.value.indexWhere((element) =>
+            element.address.toLowerCase() == wallet.address.toLowerCase()) >=
         0;
 
     if (isExistingWallet) {
@@ -98,7 +99,6 @@ class LocalWalletStorage extends SecureStorage {
 
     await _secureStorage.write(
         key: _walletCollectionKey, value: json.encode(storedWallets));
-    //twenty jungle lazy consider valid dirt mimic firm rail clerk normal number
   }
 
   @override
@@ -125,9 +125,15 @@ class LocalWalletStorage extends SecureStorage {
       return false;
     }
   }
+
+  @override
+  Future<void> deleteAllWallets() async {
+    await _secureStorage.write(key: _walletCollectionKey, value: null);
+  }
 }
 
 // TODO: wire up fetching balance, transactions
+// Don't pass any sensitive data to the UI, no privateKey or mnemonic
 Wallet mapStoredWalletToWallet(WalletStored wallet) {
   return Wallet(
       walletName: wallet.walletName,
@@ -135,5 +141,6 @@ Wallet mapStoredWalletToWallet(WalletStored wallet) {
       coinType: wallet.coinType,
       balance: 0,
       address: wallet.address,
+      walletType: wallet.walletType,
       transactions: []);
 }
