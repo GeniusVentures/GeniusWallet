@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-include(../cmake/Utilities.cmake)
-include(../cmake/CommonCompilerOptions.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../cmake/Utilities.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../cmake/CommonCompilerOptions.cmake)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
@@ -283,14 +283,14 @@ set(gnus_upnp_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
 find_package(gnus_upnp CONFIG REQUIRED)
 include_directories(${gnus_upnp_INCLUDE_DIR})
 
-set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
+set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
 set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
 set(GeniusKDF_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/GeniusKDF/")
 find_package(GeniusKDF CONFIG REQUIRED)
 find_package(SuperGenius CONFIG REQUIRED)
 include_directories(${SuperGenius_INCLUDE_DIR})
 
-set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
+set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})
 set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
 find_package(GeniusSDK CONFIG REQUIRED)
 include_directories(${GeniusSDK_INCLUDE_DIR})

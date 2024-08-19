@@ -8,16 +8,10 @@ set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
 
 if(NOT DEFINED absl_DIR)
     set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
-    set(absl_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/absl")
-    find_package(absl CONFIG REQUIRED)
-    include_directories(${absl_INCLUDE_DIR})
 endif()
 
 if(NOT DEFINED utf8_range_DIR)
     set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
-    set(utf8_range_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
-    find_package(utf8_range CONFIG REQUIRED)
-    include_directories(${utf8_range_INCLUDE_DIR})
 endif()
 # --------------------------------------------------------
 # Set config of protobuf project
@@ -48,9 +42,7 @@ add_executable(${BINARY_NAME} WIN32
 )
 
 
-set(FFI_LAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-set(FFI_LIB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/../ffi")
-add_subdirectory(${FFI_LAYER_DIR} ${FFI_LIB_OUT_DIR})
+include(../../src/CMakeLists.txt)
 
 #set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
 #set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
@@ -78,10 +70,9 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
 
-TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PUBLIC ${WALLET_CORE_LIBRARY})
-get_target_property(GeniusSDK_LIB_PATH sgns::GeniusSDK IMPORTED_LOCATION_DEBUG)
-TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PUBLIC ${GeniusSDK_LIB_PATH})
-target_link_libraries(${BINARY_NAME} PUBLIC 
+TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE ${WALLET_CORE_LIBRARY})
+target_link_libraries(${BINARY_NAME} PRIVATE 
+sgns::GeniusSDK
 ${WALLET_CORE_RUST_LIBRARY} 
 ws2_32 userenv ntdll
 ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
@@ -100,7 +91,9 @@ utf8_range::utf8_validity
 #sgns::sgns_account
 #sgns::GeniusSDK
 )
-#target_link_options(${BINARY_NAME} PRIVATE /WHOLEARCHIVE:sgns::GeniusSDK)
+target_link_options(${BINARY_NAME} PRIVATE
+$<$<CXX_COMPILER_ID:MSVC>:/WHOLEARCHIVE:$<TARGET_FILE:sgns::GeniusSDK>>
+)
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
