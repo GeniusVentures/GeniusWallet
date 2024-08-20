@@ -45,7 +45,6 @@ if(NOT DEFINED Protobuf_DIR)
     set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/protobuf")
 endif()
 
-
 if(NOT DEFINED Protobuf_INCLUDE_DIR)
     set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
 endif()
@@ -296,6 +295,7 @@ set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})
 set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
 find_package(GeniusSDK CONFIG REQUIRED)
 include_directories(${GeniusSDK_INCLUDE_DIR})
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
@@ -318,7 +318,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
         sgns::GeniusSDK
-        
     )
 
     target_link_libraries(GeniusWallet PRIVATE

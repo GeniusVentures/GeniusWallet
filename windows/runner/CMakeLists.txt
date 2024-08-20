@@ -13,6 +13,7 @@ endif()
 if(NOT DEFINED utf8_range_DIR)
     set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
 endif()
+
 # --------------------------------------------------------
 # Set config of protobuf project
 if(NOT DEFINED Protobuf_DIR)
@@ -21,40 +22,39 @@ if(NOT DEFINED Protobuf_DIR)
     find_package(Protobuf CONFIG REQUIRED)
     include_directories(${Protobuf_INCLUDE_DIR})
 endif()
+
 if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
     set(Boost_COMPILER "-vc142")
 else() # v143 toolset
     set(Boost_COMPILER "-vc143")
 endif()
+
 # Define the application target. To change its name, change BINARY_NAME in the
 # top-level CMakeLists.txt, not the value here, or `flutter run` will no longer
 # work.
 #
 # Any new source files that you add to the application should be added here.
 add_executable(${BINARY_NAME} WIN32
-  "flutter_window.cpp"
-  "main.cpp"
-  "utils.cpp"
-  "win32_window.cpp"
-  "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
-  "Runner.rc"
-  "runner.exe.manifest"
+    "flutter_window.cpp"
+    "main.cpp"
+    "utils.cpp"
+    "win32_window.cpp"
+    "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
+    "Runner.rc"
+    "runner.exe.manifest"
 )
-
 
 include(../../src/CMakeLists.txt)
 
-#set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
-#set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
-#find_package(GTest CONFIG REQUIRED)
-#include_directories(${GTest_INCLUDE_DIR})
-
-
-
+# set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
+# set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
+# find_package(GTest CONFIG REQUIRED)
+# include_directories(${GTest_INCLUDE_DIR})
 
 # Apply the standard set of build settings. This can be removed for applications
 # that need different build settings.
 apply_standard_settings(${BINARY_NAME})
+
 # Add preprocessor definitions for the build version.
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION=\"${FLUTTER_VERSION}\"")
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_MAJOR=${FLUTTER_VERSION_MAJOR}")
@@ -69,12 +69,11 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
-
 TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
-target_link_libraries(${BINARY_NAME} PRIVATE 
-${WALLET_CORE_RUST_LIBRARY} 
-${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
-ws2_32 userenv ntdll
+target_link_libraries(${BINARY_NAME} PRIVATE
+    ${WALLET_CORE_RUST_LIBRARY}
+    ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
+    ws2_32 userenv ntdll
 )
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
