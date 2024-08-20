@@ -71,8 +71,8 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
 TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
 target_link_libraries(${BINARY_NAME} PRIVATE
-    ${WALLET_CORE_RUST_LIBRARY}
-    ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
+    WalletCoreRust
+    WalletCoreTrezorCrypto
     ws2_32 userenv ntdll
 )
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
