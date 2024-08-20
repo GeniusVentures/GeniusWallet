@@ -44,7 +44,7 @@ add_executable(${BINARY_NAME} WIN32
     "runner.exe.manifest"
 )
 
-include(../../src/CMakeLists.txt)
+include(../../cmake/CommonBuildParameters.cmake)
 
 # set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
 # set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
