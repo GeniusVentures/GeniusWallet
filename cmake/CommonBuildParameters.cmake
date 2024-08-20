@@ -20,6 +20,10 @@ set(WALLET_CORE_RUST_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFI
 include_directories(${WALLET_CORE_INCLUDE_DIR})
 add_library(TrustWalletCore STATIC IMPORTED)
 set_target_properties(TrustWalletCore PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_LIBRARY})
+add_library(WalletCoreRust STATIC IMPORTED)
+set_target_properties(WalletCoreRust PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_RUST_LIBRARY})
+add_library(WalletCoreTrezorCrypto STATIC IMPORTED)
+set_target_properties(WalletCoreTrezorCrypto PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY})
 
 # Set Boost Versions
 set(BOOST_MAJOR_VERSION "1" CACHE STRING "Boost Major Version")
@@ -304,7 +308,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     )
 
     if(SET_NAME_UNIX_FORCE)
-        message(WARNING "Forcing file to be name libGeniusWallet.so")
         set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")
         set_target_properties(GeniusWallet PROPERTIES PREFIX "lib")
     endif()
@@ -314,14 +317,13 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_link_libraries(GeniusWallet PRIVATE ${LOG_LIB})
     endif()
 
-    message(WARNING "LINKING")
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
         sgns::GeniusSDK
     )
 
     target_link_libraries(GeniusWallet PRIVATE
-        ${WALLET_CORE_RUST_LIBRARY}
-        ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
+        WalletCoreRust
+        WalletCoreTrezorCrypto
     )
 endif()
