@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-include(${CMAKE_CURRENT_LIST_DIR}/../cmake/Utilities.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/../cmake/CommonCompilerOptions.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/Utilities.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)

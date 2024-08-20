@@ -56,9 +56,7 @@ find_package(Vulkan REQUIRED)
 # Flutter library and tool build rules.
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
-set(FFI_LAYER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../src")
-set(FFI_LIB_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/ffi")
-add_subdirectory(${FFI_LAYER_DIR} ${FFI_LIB_OUT_DIR})
+include(../cmake/CommonBuildParameters.cmake)
 
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
@@ -127,7 +125,7 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-install(FILES ${FFI_LIB_OUT_DIR}/libGeniusWallet.so DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+install(TARGETS GeniusWallet DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
