@@ -29,8 +29,6 @@ class ImportSecurityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// This was done to have the same data structure, since `KeyStore` needs two controllers.
-    /// TODO: Optimize this.
     final tabControllers = {
       'phrase': {
         'pasteField': TextEditingController(),
@@ -71,8 +69,7 @@ class ImportSecurityScreen extends StatelessWidget {
               }
             },
             child: DefaultTabController(
-              // TODO add other methods of import .. change this to 4
-              length: 2,
+              length: tabControllers.length,
               child: Form(
                 key: formKey,
                 child: LayoutBuilder(builder: (context, constraints) {
@@ -271,9 +268,8 @@ class _ImportSecurityBody extends StatelessWidget {
             tabs: [
               Tab(text: 'Phrase'),
               Tab(text: 'Private Key'),
-              // TODO: add support for other import methods
-              // Tab(text: 'Keystore'),
-              // Tab(text: 'Address'),
+              Tab(text: 'Keystore'),
+              Tab(text: 'Address'),
             ],
           ),
         ),
@@ -293,22 +289,21 @@ class _ImportSecurityBody extends StatelessWidget {
                   child: PrivateKeyTabView(
                     controller: tabControllers['privatekey']!['pasteField']!,
                   )),
-              // TODO: add other import types
-              // Padding(
-              //   padding: const EdgeInsets.only(top: 10),
-              //   child: KeystoreTabView(
-              //     passwordController:
-              //         tabControllers['keystore']!['passwordField']!,
-              //     pasteFieldController:
-              //         tabControllers['keystore']!['pasteField']!,
-              //   ),
-              // ),
-              // Padding(
-              //   padding: const EdgeInsets.only(top: 10),
-              //   child: AddressTabView(
-              //     controller: tabControllers['address']!['pasteField']!,
-              //   ),
-              // ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: KeystoreTabView(
+                  passwordController:
+                      tabControllers['keystore']!['passwordField']!,
+                  pasteFieldController:
+                      tabControllers['keystore']!['pasteField']!,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: AddressTabView(
+                  controller: tabControllers['address']!['pasteField']!,
+                ),
+              ),
             ],
           ),
         ),

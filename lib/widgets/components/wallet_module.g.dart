@@ -10,7 +10,7 @@ class WalletModule extends StatefulWidget {
   final BoxConstraints constraints;
   final Widget? ovrCoinImage;
   final String? ovrWalletBalance;
-  final String? ovrCoinName;
+  final String? walletName;
   final String? ovrLastTransactionID;
   final String? ovrLastTransactionValue;
   final String? ovrTimestamp;
@@ -21,7 +21,7 @@ class WalletModule extends StatefulWidget {
       {Key? key,
       this.ovrCoinImage,
       this.ovrWalletBalance,
-      this.ovrCoinName,
+      this.walletName,
       this.ovrLastTransactionID,
       this.ovrLastTransactionValue,
       this.ovrTimestamp,
@@ -68,16 +68,20 @@ class _WalletModule extends State<WalletModule> {
                   fit: BoxFit.fill,
                 ),
             const SizedBox(width: 16),
-            AutoSizeText(
-              widget.ovrCoinName ?? 'Bitcoin',
-              style: const TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: GeniusWalletFontSize.medium,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.25,
-                color: Colors.white,
+            SizedBox(
+              width: 150,
+              child: AutoSizeText(
+                overflow: TextOverflow.ellipsis,
+                widget.walletName ?? 'Bitcoin',
+                style: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: GeniusWalletFontSize.medium,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.25,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.left,
               ),
-              textAlign: TextAlign.left,
             ),
             const Expanded(
                 child: Text(
@@ -129,90 +133,70 @@ class _WalletModule extends State<WalletModule> {
             right: 20.0,
             bottom: 0,
             height: 100.0,
-            child: Container(
-                decoration: BoxDecoration(),
+            child: SizedBox(
                 child: Stack(children: [
-                  Positioned(
-                    left: widget.constraints.maxWidth * 0.061,
-                    width: widget.constraints.maxWidth * 0.338,
-                    top: 13.0,
+              Positioned(
+                left: widget.constraints.maxWidth * 0.061,
+                width: widget.constraints.maxWidth * 0.338,
+                top: 13.0,
+                height: 12.0,
+                child: SizedBox(
                     height: 12.0,
-                    child: SizedBox(
-                        height: 12.0,
-                        width:
-                            widget.constraints.maxWidth * 0.33762057877813506,
-                        child: AutoSizeText(
-                          widget.ovrTimestamp ?? '16:01, 12 dec 2018',
-                          style: const TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 10.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.25,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.left,
-                        )),
-                  ),
-                  Positioned(
-                    left: widget.constraints.maxWidth * 0.582,
-                    width: widget.constraints.maxWidth * 0.244,
-                    top: 13.0,
+                    width: widget.constraints.maxWidth * 0.33762057877813506,
+                    child: AutoSizeText(
+                      widget.ovrTimestamp ?? '16:01, 12 dec 2018',
+                      style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.25,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.left,
+                    )),
+              ),
+              Positioned(
+                left: widget.constraints.maxWidth * 0.582,
+                width: widget.constraints.maxWidth * 0.244,
+                top: 13.0,
+                height: 14.0,
+                child: SizedBox(
                     height: 14.0,
-                    child: SizedBox(
-                        height: 14.0,
-                        width:
-                            widget.constraints.maxWidth * 0.24437299035369775,
-                        child: AutoSizeText(
-                          widget.ovrLastTransactionValue ?? '+1.045 BTC',
-                          style: const TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.left,
-                        )),
-                  ),
-                  Positioned(
-                    left: widget.constraints.maxWidth * 0.039,
-                    width: widget.constraints.maxWidth * 0.788,
-                    top: 55.0,
+                    width: widget.constraints.maxWidth * 0.24437299035369775,
+                    child: AutoSizeText(
+                      widget.ovrLastTransactionValue ?? '+1.045 BTC',
+                      style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.0,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.left,
+                    )),
+              ),
+              Positioned(
+                left: widget.constraints.maxWidth * 0.039,
+                width: widget.constraints.maxWidth * 0.788,
+                top: 80.0,
+                height: 14.0,
+                child: SizedBox(
                     height: 14.0,
-                    child: SizedBox(
-                        height: 14.0,
-                        width: widget.constraints.maxWidth * 0.7877813504823151,
-                        child: AutoSizeText(
-                          widget.ovrLastTransactionID ??
-                              '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                          style: const TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.30000001192092896,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )),
-                  ),
-                  Positioned(
-                    top: 85.0,
-                    child: SizedBox(
-                        width: widget.constraints.maxWidth * 0.7877813504823151,
-                        child: AutoSizeText(
-                          widget.walletAddress ??
-                              '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                          style: const TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 0.30000001192092896,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )),
-                  ),
-                ])),
+                    width: widget.constraints.maxWidth * 0.7877813504823151,
+                    child: AutoSizeText(
+                      widget.ovrLastTransactionID ??
+                          '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
+                      style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.30000001192092896,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    )),
+              ),
+            ])),
           ),
           Positioned(
             left: widget.constraints.maxWidth * 0.064,

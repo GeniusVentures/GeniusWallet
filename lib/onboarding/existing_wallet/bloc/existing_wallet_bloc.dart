@@ -55,15 +55,15 @@ class ExistingWalletBloc
     emit(state.copyWith(importWalletStatus: ExistingWalletStatus.loading));
 
     try {
-      final wallet = await geniusApi.validateWalletImport(
-        coinType: event.coinType,
-        walletName: event.walletName,
-        walletType: event.walletType,
-        securityType: event.securityType,
-        securityValue: event.pasteFieldText,
-      );
+      final isSaved = await geniusApi.validateWalletImport(
+          coinType: event.coinType,
+          walletName: event.walletName,
+          walletType: event.walletType,
+          securityType: event.securityType,
+          securityValue: event.pasteFieldText,
+          password: event.password);
 
-      if (wallet != null) {
+      if (isSaved) {
         emit(state.copyWith(importWalletStatus: ExistingWalletStatus.success));
       } else {
         emit(state.copyWith(importWalletStatus: ExistingWalletStatus.error));

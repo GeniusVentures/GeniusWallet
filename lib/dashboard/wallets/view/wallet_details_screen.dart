@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
@@ -76,14 +77,13 @@ class Desktop extends StatelessWidget {
                         child: LayoutBuilder(
                           builder: (BuildContext context,
                               BoxConstraints constraints) {
-                            return WalletInformation(
-                              constraints,
-                              ovrYourbitcoinaddress:
-                                  'Your ${selectedWallet.currencySymbol} Wallet Address',
-                              ovrQuantity: selectedWallet.balance.toString(),
-                              ovrCurrency: selectedWallet.currencySymbol,
-                              ovrAddressField: selectedWallet.address,
-                            );
+                            return WalletInformation(constraints,
+                                ovrYourbitcoinaddress:
+                                    '${selectedWallet.walletType == WalletType.tracking ? 'Tracked' : 'Your'} ${selectedWallet.currencySymbol} Wallet Address',
+                                ovrQuantity: selectedWallet.balance.toString(),
+                                ovrCurrency: selectedWallet.currencySymbol,
+                                ovrAddressField: selectedWallet.address,
+                                walletType: selectedWallet.walletType);
                           },
                         ),
                       ),
@@ -158,14 +158,13 @@ class Mobile extends StatelessWidget {
                     child: LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
-                        return WalletInformation(
-                          constraints,
-                          ovrYourbitcoinaddress:
-                              'Your ${selectedWallet.currencySymbol} Wallet Address',
-                          ovrQuantity: selectedWallet.balance.toString(),
-                          ovrCurrency: selectedWallet.currencySymbol,
-                          ovrAddressField: selectedWallet.address,
-                        );
+                        return WalletInformation(constraints,
+                            ovrYourbitcoinaddress:
+                                '${selectedWallet.walletType == WalletType.tracking ? 'Tracked' : 'Your'} ${selectedWallet.currencySymbol} Wallet Address',
+                            ovrQuantity: selectedWallet.balance.toString(),
+                            ovrCurrency: selectedWallet.currencySymbol,
+                            ovrAddressField: selectedWallet.address,
+                            walletType: selectedWallet.walletType);
                       },
                     ),
                   ),
