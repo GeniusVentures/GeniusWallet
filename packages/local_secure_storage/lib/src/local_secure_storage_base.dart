@@ -10,6 +10,7 @@ class LocalWalletStorage extends SecureStorage {
   /// Key used for storing user PIN locally.
   static const _pinKey = '__pin_key__';
   static const _watchesKey = '__watches_key__';
+  static const _walletKeyPrefix = 'wallet_';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
@@ -17,62 +18,47 @@ class LocalWalletStorage extends SecureStorage {
 
   static Future<LocalWalletStorage> create() async {
     final localWalletStorage = LocalWalletStorage._create();
-    final secureStorage = localWalletStorage._secureStorage;
-    final walletsController = localWalletStorage.walletsController;
 
-    List<Wallet> wallets = [];
+    //await localWalletStorage.deleteAllWallets();
 
-    Map<String, String> keys = await secureStorage.readAll();
+    Map<String, String> keys =
+        await localWalletStorage._secureStorage.readAll();
 
-    keys.forEach((key, value) {
-      if (key != _pinKey && key != _watchesKey) {
-        StoredKeyWallet wallet = StoredKeyWallet(StoredKey.importJson(value));
-        wallets.add(mapStoredKeyWalletToWallets(wallet));
+    for (var entry in keys.entries) {
+      if (localWalletStorage.isAWallet(entry.key)) {
+        StoredKey? storedKey = StoredKey.importJson(entry.value);
+        // A key was not able to be parsed, delete it
+        if (storedKey == null) {
+          await localWalletStorage.deleteKey(entry.key);
+        }
+        localWalletStorage.addWalletToController(storedKey);
       }
-    });
-
-    walletsController.add(wallets);
+    }
 
     return localWalletStorage;
   }
 
   @override
   Future<void> saveStoredKey(StoredKey storedKey) async {
-    final currentWallets = [...walletsController.value];
-    currentWallets.add(mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
-    walletsController.add(currentWallets);
+    addWalletToController(storedKey);
 
     await _secureStorage.write(
-        key: storedKey.account(0).address(), value: storedKey.exportJson());
+        key: createKey(storedKey.account(0).address()),
+        value: storedKey.exportJson());
   }
 
-  // TODO: Figure out deleting wallets
   @override
   Future<void> deleteWallet(String walletAddress) async {
-    // final currentWallets = [...walletsController.value];
+    Map<String, String> keys = await _secureStorage.readAll();
 
-    // currentWallets.removeWhere((element) =>
-    //     element.address.toLowerCase() == walletAddress.toLowerCase());
-
-    // final walletJsonStr = await _secureStorage.read(key: _walletCollectionKey);
-
-    // if (walletJsonStr == null) {
-    //   return;
-    // }
-
-    // walletsController.add(currentWallets);
-
-    // final walletsMap =
-    //     List<Map<String, dynamic>>.from(jsonDecode(walletJsonStr));
-
-    // List<WalletStored> storedWallets =
-    //     walletsMap.map(WalletStored.fromJson).toList();
-
-    // storedWallets.removeWhere((element) =>
-    //     element.address.toLowerCase() == walletAddress.toLowerCase());
-
-    // await _secureStorage.write(
-    //     key: _walletCollectionKey, value: json.encode(storedWallets));
+    for (var entry in keys.entries) {
+      if (isAWallet(entry.key) &&
+          isKeyMatchesAddress(entry.key, walletAddress)) {
+        await deleteKey(entry.key);
+        deleteWalletFromController(walletAddress);
+        return;
+      }
+    }
   }
 
   @override
@@ -105,19 +91,51 @@ class LocalWalletStorage extends SecureStorage {
     Map<String, String> keys = await _secureStorage.readAll();
 
     for (var entry in keys.entries) {
-      StoredKeyWallet wallet =
-          StoredKeyWallet(StoredKey.importJson(entry.value));
-      // no need to wait so no (await)
-      await _secureStorage.write(
-          key: wallet.storedKey.identifier(), value: null);
+      if (isAWallet(entry.key)) {
+        await deleteKey(entry.key);
+      }
     }
+
+    deleteAllWalletsFromController();
+  }
+
+  Future<void> deleteKey(key) async {
+    await _secureStorage.write(key: key, value: null);
+  }
+
+  String createKey(String address) {
+    return '$_walletKeyPrefix${address.toLowerCase()}';
+  }
+
+  bool isAWallet(String key) {
+    return key.toLowerCase().contains(_walletKeyPrefix);
+  }
+
+  bool isKeyMatchesAddress(String key, String address) {
+    return key.toLowerCase() == createKey(address.toLowerCase());
+  }
+
+  void addWalletToController(storedKey) {
+    final currentWallets = [...walletsController.value];
+    currentWallets.add(mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
+    walletsController.add(currentWallets);
+  }
+
+  void deleteAllWalletsFromController() {
+    walletsController.add([]);
+  }
+
+  void deleteWalletFromController(String address) {
+    final currentWallets = [...walletsController.value];
+    currentWallets.removeWhere(
+        (element) => element.address.toLowerCase() == address.toLowerCase());
+    walletsController.add(currentWallets);
   }
 }
 
 // TODO: wire up fetching balance, transactions
 // Don't pass any sensitive data to the UI, no privateKey or mnemonic
 Wallet mapStoredKeyWalletToWallets(StoredKeyWallet wallet) {
-  // TODO: How to manage multiple accounts in wallet?
   return Wallet(
       walletName: wallet.storedKey.name(),
       currencySymbol:

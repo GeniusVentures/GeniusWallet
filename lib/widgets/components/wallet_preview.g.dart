@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 
 class WalletPreview extends StatefulWidget {
   final BoxConstraints constraints;
-  final String? ovrCoinType;
+  final WalletType? walletType;
   final String? ovrWalletBalance;
   final Widget? ovrCoinIcon;
   final String? ovrCoinSymbol;
   final String? walletName;
   const WalletPreview(this.constraints,
       {Key? key,
-      this.ovrCoinType,
+      this.walletType,
       this.ovrWalletBalance,
       this.ovrCoinIcon,
       this.ovrCoinSymbol,
@@ -119,7 +121,11 @@ class _WalletPreview extends State<WalletPreview> {
             ])),
           ),
           Positioned(
-            left: 16.0,
+              left: 16.0,
+              top: 18.0,
+              child: WalletTypeIcon(walletType: widget.walletType)),
+          Positioned(
+            left: 60.0,
             width: 49.0,
             top: 21.0,
             height: 14.0,

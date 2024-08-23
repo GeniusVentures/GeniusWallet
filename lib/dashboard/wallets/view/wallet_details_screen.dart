@@ -67,6 +67,7 @@ class Desktop extends StatelessWidget {
                               ovrShape: WalletUtils.currencySymbolToImage(
                                 selectedWallet.currencySymbol,
                               ),
+                              walletType: selectedWallet.walletType,
                             );
                           },
                         ),
@@ -148,6 +149,7 @@ class Mobile extends StatelessWidget {
                           ovrShape: WalletUtils.currencySymbolToImage(
                             selectedWallet.currencySymbol,
                           ),
+                          walletType: selectedWallet.walletType,
                         );
                       },
                     ),

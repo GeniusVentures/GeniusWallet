@@ -119,10 +119,15 @@ class _WalletInformation extends State<WalletInformation> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (widget.walletType == WalletType.tracking) ...[
-                    const Text(
-                      "* Tracked Wallet",
-                      style: TextStyle(color: Colors.amberAccent, fontSize: 20),
-                    )
+                    Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                                GeniusWalletConsts.borderRadiusCard),
+                            color: GeniusWalletColors.containerGray),
+                        child: const Text(
+                          "You are watching this account",
+                          style: TextStyle(fontSize: 20),
+                        ))
                   ],
                   if (widget.walletType != WalletType.tracking) ...[
                     SendButtonCustom(
@@ -187,7 +192,7 @@ class _WalletInformation extends State<WalletInformation> {
                         decoration: const BoxDecoration(
                           color: GeniusWalletColors.deepBlueCardColor,
                           borderRadius: BorderRadius.all(Radius.circular(
-                              GeniusWalletConsts.borderRadiusButton)),
+                              GeniusWalletConsts.borderRadiusCard)),
                         ),
                       ),
                       Positioned(
