@@ -1,5 +1,5 @@
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/wallet_stored.dart';
+import 'package:genius_api/tw/stored_key.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class SecureStorage {
@@ -7,8 +7,6 @@ abstract class SecureStorage {
   final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
 
   Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
-
-  Future<void> saveWallet(WalletStored wallet);
 
   Future<void> deleteWallet(String walletAddress);
 
@@ -19,4 +17,6 @@ abstract class SecureStorage {
   Future<bool> pinExists();
 
   Future<void> deleteAllWallets();
+
+  Future<void> saveStoredKey(StoredKey storedKey);
 }

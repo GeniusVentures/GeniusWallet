@@ -23,9 +23,11 @@ class HDWallet {
     }
   }
 
-  HDWallet.createWithMnemonic(String mnemonic, {String passphrase = ""}) {
+  HDWallet.createWithMnemonic(String mnemonic,
+      {String passphrase = "", String walletName = ""}) {
     nativehandle =
         HDWalletImpl.createWithMnemonic(mnemonic, passphrase: passphrase);
+    name = walletName;
     if (nativehandle.hashCode == 0) {
       throw Exception(["HDWallet nativehandle is null"]);
     }
