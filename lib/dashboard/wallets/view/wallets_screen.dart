@@ -61,20 +61,24 @@ class Desktop extends StatelessWidget {
                         transactionValue = lastTransaction.amount;
                         transactionId = lastTransaction.hash;
                       }
-                      return WalletModule(
-                        constraints,
-                        walletAddress: wallet.address,
-                        ovrCoinName: wallet.currencySymbol,
-                        ovrCoinSymbol: wallet.currencySymbol,
-                        ovrWalletBalance: wallet.balance.toString(),
-                        ovrLastTransactionID: transactionId,
-                        ovrLastTransactionValue: transactionValue,
-                        ovrTimestamp: timestamp,
-                        ovrTrendLine: trendLine,
-                        ovrCoinImage: WalletUtils.currencySymbolToImage(
-                          wallet.currencySymbol,
-                        ),
-                      );
+                      return MaterialButton(
+                          onPressed: () {
+                            context.push('/wallets/${wallet.address}');
+                          },
+                          child: WalletModule(
+                            constraints,
+                            walletAddress: wallet.address,
+                            walletName: wallet.walletName,
+                            ovrCoinSymbol: wallet.currencySymbol,
+                            ovrWalletBalance: wallet.balance.toString(),
+                            ovrLastTransactionID: transactionId,
+                            ovrLastTransactionValue: transactionValue,
+                            ovrTimestamp: timestamp,
+                            ovrTrendLine: trendLine,
+                            ovrCoinImage: WalletUtils.currencySymbolToImage(
+                              wallet.currencySymbol,
+                            ),
+                          ));
                     },
                   ),
                 ),
@@ -191,22 +195,28 @@ class Mobile extends StatelessWidget {
                                   transactionValue = lastTransaction.amount;
                                   transactionId = lastTransaction.hash;
                                 }
-                                return WalletModule(
-                                  constraints,
-                                  walletAddress: currentWallet.address,
-                                  ovrCoinName: currentWallet.currencySymbol,
-                                  ovrCoinSymbol: currentWallet.currencySymbol,
-                                  ovrWalletBalance:
-                                      currentWallet.balance.toString(),
-                                  ovrLastTransactionID: transactionId,
-                                  ovrLastTransactionValue: transactionValue,
-                                  ovrTimestamp: timestamp,
-                                  ovrTrendLine: trendLine,
-                                  ovrCoinImage:
-                                      WalletUtils.currencySymbolToImage(
-                                    currentWallet.currencySymbol,
-                                  ),
-                                );
+                                return MaterialButton(
+                                    onPressed: () {
+                                      context.push(
+                                          '/wallets/${currentWallet.address}');
+                                    },
+                                    child: WalletModule(
+                                      constraints,
+                                      walletAddress: currentWallet.address,
+                                      walletName: currentWallet.walletName,
+                                      ovrCoinSymbol:
+                                          currentWallet.currencySymbol,
+                                      ovrWalletBalance:
+                                          currentWallet.balance.toString(),
+                                      ovrLastTransactionID: transactionId,
+                                      ovrLastTransactionValue: transactionValue,
+                                      ovrTimestamp: timestamp,
+                                      ovrTrendLine: trendLine,
+                                      ovrCoinImage:
+                                          WalletUtils.currencySymbolToImage(
+                                        currentWallet.currencySymbol,
+                                      ),
+                                    ));
                               },
                             ),
                           );

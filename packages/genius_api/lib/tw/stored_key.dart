@@ -1,7 +1,9 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
+import 'package:genius_api/tw/account.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_api/tw/stored_key_impl.dart';
 import 'package:genius_api/tw/private_key.dart';
@@ -86,15 +88,13 @@ class StoredKey {
     StoredKeyImpl.delete(nativehandle);
   }
 
-  //Account ?
-  Pointer<Void> account(int index) {
-    return StoredKeyImpl.account(nativehandle, index);
+  Account account(int index) {
+    return Account(StoredKeyImpl.account(nativehandle, index));
   }
 
-  //Account ?
-  Pointer<Void> accountForCoin(int coin, HDWallet hdWallet) {
-    return StoredKeyImpl.accountForCoin(
-        nativehandle, coin, hdWallet.getNativeHandle());
+  Account accountForCoin(int coin, HDWallet hdWallet) {
+    return Account(StoredKeyImpl.accountForCoin(
+        nativehandle, coin, hdWallet.getNativeHandle()));
   }
 
   void removeAccountForCoin(int coin) {

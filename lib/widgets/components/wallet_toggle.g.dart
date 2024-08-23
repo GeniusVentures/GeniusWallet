@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/custom/coin_toggle_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 
 class WalletToggle extends StatefulWidget {
   final BoxConstraints constraints;
@@ -9,14 +11,15 @@ class WalletToggle extends StatefulWidget {
   final Widget? ovrArrowToggle;
   final Widget? ovrShape;
   final String? ovrCoinName;
-  const WalletToggle(
-    this.constraints, {
-    Key? key,
-    this.ovrWalletName,
-    this.ovrArrowToggle,
-    this.ovrShape,
-    this.ovrCoinName,
-  }) : super(key: key);
+  final WalletType? walletType;
+  const WalletToggle(this.constraints,
+      {Key? key,
+      this.ovrWalletName,
+      this.ovrArrowToggle,
+      this.ovrShape,
+      this.ovrCoinName,
+      this.walletType})
+      : super(key: key);
   @override
   _WalletToggle createState() => _WalletToggle();
 }
@@ -72,7 +75,7 @@ class _WalletToggle extends State<WalletToggle> {
                     const Icon(Icons.arrow_drop_down, size: 14),
               ),
               Positioned(
-                right: 60.0,
+                right: 50.0,
                 width: 120.0,
                 top: 10.0,
                 height: 16.0,
@@ -94,7 +97,11 @@ class _WalletToggle extends State<WalletToggle> {
             ])),
           ),
           Positioned(
-            left: 0,
+              left: 0,
+              top: 7.0,
+              child: WalletTypeIcon(walletType: widget.walletType)),
+          Positioned(
+            left: 40,
             width: 110.0,
             top: 7.0,
             height: 28.0,
