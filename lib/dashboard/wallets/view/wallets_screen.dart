@@ -67,6 +67,7 @@ class Desktop extends StatelessWidget {
                           },
                           child: WalletModule(
                             constraints,
+                            walletType: wallet.walletType,
                             walletAddress: wallet.address,
                             walletName: wallet.walletName,
                             ovrCoinSymbol: wallet.currencySymbol,
@@ -204,6 +205,7 @@ class Mobile extends StatelessWidget {
                                       constraints,
                                       walletAddress: currentWallet.address,
                                       walletName: currentWallet.walletName,
+                                      walletType: currentWallet.walletType,
                                       ovrCoinSymbol:
                                           currentWallet.currencySymbol,
                                       ovrWalletBalance:

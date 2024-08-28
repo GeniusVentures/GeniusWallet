@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 
@@ -9,6 +10,10 @@ class NavigationOverlayCubit extends Cubit<NavigationOverlayState> {
 
   void navigationTapped(int index) {
     emit(state.copyWith(selectedScreen: NavigationScreen.values[index]));
+  }
+
+  void selectNavigation(NavigationScreen screen) {
+    emit(state.copyWith(selectedScreen: screen));
   }
 
   void setVisibility({

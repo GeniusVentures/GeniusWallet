@@ -59,6 +59,9 @@ class _AddWalletBlock extends State<AddWalletBlock> {
                                     onPressed: () =>
                                         context.push('/landing_screen'),
                                     style: const ButtonStyle(
+                                        surfaceTintColor:
+                                            MaterialStatePropertyAll(
+                                                Colors.transparent),
                                         overlayColor: MaterialStatePropertyAll(
                                             Colors.transparent),
                                         foregroundColor:
