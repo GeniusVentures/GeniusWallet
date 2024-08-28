@@ -41,6 +41,16 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Gnus AI',
           theme: ThemeData(
+            inputDecorationTheme: const InputDecorationTheme(
+                contentPadding: EdgeInsets.all(20),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(GeniusWalletConsts.borderRadiusCard)),
+                    borderSide: BorderSide(
+                        color: GeniusWalletColors.lightGreenSecondary)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
             textButtonTheme: const TextButtonThemeData(
                 style: ButtonStyle(
                     padding: MaterialStatePropertyAll(EdgeInsets.only(

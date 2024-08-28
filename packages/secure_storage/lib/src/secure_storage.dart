@@ -19,4 +19,6 @@ abstract class SecureStorage {
   Future<void> deleteAllWallets();
 
   Future<void> saveStoredKey(StoredKey storedKey);
+
+  Future<void> saveWatchedWallet(Wallet wallet);
 }

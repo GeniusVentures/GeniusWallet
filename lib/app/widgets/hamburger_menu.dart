@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:go_router/go_router.dart';
 
 class HamburgerMenu extends StatelessWidget {
   const HamburgerMenu({Key? key}) : super(key: key);
@@ -27,27 +29,27 @@ class HamburgerMenu extends StatelessWidget {
             MenuListTile(
               menuTitle: 'Markets',
               menuIcon: 'assets/images/chart.png',
-              menuRoute: '/markets',
+              screen: NavigationScreen.markets,
             ),
             MenuListTile(
               menuTitle: 'Crypto News',
               menuIcon: 'assets/images/news.png',
-              menuRoute: '/news',
+              screen: NavigationScreen.news,
             ),
             MenuListTile(
               menuTitle: 'Blockchain Events',
               menuIcon: 'assets/images/calendar.png',
-              menuRoute: '/events',
+              screen: NavigationScreen.events,
             ),
             MenuListTile(
               menuTitle: 'Calculator',
               menuIcon: 'assets/images/calculator.png',
-              menuRoute: '/calculator',
+              screen: NavigationScreen.calculator,
             ),
             MenuListTile(
               menuTitle: 'Settings',
               menuIcon: 'assets/images/settings.png',
-              menuRoute: '/settings',
+              screen: NavigationScreen.settings,
             )
           ],
         ),
@@ -59,10 +61,10 @@ class HamburgerMenu extends StatelessWidget {
 class MenuListTile extends ListTile {
   final String menuTitle;
   final String menuIcon;
-  final String menuRoute;
+  final NavigationScreen screen;
 
   const MenuListTile(
-      {Key? key, this.menuTitle = '', this.menuIcon = '', this.menuRoute = ''})
+      {Key? key, this.menuTitle = '', this.menuIcon = '', required this.screen})
       : super(key: key);
 
   @override
@@ -73,7 +75,8 @@ class MenuListTile extends ListTile {
         leading: Image.asset(menuIcon),
         minLeadingWidth: 18,
         onTap: () {
-          context.go(menuRoute);
+          context.read<NavigationOverlayCubit>().selectNavigation(screen);
+          Scaffold.of(context).closeEndDrawer();
         });
   }
 }

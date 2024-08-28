@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/tw/coin_util.dart';
@@ -9,7 +10,7 @@ import 'package:secure_storage/secure_storage.dart';
 class LocalWalletStorage extends SecureStorage {
   /// Key used for storing user PIN locally.
   static const _pinKey = '__pin_key__';
-  static const _watchesKey = '__watches_key__';
+  static const _watchesKeyPrefix = '__watches_key__';
   static const _walletKeyPrefix = 'wallet_';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
@@ -18,20 +19,32 @@ class LocalWalletStorage extends SecureStorage {
 
   static Future<LocalWalletStorage> create() async {
     final localWalletStorage = LocalWalletStorage._create();
-
     //await localWalletStorage.deleteAllWallets();
 
     Map<String, String> keys =
         await localWalletStorage._secureStorage.readAll();
 
     for (var entry in keys.entries) {
-      if (localWalletStorage.isAWallet(entry.key)) {
-        StoredKey? storedKey = StoredKey.importJson(entry.value);
-        // A key was not able to be parsed, delete it
-        if (storedKey == null) {
-          await localWalletStorage.deleteKey(entry.key);
+      try {
+        if (localWalletStorage.isAWallet(entry.key)) {
+          StoredKey? storedKey = StoredKey.importJson(entry.value);
+          // A key was not able to be parsed, delete it
+          if (storedKey == null) {
+            print("Deleted storedkey ${entry.key}");
+            await localWalletStorage.deleteKey(entry.key);
+          }
+
+          localWalletStorage.addWalletToController(
+              mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
+        } else if (localWalletStorage.isAWatchedWallet(entry.key)) {
+          Wallet? wallet = Wallet.fromJson(
+              Map<String, dynamic>.from(jsonDecode(entry.value)));
+          localWalletStorage.addWalletToController(wallet);
         }
-        localWalletStorage.addWalletToController(storedKey);
+      } catch (e) {
+        // Some issue happened with parsing key. Delete wallet
+        print("Deleted wallet ${entry.key}");
+        await localWalletStorage.deleteKey(entry.key);
       }
     }
 
@@ -40,11 +53,21 @@ class LocalWalletStorage extends SecureStorage {
 
   @override
   Future<void> saveStoredKey(StoredKey storedKey) async {
-    addWalletToController(storedKey);
+    addWalletToController(
+        mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
 
     await _secureStorage.write(
-        key: createKey(storedKey.account(0).address()),
+        key: createWalletKey(storedKey.account(0).address()),
         value: storedKey.exportJson());
+  }
+
+  @override
+  Future<void> saveWatchedWallet(Wallet wallet) async {
+    addWalletToController(wallet);
+
+    await _secureStorage.write(
+        key: createWatchedWalletKey(wallet.address),
+        value: jsonEncode(wallet.toJson()));
   }
 
   @override
@@ -52,7 +75,7 @@ class LocalWalletStorage extends SecureStorage {
     Map<String, String> keys = await _secureStorage.readAll();
 
     for (var entry in keys.entries) {
-      if (isAWallet(entry.key) &&
+      if ((isAWallet(entry.key) || isAWatchedWallet(entry.key)) &&
           isKeyMatchesAddress(entry.key, walletAddress)) {
         await deleteKey(entry.key);
         deleteWalletFromController(walletAddress);
@@ -93,17 +116,19 @@ class LocalWalletStorage extends SecureStorage {
     for (var entry in keys.entries) {
       if (isAWallet(entry.key)) {
         await deleteKey(entry.key);
+      } else if (isAWatchedWallet(entry.key)) {
+        await deleteKey(entry.key);
       }
     }
 
     deleteAllWalletsFromController();
   }
 
-  Future<void> deleteKey(key) async {
+  Future<void> deleteKey(String key) async {
     await _secureStorage.write(key: key, value: null);
   }
 
-  String createKey(String address) {
+  String createWalletKey(String address) {
     return '$_walletKeyPrefix${address.toLowerCase()}';
   }
 
@@ -111,13 +136,24 @@ class LocalWalletStorage extends SecureStorage {
     return key.toLowerCase().contains(_walletKeyPrefix);
   }
 
-  bool isKeyMatchesAddress(String key, String address) {
-    return key.toLowerCase() == createKey(address.toLowerCase());
+  bool isAWatchedWallet(String key) {
+    return key.toLowerCase().contains(_watchesKeyPrefix);
   }
 
-  void addWalletToController(storedKey) {
+  String createWatchedWalletKey(String address) {
+    return '$_watchesKeyPrefix${address.toLowerCase()}';
+  }
+
+  bool isKeyMatchesAddress(String key, String address) {
+    return key.toLowerCase() == createWalletKey(address.toLowerCase()) ||
+        key.toLowerCase() == createWatchedWalletKey(address.toLowerCase());
+  }
+
+  void addWalletToController(Wallet wallet) {
+    // delete it if it already existed
+    deleteWalletFromController(wallet.address);
     final currentWallets = [...walletsController.value];
-    currentWallets.add(mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
+    currentWallets.add(wallet);
     walletsController.add(currentWallets);
   }
 

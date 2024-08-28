@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:go_router/go_router.dart';
 
 class ViewMoreCustom extends StatefulWidget {
@@ -17,7 +20,9 @@ class _ViewMoreCustomState extends State<ViewMoreCustom> {
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () {
-        context.push('/transactions');
+        context
+            .read<NavigationOverlayCubit>()
+            .selectNavigation(NavigationScreen.transactions);
       },
       child: widget.child!,
     );

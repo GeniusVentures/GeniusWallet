@@ -40,8 +40,9 @@ class _DesktopSideRail extends StatelessWidget {
             child: IntrinsicHeight(
                 child: NavigationRail(
               destinations: destinations,
-              onDestinationSelected:
-                  context.read<NavigationOverlayCubit>().navigationTapped,
+              onDestinationSelected: (index) => context
+                  .read<NavigationOverlayCubit>()
+                  .navigationTapped(index),
               selectedIndex: context
                   .watch<NavigationOverlayCubit>()
                   .state

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
@@ -95,7 +97,9 @@ class Mobile extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  context.push('/calculator');
+                  context
+                      .read<NavigationOverlayCubit>()
+                      .selectNavigation(NavigationScreen.calculator);
                 },
                 child: Text(
                   'Calculator',
