@@ -6,6 +6,7 @@ import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/currency.dart';
 import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/news.dart';
@@ -13,6 +14,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_api/models/user.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/tw/any_address.dart';
+import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
@@ -404,16 +406,18 @@ class GeniusApi {
 
   Future<bool> importWalletFromAddress(address, walletName, coinType) async {
     if (!AnyAddress.isValid(address, coinType)) {
+      print('Invalid Address');
       return false;
     }
 
-    // TODO: Save as watches!
-    // await _secureStorage.saveWallet(WalletStored(
-    //     walletName: walletName,
-    //     currencySymbol: CoinUtil.getSymbol(coinType),
-    //     coinType: coinType,
-    //     walletType: WalletType.tracking,
-    //     address: address));
+    await _secureStorage.saveWatchedWallet(Wallet(
+        balance: 0,
+        walletName: walletName,
+        currencySymbol: CoinUtil.getSymbol(coinType),
+        coinType: coinType,
+        walletType: WalletType.tracking,
+        transactions: [],
+        address: address));
 
     return true;
   }

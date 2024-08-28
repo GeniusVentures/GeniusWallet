@@ -32,15 +32,11 @@ class _WalletPreview extends State<WalletPreview> {
     return SizedBox(
         child: Stack(children: [
       Positioned(
-        left: 0,
         width: widget.constraints.maxWidth * 1.0,
-        top: 0,
         height: widget.constraints.maxHeight * 1.0,
         child: Stack(children: [
           Positioned(
-            left: 0,
             width: widget.constraints.maxWidth * 1.0,
-            top: 0,
             height: widget.constraints.maxHeight * 1.0,
             child: Container(
               height: widget.constraints.maxHeight * 1.0,
@@ -53,59 +49,53 @@ class _WalletPreview extends State<WalletPreview> {
             ),
           ),
           Positioned(
-            left: 12.0,
-            bottom: 13.0,
-            height: 19.0,
+            left: 12,
+            bottom: 8,
             child: SizedBox(
-                height: 19.0,
-                width: 100.0,
+                width: 120.0,
                 child: AutoSizeText(
+                  overflow: TextOverflow.ellipsis,
                   widget.walletName ?? "",
                   style: const TextStyle(
                     fontFamily: 'Roboto',
-                    fontSize: 16.0,
+                    fontSize: 16,
                     fontWeight: FontWeight.w300,
-                    letterSpacing: 0.0,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 )),
           ),
           Positioned(
-            right: 11.0,
-            width: 102.0,
-            bottom: 12.0,
-            height: 28.0,
+            right: 12.0,
+            bottom: 6,
             child: SizedBox(
-                height: 28.0,
-                width: 102.0,
+                width: 170.0,
                 child: AutoSizeText(
                   widget.ovrWalletBalance ?? '0.221746',
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontFamily: 'Roboto',
-                    fontSize: 24.0,
+                    fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    letterSpacing: 0.30000001192092896,
+                    letterSpacing: 0.4,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.right,
                 )),
           ),
           Positioned(
-            right: 16,
-            width: 35.0,
-            top: 12.0,
-            height: 35.0,
+            right: 12,
+            width: 30.0,
+            top: 16.0,
+            height: 30.0,
             child: SizedBox(
                 child: Stack(children: [
               Positioned(
                 right: 0,
-                width: 35.0,
+                width: 28.0,
                 top: 0,
-                height: 35.0,
+                height: 28.0,
                 child: Container(
-                  height: 35.0,
-                  width: 35.0,
                   decoration: const BoxDecoration(
                     color: GeniusWalletColors.currencyBackground,
                     borderRadius: BorderRadius.all(Radius.circular(2.0)),
@@ -113,19 +103,19 @@ class _WalletPreview extends State<WalletPreview> {
                 ),
               ),
               Positioned(
-                  left: 8.922,
+                  left: 8,
                   width: 16.484,
-                  top: 7.656,
+                  top: 4,
                   height: 21.82,
                   child: widget.ovrCoinIcon ?? const SizedBox()),
             ])),
           ),
           Positioned(
-              left: 16.0,
+              left: 12.0,
               top: 18.0,
               child: WalletTypeIcon(walletType: widget.walletType)),
           Positioned(
-            left: 60.0,
+            left: 48.0,
             width: 49.0,
             top: 21.0,
             height: 14.0,

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
+import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 
 class WalletModule extends StatefulWidget {
   final BoxConstraints constraints;
@@ -17,6 +19,7 @@ class WalletModule extends StatefulWidget {
   final Widget? ovrTrendLine;
   final String? ovrCoinSymbol;
   final String? walletAddress;
+  final WalletType? walletType;
   const WalletModule(this.constraints,
       {Key? key,
       this.ovrCoinImage,
@@ -27,7 +30,8 @@ class WalletModule extends StatefulWidget {
       this.ovrTimestamp,
       this.ovrTrendLine,
       this.ovrCoinSymbol,
-      this.walletAddress})
+      this.walletAddress,
+      this.walletType})
       : super(key: key);
   @override
   _WalletModule createState() => _WalletModule();
@@ -61,12 +65,17 @@ class _WalletModule extends State<WalletModule> {
                     )
                   ]))),
           Row(children: [
-            widget.ovrCoinImage ??
-                Image.asset(
-                  'assets/images/coinimage.png',
-                  package: 'genius_wallet',
-                  fit: BoxFit.fill,
-                ),
+            WalletTypeIcon(walletType: widget.walletType),
+            const SizedBox(width: 16),
+            SizedBox(
+                width: 20,
+                height: 20,
+                child: widget.ovrCoinImage ??
+                    Image.asset(
+                      'assets/images/coinimage.png',
+                      package: 'genius_wallet',
+                      fit: BoxFit.fill,
+                    )),
             const SizedBox(width: 16),
             SizedBox(
               width: 150,

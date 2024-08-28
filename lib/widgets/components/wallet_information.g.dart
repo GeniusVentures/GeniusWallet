@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -59,18 +61,23 @@ class _WalletInformation extends State<WalletInformation> {
               Positioned(
                 left: 0,
                 top: 35.0,
+                width: widget.constraints.maxWidth,
                 child: Row(children: [
-                  AutoSizeText(
-                    widget.ovrQuantity ?? '0.221746',
-                    style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 48.0,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
+                  ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxWidth: widget.constraints.maxWidth * 1.0 - 40),
+                      child: AutoSizeText(
+                        widget.ovrQuantity ?? '0.221746',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 48.0,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.left,
+                      )),
                   Padding(
                       padding: const EdgeInsets.only(top: 30, left: 4),
                       child: AutoSizeText(
@@ -119,15 +126,19 @@ class _WalletInformation extends State<WalletInformation> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (widget.walletType == WalletType.tracking) ...[
-                    Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                GeniusWalletConsts.borderRadiusCard),
-                            color: GeniusWalletColors.containerGray),
-                        child: const Text(
-                          "You are watching this account",
-                          style: TextStyle(fontSize: 20),
-                        ))
+                    Expanded(
+                        child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(
+                                left: 24, right: 24, top: 8, bottom: 8),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                    GeniusWalletConsts.borderRadiusCard),
+                                color: GeniusWalletColors.deepBlueCardColor),
+                            child: const Text(
+                              "You are watching this account",
+                              style: TextStyle(fontSize: 16),
+                            )))
                   ],
                   if (widget.walletType != WalletType.tracking) ...[
                     SendButtonCustom(

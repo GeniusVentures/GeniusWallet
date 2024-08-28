@@ -13,7 +13,6 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/markets_module.g.dart';
-import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 import 'package:genius_wallet/widgets/desktop/asset_percentage_card.g.dart';
 import 'package:go_router/go_router.dart';

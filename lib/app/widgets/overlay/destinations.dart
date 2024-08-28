@@ -49,5 +49,11 @@ class GeniusTabDestinations {
       icon: Icon(Icons.calendar_month),
       selectedIcon: Icon(Icons.calendar_month),
     ),
+    const GeniusDestination(
+      destination: '/settings',
+      label: Text('Settings'),
+      icon: Icon(Icons.settings),
+      selectedIcon: Icon(Icons.settings),
+    ),
   ];
 }

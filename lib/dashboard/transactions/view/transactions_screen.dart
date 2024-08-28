@@ -110,16 +110,18 @@ class TransactionsListView extends StatelessWidget {
       builder: (context, state) {
         switch (state.subscribeToWalletStatus) {
           case AppStatus.loaded:
-            return Wrap(direction: Axis.vertical, spacing: 12, children: [
-              for (var transaction in state.transactions)
-                BlocProvider(
-                    create: (context) => TransactionDetailsCubit(
-                          initialState: TransactionDetailsState(
-                            selectedTransaction: transaction,
-                          ),
-                        ),
-                    child: TransactionCard(currentTransaction: transaction))
-            ]);
+            return Container(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Wrap(direction: Axis.vertical, spacing: 12, children: [
+                  for (var transaction in state.transactions)
+                    BlocProvider(
+                        create: (context) => TransactionDetailsCubit(
+                              initialState: TransactionDetailsState(
+                                selectedTransaction: transaction,
+                              ),
+                            ),
+                        child: TransactionCard(currentTransaction: transaction))
+                ]));
           case AppStatus.error:
             return const Center(
               child: Text('Something went wrong!'),

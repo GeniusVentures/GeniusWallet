@@ -11,6 +11,7 @@ class PrivateKeyTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PasteField(
+      hintText: "Wallet Private Key",
       controller: controller,
       subtitle: 'Typically 64 alphanumeric characters.',
     );

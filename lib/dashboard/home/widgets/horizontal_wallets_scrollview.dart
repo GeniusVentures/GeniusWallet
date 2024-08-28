@@ -30,7 +30,7 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final currentWallet = state.wallets[index];
                   return SizedBox(
-                    width: 280,
+                    width: MediaQuery.of(context).size.width - 90,
                     child: LayoutBuilder(builder: (context, constraints) {
                       return MaterialButton(
                         onPressed: () {

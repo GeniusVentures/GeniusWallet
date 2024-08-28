@@ -1,7 +1,6 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
@@ -259,8 +258,8 @@ class _ImportSecurityBody extends StatelessWidget {
           child: const TabBar(
             indicatorSize: TabBarIndicatorSize.label,
             indicatorColor: GeniusWalletColors.lightGreenPrimary,
-            indicatorWeight: 2,
-            indicatorPadding: EdgeInsets.symmetric(vertical: 8),
+            indicatorWeight: 1,
+            indicatorPadding: EdgeInsets.symmetric(vertical: 6),
             labelColor: Colors.white,
             tabAlignment: TabAlignment.start,
             labelPadding: EdgeInsets.only(left: 22, right: 20),

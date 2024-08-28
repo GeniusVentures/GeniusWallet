@@ -10,11 +10,13 @@ class PasteField extends StatelessWidget {
   final Widget? additionalWidget;
   final String subtitle;
   final TextEditingController controller;
+  final double height;
   const PasteField({
     Key? key,
     this.additionalWidget,
     this.subtitle = '',
     this.hintText = '',
+    this.height = 200,
     required this.controller,
   }) : super(key: key);
 
@@ -30,7 +32,6 @@ class PasteField extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
           decoration: BoxDecoration(
             color: GeniusWalletColors.grayPrimary,
             border: Border.all(color: GeniusWalletColors.borderGrey),
@@ -38,7 +39,7 @@ class PasteField extends StatelessWidget {
                 BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
           ),
           width: MediaQuery.of(context).size.width * 0.9,
-          height: 200,
+          height: height,
           child: Stack(
             children: [
               TextFormField(
@@ -52,18 +53,18 @@ class PasteField extends StatelessWidget {
               ),
               Positioned(
                 bottom: 10,
-                right: 0,
+                right: 10,
                 child: TextButton.icon(
                   onPressed: () async {
                     final textValue = await FlutterClipboard.paste();
                     controller.text = textValue;
                   },
                   style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                    side: const BorderSide(
-                        width: 1.0, color: GeniusWalletColors.btnCopyBorder),
+                    side: const BorderSide(width: 1.0, color: Colors.white),
                   ),
                   icon: const Icon(Icons.content_copy,
                       color: Colors.white, size: GeniusWalletFontSize.base),
