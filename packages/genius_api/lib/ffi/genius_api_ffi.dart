@@ -631,24 +631,44 @@ class NativeLibrary {
   late final _GeniusSDKGetBalance =
       _GeniusSDKGetBalancePtr.asFunction<int Function()>();
 
-  void GeniusSDKProcess(ffi.Pointer<ffi.Char> path, int amount ) {
-  _GeniusSDKProcess(path, amount);    
+  GeniusMatrix GeniusSDKGetTransactions() {
+    return _GeniusSDKGetTransactions();
   }
 
-  late final _GeniusSDKProcessPtr = _lookup<
-      ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char> path, ffi.Uint64 amount)>>('GeniusSDKProcess');
-  late final _GeniusSDKProcess =
-      _GeniusSDKProcessPtr.asFunction<void Function(ffi.Pointer<ffi.Char> path, int amount)>();
-//
-  //  void GeniusSDKMint( int amount  ) {
-  //  _GeniusSDKMint(amount);
-  //}
-//
-  //late final _GeniusSDKMintPtr = _lookup<
-  //    ffi.NativeFunction<ffi.Void Function( ffi.Uint64 amount )>>('GeniusSDKMint');
-  //late final _GeniusSDKMint =
-  //    _GeniusSDKMintPtr.asFunction<void Function( int amount)>();
-  
+  late final _GeniusSDKGetTransactionsPtr =
+      _lookup<ffi.NativeFunction<GeniusMatrix Function()>>(
+          'GeniusSDKGetTransactions');
+  late final _GeniusSDKGetTransactions =
+      _GeniusSDKGetTransactionsPtr.asFunction<GeniusMatrix Function()>();
+
+  void GeniusSDKFreeTransactions(
+    GeniusMatrix matrix,
+  ) {
+    return _GeniusSDKFreeTransactions(
+      matrix,
+    );
+  }
+
+  late final _GeniusSDKFreeTransactionsPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(GeniusMatrix)>>(
+          'GeniusSDKFreeTransactions');
+  late final _GeniusSDKFreeTransactions =
+      _GeniusSDKFreeTransactionsPtr.asFunction<void Function(GeniusMatrix)>();
+
+  void GeniusSDKMintTokens(
+    int amount,
+  ) {
+    return _GeniusSDKMintTokens(
+      amount,
+    );
+  }
+
+  late final _GeniusSDKMintTokensPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint64)>>(
+          'GeniusSDKMintTokens');
+  late final _GeniusSDKMintTokens =
+      _GeniusSDKMintTokensPtr.asFunction<void Function(int)>();
+
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {
@@ -9015,6 +9035,20 @@ class NativeLibrary {
       _TWStarkWareGetStarkKeyFromSignaturePtr.asFunction<
           ffi.Pointer<TWPrivateKey> Function(
               ffi.Pointer<TWDerivationPath>, ffi.Pointer<TWString>)>();
+}
+
+class GeniusArray extends ffi.Struct {
+  @ffi.Uint64()
+  external int size;
+
+  external ffi.Pointer<ffi.Uint8> ptr;
+}
+
+class GeniusMatrix extends ffi.Struct {
+  @ffi.Uint64()
+  external int size;
+
+  external ffi.Pointer<GeniusArray> ptr;
 }
 
 /// Defines a resizable block of data.
