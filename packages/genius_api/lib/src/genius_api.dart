@@ -21,6 +21,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:secure_storage/secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class GeniusApi {
@@ -460,5 +461,19 @@ class GeniusApi {
 
   int getBalance() {
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+  }
+
+  List<DAGStruct> getTransactions() {
+    var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetTransactions();
+
+    List<DAGStruct> ret = List.generate(transactions.size, (i) {
+      var buffer =
+          (transactions.ptr + i).ref.ptr.asTypedList(transactions.ptr.ref.size);
+      return DAGWrapper.fromBuffer(buffer).dagStruct;
+    });
+
+    ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
+
+    return ret;
   }
 }
