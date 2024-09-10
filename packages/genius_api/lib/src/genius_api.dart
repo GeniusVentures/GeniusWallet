@@ -479,4 +479,8 @@ class GeniusApi {
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);
   }
+
+  int getBalance() {
+    return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+  }
 }
