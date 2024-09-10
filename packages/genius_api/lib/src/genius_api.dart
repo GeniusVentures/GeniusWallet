@@ -457,4 +457,8 @@ class GeniusApi {
   Future<double> getWalletBalance(String rpcUrl, String address) async {
     return await Web3().getBalance(rpcUrl: rpcUrl, address: address);
   }
+
+  int getBalance() {
+    return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+  }
 }
