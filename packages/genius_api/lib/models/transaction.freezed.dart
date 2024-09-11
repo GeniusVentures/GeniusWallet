@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'transaction.dart';
 
@@ -12,7 +12,7 @@ part of 'transaction.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Transaction _$TransactionFromJson(Map<String, dynamic> json) {
   return _Transaction.fromJson(json);
@@ -23,7 +23,7 @@ mixin _$Transaction {
   String get hash => throw _privateConstructorUsedError;
   String get fromAddress => throw _privateConstructorUsedError;
   String get toAddress => throw _privateConstructorUsedError;
-  String get timeStamp => throw _privateConstructorUsedError;
+  DateTime get timeStamp => throw _privateConstructorUsedError;
   TransactionDirection get transactionDirection =>
       throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
@@ -47,7 +47,7 @@ abstract class $TransactionCopyWith<$Res> {
       {String hash,
       String fromAddress,
       String toAddress,
-      String timeStamp,
+      DateTime timeStamp,
       TransactionDirection transactionDirection,
       String amount,
       String fees,
@@ -94,7 +94,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
       timeStamp: null == timeStamp
           ? _value.timeStamp
           : timeStamp // ignore: cast_nullable_to_non_nullable
-              as String,
+              as DateTime,
       transactionDirection: null == transactionDirection
           ? _value.transactionDirection
           : transactionDirection // ignore: cast_nullable_to_non_nullable
@@ -120,18 +120,18 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
 }
 
 /// @nodoc
-abstract class _$$_TransactionCopyWith<$Res>
+abstract class _$$TransactionImplCopyWith<$Res>
     implements $TransactionCopyWith<$Res> {
-  factory _$$_TransactionCopyWith(
-          _$_Transaction value, $Res Function(_$_Transaction) then) =
-      __$$_TransactionCopyWithImpl<$Res>;
+  factory _$$TransactionImplCopyWith(
+          _$TransactionImpl value, $Res Function(_$TransactionImpl) then) =
+      __$$TransactionImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
       {String hash,
       String fromAddress,
       String toAddress,
-      String timeStamp,
+      DateTime timeStamp,
       TransactionDirection transactionDirection,
       String amount,
       String fees,
@@ -140,11 +140,11 @@ abstract class _$$_TransactionCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_TransactionCopyWithImpl<$Res>
-    extends _$TransactionCopyWithImpl<$Res, _$_Transaction>
-    implements _$$_TransactionCopyWith<$Res> {
-  __$$_TransactionCopyWithImpl(
-      _$_Transaction _value, $Res Function(_$_Transaction) _then)
+class __$$TransactionImplCopyWithImpl<$Res>
+    extends _$TransactionCopyWithImpl<$Res, _$TransactionImpl>
+    implements _$$TransactionImplCopyWith<$Res> {
+  __$$TransactionImplCopyWithImpl(
+      _$TransactionImpl _value, $Res Function(_$TransactionImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -160,7 +160,7 @@ class __$$_TransactionCopyWithImpl<$Res>
     Object? coinSymbol = null,
     Object? transactionStatus = null,
   }) {
-    return _then(_$_Transaction(
+    return _then(_$TransactionImpl(
       hash: null == hash
           ? _value.hash
           : hash // ignore: cast_nullable_to_non_nullable
@@ -176,7 +176,7 @@ class __$$_TransactionCopyWithImpl<$Res>
       timeStamp: null == timeStamp
           ? _value.timeStamp
           : timeStamp // ignore: cast_nullable_to_non_nullable
-              as String,
+              as DateTime,
       transactionDirection: null == transactionDirection
           ? _value.transactionDirection
           : transactionDirection // ignore: cast_nullable_to_non_nullable
@@ -203,8 +203,8 @@ class __$$_TransactionCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Transaction implements _Transaction {
-  const _$_Transaction(
+class _$TransactionImpl implements _Transaction {
+  const _$TransactionImpl(
       {required this.hash,
       required this.fromAddress,
       required this.toAddress,
@@ -215,8 +215,8 @@ class _$_Transaction implements _Transaction {
       required this.coinSymbol,
       required this.transactionStatus});
 
-  factory _$_Transaction.fromJson(Map<String, dynamic> json) =>
-      _$$_TransactionFromJson(json);
+  factory _$TransactionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TransactionImplFromJson(json);
 
   @override
   final String hash;
@@ -225,7 +225,7 @@ class _$_Transaction implements _Transaction {
   @override
   final String toAddress;
   @override
-  final String timeStamp;
+  final DateTime timeStamp;
   @override
   final TransactionDirection transactionDirection;
   @override
@@ -243,10 +243,10 @@ class _$_Transaction implements _Transaction {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Transaction &&
+            other is _$TransactionImpl &&
             (identical(other.hash, hash) || other.hash == hash) &&
             (identical(other.fromAddress, fromAddress) ||
                 other.fromAddress == fromAddress) &&
@@ -281,12 +281,12 @@ class _$_Transaction implements _Transaction {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_TransactionCopyWith<_$_Transaction> get copyWith =>
-      __$$_TransactionCopyWithImpl<_$_Transaction>(this, _$identity);
+  _$$TransactionImplCopyWith<_$TransactionImpl> get copyWith =>
+      __$$TransactionImplCopyWithImpl<_$TransactionImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_TransactionToJson(
+    return _$$TransactionImplToJson(
       this,
     );
   }
@@ -297,15 +297,15 @@ abstract class _Transaction implements Transaction {
       {required final String hash,
       required final String fromAddress,
       required final String toAddress,
-      required final String timeStamp,
+      required final DateTime timeStamp,
       required final TransactionDirection transactionDirection,
       required final String amount,
       required final String fees,
       required final String coinSymbol,
-      required final TransactionStatus transactionStatus}) = _$_Transaction;
+      required final TransactionStatus transactionStatus}) = _$TransactionImpl;
 
   factory _Transaction.fromJson(Map<String, dynamic> json) =
-      _$_Transaction.fromJson;
+      _$TransactionImpl.fromJson;
 
   @override
   String get hash;
@@ -314,7 +314,7 @@ abstract class _Transaction implements Transaction {
   @override
   String get toAddress;
   @override
-  String get timeStamp;
+  DateTime get timeStamp;
   @override
   TransactionDirection get transactionDirection;
   @override
@@ -327,6 +327,6 @@ abstract class _Transaction implements Transaction {
   TransactionStatus get transactionStatus;
   @override
   @JsonKey(ignore: true)
-  _$$_TransactionCopyWith<_$_Transaction> get copyWith =>
+  _$$TransactionImplCopyWith<_$TransactionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
