@@ -40,7 +40,7 @@ class TransactionInformationScreen extends StatelessWidget {
                           TransactionDirection.received
                       ? Image.asset('assets/images/green_arrow_right.png')
                       : Image.asset('assets/images/red_arrow_left.png'),
-                  ovrTransactionTimestamp: transaction.timeStamp,
+                  ovrTransactionTimestamp: transaction.timeStamp.toString(),
                 );
               },
             ),

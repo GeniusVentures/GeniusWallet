@@ -6,12 +6,12 @@ part of 'transaction.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Transaction _$$_TransactionFromJson(Map<String, dynamic> json) =>
-    _$_Transaction(
+_$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
+    _$TransactionImpl(
       hash: json['hash'] as String,
       fromAddress: json['fromAddress'] as String,
       toAddress: json['toAddress'] as String,
-      timeStamp: json['timeStamp'] as String,
+      timeStamp: DateTime.parse(json['timeStamp'] as String),
       transactionDirection: $enumDecode(
           _$TransactionDirectionEnumMap, json['transactionDirection']),
       amount: json['amount'] as String,
@@ -21,12 +21,12 @@ _$_Transaction _$$_TransactionFromJson(Map<String, dynamic> json) =>
           $enumDecode(_$TransactionStatusEnumMap, json['transactionStatus']),
     );
 
-Map<String, dynamic> _$$_TransactionToJson(_$_Transaction instance) =>
+Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
     <String, dynamic>{
       'hash': instance.hash,
       'fromAddress': instance.fromAddress,
       'toAddress': instance.toAddress,
-      'timeStamp': instance.timeStamp,
+      'timeStamp': instance.timeStamp.toIso8601String(),
       'transactionDirection':
           _$TransactionDirectionEnumMap[instance.transactionDirection]!,
       'amount': instance.amount,

@@ -57,7 +57,7 @@ class Desktop extends StatelessWidget {
                         // TODO: May need to actually compare dates to get latest
                         final lastTransaction = wallet.transactions.last;
 
-                        timestamp = lastTransaction.timeStamp;
+                        timestamp = lastTransaction.timeStamp.toString();
                         transactionValue = lastTransaction.amount;
                         transactionId = lastTransaction.hash;
                       }
@@ -192,7 +192,8 @@ class Mobile extends StatelessWidget {
                                   final lastTransaction =
                                       currentWallet.transactions.last;
 
-                                  timestamp = lastTransaction.timeStamp;
+                                  timestamp =
+                                      lastTransaction.timeStamp.toString();
                                   transactionValue = lastTransaction.amount;
                                   transactionId = lastTransaction.hash;
                                 }

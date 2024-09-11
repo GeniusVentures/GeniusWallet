@@ -175,7 +175,7 @@ class TransactionCard extends StatelessWidget {
           ovrCoinIcon: WalletUtils.currencySymbolToImage(
             currentTransaction.coinSymbol,
           ),
-          ovrTimestamp: currentTransaction.timeStamp,
+          ovrTimestamp: currentTransaction.timeStamp.toString(),
           ovrTransactionArrow: currentTransaction.transactionDirection ==
                   TransactionDirection.received
               ? Image.asset('assets/images/green_arrow_right.png')

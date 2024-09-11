@@ -37,7 +37,7 @@ class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return TransactionCard(
                   constraints,
-                  ovrTimestamp: currentTransaction.timeStamp,
+                  ovrTimestamp: currentTransaction.timeStamp.toString(),
                   ovrTransactionQuantity: currentTransaction.amount,
                   ovrTransactionID: currentTransaction.toAddress,
                 );
