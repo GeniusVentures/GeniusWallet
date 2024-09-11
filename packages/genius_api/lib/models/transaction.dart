@@ -9,7 +9,7 @@ class Transaction with _$Transaction {
     required String hash,
     required String fromAddress,
     required String toAddress,
-    required String timeStamp,
+    required DateTime timeStamp,
     required TransactionDirection transactionDirection,
     required String amount,
     required String fees,

@@ -11,19 +11,9 @@ class SendState extends Equatable {
   final TransactionPostingStatus transactionPostingStatus;
 
   const SendState({
+    required this.currentTransaction,
     this.flowStep = SendFlowStep.enterAddress,
     this.sendStatus = SendStatus.initial,
-    this.currentTransaction = const Transaction(
-      hash: '',
-      amount: '0',
-      fromAddress: '',
-      timeStamp: '',
-      toAddress: '',
-      transactionDirection: TransactionDirection.sent,
-      fees: '',
-      coinSymbol: '',
-      transactionStatus: TransactionStatus.pending,
-    ),
     this.transactionPostingStatus = TransactionPostingStatus.initial,
   });
 

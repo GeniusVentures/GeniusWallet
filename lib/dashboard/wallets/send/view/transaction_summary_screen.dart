@@ -57,7 +57,7 @@ class TransactionSummaryScreen extends StatelessWidget {
                       ovrReceiverWalletID: transaction.toAddress,
                       ovrTransactionID: transaction.hash,
                       ovrGasFee: transaction.fees,
-                      ovrTransactionTimestamp: transaction.timeStamp,
+                      ovrTransactionTimestamp: transaction.timeStamp.toString(),
                     );
                   },
                 ),
