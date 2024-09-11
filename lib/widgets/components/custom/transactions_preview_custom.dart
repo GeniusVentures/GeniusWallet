@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 
@@ -37,7 +38,8 @@ class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return TransactionCard(
                   constraints,
-                  ovrTimestamp: currentTransaction.timeStamp.toString(),
+                  ovrTimestamp:
+                      dateFormatter.format(currentTransaction.timeStamp),
                   ovrTransactionQuantity: currentTransaction.amount,
                   ovrTransactionID: currentTransaction.toAddress,
                 );

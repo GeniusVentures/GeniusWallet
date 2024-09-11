@@ -82,6 +82,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         transactionStatus: TransactionStatus.completed,
       ),
     ]);
+    transactions.addAll(api.getTransactions());
     return transactions;
   }
 
