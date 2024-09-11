@@ -463,13 +463,27 @@ class GeniusApi {
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
 
-  List<DAGStruct> getTransactions() {
+  List<Transaction> getTransactions() {
     var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetTransactions();
 
-    List<DAGStruct> ret = List.generate(transactions.size, (i) {
+    List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer =
           (transactions.ptr + i).ref.ptr.asTypedList(transactions.ptr.ref.size);
-      return DAGWrapper.fromBuffer(buffer).dagStruct;
+      var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
+
+      Transaction trans = Transaction(
+          hash: String.fromCharCodes(struct.dataHash),
+          fromAddress: String.fromCharCodes(struct.sourceAddr),
+          toAddress: "não sei",
+          timeStamp: DateTime.fromMicrosecondsSinceEpoch(
+              struct.timestamp.toInt() ~/ 1000),
+          transactionDirection: TransactionDirection.sent, // não sei
+          amount: '69', // não sei
+          fees: '0',
+          coinSymbol: 'GNUS',
+          transactionStatus: TransactionStatus.completed);
+
+      return trans;
     });
 
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);

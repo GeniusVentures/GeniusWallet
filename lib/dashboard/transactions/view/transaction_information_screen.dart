@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/widgets/components/custom/detailed_transaction_status_custom.dart';
 import 'package:genius_wallet/widgets/components/historic_transaction_detail_view.g.dart';
 
@@ -40,7 +41,8 @@ class TransactionInformationScreen extends StatelessWidget {
                           TransactionDirection.received
                       ? Image.asset('assets/images/green_arrow_right.png')
                       : Image.asset('assets/images/red_arrow_left.png'),
-                  ovrTransactionTimestamp: transaction.timeStamp.toString(),
+                  ovrTransactionTimestamp:
+                      dateFormatter.format(transaction.timeStamp),
                 );
               },
             ),
