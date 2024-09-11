@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/close_button_header.g.dart';
@@ -57,7 +58,8 @@ class TransactionSummaryScreen extends StatelessWidget {
                       ovrReceiverWalletID: transaction.toAddress,
                       ovrTransactionID: transaction.hash,
                       ovrGasFee: transaction.fees,
-                      ovrTransactionTimestamp: transaction.timeStamp.toString(),
+                      ovrTransactionTimestamp:
+                          dateFormatter.format(transaction.timeStamp),
                     );
                   },
                 ),
