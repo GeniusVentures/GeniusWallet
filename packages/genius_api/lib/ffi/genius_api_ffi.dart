@@ -9063,7 +9063,7 @@ class GeniusMatrix extends ffi.Struct {
 
 class GeniusAddress extends ffi.Struct {
   /// A string prepended with `0x` followed by 64 hex characters
-  @ffi.Array.multi([66])
+  @ffi.Array.multi([67])
   external ffi.Array<ffi.Char> address;
 }
 

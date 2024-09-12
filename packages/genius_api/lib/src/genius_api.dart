@@ -27,6 +27,7 @@ import 'package:flutter/services.dart' show rootBundle;
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
+  late final String address;
   late final String jsonFilePath;
 
   /// Returns a [Stream] of the wallets that the device has saved.
@@ -59,6 +60,7 @@ class GeniusApi {
     jsonFilePath = await copyJsonToWritableDirectory();
     final basePathPtr = jsonFilePath.toNativeUtf8();
     final retVal = ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
+    address = getAddress();
     String dartString = retVal.toDartString();
     print(dartString);
     malloc.free(basePathPtr);
@@ -480,13 +482,17 @@ class GeniusApi {
           (transactions.ptr + i).ref.ptr.asTypedList(transactions.ptr.ref.size);
       var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
 
+      var fromAddress = String.fromCharCodes(struct.sourceAddr);
+
       Transaction trans = Transaction(
           hash: String.fromCharCodes(struct.dataHash),
-          fromAddress: String.fromCharCodes(struct.sourceAddr),
+          fromAddress: fromAddress,
           toAddress: "não sei",
           timeStamp: DateTime.fromMicrosecondsSinceEpoch(
               struct.timestamp.toInt() ~/ 1000),
-          transactionDirection: TransactionDirection.sent, // não sei
+          transactionDirection: address == fromAddress
+              ? TransactionDirection.sent
+              : TransactionDirection.received, // não sei
           amount: '69', // não sei
           fees: '0',
           coinSymbol: 'GNUS',
