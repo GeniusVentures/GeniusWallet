@@ -669,6 +669,16 @@ class NativeLibrary {
   late final _GeniusSDKMintTokens =
       _GeniusSDKMintTokensPtr.asFunction<void Function(int)>();
 
+  GeniusAddress GeniusSDKGetAddress() {
+    return _GeniusSDKGetAddress();
+  }
+
+  late final _GeniusSDKGetAddressPtr =
+      _lookup<ffi.NativeFunction<GeniusAddress Function()>>(
+          'GeniusSDKGetAddress');
+  late final _GeniusSDKGetAddress =
+      _GeniusSDKGetAddressPtr.asFunction<GeniusAddress Function()>();
+
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {
@@ -9049,6 +9059,12 @@ class GeniusMatrix extends ffi.Struct {
   external int size;
 
   external ffi.Pointer<GeniusArray> ptr;
+}
+
+class GeniusAddress extends ffi.Struct {
+  /// A string prepended with `0x` followed by 64 hex characters
+  @ffi.Array.multi([66])
+  external ffi.Array<ffi.Char> address;
 }
 
 /// Defines a resizable block of data.
