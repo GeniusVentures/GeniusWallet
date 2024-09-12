@@ -19,6 +19,7 @@ _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
       coinSymbol: json['coinSymbol'] as String,
       transactionStatus:
           $enumDecode(_$TransactionStatusEnumMap, json['transactionStatus']),
+      type: $enumDecodeNullable(_$TransactionTypeEnumMap, json['type']),
     );
 
 Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
@@ -34,6 +35,7 @@ Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
       'coinSymbol': instance.coinSymbol,
       'transactionStatus':
           _$TransactionStatusEnumMap[instance.transactionStatus]!,
+      'type': _$TransactionTypeEnumMap[instance.type],
     };
 
 const _$TransactionDirectionEnumMap = {
@@ -45,4 +47,11 @@ const _$TransactionStatusEnumMap = {
   TransactionStatus.pending: 'pending',
   TransactionStatus.cancelled: 'cancelled',
   TransactionStatus.completed: 'completed',
+};
+
+const _$TransactionTypeEnumMap = {
+  TransactionType.transfer: 'transfer',
+  TransactionType.mint: 'mint',
+  TransactionType.escrow: 'escrow',
+  TransactionType.process: 'process',
 };
