@@ -186,7 +186,7 @@ class TransactionCard extends StatelessWidget {
               : Image.asset('assets/images/red_arrow_left.png'),
           ovrTransactionID: currentTransaction.hash,
           ovrTransactionValue:
-              '${currentTransaction.amount} ${currentTransaction.coinSymbol}',
+              '${currentTransaction.amount}${currentTransaction.type != null ? " ${currentTransaction.type.toString()}" : ""} ${currentTransaction.coinSymbol}',
         ),
       );
     });
