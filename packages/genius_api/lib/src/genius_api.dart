@@ -463,6 +463,15 @@ class GeniusApi {
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
 
+  String getAddress() {
+    var address = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetAddress();
+
+    List<int> charCodes =
+        List<int>.generate(66, (index) => address.address[index]);
+
+    return String.fromCharCodes(charCodes);
+  }
+
   List<Transaction> getTransactions() {
     var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetTransactions();
 
