@@ -503,7 +503,8 @@ class GeniusApi {
           amount: '69', // não sei
           fees: '0',
           coinSymbol: 'GNUS',
-          transactionStatus: TransactionStatus.completed);
+          transactionStatus: TransactionStatus.completed,
+          type: TransactionType.fromString(struct.type));
 
       return trans;
     });

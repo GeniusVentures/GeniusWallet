@@ -3,6 +3,25 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'transaction.freezed.dart';
 part 'transaction.g.dart';
 
+enum TransactionType {
+  transfer,
+  mint,
+  escrow,
+  process;
+
+  static TransactionType fromString(String value) {
+    return TransactionType.values.firstWhere(
+      (e) => e.toString() == value,
+      orElse: () => throw ArgumentError('Invalid transaction: $value'),
+    );
+  }
+
+  @override
+  String toString() {
+    return name;
+  }
+}
+
 @freezed
 class Transaction with _$Transaction {
   const factory Transaction({
@@ -15,6 +34,7 @@ class Transaction with _$Transaction {
     required String fees,
     required String coinSymbol,
     required TransactionStatus transactionStatus,
+    TransactionType? type,
   }) = _Transaction;
 
   factory Transaction.fromJson(Map<String, Object?> json) =>

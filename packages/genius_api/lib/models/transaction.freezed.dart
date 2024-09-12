@@ -30,6 +30,7 @@ mixin _$Transaction {
   String get fees => throw _privateConstructorUsedError;
   String get coinSymbol => throw _privateConstructorUsedError;
   TransactionStatus get transactionStatus => throw _privateConstructorUsedError;
+  TransactionType? get type => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -52,7 +53,8 @@ abstract class $TransactionCopyWith<$Res> {
       String amount,
       String fees,
       String coinSymbol,
-      TransactionStatus transactionStatus});
+      TransactionStatus transactionStatus,
+      TransactionType? type});
 }
 
 /// @nodoc
@@ -77,6 +79,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
     Object? fees = null,
     Object? coinSymbol = null,
     Object? transactionStatus = null,
+    Object? type = freezed,
   }) {
     return _then(_value.copyWith(
       hash: null == hash
@@ -115,6 +118,10 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
           ? _value.transactionStatus
           : transactionStatus // ignore: cast_nullable_to_non_nullable
               as TransactionStatus,
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as TransactionType?,
     ) as $Val);
   }
 }
@@ -136,7 +143,8 @@ abstract class _$$TransactionImplCopyWith<$Res>
       String amount,
       String fees,
       String coinSymbol,
-      TransactionStatus transactionStatus});
+      TransactionStatus transactionStatus,
+      TransactionType? type});
 }
 
 /// @nodoc
@@ -159,6 +167,7 @@ class __$$TransactionImplCopyWithImpl<$Res>
     Object? fees = null,
     Object? coinSymbol = null,
     Object? transactionStatus = null,
+    Object? type = freezed,
   }) {
     return _then(_$TransactionImpl(
       hash: null == hash
@@ -197,6 +206,10 @@ class __$$TransactionImplCopyWithImpl<$Res>
           ? _value.transactionStatus
           : transactionStatus // ignore: cast_nullable_to_non_nullable
               as TransactionStatus,
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as TransactionType?,
     ));
   }
 }
@@ -213,7 +226,8 @@ class _$TransactionImpl implements _Transaction {
       required this.amount,
       required this.fees,
       required this.coinSymbol,
-      required this.transactionStatus});
+      required this.transactionStatus,
+      this.type});
 
   factory _$TransactionImpl.fromJson(Map<String, dynamic> json) =>
       _$$TransactionImplFromJson(json);
@@ -236,10 +250,12 @@ class _$TransactionImpl implements _Transaction {
   final String coinSymbol;
   @override
   final TransactionStatus transactionStatus;
+  @override
+  final TransactionType? type;
 
   @override
   String toString() {
-    return 'Transaction(hash: $hash, fromAddress: $fromAddress, toAddress: $toAddress, timeStamp: $timeStamp, transactionDirection: $transactionDirection, amount: $amount, fees: $fees, coinSymbol: $coinSymbol, transactionStatus: $transactionStatus)';
+    return 'Transaction(hash: $hash, fromAddress: $fromAddress, toAddress: $toAddress, timeStamp: $timeStamp, transactionDirection: $transactionDirection, amount: $amount, fees: $fees, coinSymbol: $coinSymbol, transactionStatus: $transactionStatus, type: $type)';
   }
 
   @override
@@ -261,7 +277,8 @@ class _$TransactionImpl implements _Transaction {
             (identical(other.coinSymbol, coinSymbol) ||
                 other.coinSymbol == coinSymbol) &&
             (identical(other.transactionStatus, transactionStatus) ||
-                other.transactionStatus == transactionStatus));
+                other.transactionStatus == transactionStatus) &&
+            (identical(other.type, type) || other.type == type));
   }
 
   @JsonKey(ignore: true)
@@ -276,7 +293,8 @@ class _$TransactionImpl implements _Transaction {
       amount,
       fees,
       coinSymbol,
-      transactionStatus);
+      transactionStatus,
+      type);
 
   @JsonKey(ignore: true)
   @override
@@ -302,7 +320,8 @@ abstract class _Transaction implements Transaction {
       required final String amount,
       required final String fees,
       required final String coinSymbol,
-      required final TransactionStatus transactionStatus}) = _$TransactionImpl;
+      required final TransactionStatus transactionStatus,
+      final TransactionType? type}) = _$TransactionImpl;
 
   factory _Transaction.fromJson(Map<String, dynamic> json) =
       _$TransactionImpl.fromJson;
@@ -325,6 +344,8 @@ abstract class _Transaction implements Transaction {
   String get coinSymbol;
   @override
   TransactionStatus get transactionStatus;
+  @override
+  TransactionType? get type;
   @override
   @JsonKey(ignore: true)
   _$$TransactionImplCopyWith<_$TransactionImpl> get copyWith =>
