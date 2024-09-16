@@ -154,8 +154,9 @@ class GeniusApi {
   }
 
   void mintTokens(int amount) {
-    //ffiBridgePrebuilt.wallet_lib.GeniusSDKMint(amount);
+    ffiBridgePrebuilt.wallet_lib.GeniusSDKMintTokens(amount);
   }
+  
   void requestAIProcess() {
     //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
 //
@@ -465,6 +466,8 @@ class GeniusApi {
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
 
+  /// Returns address as a hexadecimal string, with 64 hex characters prepended
+  /// by `0x`.
   String getAddress() {
     var address = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetAddress();
 
@@ -479,7 +482,7 @@ class GeniusApi {
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer =
-          (transactions.ptr + i).ref.ptr.asTypedList(transactions.ptr.ref.size);
+          transactions.ptr[i].ptr.asTypedList(transactions.ptr[i].size);
       var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
 
       var fromAddress = String.fromCharCodes(struct.sourceAddr);
@@ -503,6 +506,23 @@ class GeniusApi {
     });
 
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
+
+    return ret;
+  }
+
+  bool transferTokens(int amount, String address) {
+    final convertedAddress = calloc<GeniusAddress>();
+
+    final bytes = Uint8List.fromList(address.codeUnits);
+
+    for (int i = 0; i < address.length; ++i) {
+      convertedAddress.ref.address[i] = bytes[i];
+    }
+
+    final ret = ffiBridgePrebuilt.wallet_lib
+        .GeniusSDKTransferTokens(amount, convertedAddress);
+
+    calloc.free(convertedAddress);
 
     return ret;
   }
