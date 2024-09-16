@@ -679,6 +679,23 @@ class NativeLibrary {
   late final _GeniusSDKGetAddress =
       _GeniusSDKGetAddressPtr.asFunction<GeniusAddress Function()>();
 
+  bool GeniusSDKTransferTokens(
+    int amount,
+    ffi.Pointer<GeniusAddress> dest,
+  ) {
+    return _GeniusSDKTransferTokens(
+      amount,
+      dest,
+    );
+  }
+
+  late final _GeniusSDKTransferTokensPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Bool Function(ffi.Uint64,
+              ffi.Pointer<GeniusAddress>)>>('GeniusSDKTransferTokens');
+  late final _GeniusSDKTransferTokens = _GeniusSDKTransferTokensPtr.asFunction<
+      bool Function(int, ffi.Pointer<GeniusAddress>)>();
+
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {
