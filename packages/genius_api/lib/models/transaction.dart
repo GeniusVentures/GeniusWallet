@@ -20,6 +20,10 @@ enum TransactionType {
   String toString() {
     return name;
   }
+
+  String toCapitalizedString() {
+    return name[0].toUpperCase() + name.substring(1);
+  }
 }
 
 @freezed
