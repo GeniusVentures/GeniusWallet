@@ -13,6 +13,7 @@ cmake_policy(SET CMP0063 NEW)
 # Define build configuration option.
 set(CMAKE_BUILD_TYPE "Release")
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
 if(IS_MULTICONFIG)
   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
     CACHE STRING "" FORCE)
@@ -27,7 +28,6 @@ endif()
 
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
-
 
 message("Build Type: ${CMAKE_BUILD_TYPE}")
 
@@ -44,16 +44,16 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_property(TARGET ${TARGET} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
-    target_compile_definitions(${TARGET} PRIVATE 
-    $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=2>)
+    target_compile_definitions(${TARGET} PRIVATE
+      $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=2>)
   else()
     set_property(TARGET ${TARGET} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
-    target_compile_definitions(${TARGET} PRIVATE 
-    $<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
+    target_compile_definitions(${TARGET} PRIVATE
+      $<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
   endif()
-  
 endfunction()
 
 # Flutter library and tool build rules.
@@ -67,14 +67,15 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
-
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
 # run in place. This is done instead of making a separate bundle (as on Linux)
 # so that building and running from within Visual Studio will work.
 set(BUILD_BUNDLE_DIR "$<TARGET_FILE_DIR:${BINARY_NAME}>")
+
 # Make the "install" step default, as it's required to run.
 set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
 endif()

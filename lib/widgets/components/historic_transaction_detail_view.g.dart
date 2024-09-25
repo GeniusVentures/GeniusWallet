@@ -9,7 +9,6 @@ class HistoricTransactionDetailView extends StatefulWidget {
   final String? ovrReceiverWalletIDLabel;
   final String? ovrTransactionIDLabel;
   final String? ovrTransactionFeeLabel;
-  final String? ovrTransactionTypeLabel;
   final String? ovrTransactionTimestampLabel;
   final String? ovrTransactionAmountLabel;
   final String? ovrCryptoType;
@@ -27,7 +26,6 @@ class HistoricTransactionDetailView extends StatefulWidget {
     this.ovrReceiverWalletIDLabel,
     this.ovrTransactionIDLabel,
     this.ovrTransactionFeeLabel,
-    this.ovrTransactionTypeLabel,
     this.ovrTransactionTimestampLabel,
     this.ovrTransactionAmountLabel,
     this.ovrCryptoType,
@@ -136,7 +134,7 @@ class _HistoricTransactionDetailView
                 child: Container(
                     width: 302.0,
                     child: AutoSizeText(
-                      widget.ovrTransactionTypeLabel ?? 'Transaction Type',
+                      'Transaction Direction',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 16.0,

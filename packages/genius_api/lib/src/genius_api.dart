@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ffi';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
@@ -20,10 +21,15 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:secure_storage/secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:genius_api/proto/SGTransaction.pb.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class GeniusApi {
   final SecureStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
+  late final String address;
+  late final String jsonFilePath;
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
@@ -33,8 +39,30 @@ class GeniusApi {
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt() {
-    //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
+        ffiBridgePrebuilt = FFIBridgePrebuilt();
+
+  Future<void> initSDK() async {
+    jsonFilePath = await copyJsonToWritableDirectory();
+    final basePathPtr = jsonFilePath.toNativeUtf8();
+    final retVal = ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
+    address = getAddress();
+    String dartString = retVal.toDartString();
+    print(dartString);
+    malloc.free(basePathPtr);
+  }
+
+  Future<String> copyJsonToWritableDirectory() async {
+    // Get the directory to store files
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/dev_config.json';
+
+    // Copy the asset file to the directory
+    final jsonString = await rootBundle.loadString('assets/dev_config.json');
+    final file = File(filePath);
+    await file.writeAsString(jsonString);
+
+    // Return the file path to be used in FFI
+    return '${directory.path}/';
   }
 
   Future<List<Wallet>> getUserWallets(String id) async {
@@ -92,7 +120,7 @@ class GeniusApi {
 
     ///TODO: Alter this method to actually post the transaction
     return transaction.copyWith(
-      timeStamp: DateTime.now().toIso8601String(),
+      timeStamp: DateTime.now(),
       hash: transaction.hashCode.toString(),
     );
   }
@@ -154,8 +182,9 @@ class GeniusApi {
   }
 
   void mintTokens(int amount) {
-    //ffiBridgePrebuilt.wallet_lib.GeniusSDKMint(amount);
+    ffiBridgePrebuilt.wallet_lib.GeniusSDKMintTokens(amount);
   }
+  
   void requestAIProcess() {
     //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
 //
@@ -301,7 +330,7 @@ class GeniusApi {
             '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
         fromAddress: '0x0',
         toAddress: '0x1',
-        timeStamp: '13:26, 10 oct 2022',
+        timeStamp: DateTime.utc(2022, 10, 10, 13, 26),
         transactionDirection: TransactionDirection.sent,
         amount: '0.0002',
         fees: '',
@@ -313,7 +342,7 @@ class GeniusApi {
               '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
           fromAddress: '0x2',
           toAddress: '0x0',
-          timeStamp: '15:20, 09 oct 2022',
+          timeStamp: DateTime.utc(2022, 10, 09, 15, 20),
           transactionDirection: TransactionDirection.received,
           amount: '0.0003',
           fees: '',
@@ -324,7 +353,7 @@ class GeniusApi {
             '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
         fromAddress: '0x1',
         toAddress: '0x0',
-        timeStamp: '15:22, 10 oct 2022',
+        timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
         transactionDirection: TransactionDirection.received,
         amount: '0.0023',
         fees: '0.000001',
@@ -453,5 +482,70 @@ class GeniusApi {
 
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);
+  }
+
+  int getBalance() {
+    return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+  }
+
+  /// Returns address as a hexadecimal string, with 64 hex characters prepended
+  /// by `0x`.
+  String getAddress() {
+    var address = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetAddress();
+
+    List<int> charCodes =
+        List<int>.generate(66, (index) => address.address[index]);
+
+    return String.fromCharCodes(charCodes);
+  }
+
+  List<Transaction> getTransactions() {
+    var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetTransactions();
+
+    List<Transaction> ret = List.generate(transactions.size, (i) {
+      var buffer =
+          transactions.ptr[i].ptr.asTypedList(transactions.ptr[i].size);
+      var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
+
+      var fromAddress = String.fromCharCodes(struct.sourceAddr);
+
+      Transaction trans = Transaction(
+          hash: String.fromCharCodes(struct.dataHash),
+          fromAddress: fromAddress,
+          toAddress: "não sei",
+          timeStamp: DateTime.fromMicrosecondsSinceEpoch(
+              struct.timestamp.toInt() ~/ 1000),
+          transactionDirection: address == fromAddress
+              ? TransactionDirection.sent
+              : TransactionDirection.received, // não sei
+          amount: '69', // não sei
+          fees: '0',
+          coinSymbol: 'GNUS',
+          transactionStatus: TransactionStatus.completed,
+          type: TransactionType.fromString(struct.type));
+
+      return trans;
+    });
+
+    ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
+
+    return ret;
+  }
+
+  bool transferTokens(int amount, String address) {
+    final convertedAddress = calloc<GeniusAddress>();
+
+    final bytes = Uint8List.fromList(address.codeUnits);
+
+    for (int i = 0; i < address.length; ++i) {
+      convertedAddress.ref.address[i] = bytes[i];
+    }
+
+    final ret = ffiBridgePrebuilt.wallet_lib
+        .GeniusSDKTransferTokens(amount, convertedAddress);
+
+    calloc.free(convertedAddress);
+
+    return ret;
   }
 }

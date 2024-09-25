@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'currency.dart';
 
@@ -12,7 +12,7 @@ part of 'currency.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Currency _$CurrencyFromJson(Map<String, dynamic> json) {
   return _Currency.fromJson(json);
@@ -97,10 +97,11 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
 }
 
 /// @nodoc
-abstract class _$$_CurrencyCopyWith<$Res> implements $CurrencyCopyWith<$Res> {
-  factory _$$_CurrencyCopyWith(
-          _$_Currency value, $Res Function(_$_Currency) then) =
-      __$$_CurrencyCopyWithImpl<$Res>;
+abstract class _$$CurrencyImplCopyWith<$Res>
+    implements $CurrencyCopyWith<$Res> {
+  factory _$$CurrencyImplCopyWith(
+          _$CurrencyImpl value, $Res Function(_$CurrencyImpl) then) =
+      __$$CurrencyImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -113,11 +114,11 @@ abstract class _$$_CurrencyCopyWith<$Res> implements $CurrencyCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_CurrencyCopyWithImpl<$Res>
-    extends _$CurrencyCopyWithImpl<$Res, _$_Currency>
-    implements _$$_CurrencyCopyWith<$Res> {
-  __$$_CurrencyCopyWithImpl(
-      _$_Currency _value, $Res Function(_$_Currency) _then)
+class __$$CurrencyImplCopyWithImpl<$Res>
+    extends _$CurrencyCopyWithImpl<$Res, _$CurrencyImpl>
+    implements _$$CurrencyImplCopyWith<$Res> {
+  __$$CurrencyImplCopyWithImpl(
+      _$CurrencyImpl _value, $Res Function(_$CurrencyImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -130,7 +131,7 @@ class __$$_CurrencyCopyWithImpl<$Res>
     Object? logoUrl = freezed,
     Object? priceDate = freezed,
   }) {
-    return _then(_$_Currency(
+    return _then(_$CurrencyImpl(
       symbol: null == symbol
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
@@ -161,8 +162,8 @@ class __$$_CurrencyCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Currency implements _Currency {
-  const _$_Currency(
+class _$CurrencyImpl implements _Currency {
+  const _$CurrencyImpl(
       {required this.symbol,
       required this.name,
       this.price,
@@ -170,8 +171,8 @@ class _$_Currency implements _Currency {
       this.logoUrl,
       this.priceDate});
 
-  factory _$_Currency.fromJson(Map<String, dynamic> json) =>
-      _$$_CurrencyFromJson(json);
+  factory _$CurrencyImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CurrencyImplFromJson(json);
 
   @override
   final String symbol;
@@ -192,10 +193,10 @@ class _$_Currency implements _Currency {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Currency &&
+            other is _$CurrencyImpl &&
             (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.price, price) || other.price == price) &&
@@ -214,12 +215,12 @@ class _$_Currency implements _Currency {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_CurrencyCopyWith<_$_Currency> get copyWith =>
-      __$$_CurrencyCopyWithImpl<_$_Currency>(this, _$identity);
+  _$$CurrencyImplCopyWith<_$CurrencyImpl> get copyWith =>
+      __$$CurrencyImplCopyWithImpl<_$CurrencyImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_CurrencyToJson(
+    return _$$CurrencyImplToJson(
       this,
     );
   }
@@ -232,9 +233,10 @@ abstract class _Currency implements Currency {
       final String? price,
       final String? priceCurrency,
       final String? logoUrl,
-      final String? priceDate}) = _$_Currency;
+      final String? priceDate}) = _$CurrencyImpl;
 
-  factory _Currency.fromJson(Map<String, dynamic> json) = _$_Currency.fromJson;
+  factory _Currency.fromJson(Map<String, dynamic> json) =
+      _$CurrencyImpl.fromJson;
 
   @override
   String get symbol;
@@ -250,6 +252,6 @@ abstract class _Currency implements Currency {
   String? get priceDate;
   @override
   @JsonKey(ignore: true)
-  _$$_CurrencyCopyWith<_$_Currency> get copyWith =>
+  _$$CurrencyImplCopyWith<_$CurrencyImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

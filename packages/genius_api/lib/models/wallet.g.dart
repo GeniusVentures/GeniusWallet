@@ -7,11 +7,11 @@ part of 'wallet.dart';
 // **************************************************************************
 
 _$WalletImpl _$$WalletImplFromJson(Map<String, dynamic> json) => _$WalletImpl(
-      coinType: json['coinType'] as int,
+      coinType: (json['coinType'] as num).toInt(),
       walletName: json['walletName'] as String,
       currencySymbol: json['currencySymbol'] as String,
       walletType: $enumDecode(_$WalletTypeEnumMap, json['walletType']),
-      balance: json['balance'] as int,
+      balance: (json['balance'] as num).toInt(),
       address: json['address'] as String,
       transactions: (json['transactions'] as List<dynamic>)
           .map((e) => Transaction.fromJson(e as Map<String, dynamic>))

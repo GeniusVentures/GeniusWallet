@@ -42,7 +42,7 @@ class SendCubit extends Cubit<SendState> {
       ));
     } else {
       final transaction = state.currentTransaction.copyWith(
-        timeStamp: DateTime.now().toIso8601String(),
+        timeStamp: DateTime.now(),
         amount: amountParsed.toString(),
         fees: gasFees.toString(),
       );

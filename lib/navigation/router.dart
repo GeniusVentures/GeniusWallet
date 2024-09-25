@@ -179,7 +179,7 @@ final geniusWalletRouter = GoRouter(
                     toAddress: '',
                     amount: '',
                     fees: '',
-                    timeStamp: '',
+                    timeStamp: DateTime.now(),
                     transactionDirection: TransactionDirection.sent,
                     coinSymbol:
                         walletCubit.state.selectedWallet!.currencySymbol,
