@@ -19,13 +19,13 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
-import 'package:secure_storage/secure_storage.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class GeniusApi {
-  final SecureStorage _secureStorage;
+  final LocalWalletStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   late final String address;
   late final String jsonFilePath;
@@ -52,7 +52,7 @@ class GeniusApi {
   }
 
   GeniusApi({
-    required SecureStorage secureStorage,
+    required LocalWalletStorage secureStorage,
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt();
 
@@ -156,7 +156,7 @@ class GeniusApi {
   void mintTokens(int amount) {
     ffiBridgePrebuilt.wallet_lib.GeniusSDKMintTokens(amount);
   }
-  
+
   void requestAIProcess() {
     //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
 //
