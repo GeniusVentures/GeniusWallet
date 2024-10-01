@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
+import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
@@ -59,11 +60,27 @@ class GeniusApi {
   Future<void> initSDK() async {
     jsonFilePath = await copyJsonToWritableDirectory();
     final basePathPtr = jsonFilePath.toNativeUtf8();
-    final retVal = ffiBridgePrebuilt.wallet_lib.GeniusSDKInit(basePathPtr);
+    final privateKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
+
+    if (privateKey == null) {
+      throw Exception("No suitable wallet found");
+    }
+
+    final privateKeyAsStr = privateKey
+        .data()
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+
+    final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
+
+    final retVal = ffiBridgePrebuilt.wallet_lib
+        .GeniusSDKInit(basePathPtr, privateKeyAsPtr);
+
     address = getAddress();
     String dartString = retVal.toDartString();
     print(dartString);
     malloc.free(basePathPtr);
+    malloc.free(privateKeyAsPtr);
   }
 
   Future<String> copyJsonToWritableDirectory() async {

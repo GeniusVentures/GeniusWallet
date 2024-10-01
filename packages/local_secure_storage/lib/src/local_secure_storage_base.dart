@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/network.dart';
@@ -259,6 +260,23 @@ class LocalWalletStorage {
         (element) => element.address.toLowerCase() == address.toLowerCase());
     walletsController.add(currentWallets);
   }
+
+  Future<PrivateKey?> getSGNSLinkedWalletPrivateKey() async {
+    Map<String, String> keys = await _secureStorage.readAll();
+
+    for (var key in keys.values) {
+      StoredKey? storedKey = StoredKey.importJson(key);
+
+      if (storedKey != null) {
+        final pk =
+            storedKey.wallet("")!.getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+        return pk;
+      }
+    }
+
+    return null;
+  }
+
 }
 
 // TODO: wire up fetching balance, transactions
