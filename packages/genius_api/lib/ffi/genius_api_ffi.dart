@@ -598,18 +598,22 @@ class NativeLibrary {
   late final _TWHDVersionIsPrivate =
       _TWHDVersionIsPrivatePtr.asFunction<bool Function(int)>();
 
-  ffi.Pointer<Utf8> GeniusSDKInit(ffi.Pointer<Utf8> base_path) {
+  ffi.Pointer<Utf8> GeniusSDKInit(
+    ffi.Pointer<Utf8> base_path,
+    ffi.Pointer<Utf8> eth_private_key,
+  ) {
     return _GeniusSDKInit(
       base_path,
+      eth_private_key,
     );
   }
 
   late final _GeniusSDKInitPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<Utf8> Function(
-              ffi.Pointer<Utf8> base_path)>>('GeniusSDKInit');
+              ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>>('GeniusSDKInit');
   late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
-      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>)>();
+      ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>();
 
   void GeniusSDKProcess(ffi.Pointer<ffi.Char> path, int amount) {
     _GeniusSDKProcess(path, amount);
