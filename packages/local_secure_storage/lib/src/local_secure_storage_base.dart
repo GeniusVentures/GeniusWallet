@@ -2,18 +2,22 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/tw/coin_util.dart';
+import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:secure_storage/secure_storage.dart';
+import 'package:rxdart/rxdart.dart';
 
-class LocalWalletStorage extends SecureStorage {
+class LocalWalletStorage {
   /// Key used for storing user PIN locally.
   static const _pinKey = '__pin_key__';
   static const _watchesKeyPrefix = '__watches_key__';
   static const _walletKeyPrefix = 'wallet_';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
+
+  Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
 
   LocalWalletStorage._create();
 
@@ -51,7 +55,6 @@ class LocalWalletStorage extends SecureStorage {
     return localWalletStorage;
   }
 
-  @override
   Future<void> saveStoredKey(StoredKey storedKey) async {
     addWalletToController(
         mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
@@ -61,7 +64,6 @@ class LocalWalletStorage extends SecureStorage {
         value: storedKey.exportJson());
   }
 
-  @override
   Future<void> saveWatchedWallet(Wallet wallet) async {
     addWalletToController(wallet);
 
@@ -70,7 +72,6 @@ class LocalWalletStorage extends SecureStorage {
         value: jsonEncode(wallet.toJson()));
   }
 
-  @override
   Future<void> deleteWallet(String walletAddress) async {
     Map<String, String> keys = await _secureStorage.readAll();
 
@@ -84,11 +85,9 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.write(key: _pinKey, value: pin);
 
-  @override
   Future<bool> verifyUserPin(String pin) async {
     try {
       final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
@@ -99,7 +98,6 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<bool> pinExists() async {
     try {
       final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
@@ -109,7 +107,6 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<void> deleteAllWallets() async {
     Map<String, String> keys = await _secureStorage.readAll();
 

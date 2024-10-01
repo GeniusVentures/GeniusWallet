@@ -598,13 +598,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.27.7"
-  secure_storage:
-    dependency: transitive
-    description:
-      path: "packages/secure_storage"
-      relative: true
-    source: path
-    version: "1.0.0"
   shelf:
     dependency: transitive
     description:
