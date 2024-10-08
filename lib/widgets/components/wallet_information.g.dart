@@ -11,7 +11,6 @@ import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart'
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/receive_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/q_r_code_button_custom.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
@@ -233,29 +232,7 @@ class _WalletInformation extends State<WalletInformation> {
                                 ])),
                       ),
                     ]))))),
-          ),
-          if (widget.walletType != WalletType.tracking) ...[
-            Positioned(
-              right: 0,
-              width: 63.0,
-              bottom: 49.0,
-              height: 14.0,
-              child: QRCodeButtonCustom(
-                  child: const AutoSizeText(
-                'QR-code',
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 2,
-                  fontFamily: 'Roboto',
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.3,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.right,
-              )),
-            )
-          ],
+          )
         ]),
       ),
     ]));
