@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
+import 'package:genius_wallet/app/widgets/networks/network_dropdown.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -21,11 +22,23 @@ class WalletDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
       builder: (context, state) {
+        final walletCubit = context.read<WalletDetailsCubit>();
         if (state.selectedWallet == null) {
           return const Center(
             child: Text('Error'),
           );
         }
+
+        if (state.fetchNetworksStatus == WalletStatus.initial) {
+          walletCubit.getNetworks();
+        }
+
+        // load networks / select network first then fetch balance
+        if (state.balanceStatus == WalletStatus.initial &&
+            state.fetchNetworksStatus == WalletStatus.successful) {
+          walletCubit.getWalletBalance();
+        }
+
         if (GeniusBreakpoints.useDesktopLayout(context)) {
           return const Desktop();
         }
@@ -74,17 +87,24 @@ class Desktop extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       SizedBox(
-                        height: 240,
+                        height: 190,
                         child: LayoutBuilder(
                           builder: (BuildContext context,
                               BoxConstraints constraints) {
                             return WalletInformation(constraints,
-                                ovrYourbitcoinaddress:
-                                    '${selectedWallet.walletType == WalletType.tracking ? 'Tracked' : 'Your'} ${selectedWallet.currencySymbol} Wallet Address',
-                                ovrQuantity: selectedWallet.balance.toString(),
-                                ovrCurrency: selectedWallet.currencySymbol,
+                                ovrQuantity: state.balance.toStringAsFixed(4),
+                                ovrCurrency:
+                                    state.selectedNetwork?.symbol?.name,
                                 ovrAddressField: selectedWallet.address,
                                 walletType: selectedWallet.walletType);
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        child: LayoutBuilder(
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            return CoinsScreen(constraints);
                           },
                         ),
                       ),
@@ -129,6 +149,16 @@ class Mobile extends StatelessWidget {
           backgroundColor: GeniusWalletColors.deepBlueTertiary,
           appBar: AppBar(
             backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            actions: [
+              // TODO: Add to desktop as well
+              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                NetworkDropdown(
+                    wallet: selectedWallet,
+                    network: state.selectedNetwork,
+                    networkList: state.networks),
+                const SizedBox(width: 24),
+              ])
+            ],
           ),
           body: AppScreenView(
             body: Padding(
@@ -156,17 +186,24 @@ class Mobile extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   SizedBox(
-                    height: 240,
+                    height: 190,
                     child: LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
                         return WalletInformation(constraints,
-                            ovrYourbitcoinaddress:
-                                '${selectedWallet.walletType == WalletType.tracking ? 'Tracked' : 'Your'} ${selectedWallet.currencySymbol} Wallet Address',
-                            ovrQuantity: selectedWallet.balance.toString(),
-                            ovrCurrency: selectedWallet.currencySymbol,
+                            ovrQuantity: state.balance.toStringAsFixed(4),
+                            ovrCurrency: state.selectedNetwork?.symbol?.name,
                             ovrAddressField: selectedWallet.address,
                             walletType: selectedWallet.walletType);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    child: LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return CoinsScreen(constraints);
                       },
                     ),
                   ),

@@ -3,13 +3,9 @@ import 'package:genius_api/genius_api.dart';
 
 final symbolImageMap = {
   'ETH': Image.asset(
-    'assets/images/ethereum_icon.png',
-    package: 'genius_wallet',
+    'assets/images/crypto/eth.png',
   ),
-  'BTC': Image.asset(
-    'assets/images/bitcoin_icon.png',
-    package: 'genius_wallet',
-  ),
+  'BTC': Image.asset('assets/images/crypto/btc.png'),
   null: const SizedBox()
 };
 
@@ -23,12 +19,12 @@ class WalletUtils {
     return counter;
   }
 
-  static int totalBalance(
+  static double totalBalance(
     GeniusApi geniusApi,
     List<Wallet> wallets,
   ) {
     // TODO: Need to take into account preferred user currency and likely convert all currencies to preferred user currency.
-    int total = 0;
+    double total = 0;
 
     for (var wallet in wallets) {
       total += wallet.balance;

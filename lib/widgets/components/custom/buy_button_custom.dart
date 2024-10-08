@@ -17,7 +17,8 @@ class _BuyButtonCustomState extends State<BuyButtonCustom> {
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () async {
-        await launchUrl(Uri.parse('https://moonpay.com/buy'));
+        // TODO: enable buying
+        //await launchUrl(Uri.parse('https://moonpay.com/buy'));
         // context.push('/buy', extra: context.read<WalletDetailsCubit>());
       },
       child: widget.child!,

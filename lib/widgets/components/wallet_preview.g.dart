@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 
 class WalletPreview extends StatefulWidget {
@@ -35,19 +33,6 @@ class _WalletPreview extends State<WalletPreview> {
         width: widget.constraints.maxWidth * 1.0,
         height: widget.constraints.maxHeight * 1.0,
         child: Stack(children: [
-          Positioned(
-            width: widget.constraints.maxWidth * 1.0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: Container(
-              height: widget.constraints.maxHeight * 1.0,
-              width: widget.constraints.maxWidth * 1.0,
-              decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard)),
-              ),
-            ),
-          ),
           Positioned(
             left: 12,
             bottom: 8,
@@ -88,27 +73,7 @@ class _WalletPreview extends State<WalletPreview> {
             width: 30.0,
             top: 16.0,
             height: 30.0,
-            child: SizedBox(
-                child: Stack(children: [
-              Positioned(
-                right: 0,
-                width: 28.0,
-                top: 0,
-                height: 28.0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: GeniusWalletColors.currencyBackground,
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
-                  ),
-                ),
-              ),
-              Positioned(
-                  left: 8,
-                  width: 16.484,
-                  top: 4,
-                  height: 21.82,
-                  child: widget.ovrCoinIcon ?? const SizedBox()),
-            ])),
+            child: SizedBox(child: widget.ovrCoinIcon ?? const SizedBox()),
           ),
           Positioned(
               left: 12.0,

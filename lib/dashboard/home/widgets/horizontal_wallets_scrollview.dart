@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/wallet_preview.g.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,11 +35,16 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                     width: MediaQuery.of(context).size.width - 90,
                     child: LayoutBuilder(builder: (context, constraints) {
                       return MaterialButton(
+                        shape: const ContinuousRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                GeniusWalletConsts.borderRadiusCard))),
+                        color: GeniusWalletColors.deepBlueCardColor,
                         onPressed: () {
                           context.push('/wallets/${currentWallet.address}');
                         },
                         child: WalletPreview(constraints,
-                            ovrWalletBalance: currentWallet.balance.toString(),
+                            ovrWalletBalance:
+                                currentWallet.balance.toStringAsFixed(6),
                             walletType: currentWallet.walletType,
                             ovrCoinSymbol: currentWallet.currencySymbol,
                             ovrCoinIcon: WalletUtils.currencySymbolToImage(
