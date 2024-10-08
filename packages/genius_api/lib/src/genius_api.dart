@@ -7,18 +7,17 @@ import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/currency.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/news.dart';
-import 'package:genius_api/models/transaction.dart';
-import 'package:genius_api/models/user.dart';
-import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_api/tw/stored_key.dart';
+import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_api/web3/web3.dart';
 import 'package:secure_storage/secure_storage.dart';
 
 class GeniusApi {
@@ -35,49 +34,6 @@ class GeniusApi {
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt() {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
-  }
-
-  Future<List<Wallet>> getUserWallets(String id) async {
-    await Future.delayed(Duration(seconds: 5));
-    //TODO: Implement this with the Genius API
-    return [
-      Wallet(
-        walletName: 'My Ethereum Wallet',
-        currencySymbol: 'ETH',
-        coinType: TWCoinType.TWCoinTypeEthereum,
-        address: '0x0',
-        // balance: 1000,
-        balance: 0,
-        walletType: WalletType.privateKey,
-        transactions: await getTransactionsFor('0x0'),
-      ),
-      Wallet(
-        walletName: 'My Bitcoin Wallet',
-        coinType: TWCoinType.TWCoinTypeBitcoin,
-        currencySymbol: 'BTC',
-        address: '0x1234asdf5678jklp',
-        // balance: 1000,
-        balance: 12460,
-        walletType: WalletType.privateKey,
-
-        transactions: [],
-      ),
-    ];
-  }
-
-  Future<User> getUser() async {
-    //TODO: Implement this with Genius API. At the time of implementing,
-    //no authentication method was specified so mocking the method for now.
-
-    return User(
-      firstName: 'John',
-      lastName: 'Doe',
-      nickname: 'jdoe',
-      email: 'jdoe@email.com',
-      dateOfBirth: '01/01/1990',
-      profilePictureUrl: '',
-      wallets: await getUserWallets('some_id?'),
-    );
   }
 
   Future<int> getGasFees() async {
@@ -453,5 +409,11 @@ class GeniusApi {
 
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);
+  }
+
+  Future<void> getWalletTransactions(String address) async {}
+
+  Future<double> getWalletBalance(String rpcUrl, String address) async {
+    return await Web3().getBalance(rpcUrl: rpcUrl, address: address);
   }
 }

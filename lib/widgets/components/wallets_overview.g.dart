@@ -144,15 +144,15 @@ class _WalletsOverview extends State<WalletsOverview> {
                     )),
               ),
               Positioned(
-                left: 179.0,
+                left: 182.0,
                 width: 69.0,
-                bottom: 119.0,
+                bottom: 102.0,
                 height: 14.0,
                 child: Container(
                     height: 14.0,
                     width: 69.0,
                     child: AutoSizeText(
-                      widget.ovrBalancecurrency ?? 'USD ',
+                      widget.ovrBalancecurrency ?? 'USD',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,

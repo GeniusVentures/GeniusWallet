@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Ethereum",
+    "symbol": "eth",
+    "chainId": 1,
+    "rpcUrl": "https://eth.drpc.org",
+    "iconPath": "assets/images/crypto/eth.png"
+  },
+  {
+    "name": "Ethereum Sepolia",
+    "symbol": "eth_test_net",
+    "chainId": 11155111,
+    "rpcUrl": "https://nd-964-217-560.p2pify.com/8c17a356234963100895499dc535c9f4",
+    "iconPath": "assets/images/crypto/eth-testnet.png"
+  },
+  {
+    "name": "Polygon",
+    "symbol": "matic",
+    "chainId": 137,
+    "rpcUrl": "https://polygon.drpc.org",
+    "iconPath": "assets/images/crypto/matic.png"
+  },
+  {
+    "name": "Polygon Amoy",
+    "symbol": "matic_test_net",
+    "chainId": 80002,
+    "rpcUrl": "https://polygon-amoy.core.chainstack.com/267520074174662c0a58c3c1126c7e51",
+    "iconPath": "assets/images/crypto/matic-testnet.png"
+  }
+]

@@ -26,7 +26,7 @@ mixin _$Wallet {
   WalletType get walletType => throw _privateConstructorUsedError;
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
-  int get balance => throw _privateConstructorUsedError;
+  double get balance => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
   List<Transaction> get transactions => throw _privateConstructorUsedError;
 
@@ -45,7 +45,7 @@ abstract class $WalletCopyWith<$Res> {
       String walletName,
       String currencySymbol,
       WalletType walletType,
-      int balance,
+      double balance,
       String address,
       List<Transaction> transactions});
 }
@@ -91,7 +91,7 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
       balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
-              as int,
+              as double,
       address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -116,7 +116,7 @@ abstract class _$$WalletImplCopyWith<$Res> implements $WalletCopyWith<$Res> {
       String walletName,
       String currencySymbol,
       WalletType walletType,
-      int balance,
+      double balance,
       String address,
       List<Transaction> transactions});
 }
@@ -160,7 +160,7 @@ class __$$WalletImplCopyWithImpl<$Res>
       balance: null == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
-              as int,
+              as double,
       address: null == address
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -200,7 +200,7 @@ class _$WalletImpl implements _Wallet {
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   @override
-  final int balance;
+  final double balance;
   @override
   final String address;
   final List<Transaction> _transactions;
@@ -267,7 +267,7 @@ abstract class _Wallet implements Wallet {
       required final String walletName,
       required final String currencySymbol,
       required final WalletType walletType,
-      required final int balance,
+      required final double balance,
       required final String address,
       required final List<Transaction> transactions}) = _$WalletImpl;
 
@@ -284,7 +284,7 @@ abstract class _Wallet implements Wallet {
   @override
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
-  int get balance;
+  double get balance;
   @override
   String get address;
   @override
