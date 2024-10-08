@@ -1,7 +1,6 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/account.dart';
 import 'package:genius_api/tw/hd_wallet.dart';

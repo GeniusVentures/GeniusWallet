@@ -172,9 +172,12 @@ class TransactionCard extends StatelessWidget {
         },
         child: DetailedTransaction(
           constraints,
-          ovrCoinIcon: WalletUtils.currencySymbolToImage(
-            currentTransaction.coinSymbol,
-          ),
+          ovrCoinIcon: SizedBox(
+              height: 24,
+              width: 24,
+              child: WalletUtils.currencySymbolToImage(
+                currentTransaction.coinSymbol,
+              )),
           ovrTimestamp: currentTransaction.timeStamp,
           ovrTransactionArrow: currentTransaction.transactionDirection ==
                   TransactionDirection.received

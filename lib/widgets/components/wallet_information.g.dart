@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/app/widgets/loading/loading.dart';
+import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/total_balance_custom.dart';
@@ -10,7 +11,6 @@ import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart'
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/receive_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/q_r_code_button_custom.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
@@ -19,7 +19,6 @@ class WalletInformation extends StatefulWidget {
   final String? ovrCurrency;
   final String? ovrQuantity;
   final String? ovrAddressField;
-  final String? ovrYourbitcoinaddress;
   final WalletType walletType;
   const WalletInformation(this.constraints,
       {Key? key,
@@ -28,7 +27,6 @@ class WalletInformation extends StatefulWidget {
       this.ovrCurrency,
       this.ovrQuantity,
       this.ovrAddressField,
-      this.ovrYourbitcoinaddress,
       this.walletType = WalletType.tracking})
       : super(key: key);
   @override
@@ -40,6 +38,7 @@ class _WalletInformation extends State<WalletInformation> {
 
   @override
   Widget build(BuildContext context) {
+    final walletCubit = context.read<WalletDetailsCubit>();
     return SizedBox(
         child: Stack(children: [
       Positioned(
@@ -62,35 +61,43 @@ class _WalletInformation extends State<WalletInformation> {
                 left: 0,
                 top: 35.0,
                 width: widget.constraints.maxWidth,
-                child: Row(children: [
-                  ConstrainedBox(
-                      constraints: BoxConstraints(
-                          maxWidth: widget.constraints.maxWidth * 1.0 - 40),
-                      child: AutoSizeText(
-                        widget.ovrQuantity ?? '0.221746',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 48.0,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.0,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.left,
-                      )),
-                  Padding(
-                      padding: const EdgeInsets.only(top: 30, left: 4),
-                      child: AutoSizeText(
-                        widget.ovrCurrency ?? 'BTC ',
-                        style: const TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.25714290142059326,
-                          color: GeniusWalletColors.btnTextDisabled,
-                        ),
-                      ))
-                ]),
+                child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: widget.constraints.maxWidth * 1.0),
+                    child: () {
+                      if (walletCubit.state.balanceStatus ==
+                          WalletStatus.loading) {
+                        return const Loading();
+                      }
+                      if (walletCubit.state.balanceStatus ==
+                          WalletStatus.successful) {
+                        return Row(children: [
+                          AutoSizeText(
+                            widget.ovrQuantity ?? "0",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 48.0,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                          Padding(
+                              padding: const EdgeInsets.only(top: 30, left: 4),
+                              child: AutoSizeText(
+                                widget.ovrCurrency ?? 'BTC ',
+                                style: const TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w700,
+                                  color: GeniusWalletColors.btnTextDisabled,
+                                ),
+                              ))
+                        ]);
+                      }
+                    }()),
               ),
               Positioned(
                 left: 0,
@@ -117,8 +124,8 @@ class _WalletInformation extends State<WalletInformation> {
             ]))))),
           ),
           Positioned(
-            left: 4.0,
-            right: 5.0,
+            left: 0,
+            right: 0,
             top: 110.0,
             height: 40.0,
             child: Row(
@@ -129,8 +136,7 @@ class _WalletInformation extends State<WalletInformation> {
                     Expanded(
                         child: Container(
                             alignment: Alignment.center,
-                            padding: const EdgeInsets.only(
-                                left: 24, right: 24, top: 8, bottom: 8),
+                            padding: const EdgeInsets.only(top: 8, bottom: 8),
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(
                                     GeniusWalletConsts.borderRadiusCard),
@@ -191,7 +197,7 @@ class _WalletInformation extends State<WalletInformation> {
           Positioned(
             left: 0,
             width: widget.constraints.maxWidth,
-            bottom: 0,
+            top: 160,
             height: 35.0,
             child: Center(
                 child: SizedBox(
@@ -199,13 +205,6 @@ class _WalletInformation extends State<WalletInformation> {
                     child: WalletAddressCustom(
                         child: SizedBox(
                             child: Stack(children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: GeniusWalletColors.deepBlueCardColor,
-                          borderRadius: BorderRadius.all(Radius.circular(
-                              GeniusWalletConsts.borderRadiusCard)),
-                        ),
-                      ),
                       Positioned(
                         left: 0,
                         right: 0,
@@ -233,47 +232,7 @@ class _WalletInformation extends State<WalletInformation> {
                                 ])),
                       ),
                     ]))))),
-          ),
-          Positioned(
-            left: 0,
-            bottom: 49.0,
-            height: 14.0,
-            child: SizedBox(
-                height: 14.0,
-                child: AutoSizeText(
-                  widget.ovrYourbitcoinaddress ?? 'Your bitcoin adress:',
-                  style: const TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.3,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
-                )),
-          ),
-          if (widget.walletType != WalletType.tracking) ...[
-            Positioned(
-              right: 0,
-              width: 63.0,
-              bottom: 49.0,
-              height: 14.0,
-              child: QRCodeButtonCustom(
-                  child: const AutoSizeText(
-                'QR-code',
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 2,
-                  fontFamily: 'Roboto',
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.3,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.right,
-              )),
-            )
-          ],
+          )
         ]),
       ),
     ]));

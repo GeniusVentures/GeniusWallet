@@ -1,11 +1,16 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
+import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_api/web3/web3.dart';
 import 'package:secure_storage/secure_storage.dart';
+import 'package:genius_api/assets/read_asset.dart';
 
 class LocalWalletStorage extends SecureStorage {
   /// Key used for storing user PIN locally.
@@ -14,6 +19,7 @@ class LocalWalletStorage extends SecureStorage {
   static const _walletKeyPrefix = 'wallet_';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final web3 = Web3();
 
   LocalWalletStorage._create();
 
@@ -28,18 +34,22 @@ class LocalWalletStorage extends SecureStorage {
       try {
         if (localWalletStorage.isAWallet(entry.key)) {
           StoredKey? storedKey = StoredKey.importJson(entry.value);
+
           // A key was not able to be parsed, delete it
           if (storedKey == null) {
             print("Deleted storedkey ${entry.key}");
             await localWalletStorage.deleteKey(entry.key);
           }
 
+          final storedKeyWallet = StoredKeyWallet(storedKey);
+
           localWalletStorage.addWalletToController(
-              mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
+              await mapStoredKeyWalletToWallets(storedKeyWallet));
         } else if (localWalletStorage.isAWatchedWallet(entry.key)) {
           Wallet? wallet = Wallet.fromJson(
               Map<String, dynamic>.from(jsonDecode(entry.value)));
-          localWalletStorage.addWalletToController(wallet);
+          localWalletStorage
+              .addWalletToController(await mapWalletToWallets(wallet));
         }
       } catch (e) {
         // Some issue happened with parsing key. Delete wallet
@@ -54,7 +64,7 @@ class LocalWalletStorage extends SecureStorage {
   @override
   Future<void> saveStoredKey(StoredKey storedKey) async {
     addWalletToController(
-        mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
+        await mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
 
     await _secureStorage.write(
         key: createWalletKey(storedKey.account(0).address()),
@@ -63,7 +73,7 @@ class LocalWalletStorage extends SecureStorage {
 
   @override
   Future<void> saveWatchedWallet(Wallet wallet) async {
-    addWalletToController(wallet);
+    addWalletToController(await mapWalletToWallets(wallet));
 
     await _secureStorage.write(
         key: createWatchedWalletKey(wallet.address),
@@ -171,16 +181,42 @@ class LocalWalletStorage extends SecureStorage {
 
 // TODO: wire up fetching balance, transactions
 // Don't pass any sensitive data to the UI, no privateKey or mnemonic
-Wallet mapStoredKeyWalletToWallets(StoredKeyWallet wallet) {
+Future<Wallet> mapStoredKeyWalletToWallets(StoredKeyWallet wallet) async {
+  final address = wallet.storedKey.account(0).address();
+  final List<Network> networks = await readNetworkAssets();
+  final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
+  final network = networks.where((element) =>
+      (element.symbol as NetworkSymbol).name == symbol.toLowerCase());
+
+  final walletBalance = await Web3()
+      .getBalance(address: address, rpcUrl: network.first.rpcUrl ?? "");
   return Wallet(
       walletName: wallet.storedKey.name(),
       currencySymbol:
           CoinUtil.getSymbol(wallet.storedKey.account(0).coinType()),
       coinType: wallet.storedKey.account(0).coinType(),
-      balance: 0,
+      balance: walletBalance,
       address: wallet.storedKey.account(0).address(),
       walletType: wallet.storedKey.isMnemonic()
           ? WalletType.mnemonic
           : WalletType.privateKey,
+      transactions: []);
+}
+
+Future<Wallet> mapWalletToWallets(Wallet wallet) async {
+  final List<Network> networks = await readNetworkAssets();
+  final network = networks.where((element) =>
+      (element.symbol as NetworkSymbol).name ==
+      wallet.currencySymbol.toLowerCase());
+
+  final walletBalance = await Web3()
+      .getBalance(address: wallet.address, rpcUrl: network.first.rpcUrl ?? "");
+  return Wallet(
+      walletName: wallet.walletName,
+      currencySymbol: wallet.currencySymbol,
+      coinType: wallet.coinType,
+      balance: walletBalance,
+      address: wallet.address,
+      walletType: wallet.walletType,
       transactions: []);
 }
