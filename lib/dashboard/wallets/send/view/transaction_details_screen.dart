@@ -32,7 +32,7 @@ class Desktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<WalletDetailsCubit>().getCurrentFees();
-    final formKey = GlobalKey<FormState>();
+    //final formKey = GlobalKey<FormState>();
     return DesktopContainer(
       title: context
           .read<WalletDetailsCubit>()
@@ -173,7 +173,7 @@ class Desktop extends StatelessWidget {
                           child: LayoutBuilder(builder: (context, constraints) {
                             return MaterialButton(
                               onPressed: () {
-                                formKey.currentState!.validate();
+                                //formKey.currentState!.validate();
                               },
                               child: IsactiveTrue(
                                 constraints,
@@ -195,7 +195,7 @@ class Mobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<WalletDetailsCubit>().getCurrentFees();
-    final formKey = GlobalKey<FormState>();
+    //final formKey = GlobalKey<FormState>();
     return Scaffold(
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
@@ -206,7 +206,7 @@ class Mobile extends StatelessWidget {
             builder: (BuildContext context, BoxConstraints constraints) {
               return MaterialButton(
                 onPressed: () {
-                  formKey.currentState!.validate();
+                  //formKey.currentState!.validate();
                 },
                 child: IsactiveTrue(
                   constraints,
@@ -218,123 +218,124 @@ class Mobile extends StatelessWidget {
         ),
       ),
       body: Form(
-          key: formKey,
+          //key: formKey,
           child: AppScreenView(
               body: Column(children: [
-            SizedBox(
-              height: 50,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return BackButtonHeader(
-                    constraints,
-                    ovrTitle: 'Transaction details',
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 40),
-            Container(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-              child: Column(
-                children: [
-                  Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          border: Border.all(color: GeniusWalletColors.gray500),
-                          borderRadius: const BorderRadius.all(Radius.circular(
-                              GeniusWalletConsts.borderRadiusCard))),
-                      child: Column(children: [
-                        SizedBox(
-                          height: 40,
-                          child: LayoutBuilder(
-                            builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              return TransactionDetailTile(
-                                constraints,
-                                ovrLeftfield: 'Available Balance',
-                                ovrAmount: context
-                                    .read<WalletDetailsCubit>()
-                                    .state
-                                    .selectedWallet!
-                                    .balance
-                                    .toString(),
-                              );
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                          height: 40,
-                          child: LayoutBuilder(
-                            builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              return BlocBuilder<WalletDetailsCubit,
-                                  WalletDetailsState>(
-                                builder: (context, state) {
-                                  if (state.gasFeesStatus ==
-                                      WalletStatus.successful) {
-                                    return TransactionDetailTile(
-                                      constraints,
-                                      ovrLeftfield: 'Gas Fee',
-                                      ovrAmount: context
-                                          .watch<WalletDetailsCubit>()
-                                          .state
-                                          .gasFees
-                                          .toString(),
-                                    );
-                                  }
-                                  return Container();
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ])),
-                  const SizedBox(height: 50),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: const Text('Enter Amount'),
-                  ),
-                  const SizedBox(height: 20),
-                  TextEntryFieldWidget(
-                    logic: TextFormFieldLogic(
-                      context,
-                      hintText: 'Enter Amount',
-                      keyboardType: const TextInputType.numberWithOptions(),
-                      inputFormatters: [
-                        Formatters.allowDecimals,
-                      ],
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter an amount to send';
-                        }
-
-                        context.read<SendCubit>().amountConfirmed(
-                              value,
-                              context.read<WalletDetailsCubit>().state.gasFees,
-                              context
-                                  .read<WalletDetailsCubit>()
-                                  .state
-                                  .selectedWallet!
-                                  .balance,
-                            );
-
-                        final state = context.read<SendCubit>().state;
-
-                        switch (state.sendStatus) {
-                          case SendStatus.notEnoughBalance:
-                            return 'You have insufficient funds';
-                          case SendStatus.invalidValue:
-                            return 'Invalid value';
-                          default:
-                        }
-                        return null;
-                      },
+        SizedBox(
+          height: 50,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              return BackButtonHeader(
+                constraints,
+                ovrTitle: 'Transaction details',
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 40),
+        Container(
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: Column(
+            children: [
+              Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      color: GeniusWalletColors.deepBlueSecondary,
+                      border: Border.all(color: GeniusWalletColors.gray500),
+                      borderRadius: const BorderRadius.all(Radius.circular(
+                          GeniusWalletConsts.borderRadiusCard))),
+                  child: Column(children: [
+                    SizedBox(
+                      height: 40,
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          return TransactionDetailTile(
+                            constraints,
+                            ovrLeftfield: 'Available Balance',
+                            ovrAmount: context
+                                .read<WalletDetailsCubit>()
+                                .state
+                                .selectedWallet!
+                                .balance
+                                .toString(),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(
+                      height: 40,
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          return BlocBuilder<WalletDetailsCubit,
+                              WalletDetailsState>(
+                            builder: (context, state) {
+                              if (state.gasFeesStatus ==
+                                  WalletStatus.successful) {
+                                return TransactionDetailTile(
+                                  constraints,
+                                  ovrLeftfield: 'Gas Fee',
+                                  ovrAmount: context
+                                      .watch<WalletDetailsCubit>()
+                                      .state
+                                      .gasFees
+                                      .toString(),
+                                );
+                              }
+                              return Container();
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ])),
+              const SizedBox(height: 50),
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: const Text('Enter Amount'),
               ),
-            )
-          ]))),
+              const SizedBox(height: 20),
+              TextEntryFieldWidget(
+                logic: TextFormFieldLogic(
+                  context,
+                  hintText: 'Enter Amount',
+                  keyboardType: const TextInputType.numberWithOptions(),
+                  inputFormatters: [
+                    Formatters.allowDecimals,
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an amount to send';
+                    }
+
+                    context.read<SendCubit>().amountConfirmed(
+                          value,
+                          context.read<WalletDetailsCubit>().state.gasFees,
+                          context
+                              .read<WalletDetailsCubit>()
+                              .state
+                              .selectedWallet!
+                              .balance,
+                        );
+
+                    final state = context.read<SendCubit>().state;
+
+                    switch (state.sendStatus) {
+                      case SendStatus.notEnoughBalance:
+                        return 'You have insufficient funds';
+                      case SendStatus.invalidValue:
+                        return 'Invalid value';
+                      default:
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ],
+          ),
+        )
+      ]))),
     );
   }
 }

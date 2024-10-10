@@ -85,12 +85,16 @@ class Web3 {
       {required String rpcUrl, required String address}) async {
     final client = Web3Client(rpcUrl, Client());
 
-    final balance = await client.getBalance(EthereumAddress.fromHex(address));
-    final ethBalance = balance.getValueInUnit(EtherUnit.ether);
+    try {
+      final balance = await client.getBalance(EthereumAddress.fromHex(address));
+      final ethBalance = balance.getValueInUnit(EtherUnit.ether);
 
-    await client.dispose();
-
-    return ethBalance;
+      await client.dispose();
+      return ethBalance;
+    } catch (e) {
+      await client.dispose();
+      return 0;
+    }
   }
 }
 
