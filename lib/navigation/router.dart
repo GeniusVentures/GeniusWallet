@@ -183,7 +183,7 @@ final geniusWalletRouter = GoRouter(
                         walletCubit.state.selectedWallet!.currencySymbol,
                     transactionStatus: TransactionStatus.pending,
                   ),
-                  flowStep: walletCubit.state.selectedWallet!.balance == 0
+                  flowStep: walletCubit.state.balance == 0
                       ? SendFlowStep.noFunds
                       : SendFlowStep.enterAddress,
                 ),

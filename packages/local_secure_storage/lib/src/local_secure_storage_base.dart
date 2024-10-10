@@ -52,9 +52,8 @@ class LocalWalletStorage extends SecureStorage {
               .addWalletToController(await mapWalletToWallets(wallet));
         }
       } catch (e) {
-        // Some issue happened with parsing key. Delete wallet
-        print("Deleted wallet ${entry.key}");
-        await localWalletStorage.deleteKey(entry.key);
+        print('Issue with loading wallets ');
+        print(e.toString());
       }
     }
 

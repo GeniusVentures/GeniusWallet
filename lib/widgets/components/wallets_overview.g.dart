@@ -93,7 +93,7 @@ class _WalletsOverview extends State<WalletsOverview> {
                     width: 62.0,
                     child: AutoSizeText(
                       widget.ovrPercentChange ?? '+12%',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,
                         fontWeight: FontWeight.w700,
@@ -148,12 +148,12 @@ class _WalletsOverview extends State<WalletsOverview> {
                 width: 69.0,
                 bottom: 102.0,
                 height: 14.0,
-                child: Container(
+                child: SizedBox(
                     height: 14.0,
                     width: 69.0,
                     child: AutoSizeText(
                       widget.ovrBalancecurrency ?? 'USD',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,
                         fontWeight: FontWeight.w700,
@@ -176,12 +176,12 @@ class _WalletsOverview extends State<WalletsOverview> {
                         width: 45.0,
                         top: 49.0,
                         height: 15.0,
-                        child: Container(
+                        child: SizedBox(
                             height: 15.0,
                             width: 45.0,
                             child: AutoSizeText(
                               widget.ovrWallets ?? 'Wallets',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontFamily: 'Roboto',
                                 fontSize: 13.0,
                                 fontWeight: FontWeight.w400,
