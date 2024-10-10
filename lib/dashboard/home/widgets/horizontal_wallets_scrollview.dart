@@ -16,7 +16,7 @@ class HorizontalWalletsScrollview extends StatelessWidget {
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
         return SizedBox(
-            height: 100,
+            height: 80,
             child: () {
               if (state.wallets.isEmpty) {
                 return const Center(
@@ -44,11 +44,10 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                         },
                         child: WalletPreview(constraints,
                             ovrWalletBalance:
-                                currentWallet.balance.toStringAsFixed(6),
+                                currentWallet.balance.toStringAsFixed(5),
+                            walletAddress: currentWallet.address,
                             walletType: currentWallet.walletType,
                             ovrCoinSymbol: currentWallet.currencySymbol,
-                            ovrCoinIcon: WalletUtils.currencySymbolToImage(
-                                currentWallet.currencySymbol),
                             walletName: currentWallet.walletName),
                       );
                     }),

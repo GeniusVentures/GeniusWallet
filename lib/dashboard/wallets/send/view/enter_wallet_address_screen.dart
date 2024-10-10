@@ -124,7 +124,7 @@ class Mobile extends StatelessWidget {
     return Scaffold(
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
-        height: 75,
+        height: 80,
         child: LayoutBuilder(builder: (context, constraints) {
           return BlocBuilder<SendCubit, SendState>(
             builder: (context, state) {
@@ -186,22 +186,23 @@ class Mobile extends StatelessWidget {
                           onChanged: context.read<SendCubit>().addressUpdated,
                         ),
                       ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        height: 62,
-                        width: MediaQuery.of(context).size.width,
-                        child: Center(
-                          child: LayoutBuilder(
-                            builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              return WalletQRScan(constraints);
-                            },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
+                      // TODO: add qr support
+                      // const SizedBox(height: 30),
+                      // SizedBox(
+                      //   height: 62,
+                      //   width: MediaQuery.of(context).size.width,
+                      //   child: Center(
+                      //     child: LayoutBuilder(
+                      //       builder: (BuildContext context,
+                      //           BoxConstraints constraints) {
+                      //         return WalletQRScan(constraints);
+                      //       },
+                      //     ),
+                      //   ),
+                      // ),
+                      // const SizedBox(
+                      //   height: 50,
+                      // ),
                     ],
                   )),
             ],

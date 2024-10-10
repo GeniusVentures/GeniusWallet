@@ -14,18 +14,24 @@ class WalletTypeIcon extends StatelessWidget {
       }
       if (walletType == WalletType.mnemonic) {
         return const Icon(
+          semanticLabel: 'account',
           Icons.account_box_outlined,
-          size: 24,
+          size: 20,
         );
       }
 
       if (walletType == WalletType.tracking) {
         return const Icon(
+          semanticLabel: 'watching',
           Icons.remove_red_eye_outlined,
-          size: 24,
+          size: 20,
         );
       }
-      return const Icon(Icons.wallet_outlined);
+      return const Icon(
+        semanticLabel: 'wallet',
+        Icons.wallet_outlined,
+        size: 20,
+      );
     }();
   }
 }
