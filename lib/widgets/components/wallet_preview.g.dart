@@ -4,6 +4,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
 
 class WalletPreview extends StatefulWidget {
   final BoxConstraints constraints;
@@ -52,7 +53,8 @@ class _WalletPreview extends State<WalletPreview> {
                 const SizedBox(height: 2),
                 AutoSizeText(
                     style: const TextStyle(color: GeniusWalletColors.gray500),
-                    getAddressForDisplay(widget.walletAddress ?? "")),
+                    WalletUtils.getAddressForDisplay(
+                        widget.walletAddress ?? "")),
               ]),
           const Expanded(child: SizedBox()),
           Column(
@@ -78,12 +80,4 @@ class _WalletPreview extends State<WalletPreview> {
   void dispose() {
     super.dispose();
   }
-}
-
-String getAddressForDisplay(String address) {
-  if (address.length >= 6) {
-    return "${address.substring(0, 6)}...${address.substring(address.length - 4)}";
-  }
-
-  return address;
 }

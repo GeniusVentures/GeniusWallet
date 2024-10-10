@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/close_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/successful_transaction_details.g.dart';
 
@@ -16,6 +17,7 @@ class TransactionSummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: AppScreenView(
         body: Container(
           height: MediaQuery.of(context).size.height,

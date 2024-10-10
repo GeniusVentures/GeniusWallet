@@ -43,7 +43,7 @@ class Desktop extends StatelessWidget {
               margin: const EdgeInsets.only(top: 40),
               padding: const EdgeInsets.all(40),
               decoration: const BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  color: GeniusWalletColors.deepBlueTertiary,
                   borderRadius: BorderRadius.all(
                       Radius.circular(GeniusWalletConsts.borderRadiusCard))),
               width: 500,
@@ -122,6 +122,7 @@ class Mobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueSecondary,
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
         height: 80,

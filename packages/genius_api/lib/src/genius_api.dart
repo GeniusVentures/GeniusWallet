@@ -36,8 +36,8 @@ class GeniusApi {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
   }
 
-  Future<int> getGasFees() async {
-    return 100;
+  Future<double> getGasFees() async {
+    return .001;
   }
 
   Future<void> storeUserPin(String pin) async =>

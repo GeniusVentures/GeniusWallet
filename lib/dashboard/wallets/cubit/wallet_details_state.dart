@@ -13,7 +13,7 @@ class WalletDetailsState {
   final List<Transaction> transactions;
   final List<Network> networks;
   final List<Wallet> wallets;
-  final int gasFees;
+  final double gasFees;
   final List<Coin> coins;
   final double balance;
 
@@ -46,7 +46,7 @@ class WalletDetailsState {
       WalletStatus? fetchTransactionsStatus,
       List<Network>? networks,
       List<Wallet>? wallets,
-      int? gasFees,
+      double? gasFees,
       List<Coin>? coins,
       double? balance,
       List<Transaction>? transactions}) {
