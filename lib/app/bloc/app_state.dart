@@ -17,35 +17,42 @@ class AppState extends Equatable {
 
   final Pointer<Void>? testWallet;
 
-  const AppState({
-    this.wallets = const [],
-    this.subscribeToWalletStatus = AppStatus.initial,
-    this.transactions = const [],
-    this.loadUserStatus = AppStatus.initial,
-    this.userStatus = UserStatus.initial,
-    this.ffiString,
-    this.testWallet,
-  });
+  final Account account;
 
-  AppState copyWith({
-    List<Wallet>? wallets,
-    AppStatus? subscribeToWalletStatus,
-    List<Transaction>? transactions,
-    AppStatus? loadUserStatus,
-    UserStatus? userStatus,
-    String? ffiString,
-    Pointer<Void>? testWallet,
-  }) {
+  final AppStatus accountStatus;
+
+  const AppState(
+      {this.wallets = const [],
+      this.subscribeToWalletStatus = AppStatus.initial,
+      this.transactions = const [],
+      this.loadUserStatus = AppStatus.initial,
+      this.userStatus = UserStatus.initial,
+      this.ffiString,
+      this.testWallet,
+      this.account = const Account(),
+      this.accountStatus = AppStatus.initial});
+
+  AppState copyWith(
+      {List<Wallet>? wallets,
+      AppStatus? subscribeToWalletStatus,
+      List<Transaction>? transactions,
+      AppStatus? loadUserStatus,
+      UserStatus? userStatus,
+      String? ffiString,
+      Pointer<Void>? testWallet,
+      Account? account,
+      AppStatus? accountStatus}) {
     return AppState(
-      wallets: wallets ?? this.wallets,
-      subscribeToWalletStatus:
-          subscribeToWalletStatus ?? this.subscribeToWalletStatus,
-      transactions: transactions ?? this.transactions,
-      loadUserStatus: loadUserStatus ?? this.loadUserStatus,
-      userStatus: userStatus ?? this.userStatus,
-      ffiString: ffiString ?? this.ffiString,
-      testWallet: testWallet,
-    );
+        wallets: wallets ?? this.wallets,
+        subscribeToWalletStatus:
+            subscribeToWalletStatus ?? this.subscribeToWalletStatus,
+        transactions: transactions ?? this.transactions,
+        loadUserStatus: loadUserStatus ?? this.loadUserStatus,
+        userStatus: userStatus ?? this.userStatus,
+        ffiString: ffiString ?? this.ffiString,
+        testWallet: testWallet,
+        account: account ?? this.account,
+        accountStatus: accountStatus ?? this.accountStatus);
   }
 
   @override

@@ -145,14 +145,14 @@ class _AssetPercentageCard extends State<AssetPercentageCard> {
                   //     extra: context.read<WalletDetailsCubit>()),
                   style: const ButtonStyle(
                       backgroundColor:
-                          MaterialStatePropertyAll(GeniusWalletColors.gray500)),
+                          WidgetStatePropertyAll(GeniusWalletColors.gray500)),
                   child: Text(widget.ovrReceiveBitcoin ?? 'Receive Bitcoin',
                       style: const TextStyle(color: Colors.white))),
               FilledButton(
                   style: const ButtonStyle(
-                      padding: MaterialStatePropertyAll(
+                      padding: WidgetStatePropertyAll(
                           EdgeInsets.only(left: 50, right: 50)),
-                      backgroundColor: MaterialStatePropertyAll(
+                      backgroundColor: WidgetStatePropertyAll(
                           GeniusWalletColors.lightGreenPrimary)),
                   // TODO: wire this send
                   onPressed: (null),

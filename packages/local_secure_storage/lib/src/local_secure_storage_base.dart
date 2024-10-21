@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/stored_key.dart';
@@ -17,6 +17,7 @@ class LocalWalletStorage extends SecureStorage {
   static const _pinKey = '__pin_key__';
   static const _watchesKeyPrefix = '__watches_key__';
   static const _walletKeyPrefix = 'wallet_';
+  static const _accountKeyPrefix = '__account__';
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   final web3 = Web3();
@@ -52,12 +53,56 @@ class LocalWalletStorage extends SecureStorage {
               .addWalletToController(await mapWalletToWallets(wallet));
         }
       } catch (e) {
-        print('Issue with loading wallets ');
+        print('** Issue with loading wallets ');
         print(e.toString());
       }
     }
 
+    final account = await localWalletStorage.loadAccount();
+
+    if (account == null) {
+      // create account if one doesn't exist
+      await localWalletStorage
+          .saveAccount(Account(balance: 0.0, name: 'Genius'));
+    }
+
     return localWalletStorage;
+  }
+
+  @override
+  Future<Account?> loadAccount() async {
+    String? accountData = await _secureStorage.read(key: _accountKeyPrefix);
+
+    if (accountData == null) {
+      return null;
+    }
+
+    try {
+      Account? account =
+          Account.fromJson(Map<String, dynamic>.from(jsonDecode(accountData)));
+      print(account);
+      return account;
+    } catch (e) {
+      print('** Issue with loading acount');
+      print(e.toString());
+      return null;
+    }
+  }
+
+  Future<void> saveAccount(Account account) async {
+    await _secureStorage.write(
+        key: createAccountKey(), value: account.toJson().toString());
+  }
+
+  Future<void> deleteAccount() async {
+    Map<String, String> keys = await _secureStorage.readAll();
+
+    for (var entry in keys.entries) {
+      if (isAAccount(entry.key)) {
+        await deleteKey(entry.key);
+        return;
+      }
+    }
   }
 
   @override
@@ -151,6 +196,14 @@ class LocalWalletStorage extends SecureStorage {
 
   String createWatchedWalletKey(String address) {
     return '$_watchesKeyPrefix${address.toLowerCase()}';
+  }
+
+  String createAccountKey() {
+    return _accountKeyPrefix;
+  }
+
+  bool isAAccount(String key) {
+    return key.toLowerCase().contains(_accountKeyPrefix);
   }
 
   bool isKeyMatchesAddress(String key, String address) {

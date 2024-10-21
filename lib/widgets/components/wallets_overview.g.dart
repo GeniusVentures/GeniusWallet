@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_api/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
@@ -36,6 +39,33 @@ class WalletsOverview extends StatefulWidget {
 
 class _WalletsOverview extends State<WalletsOverview> {
   _WalletsOverview();
+  late Future<dynamic> futurePrices;
+
+  @override
+  void initState() {
+    super.initState();
+    // TODO: enable this price call,
+    // We need to create an account for user to save balance
+    // Create account classes, mechanizms for saving / retrieving in local storage
+    // implement back off strategy for api call
+    // implement rate limiting strategy for api call
+    // Cache and reload this value from saved storage and only retrieve updated balances when needed based on a rated limit.
+
+    //futurePrices = fetchCoinPrice(coinIds: 'ethereum');
+
+    // stub for now.. we can remove this once we do the above
+    Future<dynamic> getPrice() {
+      var completer = Completer<dynamic>();
+
+      completer.complete({
+        "ethereum": {"usd": 2576.72}
+      });
+
+      return completer.future;
+    }
+
+    futurePrices = getPrice();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,45 +154,45 @@ class _WalletsOverview extends State<WalletsOverview> {
                     )),
               ),
               Positioned(
-                left: 19.0,
-                width: 160.0,
-                bottom: 77.0,
-                height: 56.0,
-                child: Container(
-                    height: 56.0,
-                    width: 160.0,
-                    child: AutoSizeText(
-                      widget.ovrTotalWalletBalance ?? '3.4330 ',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 48.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3272727131843567,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
-              ),
-              Positioned(
-                left: 182.0,
-                width: 69.0,
-                bottom: 102.0,
-                height: 14.0,
-                child: SizedBox(
-                    height: 14.0,
-                    width: 69.0,
-                    child: AutoSizeText(
-                      widget.ovrBalancecurrency ?? 'USD',
-                      style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.25714290142059326,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
-              ),
+                  left: 19.0,
+                  bottom: 90,
+                  child: Wrap(
+                      spacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: [
+                        SizedBox(
+                          child: FutureBuilder<dynamic>(
+                            future: futurePrices,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return AutoSizeText(
+                                    "\$ ${(double.parse(widget.ovrTotalWalletBalance ?? '0') * snapshot.data!['ethereum']['usd']).toStringAsFixed(2)}",
+                                    style: const TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: 28.0,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3272727131843567,
+                                      color: Colors.white,
+                                    ),
+                                    textAlign: TextAlign.left);
+                              }
+                              return const SizedBox();
+                            },
+                          ),
+                        ),
+                        AutoSizeText(widget.ovrTotalWalletBalance ?? ""),
+                        AutoSizeText(
+                          widget.ovrBalancecurrency ?? 'USD',
+                          style: const TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.25714290142059326,
+                            color: GeniusWalletColors.gray500,
+                          ),
+                          textAlign: TextAlign.left,
+                        )
+                      ])),
               Positioned(
                 right: 20.0,
                 width: 65.0,

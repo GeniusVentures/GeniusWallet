@@ -77,7 +77,7 @@ class OnSuccessfulDesktop extends StatelessWidget {
                               ovrTotalWalletBalance: WalletUtils.totalBalance(
                                 context.read<GeniusApi>(),
                                 state.wallets,
-                              ).toStringAsFixed(8),
+                              ).toStringAsFixed(5),
                               ovrBalancecurrency:
                                   state.wallets[0].currencySymbol,
                               ovrWalletCounter: state.wallets.length.toString(),
@@ -202,7 +202,7 @@ class OnSuccessful extends StatelessWidget {
                     ovrTotalWalletBalance: WalletUtils.totalBalance(
                       context.read<GeniusApi>(),
                       state.wallets,
-                    ).toStringAsFixed(8),
+                    ).toStringAsFixed(5),
                     ovrBalancecurrency: state.wallets[0].currencySymbol,
                     ovrWalletCounter: state.wallets.length.toString(),
                     ovrTransactionCounter:

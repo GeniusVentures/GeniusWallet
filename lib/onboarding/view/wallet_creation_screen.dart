@@ -63,20 +63,20 @@ class LandingScreen extends StatelessWidget {
                         //   margin: const EdgeInsets.only(top: 10.0),
                         //   child: ElevatedButton(
                         //      style: ButtonStyle(
-                        //        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent), // Set the background color to transparent
-                        //        foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Set the text color to white
-                        //        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0)), // Add some padding
-                        //        textStyle: MaterialStateProperty.all<TextStyle>(
+                        //        backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent), // Set the background color to transparent
+                        //        foregroundColor: WidgetStateProperty.all<Color>(Colors.white), // Set the text color to white
+                        //        padding: WidgetStateProperty.all<EdgeInsets>(EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0)), // Add some padding
+                        //        textStyle: WidgetStateProperty.all<TextStyle>(
                         //          TextStyle(
                         //            fontSize: 8.0, // Set the font size
                         //          ),
                         //        ),
-                        //        shadowColor: MaterialStateProperty.all<Color>(Colors.transparent), // Remove the shadow
+                        //        shadowColor: WidgetStateProperty.all<Color>(Colors.transparent), // Remove the shadow
                         //      ),
                         //     onPressed: () {
                         //       context.read<AppBloc>().add(FFITestEvent());
                         //     },
-                        //     child: 
+                        //     child:
                         //      const Text("Test Process MNN",
                         //      style: TextStyle(
                         //        color: Colors.white, // Set the text color to white
@@ -85,7 +85,6 @@ class LandingScreen extends StatelessWidget {
                         //   ),
                         // ),
                         //),
-
 
                         BlocBuilder<AppBloc, AppState>(
                           builder: (context, state) {
