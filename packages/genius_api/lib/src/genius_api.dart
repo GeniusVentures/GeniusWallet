@@ -33,6 +33,18 @@ class GeniusApi {
     return await _secureStorage.loadAccount();
   }
 
+  Future<void> saveAccount(Account account) async {
+    return await _secureStorage.saveAccount(account);
+  }
+
+  Future<void> saveAccountBalance(double balance) async {
+    return await _secureStorage.saveAccountBalance(balance);
+  }
+
+  Future<void> updateAccountFetchDate() async {
+    return await _secureStorage.updateAccountFetchDate();
+  }
+
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,

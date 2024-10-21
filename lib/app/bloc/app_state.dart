@@ -17,7 +17,7 @@ class AppState extends Equatable {
 
   final Pointer<Void>? testWallet;
 
-  final Account account;
+  final Account? account;
 
   final AppStatus accountStatus;
 
@@ -29,7 +29,7 @@ class AppState extends Equatable {
       this.userStatus = UserStatus.initial,
       this.ffiString,
       this.testWallet,
-      this.account = const Account(),
+      this.account,
       this.accountStatus = AppStatus.initial});
 
   AppState copyWith(
@@ -64,6 +64,8 @@ class AppState extends Equatable {
         userStatus,
         ffiString,
         testWallet,
+        account,
+        accountStatus
       ];
 }
 

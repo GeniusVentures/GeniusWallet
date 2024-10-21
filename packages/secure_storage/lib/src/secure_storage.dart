@@ -11,6 +11,12 @@ abstract class SecureStorage {
 
   Future<Account?> loadAccount();
 
+  Future<void> saveAccount(Account account);
+
+  Future<void> saveAccountBalance(double balance);
+
+  Future<void> updateAccountFetchDate();
+
   Future<void> deleteWallet(String walletAddress);
 
   Future<void> storeUserPin(String pin);

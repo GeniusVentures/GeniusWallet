@@ -21,8 +21,12 @@ Account _$AccountFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Account {
   String? get name => throw _privateConstructorUsedError;
+  set name(String? value) => throw _privateConstructorUsedError;
   double? get balance => throw _privateConstructorUsedError;
+  set balance(double? value) => throw _privateConstructorUsedError;
   DateTime? get lastBalanceRetrievalDate => throw _privateConstructorUsedError;
+  set lastBalanceRetrievalDate(DateTime? value) =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this Account to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -126,39 +130,22 @@ class __$$AccountImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$AccountImpl implements _Account {
-  const _$AccountImpl({this.name, this.balance, this.lastBalanceRetrievalDate});
+  _$AccountImpl({this.name, this.balance, this.lastBalanceRetrievalDate});
 
   factory _$AccountImpl.fromJson(Map<String, dynamic> json) =>
       _$$AccountImplFromJson(json);
 
   @override
-  final String? name;
+  String? name;
   @override
-  final double? balance;
+  double? balance;
   @override
-  final DateTime? lastBalanceRetrievalDate;
+  DateTime? lastBalanceRetrievalDate;
 
   @override
   String toString() {
     return 'Account(name: $name, balance: $balance, lastBalanceRetrievalDate: $lastBalanceRetrievalDate)';
   }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$AccountImpl &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.balance, balance) || other.balance == balance) &&
-            (identical(
-                    other.lastBalanceRetrievalDate, lastBalanceRetrievalDate) ||
-                other.lastBalanceRetrievalDate == lastBalanceRetrievalDate));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, balance, lastBalanceRetrievalDate);
 
   /// Create a copy of Account
   /// with the given fields replaced by the non-null parameter values.
@@ -177,19 +164,22 @@ class _$AccountImpl implements _Account {
 }
 
 abstract class _Account implements Account {
-  const factory _Account(
-      {final String? name,
-      final double? balance,
-      final DateTime? lastBalanceRetrievalDate}) = _$AccountImpl;
+  factory _Account(
+      {String? name,
+      double? balance,
+      DateTime? lastBalanceRetrievalDate}) = _$AccountImpl;
 
   factory _Account.fromJson(Map<String, dynamic> json) = _$AccountImpl.fromJson;
 
   @override
   String? get name;
+  set name(String? value);
   @override
   double? get balance;
+  set balance(double? value);
   @override
   DateTime? get lastBalanceRetrievalDate;
+  set lastBalanceRetrievalDate(DateTime? value);
 
   /// Create a copy of Account
   /// with the given fields replaced by the non-null parameter values.

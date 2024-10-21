@@ -62,11 +62,17 @@ class LocalWalletStorage extends SecureStorage {
 
     if (account == null) {
       // create account if one doesn't exist
-      await localWalletStorage
-          .saveAccount(Account(balance: 0.0, name: 'Genius'));
+      await localWalletStorage.createNewAccount();
     }
 
     return localWalletStorage;
+  }
+
+  Future<Account> createNewAccount() async {
+    final account =
+        Account(balance: 0.0, name: 'Genius', lastBalanceRetrievalDate: null);
+    await saveAccount(account);
+    return account;
   }
 
   @override
@@ -80,18 +86,49 @@ class LocalWalletStorage extends SecureStorage {
     try {
       Account? account =
           Account.fromJson(Map<String, dynamic>.from(jsonDecode(accountData)));
-      print(account);
       return account;
     } catch (e) {
+      // What to do if the account doesn't load? Is deleting / creating a new one appropriate? We don't want to brick the app
       print('** Issue with loading acount');
       print(e.toString());
-      return null;
+      _secureStorage.delete(key: _accountKeyPrefix);
+      return await createNewAccount();
     }
   }
 
+  @override
   Future<void> saveAccount(Account account) async {
     await _secureStorage.write(
-        key: createAccountKey(), value: account.toJson().toString());
+        key: getAccountKey(), value: jsonEncode(account.toJson()));
+  }
+
+  @override
+  Future<void> saveAccountBalance(double balance) async {
+    final account = await loadAccount();
+    if (account == null) {
+      return;
+    }
+
+    // store new balance, set retrieval date for rate limiting
+    account.balance = balance;
+    account.lastBalanceRetrievalDate = DateTime.now();
+
+    await _secureStorage.write(
+        key: getAccountKey(), value: jsonEncode(account.toJson()));
+  }
+
+  @override
+  updateAccountFetchDate() async {
+    final account = await loadAccount();
+    if (account == null) {
+      return;
+    }
+
+    // store new balance, set retrieval date for rate limiting
+    account.lastBalanceRetrievalDate = DateTime.now();
+
+    await _secureStorage.write(
+        key: getAccountKey(), value: jsonEncode(account.toJson()));
   }
 
   Future<void> deleteAccount() async {
@@ -198,7 +235,7 @@ class LocalWalletStorage extends SecureStorage {
     return '$_watchesKeyPrefix${address.toLowerCase()}';
   }
 
-  String createAccountKey() {
+  String getAccountKey() {
     return _accountKeyPrefix;
   }
 

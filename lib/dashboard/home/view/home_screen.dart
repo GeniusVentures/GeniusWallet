@@ -23,24 +23,23 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenView(
-      body: BlocBuilder<AppBloc, AppState>(
-        builder: (context, state) {
-          switch (state.subscribeToWalletStatus) {
-            case AppStatus.loaded:
-              if (GeniusBreakpoints.useDesktopLayout(context)) {
-                return const OnSuccessfulDesktop();
-              }
-              return const OnSuccessful();
-            case AppStatus.error:
-              return const Center(
-                child: Text('Something went wrong!'),
-              );
-            case AppStatus.loading:
-            default:
-              return const LoadingScreen();
+      body: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+        if (state.subscribeToWalletStatus == AppStatus.loaded &&
+            state.accountStatus == AppStatus.loaded) {
+          if (GeniusBreakpoints.useDesktopLayout(context)) {
+            return const OnSuccessfulDesktop();
           }
-        },
-      ),
+          return const OnSuccessful();
+        }
+        if (state.subscribeToWalletStatus == AppStatus.error ||
+            state.accountStatus == AppStatus.error) {
+          return const Center(
+            child: Text('Something went wrong!'),
+          );
+        }
+
+        return const LoadingScreen();
+      }),
     );
   }
 }
@@ -73,6 +72,8 @@ class OnSuccessfulDesktop extends StatelessWidget {
                         return BlocBuilder<AppBloc, AppState>(
                           builder: (context, state) {
                             return WalletsOverview(
+                              geniusApi: context.read<GeniusApi>(),
+                              account: state.account,
                               constraints,
                               ovrTotalWalletBalance: WalletUtils.totalBalance(
                                 context.read<GeniusApi>(),
@@ -198,6 +199,8 @@ class OnSuccessful extends StatelessWidget {
               return BlocBuilder<AppBloc, AppState>(
                 builder: (context, state) {
                   return WalletsOverview(
+                    geniusApi: context.read<GeniusApi>(),
+                    account: state.account,
                     constraints,
                     ovrTotalWalletBalance: WalletUtils.totalBalance(
                       context.read<GeniusApi>(),
