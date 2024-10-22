@@ -22,7 +22,17 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> onRefresh() async {
+      final appBloc = context.read<AppBloc>();
+
+      // refresh the account data when swiping down in the app
+      if (appBloc.state.accountStatus != AppStatus.loading) {
+        appBloc.add(FetchAccount());
+      }
+    }
+
     return AppScreenView(
+      handleRefresh: onRefresh,
       body: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
         if (state.subscribeToWalletStatus == AppStatus.loaded &&
             state.accountStatus == AppStatus.loaded) {
@@ -180,9 +190,6 @@ class OnSuccessful extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           LayoutBuilder(builder: (context, constraints) {
-            if (GeniusBreakpoints.useDesktopLayout(context)) {
-              return const SizedBox();
-            }
             return SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
