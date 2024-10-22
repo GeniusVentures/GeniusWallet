@@ -53,33 +53,33 @@ class MyApp extends StatelessWidget {
                         Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
             textButtonTheme: const TextButtonThemeData(
                 style: ButtonStyle(
-                    padding: MaterialStatePropertyAll(EdgeInsets.only(
+                    padding: WidgetStatePropertyAll(EdgeInsets.only(
                         left: 12, right: 12, top: 6, bottom: 6)),
-                    shape: MaterialStatePropertyAll(ContinuousRectangleBorder(
+                    shape: WidgetStatePropertyAll(ContinuousRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(
                             GeniusWalletConsts.borderRadiusButton)))),
                     backgroundColor:
-                        MaterialStatePropertyAll(GeniusWalletColors.gray900),
-                    foregroundColor: MaterialStatePropertyAll(Colors.white),
-                    iconSize: MaterialStatePropertyAll(14),
-                    iconColor: MaterialStatePropertyAll(Colors.white))),
+                        WidgetStatePropertyAll(GeniusWalletColors.gray900),
+                    foregroundColor: WidgetStatePropertyAll(Colors.white),
+                    iconSize: WidgetStatePropertyAll(14),
+                    iconColor: WidgetStatePropertyAll(Colors.white))),
             searchBarTheme: const SearchBarThemeData(
-                padding: MaterialStatePropertyAll(
+                padding: WidgetStatePropertyAll(
                     EdgeInsets.only(left: 15, right: 15)),
-                textStyle: MaterialStatePropertyAll(TextStyle(
+                textStyle: WidgetStatePropertyAll(TextStyle(
                     fontWeight: FontWeight.normal, color: Colors.white)),
-                shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+                shape: WidgetStatePropertyAll(RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(4)))),
                 backgroundColor:
-                    MaterialStatePropertyAll(GeniusWalletColors.gray800)),
+                    WidgetStatePropertyAll(GeniusWalletColors.gray800)),
             textSelectionTheme: const TextSelectionThemeData(
                 cursorColor: Colors.white,
                 selectionColor: GeniusWalletColors.gray500),
             dropdownMenuTheme: DropdownMenuThemeData(
                 textStyle: const TextStyle(color: Colors.white),
                 menuStyle: MenuStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (Set<WidgetState> states) {
                       return GeniusWalletColors
                           .deepBlueTertiary; // Use the component's default.
                     },
@@ -119,14 +119,14 @@ class MyApp extends StatelessWidget {
             checkboxTheme: CheckboxThemeData(
                 side: const BorderSide(
                     color: GeniusWalletColors.lightGreenPrimary),
-                checkColor: MaterialStateProperty.resolveWith((states) {
-                  if (!states.contains(MaterialState.selected)) {
+                checkColor: WidgetStateProperty.resolveWith((states) {
+                  if (!states.contains(WidgetState.selected)) {
                     return Colors.transparent;
                   }
                   return GeniusWalletColors.btnText;
                 }),
-                fillColor: MaterialStateProperty.resolveWith((states) {
-                  if (!states.contains(MaterialState.selected)) {
+                fillColor: WidgetStateProperty.resolveWith((states) {
+                  if (!states.contains(WidgetState.selected)) {
                     return Colors.transparent;
                   }
                   return GeniusWalletColors.lightGreenPrimary;

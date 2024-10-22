@@ -7,6 +7,7 @@ import 'package:ffi/ffi.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/news.dart';
@@ -14,7 +15,6 @@ import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_api/tw/stored_key.dart';
-import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
@@ -29,6 +29,22 @@ class GeniusApi {
     return _secureStorage.walletsController.asBroadcastStream();
   }
 
+  Future<Account?> getAccount() async {
+    return await _secureStorage.loadAccount();
+  }
+
+  Future<void> saveAccount(Account account) async {
+    return await _secureStorage.saveAccount(account);
+  }
+
+  Future<void> saveAccountBalance(double balance) async {
+    return await _secureStorage.saveAccountBalance(balance);
+  }
+
+  Future<void> updateAccountFetchDate() async {
+    return await _secureStorage.updateAccountFetchDate();
+  }
+
   GeniusApi({
     required SecureStorage secureStorage,
   })  : _secureStorage = secureStorage,
@@ -36,8 +52,8 @@ class GeniusApi {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKInit();
   }
 
-  Future<int> getGasFees() async {
-    return 100;
+  Future<double> getGasFees() async {
+    return .001;
   }
 
   Future<void> storeUserPin(String pin) async =>

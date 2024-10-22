@@ -1,10 +1,5 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/genius_close_button_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -45,15 +40,15 @@ class _GeniusCloseButton extends State<GeniusCloseButton> {
                   width: 79.0,
                   decoration: BoxDecoration(
                     color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(GeniusWalletConsts.borderRadiusButton)),
                   ),
                 ),
               ),
               Positioned(
                 left: 13.0,
                 right: 13.0,
-                top: 11.0,
-                bottom: 10.0,
+                top: 8.0,
                 child: Container(
                     height: widget.constraints.maxHeight * 0.4,
                     width: widget.constraints.maxWidth * 0.6708860759493671,

@@ -29,6 +29,10 @@ final geniusWalletRouter = GoRouter(
       appBloc.add(SubscribeToWallets());
     }
 
+    if (appBloc.state.accountStatus == AppStatus.initial) {
+      appBloc.add(FetchAccount());
+    }
+
     if (appBloc.state.loadUserStatus == AppStatus.initial) {
       appBloc.add(CheckIfUserExists());
     }

@@ -126,14 +126,14 @@ class Mobile extends StatelessWidget {
                       onPressed: () => context.push('/landing_screen'),
                       style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.resolveWith((states) {
-                            if (!states.contains(MaterialState.selected)) {
+                              WidgetStateProperty.resolveWith((states) {
+                            if (!states.contains(WidgetState.selected)) {
                               return GeniusWalletColors.lightGreenPrimary;
                             }
                             return GeniusWalletColors.lightGreenSecondary;
                           }),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ))),
