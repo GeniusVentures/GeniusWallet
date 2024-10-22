@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class TransactionDetailTile extends StatefulWidget {
   final BoxConstraints constraints;
@@ -31,12 +30,10 @@ class _TransactionDetailTile extends State<TransactionDetailTile> {
         child: Stack(children: [
           Positioned(
             left: 17.0,
-            width: 138.0,
             top: 12.0,
             height: 16.0,
             child: Container(
                 height: 14.0,
-                width: 138.0,
                 child: AutoSizeText(
                   widget.ovrLeftfield ?? 'Available Balance',
                   style: TextStyle(
@@ -51,12 +48,10 @@ class _TransactionDetailTile extends State<TransactionDetailTile> {
           ),
           Positioned(
             right: 13.0,
-            width: 119.0,
             top: 12.0,
             height: 14.0,
             child: Container(
                 height: 14.0,
-                width: 119.0,
                 child: AutoSizeText(
                   widget.ovrAmount ?? '0.221764 BTC',
                   style: TextStyle(

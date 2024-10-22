@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/account.dart';
 part 'app_event.dart';
 part 'app_state.dart';
 
@@ -18,6 +19,23 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<CheckIfUserExists>(_onCheckIfUserExists);
 
     on<FFITestEvent>(_onFFITestEvent);
+
+    on<FetchAccount>(_onFetchAccount);
+  }
+
+  Future<void> _onFetchAccount(FetchAccount event, Emitter emit) async {
+    emit(state.copyWith(
+      accountStatus: AppStatus.loading,
+    ));
+    try {
+      final account = await api.getAccount();
+      emit(state.copyWith(
+        accountStatus: AppStatus.loaded,
+        account: account,
+      ));
+    } catch (e) {
+      emit(state.copyWith(accountStatus: AppStatus.error));
+    }
   }
 
   Future<void> _onSubscribeToWallets(

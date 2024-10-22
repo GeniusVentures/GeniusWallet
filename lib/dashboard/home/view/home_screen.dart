@@ -22,25 +22,34 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> onRefresh() async {
+      final appBloc = context.read<AppBloc>();
+
+      // refresh the account data when swiping down in the app
+      if (appBloc.state.accountStatus != AppStatus.loading) {
+        appBloc.add(FetchAccount());
+      }
+    }
+
     return AppScreenView(
-      body: BlocBuilder<AppBloc, AppState>(
-        builder: (context, state) {
-          switch (state.subscribeToWalletStatus) {
-            case AppStatus.loaded:
-              if (GeniusBreakpoints.useDesktopLayout(context)) {
-                return const OnSuccessfulDesktop();
-              }
-              return const OnSuccessful();
-            case AppStatus.error:
-              return const Center(
-                child: Text('Something went wrong!'),
-              );
-            case AppStatus.loading:
-            default:
-              return const LoadingScreen();
+      handleRefresh: onRefresh,
+      body: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+        if (state.subscribeToWalletStatus == AppStatus.loaded &&
+            state.accountStatus == AppStatus.loaded) {
+          if (GeniusBreakpoints.useDesktopLayout(context)) {
+            return const OnSuccessfulDesktop();
           }
-        },
-      ),
+          return const OnSuccessful();
+        }
+        if (state.subscribeToWalletStatus == AppStatus.error ||
+            state.accountStatus == AppStatus.error) {
+          return const Center(
+            child: Text('Something went wrong!'),
+          );
+        }
+
+        return const LoadingScreen();
+      }),
     );
   }
 }
@@ -73,11 +82,13 @@ class OnSuccessfulDesktop extends StatelessWidget {
                         return BlocBuilder<AppBloc, AppState>(
                           builder: (context, state) {
                             return WalletsOverview(
+                              geniusApi: context.read<GeniusApi>(),
+                              account: state.account,
                               constraints,
                               ovrTotalWalletBalance: WalletUtils.totalBalance(
                                 context.read<GeniusApi>(),
                                 state.wallets,
-                              ).toStringAsFixed(8),
+                              ).toStringAsFixed(5),
                               ovrBalancecurrency:
                                   state.wallets[0].currencySymbol,
                               ovrWalletCounter: state.wallets.length.toString(),
@@ -179,9 +190,6 @@ class OnSuccessful extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           LayoutBuilder(builder: (context, constraints) {
-            if (GeniusBreakpoints.useDesktopLayout(context)) {
-              return const SizedBox();
-            }
             return SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
@@ -198,11 +206,13 @@ class OnSuccessful extends StatelessWidget {
               return BlocBuilder<AppBloc, AppState>(
                 builder: (context, state) {
                   return WalletsOverview(
+                    geniusApi: context.read<GeniusApi>(),
+                    account: state.account,
                     constraints,
                     ovrTotalWalletBalance: WalletUtils.totalBalance(
                       context.read<GeniusApi>(),
                       state.wallets,
-                    ).toStringAsFixed(8),
+                    ).toStringAsFixed(5),
                     ovrBalancecurrency: state.wallets[0].currencySymbol,
                     ovrWalletCounter: state.wallets.length.toString(),
                     ovrTransactionCounter:
