@@ -30,6 +30,7 @@ class GeniusApi {
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   late final String address;
   late final String jsonFilePath;
+  bool initializedSDK = false;
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
@@ -81,6 +82,8 @@ class GeniusApi {
     print(dartString);
     malloc.free(basePathPtr);
     malloc.free(privateKeyAsPtr);
+
+    initializedSDK = true;
   }
 
   Future<String> copyJsonToWritableDirectory() async {
@@ -495,6 +498,10 @@ class GeniusApi {
   }
 
   List<Transaction> getTransactions() {
+    if (!initializedSDK) {
+      return [];
+    }
+
     var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
@@ -503,17 +510,17 @@ class GeniusApi {
       var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
 
       var fromAddress = String.fromCharCodes(struct.sourceAddr);
-
+      
       Transaction trans = Transaction(
           hash: String.fromCharCodes(struct.dataHash),
           fromAddress: fromAddress,
-          toAddress: "não sei",
+          toAddress: "TODO", // TODO
           timeStamp: DateTime.fromMicrosecondsSinceEpoch(
               struct.timestamp.toInt() ~/ 1000),
           transactionDirection: address == fromAddress
               ? TransactionDirection.sent
-              : TransactionDirection.received, // não sei
-          amount: '69', // não sei
+              : TransactionDirection.received,
+          amount: 'TODO', // TODO
           fees: '0',
           coinSymbol: 'GNUS',
           transactionStatus: TransactionStatus.completed,
