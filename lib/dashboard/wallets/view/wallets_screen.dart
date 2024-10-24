@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/app/widgets/responsive_grid.dart';
@@ -57,7 +58,8 @@ class Desktop extends StatelessWidget {
                         // TODO: May need to actually compare dates to get latest
                         final lastTransaction = wallet.transactions.last;
 
-                        timestamp = lastTransaction.timeStamp;
+                        timestamp =
+                            dateFormatter.format(lastTransaction.timeStamp);
                         transactionValue = lastTransaction.amount;
                         transactionId = lastTransaction.hash;
                       }
@@ -192,7 +194,9 @@ class Mobile extends StatelessWidget {
                                   final lastTransaction =
                                       currentWallet.transactions.last;
 
-                                  timestamp = lastTransaction.timeStamp;
+                                  timestamp =
+                                      dateFormatter
+                                      .format(lastTransaction.timeStamp);
                                   transactionValue = lastTransaction.amount;
                                   transactionId = lastTransaction.hash;
                                 }

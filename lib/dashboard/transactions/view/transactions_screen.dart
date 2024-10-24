@@ -4,6 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 
 import 'package:genius_wallet/app/widgets/desktop_container.dart';
@@ -178,14 +179,14 @@ class TransactionCard extends StatelessWidget {
               child: WalletUtils.currencySymbolToImage(
                 currentTransaction.coinSymbol,
               )),
-          ovrTimestamp: currentTransaction.timeStamp,
+          ovrTimestamp: dateFormatter.format(currentTransaction.timeStamp),
           ovrTransactionArrow: currentTransaction.transactionDirection ==
                   TransactionDirection.received
               ? Image.asset('assets/images/green_arrow_right.png')
               : Image.asset('assets/images/red_arrow_left.png'),
           ovrTransactionID: currentTransaction.hash,
           ovrTransactionValue:
-              '${currentTransaction.amount} ${currentTransaction.coinSymbol}',
+              '${currentTransaction.type != null ? "${currentTransaction.type!.toCapitalizedString()} " : ""}${currentTransaction.amount} ${currentTransaction.coinSymbol}',
         ),
       );
     });

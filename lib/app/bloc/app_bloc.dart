@@ -63,13 +63,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       transactions.addAll(wallet.transactions);
     }
     // TODO: Remove this hardcoded list
-    transactions.addAll(const [
+    transactions.addAll([
       Transaction(
         hash:
             '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
         fromAddress: '0x0',
         toAddress: '0x1',
-        timeStamp: '13:26, 10 oct 2022',
+        timeStamp: DateTime.utc(2022, 10, 10, 13, 26),
         transactionDirection: TransactionDirection.sent,
         amount: '0.0002',
         fees: '',
@@ -81,7 +81,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
               '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
           fromAddress: '0x2',
           toAddress: '0x0',
-          timeStamp: '15:20, 09 oct 2022',
+          timeStamp: DateTime.utc(2022, 10, 09, 15, 20),
           transactionDirection: TransactionDirection.received,
           amount: '0.0003',
           fees: '',
@@ -92,7 +92,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
             '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
         fromAddress: '0x1',
         toAddress: '0x0',
-        timeStamp: '15:22, 10 oct 2022',
+        timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
         transactionDirection: TransactionDirection.received,
         amount: '0.0023',
         fees: '0.000001',
@@ -100,6 +100,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         transactionStatus: TransactionStatus.completed,
       ),
     ]);
+    transactions.addAll(api.getTransactions());
     return transactions;
   }
 
