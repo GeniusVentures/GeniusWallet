@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
@@ -53,7 +54,7 @@ class ImportSecurityScreen extends StatelessWidget {
       body: Stack(
         children: [
           BlocListener<ExistingWalletBloc, ExistingWalletState>(
-            listener: (context, state) {
+            listener: (context, state) async {
               if (state.importWalletStatus == ExistingWalletStatus.error) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -65,6 +66,7 @@ class ImportSecurityScreen extends StatelessWidget {
               } else if (state.importWalletStatus ==
                   ExistingWalletStatus.success) {
                 context.flow<ExistingWalletState>().complete();
+                await context.read<GeniusApi>().initSDK();
               }
             },
             child: DefaultTabController(

@@ -1,18 +1,20 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/tw/coin_util.dart';
+import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
-import 'package:secure_storage/secure_storage.dart';
 import 'package:genius_api/assets/read_asset.dart';
+import 'package:rxdart/rxdart.dart';
 
-class LocalWalletStorage extends SecureStorage {
+class LocalWalletStorage {
   /// Key used for storing user PIN locally.
   static const _pinKey = '__pin_key__';
   static const _watchesKeyPrefix = '__watches_key__';
@@ -21,6 +23,9 @@ class LocalWalletStorage extends SecureStorage {
 
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   final web3 = Web3();
+  final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
+
+  Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
 
   LocalWalletStorage._create();
 
@@ -75,7 +80,6 @@ class LocalWalletStorage extends SecureStorage {
     return account;
   }
 
-  @override
   Future<Account?> loadAccount() async {
     String? accountData = await _secureStorage.read(key: _accountKeyPrefix);
 
@@ -96,13 +100,11 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<void> saveAccount(Account account) async {
     await _secureStorage.write(
         key: getAccountKey(), value: jsonEncode(account.toJson()));
   }
 
-  @override
   Future<void> saveAccountBalance(double balance) async {
     final account = await loadAccount();
     if (account == null) {
@@ -117,7 +119,6 @@ class LocalWalletStorage extends SecureStorage {
         key: getAccountKey(), value: jsonEncode(account.toJson()));
   }
 
-  @override
   updateAccountFetchDate() async {
     final account = await loadAccount();
     if (account == null) {
@@ -142,7 +143,6 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<void> saveStoredKey(StoredKey storedKey) async {
     addWalletToController(
         await mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
@@ -152,7 +152,6 @@ class LocalWalletStorage extends SecureStorage {
         value: storedKey.exportJson());
   }
 
-  @override
   Future<void> saveWatchedWallet(Wallet wallet) async {
     addWalletToController(await mapWalletToWallets(wallet));
 
@@ -161,7 +160,6 @@ class LocalWalletStorage extends SecureStorage {
         value: jsonEncode(wallet.toJson()));
   }
 
-  @override
   Future<void> deleteWallet(String walletAddress) async {
     Map<String, String> keys = await _secureStorage.readAll();
 
@@ -175,11 +173,9 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.write(key: _pinKey, value: pin);
 
-  @override
   Future<bool> verifyUserPin(String pin) async {
     try {
       final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
@@ -190,7 +186,6 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<bool> pinExists() async {
     try {
       final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
@@ -200,7 +195,6 @@ class LocalWalletStorage extends SecureStorage {
     }
   }
 
-  @override
   Future<void> deleteAllWallets() async {
     Map<String, String> keys = await _secureStorage.readAll();
 
@@ -266,6 +260,23 @@ class LocalWalletStorage extends SecureStorage {
         (element) => element.address.toLowerCase() == address.toLowerCase());
     walletsController.add(currentWallets);
   }
+
+  Future<PrivateKey?> getSGNSLinkedWalletPrivateKey() async {
+    Map<String, String> keys = await _secureStorage.readAll();
+
+    for (var key in keys.values) {
+      StoredKey? storedKey = StoredKey.importJson(key);
+
+      if (storedKey != null) {
+        final pk =
+            storedKey.wallet("")!.getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+        return pk;
+      }
+    }
+
+    return null;
+  }
+
 }
 
 // TODO: wire up fetching balance, transactions

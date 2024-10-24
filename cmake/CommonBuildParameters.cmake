@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-include(../cmake/Utilities.cmake)
-include(../cmake/CommonCompilerOptions.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/Utilities.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
@@ -18,6 +18,12 @@ set(WALLET_CORE_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Tru
 set(WALLET_CORE_TREZOR_CRYPTO_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}TrezorCrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to TrezorCrypto lib")
 set(WALLET_CORE_RUST_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}wallet_core_rs${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to WalletCore rust lib")
 include_directories(${WALLET_CORE_INCLUDE_DIR})
+add_library(TrustWalletCore STATIC IMPORTED)
+set_target_properties(TrustWalletCore PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_LIBRARY})
+add_library(WalletCoreRust STATIC IMPORTED)
+set_target_properties(WalletCoreRust PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_RUST_LIBRARY})
+add_library(WalletCoreTrezorCrypto STATIC IMPORTED)
+set_target_properties(WalletCoreTrezorCrypto PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY})
 
 # Set Boost Versions
 set(BOOST_MAJOR_VERSION "1" CACHE STRING "Boost Major Version")
@@ -31,36 +37,31 @@ set(BOOST_VERSION_2U "${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}")
 
 if(NOT DEFINED absl_DIR)
     set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
-    set(absl_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/absl")
-    find_package(absl CONFIG REQUIRED)
-    include_directories(${absl_INCLUDE_DIR})
 endif()
 
 if(NOT DEFINED utf8_range_DIR)
     set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
-    set(utf8_range_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include")
-    find_package(utf8_range CONFIG REQUIRED)
-    include_directories(${utf8_range_INCLUDE_DIR})
 endif()
 
 # --------------------------------------------------------
 # Set config of protobuf project
 if(NOT DEFINED Protobuf_DIR)
     set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/protobuf")
-    set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include//google/protobuf")
-    find_package(Protobuf CONFIG REQUIRED)
-    include_directories(${Protobuf_INCLUDE_DIR})
 endif()
 
-set(OPENSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install folder")
+if(NOT DEFINED Protobuf_INCLUDE_DIR)
+    set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
+endif()
+
+set(OpenSSL_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}/lib/cmake/OpenSSL" CACHE PATH "Path to OpenSSL install folder")
 set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
 set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "OpenSSL use static RT")
-set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" CACHE PATH "Path to OpenSSL install root folder")
+set(OPENSSL_ROOT_DIR "${THIRDPARTY_RELEASE_DIR}/openssl/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install root folder")
 set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" CACHE PATH "Path to OpenSSL include folder")
 set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
 set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
 set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL CONFIG REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
 # --------------------------------------------------------
@@ -201,7 +202,7 @@ include_directories(${c-ares_INCLUDE_DIR})
 
 # --------------------------------------------------------
 # Set config of ipfs-lite-cpp
-set(ipfs-lite-cpp_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/cmake/ipfs-lite-cpp")
+set(ipfs-lite-cpp_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/lib/cmake/ipfs-lite-cpp")
 set(ipfs-lite-cpp_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/include")
 set(ipfs-lite-cpp_LIB_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/lib")
 set(CBOR_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/ipfs-lite-cpp/include/deps/tinycbor/src")
@@ -279,53 +280,52 @@ set(AsyncIOManager_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib")
 set(AsyncIOManager_DIR "${THIRDPARTY_RELEASE_DIR}/AsyncIOManager/lib/cmake/AsyncIOManager")
 find_package(AsyncIOManager CONFIG REQUIRED)
 
-# set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}/${ARCH_OUTPUT_DIR})
-# set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
-# find_package(SuperGenius CONFIG REQUIRED)
-# include_directories(${SuperGenius_INCLUDE_DIR})
+# --------------------------------------------------------
+# Set config of gnus_upnp
+set(gnus_upnp_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/include")
+set(gnus_upnp_LIBRARY_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/lib")
+set(gnus_upnp_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
+find_package(gnus_upnp CONFIG REQUIRED)
+include_directories(${gnus_upnp_INCLUDE_DIR})
 
-# set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}/${ARCH_OUTPUT_DIR})
-# set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
-# find_package(GeniusSDK CONFIG REQUIRED)
-# include_directories(${GeniusSDK_INCLUDE_DIR})
+set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
+set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
+set(GeniusKDF_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/GeniusKDF/")
+set(ProofSystem_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/ProofSystem/")
+find_package(GeniusKDF CONFIG REQUIRED)
+find_package(ProofSystem CONFIG REQUIRED)
+find_package(SuperGenius CONFIG REQUIRED)
+include_directories(${SuperGenius_INCLUDE_DIR})
+
+set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})
+set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
+find_package(GeniusSDK CONFIG REQUIRED)
+include_directories(${GeniusSDK_INCLUDE_DIR})
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
         SHARED
-        null.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/null.cpp
     )
 
     if(SET_NAME_UNIX_FORCE)
-        message(WARNING "Forcing file to be name libGeniusWallet.so")
         set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")
         set_target_properties(GeniusWallet PROPERTIES PREFIX "lib")
     endif()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         find_library(LOG_LIB log)
-        target_link_libraries(GeniusWallet ${LOG_LIB})
+        target_link_libraries(GeniusWallet PRIVATE ${LOG_LIB})
     endif()
 
-    message(WARNING "LINKING")
-    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE(GeniusWallet
-        ${WALLET_CORE_LIBRARY}
-
-        # sgns::GeniusSDK
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
+        TrustWalletCore
+        sgns::GeniusSDK
     )
-    target_link_libraries(GeniusWallet
-        ${WALLET_CORE_RUST_LIBRARY}
-        ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY}
-        protobuf::libprotobuf
-        absl::status
-        absl::statusor
-        absl::hash
-        absl::log
-        absl::cord
-        absl::raw_hash_set
-        absl::base
-        absl::strings
-        absl::synchronization
-        absl::log_internal_check_op
-        utf8_range::utf8_validity
+
+    target_link_libraries(GeniusWallet PRIVATE
+        WalletCoreRust
+        WalletCoreTrezorCrypto
     )
 endif()

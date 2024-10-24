@@ -12,6 +12,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final secureStorage = await LocalWalletStorage.create();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
+
+  if ((await secureStorage.getWallets().first).isNotEmpty) {
+    await geniusApi.initSDK();
+  }
+  
   runApp(MyApp(
     geniusApi: geniusApi,
   ));
