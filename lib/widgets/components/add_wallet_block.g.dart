@@ -60,16 +60,18 @@ class _AddWalletBlock extends State<AddWalletBlock> {
                                         context.push('/landing_screen'),
                                     style: const ButtonStyle(
                                         surfaceTintColor:
-                                            WidgetStatePropertyAll(
+                                            MaterialStatePropertyAll(
                                                 Colors.transparent),
-                                        overlayColor: WidgetStatePropertyAll(
+                                        overlayColor: MaterialStatePropertyAll(
                                             Colors.transparent),
-                                        foregroundColor: WidgetStatePropertyAll(
+                                        foregroundColor:
+                                            MaterialStatePropertyAll(
+                                                Colors.transparent),
+                                        shadowColor: MaterialStatePropertyAll(
                                             Colors.transparent),
-                                        shadowColor: WidgetStatePropertyAll(
-                                            Colors.transparent),
-                                        backgroundColor: WidgetStatePropertyAll(
-                                            Colors.transparent)),
+                                        backgroundColor:
+                                            MaterialStatePropertyAll(
+                                                Colors.transparent)),
                                     child: Column(children: [
                                       const Icon(Icons.add,
                                           color: GeniusWalletColors

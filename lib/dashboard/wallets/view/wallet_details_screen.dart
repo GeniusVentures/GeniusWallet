@@ -39,106 +39,14 @@ class WalletDetailsScreen extends StatelessWidget {
           walletCubit.getWalletBalance();
         }
 
-        if (GeniusBreakpoints.useDesktopLayout(context)) {
-          return const Desktop();
-        }
-        return const Mobile();
+        return const View();
       },
     );
   }
 }
 
-class Desktop extends StatelessWidget {
-  const Desktop({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-        builder: (context, state) {
-      return DesktopContainer(
-          isIncludeBackButton: true,
-          title: state.selectedWallet?.walletName,
-          child: Wrap(spacing: 20, runSpacing: 20, children: [
-            BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                builder: (context, state) {
-              final selectedWallet = state.selectedWallet!;
-              return SizedBox(
-                  width: 500,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 40,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return WalletToggle(
-                              constraints,
-                              ovrCoinName: selectedWallet.currencySymbol,
-                              ovrWalletName: selectedWallet.walletName,
-                              ovrShape: WalletUtils.currencySymbolToImage(
-                                selectedWallet.currencySymbol,
-                              ),
-                              walletType: selectedWallet.walletType,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 190,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return WalletInformation(constraints,
-                                ovrQuantity: state.balance.toStringAsFixed(4),
-                                ovrCurrency:
-                                    state.selectedNetwork?.symbol?.name,
-                                ovrAddressField: selectedWallet.address,
-                                walletType: selectedWallet.walletType);
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return CoinsScreen(constraints);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 370,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return Transactions(constraints);
-                          },
-                        ),
-                      ),
-                    ],
-                  ));
-            }),
-            Container(
-                width: 1000,
-                height: 705,
-                decoration: const BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
-                  borderRadius: BorderRadius.all(
-                      Radius.circular(GeniusWalletConsts.borderRadiusCard)),
-                ),
-                child: const Center(
-                  child: Text('Coming Soon'),
-                ))
-          ]));
-    });
-  }
-}
-
-class Mobile extends StatelessWidget {
-  const Mobile({Key? key}) : super(key: key);
+class View extends StatelessWidget {
+  const View({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +58,6 @@ class Mobile extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: GeniusWalletColors.deepBlueTertiary,
             actions: [
-              // TODO: Add to desktop as well
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                 NetworkDropdown(
                     wallet: selectedWallet,

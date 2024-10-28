@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -32,7 +33,7 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final currentWallet = state.wallets[index];
                   return SizedBox(
-                    width: MediaQuery.of(context).size.width - 90,
+                    width: 320,
                     child: LayoutBuilder(builder: (context, constraints) {
                       return MaterialButton(
                         shape: const ContinuousRectangleBorder(
@@ -44,7 +45,7 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                         },
                         child: WalletPreview(constraints,
                             ovrWalletBalance:
-                                currentWallet.balance.toStringAsFixed(5),
+                                currentWallet.balance.toStringAsFixed(3),
                             walletAddress: currentWallet.address,
                             walletType: currentWallet.walletType,
                             ovrCoinSymbol: currentWallet.currencySymbol,

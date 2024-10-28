@@ -31,9 +31,9 @@ class _CopyWalletID extends State<CopyWalletID> {
               color: Colors.white,
             ),
             style: ButtonStyle(
-                side: WidgetStateProperty.all<BorderSide>(
+                side: MaterialStateProperty.all<BorderSide>(
                     const BorderSide(color: Colors.white)),
-                backgroundColor: WidgetStateColor.resolveWith(
+                backgroundColor: MaterialStateColor.resolveWith(
                     (states) => GeniusWalletColors.grayPrimary)),
             label: Text(widget.ovrCopyWalletLabel ?? 'Copy',
                 style: const TextStyle(
