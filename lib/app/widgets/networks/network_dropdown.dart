@@ -32,7 +32,7 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
         helperText: 'Network',
         menuStyle: const MenuStyle(
             backgroundColor:
-                WidgetStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
+                MaterialStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
         inputDecorationTheme: const InputDecorationTheme(
             border: UnderlineInputBorder(), contentPadding: EdgeInsets.all(0)),
         initialSelection: state.selectedNetwork,

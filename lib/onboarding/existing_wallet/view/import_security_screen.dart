@@ -149,7 +149,7 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
       subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
-          width: 530,
+          width: 600,
           title: title,
           subText: subtitle,
           child: Column(
