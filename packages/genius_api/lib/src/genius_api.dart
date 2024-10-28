@@ -64,7 +64,8 @@ class GeniusApi {
     final privateKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
 
     if (privateKey == null) {
-      throw Exception("No suitable wallet found");
+      print("No suitable wallet found");
+      return;
     }
 
     final privateKeyAsStr = privateKey
@@ -510,7 +511,7 @@ class GeniusApi {
       var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
 
       var fromAddress = String.fromCharCodes(struct.sourceAddr);
-      
+
       Transaction trans = Transaction(
           hash: String.fromCharCodes(struct.dataHash),
           fromAddress: fromAddress,

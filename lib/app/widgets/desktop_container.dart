@@ -141,14 +141,14 @@ class HeaderButton extends StatelessWidget {
     return TextButton.icon(
         onPressed: () => context.push(route ?? ''),
         style: ButtonStyle(
-            padding: const WidgetStatePropertyAll(EdgeInsets.all(20)),
-            backgroundColor: WidgetStateProperty.resolveWith((states) {
-              if (!states.contains(WidgetState.selected)) {
+            padding: const MaterialStatePropertyAll(EdgeInsets.all(20)),
+            backgroundColor: MaterialStateProperty.resolveWith((states) {
+              if (!states.contains(MaterialState.selected)) {
                 return color;
               }
               return color;
             }),
-            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
               side: isAddBorder!

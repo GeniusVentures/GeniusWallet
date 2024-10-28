@@ -128,14 +128,14 @@ class Mobile extends StatelessWidget {
                       onPressed: () => context.push('/landing_screen'),
                       style: ButtonStyle(
                           backgroundColor:
-                              WidgetStateProperty.resolveWith((states) {
-                            if (!states.contains(WidgetState.selected)) {
+                              MaterialStateProperty.resolveWith((states) {
+                            if (!states.contains(MaterialState.selected)) {
                               return GeniusWalletColors.lightGreenPrimary;
                             }
                             return GeniusWalletColors.lightGreenSecondary;
                           }),
                           shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ))),
@@ -194,8 +194,7 @@ class Mobile extends StatelessWidget {
                                   final lastTransaction =
                                       currentWallet.transactions.last;
 
-                                  timestamp =
-                                      dateFormatter
+                                  timestamp = dateFormatter
                                       .format(lastTransaction.timeStamp);
                                   transactionValue = lastTransaction.amount;
                                   transactionId = lastTransaction.hash;

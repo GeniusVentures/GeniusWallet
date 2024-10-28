@@ -16,7 +16,7 @@ void main() async {
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
-  
+
   runApp(MyApp(
     geniusApi: geniusApi,
   ));
@@ -58,33 +58,33 @@ class MyApp extends StatelessWidget {
                         Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
             textButtonTheme: const TextButtonThemeData(
                 style: ButtonStyle(
-                    padding: WidgetStatePropertyAll(EdgeInsets.only(
+                    padding: MaterialStatePropertyAll(EdgeInsets.only(
                         left: 12, right: 12, top: 6, bottom: 6)),
-                    shape: WidgetStatePropertyAll(ContinuousRectangleBorder(
+                    shape: MaterialStatePropertyAll(ContinuousRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(
                             GeniusWalletConsts.borderRadiusButton)))),
                     backgroundColor:
-                        WidgetStatePropertyAll(GeniusWalletColors.gray900),
-                    foregroundColor: WidgetStatePropertyAll(Colors.white),
-                    iconSize: WidgetStatePropertyAll(14),
-                    iconColor: WidgetStatePropertyAll(Colors.white))),
+                        MaterialStatePropertyAll(GeniusWalletColors.gray900),
+                    foregroundColor: MaterialStatePropertyAll(Colors.white),
+                    iconSize: MaterialStatePropertyAll(14),
+                    iconColor: MaterialStatePropertyAll(Colors.white))),
             searchBarTheme: const SearchBarThemeData(
-                padding: WidgetStatePropertyAll(
+                padding: MaterialStatePropertyAll(
                     EdgeInsets.only(left: 15, right: 15)),
-                textStyle: WidgetStatePropertyAll(TextStyle(
+                textStyle: MaterialStatePropertyAll(TextStyle(
                     fontWeight: FontWeight.normal, color: Colors.white)),
-                shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                shape: MaterialStatePropertyAll(RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(4)))),
                 backgroundColor:
-                    WidgetStatePropertyAll(GeniusWalletColors.gray800)),
+                    MaterialStatePropertyAll(GeniusWalletColors.gray800)),
             textSelectionTheme: const TextSelectionThemeData(
                 cursorColor: Colors.white,
                 selectionColor: GeniusWalletColors.gray500),
             dropdownMenuTheme: DropdownMenuThemeData(
                 textStyle: const TextStyle(color: Colors.white),
                 menuStyle: MenuStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                    (Set<WidgetState> states) {
+                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
                       return GeniusWalletColors
                           .deepBlueTertiary; // Use the component's default.
                     },
@@ -124,14 +124,14 @@ class MyApp extends StatelessWidget {
             checkboxTheme: CheckboxThemeData(
                 side: const BorderSide(
                     color: GeniusWalletColors.lightGreenPrimary),
-                checkColor: WidgetStateProperty.resolveWith((states) {
-                  if (!states.contains(WidgetState.selected)) {
+                checkColor: MaterialStateProperty.resolveWith((states) {
+                  if (!states.contains(MaterialState.selected)) {
                     return Colors.transparent;
                   }
                   return GeniusWalletColors.btnText;
                 }),
-                fillColor: WidgetStateProperty.resolveWith((states) {
-                  if (!states.contains(WidgetState.selected)) {
+                fillColor: MaterialStateProperty.resolveWith((states) {
+                  if (!states.contains(MaterialState.selected)) {
                     return Colors.transparent;
                   }
                   return GeniusWalletColors.lightGreenPrimary;
