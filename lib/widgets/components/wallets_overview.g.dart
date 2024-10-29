@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/widgets.dart';
 import 'package:genius_api/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
@@ -10,31 +11,16 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 
 class WalletsOverview extends StatefulWidget {
-  final BoxConstraints constraints;
-  final String? ovrCurrentbalance;
-  final String? ovrPercentChange;
-  final String? ovrCurrencyChange;
-  final String? ovrTotalWalletBalance;
-  final String? ovrBalancecurrency;
-  final String? ovrWalletCounter;
-  final String? ovrWallets;
-  final String? ovrTransactions;
-  final String? ovrTransactionCounter;
-  final String? ovrbuy;
+  final String totalBalance;
+  final String numberOfWallets;
+  final String numberOfTransactions;
   final Account? account;
   final GeniusApi geniusApi;
-  const WalletsOverview(this.constraints,
+  const WalletsOverview(
       {Key? key,
-      this.ovrCurrentbalance,
-      this.ovrPercentChange,
-      this.ovrCurrencyChange,
-      this.ovrTotalWalletBalance,
-      this.ovrBalancecurrency,
-      this.ovrWalletCounter,
-      this.ovrWallets,
-      this.ovrTransactions,
-      this.ovrTransactionCounter,
-      this.ovrbuy,
+      required this.totalBalance,
+      required this.numberOfWallets,
+      required this.numberOfTransactions,
       required this.geniusApi,
       required this.account})
       : super(key: key);
@@ -71,8 +57,7 @@ class _WalletsOverview extends State<WalletsOverview> {
           coinIds: 'ethereum',
           coinBalances: [
             CoinBalance(
-                coinId: 'ethereum',
-                balance: double.parse(widget.ovrTotalWalletBalance ?? '0'))
+                coinId: 'ethereum', balance: double.parse(widget.totalBalance))
           ],
           geniusApi: widget.geniusApi);
       return;
@@ -87,264 +72,69 @@ class _WalletsOverview extends State<WalletsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-        child: Stack(children: [
-      Positioned(
-        left: 0,
-        width: widget.constraints.maxWidth * 1.0,
-        top: 0,
-        height: widget.constraints.maxHeight * 1.0,
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              height: widget.constraints.maxHeight * 1.0,
-              width: widget.constraints.maxWidth * 1.0,
-              decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 18.0,
-            width: 144.0,
-            bottom: 139.0,
-            height: 14.0,
-            child: SizedBox(
-                height: 14.0,
-                width: 144.0,
-                child: AutoSizeText(
-                  widget.ovrCurrentbalance ?? 'Current balance',
-                  style: const TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.30000001192092896,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
-                )),
-          ),
-          Positioned(
-            left: 110.0,
-            width: 62.0,
-            bottom: 31.0,
-            height: 14.0,
-            child: SizedBox(
-                height: 14.0,
-                width: 62.0,
-                child: AutoSizeText(
-                  widget.ovrPercentChange ?? '+12%',
-                  style: const TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.30000001192092896,
-                    color: Color(0xff0068ef),
-                  ),
-                  textAlign: TextAlign.left,
-                )),
-          ),
-          Positioned(
-            left: 19.0,
-            width: 104.0,
-            bottom: 31.0,
-            height: 14.0,
-            child: SizedBox(
-                height: 14.0,
-                width: 104.0,
-                child: AutoSizeText(
-                  widget.ovrCurrencyChange ?? '2.7995  EUR',
-                  style: const TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.30000001192092896,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
-                )),
-          ),
-          Positioned(
-              left: 19.0,
-              bottom: 90,
-              child: Wrap(
-                  spacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.end,
-                  children: [
-                    SizedBox(
-                      child: FutureBuilder<String?>(
-                        future: futurePrices,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return AutoSizeText(
-                                // fallback to stale account balance if call fails
-                                snapshot.data ??
-                                    "\$ ${widget.account?.balance?.toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 28.0,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3272727131843567,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.left);
-                          }
-                          return const SizedBox();
-                        },
-                      ),
-                    ),
-                    AutoSizeText(widget.ovrTotalWalletBalance ?? ""),
-                    AutoSizeText(
-                      widget.ovrBalancecurrency ?? 'USD',
-                      style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.25714290142059326,
-                        color: GeniusWalletColors.gray500,
-                      ),
-                      textAlign: TextAlign.left,
-                    )
-                  ])),
-          Positioned(
-            right: 20.0,
-            width: 65.0,
-            top: 29.0,
-            height: 76.0,
-            child: SizedBox(
-                child: Stack(children: [
-              Positioned(
-                left: 10.0,
-                width: 45.0,
-                top: 49.0,
-                height: 15.0,
-                child: SizedBox(
-                    height: 15.0,
-                    width: 45.0,
-                    child: AutoSizeText(
-                      widget.ovrWallets ?? 'Wallets',
-                      style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.0,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )),
-              ),
-              Positioned(
-                left: 22.0,
-                width: 20.0,
-                top: 6.0,
-                height: 40.0,
-                child: SizedBox(
-                    height: 40.0,
-                    width: 20.0,
-                    child: AutoSizeText(
-                      widget.ovrWalletCounter ?? '5 ',
-                      style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 34.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.0,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )),
-              ),
+    return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Row(children: [
+        Expanded(
+            child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                direction: Axis.vertical,
+                children: [
+              Text(widget.numberOfTransactions,
+                  style: const TextStyle(color: Colors.white, fontSize: 34)),
+              const Text('Transactions',
+                  style: TextStyle(color: Colors.white, fontSize: 12))
             ])),
-          ),
-          Positioned(
-            left: 20.0,
-            width: 103.0,
-            top: 78.0,
-            height: 14.0,
-            child: SizedBox(
-                height: 14.0,
-                width: 103.0,
-                child: AutoSizeText(
-                  widget.ovrTransactions ?? 'Transactions',
+        Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            direction: Axis.vertical,
+            children: [
+              Text(widget.numberOfWallets,
                   style: const TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.30000001192092896,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
-                )),
-          ),
-          Positioned(
-            left: 20.0,
-            width: 84.0,
-            top: 34.0,
-            height: 40.0,
-            child: SizedBox(
-                height: 40.0,
-                width: 84.0,
-                child: AutoSizeText(
-                  widget.ovrTransactionCounter ?? '2,345 ',
-                  style: const TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 30.0,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.0,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.left,
-                )),
-          ),
-          Positioned(
-            right: 20.0,
-            width: 140.0,
-            bottom: 27.0,
-            height: 40.0,
-            child: BuyButtonCustom(
-                child: SizedBox(
-                    child: Stack(children: [
-              Positioned(
-                left: 0,
-                width: 140,
-                top: 0,
-                height: 40.0,
-                child: Container(
-                  height: 40.0,
-                  width: 140.0,
-                  decoration: const BoxDecoration(
-                    color: GeniusWalletColors.lightGreenPrimary,
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(GeniusWalletConsts.borderRadiusButton)),
-                  ),
-                ),
-              ),
-              Positioned(
-                  left: 0,
-                  width: 140.0,
-                  top: 10.0,
-                  height: 40.0,
-                  child: AutoSizeText(
-                    widget.ovrbuy ?? 'Buy ',
-                    style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.30000001192092896,
-                      color: GeniusWalletColors.deepBlueCardColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  )),
-            ]))),
-          ),
-        ]),
-      ),
-    ]));
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700)),
+              const Text('Wallets',
+                  style: TextStyle(color: Colors.white, fontSize: 12))
+            ])
+      ]),
+      Row(children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Current Balance',
+                style: TextStyle(color: Colors.white, fontSize: 12)),
+            FutureBuilder<String?>(
+              future: futurePrices,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Row(
+                      textBaseline: TextBaseline.alphabetic,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      children: [
+                        AutoSizeText(
+                            // fallback to stale account balance if call fails
+                            snapshot.data ??
+                                "\$ ${widget.account?.balance?.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                              fontSize: 48.0,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.left),
+                        const SizedBox(width: 4),
+                        const AutoSizeText('USD')
+                      ]);
+                }
+                return const SizedBox();
+              },
+            ),
+          ],
+        )
+      ]),
+      Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [BuyButtonCustom(child: const Text('Buy'))])
+    ]);
   }
 
   @override

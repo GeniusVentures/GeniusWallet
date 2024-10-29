@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
         double width = MediaQuery.of(context).size.width;
         double height = MediaQuery.of(context).size.height;
         bool is3Column = width > 1500 && height > 850;
-        bool is2Column = width > 1200 && height > 600;
+        bool is2Column = width > 1150 && height > 500;
 
         if (state.subscribeToWalletStatus == AppStatus.loaded &&
             state.accountStatus == AppStatus.loaded) {
@@ -168,8 +168,21 @@ class OverviewDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewContainer(
-        child: Text('overview', style: TextStyle(color: Colors.white)));
+    return DashboardViewNoFlexContainer(child: BlocBuilder<AppBloc, AppState>(
+      builder: (context, state) {
+        return WalletsOverview(
+          geniusApi: context.read<GeniusApi>(),
+          account: state.account,
+          totalBalance: WalletUtils.totalBalance(
+            context.read<GeniusApi>(),
+            state.wallets,
+          ).toStringAsFixed(5),
+          numberOfWallets: state.wallets.length.toString(),
+          numberOfTransactions:
+              WalletUtils.getTransactionNumber(state.wallets).toString(),
+        );
+      },
+    ));
   }
 }
 
@@ -272,6 +285,23 @@ class DashboardViewNoWrapperContainer extends StatelessWidget {
   }
 }
 
+class DashboardViewNoFlexContainer extends StatelessWidget {
+  final Widget child;
+  const DashboardViewNoFlexContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(gridSpacing),
+        child: Container(
+            decoration: const BoxDecoration(
+                color: GeniusWalletColors.deepBlueCardColor,
+                borderRadius: BorderRadius.all(
+                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
+            child: Padding(padding: const EdgeInsets.all(24), child: child)));
+  }
+}
+
 class OnSuccessfulDesktop extends StatelessWidget {
   const OnSuccessfulDesktop({
     Key? key,
@@ -292,30 +322,6 @@ class OnSuccessfulDesktop extends StatelessWidget {
               spacing: GeniusWalletConsts.itemSpacing,
               runSpacing: GeniusWalletConsts.itemSpacing,
               children: [
-                SizedBox(
-                  height: 350,
-                  width: 350,
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return BlocBuilder<AppBloc, AppState>(
-                      builder: (context, state) {
-                        return WalletsOverview(
-                          geniusApi: context.read<GeniusApi>(),
-                          account: state.account,
-                          constraints,
-                          ovrTotalWalletBalance: WalletUtils.totalBalance(
-                            context.read<GeniusApi>(),
-                            state.wallets,
-                          ).toStringAsFixed(5),
-                          ovrBalancecurrency: state.wallets[0].currencySymbol,
-                          ovrWalletCounter: state.wallets.length.toString(),
-                          ovrTransactionCounter:
-                              WalletUtils.getTransactionNumber(state.wallets)
-                                  .toString(),
-                        );
-                      },
-                    );
-                  }),
-                ),
                 SizedBox(
                   height: 350,
                   width: MediaQuery.of(context).size.width * .55,
@@ -413,30 +419,6 @@ class OnSuccessful extends StatelessWidget {
             );
           }),
           const SizedBox(height: 14),
-          SizedBox(
-            height: 300,
-            width: MediaQuery.of(context).size.width,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return BlocBuilder<AppBloc, AppState>(
-                builder: (context, state) {
-                  return WalletsOverview(
-                    geniusApi: context.read<GeniusApi>(),
-                    account: state.account,
-                    constraints,
-                    ovrTotalWalletBalance: WalletUtils.totalBalance(
-                      context.read<GeniusApi>(),
-                      state.wallets,
-                    ).toStringAsFixed(5),
-                    ovrBalancecurrency: state.wallets[0].currencySymbol,
-                    ovrWalletCounter: state.wallets.length.toString(),
-                    ovrTransactionCounter:
-                        WalletUtils.getTransactionNumber(state.wallets)
-                            .toString(),
-                  );
-                },
-              );
-            }),
-          ),
           const SizedBox(height: 14),
           SizedBox(
             height: 55,
