@@ -17,6 +17,8 @@ import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 import 'package:genius_wallet/widgets/desktop/asset_percentage_card.g.dart';
 import 'package:go_router/go_router.dart';
 
+double gridSpacing = 8;
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -34,12 +36,23 @@ class HomeScreen extends StatelessWidget {
     return AppScreenView(
       handleRefresh: onRefresh,
       body: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+        double width = MediaQuery.of(context).size.width;
+        double height = MediaQuery.of(context).size.height;
+        bool is3Column = width > 1500 && height > 850;
+        bool is2Column = width > 1200 && height > 600;
+
         if (state.subscribeToWalletStatus == AppStatus.loaded &&
             state.accountStatus == AppStatus.loaded) {
-          if (GeniusBreakpoints.useDesktopLayout(context)) {
-            return const OnSuccessfulDesktop();
-          }
-          return const OnSuccessful();
+          return Center(
+              child: ListView(shrinkWrap: true, children: [
+            if (is3Column) ...[
+              ThreeColumnDashboardView()
+            ] else if (is2Column) ...[
+              TwoColumnDashBoardView()
+            ] else ...[
+              OneColumnDashBoardView()
+            ]
+          ]));
         }
         if (state.subscribeToWalletStatus == AppStatus.error ||
             state.accountStatus == AppStatus.error) {
@@ -51,6 +64,211 @@ class HomeScreen extends StatelessWidget {
         return const LoadingScreen();
       }),
     );
+  }
+}
+
+class ThreeColumnDashboardView extends StatelessWidget {
+  const ThreeColumnDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(gridSpacing),
+        child: Column(children: [
+          SizedBox(height: gridSpacing),
+          Row(children: [
+            Expanded(
+                flex: 3,
+                child: Column(children: [
+                  SizedBox(
+                      height: 400,
+                      child: Row(children: [
+                        Expanded(child: OverviewDashboardView()),
+                        Expanded(
+                            flex: 2,
+                            child: Column(children: [
+                              WalletDashboardView(),
+                              Expanded(
+                                  child: Row(children: [
+                                Expanded(child: ContributionsDashboardView()),
+                                Expanded(child: SendReceiveDashboardView())
+                              ]))
+                            ]))
+                      ])),
+                  SizedBox(
+                      height: 480,
+                      child: Row(children: [
+                        Expanded(flex: 2, child: ChartDashboardView()),
+                        Expanded(flex: 1, child: MarketsDashboardView())
+                      ])),
+                ])),
+            SizedBox(
+                width: 400, height: 888, child: TransactionsDashboardView())
+          ])
+        ]));
+  }
+}
+
+class TwoColumnDashBoardView extends StatelessWidget {
+  const TwoColumnDashBoardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(gridSpacing),
+        child: Column(children: [
+          SizedBox(
+            height: 350,
+            child: Row(children: [
+              Expanded(flex: 1, child: OverviewDashboardView()),
+              Expanded(
+                  flex: 2,
+                  child: Column(children: [
+                    WalletDashboardView(),
+                    Expanded(
+                        child: Row(children: [
+                      Expanded(child: ContributionsDashboardView()),
+                      Expanded(child: SendReceiveDashboardView())
+                    ]))
+                  ]))
+            ]),
+          ),
+          SizedBox(height: 400, child: TransactionsDashboardView()),
+          SizedBox(
+              height: 480,
+              child: Row(children: [
+                Expanded(flex: 2, child: ChartDashboardView()),
+                Expanded(flex: 1, child: MarketsDashboardView())
+              ])),
+        ]));
+  }
+}
+
+class OneColumnDashBoardView extends StatelessWidget {
+  const OneColumnDashBoardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(gridSpacing),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(height: 350, child: OverviewDashboardView()),
+          WalletDashboardView(),
+          SizedBox(height: 400, child: TransactionsDashboardView()),
+          SizedBox(height: 300, child: ContributionsDashboardView()),
+          SizedBox(height: 300, child: SendReceiveDashboardView()),
+          SizedBox(height: 400, child: ChartDashboardView()),
+          SizedBox(height: 400, child: MarketsDashboardView()),
+        ]));
+  }
+}
+
+class OverviewDashboardView extends StatelessWidget {
+  const OverviewDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardViewContainer(
+        child: Text('overview', style: TextStyle(color: Colors.white)));
+  }
+}
+
+class WalletDashboardView extends StatelessWidget {
+  const WalletDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+        height: 120,
+        child: DashboardViewNoWrapperContainer(
+            child: HorizontalWalletsScrollview()));
+  }
+}
+
+class MarketsDashboardView extends StatelessWidget {
+  const MarketsDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardViewContainer(
+        child: Text('markets', style: TextStyle(color: Colors.white)));
+  }
+}
+
+class TransactionsDashboardView extends StatelessWidget {
+  const TransactionsDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardViewContainer(
+        child: Text('transactions', style: TextStyle(color: Colors.white)));
+  }
+}
+
+class ChartDashboardView extends StatelessWidget {
+  const ChartDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardViewContainer(
+        child: Text('chart', style: TextStyle(color: Colors.white)));
+  }
+}
+
+class ContributionsDashboardView extends StatelessWidget {
+  const ContributionsDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardViewContainer(
+        child: Text('contributions', style: TextStyle(color: Colors.white)));
+  }
+}
+
+class SendReceiveDashboardView extends StatelessWidget {
+  const SendReceiveDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardViewContainer(
+        child: Text('send receive', style: TextStyle(color: Colors.white)));
+  }
+}
+
+class DashboardViewContainer extends StatelessWidget {
+  final Widget child;
+  const DashboardViewContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(gridSpacing),
+        child: Container(
+            decoration: const BoxDecoration(
+                color: GeniusWalletColors.deepBlueCardColor,
+                borderRadius: BorderRadius.all(
+                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
+            child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(children: [
+                  Row(children: [child])
+                ]))));
+  }
+}
+
+class DashboardViewNoWrapperContainer extends StatelessWidget {
+  final Widget child;
+  const DashboardViewNoWrapperContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(gridSpacing),
+        child: Container(
+            decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(
+                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
+            child: child));
   }
 }
 
