@@ -71,6 +71,13 @@ set(RocksDB_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/rocksdb/include")
 find_package(RocksDB CONFIG REQUIRED)
 include_directories(${RocksDB_INCLUDE_DIR})
 
+
+# Set config of MNN
+set(MNN_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/MNN/include")
+set(MNN_DIR "${THIRDPARTY_RELEASE_DIR}/MNN/lib/cmake/MNN")
+find_package(MNN CONFIG REQUIRED)
+include_directories(${MNN_INCLUDE_DIR})
+
 # --------------------------------------------------------
 # Set config of stb
 include_directories(${THIRDPARTY_RELEASE_DIR}/stb/include)
