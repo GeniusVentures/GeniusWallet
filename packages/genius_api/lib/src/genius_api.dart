@@ -59,6 +59,10 @@ class GeniusApi {
         ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   Future<void> initSDK() async {
+    if (initializedSDK) {
+      return;
+    }
+
     jsonFilePath = await copyJsonToWritableDirectory();
     final basePathPtr = jsonFilePath.toNativeUtf8();
     final privateKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
