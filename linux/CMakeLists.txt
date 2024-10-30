@@ -10,11 +10,6 @@ set(BINARY_NAME "genius_wallet")
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.example.genius_wallet")
 
-if(DEFINED ENV{FLUTTER_BUILD_TYPE})
-    set(CMAKE_BUILD_TYPE $ENV{FLUTTER_BUILD_TYPE} CACHE STRING "Build type" FORCE)
-else()
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE) # default to Debug
-endif()
 
 set(ARCH_OUTPUT_DIR /build/Linux/${CMAKE_BUILD_TYPE})
 
