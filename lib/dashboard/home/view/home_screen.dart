@@ -78,14 +78,17 @@ class ThreeColumnDashboardView extends StatelessWidget {
                         Expanded(child: OverviewDashboardView()),
                         Expanded(
                             flex: 2,
-                            child: Column(children: [
-                              WalletDashboardView(),
-                              Expanded(
-                                  child: Row(children: [
-                                Expanded(child: ContributionsDashboardView()),
-                                Expanded(child: SendReceiveDashboardView())
-                              ]))
-                            ]))
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  WalletDashboardView(),
+                                  Expanded(
+                                      child: Row(children: [
+                                    Expanded(
+                                        child: ContributionsDashboardView()),
+                                    Expanded(child: SendReceiveDashboardView())
+                                  ]))
+                                ]))
                       ])),
                   SizedBox(
                       height: 480,
@@ -115,14 +118,16 @@ class TwoColumnDashBoardView extends StatelessWidget {
               Expanded(flex: 1, child: OverviewDashboardView()),
               Expanded(
                   flex: 2,
-                  child: Column(children: [
-                    WalletDashboardView(),
-                    Expanded(
-                        child: Row(children: [
-                      Expanded(child: ContributionsDashboardView()),
-                      Expanded(child: SendReceiveDashboardView())
-                    ]))
-                  ]))
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        WalletDashboardView(),
+                        Expanded(
+                            child: Row(children: [
+                          Expanded(child: ContributionsDashboardView()),
+                          Expanded(child: SendReceiveDashboardView())
+                        ]))
+                      ]))
             ]),
           ),
           SizedBox(height: 400, child: TransactionsDashboardView()),
