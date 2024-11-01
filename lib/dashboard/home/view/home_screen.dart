@@ -79,7 +79,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
                         Expanded(
                             flex: 2,
                             child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   WalletDashboardView(),
                                   Expanded(
@@ -119,7 +119,7 @@ class TwoColumnDashBoardView extends StatelessWidget {
               Expanded(
                   flex: 2,
                   child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         WalletDashboardView(),
                         Expanded(
