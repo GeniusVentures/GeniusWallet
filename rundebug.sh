@@ -1,1 +1,1 @@
-WALLET_BUILD_TYPE=Debug flutter run
+flutter run --dart-define=CMAKE_BUILD_TYPE=Debug

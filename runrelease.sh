@@ -1,1 +1,1 @@
-WALLET_BUILD_TYPE=Release flutter run --debug
+flutter run --dart-define=CMAKE_BUILD_TYPE=Release
