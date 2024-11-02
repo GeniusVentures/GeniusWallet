@@ -109,6 +109,7 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
       subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
+          height: 500,
           title: "Wallet Backup",
           subText:
               'In the next step you will see 12 words that allow you to recover a wallet.',
