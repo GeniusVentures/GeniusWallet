@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
@@ -268,15 +269,18 @@ class LocalWalletStorage {
       StoredKey? storedKey = StoredKey.importJson(key);
 
       if (storedKey != null) {
-        final pk =
-            storedKey.wallet("")!.getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
-        return pk;
+        if (storedKey.isMnemonic()) {
+          return storedKey
+              .wallet("")!
+              .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+        }
+        return storedKey.privateKey(
+            TWCoinType.TWCoinTypeEthereum, Uint8List(0));
       }
     }
 
     return null;
   }
-
 }
 
 // TODO: wire up fetching balance, transactions
