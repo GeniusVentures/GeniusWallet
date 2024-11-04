@@ -63,14 +63,15 @@ class GeniusApi {
       return;
     }
 
-    jsonFilePath = await copyJsonToWritableDirectory();
-    final basePathPtr = jsonFilePath.toNativeUtf8();
     final privateKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
 
     if (privateKey == null) {
       print("No suitable wallet found");
       return;
     }
+    
+    jsonFilePath = await copyJsonToWritableDirectory();
+    final basePathPtr = jsonFilePath.toNativeUtf8();
 
     final privateKeyAsStr = privateKey
         .data()
