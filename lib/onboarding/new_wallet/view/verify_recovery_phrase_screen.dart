@@ -69,10 +69,13 @@ class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
       title: '',
       subtitle: '',
       body: Center(
-        child: DesktopBodyContainer(
-          title: title,
-          subText: subtitle,
-          width: 650,
+          child: DesktopBodyContainer(
+        title: title,
+        subText: subtitle,
+        width: 650,
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: 650,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.min,
@@ -97,10 +100,12 @@ class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }
+
+// tomato purity cable ramp mango good survey goddess amazing core silly outer
 
 class _VerifyRecoveryPhraseViewMobile extends StatelessWidget {
   final String title;

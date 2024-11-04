@@ -51,30 +51,34 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
         child: DesktopBodyContainer(
           title: GeniusWalletText.titleRecovery,
           subText: GeniusWalletText.helpRecoveryPhrase,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const _WordsAndCopy(),
-              const SizedBox(height: 20),
-              Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                height: 50,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return MaterialButton(
-                      onPressed: () {
-                        context
-                            .read<NewWalletBloc>()
-                            .add(RecoveryPhraseContinue());
+          child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 280,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _WordsAndCopy(),
+                  const SizedBox(height: 20),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    height: 50,
+                    child: LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return MaterialButton(
+                          onPressed: () {
+                            context
+                                .read<NewWalletBloc>()
+                                .add(RecoveryPhraseContinue());
+                          },
+                          child: IsactiveTrue(constraints),
+                        );
                       },
-                      child: IsactiveTrue(constraints),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+                    ),
+                  ),
+                ],
+              )),
         ),
       ),
     );
