@@ -73,6 +73,9 @@ class GeniusApi {
     jsonFilePath = await copyJsonToWritableDirectory();
     final basePathPtr = jsonFilePath.toNativeUtf8();
 
+    jsonFilePath = await copyJsonToWritableDirectory();
+    final basePathPtr = jsonFilePath.toNativeUtf8();
+
     final privateKeyAsStr = privateKey
         .data()
         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
@@ -357,7 +360,7 @@ class GeniusApi {
         fees: '0.000001',
         coinSymbol: 'ETH',
         transactionStatus: TransactionStatus.completed,
-      ),
+      )
     ];
   }
 
@@ -503,7 +506,7 @@ class GeniusApi {
     return String.fromCharCodes(charCodes);
   }
 
-  List<Transaction> getTransactions() {
+  List<Transaction> getSGNUSTransactions() {
     if (!initializedSDK) {
       return [];
     }

@@ -62,6 +62,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     for (var wallet in wallets) {
       transactions.addAll(wallet.transactions);
     }
+    transactions.addAll(api.getSGNUSTransactions());
     // TODO: Remove this hardcoded list
     transactions.addAll([
       Transaction(
@@ -99,8 +100,31 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         coinSymbol: 'ETH',
         transactionStatus: TransactionStatus.completed,
       ),
+      Transaction(
+        hash:
+            '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a1234',
+        fromAddress: '0x1',
+        toAddress: '0x0',
+        timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
+        transactionDirection: TransactionDirection.received,
+        amount: '0.0023',
+        fees: '0.000001',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.completed,
+      ),
+      Transaction(
+        hash:
+            '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a5678',
+        fromAddress: '0x1',
+        toAddress: '0x0',
+        timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
+        transactionDirection: TransactionDirection.received,
+        amount: '0.0023',
+        fees: '0.000001',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.completed,
+      ),
     ]);
-    transactions.addAll(api.getTransactions());
     return transactions;
   }
 
