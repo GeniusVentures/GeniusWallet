@@ -52,10 +52,11 @@ class WalletsOverviewState extends State<WalletsOverview> {
     // fetch prices if last fetch < x mins or there is no previous fetch
     if (isFetchAllowed) {
       futurePrices = fetchCoinPricesSum(
-          coinIds: 'ethereum',
+          coinIds:
+              'ethereum', // these ids are mapped from the coingecko list in assets/json/coins_list
           coinBalances: [
             CoinBalance(
-                coinId: 'ethereum', balance: double.parse(widget.totalBalance))
+                coinId: 'ethereum', balance: double.parse(widget.totalBalance)),
           ],
           geniusApi: widget.geniusApi);
       return;
