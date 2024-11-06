@@ -69,9 +69,6 @@ class GeniusApi {
       print("No suitable wallet found");
       return;
     }
-    
-    jsonFilePath = await copyJsonToWritableDirectory();
-    final basePathPtr = jsonFilePath.toNativeUtf8();
 
     jsonFilePath = await copyJsonToWritableDirectory();
     final basePathPtr = jsonFilePath.toNativeUtf8();
@@ -360,7 +357,7 @@ class GeniusApi {
         fees: '0.000001',
         coinSymbol: 'ETH',
         transactionStatus: TransactionStatus.completed,
-      )
+      ),
     ];
   }
 
