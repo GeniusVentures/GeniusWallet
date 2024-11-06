@@ -65,6 +65,12 @@ class GeniusWalletColors {
 
   static const Color btnCopyBorder = Color.fromRGBO(255, 255, 255, 0.30);
 
+  static const Color btnFilterBlue = Color.fromARGB(255, 14, 25, 40);
+
+  static const Color btnFilterSelectedBlue = Color.fromARGB(255, 20, 34, 56);
+
+  static const Color rowFilterBlue = Color.fromARGB(255, 14, 25, 40);
+
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 
   static const Color currencyBackground = Color(0xff0050b7);

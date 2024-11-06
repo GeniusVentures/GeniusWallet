@@ -1,13 +1,15 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
-import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 
 double gridSpacing = 8;
@@ -20,42 +22,53 @@ class HomeScreen extends StatelessWidget {
     Future<void> onRefresh() async {
       final appBloc = context.read<AppBloc>();
 
-      // refresh the account data when swiping down in the app
+      // refresh the account data / wallets when swiping down in the app
       if (appBloc.state.accountStatus != AppStatus.loading) {
         appBloc.add(FetchAccount());
+        appBloc.add(SubscribeToWallets());
       }
     }
 
-    return AppScreenView(
-      handleRefresh: onRefresh,
-      body: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-        double width = MediaQuery.of(context).size.width;
-        bool is3Column = width > 1500;
-        bool is2Column = width > 1150;
+    return ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse, // Enable mouse drag for desktop
+          },
+        ),
+        child: RefreshIndicator(
+            onRefresh: onRefresh,
+            color: GeniusWalletColors.lightGreenPrimary,
+            child: SafeArea(
+                child: Stack(fit: StackFit.expand, children: [
+              BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+                double width = MediaQuery.of(context).size.width;
+                bool is3Column = width > 1500;
+                bool is2Column = width > 1150;
 
-        if (state.subscribeToWalletStatus == AppStatus.loaded &&
-            state.accountStatus == AppStatus.loaded) {
-          return Center(
-              child: ListView(shrinkWrap: true, children: [
-            if (is3Column) ...[
-              const ThreeColumnDashboardView()
-            ] else if (is2Column) ...[
-              const TwoColumnDashBoardView()
-            ] else ...[
-              const OneColumnDashBoardView()
-            ]
-          ]));
-        }
-        if (state.subscribeToWalletStatus == AppStatus.error ||
-            state.accountStatus == AppStatus.error) {
-          return const Center(
-            child: Text('Something went wrong!'),
-          );
-        }
+                if (state.subscribeToWalletStatus == AppStatus.loaded &&
+                    state.accountStatus == AppStatus.loaded) {
+                  return Center(
+                      child: ListView(shrinkWrap: true, children: [
+                    if (is3Column) ...[
+                      const ThreeColumnDashboardView()
+                    ] else if (is2Column) ...[
+                      const TwoColumnDashBoardView()
+                    ] else ...[
+                      const OneColumnDashBoardView()
+                    ]
+                  ]));
+                }
+                if (state.subscribeToWalletStatus == AppStatus.error ||
+                    state.accountStatus == AppStatus.error) {
+                  return const Center(
+                    child: Text('Something went wrong!'),
+                  );
+                }
 
-        return const LoadingScreen();
-      }),
-    );
+                return const LoadingScreen();
+              }),
+            ]))));
   }
 }
 
@@ -68,7 +81,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
         padding: EdgeInsets.all(gridSpacing),
         child: Column(children: [
           SizedBox(height: gridSpacing),
-          Row(children: [
+          const Row(children: [
             Expanded(
                 flex: 3,
                 child: Column(children: [
@@ -111,7 +124,7 @@ class TwoColumnDashBoardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
-        child: Column(children: [
+        child: const Column(children: [
           SizedBox(
             height: 350,
             child: Row(children: [
@@ -148,15 +161,17 @@ class OneColumnDashBoardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(height: 350, child: OverviewDashboardView()),
-          WalletDashboardView(),
-          SizedBox(height: 400, child: TransactionsDashboardView()),
-          SizedBox(height: 300, child: ContributionsDashboardView()),
-          SizedBox(height: 300, child: SendReceiveDashboardView()),
-          SizedBox(height: 400, child: ChartDashboardView()),
-          SizedBox(height: 400, child: MarketsDashboardView()),
-        ]));
+        child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 350, child: OverviewDashboardView()),
+              WalletDashboardView(),
+              SizedBox(height: 400, child: TransactionsDashboardView()),
+              SizedBox(height: 300, child: ContributionsDashboardView()),
+              SizedBox(height: 300, child: SendReceiveDashboardView()),
+              SizedBox(height: 400, child: ChartDashboardView()),
+              SizedBox(height: 400, child: MarketsDashboardView()),
+            ]));
   }
 }
 
@@ -195,23 +210,23 @@ class WalletDashboardView extends StatelessWidget {
   }
 }
 
-class MarketsDashboardView extends StatelessWidget {
-  const MarketsDashboardView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return DashboardViewContainer(
-        child: Text('markets', style: TextStyle(color: Colors.white)));
-  }
-}
-
 class TransactionsDashboardView extends StatelessWidget {
   const TransactionsDashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewContainer(
-        child: Text('transactions', style: TextStyle(color: Colors.white)));
+    return const DashboardViewNoFlexContainer(child: TransactionsSlimView());
+  }
+}
+
+class MarketsDashboardView extends StatelessWidget {
+  const MarketsDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const DashboardViewContainer(
+        child: Text('Markets - Coming Soon',
+            style: TextStyle(color: Colors.grey)));
   }
 }
 
@@ -220,7 +235,9 @@ class ChartDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewContainer(child: SizedBox());
+    return const DashboardViewContainer(
+        child:
+            Text('Chart - Coming Soon', style: TextStyle(color: Colors.grey)));
   }
 }
 
@@ -229,8 +246,9 @@ class ContributionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewContainer(
-        child: Text('contributions', style: TextStyle(color: Colors.white)));
+    return const DashboardViewContainer(
+        child: Text('Contributions - Coming Soon',
+            style: TextStyle(color: Colors.grey)));
   }
 }
 
@@ -239,61 +257,8 @@ class SendReceiveDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewContainer(
-        child: Text('send receive', style: TextStyle(color: Colors.white)));
-  }
-}
-
-class DashboardViewContainer extends StatelessWidget {
-  final Widget child;
-  const DashboardViewContainer({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.all(gridSpacing),
-        child: Container(
-            decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
-            child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(children: [
-                  Row(children: [child])
-                ]))));
-  }
-}
-
-class DashboardViewNoWrapperContainer extends StatelessWidget {
-  final Widget child;
-  const DashboardViewNoWrapperContainer({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.all(gridSpacing),
-        child: Container(
-            decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
-            child: child));
-  }
-}
-
-class DashboardViewNoFlexContainer extends StatelessWidget {
-  final Widget child;
-  const DashboardViewNoFlexContainer({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.all(gridSpacing),
-        child: Container(
-            decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
-            child: Padding(padding: const EdgeInsets.all(24), child: child)));
+    return const DashboardViewContainer(
+        child: Text('Send / Receive - Coming Soon',
+            style: TextStyle(color: Colors.grey)));
   }
 }

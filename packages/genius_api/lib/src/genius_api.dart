@@ -69,7 +69,7 @@ class GeniusApi {
       print("No suitable wallet found");
       return;
     }
-    
+
     jsonFilePath = await copyJsonToWritableDirectory();
     final basePathPtr = jsonFilePath.toNativeUtf8();
 
@@ -503,7 +503,7 @@ class GeniusApi {
     return String.fromCharCodes(charCodes);
   }
 
-  List<Transaction> getTransactions() {
+  List<Transaction> getSGNUSTransactions() {
     if (!initializedSDK) {
       return [];
     }

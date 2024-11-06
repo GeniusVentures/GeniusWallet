@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/widgets.dart';
 import 'package:genius_api/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
+import 'package:intl/intl.dart';
 
 class WalletsOverview extends StatefulWidget {
   final String totalBalance;
@@ -25,11 +23,11 @@ class WalletsOverview extends StatefulWidget {
       required this.account})
       : super(key: key);
   @override
-  _WalletsOverview createState() => _WalletsOverview();
+  WalletsOverviewState createState() => WalletsOverviewState();
 }
 
-class _WalletsOverview extends State<WalletsOverview> {
-  _WalletsOverview();
+class WalletsOverviewState extends State<WalletsOverview> {
+  WalletsOverviewState();
   late Future<String?> futurePrices;
 
   @override
@@ -54,17 +52,19 @@ class _WalletsOverview extends State<WalletsOverview> {
     // fetch prices if last fetch < x mins or there is no previous fetch
     if (isFetchAllowed) {
       futurePrices = fetchCoinPricesSum(
-          coinIds: 'ethereum',
+          coinIds:
+              'ethereum', // these ids are mapped from the coingecko list in assets/json/coins_list
           coinBalances: [
             CoinBalance(
-                coinId: 'ethereum', balance: double.parse(widget.totalBalance))
+                coinId: 'ethereum', balance: double.parse(widget.totalBalance)),
           ],
           geniusApi: widget.geniusApi);
       return;
     }
 
     // if we can't fetch (rate limit) just return the account balance (stale)
-    completer.complete("\$ ${widget.account?.balance?.toStringAsFixed(2)}");
+    completer.complete(
+        "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}");
 
     futurePrices = completer.future;
     return;
@@ -113,10 +113,12 @@ class _WalletsOverview extends State<WalletsOverview> {
                       children: [
                         AutoSizeText(
                             // fallback to stale account balance if call fails
-                            snapshot.data ??
-                                "\$ ${widget.account?.balance?.toStringAsFixed(2)}",
+                            snapshot.data != ""
+                                ? snapshot.data ??
+                                    "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}"
+                                : "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}",
                             style: const TextStyle(
-                              fontSize: 48.0,
+                              fontSize: 32.0,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
