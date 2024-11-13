@@ -16,6 +16,7 @@ import 'package:genius_api/models/news.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
+import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -59,15 +60,28 @@ class GeniusApi {
         ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   Future<void> initSDK() async {
+    final storedKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
+
+    if (storedKey == null) {
+      print("No suitable wallet found");
+    }
+
+    _initSDK(storedKey!);
+  }
+
+  Future<void> _initSDK(StoredKey storedKey) async {
     if (initializedSDK) {
       return;
     }
 
-    final privateKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
+    PrivateKey privateKey;
 
-    if (privateKey == null) {
-      print("No suitable wallet found");
-      return;
+    if (storedKey.isMnemonic()) {
+      privateKey =
+          storedKey.wallet("")!.getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+    } else {
+      privateKey =
+          storedKey.privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0))!;
     }
 
     jsonFilePath = await copyJsonToWritableDirectory();
@@ -375,6 +389,7 @@ class GeniusApi {
     }
 
     await _secureStorage.saveStoredKey(storedKey);
+    await _initSDK(storedKey);
   }
 
   Future<bool> validateWalletImport({
@@ -427,6 +442,7 @@ class GeniusApi {
     }
 
     await _secureStorage.saveStoredKey(storedKey);
+    await _initSDK(storedKey);
 
     return true;
   }
@@ -459,6 +475,7 @@ class GeniusApi {
     }
 
     await _secureStorage.saveStoredKey(storedKey);
+    await _initSDK(storedKey);
 
     return true;
   }
@@ -474,6 +491,7 @@ class GeniusApi {
     }
 
     await _secureStorage.saveStoredKey(storedKey);
+    await _initSDK(storedKey);
 
     return true;
   }
