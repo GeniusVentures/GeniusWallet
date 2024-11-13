@@ -1,12 +1,9 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/tw/coin_util.dart';
-import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/network_symbol.dart';
@@ -269,9 +266,14 @@ class LocalWalletStorage {
   Future<StoredKey?> getSGNSLinkedWalletPrivateKey() async {
     Map<String, String> keys = await _secureStorage.readAll();
 
-    for (var key in keys.values) {
-      StoredKey? storedKey = StoredKey.importJson(key);
-      return storedKey;
+    for (var entry in keys.entries) {
+      if (isAWallet(entry.key)) {
+        StoredKey? storedKey = StoredKey.importJson(entry.value);
+        if (storedKey == null) {
+          continue;
+        }
+        return storedKey;
+      }
     }
 
     return null;
