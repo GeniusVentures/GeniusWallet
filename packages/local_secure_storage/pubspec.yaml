@@ -14,3 +14,10 @@ dependencies:
   flutter_secure_storage: ^7.0.1
   genius_api:
     path: ../genius_api
+  flutter:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  mockito: ^5.0.0
+  build_runner: ^2.4.13
+ 

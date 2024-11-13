@@ -22,41 +22,46 @@ class LocalWalletStorage {
   static const _walletKeyPrefix = 'wallet_';
   static const _accountKeyPrefix = '__account__';
 
-  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  final web3 = Web3();
   final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
 
   Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
 
-  LocalWalletStorage._create();
+  final FlutterSecureStorage _secureStorage;
+  final Web3 _web3;
 
-  static Future<LocalWalletStorage> create() async {
-    final localWalletStorage = LocalWalletStorage._create();
+  LocalWalletStorage._create(this._secureStorage, this._web3);
+
+  static Future<LocalWalletStorage> create(
+      {FlutterSecureStorage? secureStorage, Web3? web3}) async {
+    final storage = secureStorage ?? FlutterSecureStorage();
+    final _web3 = web3 ?? Web3();
+    final localWalletStorage = LocalWalletStorage._create(storage, _web3);
     //await localWalletStorage.deleteAllWallets();
+    return localWalletStorage;
+  }
 
-    Map<String, String> keys =
-        await localWalletStorage._secureStorage.readAll();
+  Future<void> init() async {
+    Map<String, String> keys = await _secureStorage.readAll();
 
     for (var entry in keys.entries) {
       try {
-        if (localWalletStorage.isAWallet(entry.key)) {
+        if (isAWallet(entry.key)) {
           StoredKey? storedKey = StoredKey.importJson(entry.value);
 
           // A key was not able to be parsed, delete it
           if (storedKey == null) {
             print("Deleted storedkey ${entry.key}");
-            await localWalletStorage.deleteKey(entry.key);
+            await deleteKey(entry.key);
           }
 
           final storedKeyWallet = StoredKeyWallet(storedKey);
 
-          localWalletStorage.addWalletToController(
+          addWalletToController(
               await mapStoredKeyWalletToWallets(storedKeyWallet));
-        } else if (localWalletStorage.isAWatchedWallet(entry.key)) {
+        } else if (isAWatchedWallet(entry.key)) {
           Wallet? wallet = Wallet.fromJson(
               Map<String, dynamic>.from(jsonDecode(entry.value)));
-          localWalletStorage
-              .addWalletToController(await mapWalletToWallets(wallet));
+          addWalletToController(await mapWalletToWallets(wallet));
         }
       } catch (e) {
         print('** Issue with loading wallets ');
@@ -64,14 +69,12 @@ class LocalWalletStorage {
       }
     }
 
-    final account = await localWalletStorage.loadAccount();
+    final account = await loadAccount();
 
     if (account == null) {
       // create account if one doesn't exist
-      await localWalletStorage.createNewAccount();
+      await createNewAccount();
     }
-
-    return localWalletStorage;
   }
 
   Future<Account> createNewAccount() async {
@@ -281,46 +284,63 @@ class LocalWalletStorage {
 
     return null;
   }
-}
 
-// TODO: wire up fetching balance, transactions
-// Don't pass any sensitive data to the UI, no privateKey or mnemonic
-Future<Wallet> mapStoredKeyWalletToWallets(StoredKeyWallet wallet) async {
-  final address = wallet.storedKey.account(0).address();
-  final List<Network> networks = await readNetworkAssets();
-  final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
-  final network = networks.where((element) =>
-      (element.symbol as NetworkSymbol).name == symbol.toLowerCase());
+  // Don't pass any sensitive data to the UI, no privateKey or mnemonic
+  Future<Wallet> mapStoredKeyWalletToWallets(StoredKeyWallet wallet) async {
+    final address = wallet.storedKey.account(0).address();
+    final List<Network> networks = await readNetworkAssets();
+    final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
+    final network = networks.where((element) =>
+        (element.symbol as NetworkSymbol).name == symbol.toLowerCase());
 
-  final walletBalance = await Web3()
-      .getBalance(address: address, rpcUrl: network.first.rpcUrl ?? "");
-  return Wallet(
-      walletName: wallet.storedKey.name(),
-      currencySymbol:
-          CoinUtil.getSymbol(wallet.storedKey.account(0).coinType()),
-      coinType: wallet.storedKey.account(0).coinType(),
-      balance: walletBalance,
-      address: wallet.storedKey.account(0).address(),
-      walletType: wallet.storedKey.isMnemonic()
-          ? WalletType.mnemonic
-          : WalletType.privateKey,
-      transactions: []);
-}
+    double walletBalance = 0;
 
-Future<Wallet> mapWalletToWallets(Wallet wallet) async {
-  final List<Network> networks = await readNetworkAssets();
-  final network = networks.where((element) =>
-      (element.symbol as NetworkSymbol).name ==
-      wallet.currencySymbol.toLowerCase());
+    try {
+      if (network.isNotEmpty) {
+        walletBalance = await _web3.getBalance(
+            address: address, rpcUrl: network.first.rpcUrl ?? "");
+      }
+    } catch (e) {
+      print('Failed to fetch wallet balance');
+    }
 
-  final walletBalance = await Web3()
-      .getBalance(address: wallet.address, rpcUrl: network.first.rpcUrl ?? "");
-  return Wallet(
-      walletName: wallet.walletName,
-      currencySymbol: wallet.currencySymbol,
-      coinType: wallet.coinType,
-      balance: walletBalance,
-      address: wallet.address,
-      walletType: wallet.walletType,
-      transactions: []);
+    return Wallet(
+        walletName: wallet.storedKey.name(),
+        currencySymbol:
+            CoinUtil.getSymbol(wallet.storedKey.account(0).coinType()),
+        coinType: wallet.storedKey.account(0).coinType(),
+        balance: walletBalance,
+        address: wallet.storedKey.account(0).address(),
+        walletType: wallet.storedKey.isMnemonic()
+            ? WalletType.mnemonic
+            : WalletType.privateKey,
+        transactions: []);
+  }
+
+  Future<Wallet> mapWalletToWallets(Wallet wallet) async {
+    final List<Network> networks = await readNetworkAssets();
+    final network = networks.where((element) =>
+        (element.symbol as NetworkSymbol).name ==
+        wallet.currencySymbol.toLowerCase());
+
+    double walletBalance = 0;
+
+    try {
+      if (network.isNotEmpty) {
+        walletBalance = await _web3.getBalance(
+            address: wallet.address, rpcUrl: network.first.rpcUrl ?? "");
+      }
+    } catch (e) {
+      print('Failed to fetch wallet balance');
+    }
+
+    return Wallet(
+        walletName: wallet.walletName,
+        currencySymbol: wallet.currencySymbol,
+        coinType: wallet.coinType,
+        balance: walletBalance,
+        address: wallet.address,
+        walletType: wallet.walletType,
+        transactions: []);
+  }
 }
