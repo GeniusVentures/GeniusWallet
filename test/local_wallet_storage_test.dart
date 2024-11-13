@@ -4,7 +4,6 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/src/local_secure_storage_base.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:mockito/annotations.dart';
@@ -12,7 +11,7 @@ import 'package:mockito/annotations.dart';
 import 'local_wallet_storage_test.mocks.dart';
 
 @GenerateMocks([Web3])
-@GenerateMocks([FlutterSecureStorage])
+@GenerateMocks([MockFlutterSecureStorage])
 void main() {
   group('LocalWalletStorage Tests', () {
     late LocalWalletStorage localWalletStorage;
@@ -78,7 +77,7 @@ void main() {
 
         expect(
             localWalletStorage.walletsController.value.first,
-            equals(Wallet(
+            equals(const Wallet(
                 coinType: 60,
                 address: '0xD1D5c3416980365ff8A6129c9f8dd01F38719555',
                 balance: 0.0,
@@ -178,7 +177,7 @@ void main() {
     group('saveWatchedWallet', () {
       test('should add a watched wallet to the controller and secure storage',
           () async {
-        final wallet = Wallet(
+        const wallet = Wallet(
             coinType: 1,
             currencySymbol: "eth",
             walletType: WalletType.tracking,
@@ -209,7 +208,7 @@ void main() {
       test('should delete all wallets from controller and secure storage',
           () async {
         when(mockSecureStorage.readAll()).thenAnswer((_) async => {
-              'wallet_0x123': jsonEncode(Wallet(
+              'wallet_0x123': jsonEncode(const Wallet(
                   coinType: 1,
                   currencySymbol: "eth",
                   walletType: WalletType.mnemonic,
@@ -217,7 +216,7 @@ void main() {
                   address: '0x123',
                   balance: 50,
                   transactions: []).toJson()),
-              '__watches_key__0x456': jsonEncode(Wallet(
+              '__watches_key__0x456': jsonEncode(const Wallet(
                   coinType: 1,
                   currencySymbol: "eth",
                   walletType: WalletType.mnemonic,
