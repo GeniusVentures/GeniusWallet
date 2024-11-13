@@ -66,7 +66,6 @@ class ImportSecurityScreen extends StatelessWidget {
               } else if (state.importWalletStatus ==
                   ExistingWalletStatus.success) {
                 context.flow<ExistingWalletState>().complete();
-                await context.read<GeniusApi>().initSDK();
               }
             },
             child: DefaultTabController(

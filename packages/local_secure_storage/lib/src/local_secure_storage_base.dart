@@ -262,21 +262,12 @@ class LocalWalletStorage {
     walletsController.add(currentWallets);
   }
 
-  Future<PrivateKey?> getSGNSLinkedWalletPrivateKey() async {
+  Future<StoredKey?> getSGNSLinkedWalletPrivateKey() async {
     Map<String, String> keys = await _secureStorage.readAll();
 
     for (var key in keys.values) {
       StoredKey? storedKey = StoredKey.importJson(key);
-
-      if (storedKey != null) {
-        if (storedKey.isMnemonic()) {
-          return storedKey
-              .wallet("")!
-              .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
-        }
-        return storedKey.privateKey(
-            TWCoinType.TWCoinTypeEthereum, Uint8List(0));
-      }
+      return storedKey;
     }
 
     return null;
