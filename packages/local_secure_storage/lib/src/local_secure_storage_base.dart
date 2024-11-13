@@ -33,9 +33,10 @@ class LocalWalletStorage {
 
   static Future<LocalWalletStorage> create(
       {FlutterSecureStorage? secureStorage, Web3? web3}) async {
-    final storage = secureStorage ?? FlutterSecureStorage();
-    final _web3 = web3 ?? Web3();
-    final localWalletStorage = LocalWalletStorage._create(storage, _web3);
+    final storageInstance = secureStorage ?? FlutterSecureStorage();
+    final web3Instance = web3 ?? Web3();
+    final localWalletStorage =
+        LocalWalletStorage._create(storageInstance, web3Instance);
     //await localWalletStorage.deleteAllWallets();
     return localWalletStorage;
   }
