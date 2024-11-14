@@ -44,7 +44,7 @@ class TransactionConfirmationScreen extends StatelessWidget {
                           constraints,
                           ovrLeftfield: 'Amount',
                           ovrAmount:
-                              '${state.currentTransaction.amount} ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}',
+                              '${state.currentTransaction.recipients.first.amount} ${context.read<WalletDetailsCubit>().state.selectedWallet!.currencySymbol}',
                         );
                       },
                     ),
@@ -86,7 +86,7 @@ class TransactionConfirmationScreen extends StatelessWidget {
                           constraints,
                           ovrLeftfield: 'To Wallet',
                           ovrAmount: WalletUtils.getAddressForDisplay(
-                              state.currentTransaction.toAddress),
+                              state.currentTransaction.recipients.first.amount),
                         );
                       },
                     ),

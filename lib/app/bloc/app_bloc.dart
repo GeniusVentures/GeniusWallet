@@ -68,10 +68,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           hash:
               '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
           fromAddress: '0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5',
-          toAddress: '0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5',
+          recipients: [
+            const TransferRecipients(
+                toAddr: "0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5",
+                amount: "0.0002")
+          ],
           timeStamp: DateTime.utc(2022, 10, 10, 13, 26),
           transactionDirection: TransactionDirection.sent,
-          amount: '0.0002',
           fees: '',
           coinSymbol: 'ETH',
           transactionStatus: TransactionStatus.pending,
@@ -80,10 +83,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           hash:
               '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
           fromAddress: '0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5',
-          toAddress: '0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5',
+          recipients: [
+            const TransferRecipients(
+                toAddr: "0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5",
+                amount: "0.0003")
+          ],
           timeStamp: DateTime.utc(2022, 10, 09, 15, 20),
           transactionDirection: TransactionDirection.received,
-          amount: '0.0003',
           fees: '',
           coinSymbol: 'ETH',
           type: TransactionType.process,
@@ -92,10 +98,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         hash:
             '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
         fromAddress: '0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5',
-        toAddress: '0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5',
+        recipients: [
+          const TransferRecipients(
+              toAddr: "0xa23cbCdFAfd09De2ce793D0A08f51865885Be3f5",
+              amount: '0.0023')
+        ],
         timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
         transactionDirection: TransactionDirection.received,
-        amount: '0.0023',
         fees: '0.000001',
         coinSymbol: 'ETH',
         type: TransactionType.mint,

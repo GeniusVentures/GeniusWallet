@@ -60,7 +60,8 @@ class Desktop extends StatelessWidget {
 
                         timestamp =
                             dateFormatter.format(lastTransaction.timeStamp);
-                        transactionValue = lastTransaction.amount;
+                        transactionValue =
+                            lastTransaction.recipients.first.amount;
                         transactionId = lastTransaction.hash;
                       }
                       return MaterialButton(
@@ -196,7 +197,8 @@ class Mobile extends StatelessWidget {
 
                                   timestamp = dateFormatter
                                       .format(lastTransaction.timeStamp);
-                                  transactionValue = lastTransaction.amount;
+                                  transactionValue =
+                                      lastTransaction.recipients.first.amount;
                                   transactionId = lastTransaction.hash;
                                 }
                                 return MaterialButton(
