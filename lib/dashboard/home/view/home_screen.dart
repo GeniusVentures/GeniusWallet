@@ -111,7 +111,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
                       ])),
                 ])),
             SizedBox(
-                width: 400, height: 888, child: TransactionsDashboardView())
+                width: 600, height: 888, child: TransactionsDashboardView())
           ])
         ]));
   }
@@ -143,7 +143,7 @@ class TwoColumnDashBoardView extends StatelessWidget {
                       ]))
             ]),
           ),
-          SizedBox(height: 400, child: TransactionsDashboardView()),
+          SizedBox(height: 600, child: TransactionsDashboardView()),
           SizedBox(
               height: 480,
               child: Row(children: [
@@ -166,7 +166,7 @@ class OneColumnDashBoardView extends StatelessWidget {
             children: [
               SizedBox(height: 350, child: OverviewDashboardView()),
               WalletDashboardView(),
-              SizedBox(height: 400, child: TransactionsDashboardView()),
+              SizedBox(height: 600, child: TransactionsDashboardView()),
               SizedBox(height: 300, child: ContributionsDashboardView()),
               SizedBox(height: 300, child: SendReceiveDashboardView()),
               SizedBox(height: 400, child: ChartDashboardView()),
