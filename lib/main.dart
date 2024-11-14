@@ -11,6 +11,7 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final secureStorage = await LocalWalletStorage.create();
+  await secureStorage.init();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
   if ((await secureStorage.getWallets().first).isNotEmpty) {

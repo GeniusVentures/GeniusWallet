@@ -97,7 +97,7 @@ class GeniusApi {
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr);
 
-    address = getAddress();
+    address = getSGNUSAddress();
     String dartString = retVal.toDartString();
     print(dartString);
     malloc.free(basePathPtr);
@@ -506,13 +506,13 @@ class GeniusApi {
     return await Web3().getBalance(rpcUrl: rpcUrl, address: address);
   }
 
-  int getBalance() {
+  int getSGNUSBalance() {
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
 
   /// Returns address as a hexadecimal string, with 64 hex characters prepended
   /// by `0x`.
-  String getAddress() {
+  String getSGNUSAddress() {
     var address = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetAddress();
 
     List<int> charCodes =
