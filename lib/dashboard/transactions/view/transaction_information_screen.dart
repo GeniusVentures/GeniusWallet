@@ -28,9 +28,9 @@ class TransactionInformationScreen extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return HistoricTransactionDetailView(
                   constraints,
-                  ovrTransactionAmount: transaction.amount,
+                  ovrTransactionAmount: transaction.recipients.first.amount,
                   ovrCryptoType: transaction.coinSymbol,
-                  ovrReceiverWalletID: transaction.toAddress,
+                  ovrReceiverWalletID: transaction.recipients.first.toAddr,
                   ovrTransactionID: transaction.hash,
                   ovrTransactionFee: transaction.fees,
                   ovrTransactionType: transaction.transactionDirection ==

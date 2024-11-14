@@ -121,14 +121,15 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
         {
           'title': 'To',
           'width': 230.0,
-          'rowValue': (transaction) => _truncateAddress(transaction.toAddress),
+          'rowValue': (transaction) =>
+              _truncateAddress(transaction.recipients.first.toAddr),
           'isCopyable': true
         },
         {
           'title': 'Amount',
           'width': 130.0,
           'rowValue': (transaction) =>
-              "${double.tryParse(transaction.amount)?.toStringAsFixed(5) ?? transaction.amount} ${transaction.coinSymbol}",
+              "${double.tryParse(transaction.recipients.first.amount)?.toStringAsFixed(5) ?? transaction.recipients.first.amount} ${transaction.coinSymbol}",
         },
         {
           'title': 'Fee',
