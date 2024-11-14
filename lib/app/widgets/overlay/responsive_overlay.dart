@@ -29,6 +29,7 @@ class ResponsiveOverlay extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         final platform = GeniusBreakpoints.getPlaform(context);
+        double screenWidth = MediaQuery.of(context).size.width;
         Widget child;
 
         switch (state.selectedScreen) {
@@ -61,12 +62,11 @@ class ResponsiveOverlay extends StatelessWidget {
             child = const HomeScreen();
         }
 
-        if (platform == Platforms.mobile) {
+        if (screenWidth <= 600 || platform == Platforms.mobile) {
           return MobileOverlay(child: child);
-        } else if (platform == Platforms.desktop) {
+        } else {
           return DesktopOverlay(child: child);
         }
-        return child;
       },
     );
   }
