@@ -13,7 +13,8 @@ class SendCubit extends Cubit<SendState> {
 
   void addressUpdated(String address) {
     emit(state.copyWith(
-      currentTransaction: state.currentTransaction.copyWith(toAddress: address),
+      currentTransaction: state.currentTransaction.copyWith(
+          recipients: [TransferRecipients(toAddr: address, amount: "")]),
       flowStep: SendFlowStep.enterAddress,
     ));
   }
@@ -43,7 +44,12 @@ class SendCubit extends Cubit<SendState> {
     } else {
       final transaction = state.currentTransaction.copyWith(
         timeStamp: DateTime.now(),
-        amount: amountParsed.toString(),
+        recipients: [
+          TransferRecipients(
+            toAddr: state.currentTransaction.recipients.first.toAddr,
+            amount: amountParsed.toString(),
+          )
+        ],
         fees: gasFees.toString(),
       );
       emit(state.copyWith(
