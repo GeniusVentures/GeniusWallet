@@ -65,7 +65,7 @@ class GeniusApi {
       return;
     }
 
-await     _initSDK(storedKey);
+    await _initSDK(storedKey);
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {
@@ -539,7 +539,7 @@ await     _initSDK(storedKey);
 
       var fromAddress = String.fromCharCodes(header.sourceAddr);
 
-      var recipients = List<TransferRecipients>.empty();
+      var recipients = List<TransferRecipients>.empty(growable: true);
 
       List<TransferOutput>? rawRecipients;
 
