@@ -64,9 +64,10 @@ class GeniusApi {
 
     if (storedKey == null) {
       print("No suitable wallet found");
+      return;
     }
 
-    _initSDK(storedKey!);
+    _initSDK(storedKey);
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {

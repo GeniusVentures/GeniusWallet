@@ -3,7 +3,8 @@ import 'package:genius_api/src/genius_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-final String apiKey = "CG-2NV8Hic1GvCEf635XKpbzpEp";
+// final String apiKey = "CG-2NV8Hic1GvCEf635XKpbzpEp";
+final String apiKey = "";
 
 /// Use this class to pass a list of balances for the coin ids that are fetched in fetchCoinPrice,
 /// This allows the fetch to convert the balances given a list of coin ids and their prices to return an overall balance

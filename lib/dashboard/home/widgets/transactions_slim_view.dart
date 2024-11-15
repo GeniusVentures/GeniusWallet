@@ -64,7 +64,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
       final tableColumns = [
         {
           'title': 'Transaction Hash',
-          'width': 155.0,
+          'width': 200.0,
           'rowValue': (transaction) {
             // Truncate the transaction hash if it's too long
             String hash = transaction.hash;
@@ -77,30 +77,30 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
         },
         {
           'title': 'Method',
-          'width': 90.0,
+          'width': 120.0,
           'rowValue': (transaction) => transaction.type.toString()
         },
         {
           'title': 'Block',
-          'width': 80.0,
+          'width': 100.0,
           'rowValue': (transaction) => "TODO", // Placeholder for Block Number
         },
         {
           'title': 'Age',
-          'width': 115.0,
+          'width': 130.0,
           'rowValue': (transaction) =>
               timeago.format(transaction.timeStamp.toLocal()),
         },
         {
           'title': 'From',
-          'width': 215.0,
+          'width': 225.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.fromAddress),
           'isCopyable': true
         },
         {
           'title': '', // Empty title for the arrow column
-          'width': 40.0, // Width for the arrow column
+          'width': 55.0, // Width for the arrow column
           'rowValue': (transaction) {
             // Determine the icon based on the transaction direction
             if (transaction.transactionDirection == TransactionDirection.sent) {
@@ -120,25 +120,26 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
         },
         {
           'title': 'To',
-          'width': 215.0,
+          'width': 230.0,
           'rowValue': (transaction) => _truncateAddress(transaction.toAddress),
           'isCopyable': true
         },
         {
           'title': 'Amount',
-          'width': 120.0,
+          'width': 130.0,
           'rowValue': (transaction) =>
               "${double.tryParse(transaction.amount)?.toStringAsFixed(5) ?? transaction.amount} ${transaction.coinSymbol}",
         },
         {
           'title': 'Fee',
-          'width': 130.0,
+          'width': 140.0,
           'rowValue': (transaction) =>
               "${double.tryParse(transaction.fees)?.toStringAsFixed(5) ?? transaction.fees} ${transaction.coinSymbol}",
         },
       ];
 
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TransactionFilters(onFilterSelected: handleFilterSelected),
           if (transactions.isEmpty)

@@ -48,8 +48,7 @@ class HomeScreen extends StatelessWidget {
 
                 if (state.subscribeToWalletStatus == AppStatus.loaded &&
                     state.accountStatus == AppStatus.loaded) {
-                  return Center(
-                      child: ListView(shrinkWrap: true, children: [
+                  return ListView(shrinkWrap: true, children: [
                     if (is3Column) ...[
                       const ThreeColumnDashboardView()
                     ] else if (is2Column) ...[
@@ -57,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                     ] else ...[
                       const OneColumnDashBoardView()
                     ]
-                  ]));
+                  ]);
                 }
                 if (state.subscribeToWalletStatus == AppStatus.error ||
                     state.accountStatus == AppStatus.error) {

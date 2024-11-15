@@ -19,7 +19,7 @@ class MarketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!GeniusBreakpoints.isNativeApp(context)) {
+    if (GeniusBreakpoints.useDesktopLayout(context)) {
       return BlocProvider(
         create: (context) =>
             MarketsCubit(api: context.read<GeniusApi>())..loadMarkets(),

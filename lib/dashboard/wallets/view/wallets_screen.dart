@@ -18,7 +18,7 @@ class WalletsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!GeniusBreakpoints.isNativeApp(context)) {
+    if (GeniusBreakpoints.useDesktopLayout(context)) {
       return const Desktop();
     }
     return const Mobile();
