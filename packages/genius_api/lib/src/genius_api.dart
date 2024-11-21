@@ -213,6 +213,14 @@ class GeniusApi {
     //malloc.free(charPointer);
   }
 
+  void requestGeniusSDKProcess({required String jobJson}) {
+    if (jobJson.isEmpty) {
+      return;
+    }
+
+    print(jobJson);
+  }
+
   Future<List<Currency>> getMarkets() async {
     await Future.delayed(Duration(seconds: 2));
     return [

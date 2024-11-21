@@ -59,7 +59,9 @@ class _DesktopSideRail extends StatelessWidget {
   List<NavigationRailDestination> _buildDestinations() {
     return GeniusTabDestinations.destinations
         .map((e) => NavigationRailDestination(
-            icon: e.icon, label: e.label, selectedIcon: e.selectedIcon))
+            icon: Tooltip(message: e.label.data ?? "", child: e.icon),
+            label: e.label,
+            selectedIcon: e.selectedIcon))
         .toList();
   }
 }

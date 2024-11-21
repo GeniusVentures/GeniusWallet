@@ -50,6 +50,12 @@ class GeniusTabDestinations {
       selectedIcon: Icon(Icons.calendar_month),
     ),
     const GeniusDestination(
+      destination: '/submit_job',
+      label: Text('Submit Job'),
+      icon: Icon(Icons.account_tree),
+      selectedIcon: Icon(Icons.account_tree),
+    ),
+    const GeniusDestination(
       destination: '/settings',
       label: Text('Settings'),
       icon: Icon(Icons.settings),
