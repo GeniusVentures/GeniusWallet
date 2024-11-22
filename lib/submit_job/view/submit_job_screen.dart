@@ -15,7 +15,8 @@ class SubmitJobScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
         padding: const EdgeInsets.all(36.0),
-        child: Column(children: [
+        child: SingleChildScrollView(
+            child: Column(children: [
           Text(
             'Submit a New Job',
             style: Theme.of(context).textTheme.headlineLarge,
@@ -26,12 +27,8 @@ class SubmitJobScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 32),
-          const SingleChildScrollView(
-            child: Column(
-              children: [SubmitJobForm()],
-            ),
-          )
-        ]));
+          const SubmitJobForm()
+        ])));
   }
 }
 
