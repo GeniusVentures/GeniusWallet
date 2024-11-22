@@ -65,7 +65,7 @@ class GeniusApi {
       return;
     }
 
-    _initSDK(storedKey);
+await     _initSDK(storedKey);
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {
