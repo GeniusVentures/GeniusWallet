@@ -35,3 +35,8 @@ You're going to be prompted a run option. For example:
 
 ## Resources
 * [Figma File](https://www.figma.com/file/YFBxDHU58kCfKP5TiHXWsz/GNUS-Build?node-id=81%3A1121) 
+
+
+## File Upload for Submitting a SGNUS Job
+### Linux
+- Must have Zenity installed - `sudo apt install zenity`

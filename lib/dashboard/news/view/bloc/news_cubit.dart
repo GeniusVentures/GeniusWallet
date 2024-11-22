@@ -19,7 +19,9 @@ class NewsCubit extends Cubit<NewsState> {
         newsLoadingStatus: NewsStatus.loaded,
       ));
     } catch (e) {
-      emit(state.copyWith(newsLoadingStatus: NewsStatus.error));
+      if (!isClosed) {
+        emit(state.copyWith(newsLoadingStatus: NewsStatus.error));
+      }
     }
   }
 }

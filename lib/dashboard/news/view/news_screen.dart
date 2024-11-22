@@ -16,7 +16,7 @@ class NewsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!GeniusBreakpoints.isNativeApp(context)) {
+    if (GeniusBreakpoints.useDesktopLayout(context)) {
       return BlocProvider(
         create: (context) =>
             NewsCubit(api: context.read<GeniusApi>())..loadNews(),

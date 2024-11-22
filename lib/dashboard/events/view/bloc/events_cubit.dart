@@ -19,7 +19,9 @@ class EventsCubit extends Cubit<EventsState> {
         eventsLoadingStatus: EventsStatus.loaded,
       ));
     } catch (e) {
-      emit(state.copyWith(eventsLoadingStatus: EventsStatus.error));
+      if (!isClosed) {
+        emit(state.copyWith(eventsLoadingStatus: EventsStatus.error));
+      }
     }
   }
 }
