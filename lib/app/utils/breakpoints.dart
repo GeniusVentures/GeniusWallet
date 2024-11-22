@@ -14,7 +14,7 @@ abstract class GeniusBreakpoints {
   static const double large = 1920;
 
   static bool useDesktopLayout(BuildContext context) {
-    return MediaQuery.of(context).size.width > small;
+    return MediaQuery.of(context).size.width > small && !isMobileApp();
   }
 
   static bool isNativeApp(BuildContext context) {

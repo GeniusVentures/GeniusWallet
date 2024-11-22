@@ -13,6 +13,7 @@ import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallets_screen.dart';
 import 'package:genius_wallet/markets/view/markets_screen.dart';
+import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
 
 /// Widget that adds a navigation overlay according to the platform and size of the screen.
 class ResponsiveOverlay extends StatelessWidget {
@@ -29,7 +30,6 @@ class ResponsiveOverlay extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         final platform = GeniusBreakpoints.getPlaform(context);
-        double screenWidth = MediaQuery.of(context).size.width;
         Widget child;
 
         switch (state.selectedScreen) {
@@ -57,12 +57,16 @@ class ResponsiveOverlay extends StatelessWidget {
           case NavigationScreen.settings:
             child = const Center(child: Text('Coming soon'));
             break;
+          case NavigationScreen.submitJob:
+            child = const SubmitJobScreen();
+            break;
           case NavigationScreen.dashboard:
           default:
             child = const HomeScreen();
         }
 
-        if (screenWidth <= 600 || platform == Platforms.mobile) {
+        if (!GeniusBreakpoints.useDesktopLayout(context) ||
+            platform == Platforms.mobile) {
           return MobileOverlay(child: child);
         } else {
           return DesktopOverlay(child: child);

@@ -28,27 +28,32 @@ class HamburgerMenu extends StatelessWidget {
             ),
             MenuListTile(
               menuTitle: 'Markets',
-              menuIcon: 'assets/images/chart.png',
+              menuIcon: Icon(Icons.line_axis),
               screen: NavigationScreen.markets,
             ),
             MenuListTile(
               menuTitle: 'Crypto News',
-              menuIcon: 'assets/images/news.png',
+              menuIcon: Icon(Icons.newspaper),
               screen: NavigationScreen.news,
             ),
             MenuListTile(
               menuTitle: 'Blockchain Events',
-              menuIcon: 'assets/images/calendar.png',
+              menuIcon: Icon(Icons.calendar_month),
               screen: NavigationScreen.events,
             ),
             MenuListTile(
               menuTitle: 'Calculator',
-              menuIcon: 'assets/images/calculator.png',
+              menuIcon: Icon(Icons.calculate),
               screen: NavigationScreen.calculator,
             ),
             MenuListTile(
+              menuTitle: 'Submit a Job',
+              menuIcon: Icon(Icons.account_tree),
+              screen: NavigationScreen.submitJob,
+            ),
+            MenuListTile(
               menuTitle: 'Settings',
-              menuIcon: 'assets/images/settings.png',
+              menuIcon: Icon(Icons.settings),
               screen: NavigationScreen.settings,
             )
           ],
@@ -60,11 +65,14 @@ class HamburgerMenu extends StatelessWidget {
 
 class MenuListTile extends ListTile {
   final String menuTitle;
-  final String menuIcon;
+  final Widget menuIcon;
   final NavigationScreen screen;
 
   const MenuListTile(
-      {Key? key, this.menuTitle = '', this.menuIcon = '', required this.screen})
+      {Key? key,
+      this.menuTitle = '',
+      required this.menuIcon,
+      required this.screen})
       : super(key: key);
 
   @override
@@ -72,7 +80,7 @@ class MenuListTile extends ListTile {
     return ListTile(
         title: Text(menuTitle),
         titleAlignment: ListTileTitleAlignment.center,
-        leading: Image.asset(menuIcon),
+        leading: menuIcon,
         minLeadingWidth: 18,
         onTap: () {
           context.read<NavigationOverlayCubit>().selectNavigation(screen);

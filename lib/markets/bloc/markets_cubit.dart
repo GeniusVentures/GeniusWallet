@@ -19,7 +19,9 @@ class MarketsCubit extends Cubit<MarketsState> {
         marketLoadingStatus: MarketsStatus.loaded,
       ));
     } catch (e) {
-      emit(state.copyWith(marketLoadingStatus: MarketsStatus.error));
+      if (!isClosed) {
+        emit(state.copyWith(marketLoadingStatus: MarketsStatus.error));
+      }
     }
   }
 }

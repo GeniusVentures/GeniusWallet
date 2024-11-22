@@ -64,9 +64,10 @@ class GeniusApi {
 
     if (storedKey == null) {
       print("No suitable wallet found");
+      return;
     }
 
-    _initSDK(storedKey!);
+    _initSDK(storedKey);
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {
@@ -210,6 +211,14 @@ class GeniusApi {
     //ffiBridgePrebuilt.wallet_lib.GeniusSDKProcess(charPointer, 100);
 //
     //malloc.free(charPointer);
+  }
+
+  void requestGeniusSDKProcess({required String jobJson}) {
+    if (jobJson.isEmpty) {
+      return;
+    }
+
+    print(jobJson);
   }
 
   Future<List<Currency>> getMarkets() async {

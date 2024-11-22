@@ -275,6 +275,14 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/submit_job',
+      builder: (context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.submitJob,
+        );
+      },
+    ),
+    GoRoute(
       path: '/settings',
       builder: (context, state) {
         return const ResponsiveOverlay(
