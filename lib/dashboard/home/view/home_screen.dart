@@ -26,6 +26,8 @@ class HomeScreen extends StatelessWidget {
       if (appBloc.state.accountStatus != AppStatus.loading) {
         appBloc.add(FetchAccount());
         appBloc.add(SubscribeToWallets());
+        // MINT TOKENS ON PULL DOWN OF APP
+        //appBloc.add(FFITestEvent());
       }
     }
 

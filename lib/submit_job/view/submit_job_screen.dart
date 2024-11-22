@@ -20,7 +20,7 @@ class SubmitJobScreen extends StatelessWidget {
             'Submit a New Job',
             style: Theme.of(context).textTheme.headlineLarge,
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             'Use this file upload to submit a new job process to the Genius SDK.',
             style: Theme.of(context).textTheme.bodySmall,
