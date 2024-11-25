@@ -42,6 +42,7 @@ class SubmitJobForm extends StatefulWidget {
 class SubmitJobFormState extends State<SubmitJobForm> {
   String? _uploadedFileName;
   Map<String, dynamic>? _jsonData;
+  int? _cost = 0;
 
   // Function to pick a JSON file
   Future<void> _pickJsonFile() async {
@@ -59,6 +60,10 @@ class SubmitJobFormState extends State<SubmitJobForm> {
         setState(() {
           _uploadedFileName = result.files.single.name;
           _jsonData = jsonData;
+          final jobJson = jsonEncode(_jsonData);
+          _cost =
+              context.read<GeniusApi>().requestGeniusSDKCost(jobJson: jobJson);
+          print("Resulting cost: $_cost");
         });
       }
     } catch (e) {
@@ -116,9 +121,11 @@ class SubmitJobFormState extends State<SubmitJobForm> {
                         left: 16, right: 16, top: 8, bottom: 8)),
                   ),
                   onPressed: () {
+                    final jobJson = jsonEncode(_jsonData);
+                    //context.read<GeniusApi>().mintTokens(100);
                     context
                         .read<GeniusApi>()
-                        .requestGeniusSDKProcess(jobJson: _jsonData.toString());
+                        .requestGeniusSDKProcess(jobJson: jobJson);
                   },
                   child: const Text(
                     'Submit Job',

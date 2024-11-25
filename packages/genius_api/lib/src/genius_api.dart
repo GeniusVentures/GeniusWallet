@@ -218,7 +218,47 @@ class GeniusApi {
       return;
     }
 
+    // Allocate memory for the jobJson string
+    final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
+
+    try {
+      // Call the native function
+      ffiBridgePrebuilt.wallet_lib.GeniusSDKProcess(jsonPointer);
+    } finally {
+      // Free the allocated memory to prevent memory leaks
+      calloc.free(jsonPointer);
+    }
+
+    // Print for debugging purposes
     print(jobJson);
+  }
+
+  int requestGeniusSDKCost({required String jobJson}) {
+    if (jobJson.isEmpty) {
+      return 0;
+    }
+
+    // Print for debugging purposes
+    print(jobJson);
+
+    // Allocate memory for the jobJson string
+    final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
+
+    int cost = 0; // Default value if something goes wrong
+
+    try {
+      // Call the native function
+      cost = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetCost(jsonPointer);
+    } catch (e, stackTrace) {
+      // Handle the exception gracefully, e.g., log it
+      print("Error in GeniusSDKGetCost: $e");
+      print(stackTrace);
+    } finally {
+      // Free the allocated memory to prevent memory leaks
+      calloc.free(jsonPointer);
+    }
+
+    return cost;
   }
 
   Future<List<Currency>> getMarkets() async {
