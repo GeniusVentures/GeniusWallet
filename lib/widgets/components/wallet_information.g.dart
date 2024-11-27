@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/swap/swap_screen.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart';
@@ -117,28 +116,11 @@ class WalletInformationState extends State<WalletInformation> {
               onPressed: () {
                 context.push('/receive',
                     extra: context.read<WalletDetailsCubit>());
-                // showModalBottomSheet(
-                //   context: context,
-                //   isScrollControlled: true,
-                //   builder: (context) {
-                //     return const SwapScreen();
-                //   },
-                // );
               }),
           const SizedBox(width: 12),
-          SquareButton(
+          const SquareButton(
             text: 'Send',
             icon: Icons.send,
-            // onPressed: () {
-            //   // Open the Swap Screen as a popup
-            //   showModalBottomSheet(
-            //     context: context,
-            //     isScrollControlled: true,
-            //     builder: (context) {
-            //       return const SwapScreen();
-            //     },
-            //   );
-            // }
           ),
           const SizedBox(width: 12),
           SquareButton(
@@ -146,28 +128,13 @@ class WalletInformationState extends State<WalletInformation> {
               icon: Icons.swap_horiz,
               onPressed: () {
                 // Open the Swap Screen as a popup
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) {
-                    return const SwapScreen();
-                  },
-                );
+                context.push('/swap',
+                    extra: context.read<WalletDetailsCubit>());
               }),
           const SizedBox(width: 12),
           SquareButton(
             text: 'Buy',
             icon: Icons.attach_money,
-            // onPressed: () {
-            //   // Open the Swap Screen as a popup
-            //   showModalBottomSheet(
-            //     context: context,
-            //     isScrollControlled: true,
-            //     builder: (context) {
-            //       return const SwapScreen();
-            //     },
-            //   );
-            // }
           ),
         ]
       ]),

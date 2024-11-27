@@ -236,10 +236,8 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/swap',
       builder: (context, state) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: state.extra as WalletDetailsCubit),
-          ],
+        return BlocProvider.value(
+          value: state.extra as WalletDetailsCubit,
           child: const SwapScreen(),
         );
       },

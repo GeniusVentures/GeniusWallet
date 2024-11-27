@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
@@ -47,6 +48,12 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Gnus AI',
           theme: ThemeData(
+            appBarTheme: const AppBarTheme(
+                iconTheme: IconThemeData(size: 24),
+                titleTextStyle: TextStyle(fontSize: 24),
+                titleSpacing: 30,
+                surfaceTintColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundColor: GeniusWalletColors.deepBlueCardColor),
             inputDecorationTheme: const InputDecorationTheme(
                 contentPadding: EdgeInsets.all(20),
                 focusedBorder: OutlineInputBorder(
@@ -59,15 +66,16 @@ class MyApp extends StatelessWidget {
                         Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
             textButtonTheme: const TextButtonThemeData(
                 style: ButtonStyle(
+                    textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 16)),
                     padding: MaterialStatePropertyAll(EdgeInsets.only(
-                        left: 12, right: 12, top: 6, bottom: 6)),
+                        left: 16, right: 16, top: 8, bottom: 8)),
                     shape: MaterialStatePropertyAll(ContinuousRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(
                             GeniusWalletConsts.borderRadiusButton)))),
-                    backgroundColor:
-                        MaterialStatePropertyAll(GeniusWalletColors.gray900),
+                    backgroundColor: MaterialStatePropertyAll(
+                        GeniusWalletColors.btnFilterBlue),
                     foregroundColor: MaterialStatePropertyAll(Colors.white),
-                    iconSize: MaterialStatePropertyAll(14),
+                    iconSize: MaterialStatePropertyAll(16),
                     iconColor: MaterialStatePropertyAll(Colors.white))),
             searchBarTheme: const SearchBarThemeData(
                 padding: MaterialStatePropertyAll(
@@ -139,7 +147,7 @@ class MyApp extends StatelessWidget {
                 })),
             buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
             primarySwatch: Colors.blue,
-            scaffoldBackgroundColor: GeniusWalletColors.gray900,
+            scaffoldBackgroundColor: GeniusWalletColors.deepBlueTertiary,
             colorScheme: const ColorScheme
                 .dark(), //TODO: replace this once we have theme generated
           ),

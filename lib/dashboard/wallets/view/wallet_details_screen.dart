@@ -51,9 +51,7 @@ class View extends StatelessWidget {
       builder: (context, state) {
         final selectedWallet = state.selectedWallet!;
         return Scaffold(
-          backgroundColor: GeniusWalletColors.deepBlueTertiary,
           appBar: AppBar(
-            backgroundColor: GeniusWalletColors.deepBlueTertiary,
             actions: [
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                 NetworkDropdown(
