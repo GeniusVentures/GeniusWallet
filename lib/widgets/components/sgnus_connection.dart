@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/widgets/components/animation/checkmark_animation.dart';
+import 'package:genius_wallet/widgets/components/animation/x_animation.dart';
 
 class SGNSConnection extends StatefulWidget {
   const SGNSConnection({Key? key}) : super(key: key);
@@ -35,10 +37,8 @@ class SGNSConnectionWidgetState extends State<SGNSConnection> {
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(width: 8),
-                Icon(
-                  connection.isConnected ? Icons.check_circle : Icons.cancel,
-                  color: connection.isConnected ? Colors.green : Colors.red,
-                ),
+                if (connection.isConnected) const CheckmarkAnimation(),
+                if (!connection.isConnected) const XAnimation(),
               ],
             ),
             const SizedBox(height: 16),

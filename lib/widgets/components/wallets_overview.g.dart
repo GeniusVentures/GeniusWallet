@@ -138,10 +138,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
       const Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [SGNSConnection()])
-      //const Row(children: [SGNUSConnectedDropdown()])
-      // Row(
-      //     mainAxisAlignment: MainAxisAlignment.end,
-      //     children: [BuyButtonCustom(child: const Text('Buy'))])
     ]);
   }
 
