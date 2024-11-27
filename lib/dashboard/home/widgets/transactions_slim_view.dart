@@ -64,7 +64,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
       final tableColumns = [
         {
           'title': 'Transaction Hash',
-          'width': 200.0,
+          'width': 180.0,
           'rowValue': (transaction) {
             // Truncate the transaction hash if it's too long
             String hash = transaction.hash;
@@ -73,11 +73,12 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
             }
             return hash;
           },
+          'rowFullValue': (transaction) => transaction.hash,
           'isCopyable': true,
         },
         {
           'title': 'Method',
-          'width': 120.0,
+          'width': 100.0,
           'rowValue': (transaction) => transaction.type.toString()
         },
         {
@@ -87,7 +88,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
         },
         {
           'title': 'Age',
-          'width': 130.0,
+          'width': 150.0,
           'rowValue': (transaction) =>
               timeago.format(transaction.timeStamp.toLocal()),
         },
@@ -96,6 +97,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
           'width': 225.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.fromAddress),
+          'rowFullValue': (transaction) => transaction.fromAddress,
           'isCopyable': true
         },
         {
@@ -123,17 +125,21 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
           'width': 230.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.recipients.first.toAddr),
+<<<<<<< Updated upstream
+=======
+          'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
+>>>>>>> Stashed changes
           'isCopyable': true
         },
         {
           'title': 'Amount',
-          'width': 130.0,
+          'width': 150.0,
           'rowValue': (transaction) =>
               "${double.tryParse(transaction.recipients.first.amount)?.toStringAsFixed(5) ?? transaction.recipients.first.amount} ${transaction.coinSymbol}",
         },
         {
           'title': 'Fee',
-          'width': 140.0,
+          'width': 150.0,
           'rowValue': (transaction) =>
               "${double.tryParse(transaction.fees)?.toStringAsFixed(5) ?? transaction.fees} ${transaction.coinSymbol}",
         },
@@ -236,7 +242,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                                                           size: 16),
                                                       onPressed: () =>
                                                           _copyToClipboard((column[
-                                                                      'rowValue']
+                                                                      'rowFullValue']
                                                                   as Function(
                                                                       dynamic))(
                                                               transaction) as String),

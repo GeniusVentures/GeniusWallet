@@ -26,18 +26,18 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
         builder: (context, state) {
       final walletCubit = context.read<WalletDetailsCubit>();
       if (state.selectedNetwork == null) {
-        return SizedBox();
+        return const SizedBox();
       }
       return DropdownMenu<Network>(
         helperText: 'Network',
         menuStyle: const MenuStyle(
             backgroundColor:
                 MaterialStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
-        inputDecorationTheme: const InputDecorationTheme(
-            border: UnderlineInputBorder(), contentPadding: EdgeInsets.all(0)),
+        inputDecorationTheme:
+            const InputDecorationTheme(border: UnderlineInputBorder()),
         initialSelection: state.selectedNetwork,
         leadingIcon: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(4),
             child: state.selectedNetwork?.iconPath == null ||
                     state.selectedNetwork?.iconPath == ""
                 ? SizedBox()
@@ -51,8 +51,10 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
         dropdownMenuEntries:
             widget.networkList.map<DropdownMenuEntry<Network>>((Network value) {
           return DropdownMenuEntry<Network>(
+            style: const ButtonStyle(
+                padding: WidgetStatePropertyAll(EdgeInsets.all(16))),
             value: value,
-            label: value?.name ?? "",
+            label: value.name ?? "",
             leadingIcon: Image.asset(
               value.iconPath ?? '',
               height: 32,

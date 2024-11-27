@@ -11,6 +11,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/news.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
@@ -23,6 +24,7 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:rxdart/rxdart.dart';
 
 class GeniusApi {
   final LocalWalletStorage _secureStorage;
@@ -33,7 +35,19 @@ class GeniusApi {
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
-    return _secureStorage.walletsController.asBroadcastStream();
+    return getWalletsController().asBroadcastStream();
+  }
+
+  BehaviorSubject<List<Wallet>> getWalletsController() {
+    return _secureStorage.walletsController;
+  }
+
+  SGNUSConnectionController getSGNSController() {
+    return _secureStorage.sgnsConnectionController;
+  }
+
+  Stream<SGNUSConnection> getSGNSConnectionStream() {
+    return getSGNSController().stream;
   }
 
   Future<Account?> getAccount() async {
@@ -96,11 +110,23 @@ class GeniusApi {
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr);
 
+    if (retVal == nullptr) {
+      return;
+    }
+
     address = getSGNUSAddress();
-    String dartString = retVal.toDartString();
-    print(dartString);
+
     malloc.free(basePathPtr);
     malloc.free(privateKeyAsPtr);
+
+    // Update UI with SGNUS connection status
+    getSGNSController().updateConnection(SGNUSConnection(
+        sgnusAddress: address,
+        walletAddress: storedKey
+                .wallet("")
+                ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
+            "",
+        isConnected: true));
 
     initializedSDK = true;
   }

@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
-import 'package:genius_wallet/app/widgets/desktop_container.dart';
 import 'package:genius_wallet/app/widgets/networks/network_dropdown.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_toggle.g.dart';
+import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 import 'package:go_router/go_router.dart';
 
 class WalletDetailsScreen extends StatelessWidget {
@@ -79,31 +76,44 @@ class View extends StatelessWidget {
                     child: LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
-                        return WalletToggle(
-                          constraints,
-                          ovrCoinName: selectedWallet.currencySymbol,
-                          ovrWalletName: selectedWallet.walletName,
-                          ovrShape: WalletUtils.currencySymbolToImage(
-                            selectedWallet.currencySymbol,
-                          ),
-                          walletType: selectedWallet.walletType,
-                        );
+                        return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    WalletTypeIcon(
+                                        walletType: selectedWallet.walletType),
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
+                                    Text(
+                                      selectedWallet.walletName,
+                                      style: const TextStyle(
+                                        fontFamily: 'Roboto',
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 0.33,
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  ]),
+                            ]);
                       },
                     ),
                   ),
                   const SizedBox(height: 18),
-                  SizedBox(
-                    height: 190,
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return WalletInformation(constraints,
-                            ovrQuantity: state.balance.toStringAsFixed(4),
-                            ovrCurrency: state.selectedNetwork?.symbol?.name,
-                            ovrAddressField: selectedWallet.address,
-                            walletType: selectedWallet.walletType);
-                      },
-                    ),
+                  LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return WalletInformation(constraints,
+                          ovrQuantity: state.balance.toStringAsFixed(4),
+                          ovrCurrency: state.selectedNetwork?.symbol?.name,
+                          ovrAddressField: selectedWallet.address,
+                          walletType: selectedWallet.walletType);
+                    },
                   ),
                   const SizedBox(height: 18),
                   SizedBox(
