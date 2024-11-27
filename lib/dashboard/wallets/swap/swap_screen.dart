@@ -21,7 +21,7 @@ class SwapScreenState extends State<SwapScreen> {
   Coin? toToken;
   double fromAmount = 0.0;
   double toAmount = 0.0;
-  String? previousNetwork; // To track the previously selected network
+  int? previousNetwork; // To track the previously selected network
   String? selectedInput; // Track which input triggered the drawer
 
   @override
@@ -29,10 +29,12 @@ class SwapScreenState extends State<SwapScreen> {
     return BlocListener<WalletDetailsCubit, WalletDetailsState>(
         listener: (context, state) {
           // Reset fields when the state changes
-          if (state.selectedNetwork?.name != previousNetwork) {
+          if (state.selectedNetwork?.chainId != previousNetwork) {
             setState(() {
               previousNetwork =
-                  state.selectedNetwork?.name; // Update the previous network
+                  state.selectedNetwork?.chainId; // Update the previous network
+              fromAmount = 0.0;
+              toAmount = 0.0;
               fromToken = null;
               toToken = null;
             });
