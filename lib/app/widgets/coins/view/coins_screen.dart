@@ -7,8 +7,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class CoinsScreen extends StatelessWidget {
-  final BoxConstraints constraints;
-  const CoinsScreen(this.constraints, {Key? key}) : super(key: key);
+  const CoinsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

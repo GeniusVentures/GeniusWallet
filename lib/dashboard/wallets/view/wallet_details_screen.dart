@@ -114,14 +114,7 @@ class View extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 18),
-                  SizedBox(
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return CoinsScreen(constraints);
-                      },
-                    ),
-                  ),
+                  const SizedBox(child: CoinsScreen()),
                   const SizedBox(height: 18),
                   SizedBox(
                     height: 370,
