@@ -19,156 +19,181 @@ class SwapScreen extends StatefulWidget {
 class SwapScreenState extends State<SwapScreen> {
   Coin? fromToken;
   Coin? toToken;
-  double fromAmount = 0.0;
-  double toAmount = 0.0;
+  TextEditingController fromAmountController = TextEditingController();
+  TextEditingController toAmountController = TextEditingController();
   int? previousNetwork; // To track the previously selected network
   String? selectedInput; // Track which input triggered the drawer
 
   @override
+  void initState() {
+    super.initState();
+    fromAmountController.text = '';
+    toAmountController.text = '';
+  }
+
+  @override
+  void dispose() {
+    fromAmountController.dispose();
+    toAmountController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<WalletDetailsCubit, WalletDetailsState>(
-        listener: (context, state) {
-          // Reset fields when the state changes
-          if (state.selectedNetwork?.chainId != previousNetwork) {
-            setState(() {
-              previousNetwork =
-                  state.selectedNetwork?.chainId; // Update the previous network
-              fromAmount = 0.0;
-              toAmount = 0.0;
-              fromToken = null;
-              toToken = null;
-            });
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text("Swap"),
-            actions: [
-              BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                  builder: (context, state) {
+      listener: (context, state) {
+        // Reset fields when the network changes
+        if (state.selectedNetwork?.chainId != previousNetwork) {
+          setState(() {
+            previousNetwork = state.selectedNetwork?.chainId;
+            fromAmountController.text = '';
+            toAmountController.text = '';
+            fromToken = null;
+            toToken = null;
+          });
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Swap"),
+          actions: [
+            BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+              builder: (context, state) {
                 return Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      NetworkDropdown(
-                          wallet: state.selectedWallet!,
-                          network: state.selectedNetwork,
-                          networkList: state.networks),
-                      const SizedBox(width: 24),
-                    ]);
-              })
-            ],
-          ),
-          endDrawer: _buildDrawer(context), // Add a drawer
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(GeniusWalletConsts.borderRadiusCard),
-                ),
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    NetworkDropdown(
+                      wallet: state.selectedWallet!,
+                      network: state.selectedNetwork,
+                      networkList: state.networks,
+                    ),
+                    const SizedBox(width: 24),
+                  ],
+                );
+              },
+            )
+          ],
+        ),
+        endDrawer: _buildDrawer(context), // Add a drawer
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(
+                Radius.circular(GeniusWalletConsts.borderRadiusCard),
               ),
-              padding: const EdgeInsetsDirectional.symmetric(
-                  vertical: 128, horizontal: 24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 550),
-                  child: Column(
-                    children: [
-                      // From Token Input
-                      _buildTokenInput(
-                        label: 'From',
-                        token: fromToken,
-                        onTokenChanged: (value) {
-                          setState(() {
-                            fromToken = value;
-                          });
-                        },
-                        onAmountChanged: (value) {
-                          setState(() {
-                            fromAmount = double.tryParse(value) ?? 0.0;
-                            toAmount = fromAmount; // Simulate a 1:1 ratio
-                          });
-                        },
-                        onButtonPressed: () {
-                          setState(() {
-                            selectedInput =
-                                'from'; // Track which button is pressed
-                          });
-                        },
-                      ),
-                      // Swap Icon
-                      IconButton(
-                        icon: const Icon(Icons.swap_vert, size: 32),
-                        onPressed: () {
-                          setState(() {
-                            final tempToken = fromToken;
-                            fromToken = toToken;
-                            toToken = tempToken;
-                          });
-                        },
-                      ),
-                      // To Token Input
-                      _buildTokenInput(
-                        label: 'To',
-                        token: toToken,
-                        onTokenChanged: (value) {
-                          setState(() {
-                            toToken = value;
-                          });
-                        },
-                        onAmountChanged: null, // To amount is derived
-                        amount: toAmount.toStringAsFixed(2),
-                        onButtonPressed: () {
-                          setState(() {
-                            selectedInput =
-                                'to'; // Track which button is pressed
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      // Swap Button
-                      TextButton(
-                        onPressed: () {
-                          // Simulate swap action
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text('Swap Confirmed'),
-                              content: Text(
-                                  'Swapped $fromAmount $fromToken for $toAmount $toToken.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Close'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(600, 60),
-                          backgroundColor: GeniusWalletColors.deepBlueCardColor,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 64, vertical: 20),
+            ),
+            padding: const EdgeInsetsDirectional.symmetric(
+              vertical: 128,
+              horizontal: 24,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 550),
+                child: Column(
+                  children: [
+                    // From Token Input
+                    _buildTokenInput(
+                      label: 'From',
+                      token: fromToken,
+                      onTokenChanged: (value) {
+                        setState(() {
+                          fromToken = value;
+                        });
+                      },
+                      onAmountChanged: (value) {
+                        setState(() {
+                          fromAmountController.text = value;
+                        });
+                      },
+                      controller: fromAmountController,
+                      onButtonPressed: () {
+                        setState(() {
+                          selectedInput = 'from';
+                        });
+                      },
+                    ),
+                    // Swap Icon
+                    IconButton(
+                      icon: const Icon(Icons.swap_vert, size: 32),
+                      onPressed: () {
+                        setState(() {
+                          // Swap tokens
+                          final tempToken = fromToken;
+                          fromToken = toToken;
+                          toToken = tempToken;
+
+                          // Swap amounts
+                          final tempAmount = fromAmountController.text;
+                          fromAmountController.text = toAmountController.text;
+                          toAmountController.text = tempAmount;
+                        });
+                      },
+                    ),
+                    // To Token Input
+                    _buildTokenInput(
+                      label: 'To',
+                      token: toToken,
+                      onTokenChanged: (value) {
+                        setState(() {
+                          toToken = value;
+                        });
+                      },
+                      onAmountChanged: null, // Disable manual input for "To"
+                      controller: toAmountController,
+                      onButtonPressed: () {
+                        setState(() {
+                          selectedInput = 'to';
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    // Swap Button
+                    TextButton(
+                      onPressed: () {
+                        // Simulate swap action
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Swap Confirmed'),
+                            content: Text(
+                                'Swapped ${fromAmountController.text} ${fromToken?.symbol} for ${toAmountController.text} ${toToken?.symbol}.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        fixedSize: const Size(600, 60),
+                        backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 64,
+                          vertical: 20,
                         ),
-                        child: const Text('Swap'),
                       ),
-                    ],
-                  ),
+                      child: const Text('Swap'),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _buildTokenInput({
     required String label,
     Coin? token,
     required Function(Coin?) onTokenChanged,
-    Function(String)? onAmountChanged,
     required VoidCallback onButtonPressed,
-    String amount = '',
+    required TextEditingController controller,
+    Function(String)? onAmountChanged,
   }) {
     return Container(
       padding: const EdgeInsets.only(top: 12, bottom: 36, left: 32, right: 32),
@@ -192,8 +217,10 @@ class SwapScreenState extends State<SwapScreen> {
                 builder: (context) {
                   return TextButton.icon(
                     style: const ButtonStyle(
-                        backgroundColor:
-                            WidgetStatePropertyAll(Colors.transparent)),
+                      backgroundColor: WidgetStatePropertyAll(
+                        Colors.transparent,
+                      ),
+                    ),
                     onPressed: () {
                       onButtonPressed();
                       Scaffold.of(context).openEndDrawer();
@@ -212,17 +239,15 @@ class SwapScreenState extends State<SwapScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          style: const TextStyle(
-                              color: GeniusWalletColors.gray500),
                           token?.symbol ?? "",
-                        )
+                        ),
                       ],
                     ),
                     iconAlignment: IconAlignment.end,
                     icon: const Icon(
-                      color: GeniusWalletColors.gray500,
                       Icons.arrow_forward_ios,
                       size: 14,
+                      color: GeniusWalletColors.gray500,
                     ),
                   );
                 },
@@ -230,14 +255,13 @@ class SwapScreenState extends State<SwapScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: TextField(
+                  controller: controller, // Persistent controller
                   style: const TextStyle(fontSize: 20),
                   textAlign: TextAlign.right,
                   keyboardType: TextInputType.number,
                   onChanged: onAmountChanged,
-                  controller: onAmountChanged != null
-                      ? TextEditingController(text: amount)
-                      : null,
-                  readOnly: onAmountChanged == null,
+                  readOnly: onAmountChanged ==
+                      null, // don't allow editing of the to input
                   decoration: const InputDecoration(
                     hintStyle: TextStyle(color: GeniusWalletColors.gray500),
                     border: InputBorder.none,
