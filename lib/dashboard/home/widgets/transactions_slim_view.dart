@@ -125,10 +125,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
           'width': 230.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.recipients.first.toAddr),
-<<<<<<< Updated upstream
-=======
           'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
->>>>>>> Stashed changes
           'isCopyable': true
         },
         {
