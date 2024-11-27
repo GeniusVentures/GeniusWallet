@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
 import 'package:genius_wallet/app/widgets/networks/network_dropdown.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
@@ -16,140 +17,153 @@ class SwapScreen extends StatefulWidget {
 }
 
 class SwapScreenState extends State<SwapScreen> {
-  // Sample token data
-  final List<String> tokens = ['ETH', 'DAI', 'USDT', 'BTC', 'UNI'];
-  String? fromToken = 'ETH';
-  String? toToken = 'DAI';
+  Coin? fromToken;
+  Coin? toToken;
   double fromAmount = 0.0;
   double toAmount = 0.0;
-
+  String? previousNetwork; // To track the previously selected network
   String? selectedInput; // Track which input triggered the drawer
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-        builder: (context, state) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("Swap"),
-          actions: [
-            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              NetworkDropdown(
-                  wallet: state.selectedWallet!,
-                  network: state.selectedNetwork,
-                  networkList: state.networks),
-              const SizedBox(width: 24),
-            ])
-          ],
-        ),
-        endDrawer: _buildDrawer(context), // Add a drawer
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(
-                Radius.circular(GeniusWalletConsts.borderRadiusCard),
+    return BlocListener<WalletDetailsCubit, WalletDetailsState>(
+        listener: (context, state) {
+          // Reset fields when the state changes
+          if (state.selectedNetwork?.name != previousNetwork) {
+            setState(() {
+              previousNetwork =
+                  state.selectedNetwork?.name; // Update the previous network
+              fromToken = null;
+              toToken = null;
+            });
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text("Swap"),
+            actions: [
+              BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                  builder: (context, state) {
+                return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      NetworkDropdown(
+                          wallet: state.selectedWallet!,
+                          network: state.selectedNetwork,
+                          networkList: state.networks),
+                      const SizedBox(width: 24),
+                    ]);
+              })
+            ],
+          ),
+          endDrawer: _buildDrawer(context), // Add a drawer
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(GeniusWalletConsts.borderRadiusCard),
+                ),
               ),
-            ),
-            padding: const EdgeInsetsDirectional.symmetric(
-                vertical: 128, horizontal: 24),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 550),
-                child: Column(
-                  children: [
-                    // From Token Input
-                    _buildTokenInput(
-                      label: 'From',
-                      token: fromToken,
-                      onTokenChanged: (value) {
-                        setState(() {
-                          fromToken = value;
-                        });
-                      },
-                      onAmountChanged: (value) {
-                        setState(() {
-                          fromAmount = double.tryParse(value) ?? 0.0;
-                          toAmount = fromAmount; // Simulate a 1:1 ratio
-                        });
-                      },
-                      onButtonPressed: () {
-                        setState(() {
-                          selectedInput =
-                              'from'; // Track which button is pressed
-                        });
-                      },
-                    ),
-                    // Swap Icon
-                    IconButton(
-                      icon: const Icon(Icons.swap_vert, size: 32),
-                      onPressed: () {
-                        setState(() {
-                          final tempToken = fromToken;
-                          fromToken = toToken;
-                          toToken = tempToken;
-                        });
-                      },
-                    ),
-                    // To Token Input
-                    _buildTokenInput(
-                      label: 'To',
-                      token: toToken,
-                      onTokenChanged: (value) {
-                        setState(() {
-                          toToken = value;
-                        });
-                      },
-                      onAmountChanged: null, // To amount is derived
-                      amount: toAmount.toStringAsFixed(2),
-                      onButtonPressed: () {
-                        setState(() {
-                          selectedInput = 'to'; // Track which button is pressed
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    // Swap Button
-                    TextButton(
-                      onPressed: () {
-                        // Simulate swap action
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Swap Confirmed'),
-                            content: Text(
-                                'Swapped $fromAmount $fromToken for $toAmount $toToken.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Close'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        fixedSize: const Size(600, 60),
-                        backgroundColor: GeniusWalletColors.deepBlueCardColor,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 64, vertical: 20),
+              padding: const EdgeInsetsDirectional.symmetric(
+                  vertical: 128, horizontal: 24),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 550),
+                  child: Column(
+                    children: [
+                      // From Token Input
+                      _buildTokenInput(
+                        label: 'From',
+                        token: fromToken,
+                        onTokenChanged: (value) {
+                          setState(() {
+                            fromToken = value;
+                          });
+                        },
+                        onAmountChanged: (value) {
+                          setState(() {
+                            fromAmount = double.tryParse(value) ?? 0.0;
+                            toAmount = fromAmount; // Simulate a 1:1 ratio
+                          });
+                        },
+                        onButtonPressed: () {
+                          setState(() {
+                            selectedInput =
+                                'from'; // Track which button is pressed
+                          });
+                        },
                       ),
-                      child: const Text('Swap'),
-                    ),
-                  ],
+                      // Swap Icon
+                      IconButton(
+                        icon: const Icon(Icons.swap_vert, size: 32),
+                        onPressed: () {
+                          setState(() {
+                            final tempToken = fromToken;
+                            fromToken = toToken;
+                            toToken = tempToken;
+                          });
+                        },
+                      ),
+                      // To Token Input
+                      _buildTokenInput(
+                        label: 'To',
+                        token: toToken,
+                        onTokenChanged: (value) {
+                          setState(() {
+                            toToken = value;
+                          });
+                        },
+                        onAmountChanged: null, // To amount is derived
+                        amount: toAmount.toStringAsFixed(2),
+                        onButtonPressed: () {
+                          setState(() {
+                            selectedInput =
+                                'to'; // Track which button is pressed
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      // Swap Button
+                      TextButton(
+                        onPressed: () {
+                          // Simulate swap action
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Swap Confirmed'),
+                              content: Text(
+                                  'Swapped $fromAmount $fromToken for $toAmount $toToken.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: const Size(600, 60),
+                          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 64, vertical: 20),
+                        ),
+                        child: const Text('Swap'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        ));
   }
 
   Widget _buildTokenInput({
     required String label,
-    String? token,
-    required Function(String?) onTokenChanged,
+    Coin? token,
+    required Function(Coin?) onTokenChanged,
     Function(String)? onAmountChanged,
     required VoidCallback onButtonPressed,
     String amount = '',
@@ -182,9 +196,25 @@ class SwapScreenState extends State<SwapScreen> {
                       onButtonPressed();
                       Scaffold.of(context).openEndDrawer();
                     },
-                    label: Text(
-                      token ?? '',
-                      style: const TextStyle(fontSize: 20, letterSpacing: 1.3),
+                    label: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Image.asset(
+                          token?.iconPath ?? "",
+                          height: 48,
+                          width: 48,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox(height: 48, width: 48);
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          style: const TextStyle(
+                              color: GeniusWalletColors.gray500),
+                          token?.symbol ?? "",
+                        )
+                      ],
                     ),
                     iconAlignment: IconAlignment.end,
                     icon: const Icon(
@@ -244,23 +274,16 @@ class SwapScreenState extends State<SwapScreen> {
                 ),
               ),
             ),
-            const CoinsScreen()
-            // ...tokens.map((token) {
-            //   return ListTile(
-            //     title: Text(token),
-            //     onTap: () {
-            //       setState(() {
-            //         // Update the appropriate token based on selectedInput
-            //         if (selectedInput == 'from') {
-            //           fromToken = token;
-            //         } else if (selectedInput == 'to') {
-            //           toToken = token;
-            //         }
-            //       });
-            //       Navigator.pop(context); // Close the drawer
-            //     },
-            //   );
-            // }).toList(),
+            CoinsScreen(onCoinSelected: (coin) {
+              Navigator.pop(context);
+              setState(() {
+                if (selectedInput == 'from') {
+                  fromToken = coin;
+                } else if (selectedInput == 'to') {
+                  toToken = coin;
+                }
+              });
+            })
           ],
         ));
   }
