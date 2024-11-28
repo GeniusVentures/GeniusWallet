@@ -94,7 +94,7 @@ class SwapScreenState extends State<SwapScreen> {
                   children: [
                     // From Token Input
                     _buildTokenInput(
-                      label: 'From',
+                      label: 'You Pay',
                       token: fromToken,
                       onTokenChanged: (value) {
                         setState(() {
@@ -115,7 +115,7 @@ class SwapScreenState extends State<SwapScreen> {
                     ),
                     // Swap Icon
                     IconButton(
-                      icon: const Icon(Icons.swap_vert, size: 32),
+                      icon: const Icon(Icons.swap_vert, size: 40),
                       onPressed: () {
                         setState(() {
                           // Swap tokens
@@ -132,7 +132,7 @@ class SwapScreenState extends State<SwapScreen> {
                     ),
                     // To Token Input
                     _buildTokenInput(
-                      label: 'To',
+                      label: 'You Receive',
                       token: toToken,
                       onTokenChanged: (value) {
                         setState(() {
@@ -196,7 +196,7 @@ class SwapScreenState extends State<SwapScreen> {
     Function(String)? onAmountChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.only(top: 12, bottom: 36, left: 32, right: 32),
+      padding: const EdgeInsets.all(32),
       decoration: const BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.all(
@@ -206,17 +206,25 @@ class SwapScreenState extends State<SwapScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, letterSpacing: .5),
-          ),
-          const SizedBox(height: 8),
+          Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                label,
+                style: const TextStyle(
+                    fontSize: 14,
+                    letterSpacing: .5,
+                    color: GeniusWalletColors.gray500),
+              )),
+          const SizedBox(height: 12),
           Row(
             children: [
               Builder(
                 builder: (context) {
                   return TextButton.icon(
                     style: const ButtonStyle(
+                      overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                      padding: WidgetStatePropertyAll(
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 8)),
                       backgroundColor: WidgetStatePropertyAll(
                         Colors.transparent,
                       ),
@@ -231,15 +239,15 @@ class SwapScreenState extends State<SwapScreen> {
                       children: [
                         Image.asset(
                           token?.iconPath ?? "",
-                          height: 48,
-                          width: 48,
+                          height: 36,
+                          width: 36,
                           errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox(height: 48, width: 48);
+                            return const SizedBox(height: 36, width: 36);
                           },
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          token?.symbol ?? "",
+                          token?.symbol ?? "Select",
                         ),
                       ],
                     ),
@@ -272,6 +280,16 @@ class SwapScreenState extends State<SwapScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          if (token != null)
+            Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Text(
+                    "${token.balance == 0 ? 0 : token.balance?.toStringAsFixed(5) ?? 0} ${token.symbol}",
+                    style: const TextStyle(
+                        fontSize: 14,
+                        letterSpacing: .5,
+                        color: GeniusWalletColors.gray500)))
         ],
       ),
     );
@@ -300,16 +318,19 @@ class SwapScreenState extends State<SwapScreen> {
                 ),
               ),
             ),
-            CoinsScreen(onCoinSelected: (coin) {
-              Navigator.pop(context);
-              setState(() {
-                if (selectedInput == 'from') {
-                  fromToken = coin;
-                } else if (selectedInput == 'to') {
-                  toToken = coin;
-                }
-              });
-            })
+            CoinsScreen(
+                // make sure we don't allow swapping to an already select token
+                filterCoins: [fromToken, toToken],
+                onCoinSelected: (coin) {
+                  Navigator.pop(context);
+                  setState(() {
+                    if (selectedInput == 'from') {
+                      fromToken = coin;
+                    } else if (selectedInput == 'to') {
+                      toToken = coin;
+                    }
+                  });
+                })
           ],
         ));
   }

@@ -10,7 +10,11 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 class CoinsScreen extends StatelessWidget {
   final Function(Coin)? onCoinSelected;
 
-  const CoinsScreen({Key? key, this.onCoinSelected}) : super(key: key);
+  /// Coins you wish to filter out from the list of coins
+  final List<Coin?>? filterCoins;
+
+  const CoinsScreen({Key? key, this.onCoinSelected, this.filterCoins})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -39,20 +43,21 @@ class CoinsScreen extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (var coin in state.coins)
-              GestureDetector(
-                onTap: () {
-                  if (onCoinSelected != null) {
-                    onCoinSelected!(coin);
-                  }
-                },
-                child: CoinCardContainer(
-                    child: CoinCardRow(
-                  iconPath: coin.iconPath ?? "",
-                  balance: coin.balance ?? 0.0,
-                  name: coin.name ?? "",
-                  symbol: coin.symbol ?? "",
-                )),
-              ),
+              if (filterCoins?.contains(coin) == false)
+                GestureDetector(
+                  onTap: () {
+                    if (onCoinSelected != null) {
+                      onCoinSelected!(coin);
+                    }
+                  },
+                  child: CoinCardContainer(
+                      child: CoinCardRow(
+                    iconPath: coin.iconPath ?? "",
+                    balance: coin.balance ?? 0.0,
+                    name: coin.name ?? "",
+                    symbol: coin.symbol ?? "",
+                  )),
+                ),
           ],
         );
       },
