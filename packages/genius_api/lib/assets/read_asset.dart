@@ -26,8 +26,9 @@ Future<List<Network>> readNetworkAssets() async {
 Future<List<Coin>> readTokenAssets(
     {required String walletAddress,
     required String rpcUrl,
-    required NetworkSymbol networkSymbol}) async {
-  final String assetLocation = 'assets/json/${networkSymbol.name}/tokens.json';
+    required Network network}) async {
+  final String assetLocation =
+      'assets/json/${network.symbol?.name}/tokens.json';
   final String? response = await safeLoadAsset(assetLocation);
 
   if (response == null) {
@@ -39,6 +40,18 @@ Future<List<Coin>> readTokenAssets(
   List<Token> tokensList =
       List<Token>.from(tokensJson.map((token) => Token.fromJson(token)));
   List<Coin> coinList = [];
+
+  // add chains native coin
+  final web3 = Web3();
+  final balance = await web3.getBalance(rpcUrl: rpcUrl, address: walletAddress);
+  coinList.add(Coin(
+      balance: balance,
+      name: network.name,
+      symbol: network.symbol?.name.toUpperCase(),
+      networkSymbol: network.symbol,
+      // Try to find a crypto image by symbol
+      iconPath: network.iconPath));
+
   for (var tokenContract in tokensList) {
     if (tokenContract.address != null && tokenContract.address!.isNotEmpty) {
       final web3 = Web3();
@@ -56,7 +69,7 @@ Future<List<Coin>> readTokenAssets(
           name: await web3.name(
               contractAddress: tokenContract.address!, rpcUrl: rpcUrl),
           symbol: coinSymbol,
-          networkSymbol: networkSymbol,
+          networkSymbol: network.symbol,
           // Try to find a crypto image by symbol
           iconPath: coinSymbol.isNotEmpty
               ? 'assets/images/crypto/${coinSymbol.toLowerCase()}.png'
