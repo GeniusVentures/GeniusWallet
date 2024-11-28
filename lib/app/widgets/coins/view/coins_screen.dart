@@ -106,7 +106,7 @@ class CoinCardRow extends StatelessWidget {
               children: [
                 AutoSizeText(
                   style: const TextStyle(color: GeniusWalletColors.gray500),
-                  balance.toDouble().toStringAsFixed(5),
+                  balance == 0 ? '0' : balance.toDouble().toStringAsFixed(5),
                 ),
                 const SizedBox(width: 8),
                 AutoSizeText(

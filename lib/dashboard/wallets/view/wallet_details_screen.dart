@@ -106,7 +106,9 @@ class View extends StatelessWidget {
                     builder:
                         (BuildContext context, BoxConstraints constraints) {
                       return WalletInformation(constraints,
-                          ovrQuantity: state.balance.toStringAsFixed(4),
+                          ovrQuantity: state.balance == 0
+                              ? "0"
+                              : state.balance.toStringAsFixed(4),
                           ovrCurrency: state.selectedNetwork?.symbol?.name,
                           ovrAddressField: selectedWallet.address,
                           walletType: selectedWallet.walletType);

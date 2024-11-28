@@ -16,19 +16,24 @@ class SubmitJobScreen extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.all(36.0),
         child: SingleChildScrollView(
-            child: Column(children: [
-          Text(
-            'Submit a New Job',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Use this file upload to submit a new job process to the Genius SDK.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 32),
-          const SubmitJobForm()
-        ])));
+            child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight:
+                      MediaQuery.of(context).size.height, // Minimum height
+                ),
+                child: Column(children: [
+                  Text(
+                    'Submit a New Job',
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Use this file upload to submit a new job process to the Genius SDK.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 32),
+                  const SubmitJobForm()
+                ]))));
   }
 }
 

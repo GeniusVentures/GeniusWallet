@@ -50,7 +50,7 @@ class _WalletPreview extends State<WalletPreview> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AutoSizeText(widget.walletName ?? ""),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 AutoSizeText(
                     style: const TextStyle(color: GeniusWalletColors.gray500),
                     WalletUtils.getAddressForDisplay(
@@ -62,7 +62,7 @@ class _WalletPreview extends State<WalletPreview> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 WalletTypeIcon(walletType: widget.walletType),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Row(children: [
                   AutoSizeText(
                       style: const TextStyle(color: GeniusWalletColors.gray500),

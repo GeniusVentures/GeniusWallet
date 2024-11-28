@@ -41,8 +41,9 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                       context.push('/wallets/${currentWallet.address}');
                     },
                     child: WalletPreview(constraints,
-                        ovrWalletBalance:
-                            currentWallet.balance.toStringAsFixed(3),
+                        ovrWalletBalance: currentWallet.balance == 0
+                            ? '0'
+                            : currentWallet.balance.toStringAsFixed(3),
                         walletAddress: currentWallet.address,
                         walletType: currentWallet.walletType,
                         ovrCoinSymbol: currentWallet.currencySymbol,

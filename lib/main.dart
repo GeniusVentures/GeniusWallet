@@ -16,7 +16,7 @@ void main() async {
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
   if ((await secureStorage.getWallets().first).isNotEmpty) {
-    await geniusApi.initSDK();
+    //await geniusApi.initSDK();
   }
 
   runApp(MyApp(
