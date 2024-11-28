@@ -43,7 +43,7 @@ class CoinsScreen extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (var coin in state.coins)
-              if (filterCoins?.contains(coin) == false)
+              if (filterCoins?.contains(coin) == false || filterCoins == null)
                 GestureDetector(
                   onTap: () {
                     if (onCoinSelected != null) {
