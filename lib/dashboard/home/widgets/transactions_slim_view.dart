@@ -254,6 +254,17 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        // Transactions Total
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            "Transactions: ${transactions.length}",
+                            style: const TextStyle(
+                                fontSize: 16,
+                                color: GeniusWalletColors.gray500),
+                          ),
+                        ),
                       ],
                     ),
                   ),
