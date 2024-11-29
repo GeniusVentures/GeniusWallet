@@ -20,9 +20,7 @@ class LocalWalletStorage {
   static const _accountKeyPrefix = '__account__';
 
   final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
-
   Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
-
   final FlutterSecureStorage _secureStorage;
   final Web3 _web3;
 
@@ -263,7 +261,7 @@ class LocalWalletStorage {
     walletsController.add(currentWallets);
   }
 
-  Future<StoredKey?> getSGNSLinkedWalletPrivateKey() async {
+  Future<StoredKey?> getSGNUSLinkedWalletPrivateKey() async {
     Map<String, String> keys = await _secureStorage.readAll();
 
     for (var entry in keys.entries) {

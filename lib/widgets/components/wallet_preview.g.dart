@@ -3,18 +3,20 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/widgets/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 
 class WalletPreview extends StatefulWidget {
-  final BoxConstraints constraints;
   final WalletType? walletType;
   final String? ovrWalletBalance;
   final String? ovrCoinSymbol;
   final String? walletName;
   final String? walletAddress;
-  const WalletPreview(this.constraints,
+  final bool? isConnected;
+  const WalletPreview(
       {Key? key,
+      this.isConnected,
       this.walletType,
       this.ovrWalletBalance,
       this.ovrCoinSymbol,
@@ -22,11 +24,11 @@ class WalletPreview extends StatefulWidget {
       this.walletName = ""})
       : super(key: key);
   @override
-  _WalletPreview createState() => _WalletPreview();
+  WalletPreviewState createState() => WalletPreviewState();
 }
 
-class _WalletPreview extends State<WalletPreview> {
-  _WalletPreview();
+class WalletPreviewState extends State<WalletPreview> {
+  WalletPreviewState();
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +51,18 @@ class _WalletPreview extends State<WalletPreview> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AutoSizeText(widget.walletName ?? ""),
-                const SizedBox(height: 2),
+                Row(children: [
+                  AutoSizeText(widget.walletName ?? ""),
+                  if (widget.isConnected ?? false) ...const [
+                    SizedBox(width: 8),
+                    Tooltip(
+                        message:
+                            'This wallet is connected to the SGNUS network',
+                        textStyle: TextStyle(fontSize: 16, color: Colors.black),
+                        child: CheckmarkAnimation())
+                  ]
+                ]),
+                const SizedBox(height: 4),
                 AutoSizeText(
                     style: const TextStyle(color: GeniusWalletColors.gray500),
                     WalletUtils.getAddressForDisplay(
@@ -62,7 +74,7 @@ class _WalletPreview extends State<WalletPreview> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 WalletTypeIcon(walletType: widget.walletType),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Row(children: [
                   AutoSizeText(
                       style: const TextStyle(color: GeniusWalletColors.gray500),

@@ -48,3 +48,6 @@ app.*.map.json
 
 # Test dependencies build output
 /test/**/.build
+
+# Testnet
+*.TestNet.*
