@@ -96,10 +96,12 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       readTokenAssets(
               walletAddress: walletAddress,
               rpcUrl: rpcUrl,
-              networkSymbol: networkSymbol)
+              network: state.selectedNetwork!)
           .then((List<Coin> coinList) {
-        emit(state.copyWith(
-            coinsStatus: WalletStatus.successful, coins: coinList));
+        if (!isClosed) {
+          emit(state.copyWith(
+              coinsStatus: WalletStatus.successful, coins: coinList));
+        }
       });
     } catch (e) {
       emit(state.copyWith(coinsStatus: WalletStatus.error));

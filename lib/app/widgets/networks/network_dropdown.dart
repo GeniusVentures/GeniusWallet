@@ -26,23 +26,31 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
         builder: (context, state) {
       final walletCubit = context.read<WalletDetailsCubit>();
       if (state.selectedNetwork == null) {
-        return SizedBox();
+        return const SizedBox();
       }
       return DropdownMenu<Network>(
         helperText: 'Network',
+        trailingIcon: const Icon(Icons.arrow_drop_down, size: 32),
+        selectedTrailingIcon: const Icon(Icons.arrow_drop_down, size: 32),
         menuStyle: const MenuStyle(
             backgroundColor:
                 MaterialStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
         inputDecorationTheme: const InputDecorationTheme(
-            border: UnderlineInputBorder(), contentPadding: EdgeInsets.all(0)),
+            border: InputBorder.none, // Removes all borders
+            enabledBorder:
+                InputBorder.none, // Removes border when TextField is enabled
+            focusedBorder:
+                InputBorder.none), // Removes border when TextField is focused),
         initialSelection: state.selectedNetwork,
-        leadingIcon: Container(
-            padding: const EdgeInsets.all(8),
-            child: state.selectedNetwork?.iconPath == null ||
-                    state.selectedNetwork?.iconPath == ""
-                ? SizedBox()
-                : Image.asset(state.selectedNetwork?.iconPath ?? "",
-                    width: 16, height: 16)),
+        leadingIcon: state.selectedNetwork?.iconPath == null ||
+                state.selectedNetwork?.iconPath == ""
+            ? const SizedBox()
+            : Row(mainAxisSize: MainAxisSize.min, children: [
+                const SizedBox(width: 8),
+                Image.asset(state.selectedNetwork?.iconPath ?? "",
+                    width: 40, height: 40),
+                const SizedBox(width: 8)
+              ]),
         onSelected: (Network? value) {
           setState(() {
             walletCubit.selectNetwork(value!);
@@ -51,12 +59,15 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
         dropdownMenuEntries:
             widget.networkList.map<DropdownMenuEntry<Network>>((Network value) {
           return DropdownMenuEntry<Network>(
+            style: const ButtonStyle(
+                padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(vertical: 20, horizontal: 8))),
             value: value,
-            label: value?.name ?? "",
+            label: value.name ?? "",
             leadingIcon: Image.asset(
               value.iconPath ?? '',
-              height: 32,
-              width: 32,
+              height: 40,
+              width: 40,
             ),
           );
         }).toList(),
