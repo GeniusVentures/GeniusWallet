@@ -18,7 +18,6 @@ class HorizontalWalletsScrollview extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
-        final geniusApi = context.read<GeniusApi>();
         return () {
           if (state.wallets.isEmpty) {
             return const Center(
@@ -27,25 +26,31 @@ class HorizontalWalletsScrollview extends StatelessWidget {
               style: TextStyle(fontSize: 20),
             ));
           }
-          final sortedWallets = state.wallets;
-          sortedWallets.sort(
-              (a, b) => a.address == geniusApi.getSGNUSAddress() ? -1 : 0);
           return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: StreamBuilder<SGNUSConnection>(
                   stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: Text('No connection data available'),
-                      );
-                    }
-                    final connection = snapshot.data!;
+                    final connection = snapshot.data;
+                    final sortedWallets = state.wallets;
+                    // sort connected wallet to the front
+                    sortedWallets.sort((a, b) {
+                      if (a.address == connection?.walletAddress &&
+                          b.address != connection?.walletAddress) {
+                        return -1;
+                      } else if (b.address == connection?.walletAddress &&
+                          a.address != connection?.walletAddress) {
+                        return 1;
+                      } else {
+                        return 0;
+                      }
+                    });
                     return Row(children: [
-                      const SizedBox(width: 4),
-                      WalletContainerButton(
-                          onPressed: () {}, child: const SGNUSWallet()),
-                      const SizedBox(width: 12),
+                      if (connection != null && connection.isConnected) ...[
+                        WalletContainerButton(
+                            onPressed: () {}, child: const SGNUSWallet()),
+                        const SizedBox(width: 12)
+                      ],
                       for (int i = 0; i < sortedWallets.length; i++) ...[
                         WalletContainerButton(
                           onPressed: () {
@@ -53,7 +58,8 @@ class HorizontalWalletsScrollview extends StatelessWidget {
                                 .push('/wallets/${sortedWallets[i].address}');
                           },
                           child: WalletPreview(
-                              isConnected: connection.isConnected &&
+                              isConnected: connection != null &&
+                                  connection.isConnected &&
                                   connection.walletAddress ==
                                       sortedWallets[i].address,
                               ovrWalletBalance: sortedWallets[i].balance == 0
