@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/widgets/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/widgets/components/animation/x_animation.dart';
 
@@ -41,32 +40,6 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
                 if (!connection.isConnected) const XAnimation(),
               ],
             ),
-            const SizedBox(height: 16),
-            if (connection.isConnected)
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Row(children: [
-                  const Text(
-                    'Connected Wallet: ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    WalletUtils.getAddressForDisplay(connection.walletAddress),
-                    style: const TextStyle(fontSize: 16),
-                  )
-                ]),
-                Row(children: [
-                  const Text(
-                    'SGNUS Wallet: ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    WalletUtils.getAddressForDisplay(connection.sgnusAddress),
-                    style: const TextStyle(fontSize: 16),
-                  )
-                ])
-              ]),
           ],
         );
       },

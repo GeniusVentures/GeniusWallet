@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -16,6 +18,7 @@ class HorizontalWalletsScrollview extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
+        final geniusApi = context.read<GeniusApi>();
         return () {
           if (state.wallets.isEmpty) {
             return const Center(
@@ -24,39 +27,56 @@ class HorizontalWalletsScrollview extends StatelessWidget {
               style: TextStyle(fontSize: 20),
             ));
           }
+          final sortedWallets = state.wallets;
+          sortedWallets.sort(
+              (a, b) => a.address == geniusApi.getSGNUSAddress() ? -1 : 0);
           return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(children: [
-                const SizedBox(width: 4),
-                WalletContainerButton(
-                    onPressed: () {}, child: const SGNUSWallet()),
-                const SizedBox(width: 12),
-                for (int i = 0; i < state.wallets.length; i++) ...[
-                  WalletContainerButton(
-                    onPressed: () {
-                      context.push('/wallets/${state.wallets[i].address}');
-                    },
-                    child: WalletPreview(
-                        ovrWalletBalance: state.wallets[i].balance == 0
-                            ? '0'
-                            : state.wallets[i].balance.toStringAsFixed(3),
-                        walletAddress: state.wallets[i].address,
-                        walletType: state.wallets[i].walletType,
-                        ovrCoinSymbol: state.wallets[i].currencySymbol,
-                        walletName: state.wallets[i].walletName),
-                  ),
-                  const SizedBox(width: 12)
-                ],
-                WalletContainerButton(
-                    width: 200,
-                    onPressed: () => context.push('/landing_screen'),
-                    child: const Center(
-                        child: Text(GeniusWalletText.btnAddWallet,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: GeniusWalletColors.lightGreenPrimary,
-                            ))))
-              ]));
+              child: StreamBuilder<SGNUSConnection>(
+                  stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(
+                        child: Text('No connection data available'),
+                      );
+                    }
+                    final connection = snapshot.data!;
+                    return Row(children: [
+                      const SizedBox(width: 4),
+                      WalletContainerButton(
+                          onPressed: () {}, child: const SGNUSWallet()),
+                      const SizedBox(width: 12),
+                      for (int i = 0; i < sortedWallets.length; i++) ...[
+                        WalletContainerButton(
+                          onPressed: () {
+                            context
+                                .push('/wallets/${sortedWallets[i].address}');
+                          },
+                          child: WalletPreview(
+                              isConnected: connection.isConnected &&
+                                  connection.walletAddress ==
+                                      sortedWallets[i].address,
+                              ovrWalletBalance: sortedWallets[i].balance == 0
+                                  ? '0'
+                                  : sortedWallets[i].balance.toStringAsFixed(3),
+                              walletAddress: sortedWallets[i].address,
+                              walletType: sortedWallets[i].walletType,
+                              ovrCoinSymbol: sortedWallets[i].currencySymbol,
+                              walletName: sortedWallets[i].walletName),
+                        ),
+                        const SizedBox(width: 12)
+                      ],
+                      WalletContainerButton(
+                          width: 200,
+                          onPressed: () => context.push('/landing_screen'),
+                          child: const Center(
+                              child: Text(GeniusWalletText.btnAddWallet,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: GeniusWalletColors.lightGreenPrimary,
+                                  ))))
+                    ]);
+                  }));
         }();
       },
     );
