@@ -180,7 +180,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
                                           column['title'] as String,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -228,12 +228,16 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                                                   if (column.containsKey(
                                                           'isCopyable') &&
                                                       column['isCopyable'] ==
-                                                          true)
+                                                          true &&
+                                                      ((column['rowFullValue']
+                                                                  as Function(
+                                                                      dynamic))(
+                                                              transaction) as String)
+                                                          .isNotEmpty)
                                                     IconButton(
-                                                      padding: EdgeInsets.only(
-                                                          left: 4),
-                                                      constraints:
-                                                          BoxConstraints(),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 4),
                                                       icon: const Icon(
                                                           Icons.copy,
                                                           size: 16),

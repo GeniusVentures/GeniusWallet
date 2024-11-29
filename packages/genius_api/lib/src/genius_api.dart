@@ -29,9 +29,16 @@ import 'package:rxdart/rxdart.dart';
 class GeniusApi {
   final LocalWalletStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
+  final SGNUSConnectionController _sgnusConnectionController;
   late final String address;
   late final String jsonFilePath;
   bool initializedSDK = false;
+
+  GeniusApi({
+    required LocalWalletStorage secureStorage,
+  })  : _secureStorage = secureStorage,
+        ffiBridgePrebuilt = FFIBridgePrebuilt(),
+        _sgnusConnectionController = SGNUSConnectionController();
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
@@ -42,12 +49,12 @@ class GeniusApi {
     return _secureStorage.walletsController;
   }
 
-  SGNUSConnectionController getSGNSController() {
-    return _secureStorage.sgnsConnectionController;
+  SGNUSConnectionController getSGNUSController() {
+    return _sgnusConnectionController;
   }
 
-  Stream<SGNUSConnection> getSGNSConnectionStream() {
-    return getSGNSController().stream;
+  Stream<SGNUSConnection> getSGNUSConnectionStream() {
+    return getSGNUSController().stream;
   }
 
   Future<Account?> getAccount() async {
@@ -66,13 +73,8 @@ class GeniusApi {
     return await _secureStorage.updateAccountFetchDate();
   }
 
-  GeniusApi({
-    required LocalWalletStorage secureStorage,
-  })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt();
-
   Future<void> initSDK() async {
-    final storedKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
+    final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
 
     if (storedKey == null) {
       print("No suitable wallet found");
@@ -120,7 +122,7 @@ class GeniusApi {
     malloc.free(privateKeyAsPtr);
 
     // Update UI with SGNUS connection status
-    getSGNSController().updateConnection(SGNUSConnection(
+    getSGNUSController().updateConnection(SGNUSConnection(
         sgnusAddress: address,
         walletAddress: storedKey
                 .wallet("")

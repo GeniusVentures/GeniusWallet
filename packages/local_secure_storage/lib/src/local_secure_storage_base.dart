@@ -10,7 +10,6 @@ import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_api/assets/read_asset.dart';
-import 'package:local_secure_storage/src/sgns_connection_controller.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LocalWalletStorage {
@@ -22,7 +21,6 @@ class LocalWalletStorage {
 
   final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
   Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
-  final sgnsConnectionController = SGNUSConnectionController();
   final FlutterSecureStorage _secureStorage;
   final Web3 _web3;
 
@@ -263,7 +261,7 @@ class LocalWalletStorage {
     walletsController.add(currentWallets);
   }
 
-  Future<StoredKey?> getSGNSLinkedWalletPrivateKey() async {
+  Future<StoredKey?> getSGNUSLinkedWalletPrivateKey() async {
     Map<String, String> keys = await _secureStorage.readAll();
 
     for (var entry in keys.entries) {

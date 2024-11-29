@@ -7,13 +7,12 @@ import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 
 class WalletPreview extends StatefulWidget {
-  final BoxConstraints constraints;
   final WalletType? walletType;
   final String? ovrWalletBalance;
   final String? ovrCoinSymbol;
   final String? walletName;
   final String? walletAddress;
-  const WalletPreview(this.constraints,
+  const WalletPreview(
       {Key? key,
       this.walletType,
       this.ovrWalletBalance,
@@ -22,11 +21,11 @@ class WalletPreview extends StatefulWidget {
       this.walletName = ""})
       : super(key: key);
   @override
-  _WalletPreview createState() => _WalletPreview();
+  WalletPreviewState createState() => WalletPreviewState();
 }
 
-class _WalletPreview extends State<WalletPreview> {
-  _WalletPreview();
+class WalletPreviewState extends State<WalletPreview> {
+  WalletPreviewState();
 
   @override
   Widget build(BuildContext context) {

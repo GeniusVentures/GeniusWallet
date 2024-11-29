@@ -7,18 +7,18 @@ import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/widgets/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/widgets/components/animation/x_animation.dart';
 
-class SGNSConnection extends StatefulWidget {
-  const SGNSConnection({Key? key}) : super(key: key);
+class SGNUSConnectionWidget extends StatefulWidget {
+  const SGNUSConnectionWidget({Key? key}) : super(key: key);
 
   @override
-  SGNSConnectionWidgetState createState() => SGNSConnectionWidgetState();
+  SGNUSConnectionState createState() => SGNUSConnectionState();
 }
 
-class SGNSConnectionWidgetState extends State<SGNSConnection> {
+class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<SGNUSConnection>(
-      stream: context.read<GeniusApi>().getSGNSConnectionStream(),
+      stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -57,7 +57,7 @@ class SGNSConnectionWidgetState extends State<SGNSConnection> {
                 ]),
                 Row(children: [
                   const Text(
-                    'SGNS Wallet: ',
+                    'SGNUS Wallet: ',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
