@@ -32,7 +32,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
             Row(
               children: [
                 const Text(
-                  'SGNUS Connection: ',
+                  'SGNUS Connection ',
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(width: 8),
