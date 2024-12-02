@@ -64,7 +64,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
       final tableColumns = [
         {
           'title': 'Transaction Hash',
-          'width': 200.0,
+          'width': 180.0,
           'rowValue': (transaction) {
             // Truncate the transaction hash if it's too long
             String hash = transaction.hash;
@@ -73,11 +73,12 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
             }
             return hash;
           },
+          'rowFullValue': (transaction) => transaction.hash,
           'isCopyable': true,
         },
         {
           'title': 'Method',
-          'width': 120.0,
+          'width': 100.0,
           'rowValue': (transaction) => transaction.type.toString()
         },
         {
@@ -87,7 +88,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
         },
         {
           'title': 'Age',
-          'width': 130.0,
+          'width': 150.0,
           'rowValue': (transaction) =>
               timeago.format(transaction.timeStamp.toLocal()),
         },
@@ -96,6 +97,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
           'width': 225.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.fromAddress),
+          'rowFullValue': (transaction) => transaction.fromAddress,
           'isCopyable': true
         },
         {
@@ -121,18 +123,20 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
         {
           'title': 'To',
           'width': 230.0,
-          'rowValue': (transaction) => _truncateAddress(transaction.toAddress),
+          'rowValue': (transaction) =>
+              _truncateAddress(transaction.recipients.first.toAddr),
+          'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
           'isCopyable': true
         },
         {
           'title': 'Amount',
-          'width': 130.0,
+          'width': 150.0,
           'rowValue': (transaction) =>
-              "${double.tryParse(transaction.amount)?.toStringAsFixed(5) ?? transaction.amount} ${transaction.coinSymbol}",
+              "${double.tryParse(transaction.recipients.first.amount)?.toStringAsFixed(5) ?? transaction.recipients.first.amount} ${transaction.coinSymbol}",
         },
         {
           'title': 'Fee',
-          'width': 140.0,
+          'width': 150.0,
           'rowValue': (transaction) =>
               "${double.tryParse(transaction.fees)?.toStringAsFixed(5) ?? transaction.fees} ${transaction.coinSymbol}",
         },
@@ -176,7 +180,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
                                           column['title'] as String,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -224,18 +228,22 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                                                   if (column.containsKey(
                                                           'isCopyable') &&
                                                       column['isCopyable'] ==
-                                                          true)
+                                                          true &&
+                                                      ((column['rowFullValue']
+                                                                  as Function(
+                                                                      dynamic))(
+                                                              transaction) as String)
+                                                          .isNotEmpty)
                                                     IconButton(
-                                                      padding: EdgeInsets.only(
-                                                          left: 4),
-                                                      constraints:
-                                                          BoxConstraints(),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 4),
                                                       icon: const Icon(
                                                           Icons.copy,
                                                           size: 16),
                                                       onPressed: () =>
                                                           _copyToClipboard((column[
-                                                                      'rowValue']
+                                                                      'rowFullValue']
                                                                   as Function(
                                                                       dynamic))(
                                                               transaction) as String),
@@ -248,6 +256,17 @@ class TransactionsSlimViewState extends State<TransactionsSlimView> {
                                   ),
                                 ),
                             ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Transactions Total
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            "Transactions: ${transactions.length}",
+                            style: const TextStyle(
+                                fontSize: 16,
+                                color: GeniusWalletColors.gray500),
                           ),
                         ),
                       ],

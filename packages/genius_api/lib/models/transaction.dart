@@ -27,14 +27,24 @@ enum TransactionType {
 }
 
 @freezed
+class TransferRecipients with _$TransferRecipients {
+  const factory TransferRecipients({
+    required String toAddr,
+    required String amount,
+  }) = _TransferRecipients;
+
+  factory TransferRecipients.fromJson(Map<String, Object?> json) =>
+      _$TransferRecipientsFromJson(json);
+}
+
+@freezed
 class Transaction with _$Transaction {
   const factory Transaction({
     required String hash,
     required String fromAddress,
-    required String toAddress,
+    required List<TransferRecipients> recipients,
     required DateTime timeStamp,
     required TransactionDirection transactionDirection,
-    required String amount,
     required String fees,
     required String coinSymbol,
     required TransactionStatus transactionStatus,

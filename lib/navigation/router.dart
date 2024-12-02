@@ -12,6 +12,7 @@ import 'package:genius_wallet/dashboard/wallets/receive/view/receive_screen.dart
 import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
+import 'package:genius_wallet/dashboard/wallets/swap/swap_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
@@ -178,8 +179,7 @@ final geniusWalletRouter = GoRouter(
                   currentTransaction: Transaction(
                     hash: '',
                     fromAddress: walletCubit.state.selectedWallet!.address,
-                    toAddress: '',
-                    amount: '',
+                    recipients: List.empty(),
                     fees: '',
                     timeStamp: DateTime.now(),
                     transactionDirection: TransactionDirection.sent,
@@ -230,6 +230,15 @@ final geniusWalletRouter = GoRouter(
             BlocProvider.value(value: state.extra as WalletDetailsCubit),
           ],
           child: const ReceiveScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/swap',
+      builder: (context, state) {
+        return BlocProvider.value(
+          value: state.extra as WalletDetailsCubit,
+          child: const SwapScreen(),
         );
       },
     ),
