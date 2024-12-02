@@ -68,7 +68,6 @@ class SubmitJobFormState extends State<SubmitJobForm> {
           final jobJson = jsonEncode(_jsonData);
           _cost =
               context.read<GeniusApi>().requestGeniusSDKCost(jobJson: jobJson);
-          print("Resulting cost: $_cost");
         });
       }
     } catch (e) {
@@ -127,7 +126,7 @@ class SubmitJobFormState extends State<SubmitJobForm> {
                   ),
                   onPressed: () {
                     final jobJson = jsonEncode(_jsonData);
-                    //context.read<GeniusApi>().mintTokens(100);
+                    //context.read<GeniusApi>().mintTokens(100, "", "");
                     context
                         .read<GeniusApi>()
                         .requestGeniusSDKProcess(jobJson: jobJson);
