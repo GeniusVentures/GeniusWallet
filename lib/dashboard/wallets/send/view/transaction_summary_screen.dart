@@ -53,9 +53,9 @@ class TransactionSummaryScreen extends StatelessWidget {
                   builder: (BuildContext context, BoxConstraints constraints) {
                     return SuccessfulTransactionDetails(
                       constraints,
-                      ovrTransactionValue: transaction.amount,
+                      ovrTransactionValue: transaction.recipients.first.amount,
                       ovrUserBalance: wallet.balance.toString(),
-                      ovrReceiverWalletID: transaction.toAddress,
+                      ovrReceiverWalletID: transaction.recipients.first.toAddr,
                       ovrTransactionID: transaction.hash,
                       ovrGasFee: transaction.fees,
                       ovrTransactionTimestamp:

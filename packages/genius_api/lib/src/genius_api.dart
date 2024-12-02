@@ -5,14 +5,13 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
-import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/news.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
@@ -25,17 +24,37 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:rxdart/rxdart.dart';
 
 class GeniusApi {
   final LocalWalletStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
+  final SGNUSConnectionController _sgnusConnectionController;
   late final String address;
   late final String jsonFilePath;
   bool initializedSDK = false;
 
+  GeniusApi({
+    required LocalWalletStorage secureStorage,
+  })  : _secureStorage = secureStorage,
+        ffiBridgePrebuilt = FFIBridgePrebuilt(),
+        _sgnusConnectionController = SGNUSConnectionController();
+
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
-    return _secureStorage.walletsController.asBroadcastStream();
+    return getWalletsController().asBroadcastStream();
+  }
+
+  BehaviorSubject<List<Wallet>> getWalletsController() {
+    return _secureStorage.walletsController;
+  }
+
+  SGNUSConnectionController getSGNUSController() {
+    return _sgnusConnectionController;
+  }
+
+  Stream<SGNUSConnection> getSGNUSConnectionStream() {
+    return getSGNUSController().stream;
   }
 
   Future<Account?> getAccount() async {
@@ -54,20 +73,15 @@ class GeniusApi {
     return await _secureStorage.updateAccountFetchDate();
   }
 
-  GeniusApi({
-    required LocalWalletStorage secureStorage,
-  })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt();
-
   Future<void> initSDK() async {
-    final storedKey = await _secureStorage.getSGNSLinkedWalletPrivateKey();
+    final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
 
     if (storedKey == null) {
       print("No suitable wallet found");
       return;
     }
 
-    _initSDK(storedKey);
+    await _initSDK(storedKey);
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {
@@ -98,11 +112,23 @@ class GeniusApi {
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr);
 
+    if (retVal == nullptr) {
+      return;
+    }
+
     address = getSGNUSAddress();
-    String dartString = retVal.toDartString();
-    print(dartString);
+
     malloc.free(basePathPtr);
     malloc.free(privateKeyAsPtr);
+
+    // Update UI with SGNUS connection status
+    getSGNUSController().updateConnection(SGNUSConnection(
+        sgnusAddress: address,
+        walletAddress: storedKey
+                .wallet("")
+                ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
+            "",
+        isConnected: true));
 
     initializedSDK = true;
   }
@@ -390,10 +416,9 @@ class GeniusApi {
         hash:
             '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
         fromAddress: '0x0',
-        toAddress: '0x1',
+        recipients: [TransferRecipients(toAddr: '0x1', amount: '0.0002')],
         timeStamp: DateTime.utc(2022, 10, 10, 13, 26),
         transactionDirection: TransactionDirection.sent,
-        amount: '0.0002',
         fees: '',
         coinSymbol: 'ETH',
         transactionStatus: TransactionStatus.pending,
@@ -402,10 +427,9 @@ class GeniusApi {
           hash:
               '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
           fromAddress: '0x2',
-          toAddress: '0x0',
+          recipients: [TransferRecipients(toAddr: '0x0', amount: '0.0003')],
           timeStamp: DateTime.utc(2022, 10, 09, 15, 20),
           transactionDirection: TransactionDirection.received,
-          amount: '0.0003',
           fees: '',
           coinSymbol: 'ETH',
           transactionStatus: TransactionStatus.cancelled),
@@ -413,10 +437,9 @@ class GeniusApi {
         hash:
             '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
         fromAddress: '0x1',
-        toAddress: '0x0',
+        recipients: [TransferRecipients(toAddr: '0x0', amount: '0.0023')],
         timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
         transactionDirection: TransactionDirection.received,
-        amount: '0.0023',
         fees: '0.000001',
         coinSymbol: 'ETH',
         transactionStatus: TransactionStatus.completed,
@@ -580,24 +603,46 @@ class GeniusApi {
     List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer =
           transactions.ptr[i].ptr.asTypedList(transactions.ptr[i].size);
-      var struct = DAGWrapper.fromBuffer(buffer).dagStruct;
+      var header = DAGWrapper.fromBuffer(buffer).dagStruct;
 
-      var fromAddress = String.fromCharCodes(struct.sourceAddr);
+      var fromAddress = String.fromCharCodes(header.sourceAddr);
+
+      var recipients = List<TransferRecipients>.empty(growable: true);
+
+      List<TransferOutput>? rawRecipients;
+
+      if (header.type == "escrow") {
+        rawRecipients = EscrowTx.fromBuffer(buffer).utxoParams.outputs;
+      } else if (header.type == "mint") {
+        recipients.add(TransferRecipients(
+            amount: MintTx.fromBuffer(buffer).amount.toString(), toAddr: ""));
+      } else if (header.type == "process") {
+        // No recipients in this kind of transaction
+      } else if (header.type == "transfer") {
+        rawRecipients = TransferTx.fromBuffer(buffer).utxoParams.outputs;
+      }
+
+      if (rawRecipients != null) {
+        recipients.addAll(rawRecipients.map((output) => TransferRecipients(
+            toAddr: output.destAddr
+                .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+                .join(),
+            amount: output.encryptedAmount.join())));
+      }
 
       Transaction trans = Transaction(
-          hash: String.fromCharCodes(struct.dataHash),
+          hash: String.fromCharCodes(header.dataHash),
           fromAddress: fromAddress,
-          toAddress: "TODO", // TODO
+          recipients: recipients,
           timeStamp: DateTime.fromMicrosecondsSinceEpoch(
-              struct.timestamp.toInt() ~/ 1000),
+              header.timestamp.toInt() ~/ 1000),
           transactionDirection: address == fromAddress
               ? TransactionDirection.sent
               : TransactionDirection.received,
-          amount: 'TODO', // TODO
           fees: '0',
           coinSymbol: 'GNUS',
           transactionStatus: TransactionStatus.completed,
-          type: TransactionType.fromString(struct.type));
+          type: TransactionType.fromString(header.type));
 
       return trans;
     });

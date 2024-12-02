@@ -5,7 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
+import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
 
 class WalletsOverview extends StatefulWidget {
@@ -35,7 +35,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
     super.initState();
 
     // only fetch every x mins from the last fetch to ensure rate limiting doesn't occur
-    const fetchDelay = 3;
+    const fetchDelay = 5;
     final completer = Completer<String>();
 
     DateTime nowDate = DateTime.now();
@@ -133,9 +133,9 @@ class WalletsOverviewState extends State<WalletsOverview> {
           ],
         )
       ]),
-      Row(
+      const Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [BuyButtonCustom(child: const Text('Buy'))])
+          children: [SGNUSConnectionWidget()])
     ]);
   }
 

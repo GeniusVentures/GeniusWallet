@@ -257,6 +257,7 @@ class _ImportSecurityBody extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           height: 50,
           child: const TabBar(
+            dividerHeight: 0,
             indicatorSize: TabBarIndicatorSize.label,
             indicatorColor: GeniusWalletColors.lightGreenPrimary,
             indicatorWeight: 1,

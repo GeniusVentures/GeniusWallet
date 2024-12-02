@@ -40,8 +40,9 @@ class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
                   constraints,
                   ovrTimestamp:
                       dateFormatter.format(currentTransaction.timeStamp),
-                  ovrTransactionQuantity: currentTransaction.amount,
-                  ovrTransactionID: currentTransaction.toAddress,
+                  ovrTransactionQuantity:
+                      currentTransaction.recipients.first.amount,
+                  ovrTransactionID: currentTransaction.recipients.first.toAddr,
                 );
               },
             ),

@@ -39,6 +39,7 @@ class HomeScreen extends StatelessWidget {
           },
         ),
         child: RefreshIndicator(
+            backgroundColor: GeniusWalletColors.deepBlueTertiary,
             onRefresh: onRefresh,
             color: GeniusWalletColors.lightGreenPrimary,
             child: SafeArea(

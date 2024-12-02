@@ -88,7 +88,7 @@ class Desktop extends StatelessWidget {
                             return BlocBuilder<SendCubit, SendState>(
                               builder: (context, state) {
                                 if (state
-                                    .currentTransaction.toAddress.isEmpty) {
+                                    .currentTransaction.recipients.isEmpty) {
                                   return IsactiveFalse(
                                     constraints,
                                     ovrContinue: 'Continue',
@@ -129,7 +129,7 @@ class Mobile extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return BlocBuilder<SendCubit, SendState>(
             builder: (context, state) {
-              if (state.currentTransaction.toAddress.isEmpty) {
+              if (state.currentTransaction.recipients.isEmpty) {
                 return IsactiveFalse(
                   constraints,
                   ovrContinue: 'Continue',

@@ -21,6 +21,8 @@ class GeniusWalletColors {
 
   static const Color containerGray = Color(0xff1e2025);
 
+  static const Color gray600 = Color.fromARGB(255, 53, 54, 61);
+
   static const Color gray800 = Color(0xff2a2b31);
 
   static const Color red = Color(0xfff40000);
