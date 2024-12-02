@@ -220,8 +220,11 @@ class GeniusApi {
     return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(size);
   }
 
-  void mintTokens(int amount) {
-    ffiBridgePrebuilt.wallet_lib.GeniusSDKMintTokens(amount);
+  void mintTokens(int amount, String transaction_hash, String chain_id) {
+    final Pointer<Utf8> transhash = transaction_hash.toNativeUtf8();
+    final Pointer<Utf8> chainid = chain_id.toNativeUtf8();
+    ffiBridgePrebuilt.wallet_lib
+        .GeniusSDKMintTokens(amount, transhash, chainid);
   }
 
   void requestAIProcess() {

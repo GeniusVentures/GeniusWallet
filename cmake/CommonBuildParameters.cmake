@@ -71,7 +71,27 @@ set(RocksDB_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/rocksdb/include")
 find_package(RocksDB CONFIG REQUIRED)
 include_directories(${RocksDB_INCLUDE_DIR})
 
+#Find VUlkan
+if(APPLE)
+    if(IOS)
+        # Settings specifically for iOS
+        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/include")
+        set(Vulkan_LIBRARY "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/lib/MoltenVK.xcframework")
+    else()
+        # Settings for macOS
+        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/include")
+        set(Vulkan_LIBRARY "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/lib/MoltenVK.xcframework")
+    endif()
+endif()
+find_package(Vulkan)
 
+if(NOT TARGET Vulkan::Vulkan)
+    if(NOT DEFINED $ENV{VULKAN_SDK})
+        set(ENV{VULKAN_SDK} "${THIRDPARTY_RELEASE_DIR}/Vulkan-Loader")
+    endif()
+
+    find_package(Vulkan REQUIRED)
+endif()
 # Set config of MNN
 set(MNN_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/MNN/include")
 set(MNN_DIR "${THIRDPARTY_RELEASE_DIR}/MNN/lib/cmake/MNN")
