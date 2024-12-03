@@ -9,6 +9,7 @@ class Coin with _$Coin {
   const factory Coin(
       {String? name,
       String? symbol,
+      String? address,
       double? balance,
       NetworkSymbol? networkSymbol,
       String? iconPath}) = _Coin;

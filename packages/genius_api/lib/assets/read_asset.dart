@@ -4,7 +4,6 @@ import 'package:genius_api/assets/assets.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
-import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/web3/web3.dart';
 
 Future<List<Network>> readNetworkAssets() async {
@@ -66,6 +65,7 @@ Future<List<Coin>> readTokenAssets(
       }
       coinList.add(Coin(
           balance: balance,
+          address: tokenContract.address,
           name: await web3.name(
               contractAddress: tokenContract.address!, rpcUrl: rpcUrl),
           symbol: coinSymbol,

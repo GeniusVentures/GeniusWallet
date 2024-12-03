@@ -47,6 +47,15 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Gnus AI',
           theme: ThemeData(
+            tabBarTheme: const TabBarTheme(
+              unselectedLabelStyle: TextStyle(fontSize: 16),
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: TextStyle(fontSize: 16),
+              labelColor: Colors.white,
+              dividerColor: Colors.transparent,
+              unselectedLabelColor: GeniusWalletColors.gray500,
+              indicatorColor: GeniusWalletColors.lightGreenPrimary,
+            ),
             appBarTheme: const AppBarTheme(
                 iconTheme: IconThemeData(size: 24),
                 titleTextStyle: TextStyle(fontSize: 24),

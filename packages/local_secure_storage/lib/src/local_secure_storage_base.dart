@@ -173,6 +173,25 @@ class LocalWalletStorage {
     }
   }
 
+  Future<StoredKeyWallet?> getWallet(String walletAddress) async {
+    Map<String, String> keys = await _secureStorage.readAll();
+
+    for (var entry in keys.entries) {
+      if ((isAWallet(entry.key) || isAWatchedWallet(entry.key)) &&
+          isKeyMatchesAddress(entry.key, walletAddress)) {
+        StoredKey? storedKey = StoredKey.importJson(entry.value);
+
+        // A key was not able to be parsed, delete it
+        if (storedKey == null) {
+          return null;
+        }
+
+        return StoredKeyWallet(storedKey);
+      }
+    }
+    return null;
+  }
+
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.write(key: _pinKey, value: pin);
 

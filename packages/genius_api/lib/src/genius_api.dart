@@ -673,4 +673,20 @@ class GeniusApi {
 
     return ret;
   }
+
+  Future<String> bridgeOut(
+      {required String contractAddress,
+      required String rpcUrl,
+      required String address,
+      required String amountToBurn,
+      required int chainId}) async {
+    final wallet = await _secureStorage.getWallet(address);
+
+    return await Web3().bridgeOut(
+        contractAddress: contractAddress,
+        rpcUrl: rpcUrl,
+        amountToBurn: amountToBurn,
+        chainId: chainId,
+        wallet: wallet);
+  }
 }
