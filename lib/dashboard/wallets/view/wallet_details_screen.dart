@@ -109,7 +109,7 @@ class View extends StatelessWidget {
                           ovrQuantity: state.balance == 0
                               ? "0"
                               : state.balance.toStringAsFixed(4),
-                          ovrCurrency: state.selectedNetwork?.symbol?.name,
+                          ovrCurrency: state.selectedNetwork?.symbol,
                           ovrAddressField: selectedWallet.address,
                           walletType: selectedWallet.walletType);
                     },

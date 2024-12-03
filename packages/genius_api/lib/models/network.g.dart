@@ -9,24 +9,19 @@ part of 'network.dart';
 _$NetworkImpl _$$NetworkImplFromJson(Map<String, dynamic> json) =>
     _$NetworkImpl(
       name: json['name'] as String?,
-      symbol: $enumDecodeNullable(_$NetworkSymbolEnumMap, json['symbol']),
-      chainId: json['chainId'] as int?,
+      symbol: json['symbol'] as String?,
+      chainId: (json['chainId'] as num?)?.toInt(),
       rpcUrl: json['rpcUrl'] as String?,
       iconPath: json['iconPath'] as String?,
+      tokensPath: json['tokensPath'] as String?,
     );
 
 Map<String, dynamic> _$$NetworkImplToJson(_$NetworkImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'symbol': _$NetworkSymbolEnumMap[instance.symbol],
+      'symbol': instance.symbol,
       'chainId': instance.chainId,
       'rpcUrl': instance.rpcUrl,
       'iconPath': instance.iconPath,
+      'tokensPath': instance.tokensPath,
     };
-
-const _$NetworkSymbolEnumMap = {
-  NetworkSymbol.eth: 'eth',
-  NetworkSymbol.matic: 'matic',
-  NetworkSymbol.eth_test_net: 'eth_test_net',
-  NetworkSymbol.matic_test_net: 'matic_test_net',
-};

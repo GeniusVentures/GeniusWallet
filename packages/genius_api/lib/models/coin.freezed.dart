@@ -24,7 +24,7 @@ mixin _$Coin {
   String? get symbol => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
   double? get balance => throw _privateConstructorUsedError;
-  NetworkSymbol? get networkSymbol => throw _privateConstructorUsedError;
+  String? get networkSymbol => throw _privateConstructorUsedError;
   String? get iconPath => throw _privateConstructorUsedError;
 
   /// Serializes this Coin to a JSON map.
@@ -46,7 +46,7 @@ abstract class $CoinCopyWith<$Res> {
       String? symbol,
       String? address,
       double? balance,
-      NetworkSymbol? networkSymbol,
+      String? networkSymbol,
       String? iconPath});
 }
 
@@ -92,7 +92,7 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
       networkSymbol: freezed == networkSymbol
           ? _value.networkSymbol
           : networkSymbol // ignore: cast_nullable_to_non_nullable
-              as NetworkSymbol?,
+              as String?,
       iconPath: freezed == iconPath
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
@@ -113,7 +113,7 @@ abstract class _$$CoinImplCopyWith<$Res> implements $CoinCopyWith<$Res> {
       String? symbol,
       String? address,
       double? balance,
-      NetworkSymbol? networkSymbol,
+      String? networkSymbol,
       String? iconPath});
 }
 
@@ -156,7 +156,7 @@ class __$$CoinImplCopyWithImpl<$Res>
       networkSymbol: freezed == networkSymbol
           ? _value.networkSymbol
           : networkSymbol // ignore: cast_nullable_to_non_nullable
-              as NetworkSymbol?,
+              as String?,
       iconPath: freezed == iconPath
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
@@ -188,7 +188,7 @@ class _$CoinImpl implements _Coin {
   @override
   final double? balance;
   @override
-  final NetworkSymbol? networkSymbol;
+  final String? networkSymbol;
   @override
   final String? iconPath;
 
@@ -239,7 +239,7 @@ abstract class _Coin implements Coin {
       final String? symbol,
       final String? address,
       final double? balance,
-      final NetworkSymbol? networkSymbol,
+      final String? networkSymbol,
       final String? iconPath}) = _$CoinImpl;
 
   factory _Coin.fromJson(Map<String, dynamic> json) = _$CoinImpl.fromJson;
@@ -253,7 +253,7 @@ abstract class _Coin implements Coin {
   @override
   double? get balance;
   @override
-  NetworkSymbol? get networkSymbol;
+  String? get networkSymbol;
   @override
   String? get iconPath;
 

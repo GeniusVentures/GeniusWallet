@@ -47,8 +47,14 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
             ? const SizedBox()
             : Row(mainAxisSize: MainAxisSize.min, children: [
                 const SizedBox(width: 8),
-                Image.asset(state.selectedNetwork?.iconPath ?? "",
-                    width: 40, height: 40),
+                Image.asset(
+                  state.selectedNetwork?.iconPath ?? "",
+                  width: 40,
+                  height: 40,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox(height: 40, width: 40);
+                  },
+                ),
                 const SizedBox(width: 8)
               ]),
         onSelected: (Network? value) {
@@ -68,6 +74,9 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
               value.iconPath ?? '',
               height: 40,
               width: 40,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox(height: 40, width: 40);
+              },
             ),
           );
         }).toList(),

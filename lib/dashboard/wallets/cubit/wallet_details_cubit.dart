@@ -6,7 +6,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/assets/read_asset.dart';
-import 'package:genius_api/types/network_symbol.dart';
 
 part 'wallet_details_state.dart';
 
@@ -62,10 +61,12 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         return;
       }
 
-      readNetworkAssets().then((List<Network> networks) {
-        final network = networks.where((element) =>
-            (element.symbol as NetworkSymbol).name ==
-            state.selectedWallet?.currencySymbol);
+      readNetworkAssets().then((List<Network>? networks) {
+        if (networks == null || networks.isEmpty) {
+          return emit(state.copyWith(fetchNetworksStatus: WalletStatus.error));
+        }
+        final network = networks!.where((element) =>
+            element.symbol == state.selectedWallet?.currencySymbol);
         final Network selectedNetwork =
             network.isNotEmpty ? network.first : networks.first;
         emit(state.copyWith(
@@ -92,6 +93,11 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       if (walletAddress == null || rpcUrl == null || networkSymbol == null) {
         return;
       }
+
+      // TODO:
+      // IF SUPERGENIUS NETWORK... call the SDK to retrieve balances, etc.
+      // WE SHOULD NOT CALL THE RPC STUFF
+      // WE SHOULD CALL BALANCEOF and pass in the tokenIds from tokens.json
 
       readTokenAssets(
               walletAddress: walletAddress,

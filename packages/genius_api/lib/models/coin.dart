@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:genius_api/types/network_symbol.dart';
 
 part 'coin.freezed.dart';
 part 'coin.g.dart';
@@ -11,7 +10,7 @@ class Coin with _$Coin {
       String? symbol,
       String? address,
       double? balance,
-      NetworkSymbol? networkSymbol,
+      String? networkSymbol,
       String? iconPath}) = _Coin;
 
   factory Coin.fromJson(Map<String, Object?> json) => _$CoinFromJson(json);

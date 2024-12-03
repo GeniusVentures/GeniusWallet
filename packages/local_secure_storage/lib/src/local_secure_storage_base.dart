@@ -6,7 +6,6 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
-import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_api/assets/read_asset.dart';
@@ -301,8 +300,8 @@ class LocalWalletStorage {
     final address = wallet.storedKey.account(0).address();
     final List<Network> networks = await readNetworkAssets();
     final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
-    final network = networks.where((element) =>
-        (element.symbol as NetworkSymbol).name == symbol.toLowerCase());
+    final network =
+        networks.where((element) => (element.symbol) == symbol.toLowerCase());
 
     double walletBalance = 0;
 
@@ -330,9 +329,8 @@ class LocalWalletStorage {
 
   Future<Wallet> mapWalletToWallets(Wallet wallet) async {
     final List<Network> networks = await readNetworkAssets();
-    final network = networks.where((element) =>
-        (element.symbol as NetworkSymbol).name ==
-        wallet.currencySymbol.toLowerCase());
+    final network = networks.where(
+        (element) => element.symbol == wallet.currencySymbol.toLowerCase());
 
     double walletBalance = 0;
 

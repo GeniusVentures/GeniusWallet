@@ -26,9 +26,7 @@ Future<List<Coin>> readTokenAssets(
     {required String walletAddress,
     required String rpcUrl,
     required Network network}) async {
-  final String assetLocation =
-      'assets/json/${network.symbol?.name}/tokens.json';
-  final String? response = await safeLoadAsset(assetLocation);
+  final String? response = await safeLoadAsset(network.tokensPath ?? "");
 
   if (response == null) {
     return List.empty();
@@ -46,9 +44,8 @@ Future<List<Coin>> readTokenAssets(
   coinList.add(Coin(
       balance: balance,
       name: network.name,
-      symbol: network.symbol?.name.toUpperCase(),
+      symbol: network.symbol?.toUpperCase(),
       networkSymbol: network.symbol,
-      // Try to find a crypto image by symbol
       iconPath: network.iconPath));
 
   for (var tokenContract in tokensList) {
@@ -70,10 +67,7 @@ Future<List<Coin>> readTokenAssets(
               contractAddress: tokenContract.address!, rpcUrl: rpcUrl),
           symbol: coinSymbol,
           networkSymbol: network.symbol,
-          // Try to find a crypto image by symbol
-          iconPath: coinSymbol.isNotEmpty
-              ? 'assets/images/crypto/${coinSymbol.toLowerCase()}.png'
-              : ''));
+          iconPath: tokenContract.iconPath));
     }
   }
 
