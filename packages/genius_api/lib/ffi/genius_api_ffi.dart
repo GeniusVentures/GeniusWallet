@@ -671,16 +671,17 @@ class NativeLibrary {
       _GeniusSDKFreeTransactionsPtr.asFunction<void Function(GeniusMatrix)>();
 
   void GeniusSDKMintTokens(int amount, ffi.Pointer<Utf8> transaction_hash,
-      ffi.Pointer<Utf8> chain_id) {
-    return _GeniusSDKMintTokens(amount, transaction_hash, chain_id);
+      ffi.Pointer<Utf8> chain_id, ffi.Pointer<Utf8> token_id) {
+    return _GeniusSDKMintTokens(amount, transaction_hash, chain_id, token_id);
   }
 
   late final _GeniusSDKMintTokensPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Uint64, ffi.Pointer<Utf8>,
+          ffi.Void Function(ffi.Uint64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
               ffi.Pointer<Utf8>)>>('GeniusSDKMintTokens');
   late final _GeniusSDKMintTokens = _GeniusSDKMintTokensPtr.asFunction<
-      void Function(int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>();
+      void Function(
+          int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>();
 
   GeniusAddress GeniusSDKGetAddress() {
     return _GeniusSDKGetAddress();

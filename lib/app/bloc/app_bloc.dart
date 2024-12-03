@@ -132,7 +132,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   FutureOr<void> _onFFITestEvent(FFITestEvent event, Emitter<AppState> emit) {
     //NOTE: No asyncs/awaits here since this method is synchronous.
     //NOTE: If they were async, we'd need to have a loading status
-    api.mintTokens(500, "", "");
+    api.mintTokens(500, "", "", "");
     // Future.delayed(Duration(seconds: 5));
     // api.requestAIProcess();
     // final ffiString = "AI Process dispatched!";
