@@ -126,7 +126,7 @@ class SubmitJobFormState extends State<SubmitJobForm> {
                   ),
                   onPressed: () {
                     final jobJson = jsonEncode(_jsonData);
-                    //context.read<GeniusApi>().mintTokens(100, "", "");
+                    //context.read<GeniusApi>().mintTokens(100, "", "", "");
                     context
                         .read<GeniusApi>()
                         .requestGeniusSDKProcess(jobJson: jobJson);
