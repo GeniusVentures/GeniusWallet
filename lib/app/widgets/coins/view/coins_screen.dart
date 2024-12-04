@@ -2,13 +2,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
-class CoinsScreen extends StatelessWidget {
+class CoinsScreen extends StatefulWidget {
   final Function(Coin)? onCoinSelected;
 
   /// Coins you wish to filter out from the list of coins
@@ -18,61 +19,85 @@ class CoinsScreen extends StatelessWidget {
       : super(key: key);
 
   @override
+  CoinsScreenState createState() => CoinsScreenState();
+}
+
+class CoinsScreenState extends State<CoinsScreen> {
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-      builder: (context, state) {
+    return BlocListener<WalletDetailsCubit, WalletDetailsState>(
+      listener: (context, state) {
         final walletCubit = context.read<WalletDetailsCubit>();
+
         if (state.coinsStatus == WalletStatus.initial &&
             state.selectedNetwork != null) {
           walletCubit.getCoins();
-          return const SizedBox();
         }
-        if (state.coinsStatus == WalletStatus.loading) {
-          return const CoinCardContainer(
-              child: Center(child: Loading(text: 'Loading Coins')));
-        }
-        if (state.coins.isEmpty) {
-          return const CoinCardContainer(
-              child: Center(
-                  child: AutoSizeText('No Coins Detected',
-                      style: TextStyle(
-                          fontSize: 24,
-                          color: GeniusWalletColors.btnTextDisabled))));
-        }
-
-        return Wrap(
-          runSpacing: 8,
-          children: [
-            for (var coin in state.coins)
-              if (filterCoins?.contains(coin) == false || filterCoins == null)
-                GestureDetector(
-                  onTap: () {
-                    if (onCoinSelected != null) {
-                      onCoinSelected!(coin);
-                    }
-                  },
-                  child: CoinCardContainer(
-                      child: CoinCardRow(
-                          iconPath: coin.iconPath ?? "",
-                          balance: coin.balance ?? 0.0,
-                          name: coin.name ?? "",
-                          symbol: coin.symbol ?? "",
-                          additionalCardWidget:
-                              coin.symbol?.toLowerCase() == 'gnus'
-                                  ? TextButton(
-                                      onPressed: coin.balance == 0
-                                          ? null
-                                          : () {
-                                              walletCubit.selectCoin(coin);
-                                              context.push('/bridge',
-                                                  extra: walletCubit);
-                                            },
-                                      child: const Text("Bridge Tokens"))
-                                  : null)),
-                ),
-          ],
-        );
       },
+      child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, state) {
+          final walletCubit = context.read<WalletDetailsCubit>();
+
+          if (state.coinsStatus == WalletStatus.loading) {
+            return const CoinCardContainer(
+              child: Center(child: Loading(text: 'Loading Coins')),
+            );
+          }
+
+          if (state.coins.isEmpty) {
+            return const CoinCardContainer(
+              child: Center(
+                child: AutoSizeText(
+                  'No Coins Detected',
+                  style: TextStyle(
+                    fontSize: 24,
+                    color: GeniusWalletColors.btnTextDisabled,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Wrap(
+            runSpacing: 8,
+            children: [
+              for (var coin in state.coins)
+                if (widget.filterCoins?.contains(coin) == false ||
+                    widget.filterCoins == null)
+                  GestureDetector(
+                    onTap: () {
+                      if (widget.onCoinSelected != null) {
+                        widget.onCoinSelected!(coin);
+                      }
+                    },
+                    child: CoinCardContainer(
+                      child: CoinCardRow(
+                        iconPath: coin.iconPath ?? "",
+                        balance: coin.balance ?? 0.0,
+                        name: coin.name ?? "",
+                        symbol: coin.symbol ?? "",
+                        additionalCardWidget:
+                            coin.symbol?.toLowerCase() == 'gnus' &&
+                                    state.selectedWallet?.walletType !=
+                                        WalletType.tracking
+                                ? TextButton(
+                                    onPressed: coin.balance == 0
+                                        ? null
+                                        : () {
+                                            walletCubit.selectCoin(coin);
+                                            context.push('/bridge',
+                                                extra: walletCubit);
+                                          },
+                                    child: const Text("Bridge Tokens"),
+                                  )
+                                : null,
+                      ),
+                    ),
+                  ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

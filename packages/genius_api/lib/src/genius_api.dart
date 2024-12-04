@@ -644,7 +644,7 @@ class GeniusApi {
           type: TransactionType.fromString(header.type));
 
       return trans;
-    });
+    }).reversed.toList(); // Reverse the list to put latest first
 
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
 
@@ -677,12 +677,42 @@ class GeniusApi {
       required int destinationChainId}) async {
     final wallet = await _secureStorage.getWallet(address);
 
-    return await Web3(geniusApi: this).bridgeOut(
+    if (wallet == null) {
+      return "Error: Could not find Wallet";
+    }
+
+    return await Web3(geniusApi: this).executeBridgeOutTransaction(
         contractAddress: contractAddress,
         rpcUrl: rpcUrl,
         amountToBurn: amountToBurn,
         sourceChainId: sourceChainId,
         destinationChainId: destinationChainId,
         wallet: wallet);
+  }
+
+  Future<String> getBrigeOutGasCost(
+      {required String contractAddress,
+      required String rpcUrl,
+      required String address,
+      required String amountToBurn,
+      required int sourceChainId,
+      required int destinationChainId}) async {
+    final wallet = await _secureStorage.getWallet(address);
+
+    if (wallet == null) {
+      return "Error: Could not find Wallet";
+    }
+
+    final web3 = Web3(geniusApi: this);
+    final gas = await web3.getBrigeOutGasCost(
+        contractAddress: contractAddress,
+        rpcUrl: rpcUrl,
+        amountToBurn: amountToBurn,
+        destinationChainId: destinationChainId,
+        wallet: wallet);
+    final gasPriceInGwei = web3.getGasPriceInGwei(gas);
+
+    // Return as a nicely formatted string
+    return "${gasPriceInGwei?.toStringAsFixed(2)} Gwei";
   }
 }

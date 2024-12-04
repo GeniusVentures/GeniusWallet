@@ -23,6 +23,7 @@ class BridgeScreenState extends State<BridgeScreen> {
   TextEditingController toAmountController = TextEditingController();
   int? previousNetwork; // To track the previously selected network
   List<Network>? availableBridgeNetworks;
+  String? transactionCost;
 
   @override
   void initState() {
@@ -51,168 +52,197 @@ class BridgeScreenState extends State<BridgeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Bridge"),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(
-              Radius.circular(GeniusWalletConsts.borderRadiusCard),
-            ),
-          ),
-          padding: const EdgeInsetsDirectional.symmetric(
-            vertical: 128,
-            horizontal: 24,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 550),
-              child: Column(
-                children: [
-                  // From Token Input
-                  _buildDropdown<Coin>(
-                      availableItems: fromToken != null
-                          ? List.from([fromToken!])
-                          : List.empty(),
-                      onItemChanged: (Coin newCoin) {
-                        setState(() {
-                          fromToken = newCoin; // Update the selected coin
-                        });
-                      },
-                      displayText: (Coin coin) => coin.symbol ?? '',
-                      displayIcon: (Coin coin) => Image.asset(
-                            coin.iconPath ?? "",
-                            height: 36,
-                            width: 36,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const SizedBox(height: 36, width: 36);
-                            },
-                          ),
-                      label: 'You Pay',
-                      selectedItem: fromToken,
-                      onAmountChanged: (value) {
-                        setState(() {
-                          fromAmountController.text = value;
-                          toAmountController.text = value;
-                        });
-                      },
-                      controller: fromAmountController),
-                  const SizedBox(height: 30),
-                  // To Token Input
-                  _buildDropdown<Network>(
-                    availableItems: availableBridgeNetworks ?? List.empty(),
-                    onItemChanged: (Network newNetwork) {
-                      setState(() {
-                        toNetwork = newNetwork; // Update the selected coin
-                      });
-                    },
-                    displayText: (Network network) => network.name ?? '',
-                    displayIcon: (Network network) => Image.asset(
-                      network.iconPath ?? "",
-                      height: 36,
-                      width: 36,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const SizedBox(height: 36, width: 36);
-                      },
-                    ),
-                    label: 'You Receive',
-                    selectedItem: toNetwork,
-                    onAmountChanged: null, // Disable manual input for "To"
-                    controller: toAmountController,
-                  ),
-                  const SizedBox(height: 24),
-                  // Swap Button
-                  BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                      builder: (context, state) {
-                    return TextButton(
-                      onPressed: fromAmountController.text.isEmpty
-                          ? null
-                          : () async {
-                              final api = context.read<GeniusApi>();
-                              final hashOrError = await api.bridgeOut(
-                                  sourceChainId:
-                                      state.selectedNetwork?.chainId ?? 0,
-                                  contractAddress: fromToken?.address ?? "",
-                                  rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                                  address: state.selectedWallet?.address ?? "",
-                                  amountToBurn: fromAmountController.text,
-                                  destinationChainId: toNetwork?.chainId ?? 0);
+        appBar: AppBar(
+          title: const Text("Bridge"),
+        ),
+        body: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+            builder: (context, state) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(GeniusWalletConsts.borderRadiusCard),
+                ),
+              ),
+              padding: const EdgeInsetsDirectional.symmetric(
+                vertical: 128,
+                horizontal: 24,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 550),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // From Token Input
+                      _buildDropdown<Coin>(
+                          availableItems: fromToken != null
+                              ? List.from([fromToken!])
+                              : List.empty(),
+                          onItemChanged: (Coin newCoin) {
+                            setState(() {
+                              fromToken = newCoin; // Update the selected coin
+                            });
+                          },
+                          displayText: (Coin coin) => coin.symbol ?? '',
+                          displayIcon: (Coin coin) => Image.asset(
+                                coin.iconPath ?? "",
+                                height: 36,
+                                width: 36,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const SizedBox(height: 36, width: 36);
+                                },
+                              ),
+                          label: 'You Pay',
+                          selectedItem: fromToken,
+                          onAmountChanged: (value) async {
+                            if (int.tryParse(value) == null) {
+                              setState(() {
+                                transactionCost = null;
+                              });
+                              return;
+                            }
 
-                              if (!context.mounted) return;
+                            final api = context.read<GeniusApi>();
+                            final gasCost = await api.getBrigeOutGasCost(
+                                sourceChainId:
+                                    state.selectedNetwork?.chainId ?? 0,
+                                contractAddress: fromToken?.address ?? "",
+                                rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                                address: state.selectedWallet?.address ?? "",
+                                amountToBurn: value,
+                                destinationChainId: toNetwork?.chainId ?? 0);
 
-                              final isError = hashOrError.contains('Error');
-
-                              showDialog(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  contentPadding: const EdgeInsets.all(20),
-                                  actionsAlignment: MainAxisAlignment.center,
-                                  title: Center(
-                                      child: isError
-                                          ? const Text(
-                                              'Bridge Failed!',
-                                              style: TextStyle(
-                                                  color:
-                                                      GeniusWalletColors.red),
-                                            )
-                                          : const Text('Bridge Success!',
-                                              style: TextStyle(
-                                                  color: GeniusWalletColors
-                                                      .lightGreenPrimary))),
-                                  content: Container(
-                                      child: isError
-                                          ? Text('Error $hashOrError')
-                                          : Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                  Text(
-                                                      'Bridged ${fromAmountController.text} ${fromToken?.symbol} for ${toAmountController.text} ${toNetwork?.name} - ${toNetwork?.symbol}.',
-                                                      style: const TextStyle(
-                                                          fontSize: 16)),
-                                                  const SizedBox(height: 12),
-                                                  const Text('Hash:',
-                                                      style: TextStyle(
-                                                          fontSize: 16)),
-                                                  SelectableText(
-                                                      ' $hashOrError',
-                                                      style: const TextStyle(
-                                                          fontSize: 16))
-                                                ])),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                      style: ElevatedButton.styleFrom(
-                        disabledBackgroundColor:
-                            GeniusWalletColors.deepBlueCardColor,
-                        fixedSize: const Size(600, 60),
-                        backgroundColor: GeniusWalletColors.deepBlueCardColor,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 64,
-                          vertical: 20,
+                            setState(() {
+                              fromAmountController.text = value;
+                              toAmountController.text = value;
+                              transactionCost = gasCost;
+                            });
+                          },
+                          controller: fromAmountController),
+                      const SizedBox(height: 30),
+                      // To Token Input
+                      _buildDropdown<Network>(
+                        availableItems: availableBridgeNetworks ?? List.empty(),
+                        onItemChanged: (Network newNetwork) {
+                          setState(() {
+                            toNetwork = newNetwork; // Update the selected coin
+                          });
+                        },
+                        displayText: (Network network) => network.name ?? '',
+                        displayIcon: (Network network) => Image.asset(
+                          network.iconPath ?? "",
+                          height: 36,
+                          width: 36,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox(height: 36, width: 36);
+                          },
                         ),
+                        label: 'You Receive',
+                        selectedItem: toNetwork,
+                        onAmountChanged: null, // Disable manual input for "To"
+                        controller: toAmountController,
                       ),
-                      child: const Text('Bridge'),
-                    );
-                  })
-                ],
+                      const SizedBox(height: 24),
+                      // Swap Button
+
+                      TextButton(
+                        onPressed: fromAmountController.text.isEmpty
+                            ? null
+                            : () async {
+                                final api = context.read<GeniusApi>();
+                                final hashOrError = await api.bridgeOut(
+                                    sourceChainId:
+                                        state.selectedNetwork?.chainId ?? 0,
+                                    contractAddress: fromToken?.address ?? "",
+                                    rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                                    address:
+                                        state.selectedWallet?.address ?? "",
+                                    amountToBurn: fromAmountController.text,
+                                    destinationChainId:
+                                        toNetwork?.chainId ?? 0);
+
+                                if (!context.mounted) return;
+
+                                final isError = hashOrError.contains('Error');
+
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    contentPadding: const EdgeInsets.all(20),
+                                    actionsAlignment: MainAxisAlignment.center,
+                                    title: Center(
+                                        child: isError
+                                            ? const Text(
+                                                'Bridge Failed!',
+                                                style: TextStyle(
+                                                    color:
+                                                        GeniusWalletColors.red),
+                                              )
+                                            : const Text('Bridge Success!',
+                                                style: TextStyle(
+                                                    color: GeniusWalletColors
+                                                        .lightGreenPrimary))),
+                                    content: Container(
+                                        child: isError
+                                            ? Text(hashOrError)
+                                            : Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                    Text(
+                                                        'Bridged ${fromAmountController.text} ${fromToken?.symbol} for ${toAmountController.text} ${toNetwork?.name} - ${toNetwork?.symbol}.',
+                                                        style: const TextStyle(
+                                                            fontSize: 16)),
+                                                    const SizedBox(height: 12),
+                                                    const Text('Hash:',
+                                                        style: TextStyle(
+                                                            fontSize: 16)),
+                                                    SelectableText(
+                                                        ' $hashOrError',
+                                                        style: const TextStyle(
+                                                            fontSize: 16))
+                                                  ])),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          disabledBackgroundColor:
+                              GeniusWalletColors.deepBlueCardColor,
+                          fixedSize: const Size(600, 60),
+                          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 64,
+                            vertical: 20,
+                          ),
+                        ),
+                        child: const Text('Bridge'),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(children: [
+                        const Text("Estimated Gas Cost:   ",
+                            style:
+                                TextStyle(color: GeniusWalletColors.gray500)),
+                        Text(
+                            "${transactionCost == null ? 0 : transactionCost.toString()}")
+                      ])
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
+          );
+        }));
   }
 
   Widget _buildDropdown<T>({

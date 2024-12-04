@@ -123,104 +123,131 @@ class Web3 {
     }
   }
 
-  Future<String> bridgeOut(
-      {required String contractAddress,
-      required String rpcUrl,
-      required StoredKeyWallet? wallet,
-      required String amountToBurn,
-      required int sourceChainId,
-      required int destinationChainId}) async {
+  Future<Transaction?> createBridgeOutTransaction({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int destinationChainId,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
+    final hardCodedTokenIdForNow = 0;
 
-    if (wallet == null) {
-      return "Wallet was not found!";
-    }
-
-    PrivateKey privateKey;
-
-    if (wallet.storedKey.isMnemonic()) {
-      privateKey = wallet.storedKey
-          .wallet("")!
-          .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
-    } else {
-      privateKey = wallet.storedKey
-          .privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0))!;
-    }
-
-    final privateKeyAsStr = privateKey
-        .data()
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
+    final ownAddress = credentials.address;
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
 
     try {
+      // Contract Setup
+      final bridgeContract = DeployedContract(
+        bridgeOutAbi,
+        contractAddr,
+      );
       final contract = DeployedContract(abi, contractAddr);
+      final bridgeOutFunction = bridgeContract.function('bridgeOut');
       final decimalsFunction = contract.function('decimals');
 
-      final tokenDecimals = await client
-          .call(contract: contract, function: decimalsFunction, params: []);
-      // Parse user input into a decimal number
-      final double amount = double.parse(amountToBurn);
+      // Get Token Decimals
+      final tokenDecimals = await client.call(
+        contract: bridgeContract,
+        function: decimalsFunction,
+        params: [],
+      );
 
-      // Convert to BigInt by multiplying with 10^decimals
+      // Convert Amount to BigInt
+      final double amount = double.parse(amountToBurn);
       final burnAmountConverted = BigInt.from(
           amount * pow(10, int.parse(tokenDecimals.first.toString())));
 
-      final credentials = EthPrivateKey.fromHex(privateKeyAsStr);
-      final ownAddress = credentials.address;
-
-      final bridgeContract = DeployedContract(
-        bridgeOutAbi,
-        EthereumAddress.fromHex(contractAddress),
-      );
-
-      final bridgeOutFunction = bridgeContract.function('bridgeOut');
-
-      // Estimate Gas Price
+      // Estimate Gas Price and Gas Limit
       final gasPrice = await client.getGasPrice();
-
-      // Estimate Gas Limit
       final gasLimit = await client.estimateGas(
         sender: ownAddress,
-        to: EthereumAddress.fromHex(contractAddress),
+        to: contractAddr,
         data: bridgeOutFunction.encodeCall(
           [
             burnAmountConverted,
-            BigInt.from(0),
+            BigInt.from(hardCodedTokenIdForNow),
             BigInt.from(destinationChainId)
           ],
-        ), // Encoded function data
+        ),
       );
 
-      // Calculate Total Gas Cost
-      // final totalCostWei = gasPrice.getInWei * gasLimit;
+      final bool hasFunds = await hasEnoughFundsForGas(
+        walletAddress: wallet.storedKey.account(0).address(),
+        rpcUrl: rpcUrl,
+        gasLimit: gasLimit,
+        gasPrice: gasPrice,
+      );
 
-      // Optional: Convert wei to Ether
-      // Convert wei to Ether using EtherAmount.fromBigInt
-      // final totalCostEth = EtherAmount.fromBigInt(EtherUnit.wei, totalCostWei)
-      //     .getValueInUnit(EtherUnit.ether);
+      if (!hasFunds) {
+        return null;
+      }
 
+      // Create Transaction
       final transaction = Transaction.callContract(
         contract: bridgeContract,
         function: bridgeOutFunction,
         parameters: [
           burnAmountConverted,
-          BigInt.from(0),
-          BigInt.from(destinationChainId)
+          BigInt.from(hardCodedTokenIdForNow),
+          BigInt.from(destinationChainId),
         ],
         from: ownAddress,
-        gasPrice: gasPrice, // Example gas price
-        maxGas: gasLimit.toInt(), // Example gas limit
+        gasPrice: gasPrice,
+        maxGas: gasLimit.toInt(),
       );
 
-      final txHash = await client.sendTransaction(credentials, transaction,
-          chainId: sourceChainId);
+      return transaction;
+    } finally {
+      client.dispose();
+    }
+  }
 
-      geniusApi?.mintTokens(1, "", "", "");
+  Future<String> executeBridgeOutTransaction({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+    GeniusApi? geniusApi,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
 
-      // geniusApi?.mintTokens(
-      //     amount.toInt(), txHash, destinationChainId.toString(), '0');
+    try {
+      // Create Transaction
+      final transaction = await createBridgeOutTransaction(
+        contractAddress: contractAddress,
+        rpcUrl: rpcUrl,
+        wallet: wallet,
+        amountToBurn: amountToBurn,
+        destinationChainId: destinationChainId,
+      );
+
+      if (transaction == null) {
+        return 'Error: not enough balance for gas fees';
+      }
+
+      // Get Private Key
+      final hardCodedTokenIdForNow = 0;
+
+      final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
+
+      // Execute Transaction
+      final txHash = await client.sendTransaction(
+        credentials,
+        transaction,
+        chainId: sourceChainId,
+      );
+
+      geniusApi?.mintTokens(
+        int.parse(amountToBurn),
+        txHash,
+        destinationChainId.toString(),
+        '$hardCodedTokenIdForNow',
+      );
 
       return txHash;
     } catch (e) {
@@ -229,5 +256,69 @@ class Web3 {
     } finally {
       client.dispose();
     }
+  }
+
+  Future<EtherAmount?> getBrigeOutGasCost({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int destinationChainId,
+  }) async {
+    final transaction = await createBridgeOutTransaction(
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      wallet: wallet,
+      amountToBurn: amountToBurn,
+      destinationChainId: destinationChainId,
+    );
+
+    return transaction?.gasPrice;
+  }
+
+  double? getGasPriceInGwei(EtherAmount? gas) {
+    return gas?.getValueInUnit(EtherUnit.gwei).toDouble();
+  }
+
+  Future<bool> hasEnoughFundsForGas({
+    required String walletAddress,
+    required String rpcUrl,
+    required BigInt gasLimit, // Estimated gas limit
+    required EtherAmount gasPrice, // Gas price in wei
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    try {
+      // Get the wallet balance in wei
+      final EthereumAddress address = EthereumAddress.fromHex(walletAddress);
+      final EtherAmount balance = await client.getBalance(address);
+
+      // Calculate total gas cost: gas price * gas limit
+      final BigInt totalGasCost = gasPrice.getInWei * gasLimit;
+
+      // Check if the balance is greater than or equal to the gas cost
+      return balance.getInWei >= totalGasCost;
+    } catch (e) {
+      print("Error checking funds: $e");
+      return false;
+    } finally {
+      client.dispose();
+    }
+  }
+
+  String getPrivateKeyStr(wallet) {
+    PrivateKey privateKey;
+    if (wallet.storedKey.isMnemonic()) {
+      privateKey = wallet.storedKey
+          .wallet("")!
+          .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+    } else {
+      privateKey = wallet.storedKey
+          .privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0));
+    }
+    return privateKey
+        .data()
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
   }
 }
