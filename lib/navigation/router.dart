@@ -136,7 +136,7 @@ final geniusWalletRouter = GoRouter(
           GoRoute(
             path: ':wallet_address',
             builder: (context, state) {
-              final id = state.params['wallet_address'];
+              final id = state.pathParameters['wallet_address'];
               final wallet = context
                   .read<AppBloc>()
                   .state

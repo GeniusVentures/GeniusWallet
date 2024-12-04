@@ -83,10 +83,13 @@ class CoinsScreenState extends State<CoinsScreen> {
                                 ? TextButton(
                                     onPressed: coin.balance == 0
                                         ? null
-                                        : () {
+                                        : () async {
                                             walletCubit.selectCoin(coin);
-                                            context.push('/bridge',
+                                            await context.push('/bridge',
                                                 extra: walletCubit);
+                                            // after we come back from the push reload coins / balance
+                                            walletCubit.getCoins();
+                                            walletCubit.getWalletBalance();
                                           },
                                     child: const Text("Bridge Tokens"),
                                   )
