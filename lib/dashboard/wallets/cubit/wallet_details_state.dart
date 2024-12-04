@@ -3,6 +3,7 @@ part of 'wallet_details_cubit.dart';
 class WalletDetailsState {
   final Wallet? selectedWallet;
   final Network? selectedNetwork;
+  final Coin? selectedCoin;
   final WalletStatus copyAddressStatus;
   final WalletStatus gasFeesStatus;
   final WalletStatus fetchWalletsStatus;
@@ -32,11 +33,13 @@ class WalletDetailsState {
       this.balanceStatus = WalletStatus.initial,
       this.balance = 0,
       this.transactions = const [],
-      this.fetchTransactionsStatus = WalletStatus.initial});
+      this.fetchTransactionsStatus = WalletStatus.initial,
+      this.selectedCoin});
 
   WalletDetailsState copyWith(
       {Wallet? selectedWallet,
       Network? selectedNetwork,
+      Coin? selectedCoin,
       WalletStatus? copyAddressStatus,
       WalletStatus? gasFeesStatus,
       WalletStatus? fetchWalletsStatus,
@@ -52,6 +55,7 @@ class WalletDetailsState {
       List<Transaction>? transactions}) {
     return WalletDetailsState(
         selectedWallet: selectedWallet ?? this.selectedWallet,
+        selectedCoin: selectedCoin ?? this.selectedCoin,
         copyAddressStatus: copyAddressStatus ?? this.copyAddressStatus,
         gasFees: gasFees ?? this.gasFees,
         gasFeesStatus: gasFeesStatus ?? this.gasFeesStatus,

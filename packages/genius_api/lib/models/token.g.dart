@@ -8,9 +8,11 @@ part of 'token.dart';
 
 _$TokenImpl _$$TokenImplFromJson(Map<String, dynamic> json) => _$TokenImpl(
       address: json['address'] as String?,
+      iconPath: json['iconPath'] as String?,
     );
 
 Map<String, dynamic> _$$TokenImplToJson(_$TokenImpl instance) =>
     <String, dynamic>{
       'address': instance.address,
+      'iconPath': instance.iconPath,
     };

@@ -1,0 +1,15 @@
+[
+  {
+    "name": "GNUS",
+    "id": "0",
+    "iconPath": "assets/images/crypto/gnus.png"
+  },
+  {
+    "name": "Graffiti",
+    "id": "0x1"
+  },
+  {
+    "name": "Graffiti SHMUP",
+    "id": "0x1000000000000000000000001"
+  }
+]

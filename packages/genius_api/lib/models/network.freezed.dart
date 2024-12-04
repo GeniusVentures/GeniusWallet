@@ -21,13 +21,18 @@ Network _$NetworkFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Network {
   String? get name => throw _privateConstructorUsedError;
-  NetworkSymbol? get symbol => throw _privateConstructorUsedError;
+  String? get symbol => throw _privateConstructorUsedError;
   int? get chainId => throw _privateConstructorUsedError;
   String? get rpcUrl => throw _privateConstructorUsedError;
   String? get iconPath => throw _privateConstructorUsedError;
+  String? get tokensPath => throw _privateConstructorUsedError;
 
+  /// Serializes this Network to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $NetworkCopyWith<Network> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -38,10 +43,11 @@ abstract class $NetworkCopyWith<$Res> {
   @useResult
   $Res call(
       {String? name,
-      NetworkSymbol? symbol,
+      String? symbol,
       int? chainId,
       String? rpcUrl,
-      String? iconPath});
+      String? iconPath,
+      String? tokensPath});
 }
 
 /// @nodoc
@@ -54,6 +60,8 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -62,6 +70,7 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
     Object? chainId = freezed,
     Object? rpcUrl = freezed,
     Object? iconPath = freezed,
+    Object? tokensPath = freezed,
   }) {
     return _then(_value.copyWith(
       name: freezed == name
@@ -71,7 +80,7 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
       symbol: freezed == symbol
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
-              as NetworkSymbol?,
+              as String?,
       chainId: freezed == chainId
           ? _value.chainId
           : chainId // ignore: cast_nullable_to_non_nullable
@@ -83,6 +92,10 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
       iconPath: freezed == iconPath
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tokensPath: freezed == tokensPath
+          ? _value.tokensPath
+          : tokensPath // ignore: cast_nullable_to_non_nullable
               as String?,
     ) as $Val);
   }
@@ -97,10 +110,11 @@ abstract class _$$NetworkImplCopyWith<$Res> implements $NetworkCopyWith<$Res> {
   @useResult
   $Res call(
       {String? name,
-      NetworkSymbol? symbol,
+      String? symbol,
       int? chainId,
       String? rpcUrl,
-      String? iconPath});
+      String? iconPath,
+      String? tokensPath});
 }
 
 /// @nodoc
@@ -111,6 +125,8 @@ class __$$NetworkImplCopyWithImpl<$Res>
       _$NetworkImpl _value, $Res Function(_$NetworkImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -119,6 +135,7 @@ class __$$NetworkImplCopyWithImpl<$Res>
     Object? chainId = freezed,
     Object? rpcUrl = freezed,
     Object? iconPath = freezed,
+    Object? tokensPath = freezed,
   }) {
     return _then(_$NetworkImpl(
       name: freezed == name
@@ -128,7 +145,7 @@ class __$$NetworkImplCopyWithImpl<$Res>
       symbol: freezed == symbol
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
-              as NetworkSymbol?,
+              as String?,
       chainId: freezed == chainId
           ? _value.chainId
           : chainId // ignore: cast_nullable_to_non_nullable
@@ -141,6 +158,10 @@ class __$$NetworkImplCopyWithImpl<$Res>
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      tokensPath: freezed == tokensPath
+          ? _value.tokensPath
+          : tokensPath // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -149,7 +170,12 @@ class __$$NetworkImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$NetworkImpl implements _Network {
   const _$NetworkImpl(
-      {this.name, this.symbol, this.chainId, this.rpcUrl, this.iconPath});
+      {this.name,
+      this.symbol,
+      this.chainId,
+      this.rpcUrl,
+      this.iconPath,
+      this.tokensPath});
 
   factory _$NetworkImpl.fromJson(Map<String, dynamic> json) =>
       _$$NetworkImplFromJson(json);
@@ -157,17 +183,19 @@ class _$NetworkImpl implements _Network {
   @override
   final String? name;
   @override
-  final NetworkSymbol? symbol;
+  final String? symbol;
   @override
   final int? chainId;
   @override
   final String? rpcUrl;
   @override
   final String? iconPath;
+  @override
+  final String? tokensPath;
 
   @override
   String toString() {
-    return 'Network(name: $name, symbol: $symbol, chainId: $chainId, rpcUrl: $rpcUrl, iconPath: $iconPath)';
+    return 'Network(name: $name, symbol: $symbol, chainId: $chainId, rpcUrl: $rpcUrl, iconPath: $iconPath, tokensPath: $tokensPath)';
   }
 
   @override
@@ -180,15 +208,19 @@ class _$NetworkImpl implements _Network {
             (identical(other.chainId, chainId) || other.chainId == chainId) &&
             (identical(other.rpcUrl, rpcUrl) || other.rpcUrl == rpcUrl) &&
             (identical(other.iconPath, iconPath) ||
-                other.iconPath == iconPath));
+                other.iconPath == iconPath) &&
+            (identical(other.tokensPath, tokensPath) ||
+                other.tokensPath == tokensPath));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, symbol, chainId, rpcUrl, iconPath);
+  int get hashCode => Object.hash(
+      runtimeType, name, symbol, chainId, rpcUrl, iconPath, tokensPath);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$NetworkImplCopyWith<_$NetworkImpl> get copyWith =>
@@ -205,17 +237,18 @@ class _$NetworkImpl implements _Network {
 abstract class _Network implements Network {
   const factory _Network(
       {final String? name,
-      final NetworkSymbol? symbol,
+      final String? symbol,
       final int? chainId,
       final String? rpcUrl,
-      final String? iconPath}) = _$NetworkImpl;
+      final String? iconPath,
+      final String? tokensPath}) = _$NetworkImpl;
 
   factory _Network.fromJson(Map<String, dynamic> json) = _$NetworkImpl.fromJson;
 
   @override
   String? get name;
   @override
-  NetworkSymbol? get symbol;
+  String? get symbol;
   @override
   int? get chainId;
   @override
@@ -223,7 +256,12 @@ abstract class _Network implements Network {
   @override
   String? get iconPath;
   @override
-  @JsonKey(ignore: true)
+  String? get tokensPath;
+
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$NetworkImplCopyWith<_$NetworkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

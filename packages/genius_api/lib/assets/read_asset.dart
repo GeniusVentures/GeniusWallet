@@ -4,7 +4,6 @@ import 'package:genius_api/assets/assets.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
-import 'package:genius_api/types/network_symbol.dart';
 import 'package:genius_api/web3/web3.dart';
 
 Future<List<Network>> readNetworkAssets() async {
@@ -23,13 +22,27 @@ Future<List<Network>> readNetworkAssets() async {
   return networkList;
 }
 
+Future<List<Network>> readNetworkBridgeAssets() async {
+  const String assetLocation = 'assets/json/networks/bridge.json';
+  final String? response = await safeLoadAsset(assetLocation);
+
+  if (response == null) {
+    return List.empty();
+  }
+
+  final networksJson = await jsonDecode(response);
+
+  List<Network> networkList = List<Network>.from(
+      networksJson.map((network) => Network.fromJson(network)));
+
+  return networkList;
+}
+
 Future<List<Coin>> readTokenAssets(
     {required String walletAddress,
     required String rpcUrl,
     required Network network}) async {
-  final String assetLocation =
-      'assets/json/${network.symbol?.name}/tokens.json';
-  final String? response = await safeLoadAsset(assetLocation);
+  final String? response = await safeLoadAsset(network.tokensPath ?? "");
 
   if (response == null) {
     return List.empty();
@@ -47,9 +60,8 @@ Future<List<Coin>> readTokenAssets(
   coinList.add(Coin(
       balance: balance,
       name: network.name,
-      symbol: network.symbol?.name.toUpperCase(),
+      symbol: network.symbol?.toUpperCase(),
       networkSymbol: network.symbol,
-      // Try to find a crypto image by symbol
       iconPath: network.iconPath));
 
   for (var tokenContract in tokensList) {
@@ -66,14 +78,12 @@ Future<List<Coin>> readTokenAssets(
       }
       coinList.add(Coin(
           balance: balance,
+          address: tokenContract.address,
           name: await web3.name(
               contractAddress: tokenContract.address!, rpcUrl: rpcUrl),
           symbol: coinSymbol,
           networkSymbol: network.symbol,
-          // Try to find a crypto image by symbol
-          iconPath: coinSymbol.isNotEmpty
-              ? 'assets/images/crypto/${coinSymbol.toLowerCase()}.png'
-              : ''));
+          iconPath: tokenContract.iconPath));
     }
   }
 

@@ -1,10 +1,36 @@
+import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/src/genius_api.dart';
+import 'package:genius_api/tw/private_key.dart';
+import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Web3 {
+  final GeniusApi? geniusApi;
+
+  Web3({this.geniusApi});
+
   static final abi = ContractAbi.fromJson(
       '''[{ "constant": true, "inputs": [], "name": "name", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [ { "name": "", "type": "uint8" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [ { "name": "_owner", "type": "address" } ], "name": "balanceOf", "outputs": [ { "name": "balance", "type": "uint256" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "type": "function" }]''',
       '');
+  static final bridgeOutAbi = ContractAbi.fromJson('''
+    [
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "amount", "type": "uint256" },
+          { "internalType": "uint256", "name": "id", "type": "uint256" },
+          { "internalType": "uint256", "name": "destChainID", "type": "uint256" }
+        ],
+        "name": "bridgeOut",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ]
+  ''', '');
 
   Future<double> balanceOf(
       {required String address,
@@ -96,27 +122,203 @@ class Web3 {
       return 0;
     }
   }
+
+  Future<Transaction?> createBridgeOutTransaction({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int destinationChainId,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+    final hardCodedTokenIdForNow = 0;
+
+    final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
+    final ownAddress = credentials.address;
+
+    EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
+
+    try {
+      // Contract Setup
+      final bridgeContract = DeployedContract(
+        bridgeOutAbi,
+        contractAddr,
+      );
+      final contract = DeployedContract(abi, contractAddr);
+      final bridgeOutFunction = bridgeContract.function('bridgeOut');
+      final decimalsFunction = contract.function('decimals');
+
+      // Get Token Decimals
+      final tokenDecimals = await client.call(
+        contract: bridgeContract,
+        function: decimalsFunction,
+        params: [],
+      );
+
+      // Convert Amount to BigInt
+      final double amount = double.parse(amountToBurn);
+      final burnAmountConverted = BigInt.from(
+          amount * pow(10, int.parse(tokenDecimals.first.toString())));
+
+      // Estimate Gas Price and Gas Limit
+      final gasPrice = await client.getGasPrice();
+      final gasLimit = await client.estimateGas(
+        sender: ownAddress,
+        to: contractAddr,
+        data: bridgeOutFunction.encodeCall(
+          [
+            burnAmountConverted,
+            BigInt.from(hardCodedTokenIdForNow),
+            BigInt.from(destinationChainId)
+          ],
+        ),
+      );
+
+      final bool hasFunds = await hasEnoughFundsForGas(
+        walletAddress: wallet.storedKey.account(0).address(),
+        rpcUrl: rpcUrl,
+        gasLimit: gasLimit,
+        gasPrice: gasPrice,
+      );
+
+      if (!hasFunds) {
+        return null;
+      }
+
+      // Create Transaction
+      final transaction = Transaction.callContract(
+        contract: bridgeContract,
+        function: bridgeOutFunction,
+        parameters: [
+          burnAmountConverted,
+          BigInt.from(hardCodedTokenIdForNow),
+          BigInt.from(destinationChainId),
+        ],
+        from: ownAddress,
+        gasPrice: gasPrice,
+        maxGas: gasLimit.toInt(),
+      );
+
+      return transaction;
+    } finally {
+      client.dispose();
+    }
+  }
+
+  Future<String> executeBridgeOutTransaction({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+    GeniusApi? geniusApi,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    try {
+      // Create Transaction
+      final transaction = await createBridgeOutTransaction(
+        contractAddress: contractAddress,
+        rpcUrl: rpcUrl,
+        wallet: wallet,
+        amountToBurn: amountToBurn,
+        destinationChainId: destinationChainId,
+      );
+
+      if (transaction == null) {
+        return 'Error: not enough balance for gas fees';
+      }
+
+      // Get Private Key
+      final hardCodedTokenIdForNow = 0;
+
+      final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
+
+      // Execute Transaction
+      final txHash = await client.sendTransaction(
+        credentials,
+        transaction,
+        chainId: sourceChainId,
+      );
+
+      geniusApi?.mintTokens(
+        int.parse(amountToBurn),
+        txHash,
+        destinationChainId.toString(),
+        '$hardCodedTokenIdForNow',
+      );
+
+      return txHash;
+    } catch (e) {
+      print('Error: $e');
+      return "Error: $e";
+    } finally {
+      client.dispose();
+    }
+  }
+
+  Future<EtherAmount?> getBrigeOutGasCost({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int destinationChainId,
+  }) async {
+    final transaction = await createBridgeOutTransaction(
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      wallet: wallet,
+      amountToBurn: amountToBurn,
+      destinationChainId: destinationChainId,
+    );
+
+    return transaction?.gasPrice;
+  }
+
+  double? getGasPriceInGwei(EtherAmount? gas) {
+    return gas?.getValueInUnit(EtherUnit.gwei).toDouble();
+  }
+
+  Future<bool> hasEnoughFundsForGas({
+    required String walletAddress,
+    required String rpcUrl,
+    required BigInt gasLimit, // Estimated gas limit
+    required EtherAmount gasPrice, // Gas price in wei
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    try {
+      // Get the wallet balance in wei
+      final EthereumAddress address = EthereumAddress.fromHex(walletAddress);
+      final EtherAmount balance = await client.getBalance(address);
+
+      // Calculate total gas cost: gas price * gas limit
+      final BigInt totalGasCost = gasPrice.getInWei * gasLimit;
+
+      // Check if the balance is greater than or equal to the gas cost
+      return balance.getInWei >= totalGasCost;
+    } catch (e) {
+      print("Error checking funds: $e");
+      return false;
+    } finally {
+      client.dispose();
+    }
+  }
+
+  String getPrivateKeyStr(wallet) {
+    PrivateKey privateKey;
+    if (wallet.storedKey.isMnemonic()) {
+      privateKey = wallet.storedKey
+          .wallet("")!
+          .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+    } else {
+      privateKey = wallet.storedKey
+          .privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0));
+    }
+    return privateKey
+        .data()
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
 }
-
-// Send transaction
-
-   // final credentials = EthPrivateKey.fromHex(privateKey);
-    // final address = credentials.address;
-
-    // final ethAddress = EthereumAddress.fromHex(address);
-    // final balance = await client.getBalance(ethAddress);
-
-    // final ethBalance = balance.getValueInUnit(EtherUnit.ether);
-
-    // print(ethBalance);
-
-    // await client.sendTransaction(
-    //   credentials,
-    //   Transaction(
-    //     to: EthereumAddress.fromHex(
-    //         '0xC914Bb2ba888e3367bcecEb5C2d99DF7C7423706'),
-    //     gasPrice: EtherAmount.inWei(BigInt.one),
-    //     maxGas: 100000,
-    //     value: EtherAmount.fromInt(EtherUnit.ether, 1),
-    //   ),
-    // );

@@ -5,6 +5,7 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
@@ -239,6 +240,16 @@ final geniusWalletRouter = GoRouter(
         return BlocProvider.value(
           value: state.extra as WalletDetailsCubit,
           child: const SwapScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/bridge',
+      builder: (context, state) {
+        final cubit = state.extra as WalletDetailsCubit;
+        return BlocProvider.value(
+          value: cubit,
+          child: BridgeScreen(fromToken: cubit.state.selectedCoin),
         );
       },
     ),

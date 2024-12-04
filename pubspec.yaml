@@ -43,10 +43,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/json/networks/
-    - assets/json/eth/
-    - assets/json/matic/
-    - assets/json/eth_test_net/
-    - assets/json/matic_test_net/
+    - assets/json/tokens/
     - assets/images/
     - assets/images/crypto/
     - packages/genius_wallet/assets/images/mask2.png

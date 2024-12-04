@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Super Genius - TestNet",
+        "symbol": "gnus",
+        "chainId": 15305752297694,
+        "rpcUrl": "",
+        "iconPath": "assets/images/crypto/sgnus.png",
+        "tokensPath": "assets/json/tokens/super_genius_test_net.json"
+    }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "GNUS",
+    "address": "0x127E47abA094a9a87D084a3a93732909Ff031419",
+    "iconPath": "assets/images/crypto/gnus.png"
+  },
+  {
+    "name": "USDT",
+    "address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "iconPath": "assets/images/crypto/usdt.png"
+  },
+  {
+    "name": "USDC",
+    "address": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    "iconPath": "assets/images/crypto/usdc.png"
+  }
+]

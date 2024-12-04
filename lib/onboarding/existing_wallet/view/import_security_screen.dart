@@ -253,19 +253,8 @@ class _ImportSecurityBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 50,
-          child: const TabBar(
-            dividerHeight: 0,
-            indicatorSize: TabBarIndicatorSize.label,
-            indicatorColor: GeniusWalletColors.lightGreenPrimary,
-            indicatorWeight: 1,
-            indicatorPadding: EdgeInsets.symmetric(vertical: 6),
-            labelColor: Colors.white,
-            tabAlignment: TabAlignment.start,
-            labelPadding: EdgeInsets.only(left: 22, right: 20),
-            isScrollable: true,
+        const SizedBox(
+          child: TabBar(
             tabs: [
               Tab(text: 'Phrase'),
               Tab(text: 'Private Key'),
@@ -274,6 +263,7 @@ class _ImportSecurityBody extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 20),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
           height: 350,

@@ -31,6 +31,10 @@ class SubmitJobScreen extends StatelessWidget {
                     'Use this file upload to submit a new job process to the Genius SDK.',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  Text(
+                    '* You must have enough GNUS to pay for the job',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                   const SizedBox(height: 32),
                   const SubmitJobForm()
                 ]))));
@@ -47,7 +51,15 @@ class SubmitJobForm extends StatefulWidget {
 class SubmitJobFormState extends State<SubmitJobForm> {
   String? _uploadedFileName;
   Map<String, dynamic>? _jsonData;
-  int? _cost = 0;
+  int _cost = 0;
+
+  void resetState() {
+    setState(() {
+      _uploadedFileName = null;
+      _jsonData = null;
+      _cost = 0;
+    });
+  }
 
   // Function to pick a JSON file
   Future<void> _pickJsonFile() async {
@@ -71,28 +83,30 @@ class SubmitJobFormState extends State<SubmitJobForm> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: GeniusWalletColors.containerGray,
-          content:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Failed to upload JSON file:',
-                style: TextStyle(color: Colors.white, fontSize: 18)),
-            Text('$e',
-                style: const TextStyle(
-                    color: GeniusWalletColors.red, fontSize: 18))
-          ]),
-        ),
-      );
-      setState(() {
-        _uploadedFileName = null;
-        _jsonData = null;
-      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: GeniusWalletColors.containerGray,
+            content:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Failed to upload JSON file:',
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+              Text('$e',
+                  style: const TextStyle(
+                      color: GeniusWalletColors.red, fontSize: 18))
+            ]),
+          ),
+        );
+      }
+      resetState();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final geniusApi = context.read<GeniusApi>();
+    final geniusBalance = geniusApi.getSGNUSBalance();
+    final isPurchaseable = _cost < geniusBalance;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -115,26 +129,42 @@ class SubmitJobFormState extends State<SubmitJobForm> {
               const SizedBox(width: 16),
               if (_uploadedFileName != null && _jsonData != null)
                 TextButton(
-                  style: const ButtonStyle(
-                    shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                  style: TextButton.styleFrom(
+                    foregroundColor: GeniusWalletColors.deepBlueCardColor,
+                    disabledForegroundColor: GeniusWalletColors.gray500,
+                    disabledBackgroundColor:
+                        GeniusWalletColors.deepBlueSecondary,
+                    shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(
-                            GeniusWalletConsts.borderRadiusButton)))),
-                    backgroundColor: WidgetStatePropertyAll(
-                        GeniusWalletColors.lightGreenPrimary),
-                    padding: WidgetStatePropertyAll(EdgeInsets.only(
-                        left: 16, right: 16, top: 8, bottom: 8)),
+                            GeniusWalletConsts.borderRadiusButton))),
+                    backgroundColor: GeniusWalletColors.lightGreenPrimary,
+                    padding: const EdgeInsets.only(
+                        left: 16, right: 16, top: 8, bottom: 8),
                   ),
-                  onPressed: () {
-                    final jobJson = jsonEncode(_jsonData);
-                    //context.read<GeniusApi>().mintTokens(100, "", "", "");
-                    context
-                        .read<GeniusApi>()
-                        .requestGeniusSDKProcess(jobJson: jobJson);
-                  },
+                  // disable button if not enought gnus balance to pay for the job
+                  onPressed: !isPurchaseable
+                      ? null
+                      : () {
+                          final jobJson = jsonEncode(_jsonData);
+                          geniusApi.requestGeniusSDKProcess(jobJson: jobJson);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: GeniusWalletColors.containerGray,
+                              content: Row(children: [
+                                const Text('Successfully Submitted Job:   ',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 18)),
+                                Text('$_uploadedFileName',
+                                    style: const TextStyle(
+                                        color: GeniusWalletColors.successGreen,
+                                        fontSize: 18))
+                              ]),
+                            ),
+                          );
+                          resetState();
+                        },
                   child: const Text(
                     'Submit Job',
-                    style:
-                        TextStyle(color: GeniusWalletColors.deepBlueCardColor),
                   ),
                 ),
             ],
@@ -143,17 +173,52 @@ class SubmitJobFormState extends State<SubmitJobForm> {
             height: 64,
           ),
           if (_uploadedFileName != null)
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(
-                'Uploaded File: ',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              Text(
-                "$_uploadedFileName",
-                style: TextStyle(
-                    fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-                    color: GeniusWalletColors.lightGreenPrimary),
-              )
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Wrap(runSpacing: 12, spacing: 12, children: [
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Text('Uploaded File: ',
+                      style: TextStyle(fontSize: 16, letterSpacing: 1.2)),
+                  Text(
+                    "$_uploadedFileName",
+                    style: const TextStyle(
+                        fontSize: 16,
+                        letterSpacing: 1.5,
+                        color: GeniusWalletColors.lightGreenPrimary),
+                  ),
+                ]),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Text(
+                    'Cost: ',
+                    style: TextStyle(fontSize: 16, letterSpacing: 1.2),
+                  ),
+                  Text(
+                    "$_cost GNUS",
+                    style: const TextStyle(
+                        fontSize: 16,
+                        letterSpacing: 1.5,
+                        color: GeniusWalletColors.red),
+                  ),
+                ]),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Text(
+                    'Available: ',
+                    style: TextStyle(fontSize: 16, letterSpacing: 1.2),
+                  ),
+                  Text(
+                    "$geniusBalance GNUS",
+                    style: const TextStyle(
+                        fontSize: 16,
+                        letterSpacing: 1.5,
+                        color: GeniusWalletColors.blue500),
+                  )
+                ])
+              ]),
+              if (!isPurchaseable) ...[
+                const SizedBox(height: 8),
+                const Text('* You do not have enough GNUS to submit this job',
+                    style:
+                        TextStyle(color: GeniusWalletColors.red, fontSize: 18))
+              ]
             ]),
           const SizedBox(height: 16),
           if (_jsonData != null)
