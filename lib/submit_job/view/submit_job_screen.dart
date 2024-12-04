@@ -49,6 +49,14 @@ class SubmitJobFormState extends State<SubmitJobForm> {
   Map<String, dynamic>? _jsonData;
   int? _cost = 0;
 
+  void resetState() {
+    setState(() {
+      _uploadedFileName = null;
+      _jsonData = null;
+      _cost = 0;
+    });
+  }
+
   // Function to pick a JSON file
   Future<void> _pickJsonFile() async {
     try {
@@ -84,10 +92,7 @@ class SubmitJobFormState extends State<SubmitJobForm> {
           ]),
         ),
       );
-      setState(() {
-        _uploadedFileName = null;
-        _jsonData = null;
-      });
+      resetState();
     }
   }
 
@@ -127,9 +132,25 @@ class SubmitJobFormState extends State<SubmitJobForm> {
                   onPressed: () {
                     final jobJson = jsonEncode(_jsonData);
                     //context.read<GeniusApi>().mintTokens(100, "", "", "");
+                    // TODO: handle errors from submit??
                     context
                         .read<GeniusApi>()
                         .requestGeniusSDKProcess(jobJson: jobJson);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: GeniusWalletColors.containerGray,
+                        content: Row(children: [
+                          const Text('Successfully Submitted Job:   ',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18)),
+                          Text('$_uploadedFileName',
+                              style: const TextStyle(
+                                  color: GeniusWalletColors.successGreen,
+                                  fontSize: 18))
+                        ]),
+                      ),
+                    );
+                    resetState();
                   },
                   child: const Text(
                     'Submit Job',
@@ -144,14 +165,24 @@ class SubmitJobFormState extends State<SubmitJobForm> {
           ),
           if (_uploadedFileName != null)
             Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(
-                'Uploaded File: ',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
+              const Text('Uploaded File: ',
+                  style: TextStyle(fontSize: 16, letterSpacing: 1.2)),
               Text(
                 "$_uploadedFileName",
-                style: TextStyle(
-                    fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                style: const TextStyle(
+                    fontSize: 16,
+                    letterSpacing: 1.5,
+                    color: GeniusWalletColors.lightGreenPrimary),
+              ),
+              const Text(
+                '    Cost: ',
+                style: TextStyle(fontSize: 16, letterSpacing: 1.2),
+              ),
+              Text(
+                "$_cost",
+                style: const TextStyle(
+                    fontSize: 16,
+                    letterSpacing: 1.5,
                     color: GeniusWalletColors.lightGreenPrimary),
               )
             ]),

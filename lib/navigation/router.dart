@@ -246,9 +246,10 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/bridge',
       builder: (context, state) {
+        final cubit = state.extra as WalletDetailsCubit;
         return BlocProvider.value(
-          value: state.extra as WalletDetailsCubit,
-          child: const BridgeScreen(),
+          value: cubit,
+          child: BridgeScreen(fromToken: cubit.state.selectedCoin),
         );
       },
     ),

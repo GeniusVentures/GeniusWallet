@@ -22,6 +22,22 @@ Future<List<Network>> readNetworkAssets() async {
   return networkList;
 }
 
+Future<List<Network>> readNetworkBridgeAssets() async {
+  const String assetLocation = 'assets/json/networks/bridge.json';
+  final String? response = await safeLoadAsset(assetLocation);
+
+  if (response == null) {
+    return List.empty();
+  }
+
+  final networksJson = await jsonDecode(response);
+
+  List<Network> networkList = List<Network>.from(
+      networksJson.map((network) => Network.fromJson(network)));
+
+  return networkList;
+}
+
 Future<List<Coin>> readTokenAssets(
     {required String walletAddress,
     required String rpcUrl,

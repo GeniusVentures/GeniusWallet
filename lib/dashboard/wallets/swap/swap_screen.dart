@@ -171,14 +171,7 @@ class SwapScreenState extends State<SwapScreen> {
                             ? null
                             : () {
                                 // Simulate swap action
-                                context.read<GeniusApi>().bridgeOut(
-                                    contractAddress: fromToken?.address ?? "",
-                                    rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                                    address:
-                                        state.selectedWallet?.address ?? "",
-                                    amountToBurn: fromAmountController.text,
-                                    chainId:
-                                        state.selectedNetwork?.chainId ?? 0);
+
                                 // showDialog(
                                 //   context: context,
                                 //   builder: (_) => AlertDialog(

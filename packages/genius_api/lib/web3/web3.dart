@@ -2,12 +2,17 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/src/genius_api.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Web3 {
+  final GeniusApi? geniusApi;
+
+  Web3({this.geniusApi});
+
   static final abi = ContractAbi.fromJson(
       '''[{ "constant": true, "inputs": [], "name": "name", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [ { "name": "", "type": "uint8" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [ { "name": "_owner", "type": "address" } ], "name": "balanceOf", "outputs": [ { "name": "balance", "type": "uint256" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "type": "function" }]''',
       '');
@@ -123,7 +128,8 @@ class Web3 {
       required String rpcUrl,
       required StoredKeyWallet? wallet,
       required String amountToBurn,
-      required int chainId}) async {
+      required int sourceChainId,
+      required int destinationChainId}) async {
     final client = Web3Client(rpcUrl, Client());
 
     if (wallet == null) {
@@ -169,59 +175,52 @@ class Web3 {
         EthereumAddress.fromHex(contractAddress),
       );
 
-      print('burn amount $burnAmountConverted');
-      print('decimals $tokenDecimals');
-
       final bridgeOutFunction = bridgeContract.function('bridgeOut');
 
       // Estimate Gas Price
       final gasPrice = await client.getGasPrice();
-      print('Gas Price: ${gasPrice.getInWei} wei');
-
-      print('own address $ownAddress');
 
       // Estimate Gas Limit
       final gasLimit = await client.estimateGas(
         sender: ownAddress,
         to: EthereumAddress.fromHex(contractAddress),
         data: bridgeOutFunction.encodeCall(
-          [burnAmountConverted, BigInt.from(0), BigInt.from(chainId)],
+          [
+            burnAmountConverted,
+            BigInt.from(0),
+            BigInt.from(destinationChainId)
+          ],
         ), // Encoded function data
       );
 
-      print('Estimated Gas Limit: $gasLimit');
-
       // Calculate Total Gas Cost
-      final totalCostWei = gasPrice.getInWei * gasLimit;
-      print('Total Cost (wei): $totalCostWei');
+      // final totalCostWei = gasPrice.getInWei * gasLimit;
 
       // Optional: Convert wei to Ether
       // Convert wei to Ether using EtherAmount.fromBigInt
-      final totalCostEth = EtherAmount.fromBigInt(EtherUnit.wei, totalCostWei)
-          .getValueInUnit(EtherUnit.ether);
-      print('Total Cost (ETH): $totalCostEth');
+      // final totalCostEth = EtherAmount.fromBigInt(EtherUnit.wei, totalCostWei)
+      //     .getValueInUnit(EtherUnit.ether);
 
       final transaction = Transaction.callContract(
         contract: bridgeContract,
         function: bridgeOutFunction,
-        parameters: [burnAmountConverted, BigInt.from(0), BigInt.from(chainId)],
+        parameters: [
+          burnAmountConverted,
+          BigInt.from(0),
+          BigInt.from(destinationChainId)
+        ],
         from: ownAddress,
         gasPrice: gasPrice, // Example gas price
         maxGas: gasLimit.toInt(), // Example gas limit
       );
 
-      print('trans***');
-      print(transaction);
+      final txHash = await client.sendTransaction(credentials, transaction,
+          chainId: sourceChainId);
 
-      // final txHash = "";
+      geniusApi?.mintTokens(1, "", "", "");
 
-      final txHash = await client.sendTransaction(
-        credentials,
-        transaction,
-        chainId: chainId,
-      );
-
-      print('Transaction Hash: $txHash');
+      // geniusApi?.mintTokens(
+      //     amount.toInt(), txHash, destinationChainId.toString(), '0');
 
       return txHash;
     } catch (e) {
@@ -232,30 +231,3 @@ class Web3 {
     }
   }
 }
-
-
-
-
-
-// Send transaction
-
-   // final credentials = EthPrivateKey.fromHex(privateKey);
-    // final address = credentials.address;
-
-    // final ethAddress = EthereumAddress.fromHex(address);
-    // final balance = await client.getBalance(ethAddress);
-
-    // final ethBalance = balance.getValueInUnit(EtherUnit.ether);
-
-    // print(ethBalance);
-
-    // await client.sendTransaction(
-    //   credentials,
-    //   Transaction(
-    //     to: EthereumAddress.fromHex(
-    //         '0xC914Bb2ba888e3367bcecEb5C2d99DF7C7423706'),
-    //     gasPrice: EtherAmount.inWei(BigInt.one),
-    //     maxGas: 100000,
-    //     value: EtherAmount.fromInt(EtherUnit.ether, 1),
-    //   ),
-    // );

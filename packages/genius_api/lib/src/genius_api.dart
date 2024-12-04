@@ -259,18 +259,12 @@ class GeniusApi {
       // Free the allocated memory to prevent memory leaks
       calloc.free(jsonPointer);
     }
-
-    // Print for debugging purposes
-    print(jobJson);
   }
 
   int requestGeniusSDKCost({required String jobJson}) {
     if (jobJson.isEmpty) {
       return 0;
     }
-
-    // Print for debugging purposes
-    print(jobJson);
 
     // Allocate memory for the jobJson string
     final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
@@ -679,14 +673,16 @@ class GeniusApi {
       required String rpcUrl,
       required String address,
       required String amountToBurn,
-      required int chainId}) async {
+      required int sourceChainId,
+      required int destinationChainId}) async {
     final wallet = await _secureStorage.getWallet(address);
 
-    return await Web3().bridgeOut(
+    return await Web3(geniusApi: this).bridgeOut(
         contractAddress: contractAddress,
         rpcUrl: rpcUrl,
         amountToBurn: amountToBurn,
-        chainId: chainId,
+        sourceChainId: sourceChainId,
+        destinationChainId: destinationChainId,
         wallet: wallet);
   }
 }

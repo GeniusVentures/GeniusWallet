@@ -57,18 +57,18 @@ class CoinsScreen extends StatelessWidget {
                           balance: coin.balance ?? 0.0,
                           name: coin.name ?? "",
                           symbol: coin.symbol ?? "",
-                          additionalCardWidget: coin.symbol?.toLowerCase() ==
-                                  'gnus'
-                              ? TextButton(
-                                  onPressed: coin.balance == 0
-                                      ? null
-                                      : () {
-                                          context.push('/bridge',
-                                              extra: context
-                                                  .read<WalletDetailsCubit>());
-                                        },
-                                  child: const Text("Bridge Tokens"))
-                              : null)),
+                          additionalCardWidget:
+                              coin.symbol?.toLowerCase() == 'gnus'
+                                  ? TextButton(
+                                      onPressed: coin.balance == 0
+                                          ? null
+                                          : () {
+                                              walletCubit.selectCoin(coin);
+                                              context.push('/bridge',
+                                                  extra: walletCubit);
+                                            },
+                                      child: const Text("Bridge Tokens"))
+                                  : null)),
                 ),
           ],
         );
