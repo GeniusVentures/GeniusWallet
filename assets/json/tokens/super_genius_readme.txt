@@ -32,11 +32,12 @@ What super genius networks can we bridge to?
 
 
 
-
-
+-----------------
+Need SDK Changes for this--
 call balanceOf like normal 
 -but can also pass tokenId to get children token balances
 
+----------------------------
 
 
 
@@ -49,11 +50,12 @@ change the swap to be a bridge only for now.
 
 
 1. On Genius token only add a bridge button, 
+
+// Need SDK changes to get balances.. need lists / icons for these from Ken
 2. populate children tokens as well...
-
-
-
 3. if rpc URL is empty call the sdk.
+
+
 
 
 change the network...
@@ -61,9 +63,11 @@ change the network...
 - dest network
 any network..
 
-//poly to supergenius
 
 
+
+
+ADD BRIDGING FROM TESTNET TO TESTNET ONLY
 poly testnet to supergenius testnet
 
 eth testnet  to supergenius testnet

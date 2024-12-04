@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:go_router/go_router.dart';
 
 class CoinsScreen extends StatelessWidget {
   final Function(Coin)? onCoinSelected;
@@ -52,11 +53,22 @@ class CoinsScreen extends StatelessWidget {
                   },
                   child: CoinCardContainer(
                       child: CoinCardRow(
-                    iconPath: coin.iconPath ?? "",
-                    balance: coin.balance ?? 0.0,
-                    name: coin.name ?? "",
-                    symbol: coin.symbol ?? "",
-                  )),
+                          iconPath: coin.iconPath ?? "",
+                          balance: coin.balance ?? 0.0,
+                          name: coin.name ?? "",
+                          symbol: coin.symbol ?? "",
+                          additionalCardWidget: coin.symbol?.toLowerCase() ==
+                                  'gnus'
+                              ? TextButton(
+                                  onPressed: coin.balance == 0
+                                      ? null
+                                      : () {
+                                          context.push('/bridge',
+                                              extra: context
+                                                  .read<WalletDetailsCubit>());
+                                        },
+                                  child: const Text("Bridge Tokens"))
+                              : null)),
                 ),
           ],
         );
@@ -70,55 +82,60 @@ class CoinCardRow extends StatelessWidget {
   final String name;
   final String symbol;
   final double balance;
+  final Widget? additionalCardWidget;
   const CoinCardRow(
       {Key? key,
       required this.iconPath,
       required this.name,
       required this.balance,
-      required this.symbol})
+      required this.symbol,
+      this.additionalCardWidget})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Image.asset(
-          iconPath,
-          height: 48,
-          width: 48,
-          errorBuilder: (context, error, stackTrace) {
-            return const SizedBox(height: 48, width: 48);
-          },
-        ),
-        const SizedBox(width: 12),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                AutoSizeText(name),
-              ],
-            ),
-            Row(
-              children: [
-                AutoSizeText(
-                  style: const TextStyle(color: GeniusWalletColors.gray500),
-                  balance == 0 ? '0' : balance.toDouble().toStringAsFixed(5),
-                ),
-                const SizedBox(width: 8),
-                AutoSizeText(
-                  style: const TextStyle(color: GeniusWalletColors.gray500),
-                  symbol,
-                )
-              ],
-            )
-          ],
-        ),
-      ],
-    );
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Image.asset(
+            iconPath,
+            height: 48,
+            width: 48,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox(height: 48, width: 48);
+            },
+          ),
+          const SizedBox(width: 12),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  AutoSizeText(name),
+                ],
+              ),
+              Row(
+                children: [
+                  AutoSizeText(
+                    style: const TextStyle(color: GeniusWalletColors.gray500),
+                    balance == 0 ? '0' : balance.toDouble().toStringAsFixed(5),
+                  ),
+                  const SizedBox(width: 8),
+                  AutoSizeText(
+                    style: const TextStyle(color: GeniusWalletColors.gray500),
+                    symbol,
+                  )
+                ],
+              )
+            ],
+          ),
+        ],
+      ),
+      Container(child: additionalCardWidget ?? additionalCardWidget)
+    ]);
   }
 }
 
