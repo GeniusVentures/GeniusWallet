@@ -205,15 +205,13 @@ class Web3 {
     }
   }
 
-  Future<String> executeBridgeOutTransaction({
-    required String contractAddress,
-    required String rpcUrl,
-    required StoredKeyWallet wallet,
-    required String amountToBurn,
-    required int sourceChainId,
-    required int destinationChainId,
-    GeniusApi? geniusApi,
-  }) async {
+  Future<String> executeBridgeOutTransaction(
+      {required String contractAddress,
+      required String rpcUrl,
+      required StoredKeyWallet wallet,
+      required String amountToBurn,
+      required int sourceChainId,
+      required int destinationChainId}) async {
     final client = Web3Client(rpcUrl, Client());
 
     try {
