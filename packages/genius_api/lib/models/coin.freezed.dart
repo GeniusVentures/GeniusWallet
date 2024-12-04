@@ -22,12 +22,17 @@ Coin _$CoinFromJson(Map<String, dynamic> json) {
 mixin _$Coin {
   String? get name => throw _privateConstructorUsedError;
   String? get symbol => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
   double? get balance => throw _privateConstructorUsedError;
-  NetworkSymbol? get networkSymbol => throw _privateConstructorUsedError;
+  String? get networkSymbol => throw _privateConstructorUsedError;
   String? get iconPath => throw _privateConstructorUsedError;
 
+  /// Serializes this Coin to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CoinCopyWith<Coin> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -39,8 +44,9 @@ abstract class $CoinCopyWith<$Res> {
   $Res call(
       {String? name,
       String? symbol,
+      String? address,
       double? balance,
-      NetworkSymbol? networkSymbol,
+      String? networkSymbol,
       String? iconPath});
 }
 
@@ -54,11 +60,14 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? name = freezed,
     Object? symbol = freezed,
+    Object? address = freezed,
     Object? balance = freezed,
     Object? networkSymbol = freezed,
     Object? iconPath = freezed,
@@ -72,6 +81,10 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
               as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
       balance: freezed == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
@@ -79,7 +92,7 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
       networkSymbol: freezed == networkSymbol
           ? _value.networkSymbol
           : networkSymbol // ignore: cast_nullable_to_non_nullable
-              as NetworkSymbol?,
+              as String?,
       iconPath: freezed == iconPath
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
@@ -98,8 +111,9 @@ abstract class _$$CoinImplCopyWith<$Res> implements $CoinCopyWith<$Res> {
   $Res call(
       {String? name,
       String? symbol,
+      String? address,
       double? balance,
-      NetworkSymbol? networkSymbol,
+      String? networkSymbol,
       String? iconPath});
 }
 
@@ -110,11 +124,14 @@ class __$$CoinImplCopyWithImpl<$Res>
   __$$CoinImplCopyWithImpl(_$CoinImpl _value, $Res Function(_$CoinImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? name = freezed,
     Object? symbol = freezed,
+    Object? address = freezed,
     Object? balance = freezed,
     Object? networkSymbol = freezed,
     Object? iconPath = freezed,
@@ -128,6 +145,10 @@ class __$$CoinImplCopyWithImpl<$Res>
           ? _value.symbol
           : symbol // ignore: cast_nullable_to_non_nullable
               as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
       balance: freezed == balance
           ? _value.balance
           : balance // ignore: cast_nullable_to_non_nullable
@@ -135,7 +156,7 @@ class __$$CoinImplCopyWithImpl<$Res>
       networkSymbol: freezed == networkSymbol
           ? _value.networkSymbol
           : networkSymbol // ignore: cast_nullable_to_non_nullable
-              as NetworkSymbol?,
+              as String?,
       iconPath: freezed == iconPath
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
@@ -150,6 +171,7 @@ class _$CoinImpl implements _Coin {
   const _$CoinImpl(
       {this.name,
       this.symbol,
+      this.address,
       this.balance,
       this.networkSymbol,
       this.iconPath});
@@ -162,15 +184,17 @@ class _$CoinImpl implements _Coin {
   @override
   final String? symbol;
   @override
+  final String? address;
+  @override
   final double? balance;
   @override
-  final NetworkSymbol? networkSymbol;
+  final String? networkSymbol;
   @override
   final String? iconPath;
 
   @override
   String toString() {
-    return 'Coin(name: $name, symbol: $symbol, balance: $balance, networkSymbol: $networkSymbol, iconPath: $iconPath)';
+    return 'Coin(name: $name, symbol: $symbol, address: $address, balance: $balance, networkSymbol: $networkSymbol, iconPath: $iconPath)';
   }
 
   @override
@@ -180,6 +204,7 @@ class _$CoinImpl implements _Coin {
             other is _$CoinImpl &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.symbol, symbol) || other.symbol == symbol) &&
+            (identical(other.address, address) || other.address == address) &&
             (identical(other.balance, balance) || other.balance == balance) &&
             (identical(other.networkSymbol, networkSymbol) ||
                 other.networkSymbol == networkSymbol) &&
@@ -187,12 +212,14 @@ class _$CoinImpl implements _Coin {
                 other.iconPath == iconPath));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, symbol, balance, networkSymbol, iconPath);
+  int get hashCode => Object.hash(
+      runtimeType, name, symbol, address, balance, networkSymbol, iconPath);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CoinImplCopyWith<_$CoinImpl> get copyWith =>
@@ -210,8 +237,9 @@ abstract class _Coin implements Coin {
   const factory _Coin(
       {final String? name,
       final String? symbol,
+      final String? address,
       final double? balance,
-      final NetworkSymbol? networkSymbol,
+      final String? networkSymbol,
       final String? iconPath}) = _$CoinImpl;
 
   factory _Coin.fromJson(Map<String, dynamic> json) = _$CoinImpl.fromJson;
@@ -221,13 +249,18 @@ abstract class _Coin implements Coin {
   @override
   String? get symbol;
   @override
+  String? get address;
+  @override
   double? get balance;
   @override
-  NetworkSymbol? get networkSymbol;
+  String? get networkSymbol;
   @override
   String? get iconPath;
+
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CoinImplCopyWith<_$CoinImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

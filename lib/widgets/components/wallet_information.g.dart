@@ -124,13 +124,13 @@ class WalletInformationState extends State<WalletInformation> {
           ),
           const SizedBox(width: 12),
           SquareButton(
-              text: 'Swap',
-              icon: Icons.swap_horiz,
-              onPressed: () {
-                // Open the Swap Screen as a popup
-                context.push('/swap',
-                    extra: context.read<WalletDetailsCubit>());
-              }),
+              text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
+              // TODO: renable swap...
+              // Open the Swap Screen as a popup
+              // context.push('/swap',
+              //     extra: context.read<WalletDetailsCubit>());
+              //}
+              ),
           const SizedBox(width: 12),
           SquareButton(
             text: 'Buy',

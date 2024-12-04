@@ -47,6 +47,15 @@ class MyApp extends StatelessWidget {
         child: MaterialApp.router(
           title: 'Gnus AI',
           theme: ThemeData(
+            tabBarTheme: const TabBarTheme(
+              unselectedLabelStyle: TextStyle(fontSize: 16),
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: TextStyle(fontSize: 16),
+              labelColor: Colors.white,
+              dividerColor: Colors.transparent,
+              unselectedLabelColor: GeniusWalletColors.gray500,
+              indicatorColor: GeniusWalletColors.lightGreenPrimary,
+            ),
             appBarTheme: const AppBarTheme(
                 iconTheme: IconThemeData(size: 24),
                 titleTextStyle: TextStyle(fontSize: 24),
@@ -63,17 +72,35 @@ class MyApp extends StatelessWidget {
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(
                         Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
-            textButtonTheme: const TextButtonThemeData(
+            textButtonTheme: TextButtonThemeData(
                 style: ButtonStyle(
-                    textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 16)),
-                    padding: MaterialStatePropertyAll(EdgeInsets.only(
-                        left: 16, right: 16, top: 8, bottom: 8)),
-                    shape: MaterialStatePropertyAll(ContinuousRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(
-                            GeniusWalletConsts.borderRadiusButton)))),
-                    backgroundColor: MaterialStatePropertyAll(
-                        GeniusWalletColors.btnFilterBlue),
-                    foregroundColor: MaterialStatePropertyAll(Colors.white),
+                    textStyle:
+                        const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
+                    padding: const MaterialStatePropertyAll(EdgeInsets.only(
+                        left: 24, right: 24, top: 20, bottom: 20)),
+                    shape: const MaterialStatePropertyAll(
+                        ContinuousRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(
+                                GeniusWalletConsts.borderRadiusCard)))),
+                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return GeniusWalletColors
+                              .btnFilterBlue; // Text color for disabled state
+                        }
+                        return GeniusWalletColors
+                            .btnFilterBlue; // Default text color
+                      },
+                    ),
+                    foregroundColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return GeniusWalletColors
+                              .gray600; // Text color for disabled state
+                        }
+                        return Colors.white;
+                      },
+                    ),
                     iconSize: MaterialStatePropertyAll(16),
                     iconColor: MaterialStatePropertyAll(Colors.white))),
             searchBarTheme: const SearchBarThemeData(
