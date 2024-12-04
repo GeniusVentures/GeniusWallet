@@ -482,7 +482,8 @@ class ProcessingTx extends $pb.GeneratedMessage {
     $fixnum.Int64? mpcMagicKey,
     $fixnum.Int64? offset,
     $core.String? jobCid,
-    $core.String? subtaskCid,
+    $core.Iterable<$core.String>? subtaskCids,
+    $core.Iterable<$core.String>? nodeAddresses,
   }) {
     final $result = create();
     if (dagStruct != null) {
@@ -497,8 +498,11 @@ class ProcessingTx extends $pb.GeneratedMessage {
     if (jobCid != null) {
       $result.jobCid = jobCid;
     }
-    if (subtaskCid != null) {
-      $result.subtaskCid = subtaskCid;
+    if (subtaskCids != null) {
+      $result.subtaskCids.addAll(subtaskCids);
+    }
+    if (nodeAddresses != null) {
+      $result.nodeAddresses.addAll(nodeAddresses);
     }
     return $result;
   }
@@ -511,7 +515,8 @@ class ProcessingTx extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'mpcMagicKey', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(3, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOS(4, _omitFieldNames ? '' : 'jobCid')
-    ..aOS(5, _omitFieldNames ? '' : 'subtaskCid')
+    ..pPS(5, _omitFieldNames ? '' : 'subtaskCids')
+    ..pPS(6, _omitFieldNames ? '' : 'nodeAddresses')
     ..hasRequiredFields = false
   ;
 
@@ -575,23 +580,28 @@ class ProcessingTx extends $pb.GeneratedMessage {
   void clearJobCid() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.String get subtaskCid => $_getSZ(4);
-  @$pb.TagNumber(5)
-  set subtaskCid($core.String v) { $_setString(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasSubtaskCid() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearSubtaskCid() => clearField(5);
+  $core.List<$core.String> get subtaskCids => $_getList(4);
+
+  @$pb.TagNumber(6)
+  $core.List<$core.String> get nodeAddresses => $_getList(5);
 }
 
 class MintTx extends $pb.GeneratedMessage {
   factory MintTx({
     DAGStruct? dagStruct,
+    $core.List<$core.int>? chainId,
+    $core.List<$core.int>? tokenId,
     $fixnum.Int64? amount,
   }) {
     final $result = create();
     if (dagStruct != null) {
       $result.dagStruct = dagStruct;
+    }
+    if (chainId != null) {
+      $result.chainId = chainId;
+    }
+    if (tokenId != null) {
+      $result.tokenId = tokenId;
     }
     if (amount != null) {
       $result.amount = amount;
@@ -604,7 +614,9 @@ class MintTx extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MintTx', package: const $pb.PackageName(_omitMessageNames ? '' : 'SGTransaction'), createEmptyInstance: create)
     ..aOM<DAGStruct>(1, _omitFieldNames ? '' : 'dagStruct', subBuilder: DAGStruct.create)
-    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'amount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'chainId', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'tokenId', $pb.PbFieldType.OY)
+    ..a<$fixnum.Int64>(4, _omitFieldNames ? '' : 'amount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false
   ;
 
@@ -641,22 +653,40 @@ class MintTx extends $pb.GeneratedMessage {
   DAGStruct ensureDagStruct() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $fixnum.Int64 get amount => $_getI64(1);
+  $core.List<$core.int> get chainId => $_getN(1);
   @$pb.TagNumber(2)
-  set amount($fixnum.Int64 v) { $_setInt64(1, v); }
+  set chainId($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasAmount() => $_has(1);
+  $core.bool hasChainId() => $_has(1);
   @$pb.TagNumber(2)
-  void clearAmount() => clearField(2);
+  void clearChainId() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get tokenId => $_getN(2);
+  @$pb.TagNumber(3)
+  set tokenId($core.List<$core.int> v) { $_setBytes(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasTokenId() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTokenId() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get amount => $_getI64(3);
+  @$pb.TagNumber(4)
+  set amount($fixnum.Int64 v) { $_setInt64(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasAmount() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearAmount() => clearField(4);
 }
 
 class EscrowTx extends $pb.GeneratedMessage {
   factory EscrowTx({
     DAGStruct? dagStruct,
     UTXOTxParams? utxoParams,
-    $fixnum.Int64? numChunks,
+    $fixnum.Int64? amount,
     $core.List<$core.int>? devAddr,
-    $core.double? devCut,
+    $core.double? peersCut,
   }) {
     final $result = create();
     if (dagStruct != null) {
@@ -665,14 +695,14 @@ class EscrowTx extends $pb.GeneratedMessage {
     if (utxoParams != null) {
       $result.utxoParams = utxoParams;
     }
-    if (numChunks != null) {
-      $result.numChunks = numChunks;
+    if (amount != null) {
+      $result.amount = amount;
     }
     if (devAddr != null) {
       $result.devAddr = devAddr;
     }
-    if (devCut != null) {
-      $result.devCut = devCut;
+    if (peersCut != null) {
+      $result.peersCut = peersCut;
     }
     return $result;
   }
@@ -683,9 +713,9 @@ class EscrowTx extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'EscrowTx', package: const $pb.PackageName(_omitMessageNames ? '' : 'SGTransaction'), createEmptyInstance: create)
     ..aOM<DAGStruct>(1, _omitFieldNames ? '' : 'dagStruct', subBuilder: DAGStruct.create)
     ..aOM<UTXOTxParams>(2, _omitFieldNames ? '' : 'utxoParams', subBuilder: UTXOTxParams.create)
-    ..a<$fixnum.Int64>(3, _omitFieldNames ? '' : 'numChunks', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(3, _omitFieldNames ? '' : 'amount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'devAddr', $pb.PbFieldType.OY)
-    ..a<$core.double>(5, _omitFieldNames ? '' : 'devCut', $pb.PbFieldType.OF)
+    ..a<$core.double>(5, _omitFieldNames ? '' : 'peersCut', $pb.PbFieldType.OF)
     ..hasRequiredFields = false
   ;
 
@@ -733,13 +763,13 @@ class EscrowTx extends $pb.GeneratedMessage {
   UTXOTxParams ensureUtxoParams() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $fixnum.Int64 get numChunks => $_getI64(2);
+  $fixnum.Int64 get amount => $_getI64(2);
   @$pb.TagNumber(3)
-  set numChunks($fixnum.Int64 v) { $_setInt64(2, v); }
+  set amount($fixnum.Int64 v) { $_setInt64(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasNumChunks() => $_has(2);
+  $core.bool hasAmount() => $_has(2);
   @$pb.TagNumber(3)
-  void clearNumChunks() => clearField(3);
+  void clearAmount() => clearField(3);
 
   @$pb.TagNumber(4)
   $core.List<$core.int> get devAddr => $_getN(3);
@@ -751,13 +781,13 @@ class EscrowTx extends $pb.GeneratedMessage {
   void clearDevAddr() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.double get devCut => $_getN(4);
+  $core.double get peersCut => $_getN(4);
   @$pb.TagNumber(5)
-  set devCut($core.double v) { $_setFloat(4, v); }
+  set peersCut($core.double v) { $_setFloat(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasDevCut() => $_has(4);
+  $core.bool hasPeersCut() => $_has(4);
   @$pb.TagNumber(5)
-  void clearDevCut() => clearField(5);
+  void clearPeersCut() => clearField(5);
 }
 
 

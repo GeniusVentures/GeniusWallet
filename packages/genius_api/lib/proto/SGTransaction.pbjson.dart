@@ -116,7 +116,8 @@ const ProcessingTx$json = {
     {'1': 'mpc_magic_key', '3': 2, '4': 1, '5': 4, '10': 'mpcMagicKey'},
     {'1': 'offset', '3': 3, '4': 1, '5': 4, '10': 'offset'},
     {'1': 'job_cid', '3': 4, '4': 1, '5': 9, '10': 'jobCid'},
-    {'1': 'subtask_cid', '3': 5, '4': 1, '5': 9, '10': 'subtaskCid'},
+    {'1': 'subtask_cids', '3': 5, '4': 3, '5': 9, '10': 'subtaskCids'},
+    {'1': 'node_addresses', '3': 6, '4': 3, '5': 9, '10': 'nodeAddresses'},
   ],
 };
 
@@ -124,22 +125,26 @@ const ProcessingTx$json = {
 final $typed_data.Uint8List processingTxDescriptor = $convert.base64Decode(
     'CgxQcm9jZXNzaW5nVHgSNwoKZGFnX3N0cnVjdBgBIAEoCzIYLlNHVHJhbnNhY3Rpb24uREFHU3'
     'RydWN0UglkYWdTdHJ1Y3QSIgoNbXBjX21hZ2ljX2tleRgCIAEoBFILbXBjTWFnaWNLZXkSFgoG'
-    'b2Zmc2V0GAMgASgEUgZvZmZzZXQSFwoHam9iX2NpZBgEIAEoCVIGam9iQ2lkEh8KC3N1YnRhc2'
-    'tfY2lkGAUgASgJUgpzdWJ0YXNrQ2lk');
+    'b2Zmc2V0GAMgASgEUgZvZmZzZXQSFwoHam9iX2NpZBgEIAEoCVIGam9iQ2lkEiEKDHN1YnRhc2'
+    'tfY2lkcxgFIAMoCVILc3VidGFza0NpZHMSJQoObm9kZV9hZGRyZXNzZXMYBiADKAlSDW5vZGVB'
+    'ZGRyZXNzZXM=');
 
 @$core.Deprecated('Use mintTxDescriptor instead')
 const MintTx$json = {
   '1': 'MintTx',
   '2': [
     {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
-    {'1': 'amount', '3': 2, '4': 1, '5': 4, '10': 'amount'},
+    {'1': 'chain_id', '3': 2, '4': 1, '5': 12, '10': 'chainId'},
+    {'1': 'token_id', '3': 3, '4': 1, '5': 12, '10': 'tokenId'},
+    {'1': 'amount', '3': 4, '4': 1, '5': 4, '10': 'amount'},
   ],
 };
 
 /// Descriptor for `MintTx`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List mintTxDescriptor = $convert.base64Decode(
     'CgZNaW50VHgSNwoKZGFnX3N0cnVjdBgBIAEoCzIYLlNHVHJhbnNhY3Rpb24uREFHU3RydWN0Ug'
-    'lkYWdTdHJ1Y3QSFgoGYW1vdW50GAIgASgEUgZhbW91bnQ=');
+    'lkYWdTdHJ1Y3QSGQoIY2hhaW5faWQYAiABKAxSB2NoYWluSWQSGQoIdG9rZW5faWQYAyABKAxS'
+    'B3Rva2VuSWQSFgoGYW1vdW50GAQgASgEUgZhbW91bnQ=');
 
 @$core.Deprecated('Use escrowTxDescriptor instead')
 const EscrowTx$json = {
@@ -147,9 +152,9 @@ const EscrowTx$json = {
   '2': [
     {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
     {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
-    {'1': 'num_chunks', '3': 3, '4': 1, '5': 4, '10': 'numChunks'},
+    {'1': 'amount', '3': 3, '4': 1, '5': 4, '10': 'amount'},
     {'1': 'dev_addr', '3': 4, '4': 1, '5': 12, '10': 'devAddr'},
-    {'1': 'dev_cut', '3': 5, '4': 1, '5': 2, '10': 'devCut'},
+    {'1': 'peers_cut', '3': 5, '4': 1, '5': 2, '10': 'peersCut'},
   ],
 };
 
@@ -157,6 +162,6 @@ const EscrowTx$json = {
 final $typed_data.Uint8List escrowTxDescriptor = $convert.base64Decode(
     'CghFc2Nyb3dUeBI3CgpkYWdfc3RydWN0GAEgASgLMhguU0dUcmFuc2FjdGlvbi5EQUdTdHJ1Y3'
     'RSCWRhZ1N0cnVjdBI8Cgt1dHhvX3BhcmFtcxgCIAEoCzIbLlNHVHJhbnNhY3Rpb24uVVRYT1R4'
-    'UGFyYW1zUgp1dHhvUGFyYW1zEh0KCm51bV9jaHVua3MYAyABKARSCW51bUNodW5rcxIZCghkZX'
-    'ZfYWRkchgEIAEoDFIHZGV2QWRkchIXCgdkZXZfY3V0GAUgASgCUgZkZXZDdXQ=');
+    'UGFyYW1zUgp1dHhvUGFyYW1zEhYKBmFtb3VudBgDIAEoBFIGYW1vdW50EhkKCGRldl9hZGRyGA'
+    'QgASgMUgdkZXZBZGRyEhsKCXBlZXJzX2N1dBgFIAEoAlIIcGVlcnNDdXQ=');
 
