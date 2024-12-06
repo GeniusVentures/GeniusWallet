@@ -110,7 +110,7 @@ class GeniusApi {
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
 
     final retVal = ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKInit(basePathPtr, privateKeyAsPtr);
+        .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true);
 
     if (retVal == nullptr) {
       return;
