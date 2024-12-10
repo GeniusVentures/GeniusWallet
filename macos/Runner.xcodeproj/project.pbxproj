@@ -178,12 +178,13 @@
 			buildConfigurationList = 33CC10FB2044A3C60003C045 /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				4E8C26C910685BD3831FAFBE /* [CP] Check Pods Manifest.lock */,
-				D76F99452D08D9E6001A5E96 /* ShellScript */,
+				D76F99452D08D9E6001A5E96 /* Build GeniusWallet lib */,
+				D76F99462D08F535001A5E96 /* Copy GeniusWallet Lib */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
 				33CC110E2044A8840003C045 /* Bundle Framework */,
-				3399D490228B24CF009A79C7 /* ShellScript */,
+				3399D490228B24CF009A79C7 /* Run Script */,
 				C9DA052AA4D86828998E6E64 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -254,7 +255,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3399D490228B24CF009A79C7 /* ShellScript */ = {
+		3399D490228B24CF009A79C7 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -264,6 +265,7 @@
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -331,7 +333,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D76F99452D08D9E6001A5E96 /* ShellScript */ = {
+		D76F99452D08D9E6001A5E96 /* Build GeniusWallet lib */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -340,6 +342,7 @@
 			);
 			inputPaths = (
 			);
+			name = "Build GeniusWallet lib";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -347,6 +350,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "cd native\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\nmkdir -p ../../Runner/libs\ncp libGeniusWallet.dylib ../../Runner/libs/\n";
+		};
+		D76F99462D08F535001A5E96 /* Copy GeniusWallet Lib */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy GeniusWallet Lib";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Ensure the Frameworks directory exists\nmkdir -p \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# Copy the dylib into the Frameworks folder\ncp \"${SRCROOT}/Runner/libs/libGeniusWallet.dylib\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n\n# Sign the dylib\ncodesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -597,6 +618,8 @@
 					"-framework",
 					"\"url_launcher_macos\"",
 					"-lc++",
+					"-L$(SRCROOT)/Runner/libs",
+					"-lGeniusWallet",
 				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -629,6 +652,8 @@
 					"-framework",
 					"\"url_launcher_macos\"",
 					"-lc++",
+					"-L$(SRCROOT)/Runner/libs",
+					"-lGeniusWallet",
 				);
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
