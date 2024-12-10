@@ -66,6 +66,7 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 
 # --------------------------------------------------------
 # Set config of rocksdb
+message(WARNING "ROCKSDB ${THIRDPARTY_RELEASE_DIR}")
 set(RocksDB_DIR "${THIRDPARTY_RELEASE_DIR}/rocksdb/lib/cmake/rocksdb")
 set(RocksDB_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/rocksdb/include")
 find_package(RocksDB CONFIG REQUIRED)
@@ -79,7 +80,7 @@ if(APPLE)
         set(Vulkan_LIBRARY "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/lib/MoltenVK.xcframework")
     else()
         # Settings for macOS
-        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/include")
+        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/include/")
         set(Vulkan_LIBRARY "${THIRDPARTY_RELEASE_DIR}/moltenvk/build/lib/MoltenVK.xcframework")
     endif()
 endif()
@@ -345,6 +346,17 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         find_library(LOG_LIB log)
         target_link_libraries(GeniusWallet PRIVATE ${LOG_LIB})
     endif()
+    target_link_libraries(GeniusWallet PRIVATE
+        "-framework CoreFoundation"
+        "-framework CoreGraphics"
+        "-framework CoreServices"
+        "-framework IOKit"
+        "-framework IOSurface"
+        "-framework Metal"
+        "-framework QuartzCore"
+        "-framework Foundation"
+        "-framework AppKit"
+    )
 
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
