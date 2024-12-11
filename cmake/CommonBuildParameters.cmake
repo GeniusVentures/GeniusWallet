@@ -360,6 +360,8 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
+    )
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         sgns::GeniusSDK
     )
 
