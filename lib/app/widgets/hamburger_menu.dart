@@ -47,11 +47,6 @@ class HamburgerMenu extends StatelessWidget {
               screen: NavigationScreen.calculator,
             ),
             MenuListTile(
-              menuTitle: 'Submit a Job',
-              menuIcon: Icon(Icons.account_tree),
-              screen: NavigationScreen.submitJob,
-            ),
-            MenuListTile(
               menuTitle: 'Settings',
               menuIcon: Icon(Icons.settings),
               screen: NavigationScreen.settings,

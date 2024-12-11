@@ -32,6 +32,5 @@ enum NavigationScreen {
   calculator,
   news,
   events,
-  submitJob,
   settings
 }

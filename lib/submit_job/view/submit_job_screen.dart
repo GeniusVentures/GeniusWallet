@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_api/genius_api.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:genius_wallet/submit_job/submit_job_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
@@ -13,110 +12,87 @@ class SubmitJobScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(36.0),
-        child: SingleChildScrollView(
-            child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      MediaQuery.of(context).size.height, // Minimum height
-                ),
-                child: Column(children: [
-                  Text(
-                    'Submit a New Job',
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Use this file upload to submit a new job process to the Genius SDK.',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  Text(
-                    '* You must have enough GNUS to pay for the job',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 32),
-                  const SubmitJobForm()
-                ]))));
-  }
-}
+    return BlocBuilder<SubmitJobCubit, SubmitJobState>(
+        builder: (context, state) {
+      final submitJobCubit = context.read<SubmitJobCubit>();
+      final walletDetailsCubitState = submitJobCubit.walletDetailsCubit.state;
+      final walletAddress = walletDetailsCubitState.selectedWallet?.address;
+      final network = walletDetailsCubitState.selectedNetwork;
+      final uploadedFileName = state.uploadedFileName;
+      final uploadedJson = state.uploadedJson;
+      final jobCost = state.jobCost ?? 0;
+      final isPurchaseable = jobCost < (state.gnusBalance ?? 0);
+      final txHash = state.txHash;
 
-class SubmitJobForm extends StatefulWidget {
-  const SubmitJobForm({Key? key}) : super(key: key);
-
-  @override
-  SubmitJobFormState createState() => SubmitJobFormState();
-}
-
-class SubmitJobFormState extends State<SubmitJobForm> {
-  String? _uploadedFileName;
-  Map<String, dynamic>? _jsonData;
-  int _cost = 0;
-
-  void resetState() {
-    setState(() {
-      _uploadedFileName = null;
-      _jsonData = null;
-      _cost = 0;
-    });
-  }
-
-  // Function to pick a JSON file
-  Future<void> _pickJsonFile() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-      );
-
-      if (result != null && result.files.isNotEmpty) {
-        final file = File(result.files.single.path!);
-        final content = await file.readAsString();
-        final jsonData = jsonDecode(content);
-
-        setState(() {
-          _uploadedFileName = result.files.single.name;
-          _jsonData = jsonData;
-          final jobJson = jsonEncode(_jsonData);
-          _cost =
-              context.read<GeniusApi>().requestGeniusSDKCost(jobJson: jobJson);
-        });
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: GeniusWalletColors.containerGray,
-            content:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Failed to upload JSON file:',
-                  style: TextStyle(color: Colors.white, fontSize: 18)),
-              Text('$e',
-                  style: const TextStyle(
-                      color: GeniusWalletColors.red, fontSize: 18))
-            ]),
-          ),
+      // if purchase was successful
+      if (txHash != null) {
+        return AlertDialog(
+          contentPadding: const EdgeInsets.all(20),
+          actionsAlignment: MainAxisAlignment.center,
+          title: Center(
+              child: txHash == null
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.x,
+                          color: Colors.red,
+                          size: 24,
+                        ),
+                        SizedBox(width: 8), // Add space between icon and text
+                        Text(
+                          'Oops there was an issue!',
+                        )
+                      ],
+                    )
+                  : const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.check,
+                          color: Colors.green,
+                          size: 24,
+                        ),
+                        SizedBox(width: 8), // Add space between icon and text
+                        Text(
+                          'Job Submitted!',
+                        )
+                      ],
+                    )),
+          content: Container(
+              child: state.txHash == null
+                  ? const Text(
+                      "Failed to pay for job") // TODO: handle error better
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                          const SizedBox(height: 12),
+                          const Text('Hash:', style: TextStyle(fontSize: 16)),
+                          SelectableText('$txHash',
+                              style: const TextStyle(fontSize: 16))
+                        ])),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // reset form state
+                submitJobCubit.resetState();
+              },
+              child: const Text('Close'),
+            ),
+          ],
         );
       }
-      resetState();
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final geniusApi = context.read<GeniusApi>();
-    final geniusBalance = geniusApi.getSGNUSBalance();
-    final isPurchaseable = _cost < geniusBalance;
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton(
-                onPressed: _pickJsonFile,
+      return Scaffold(
+          appBar: AppBar(
+            title: const Text("Submit a New Job"),
+            actions: [
+              TextButton.icon(
+                onPressed: submitJobCubit.openFilePicker,
                 style: const ButtonStyle(
                   shape: WidgetStatePropertyAll(RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(
@@ -124,123 +100,233 @@ class SubmitJobFormState extends State<SubmitJobForm> {
                   padding: WidgetStatePropertyAll(
                       EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8)),
                 ),
-                child: const Text('Upload JSON File'),
+                icon: const Icon(FontAwesomeIcons.upload),
+                label: const Text('Upload'),
               ),
-              const SizedBox(width: 16),
-              if (_uploadedFileName != null && _jsonData != null)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: GeniusWalletColors.deepBlueCardColor,
-                    disabledForegroundColor: GeniusWalletColors.gray500,
-                    disabledBackgroundColor:
-                        GeniusWalletColors.deepBlueSecondary,
-                    shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(
-                            GeniusWalletConsts.borderRadiusButton))),
-                    backgroundColor: GeniusWalletColors.lightGreenPrimary,
-                    padding: const EdgeInsets.only(
-                        left: 16, right: 16, top: 8, bottom: 8),
-                  ),
-                  // disable button if not enought gnus balance to pay for the job
-                  onPressed: !isPurchaseable
-                      ? null
-                      : () {
-                          final jobJson = jsonEncode(_jsonData);
-                          geniusApi.requestGeniusSDKProcess(jobJson: jobJson);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: GeniusWalletColors.containerGray,
-                              content: Row(children: [
-                                const Text('Successfully Submitted Job:   ',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 18)),
-                                Text('$_uploadedFileName',
-                                    style: const TextStyle(
-                                        color: GeniusWalletColors.successGreen,
-                                        fontSize: 18))
-                              ]),
-                            ),
-                          );
-                          resetState();
-                        },
-                  child: const Text(
-                    'Submit Job',
-                  ),
-                ),
             ],
           ),
-          const SizedBox(
-            height: 64,
-          ),
-          if (_uploadedFileName != null)
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Wrap(runSpacing: 12, spacing: 12, children: [
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('Uploaded File: ',
-                      style: TextStyle(fontSize: 16, letterSpacing: 1.2)),
-                  Text(
-                    "$_uploadedFileName",
-                    style: const TextStyle(
-                        fontSize: 16,
-                        letterSpacing: 1.5,
-                        color: GeniusWalletColors.lightGreenPrimary),
-                  ),
-                ]),
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Text(
-                    'Cost: ',
-                    style: TextStyle(fontSize: 16, letterSpacing: 1.2),
-                  ),
-                  Text(
-                    "$_cost GNUS",
-                    style: const TextStyle(
-                        fontSize: 16,
-                        letterSpacing: 1.5,
-                        color: GeniusWalletColors.red),
-                  ),
-                ]),
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Text(
-                    'Available: ',
-                    style: TextStyle(fontSize: 16, letterSpacing: 1.2),
-                  ),
-                  Text(
-                    "$geniusBalance GNUS",
-                    style: const TextStyle(
-                        fontSize: 16,
-                        letterSpacing: 1.5,
-                        color: GeniusWalletColors.blue500),
-                  )
-                ])
-              ]),
-              if (!isPurchaseable) ...[
-                const SizedBox(height: 8),
-                const Text('* You do not have enough GNUS to submit this job',
-                    style:
-                        TextStyle(color: GeniusWalletColors.red, fontSize: 18))
-              ]
-            ]),
-          const SizedBox(height: 16),
-          if (_jsonData != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(
-                      Radius.circular(GeniusWalletConsts.borderRadiusCard)),
-                  color: GeniusWalletColors.deepBlueCardColor),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SelectableText(
-                    const JsonEncoder.withIndent('   ').convert(_jsonData),
-                    style: const TextStyle(
-                      fontFamily: 'monospace', // Use a monospaced font
-                      fontSize: 14,
-                      color: Colors.white,
-                    )),
-              ),
-            ),
-        ],
-      ),
-    );
+          body: SingleChildScrollView(
+              child: // if wallet or network is not selected...
+                  (walletAddress == null || network == null)
+                      ? Container(
+                          padding: const EdgeInsets.all(40),
+                          alignment: Alignment.center,
+                          child: Text("Wallet / Network must be selected"))
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                              Expanded(
+                                  child: Container(
+                                      padding: const EdgeInsets.all(24),
+                                      child: Column(children: [
+                                        Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Wrap(
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
+                                                runSpacing: 16,
+                                                spacing: 16,
+                                                children: [
+                                                  Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Image.asset(
+                                                          'assets/images/crypto/gnus.png',
+                                                          height: 30,
+                                                          width: 30),
+                                                      const SizedBox(width: 8),
+                                                      SizedBox(
+                                                          width: 100,
+                                                          child: Text(
+                                                            '${(state.gnusBalance ?? 0)}',
+                                                            style: const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ))
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      const Icon(
+                                                        FontAwesomeIcons
+                                                            .gasPump,
+                                                        color: Colors.red,
+                                                        size: 24,
+                                                      ),
+                                                      const SizedBox(
+                                                          width:
+                                                              8), // Add space between icon and text
+                                                      SizedBox(
+                                                          width: 100,
+                                                          child: Text(
+                                                            '${state.jobGasCost ?? 0}',
+                                                            style: const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          )),
+                                                    ],
+                                                  )
+                                                ])),
+                                        const SizedBox(height: 24),
+                                        Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              const SizedBox(
+                                                height: 32,
+                                              ),
+                                              if (uploadedFileName != null)
+                                                Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Wrap(
+                                                          crossAxisAlignment:
+                                                              WrapCrossAlignment
+                                                                  .center,
+                                                          runSpacing: 12,
+                                                          spacing: 12,
+                                                          children: [
+                                                            Row(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  const Text(
+                                                                      'Uploaded File: ',
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                      )),
+                                                                  Text(
+                                                                    uploadedFileName,
+                                                                    style: const TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                        color: GeniusWalletColors
+                                                                            .lightGreenPrimary),
+                                                                  ),
+                                                                ]),
+                                                            Row(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Cost: ',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                  ),
+                                                                  Text(
+                                                                    "$jobCost GNUS",
+                                                                    style: const TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                        color: Colors
+                                                                            .red),
+                                                                  ),
+                                                                ]),
+                                                            if (uploadedJson !=
+                                                                null)
+                                                              TextButton.icon(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  disabledForegroundColor:
+                                                                      GeniusWalletColors
+                                                                          .gray500,
+                                                                  disabledBackgroundColor:
+                                                                      GeniusWalletColors
+                                                                          .deepBlueSecondary,
+                                                                  shape: const RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.all(
+                                                                              Radius.circular(GeniusWalletConsts.borderRadiusButton))),
+                                                                  padding: const EdgeInsets
+                                                                      .only(
+                                                                      left: 16,
+                                                                      right: 16,
+                                                                      top: 8,
+                                                                      bottom:
+                                                                          8),
+                                                                ),
+                                                                // disable button if not enought gnus balance to pay for the job
+                                                                onPressed:
+                                                                    !isPurchaseable
+                                                                        ? null
+                                                                        : () {
+                                                                            submitJobCubit.bridgeTokens();
+                                                                          },
+                                                                label: const Text(
+                                                                    'Purchase'),
+                                                              )
+                                                          ]),
+                                                      if (!isPurchaseable) ...[
+                                                        const SizedBox(
+                                                            height: 8),
+                                                        const Text(
+                                                            '* You do not have enough GNUS to submit this job',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    GeniusWalletColors
+                                                                        .red,
+                                                                fontSize: 18))
+                                                      ]
+                                                    ]),
+                                              const SizedBox(height: 16),
+                                              if (uploadedJson != null)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(16),
+                                                  decoration: const BoxDecoration(
+                                                      borderRadius: BorderRadius
+                                                          .all(Radius.circular(
+                                                              GeniusWalletConsts
+                                                                  .borderRadiusCard)),
+                                                      color: GeniusWalletColors
+                                                          .deepBlueCardColor),
+                                                  child: SingleChildScrollView(
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    child: SelectableText(
+                                                        const JsonEncoder
+                                                                .withIndent(
+                                                                '   ')
+                                                            .convert(
+                                                                uploadedJson),
+                                                        style: const TextStyle(
+                                                          fontFamily:
+                                                              'monospace', // Use a monospaced font
+                                                          fontSize: 14,
+                                                          color: Colors.white,
+                                                        )),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        )
+                                      ])))
+                            ])));
+    });
   }
 }
