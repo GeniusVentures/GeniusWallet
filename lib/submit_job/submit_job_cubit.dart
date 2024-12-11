@@ -180,13 +180,15 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final selectedWallet = walletDetailsCubit.state.selectedWallet;
     final walletAddress = selectedWallet?.address;
     final gnusAddress = gnusCubit.state.tokenInfo?.address;
+    final uploadedJson = state.uploadedJson;
 
     if (selectedNetwork == null ||
         chainId == null ||
         gnusAddress == null ||
         walletAddress == null ||
         rpcUrl == null ||
-        state.jobCost == null) {
+        state.jobCost == null ||
+        uploadedJson == null) {
       return; // TODO: handle errors
     }
 
@@ -207,6 +209,9 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     if (!resp.isSuccess || txHash == null) {
       return; // TODO: handle errors if bridge out fails
     }
+
+    // process the job
+    geniusApi.requestGeniusSDKProcess(jobJson: jsonEncode(uploadedJson));
 
     emit(state.copyWith(txHash: txHash));
   }
