@@ -5,7 +5,8 @@ part 'token.g.dart';
 
 @freezed
 class Token with _$Token {
-  const factory Token({String? address, String? iconPath}) = _Token;
+  const factory Token({String? address, String? iconPath, String? name}) =
+      _Token;
 
   factory Token.fromJson(Map<String, Object?> json) => _$TokenFromJson(json);
 }

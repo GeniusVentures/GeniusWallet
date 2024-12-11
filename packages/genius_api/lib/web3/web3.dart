@@ -5,6 +5,7 @@ import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/src/genius_api.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -123,7 +124,7 @@ class Web3 {
     }
   }
 
-  Future<Transaction?> createBridgeOutTransaction({
+  Future<ApiResponse<Transaction>> createBridgeOutTransaction({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
@@ -174,15 +175,16 @@ class Web3 {
         ),
       );
 
-      final bool hasFunds = await hasEnoughFundsForGas(
+      final hasFundsResponse = await hasEnoughFundsForGas(
         walletAddress: wallet.storedKey.account(0).address(),
         rpcUrl: rpcUrl,
         gasLimit: gasLimit,
         gasPrice: gasPrice,
       );
 
-      if (!hasFunds) {
-        return null;
+      if (!hasFundsResponse.isSuccess ||
+          (hasFundsResponse.isSuccess && !hasFundsResponse.data!)) {
+        return ApiResponse.error("Not enough funds for gas to bridge tokens");
       }
 
       // Create Transaction
@@ -199,13 +201,15 @@ class Web3 {
         maxGas: gasLimit.toInt(),
       );
 
-      return transaction;
+      return ApiResponse.success(transaction);
+    } catch (e) {
+      return ApiResponse.error(e.toString());
     } finally {
       client.dispose();
     }
   }
 
-  Future<String> executeBridgeOutTransaction(
+  Future<ApiResponse<String>> executeBridgeOutTransaction(
       {required String contractAddress,
       required String rpcUrl,
       required StoredKeyWallet wallet,
@@ -216,7 +220,7 @@ class Web3 {
 
     try {
       // Create Transaction
-      final transaction = await createBridgeOutTransaction(
+      final transactionResponse = await createBridgeOutTransaction(
         contractAddress: contractAddress,
         rpcUrl: rpcUrl,
         wallet: wallet,
@@ -224,46 +228,40 @@ class Web3 {
         destinationChainId: destinationChainId,
       );
 
-      if (transaction == null) {
-        return 'Error: not enough balance for gas fees';
+      if (!transactionResponse.isSuccess || transactionResponse.data == null) {
+        return ApiResponse.error(transactionResponse.errorMessage ??
+            'Not enough balance to pay for gas fees');
       }
 
       // Get Private Key
-      final hardCodedTokenIdForNow = 0;
 
       final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
 
       // Execute Transaction
       final txHash = await client.sendTransaction(
         credentials,
-        transaction,
+        transactionResponse.data!, // handled above if null
         chainId: sourceChainId,
       );
 
-      geniusApi?.mintTokens(
-        int.parse(amountToBurn),
-        txHash,
-        destinationChainId.toString(),
-        '$hardCodedTokenIdForNow',
-      );
-
-      return txHash;
+      return ApiResponse.success(txHash);
     } catch (e) {
-      print('Error: $e');
-      return "Error: $e";
+      ApiResponse.error(e.toString());
     } finally {
       client.dispose();
     }
+
+    return ApiResponse.error('Failed to bridge: unknown');
   }
 
-  Future<EtherAmount?> getBrigeOutGasCost({
+  Future<ApiResponse<EtherAmount?>> getBrigeOutGasCost({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
     required String amountToBurn,
     required int destinationChainId,
   }) async {
-    final transaction = await createBridgeOutTransaction(
+    final transactionResponse = await createBridgeOutTransaction(
       contractAddress: contractAddress,
       rpcUrl: rpcUrl,
       wallet: wallet,
@@ -271,14 +269,19 @@ class Web3 {
       destinationChainId: destinationChainId,
     );
 
-    return transaction?.gasPrice;
+    if (!transactionResponse.isSuccess) {
+      return ApiResponse.error(
+          transactionResponse.errorMessage ?? "Error bridging");
+    }
+
+    return ApiResponse.success(transactionResponse.data?.gasPrice);
   }
 
   double? getGasPriceInGwei(EtherAmount? gas) {
     return gas?.getValueInUnit(EtherUnit.gwei).toDouble();
   }
 
-  Future<bool> hasEnoughFundsForGas({
+  Future<ApiResponse<bool>> hasEnoughFundsForGas({
     required String walletAddress,
     required String rpcUrl,
     required BigInt gasLimit, // Estimated gas limit
@@ -295,10 +298,9 @@ class Web3 {
       final BigInt totalGasCost = gasPrice.getInWei * gasLimit;
 
       // Check if the balance is greater than or equal to the gas cost
-      return balance.getInWei >= totalGasCost;
+      return ApiResponse.success(balance.getInWei >= totalGasCost);
     } catch (e) {
-      print("Error checking funds: $e");
-      return false;
+      return ApiResponse.error(e.toString());
     } finally {
       client.dispose();
     }

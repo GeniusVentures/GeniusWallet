@@ -1,8 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -71,31 +73,49 @@ class CoinsScreenState extends State<CoinsScreen> {
                       }
                     },
                     child: CoinCardContainer(
-                      child: CoinCardRow(
-                        iconPath: coin.iconPath ?? "",
-                        balance: coin.balance ?? 0.0,
-                        name: coin.name ?? "",
-                        symbol: coin.symbol ?? "",
-                        additionalCardWidget:
-                            coin.symbol?.toLowerCase() == 'gnus' &&
-                                    state.selectedWallet?.walletType !=
-                                        WalletType.tracking
-                                ? TextButton(
-                                    onPressed: coin.balance == 0
-                                        ? null
-                                        : () async {
-                                            walletCubit.selectCoin(coin);
-                                            await context.push('/bridge',
-                                                extra: walletCubit);
-                                            // after we come back from the push reload coins / balance
-                                            walletCubit.getCoins();
-                                            walletCubit.getWalletBalance();
-                                          },
-                                    child: const Text("Bridge Tokens"),
-                                  )
-                                : null,
-                      ),
-                    ),
+                        child: StreamBuilder<SGNUSConnection>(
+                            stream: context
+                                .read<GeniusApi>()
+                                .getSGNUSConnectionStream(),
+                            builder: (context, snapshot) {
+                              final connection = snapshot.data;
+                              return CoinCardRow(
+                                iconPath: coin.iconPath ?? "",
+                                balance: coin.balance ?? 0.0,
+                                name: coin.name ?? "",
+                                symbol: coin.symbol ?? "",
+                                // hardcode for gnus to bridge
+                                // should not be able to bridge unless this wallet is connected to the sgnus network
+                                additionalCardWidget: coin.symbol
+                                                ?.toLowerCase() ==
+                                            'gnus' &&
+                                        state.selectedWallet?.address ==
+                                            connection?.walletAddress
+                                    ? TextButton(
+                                        style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.only(
+                                                top: 20,
+                                                bottom: 20,
+                                                left: 12,
+                                                right: 12)),
+                                        onPressed: (coin.balance == 0 ||
+                                                (!(connection
+                                                        ?.isConnected ?? // only allow bridging if connected to sgnus network
+                                                    false)))
+                                            ? null
+                                            : () async {
+                                                walletCubit.selectCoin(coin);
+                                                await context.push('/bridge',
+                                                    extra: walletCubit);
+                                                // after we come back to coins screen reload coins / balance
+                                                walletCubit.getCoins();
+                                                walletCubit.getWalletBalance();
+                                              },
+                                        child: const Text("Bridge Tokens"),
+                                      )
+                                    : null,
+                              );
+                            })),
                   ),
             ],
           );
@@ -123,7 +143,8 @@ class CoinCardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Row(
+      Flexible(
+          child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -136,33 +157,44 @@ class CoinCardRow extends StatelessWidget {
             },
           ),
           const SizedBox(width: 12),
-          Column(
+          Flexible(
+              child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  AutoSizeText(name),
-                ],
+              Text(
+                name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
               Row(
                 children: [
-                  AutoSizeText(
+                  Flexible(
+                      child: Text(
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: const TextStyle(color: GeniusWalletColors.gray500),
-                    balance == 0 ? '0' : balance.toDouble().toStringAsFixed(5),
-                  ),
+                    balance == 0
+                        ? '0'
+                        : CoinUtil.truncateToDecimals(balance.toString()),
+                  )),
                   const SizedBox(width: 8),
-                  AutoSizeText(
+                  Text(
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: const TextStyle(color: GeniusWalletColors.gray500),
                     symbol,
                   )
                 ],
               )
             ],
-          ),
+          )),
         ],
-      ),
-      Container(child: additionalCardWidget ?? additionalCardWidget)
+      )),
+      if (additionalCardWidget != null) ...[
+        const SizedBox(width: 8),
+        additionalCardWidget ?? const SizedBox.shrink()
+      ]
     ]);
   }
 }

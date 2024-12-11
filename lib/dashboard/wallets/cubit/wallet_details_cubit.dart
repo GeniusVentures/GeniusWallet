@@ -69,7 +69,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         if (networks == null || networks.isEmpty) {
           return emit(state.copyWith(fetchNetworksStatus: WalletStatus.error));
         }
-        final network = networks!.where((element) =>
+        final network = networks.where((element) =>
             element.symbol == state.selectedWallet?.currencySymbol);
         final Network selectedNetwork =
             network.isNotEmpty ? network.first : networks.first;
@@ -104,9 +104,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       // WE SHOULD CALL BALANCEOF and pass in the tokenIds from tokens.json
 
       readTokenAssets(
-              walletAddress: walletAddress,
-              rpcUrl: rpcUrl,
-              network: state.selectedNetwork!)
+              walletAddress: walletAddress, network: state.selectedNetwork!)
           .then((List<Coin> coinList) {
         if (!isClosed) {
           emit(state.copyWith(
