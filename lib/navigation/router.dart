@@ -5,6 +5,7 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
+import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
@@ -21,6 +22,9 @@ import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
+import 'package:genius_wallet/services/coins_service.dart';
+import 'package:genius_wallet/submit_job/submit_job_cubit.dart';
+import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
 import 'package:go_router/go_router.dart';
 
 final geniusWalletRouter = GoRouter(
@@ -254,6 +258,21 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/submit_job',
+      builder: (context, state) {
+        final walletDetailCubit = state.extra as WalletDetailsCubit;
+        final gnusCubit = GnusCubit(CoinService(), walletDetailCubit);
+        final submitJobCubit = SubmitJobCubit(
+            geniusApi: context.read<GeniusApi>(),
+            gnusCubit: gnusCubit,
+            walletDetailsCubit: walletDetailCubit);
+        return BlocProvider.value(
+          value: submitJobCubit,
+          child: const SubmitJobScreen(),
+        );
+      },
+    ),
+    GoRoute(
       path: '/not_enough_balance',
       builder: (context, state) {
         return BlocProvider.value(
@@ -291,14 +310,6 @@ final geniusWalletRouter = GoRouter(
       builder: (context, state) {
         return const ResponsiveOverlay(
           selectedScreen: NavigationScreen.events,
-        );
-      },
-    ),
-    GoRoute(
-      path: '/submit_job',
-      builder: (context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.submitJob,
         );
       },
     ),

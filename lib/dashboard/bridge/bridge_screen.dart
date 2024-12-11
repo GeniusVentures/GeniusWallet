@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
@@ -25,6 +28,9 @@ class BridgeScreenState extends State<BridgeScreen> {
   int? previousNetwork; // To track the previously selected network
   List<Network>? availableBridgeNetworks;
   String? transactionCost;
+  Timer? _debounce;
+  bool _isApiCallInProgress = false; // Track ongoing API calls
+  bool isError = false;
 
   @override
   void initState() {
@@ -39,6 +45,7 @@ class BridgeScreenState extends State<BridgeScreen> {
   void dispose() {
     fromAmountController.dispose();
     toAmountController.dispose();
+    _debounce?.cancel(); // Cancel debounce timer when widget is disposed
     super.dispose();
   }
 
@@ -98,27 +105,73 @@ class BridgeScreenState extends State<BridgeScreen> {
                           label: 'You Pay',
                           selectedItem: fromToken,
                           onAmountChanged: (value) async {
-                            if (int.tryParse(value) == null) {
-                              setState(() {
-                                transactionCost = null;
-                              });
-                              return;
+                            // Cancel any existing debounce timer
+                            if (_debounce?.isActive ?? false) {
+                              _debounce!.cancel();
                             }
 
-                            final api = context.read<GeniusApi>();
-                            final gasCost = await api.getBrigeOutGasCost(
+                            // Start a new debounce timer
+                            _debounce = Timer(const Duration(milliseconds: 300),
+                                () async {
+                              // If an API call is already in progress, do nothing
+                              if (_isApiCallInProgress) return;
+
+                              // Validate input immediately
+                              try {
+                                if ((double.parse(value)) >
+                                        (fromToken?.balance ?? 0) ||
+                                    fromToken?.balance == null) {
+                                  // Not enough balance or invalid balance
+                                  setState(() {
+                                    transactionCost = null;
+                                    toAmountController.text = '';
+                                    isError = true;
+                                  });
+                                  return;
+                                }
+                              } catch (e) {
+                                // Input wasn't a proper double
+                                setState(() {
+                                  transactionCost = null;
+                                  toAmountController.text = '';
+                                  isError = true;
+                                });
+                                return;
+                              }
+
+                              // Set API call in progress
+                              _isApiCallInProgress = true;
+
+                              // Make the API call
+                              final api = context.read<GeniusApi>();
+                              final gasCostResponse =
+                                  await api.getBrigeOutGasCost(
                                 sourceChainId:
                                     state.selectedNetwork?.chainId ?? 0,
                                 contractAddress: fromToken?.address ?? "",
                                 rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
                                 address: state.selectedWallet?.address ?? "",
                                 amountToBurn: value,
-                                destinationChainId: toNetwork?.chainId ?? 0);
+                                destinationChainId: toNetwork?.chainId ?? 0,
+                              );
 
-                            setState(() {
-                              fromAmountController.text = value;
-                              toAmountController.text = value;
-                              transactionCost = gasCost;
+                              // Reset API call progress
+                              _isApiCallInProgress = false;
+
+                              // Handle API response
+                              if (gasCostResponse.isSuccess) {
+                                setState(() {
+                                  toAmountController.text = value;
+                                  transactionCost = gasCostResponse.data;
+                                  isError = false;
+                                });
+                              } else {
+                                setState(() {
+                                  transactionCost = null;
+                                  toAmountController.text = '';
+                                  isError = true;
+                                });
+                              }
                             });
                           },
                           controller: fromAmountController),
@@ -149,24 +202,26 @@ class BridgeScreenState extends State<BridgeScreen> {
                       // Swap Button
 
                       TextButton(
-                        onPressed: fromAmountController.text.isEmpty
+                        onPressed: fromAmountController.text.isEmpty || isError
                             ? null
                             : () async {
                                 final api = context.read<GeniusApi>();
-                                final hashOrError = await api.bridgeOut(
-                                    sourceChainId:
-                                        state.selectedNetwork?.chainId ?? 0,
-                                    contractAddress: fromToken?.address ?? "",
-                                    rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                                    address:
-                                        state.selectedWallet?.address ?? "",
-                                    amountToBurn: fromAmountController.text,
-                                    destinationChainId:
-                                        toNetwork?.chainId ?? 0);
+                                final bridgeTokensResponse =
+                                    await api.bridgeOut(
+                                        sourceChainId:
+                                            state.selectedNetwork?.chainId ?? 0,
+                                        contractAddress:
+                                            fromToken?.address ?? "",
+                                        rpcUrl:
+                                            state.selectedNetwork?.rpcUrl ?? "",
+                                        address:
+                                            state.selectedWallet?.address ?? "",
+                                        amountToBurn: fromAmountController.text,
+                                        destinationChainId:
+                                            toNetwork?.chainId ?? 0,
+                                        shouldMintTokens: true);
 
                                 if (!context.mounted) return;
-
-                                final isError = hashOrError.contains('Error');
 
                                 showDialog(
                                   context: context,
@@ -174,7 +229,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                     contentPadding: const EdgeInsets.all(20),
                                     actionsAlignment: MainAxisAlignment.center,
                                     title: Center(
-                                        child: isError
+                                        child: !bridgeTokensResponse.isSuccess
                                             ? const Text(
                                                 'Bridge Failed!',
                                                 style: TextStyle(
@@ -186,8 +241,10 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                     color: GeniusWalletColors
                                                         .lightGreenPrimary))),
                                     content: Container(
-                                        child: isError
-                                            ? Text(hashOrError)
+                                        child: !bridgeTokensResponse.isSuccess
+                                            ? Text(bridgeTokensResponse
+                                                    .errorMessage ??
+                                                "Failed to bridge tokens")
                                             : Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -202,7 +259,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                         style: TextStyle(
                                                             fontSize: 16)),
                                                     SelectableText(
-                                                        ' $hashOrError',
+                                                        ' ${bridgeTokensResponse.data}',
                                                         style: const TextStyle(
                                                             fontSize: 16))
                                                   ])),
@@ -259,7 +316,7 @@ class BridgeScreenState extends State<BridgeScreen> {
     Function(String)? onAmountChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.all(
@@ -269,65 +326,95 @@ class BridgeScreenState extends State<BridgeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              label,
-              style: const TextStyle(
-                  fontSize: 14,
-                  letterSpacing: .5,
-                  color: GeniusWalletColors.gray500),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              letterSpacing: 0.5,
+              color: GeniusWalletColors.gray500,
             ),
           ),
           const SizedBox(height: 12),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Dropdown for item selection (tokens or networks)
-              DropdownButton<T>(
-                underline: const SizedBox(), // Remove underline
-                value: selectedItem, // Currently selected item
-                hint: const Text(
-                  'Select',
-                  style: TextStyle(color: Colors.white),
-                ),
-                dropdownColor: GeniusWalletColors.deepBlueCardColor,
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                items: availableItems.map((T item) {
-                  return DropdownMenuItem<T>(
-                    value: item,
-                    child: Row(
-                      children: [
-                        displayIcon(item), // Icon for the item
-                        const SizedBox(width: 12),
-                        Text(
-                          displayText(item),
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 16),
-                        ),
-                      ],
+              // Dropdown for item selection
+              Flexible(
+                flex: 3, // Adjust flex values for proportional sizing
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: 300), // Set max width
+                  child: DropdownButton<T>(
+                    isExpanded:
+                        true, // Stretches dropdown to match parent width
+                    underline: const SizedBox(), // Remove underline
+                    value: selectedItem, // Currently selected item
+                    hint: const Text(
+                      'Select',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  );
-                }).toList(),
-                onChanged: (T? newItem) {
-                  if (newItem != null) {
-                    onItemChanged(newItem); // Notify parent widget
-                  }
-                },
+                    dropdownColor: GeniusWalletColors.deepBlueCardColor,
+                    icon:
+                        const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    items: availableItems.map((T item) {
+                      return DropdownMenuItem<T>(
+                        value: item,
+                        child: Row(
+                          children: [
+                            displayIcon(item), // Icon for the item
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                displayText(item),
+                                overflow:
+                                    TextOverflow.ellipsis, // Truncate long text
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (T? newItem) {
+                      if (newItem != null) {
+                        onItemChanged(newItem); // Notify parent widget
+                      }
+                    },
+                  ),
+                ),
               ),
               const SizedBox(width: 16),
-              Expanded(
-                child: TextField(
-                  controller: controller, // Persistent controller
-                  style: const TextStyle(fontSize: 20),
-                  textAlign: TextAlign.right,
-                  keyboardType: TextInputType.number,
-                  onChanged: onAmountChanged,
-                  readOnly: onAmountChanged == null, // Disable for read-only
-                  decoration: const InputDecoration(
-                    hintStyle: TextStyle(color: GeniusWalletColors.gray500),
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    hintText: '0',
+              // TextField for numerical input
+              Flexible(
+                flex: 2, // Adjust flex values for proportional sizing
+                child: SizedBox(
+                  height: 48, // Consistent height for inputs
+                  child: TextField(
+                    controller: controller, // Persistent controller
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.right,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      DecimalTextInputFormatter(),
+                    ],
+                    onChanged: onAmountChanged,
+                    readOnly: onAmountChanged == null, // Disable for read-only
+                    decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                      hintStyle: TextStyle(color: GeniusWalletColors.gray500),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: GeniusWalletColors.gray500),
+                      ),
+                      hintText: '0',
+                    ),
                   ),
                 ),
               ),
@@ -338,15 +425,41 @@ class BridgeScreenState extends State<BridgeScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 12),
               child: Text(
-                "${selectedItem.balance == 0 ? 0 : selectedItem.balance?.toStringAsFixed(5) ?? 0} ${selectedItem.symbol}",
+                "${selectedItem.balance == 0 ? 0 : selectedItem.balance.toString()} ${selectedItem.symbol}",
                 style: const TextStyle(
                     fontSize: 14,
-                    letterSpacing: .5,
+                    letterSpacing: 0.5,
                     color: GeniusWalletColors.gray500),
               ),
             ),
         ],
       ),
     );
+  }
+}
+
+class DecimalTextInputFormatter extends TextInputFormatter {
+  DecimalTextInputFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
+
+    // Allow empty input
+    if (text.isEmpty) {
+      return newValue;
+    }
+
+    // Regex to validate input with a single decimal point and limited decimals
+    final regExp = RegExp(r'^\d*\.?\d*$');
+
+    if (regExp.hasMatch(text)) {
+      // Return valid input
+      return newValue;
+    } else {
+      // Ignore invalid input and keep the old value
+      return oldValue;
+    }
   }
 }
