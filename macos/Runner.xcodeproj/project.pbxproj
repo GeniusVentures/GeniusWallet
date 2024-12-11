@@ -186,6 +186,7 @@
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* Run Script */,
 				C9DA052AA4D86828998E6E64 /* [CP] Embed Pods Frameworks */,
+				D76F99472D0A25F0001A5E96 /* Sign GeniusWallet dylib */,
 			);
 			buildRules = (
 			);
@@ -367,7 +368,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Ensure the Frameworks directory exists\nmkdir -p \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# Copy the dylib into the Frameworks folder\ncp \"${SRCROOT}/Runner/libs/libGeniusWallet.dylib\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n\n# Sign the dylib\ncodesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n";
+			shellScript = "# Ensure the Frameworks directory exists\nmkdir -p \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# Copy the dylib into the Frameworks folder\ncp \"${SRCROOT}/Runner/libs/libGeniusWallet.dylib\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n\n";
+		};
+		D76F99472D0A25F0001A5E96 /* Sign GeniusWallet dylib */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Sign GeniusWallet dylib";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Sign the dylib\ncodesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" \\\n    --options runtime \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -460,15 +479,20 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = 0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -477,6 +501,7 @@
 					"\"url_launcher_macos\"",
 					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gnus.geniuswallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
@@ -602,15 +627,20 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = 0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -621,6 +651,7 @@
 					"-L$(SRCROOT)/Runner/libs",
 					"-lGeniusWallet",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gnus.geniuswallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -635,16 +666,21 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				"MACOSX_DEPLOYMENT_TARGET[arch=*]" = 12.2;
+				MARKETING_VERSION = 0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -655,6 +691,7 @@
 					"-L$(SRCROOT)/Runner/libs",
 					"-lGeniusWallet",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gnus.geniuswallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
