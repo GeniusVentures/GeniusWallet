@@ -19,6 +19,7 @@ import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -32,7 +33,7 @@ class GeniusApi {
   final SGNUSConnectionController _sgnusConnectionController;
   late final String address;
   late final String jsonFilePath;
-  bool initializedSDK = false;
+  bool isSdkInitialized = false;
 
   GeniusApi({
     required LocalWalletStorage secureStorage,
@@ -85,7 +86,7 @@ class GeniusApi {
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {
-    if (initializedSDK) {
+    if (isSdkInitialized) {
       return;
     }
 
@@ -130,7 +131,7 @@ class GeniusApi {
             "",
         isConnected: true));
 
-    initializedSDK = true;
+    isSdkInitialized = true;
   }
 
   Future<String> copyJsonToWritableDirectory() async {
@@ -245,7 +246,7 @@ class GeniusApi {
   }
 
   void requestGeniusSDKProcess({required String jobJson}) {
-    if (jobJson.isEmpty) {
+    if (jobJson.isEmpty || !isSdkInitialized) {
       return;
     }
 
@@ -262,7 +263,7 @@ class GeniusApi {
   }
 
   int requestGeniusSDKCost({required String jobJson}) {
-    if (jobJson.isEmpty) {
+    if (jobJson.isEmpty || !isSdkInitialized) {
       return 0;
     }
 
@@ -578,12 +579,18 @@ class GeniusApi {
   }
 
   int getSGNUSBalance() {
+    if (!isSdkInitialized) {
+      return 0;
+    }
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
 
   /// Returns address as a hexadecimal string, with 64 hex characters prepended
   /// by `0x`.
   String getSGNUSAddress() {
+    if (!isSdkInitialized) {
+      return '';
+    }
     var address = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetAddress();
 
     List<int> charCodes =
@@ -593,7 +600,7 @@ class GeniusApi {
   }
 
   List<Transaction> getSGNUSTransactions() {
-    if (!initializedSDK) {
+    if (!isSdkInitialized) {
       return [];
     }
 
@@ -668,29 +675,43 @@ class GeniusApi {
     return ret;
   }
 
-  Future<String> bridgeOut(
+  Future<ApiResponse<String>> bridgeOut(
       {required String contractAddress,
       required String rpcUrl,
       required String address,
       required String amountToBurn,
       required int sourceChainId,
-      required int destinationChainId}) async {
+      required int destinationChainId,
+      bool shouldMintTokens = false}) async {
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
-      return "Error: Could not find Wallet";
+      return ApiResponse.error("Error: Could not find Wallet");
     }
 
-    return await Web3(geniusApi: this).executeBridgeOutTransaction(
+    final resp = await Web3(geniusApi: this).executeBridgeOutTransaction(
         contractAddress: contractAddress,
         rpcUrl: rpcUrl,
         amountToBurn: amountToBurn,
         sourceChainId: sourceChainId,
         destinationChainId: destinationChainId,
         wallet: wallet);
+
+    if (shouldMintTokens && resp.isSuccess && resp.data != null) {
+      final hardCodedTokenIdForNow = 0;
+
+      mintTokens(
+        int.parse(amountToBurn),
+        resp.data!,
+        destinationChainId.toString(),
+        '$hardCodedTokenIdForNow',
+      );
+    }
+
+    return resp;
   }
 
-  Future<String> getBrigeOutGasCost(
+  Future<ApiResponse<String>> getBrigeOutGasCost(
       {required String contractAddress,
       required String rpcUrl,
       required String address,
@@ -700,19 +721,25 @@ class GeniusApi {
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
-      return "Error: Could not find Wallet";
+      return ApiResponse.error("Error: Could not find Wallet");
     }
 
     final web3 = Web3(geniusApi: this);
-    final gas = await web3.getBrigeOutGasCost(
+    final gasResponse = await web3.getBrigeOutGasCost(
         contractAddress: contractAddress,
         rpcUrl: rpcUrl,
         amountToBurn: amountToBurn,
         destinationChainId: destinationChainId,
         wallet: wallet);
-    final gasPriceInGwei = web3.getGasPriceInGwei(gas);
+
+    if (!gasResponse.isSuccess) {
+      return ApiResponse.error(
+          gasResponse.errorMessage ?? "Failed to retrieve gas costs");
+    }
+
+    final gasPriceInGwei = web3.getGasPriceInGwei(gasResponse.data);
 
     // Return as a nicely formatted string
-    return "${gasPriceInGwei?.toStringAsFixed(2)} Gwei";
+    return ApiResponse.success("${gasPriceInGwei?.toStringAsFixed(2)} Gwei");
   }
 }

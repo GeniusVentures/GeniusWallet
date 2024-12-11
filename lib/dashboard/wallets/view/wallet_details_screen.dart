@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
+import 'package:genius_wallet/app/widgets/job/submit_job_button.dart';
 import 'package:genius_wallet/app/widgets/networks/network_dropdown.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -52,13 +53,10 @@ class View extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             actions: [
-              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                NetworkDropdown(
-                    wallet: selectedWallet,
-                    network: state.selectedNetwork,
-                    networkList: state.networks),
-                const SizedBox(width: 24),
-              ])
+              NetworkDropdown(
+                  wallet: selectedWallet,
+                  network: state.selectedNetwork,
+                  networkList: state.networks),
             ],
           ),
           body: AppScreenView(
@@ -77,26 +75,30 @@ class View extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    WalletTypeIcon(
-                                        walletType: selectedWallet.walletType),
-                                    const SizedBox(
-                                      width: 8,
-                                    ),
-                                    Text(
-                                      selectedWallet.walletName,
-                                      style: const TextStyle(
-                                        fontFamily: 'Roboto',
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w400,
-                                        letterSpacing: 0.33,
-                                        color: Colors.white,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    )
-                                  ]),
+                              Flexible(
+                                  child: Row(children: [
+                                WalletTypeIcon(
+                                    walletType: selectedWallet.walletType),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Flexible(
+                                    child: Text(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  selectedWallet.walletName,
+                                  style: const TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 0.33,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ))
+                              ])),
+                              const SizedBox(width: 12),
+                              const SubmitJobButton()
                             ]);
                       },
                     ),
