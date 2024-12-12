@@ -111,7 +111,7 @@ class GeniusApi {
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
 
     final retVal = ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true);
+        .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001);
 
     if (retVal == nullptr) {
       return;
@@ -604,7 +604,8 @@ class GeniusApi {
       return [];
     }
 
-    var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetOutTransactions();
+    var transactions =
+        ffiBridgePrebuilt.wallet_lib.GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer =
