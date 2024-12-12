@@ -603,22 +603,24 @@ class NativeLibrary {
     ffi.Pointer<Utf8> eth_private_key,
     bool autodht,
     bool process,
+    int baseport,
   ) {
     return _GeniusSDKInit(
       base_path,
       eth_private_key,
       autodht ? 1 : 0,
       process ? 1 : 0,
+      baseport,
     );
   }
 
   late final _GeniusSDKInitPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-              ffi.Int32, ffi.Int32)>>('GeniusSDKInit');
+              ffi.Int32, ffi.Int32, ffi.Int32)>>('GeniusSDKInit');
   late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
       ffi.Pointer<Utf8> Function(
-          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int)>();
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
 
   void GeniusSDKProcess(ffi.Pointer<ffi.Char> jsondata) {
     _GeniusSDKProcess(jsondata);
