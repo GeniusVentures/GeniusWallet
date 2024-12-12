@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -78,7 +79,7 @@ class WalletInformationState extends State<WalletInformation> {
             children: [
               Container(
                   alignment: Alignment.center,
-                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(
                           GeniusWalletConsts.borderRadiusCard),
@@ -90,9 +91,12 @@ class WalletInformationState extends State<WalletInformation> {
               const SizedBox(height: 24),
               WalletAddressCustom(
                   child: Row(
+                      mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                    Text(
+                    Flexible(
+                        child: Text(
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       widget.ovrAddressField ?? "",
                       style: const TextStyle(
@@ -102,7 +106,7 @@ class WalletInformationState extends State<WalletInformation> {
                         letterSpacing: 0.4,
                         color: Colors.white,
                       ),
-                    ),
+                    )),
                     const SizedBox(width: 12),
                     const Icon(Icons.copy_rounded, size: 24)
                   ]))
@@ -265,6 +269,7 @@ class SquareButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.all(4),
         fixedSize: Size(MediaQuery.of(context).size.width * .25 - 19, 110),
         shape: RoundedRectangleBorder(
           borderRadius:
@@ -278,14 +283,16 @@ class SquareButton extends StatelessWidget {
         children: [
           Icon(icon, size: 40, color: _iconColor), // Icon
           const SizedBox(height: 8),
-          Text(
+          Flexible(
+              child: Text(
+            overflow: TextOverflow.ellipsis,
             text,
             style: TextStyle(
               color: _textColor,
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
-          ), // Text below the icon
+          )), // Text below the icon
         ],
       ),
     );

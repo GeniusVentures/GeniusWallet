@@ -603,22 +603,24 @@ class NativeLibrary {
     ffi.Pointer<Utf8> eth_private_key,
     bool autodht,
     bool process,
+    int baseport,
   ) {
     return _GeniusSDKInit(
       base_path,
       eth_private_key,
       autodht ? 1 : 0,
       process ? 1 : 0,
+      baseport,
     );
   }
 
   late final _GeniusSDKInitPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-              ffi.Int32, ffi.Int32)>>('GeniusSDKInit');
+              ffi.Int32, ffi.Int32, ffi.Int32)>>('GeniusSDKInit');
   late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
       ffi.Pointer<Utf8> Function(
-          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int)>();
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
 
   void GeniusSDKProcess(ffi.Pointer<ffi.Char> jsondata) {
     _GeniusSDKProcess(jsondata);
@@ -651,15 +653,15 @@ class NativeLibrary {
   late final _GeniusSDKGetCost = _GeniusSDKGetCostPtr.asFunction<
       int Function(ffi.Pointer<ffi.Char> jsondata)>();
 
-  GeniusMatrix GeniusSDKGetTransactions() {
-    return _GeniusSDKGetTransactions();
+  GeniusMatrix GeniusSDKGetOutTransactions() {
+    return _GeniusSDKGetOutTransactions();
   }
 
-  late final _GeniusSDKGetTransactionsPtr =
+  late final _GeniusSDKGetOutTransactionsPtr =
       _lookup<ffi.NativeFunction<GeniusMatrix Function()>>(
-          'GeniusSDKGetTransactions');
-  late final _GeniusSDKGetTransactions =
-      _GeniusSDKGetTransactionsPtr.asFunction<GeniusMatrix Function()>();
+          'GeniusSDKGetOutTransactions');
+  late final _GeniusSDKGetOutTransactions =
+      _GeniusSDKGetOutTransactionsPtr.asFunction<GeniusMatrix Function()>();
 
   void GeniusSDKFreeTransactions(
     GeniusMatrix matrix,
