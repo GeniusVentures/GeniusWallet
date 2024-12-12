@@ -651,15 +651,15 @@ class NativeLibrary {
   late final _GeniusSDKGetCost = _GeniusSDKGetCostPtr.asFunction<
       int Function(ffi.Pointer<ffi.Char> jsondata)>();
 
-  GeniusMatrix GeniusSDKGetTransactions() {
-    return _GeniusSDKGetTransactions();
+  GeniusMatrix GeniusSDKGetOutTransactions() {
+    return _GeniusSDKGetOutTransactions();
   }
 
-  late final _GeniusSDKGetTransactionsPtr =
+  late final _GeniusSDKGetOutTransactionsPtr =
       _lookup<ffi.NativeFunction<GeniusMatrix Function()>>(
-          'GeniusSDKGetTransactions');
-  late final _GeniusSDKGetTransactions =
-      _GeniusSDKGetTransactionsPtr.asFunction<GeniusMatrix Function()>();
+          'GeniusSDKGetOutTransactions');
+  late final _GeniusSDKGetOutTransactions =
+      _GeniusSDKGetOutTransactionsPtr.asFunction<GeniusMatrix Function()>();
 
   void GeniusSDKFreeTransactions(
     GeniusMatrix matrix,

@@ -604,7 +604,7 @@ class GeniusApi {
       return [];
     }
 
-    var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetTransactions();
+    var transactions = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer =
