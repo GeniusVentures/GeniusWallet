@@ -358,6 +358,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         "-framework AppKit"
     )
 
+    #Do this in 2 until osx linking is fixed for multiple.
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
     )
