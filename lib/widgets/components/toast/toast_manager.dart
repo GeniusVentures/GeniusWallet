@@ -10,10 +10,8 @@ class ToastManager {
 
   ToastManager._internal();
 
-  OverlayEntry? _currentOverlayEntry; // Track the active toast
-  AnimationController? _currentAnimationController; // Track the animation
-  ToastTickerProvider? _currentTickerProvider; // Track the ticker provider
-  Timer? _currentTimer; // Track the auto-dismiss timer
+  final List<_ToastEntry> _activeToasts = []; // Track all active toasts
+  final Map<OverlayEntry, double> _toastPositions = {}; // Track fixed positions
 
   void showToast({
     required BuildContext context,
@@ -24,9 +22,6 @@ class ToastManager {
     VoidCallback? onClose,
   }) {
     final overlay = Overlay.of(context);
-
-    // Close any existing toast
-    _dismissCurrentToast();
 
     // Create a TickerProvider
     final tickerProvider = ToastTickerProvider();
@@ -42,15 +37,22 @@ class ToastManager {
       curve: Curves.fastOutSlowIn,
     );
 
-    final overlayEntry = OverlayEntry(
+    late OverlayEntry overlayEntry;
+
+    // Determine the position for the new toast
+    final topOffset = 80 + (_activeToasts.length * 80.0);
+
+    overlayEntry = OverlayEntry(
       builder: (context) {
         final isMobile = MediaQuery.of(context).size.width < 600;
 
         return AnimatedBuilder(
           animation: animation,
           builder: (context, child) {
+            final fixedTopOffset = _toastPositions[overlayEntry] ?? topOffset;
+
             return Positioned(
-              top: 80,
+              top: fixedTopOffset,
               left: isMobile ? 0 : null,
               right: 0,
               child: Material(
@@ -69,7 +71,8 @@ class ToastManager {
                         message: message,
                         type: type,
                         onDismiss: () {
-                          _dismissCurrentToast();
+                          _removeToast(overlayEntry, animationController,
+                              tickerProvider);
                           if (onClose != null) onClose();
                         },
                       ),
@@ -83,39 +86,79 @@ class ToastManager {
       },
     );
 
+    // Insert the overlay entry
     overlay.insert(overlayEntry);
     animationController.forward();
 
-    _currentOverlayEntry = overlayEntry;
-    _currentAnimationController = animationController;
-    _currentTickerProvider = tickerProvider;
+    // Track the toast and its position
+    _activeToasts.add(_ToastEntry(
+      overlayEntry: overlayEntry,
+      animationController: animationController,
+      tickerProvider: tickerProvider,
+    ));
+    _toastPositions[overlayEntry] = topOffset;
 
-    _currentTimer = Timer(duration, () {
-      _dismissCurrentToast();
+    // Auto-remove the toast after the specified duration
+    Timer(duration, () {
+      _removeToast(overlayEntry, animationController, tickerProvider);
       if (onClose != null) onClose();
     });
   }
 
-  void _dismissCurrentToast() {
-    _currentTimer?.cancel();
-    _currentTimer = null;
+  void _removeToast(
+    OverlayEntry overlayEntry,
+    AnimationController animationController,
+    ToastTickerProvider tickerProvider,
+  ) {
+    final toastIndex = _activeToasts.indexWhere(
+      (entry) => entry.overlayEntry == overlayEntry,
+    );
 
-    if (_currentAnimationController != null) {
-      _currentAnimationController!.reverse().then((_) {
-        _currentOverlayEntry?.remove();
-        _currentTickerProvider?.dispose();
-        _currentAnimationController?.dispose();
+    if (toastIndex != -1) {
+      final toast = _activeToasts[toastIndex];
+      _activeToasts.removeAt(toastIndex);
+      _toastPositions.remove(toast.overlayEntry);
 
-        _currentOverlayEntry = null;
-        _currentAnimationController = null;
-        _currentTickerProvider = null;
-      });
+      if (animationController.isAnimating || animationController.isCompleted) {
+        animationController.reverse().then((_) {
+          overlayEntry.remove();
+          tickerProvider.dispose();
+          animationController.dispose();
+        });
+      } else {
+        overlayEntry.remove();
+        tickerProvider.dispose();
+        animationController.dispose();
+      }
     }
   }
 
   void dispose() {
-    _dismissCurrentToast();
+    for (final entry in _activeToasts) {
+      entry.animationController.reverse().then((_) {
+        entry.overlayEntry.remove();
+        entry.tickerProvider.dispose();
+        entry.animationController.dispose();
+      }).catchError((_) {
+        entry.overlayEntry.remove();
+        entry.tickerProvider.dispose();
+      });
+    }
+    _activeToasts.clear();
+    _toastPositions.clear();
   }
+}
+
+class _ToastEntry {
+  final OverlayEntry overlayEntry;
+  final AnimationController animationController;
+  final ToastTickerProvider tickerProvider;
+
+  _ToastEntry({
+    required this.overlayEntry,
+    required this.animationController,
+    required this.tickerProvider,
+  });
 }
 
 enum ToastType { success, error, warning }
