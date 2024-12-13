@@ -346,18 +346,28 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         find_library(LOG_LIB log)
         target_link_libraries(GeniusWallet PRIVATE ${LOG_LIB})
     endif()
-    target_link_libraries(GeniusWallet PRIVATE
-        "-framework CoreFoundation"
-        "-framework CoreGraphics"
-        "-framework CoreServices"
-        "-framework IOKit"
-        "-framework IOSurface"
-        "-framework Metal"
-        "-framework QuartzCore"
-        "-framework Foundation"
-        "-framework AppKit"
+    if(APPLE)
+        target_link_libraries(GeniusWallet PRIVATE
+            "-framework CoreFoundation"
+            "-framework CoreGraphics"
+            "-framework CoreServices"
+            "-framework IOKit"
+            "-framework IOSurface"
+            "-framework Metal"
+            "-framework QuartzCore"
+            "-framework Foundation"
     )
-
+        if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+            # macOS specific
+            target_link_libraries(GeniusWallet PRIVATE
+                "-framework AppKit")
+        elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+            # iOS specific
+            target_link_libraries(GeniusWallet PRIVATE
+                "-framework UIKit"
+                "-framework Security")
+        endif()
+    endif()
     #Do this in 2 until osx linking is fixed for multiple.
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
