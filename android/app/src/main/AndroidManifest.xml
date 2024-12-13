@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.genius_wallet">
+    package="com.gnus.genius_wallet">
    <application
         android:label="genius_wallet"
         android:name="${applicationName}"
