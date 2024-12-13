@@ -8,12 +8,17 @@ set(BINARY_NAME "genius_wallet")
 
 set(ABI_SUBFOLDER_NAME "/aarch64")
 set(CMAKE_SYSTEM_NAME iOS)
-set(CMAKE_OSX_SYSROOT $(xcrun --sdk iphoneos --show-sdk-path))
-set(CMAKE_OSX_SYSROOT iphoneos)
+#set(CMAKE_OSX_SYSROOT $(xcrun --sdk iphoneos --show-sdk-path))
 set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0)
 set(CMAKE_OSX_ARCHITECTURES arm64)
 set(CMAKE_XCODE_ATTRIBUTE_ENABLE_BITCODE YES)
 
+set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+set(CMAKE_HAVE_THREADS_LIBRARY ON)
+set(CMAKE_USE_WIN32_THREADS_INIT OFF)
+set(CMAKE_USE_PTHREADS_INIT ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.gnus.genius_wallet")
