@@ -4,71 +4,20 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/token.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
-
-class SubmitJobState {
-  final String? txHash;
-  final String? uploadedFileName;
-  final Map<String, dynamic>? uploadedJson;
-  final int? jobCost;
-  final String? jobGasCost;
-  final Token? gnusTokenDetails;
-  final double? gnusBalance;
-  const SubmitJobState(
-      {this.uploadedFileName,
-      this.uploadedJson,
-      this.jobCost,
-      this.jobGasCost,
-      this.gnusTokenDetails,
-      this.gnusBalance,
-      this.txHash});
-
-  SubmitJobState copyWith(
-      {String? uploadedFileName,
-      Map<String, dynamic>? uploadedJson,
-      int? jobCost,
-      String? jobGasCost,
-      Token? gnusTokenDetails,
-      double? gnusBalance,
-      String? txHash}) {
-    return SubmitJobState(
-        uploadedFileName: uploadedFileName ?? this.uploadedFileName,
-        uploadedJson: uploadedJson ?? this.uploadedJson,
-        jobCost: jobCost ?? this.jobCost,
-        jobGasCost: jobGasCost ?? this.jobGasCost,
-        gnusTokenDetails: gnusTokenDetails ?? this.gnusTokenDetails,
-        gnusBalance: gnusBalance ?? this.gnusBalance,
-        txHash: txHash ?? this.txHash);
-  }
-}
+import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 
 class SubmitJobCubit extends Cubit<SubmitJobState> {
   final WalletDetailsCubit walletDetailsCubit;
   final GnusCubit gnusCubit;
   final GeniusApi geniusApi;
 
-  SubmitJobCubit(
-      {required this.walletDetailsCubit,
-      required this.gnusCubit,
-      required this.geniusApi,
-      Token? gnusTokenDetails,
-      String? uploadedFileName,
-      Map<String, dynamic>? uploadedJson,
-      int? jobCost,
-      String? jobGasCost,
-      double? gnusBalance,
-      String? txHash})
-      : super(SubmitJobState(
-            uploadedFileName: uploadedFileName,
-            uploadedJson: uploadedJson,
-            jobCost: jobCost ?? 0,
-            jobGasCost: jobGasCost ?? '0',
-            gnusTokenDetails: gnusTokenDetails,
-            gnusBalance: gnusBalance,
-            txHash: txHash)) {
-    // Automatically fetch necessary data on cubit initialization
+  SubmitJobCubit({
+    required this.walletDetailsCubit,
+    required this.gnusCubit,
+    required this.geniusApi,
+  }) : super(const SubmitJobState()) {
     _initialize();
   }
 
@@ -78,16 +27,21 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   // Fetches and updates balance from gnusCubit
-  Future<void> fetchGnusBalance() async {
+  Future<double?> fetchGnusBalance() async {
     final resp = await gnusCubit.fetchGnusBalance();
     final balance = resp?.balance;
 
     if (balance == null) {
       print('balance issue');
-      return; // TODO: handle error
+      return 0; // TODO: handle error
     }
 
-    emit(state.copyWith(gnusBalance: balance));
+    // this can be long running since we delay it..
+    if (!isClosed) {
+      emit(state.copyWith(gnusBalance: balance));
+    }
+
+    return balance;
   }
 
   // Fetches and updates gnus token info from gnusCubit
@@ -103,10 +57,16 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   Future<void> openFilePicker() async {
+    emit(state.copyWith(isFilePickerOpen: true)); // Indicate picker is open
+
     try {
+      emit(state.copyWith(filePickerError: null)); // Clear previous errors
+
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        allowMultiple: false,
+        dialogTitle: "Select a valid JSON file",
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -116,15 +76,16 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final jobCost =
             geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
 
-        final isGasFetchable =
-            jsonData != null && state.gnusTokenDetails != null && jobCost != 0;
+        final isGasFetchable = jsonData != null &&
+            state.gnusTokenDetails.address != null &&
+            jobCost != 0;
 
         if (!isGasFetchable) {
-          print('gas is not fetchable');
-          return; // TODO: handle possible error
+          setFilePickerError('Unable to retrieve job cost');
+          return;
         }
 
-        // get gas cost associated with uploaded job
+        // Get gas cost associated with uploaded job
         await getBridgeOutGasCost(jobCost);
 
         emit(state.copyWith(
@@ -132,10 +93,17 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
           uploadedJson: jsonData,
           jobCost: jobCost,
         ));
+      } else {
+        setFilePickerError('No file selected.');
       }
     } catch (e) {
-      // TODO: handle any error with file picker
-      resetState();
+      if (e.runtimeType == FormatException) {
+        return setFilePickerError('The Selected File is not valid json');
+      }
+      setFilePickerError('Failed to pick file: ${e.runtimeType}');
+    } finally {
+      emit(
+          state.copyWith(isFilePickerOpen: false)); // Indicate picker is closed
     }
   }
 
@@ -174,6 +142,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   Future<void> bridgeTokens() async {
+    emit(state.copyWith(isBridgingTokens: true));
     final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
     final chainId = selectedNetwork?.chainId;
     final rpcUrl = selectedNetwork?.rpcUrl;
@@ -187,8 +156,9 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         gnusAddress == null ||
         walletAddress == null ||
         rpcUrl == null ||
-        state.jobCost == null ||
-        uploadedJson == null) {
+        state.jobCost == 0 ||
+        uploadedJson.isEmpty) {
+      emit(state.copyWith(isBridgingTokens: false));
       return; // TODO: handle errors
     }
 
@@ -201,28 +171,46 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       destinationChainId: 15305752297694, // TODO: unhardcode bridge address
     );
 
-    // refresh gnus balance
-    await fetchGnusBalance();
-
     final txHash = resp.data;
 
     if (!resp.isSuccess || txHash == null) {
+      emit(state.copyWith(isBridgingTokens: false));
+
       return; // TODO: handle errors if bridge out fails
     }
 
     // process the job
     geniusApi.requestGeniusSDKProcess(jobJson: jsonEncode(uploadedJson));
 
-    emit(state.copyWith(txHash: txHash));
+    fetchGnusBalanceWithDelay();
+
+    emit(state.copyWith(txHash: txHash, isBridgingTokens: false));
+  }
+
+  // used to fetch the gnus balance of the wallet with some delay
+  // fetching this immediately after doing a transaction seems to return a stale value
+  Future<void> fetchGnusBalanceWithDelay() async {
+    await Future.delayed(const Duration(milliseconds: 5000));
+    fetchGnusBalance();
   }
 
   void resetState() {
     emit(state.copyWith(
-      jobCost: null,
-      uploadedJson: null,
-      uploadedFileName: null,
-      jobGasCost: null,
-      txHash: null,
+        jobCost: 0,
+        uploadedJson: {},
+        uploadedFileName: '',
+        jobGasCost: '',
+        txHash: '',
+        filePickerError: null));
+  }
+
+  void setFilePickerError(String errorMessage) {
+    emit(state.copyWith(
+      filePickerError: FilePickerError(errorMessage), // Use FilePickerError
     ));
+  }
+
+  void resetFilePickerError() {
+    setFilePickerError(""); // Reset error state
   }
 }
