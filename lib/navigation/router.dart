@@ -23,11 +23,18 @@ import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
 import 'package:genius_wallet/services/coins_service.dart';
-import 'package:genius_wallet/submit_job/submit_job_cubit.dart';
+import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/widgets/components/toast/toast_manager.dart';
+import 'package:genius_wallet/widgets/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
 
+final toastManager = ToastManager();
+
 final geniusWalletRouter = GoRouter(
+  observers: [
+    ToastNavigatorObserver(toastManager),
+  ],
   redirect: (context, state) {
     final appBloc = context.read<AppBloc>();
 
@@ -260,14 +267,12 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/submit_job',
       builder: (context, state) {
-        final walletDetailCubit = state.extra as WalletDetailsCubit;
-        final gnusCubit = GnusCubit(CoinService(), walletDetailCubit);
-        final submitJobCubit = SubmitJobCubit(
-            geniusApi: context.read<GeniusApi>(),
-            gnusCubit: gnusCubit,
-            walletDetailsCubit: walletDetailCubit);
-        return BlocProvider.value(
-          value: submitJobCubit,
+        return BlocProvider(
+          create: (context) => SubmitJobCubit(
+              geniusApi: context.read<GeniusApi>(),
+              gnusCubit:
+                  GnusCubit(CoinService(), state.extra as WalletDetailsCubit),
+              walletDetailsCubit: state.extra as WalletDetailsCubit),
           child: const SubmitJobScreen(),
         );
       },
