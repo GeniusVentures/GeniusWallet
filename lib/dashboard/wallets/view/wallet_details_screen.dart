@@ -67,7 +67,6 @@ class View extends StatelessWidget {
                 children: [
                   const SizedBox(height: 18),
                   SizedBox(
-                    height: 40,
                     child: LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {

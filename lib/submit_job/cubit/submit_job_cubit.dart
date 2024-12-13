@@ -36,7 +36,10 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       return 0; // TODO: handle error
     }
 
-    emit(state.copyWith(gnusBalance: balance));
+    // this can be long running since we delay it..
+    if (!isClosed) {
+      emit(state.copyWith(gnusBalance: balance));
+    }
 
     return balance;
   }
@@ -208,6 +211,6 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   void resetFilePickerError() {
-    emit(state.copyWith(filePickerError: null)); // Reset error state
+    setFilePickerError(""); // Reset error state
   }
 }
