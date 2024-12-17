@@ -4,7 +4,7 @@
 <dict>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.gnus.geniuswallet</string>
+		<string>$(AppIdentifierPrefix)ai.gnus.GeniusWallet</string>
 	</array>
 </dict>
 </plist>
