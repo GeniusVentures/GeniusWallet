@@ -329,13 +329,25 @@ set(GENIUSSDK_RELEASE_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})
 set(GeniusSDK_DIR "${GENIUSSDK_RELEASE_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
 find_package(GeniusSDK CONFIG REQUIRED)
 include_directories(${GeniusSDK_INCLUDE_DIR})
-
+set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0)
+set(BUILD_SHARED_LIBS ON)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
         SHARED
         ${CMAKE_CURRENT_LIST_DIR}/null.cpp
     )
+    
+    #set_target_properties(GeniusWallet PROPERTIES
+    #    FRAMEWORK TRUE
+    #    MACOSX_FRAMEWORK_IDENTIFIER GeniusWallet
+    #    MACOSX_FRAMEWORK_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/GeniusWallet_Info.plist
+    #    XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "12.0"
+    #    MACHO_OUTPUT_TYPE "mh_dylib"
+    #    MACOSX_RPATH TRUE
+    #    LINKER_LANGUAGE CXX
+    #    XCODE_ATTRIBUTE_EMBEDDED_CONTENT_CONTAINS_SWIFT YES
+    #)
 
     if(SET_NAME_UNIX_FORCE)
         set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")
