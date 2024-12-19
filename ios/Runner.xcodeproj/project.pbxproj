@@ -13,6 +13,8 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		D78985582D1230B6006F38C0 /* GeniusWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D78985562D123052006F38C0 /* GeniusWallet.framework */; };
+		D78985592D1230B6006F38C0 /* GeniusWallet.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D78985562D123052006F38C0 /* GeniusWallet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E9AECAA29E2AED4FE5BE067A /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4E1864708E3119E88520655 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +25,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				D78985592D1230B6006F38C0 /* GeniusWallet.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -48,6 +51,7 @@
 		9D6215EC8F5B9F400925CFFA /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		D4E1864708E3119E88520655 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D718F29E2D0CAD4D0049558D /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		D78985562D123052006F38C0 /* GeniusWallet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GeniusWallet.framework; path = native/build/GeniusWallet.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +59,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D78985582D1230B6006F38C0 /* GeniusWallet.framework in Frameworks */,
 				E9AECAA29E2AED4FE5BE067A /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -121,6 +126,7 @@
 		C2402492C19F972AABCC9FF2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D78985562D123052006F38C0 /* GeniusWallet.framework */,
 				D4E1864708E3119E88520655 /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
@@ -135,15 +141,12 @@
 			buildPhases = (
 				D77EBEADAD710722DE2C3E2C /* [CP] Check Pods Manifest.lock */,
 				9740EEB61CF901F6004384FC /* Run Script */,
-				D718F29F2D0CAD8B0049558D /* Build GeniusWallet Lib */,
-				D718F2A02D0CAE030049558D /* Copy GeniusWallet Lib */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				0ED4904E0C26A1DDA6114546 /* [CP] Embed Pods Frameworks */,
-				D718F2A12D0CAE2A0049558D /* Sign GeniusWallet dylib */,
 			);
 			buildRules = (
 			);
@@ -234,7 +237,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -250,60 +253,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
-		};
-		D718F29F2D0CAD8B0049558D /* Build GeniusWallet Lib */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Build GeniusWallet Lib";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd native\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\nmkdir -p ../../Runner/libs\ncp libGeniusWallet.dylib ../../Runner/libs/\n";
-		};
-		D718F2A02D0CAE030049558D /* Copy GeniusWallet Lib */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy GeniusWallet Lib";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Ensure the Frameworks directory exists\nmkdir -p \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\necho \"SRCROOT: ${SRCROOT}\"\necho \"TARGET_BUILD_DIR: ${TARGET_BUILD_DIR}\"\necho \"FRAMEWORKS_FOLDER_PATH: ${FRAMEWORKS_FOLDER_PATH}\"\n# Copy the dylib into the Frameworks folder\ncp \"${SRCROOT}/Runner/libs/libGeniusWallet.dylib\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n\n";
-		};
-		D718F2A12D0CAE2A0049558D /* Sign GeniusWallet dylib */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Sign GeniusWallet dylib";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Sign the dylib\ncodesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" \\\n    --options runtime \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n";
 		};
 		D77EBEADAD710722DE2C3E2C /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -430,6 +379,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
@@ -449,11 +402,6 @@
 					"\"flutter_secure_storage\"",
 					"-framework",
 					"\"url_launcher_ios\"",
-					"-lc++",
-					"-Wl,-force_load,${PROJECT_DIR}/../../thirdparty/build/iOS/Release/wallet-core/lib/libTrustWalletCore.a",
-					"${PROJECT_DIR}/../../thirdparty/build/iOS/Release/wallet-core/lib/libTrezorCrypto.a",
-					"${PROJECT_DIR}/../../thirdparty/build/iOS/Release/wallet-core/lib/libwallet_core_rs.a",
-					"${PROJECT_DIR}/../../thirdparty/build/iOS/Release/grpc/lib/libprotobuf.a",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -596,6 +544,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
@@ -615,9 +567,6 @@
 					"\"flutter_secure_storage\"",
 					"-framework",
 					"\"url_launcher_ios\"",
-					"-lc++",
-					"-L$(SRCROOT)/Runner/libs",
-					"-lGeniusWallet",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -642,6 +591,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
@@ -661,9 +614,6 @@
 					"\"flutter_secure_storage\"",
 					"-framework",
 					"\"url_launcher_ios\"",
-					"-lc++",
-					"-L$(SRCROOT)/Runner/libs",
-					"-lGeniusWallet",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";

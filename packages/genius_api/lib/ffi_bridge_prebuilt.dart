@@ -10,15 +10,17 @@ class FFIBridgePrebuilt {
   FFIBridgePrebuilt() {
 
     final DynamicLibrary _dylib = () {
-      if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        return DynamicLibrary.open('test/.build/ffi/lib$_libName.so');
-      } else if (Platform.isAndroid) {
-      return DynamicLibrary.open('lib$_libName.so');
-      } else if (Platform.isMacOS || Platform.isIOS || Platform.isLinux || Platform.isWindows) {
-      return DynamicLibrary.executable();
+      if (Platform.isAndroid) {
+        return DynamicLibrary.open('libGeniusWallet.so');
+      } else if (Platform.isIOS) {
+        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
+      } else if (Platform.isMacOS) {
+        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
       }
       throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
     }();
+
+
 
     wallet_lib = NativeLibrary(_dylib);
 
