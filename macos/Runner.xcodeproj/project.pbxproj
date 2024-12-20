@@ -27,6 +27,8 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		CF4DC813181BE31A282906B2 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D269164831F425DC61E49CA /* Pods_Runner.framework */; };
+		D780AD472D16083D00DC3A8F /* GeniusWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D780AD462D16083D00DC3A8F /* GeniusWallet.framework */; };
+		D780AD482D16083D00DC3A8F /* GeniusWallet.framework in Bundle Framework */ = {isa = PBXBuildFile; fileRef = D780AD462D16083D00DC3A8F /* GeniusWallet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				D780AD482D16083D00DC3A8F /* GeniusWallet.framework in Bundle Framework */,
 			);
 			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,6 +76,7 @@
 		75FD9E9AFB3B98D8CC561D3D /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		D780AD462D16083D00DC3A8F /* GeniusWallet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GeniusWallet.framework; path = native/build/GeniusWallet.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D780AD472D16083D00DC3A8F /* GeniusWallet.framework in Frameworks */,
 				CF4DC813181BE31A282906B2 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -165,6 +170,7 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D780AD462D16083D00DC3A8F /* GeniusWallet.framework */,
 				5D269164831F425DC61E49CA /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
@@ -179,14 +185,12 @@
 			buildPhases = (
 				4E8C26C910685BD3831FAFBE /* [CP] Check Pods Manifest.lock */,
 				D76F99452D08D9E6001A5E96 /* Build GeniusWallet lib */,
-				D76F99462D08F535001A5E96 /* Copy GeniusWallet Lib */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* Run Script */,
 				C9DA052AA4D86828998E6E64 /* [CP] Embed Pods Frameworks */,
-				D76F99472D0A25F0001A5E96 /* Sign GeniusWallet dylib */,
 			);
 			buildRules = (
 			);
@@ -211,7 +215,6 @@
 					33CC10EC2044A3C60003C045 = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
-						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
 								enabled = 1;
@@ -352,42 +355,6 @@
 			shellPath = /bin/sh;
 			shellScript = "cd native\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\nmkdir -p ../../Runner/libs\ncp libGeniusWallet.dylib ../../Runner/libs/\n";
 		};
-		D76F99462D08F535001A5E96 /* Copy GeniusWallet Lib */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy GeniusWallet Lib";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Ensure the Frameworks directory exists\nmkdir -p \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# Copy the dylib into the Frameworks folder\ncp \"${SRCROOT}/Runner/libs/libGeniusWallet.dylib\" \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n\n";
-		};
-		D76F99472D0A25F0001A5E96 /* Sign GeniusWallet dylib */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Sign GeniusWallet dylib";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Sign the dylib\ncodesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" \\\n    --options runtime \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libGeniusWallet.dylib\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -478,18 +445,23 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.5;
@@ -497,11 +469,8 @@
 					"$(inherited)",
 					"-framework",
 					"\"flutter_secure_storage_macos\"",
-					"-framework",
-					"\"url_launcher_macos\"",
-					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gnus.geniuswallet;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
@@ -626,18 +595,23 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 0.5;
@@ -647,11 +621,8 @@
 					"\"flutter_secure_storage_macos\"",
 					"-framework",
 					"\"url_launcher_macos\"",
-					"-lc++",
-					"-L$(SRCROOT)/Runner/libs",
-					"-lGeniusWallet",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gnus.geniuswallet;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -665,18 +636,23 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				"MACOSX_DEPLOYMENT_TARGET[arch=*]" = 12.2;
@@ -687,11 +663,8 @@
 					"\"flutter_secure_storage_macos\"",
 					"-framework",
 					"\"url_launcher_macos\"",
-					"-lc++",
-					"-L$(SRCROOT)/Runner/libs",
-					"-lGeniusWallet",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gnus.geniuswallet;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
