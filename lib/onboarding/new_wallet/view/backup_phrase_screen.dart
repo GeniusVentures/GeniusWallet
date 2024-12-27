@@ -49,7 +49,7 @@ class _BackupPhraseViewMobile extends StatelessWidget {
             }),
           ),
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.47,
+            height: MediaQuery.of(context).size.height * 0.45,
           ),
           SizedBox(
             height: 100,
