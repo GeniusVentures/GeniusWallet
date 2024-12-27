@@ -61,7 +61,7 @@ class _MarketGraph extends State<MarketGraph> {
                 height: widget.constraints.maxHeight * 0.073,
                 child: Center(
                     child: Container(
-                        height: 14.0,
+                        height: 30.0,
                         width:
                             widget.constraints.maxWidth * 0.24437299035369775,
                         child: AutoSizeText(
