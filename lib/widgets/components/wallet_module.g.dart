@@ -188,9 +188,9 @@ class _WalletModule extends State<WalletModule> {
                 left: widget.constraints.maxWidth * 0.039,
                 width: widget.constraints.maxWidth * 0.788,
                 top: 80.0,
-                height: 14.0,
+                height: 20.0,
                 child: SizedBox(
-                    height: 14.0,
+                    height: 20.0,
                     width: widget.constraints.maxWidth * 0.7877813504823151,
                     child: AutoSizeText(
                       widget.ovrLastTransactionID ??
