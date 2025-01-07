@@ -32,28 +32,18 @@ class SupportedExistingWallets extends StatelessWidget {
         //NOTE: This can be made more efficient by making `shrinkWrap` false but implementing a [CustomScrollview]
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return MaterialButton(
-            onPressed: () {
-              context.read<ExistingWalletBloc>().add(
-                    ImportWalletSelected(
-                        walletName: supportedNetworks[index].name,
-                        coinType: supportedNetworks[index].coinType),
-                  );
-            },
-            child: SizedBox(
-              height: 50,
-              width: MediaQuery.of(context).size.width * 0.85,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return WalletCard(
-                    constraints,
-                    ovrEllipse1: Image.asset(
-                      supportedNetworks[index].image,
-                    ),
-                    ovrEthereum: supportedNetworks[index].name,
-                  );
-                },
-              ),
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: WalletCard(
+              walletIcon: supportedNetworks[index].image,
+              walletName: supportedNetworks[index].name,
+              onTap: () {
+                context.read<ExistingWalletBloc>().add(
+                      ImportWalletSelected(
+                          walletName: supportedNetworks[index].name,
+                          coinType: supportedNetworks[index].coinType),
+                    );
+              },
             ),
           );
         },

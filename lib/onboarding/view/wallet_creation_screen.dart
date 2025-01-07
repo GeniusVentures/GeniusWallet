@@ -7,7 +7,8 @@ import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dar
 import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
 
 class LandingScreen extends StatelessWidget {
-  const LandingScreen({super.key});
+  final bool isIncludeBackButton;
+  const LandingScreen({super.key, required this.isIncludeBackButton});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +50,24 @@ class LandingScreen extends StatelessWidget {
                                 TypeCreate(constraints),
                           ),
                         ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        if (isIncludeBackButton)
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: const ButtonStyle(
+                                backgroundColor:
+                                    WidgetStatePropertyAll(Colors.transparent)),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white, // Adjust color as needed
+                              ),
+                            ),
+                          ),
 
                         /***  Below is the test code to test native c/c++ code ***/
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/types/wallet_type.dart';
 
 class WalletTypeIcon extends StatelessWidget {
@@ -15,7 +16,7 @@ class WalletTypeIcon extends StatelessWidget {
       if (walletType == WalletType.mnemonic) {
         return const Icon(
           semanticLabel: 'account',
-          Icons.account_box_outlined,
+          FontAwesomeIcons.user,
           size: 20,
         );
       }
@@ -23,13 +24,13 @@ class WalletTypeIcon extends StatelessWidget {
       if (walletType == WalletType.tracking) {
         return const Icon(
           semanticLabel: 'watching',
-          Icons.remove_red_eye_outlined,
+          FontAwesomeIcons.eye,
           size: 20,
         );
       }
       return const Icon(
         semanticLabel: 'wallet',
-        Icons.wallet_outlined,
+        FontAwesomeIcons.wallet,
         size: 20,
       );
     }();

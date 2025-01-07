@@ -1,126 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/widgets/components/custom/wallet_card_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/white_arrow_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/white_arrow/pointing_right.g.dart';
 
 class WalletCard extends StatefulWidget {
-  final BoxConstraints constraints;
-  final String? ovrEthereum;
-  final Widget? ovrEllipse1;
+  final String? walletName;
+  final String? walletIcon;
+  final VoidCallback? onTap;
 
-  const WalletCard(
-    this.constraints, {
+  const WalletCard({
     Key? key,
-    this.ovrEthereum,
-    this.ovrEllipse1,
+    this.walletName = "Ethereum",
+    this.walletIcon,
+    this.onTap,
   }) : super(key: key);
 
   @override
-  _WalletCard createState() => _WalletCard();
+  _WalletCardState createState() => _WalletCardState();
 }
 
-class _WalletCard extends State<WalletCard> {
-  _WalletCard();
-
+class _WalletCardState extends State<WalletCard> {
   @override
   Widget build(BuildContext context) {
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Container(
       decoration: BoxDecoration(
-        color: GeniusWalletColors.blue500,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
+        color: GeniusWalletColors.deepBlueCardColor,
+        borderRadius:
+            BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
       ),
-      child: WalletCardCustom(
-        child: Stack(
+      child: TextButton(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
+          ),
+          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+        ),
+        onPressed: widget.onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Background
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: GeniusWalletColors.blue500,
-                  borderRadius: BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
-                ),
-              ),
-            ),
-
-            // Arrow
-            Positioned(
-              right: 19.0,
-              width: 7.0,
-              top: widget.constraints.maxHeight * 0.436,
-              height: widget.constraints.maxHeight * 0.164,
-              child: Center(
-                child: WhiteArrowCustom(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return PointingRight(
-                        constraints,
-                        ovrWhiteArrowRight: SvgPicture.asset(
-                          'assets/images/whitearrowright.svg',
-                          package: 'genius_wallet',
-                          height: 12.0,
-                          width: 7.0,
-                          fit: BoxFit.none,
-                        ),
-                      );
-                    },
+            // Icon and Wallet Name
+            Flexible(
+                child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Wallet Icon
+                if (widget.walletIcon != null)
+                  Image.asset(
+                    widget.walletIcon!,
+                    package: 'genius_wallet',
+                    height: 30.0 * textScaleFactor,
+                    width: 30.0 * textScaleFactor,
+                    fit: BoxFit.contain,
+                  )
+                else
+                  CircleAvatar(
+                    radius: 15.0 * textScaleFactor,
+                    backgroundColor: Colors.grey[400],
+                    child: const Icon(Icons.account_balance_wallet, size: 16),
                   ),
-                ),
-              ),
-            ),
-
-            // Wallet Name (Proper Alignment)
-            Positioned(
-              left: 50.0,
-              right: 50.0,
-              top: widget.constraints.maxHeight * 0.3,
-              bottom: widget.constraints.maxHeight * 0.3,
-              //child: Center(
-                child: AutoSizeText(
-                  widget.ovrEthereum ?? 'Ethereum',
-                  style: const TextStyle(
+                const SizedBox(width: 12),
+                // Wallet Name
+                Flexible(
+                    child: AutoSizeText(
+                  widget.walletName ?? '',
+                  style: TextStyle(
                     fontFamily: 'Roboto',
-                    fontSize: 14.0,
+                    fontSize: 14.0 * textScaleFactor,
                     fontWeight: FontWeight.w400,
-                    letterSpacing: 0.1375,
                     color: Colors.white,
                   ),
-                  textAlign: TextAlign.left,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  minFontSize: 10,
-                ),
-              //),
-            ),
-
-            // Icon
-            Positioned(
-              left: 12.0,
-              width: 30.0,
-              top: widget.constraints.maxHeight * 0.236,
-              height: widget.constraints.maxHeight * 0.545,
-              child: Center(
-                child: widget.ovrEllipse1 ??
-                    Image.asset(
-                      'assets/images/ellipse1.png',
-                      package: 'genius_wallet',
-                      height: 30.0,
-                      width: 30.0,
-                      fit: BoxFit.scaleDown,
-                    ),
-              ),
+                )),
+              ],
+            )),
+            // Arrow Icon
+            SvgPicture.asset(
+              'assets/images/whitearrowright.svg',
+              package: 'genius_wallet',
+              height: 14.0 * textScaleFactor,
+              width: 12.0 * textScaleFactor,
+              fit: BoxFit.none,
             ),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

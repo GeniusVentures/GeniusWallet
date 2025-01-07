@@ -17,7 +17,7 @@ class SubmitJobState {
       this.uploadedFileName = '',
       this.uploadedJson = const {},
       this.jobCost = 0,
-      this.jobGasCost = '',
+      this.jobGasCost = '0.00 Gwei',
       this.gnusTokenDetails = const Token(),
       this.gnusBalance = 0,
       this.filePickerError = const FilePickerError(''),

@@ -5,6 +5,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/tw/coin_util.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -93,11 +94,9 @@ class CoinsScreenState extends State<CoinsScreen> {
                                             connection?.walletAddress
                                     ? TextButton(
                                         style: TextButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
                                             padding: const EdgeInsets.only(
-                                                top: 20,
-                                                bottom: 20,
-                                                left: 12,
-                                                right: 12)),
+                                                left: 12, right: 12)),
                                         onPressed: (coin.balance == 0 ||
                                                 (!(connection
                                                         ?.isConnected ?? // only allow bridging if connected to sgnus network
@@ -111,7 +110,10 @@ class CoinsScreenState extends State<CoinsScreen> {
                                                 walletCubit.getCoins();
                                                 walletCubit.getWalletBalance();
                                               },
-                                        child: const Text("Bridge Tokens"),
+                                        child: const AutoSizeText(
+                                          "Bridge Tokens",
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       )
                                     : null,
                               );
@@ -162,24 +164,23 @@ class CoinCardRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              Flexible(
+                  child: AutoSizeText(
                 name,
                 overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
+              )),
               Row(
                 children: [
                   Flexible(
-                      child: Text(
+                      child: AutoSizeText(
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
                     style: const TextStyle(color: GeniusWalletColors.gray500),
                     balance == 0
                         ? '0'
-                        : CoinUtil.truncateToDecimals(balance.toString()),
+                        : WalletUtils.truncateToDecimals(balance.toString()),
                   )),
                   const SizedBox(width: 8),
-                  Text(
+                  AutoSizeText(
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: const TextStyle(color: GeniusWalletColors.gray500),
@@ -208,7 +209,7 @@ class CoinCardContainer extends StatelessWidget {
     return Container(
       height: 80,
       width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+      padding: const EdgeInsets.only(left: 16, right: 16),
       decoration: const BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.all(

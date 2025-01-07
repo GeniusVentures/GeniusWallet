@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/destinations.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class GeniusTabbar extends StatelessWidget {
   static const _numTabs = 4;
@@ -31,11 +30,9 @@ class GeniusTabbar extends StatelessWidget {
         .take(_numTabs)
         .map(
           (e) => BottomNavigationBarItem(
-            icon: Container(
-                padding: const EdgeInsets.only(bottom: 8), child: e.icon),
+            icon: Container(padding: const EdgeInsets.all(8), child: e.icon),
             activeIcon: Container(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: e.selectedIcon),
+                padding: const EdgeInsets.all(8), child: e.selectedIcon),
             label: e.label.data,
           ),
         )
