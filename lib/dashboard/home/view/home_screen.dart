@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -227,8 +228,9 @@ class MarketsDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DashboardViewContainer(
-        child: Text('Markets - Coming Soon',
-            style: TextStyle(color: Colors.grey)));
+        child: Flexible(
+            child: AutoSizeText('Markets - Coming Soon',
+                style: TextStyle(color: Colors.grey))));
   }
 }
 
@@ -238,8 +240,9 @@ class ChartDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DashboardViewContainer(
-        child:
-            Text('Chart - Coming Soon', style: TextStyle(color: Colors.grey)));
+        child: Flexible(
+            child: AutoSizeText('Chart - Coming Soon',
+                style: TextStyle(color: Colors.grey))));
   }
 }
 
@@ -249,8 +252,9 @@ class ContributionsDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DashboardViewContainer(
-        child: Text('Contributions - Coming Soon',
-            style: TextStyle(color: Colors.grey)));
+        child: Flexible(
+            child: AutoSizeText('Contributions - Coming Soon',
+                style: TextStyle(color: Colors.grey))));
   }
 }
 
@@ -260,7 +264,8 @@ class SendReceiveDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DashboardViewContainer(
-        child: Text('Send / Receive - Coming Soon',
-            style: TextStyle(color: Colors.grey)));
+        child: Flexible(
+            child: AutoSizeText('Send / Receive - Coming Soon',
+                style: TextStyle(color: Colors.grey))));
   }
 }

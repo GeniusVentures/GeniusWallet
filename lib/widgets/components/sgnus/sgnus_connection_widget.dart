@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -30,11 +31,15 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Text(
+                const Flexible(
+                    child: AutoSizeText(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   'SGNUS Connection ',
                   style: TextStyle(fontSize: 16),
-                ),
+                )),
                 const SizedBox(width: 8),
                 if (connection.isConnected) const CheckmarkAnimation(),
                 if (!connection.isConnected) const XAnimation(),
