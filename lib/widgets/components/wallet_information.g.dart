@@ -44,10 +44,12 @@ class WalletInformationState extends State<WalletInformation> {
         const Loading(),
       if (walletCubit.state.balanceStatus == WalletStatus.successful)
         Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
+              Flexible(
+                  child: AutoSizeText(
                 widget.ovrQuantity ?? "0",
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -58,7 +60,7 @@ class WalletInformationState extends State<WalletInformation> {
                   color: Colors.white,
                 ),
                 textAlign: TextAlign.left,
-              ),
+              )),
               const SizedBox(width: 8),
               Text(
                 widget.ovrCurrency ?? "",
@@ -114,32 +116,36 @@ class WalletInformationState extends State<WalletInformation> {
           ))
         ],
         if (widget.walletType != WalletType.tracking) ...[
-          SquareButton(
-              text: 'Receive',
-              icon: Icons.qr_code,
-              onPressed: () {
-                context.push('/receive',
-                    extra: context.read<WalletDetailsCubit>());
-              }),
-          const SizedBox(width: 12),
-          const SquareButton(
+          Expanded(
+              child: SquareButton(
+                  text: 'Receive',
+                  icon: Icons.qr_code,
+                  onPressed: () {
+                    context.push('/receive',
+                        extra: context.read<WalletDetailsCubit>());
+                  })),
+          const SizedBox(width: 8),
+          const Expanded(
+              child: SquareButton(
             text: 'Send',
             icon: Icons.send,
-          ),
-          const SizedBox(width: 12),
-          SquareButton(
-              text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
-              // TODO: renable swap...
-              // Open the Swap Screen as a popup
-              // context.push('/swap',
-              //     extra: context.read<WalletDetailsCubit>());
-              //}
-              ),
-          const SizedBox(width: 12),
-          SquareButton(
+          )),
+          const SizedBox(width: 8),
+          const Expanded(
+              child: SquareButton(
+                  text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
+                  // TODO: renable swap...
+                  // Open the Swap Screen as a popup
+                  // context.push('/swap',
+                  //     extra: context.read<WalletDetailsCubit>());
+                  //}
+                  )),
+          const SizedBox(width: 8),
+          const Expanded(
+              child: SquareButton(
             text: 'Buy',
             icon: Icons.attach_money,
-          ),
+          )),
         ]
       ]),
       const SizedBox(height: 8),
@@ -256,7 +262,7 @@ class SquareButton extends StatelessWidget {
     this.onPressed,
     this.backgroundColor = GeniusWalletColors.deepBlueCardColor,
     this.iconColor = GeniusWalletColors.lightGreenSecondary,
-    this.textColor = GeniusWalletColors.lightGreenSecondary,
+    this.textColor = GeniusWalletColors.gray500,
   }) : super(key: key);
 
   @override
@@ -266,35 +272,43 @@ class SquareButton extends StatelessWidget {
     final _textColor =
         onPressed != null ? textColor : GeniusWalletColors.gray600;
 
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(4),
-        fixedSize: Size(MediaQuery.of(context).size.width * .25 - 19, 110),
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
-        ),
-        disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
-        backgroundColor: backgroundColor,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 40, color: _iconColor), // Icon
-          const SizedBox(height: 8),
-          Flexible(
-              child: Text(
-            overflow: TextOverflow.ellipsis,
-            text,
-            style: TextStyle(
-              color: _textColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(4),
+            fixedSize: Size(constraints.maxWidth * 0.25, constraints.maxWidth),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                GeniusWalletConsts.borderRadiusCard,
+              ),
             ),
-          )), // Text below the icon
-        ],
-      ),
+            disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
+            backgroundColor: backgroundColor,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: constraints.maxWidth * 0.35, color: _iconColor), // Icon
+              const SizedBox(height: 4),
+              Flexible(
+                child: AutoSizeText(
+                  text,
+                  style: TextStyle(
+                    color: _textColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1, // Ensure it doesn't overflow
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ), // Text below the icon
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -151,7 +151,7 @@ class _Agreement extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 50,
+          height: 100,
           width: MediaQuery.of(context).size.width * 0.8,
           child: LayoutBuilder(
             builder: (context, constraints) {

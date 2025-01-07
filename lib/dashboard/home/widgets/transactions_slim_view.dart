@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,7 +6,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class TransactionsSlimView extends StatefulWidget {
@@ -68,6 +68,8 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
 
       transactions.retainWhere((transaction) {
         if (selectedFilter == 'All') return true;
+        if (selectedFilter == 'Escrow' &&
+            transaction.type == TransactionType.escrow) return true;
         if (selectedFilter == 'Mint' &&
             transaction.type == TransactionType.mint) return true;
         if (selectedFilter == 'Received' &&
@@ -135,8 +137,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           'width': 230.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.recipients.first.toAddr),
-          'rowFullValue': (transaction) =>
-              transaction.recipients.first.toAddr,
+          'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
           'isCopyable': true,
         },
         {
@@ -184,9 +185,10 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                             width: (column['width'] as double) *
                                 textScaleFactor.clamp(1.0, 1.5),
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(
+                            child: AutoSizeText(
                               column['title'] as String,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           );
                         }).toList(),
@@ -210,12 +212,13 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                                     value.toString(),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                if (column['isCopyable'] == true)
+                                if (column['isCopyable'] == true &&
+                                    (value as String).isNotEmpty)
                                   IconButton(
                                     icon: const Icon(Icons.copy, size: 16),
                                     onPressed: () => _copyToClipboard(
-                                        (column['rowFullValue'] as Function)(
-                                            transaction)),
+                                        (column['rowFullValue']
+                                            as Function)(transaction)),
                                   ),
                               ],
                             ),
@@ -229,7 +232,8 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           ),
           const SizedBox(height: 16),
           Center(
-            child: Text(
+            child: AutoSizeText(
+              maxLines: 1,
               "Transactions: ${transactions.length}",
               style: const TextStyle(
                   fontSize: 16, color: GeniusWalletColors.gray500),
