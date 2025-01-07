@@ -56,8 +56,8 @@ class _AddWalletBlock extends State<AddWalletBlock> {
                             child: SizedBox(
                                 width: widget.constraints.maxWidth,
                                 child: ElevatedButton(
-                                    onPressed: () =>
-                                        context.push('/landing_screen'),
+                                    onPressed: () => context
+                                        .push('/landing_screen', extra: true),
                                     style: const ButtonStyle(
                                         surfaceTintColor:
                                             MaterialStatePropertyAll(

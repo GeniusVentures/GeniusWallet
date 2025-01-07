@@ -96,14 +96,6 @@ class DesktopContainer extends StatelessWidget {
                             ),
                             SizedBox(width: 12),
                             HeaderButton(
-                              color: GeniusWalletColors.lightGreenPrimary,
-                              text: GeniusWalletText.btnAddWallet,
-                              route: '/landing_screen',
-                              textColor: GeniusWalletColors.deepBlueTertiary,
-                              icon: Icons.add_circle_outlined,
-                            ),
-                            SizedBox(width: 12),
-                            HeaderButton(
                               color: GeniusWalletColors.gray900,
                               text: 'Genius 1',
                               textColor: Colors.white,

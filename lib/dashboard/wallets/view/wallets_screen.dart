@@ -126,7 +126,8 @@ class Mobile extends StatelessWidget {
                     style: TextStyle(fontSize: 24),
                   )),
                   TextButton.icon(
-                      onPressed: () => context.push('/landing_screen'),
+                      onPressed: () =>
+                          context.push('/landing_screen', extra: true),
                       style: ButtonStyle(
                           padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
                           backgroundColor:

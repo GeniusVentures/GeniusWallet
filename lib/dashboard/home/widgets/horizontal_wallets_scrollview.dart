@@ -150,7 +150,8 @@ class _HorizontalWalletsScrollviewState
                           ],
                           WalletContainerButton(
                             width: 250,
-                            onPressed: () => context.push('/landing_screen'),
+                            onPressed: () =>
+                                context.push('/landing_screen', extra: true),
                             child: const Center(
                               child: Text(
                                 GeniusWalletText.btnAddWallet,
