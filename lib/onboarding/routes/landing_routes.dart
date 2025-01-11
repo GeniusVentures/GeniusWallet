@@ -14,8 +14,11 @@ class LandingRoutes {
           path: '/landing_screen',
           builder: (context, state) {
             final isIncludeBackButton =
-                state.extra as bool; // Retrieve the extra parameter
-            return LandingScreen(isIncludeBackButton: isIncludeBackButton);
+                state.extra; // Retrieve the extra parameter
+            return LandingScreen(
+                isIncludeBackButton: isIncludeBackButton == null
+                    ? false
+                    : isIncludeBackButton as bool);
           },
         ),
         GoRoute(
