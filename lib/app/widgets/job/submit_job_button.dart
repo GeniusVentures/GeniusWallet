@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
 class SubmitJobButton extends StatefulWidget {

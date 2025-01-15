@@ -9,7 +9,8 @@ import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class TransactionsSlimView extends StatefulWidget {
-  const TransactionsSlimView({super.key});
+  final List<Transaction> transactions;
+  const TransactionsSlimView({super.key, required this.transactions});
 
   @override
   TransactionsSlimViewState createState() => TransactionsSlimViewState();
@@ -62,10 +63,9 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
   @override
   Widget build(BuildContext context) {
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final transactions = [...widget.transactions];
 
     return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-      final transactions = [...state.transactions];
-
       transactions.retainWhere((transaction) {
         if (selectedFilter == 'All') return true;
         if (selectedFilter == 'Escrow' &&
@@ -158,25 +158,16 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TransactionFilters(onFilterSelected: handleFilterSelected),
-          if (transactions.isEmpty)
-            const Center(
-              heightFactor: 5,
-              child: Text(
-                'No Transactions Found',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          const SizedBox(height: 16),
-
-          // Scrollable Table Section
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.vertical,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header Row
+                    const SizedBox(height: 16),
                     Container(
                       color: GeniusWalletColors.rowFilterBlue,
                       child: Row(
@@ -194,6 +185,13 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                         }).toList(),
                       ),
                     ),
+                    if (widget.transactions.isEmpty)
+                      const Padding(
+                          padding: EdgeInsets.only(top: 20),
+                          child: Text(
+                            ' No Transactions Found',
+                            style: TextStyle(fontSize: 20),
+                          )),
                     // Data Rows
                     for (var transaction in transactions)
                       Row(
@@ -234,7 +232,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           Center(
             child: AutoSizeText(
               maxLines: 1,
-              "Transactions: ${transactions.length}",
+              "Transactions: ${widget.transactions.length}",
               style: const TextStyle(
                   fontSize: 16, color: GeniusWalletColors.gray500),
             ),
