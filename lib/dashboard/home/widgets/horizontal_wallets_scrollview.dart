@@ -119,7 +119,9 @@ class _HorizontalWalletsScrollviewState
                         children: [
                           if (connection != null && connection.isConnected) ...[
                             WalletContainerButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                context.push('/geniusWallet');
+                              },
                               child: const SGNUSWallet(),
                             ),
                             const SizedBox(width: 16),

@@ -218,7 +218,10 @@ class TransactionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DashboardViewNoFlexContainer(child: TransactionsSlimView());
+    return DashboardViewNoFlexContainer(
+        child: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+      return TransactionsSlimView(transactions: state.transactions);
+    }));
   }
 }
 
