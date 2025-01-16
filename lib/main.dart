@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -7,6 +8,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
+import 'package:device_preview/device_preview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +20,14 @@ void main() async {
     await geniusApi.initSDK();
   }
 
-  runApp(MyApp(
-    geniusApi: geniusApi,
-  ));
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (context) => MyApp(
+        geniusApi: geniusApi,
+      ), // Wrap your app
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -45,6 +52,9 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp.router(
+          useInheritedMediaQuery: true,
+          locale: DevicePreview.locale(context),
+          builder: DevicePreview.appBuilder,
           title: 'Gnus AI',
           theme: ThemeData(
             progressIndicatorTheme: const ProgressIndicatorThemeData(

@@ -51,9 +51,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                 left: 30.0,
                 right: 30.0,
                 top: 100.0,
-                height: 32.0,
                 child: Container(
-                    height: 32.0,
                     width: widget.constraints.maxWidth * 0.84,
                     child: AutoSizeText(
                       widget.ovrSubtitle ??
@@ -75,6 +73,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                     width: widget.constraints.maxWidth * 0.6053333333333333,
                     child: AutoSizeText(
                       widget.ovrTitle ?? GeniusWalletText.titleWalletBackup,
+                      maxLines: 1,
                       style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: GeniusWalletFontSize.title,

@@ -110,6 +110,7 @@ class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
 class _VerifyRecoveryPhraseViewMobile extends StatelessWidget {
   final String title;
   final String subtitle;
+
   const _VerifyRecoveryPhraseViewMobile({
     required this.title,
     required this.subtitle,
@@ -122,33 +123,37 @@ class _VerifyRecoveryPhraseViewMobile extends StatelessWidget {
       title: 'Verify Your Recovery Phrase',
       subtitle:
           'Tap the words to put them next to each other in the correct order',
-      body: const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0),
-            child: _InputAndWords(),
+            padding: const EdgeInsets.only(left: 40.0, right: 40.0, top: 20.0),
+            child: const _InputAndWords(),
           ),
-          SizedBox(
-            height: 100,
-          ),
+          const SizedBox(height: 20), // Adjusted spacing for balance
         ],
       ),
-      footer: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.8,
-        height: 50,
-        child: MaterialButton(
-          onPressed: () {
-            context.read<NewWalletBloc>().add(RecoveryVerificationContinue());
-          },
-          child: LayoutBuilder(builder: (context, constraints) {
-            return IsactiveTrue(constraints);
-          }),
+      footer: Padding(
+        padding: const EdgeInsets.only(bottom: 20.0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: 50,
+          child: MaterialButton(
+            onPressed: () {
+              context.read<NewWalletBloc>().add(RecoveryVerificationContinue());
+            },
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return IsactiveTrue(constraints);
+              },
+            ),
+          ),
         ),
       ),
     );
   }
 }
+
 
 class _InputAndWords extends StatelessWidget {
   const _InputAndWords({Key? key}) : super(key: key);

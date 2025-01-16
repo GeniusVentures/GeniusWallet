@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
@@ -44,15 +45,25 @@ class _WalletModule extends State<WalletModule> {
   Widget build(BuildContext context) {
     return Container(
         padding:
-            const EdgeInsets.only(top: 40, bottom: 40, left: 20, right: 20),
-        height: widget.constraints.maxHeight * 1.0,
-        width: widget.constraints.maxWidth * 1.0,
+            const EdgeInsets.only(top: 24, bottom: 40, left: 20, right: 20),
+        height: widget.constraints.maxWidth,
+        width: widget.constraints.maxWidth,
         decoration: const BoxDecoration(
           color: GeniusWalletColors.deepBlueCardColor,
           borderRadius: BorderRadius.all(
               Radius.circular(GeniusWalletConsts.borderRadiusCard)),
         ),
         child: Stack(children: [
+          Positioned(
+              top: 8,
+              width: 30,
+              height: 30,
+              child: widget.ovrCoinImage ??
+                  Image.asset(
+                    'assets/images/coinimage.png',
+                    package: 'genius_wallet',
+                    fit: BoxFit.fill,
+                  )),
           Center(
               child: Container(
                   height: 150,
@@ -64,84 +75,70 @@ class _WalletModule extends State<WalletModule> {
                       blurRadius: 80,
                     )
                   ]))),
-          Row(children: [
-            WalletTypeIcon(walletType: widget.walletType),
-            const SizedBox(width: 16),
-            SizedBox(
-                width: 20,
-                height: 20,
-                child: widget.ovrCoinImage ??
-                    Image.asset(
-                      'assets/images/coinimage.png',
-                      package: 'genius_wallet',
-                      fit: BoxFit.fill,
-                    )),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: 150,
-              child: AutoSizeText(
-                overflow: TextOverflow.ellipsis,
-                widget.walletName ?? 'Bitcoin',
-                style: const TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: GeniusWalletFontSize.medium,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.25,
-                  color: Colors.white,
+          Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Flexible(
+                  child: Container(
+                padding: const EdgeInsets.only(left: 46),
+                child: AutoSizeText(
+                  overflow: TextOverflow.ellipsis,
+                  widget.walletName ?? '',
+                  style: const TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: GeniusWalletFontSize.medium,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.25,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.left,
                 ),
-                textAlign: TextAlign.left,
-              ),
-            ),
-            const Expanded(
-                child: Text(
-              GeniusWalletText.walletCardHeader,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 12.0,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.2571428716182709,
-                color: Colors.white,
-              ),
-            ))
-          ]),
-          Padding(
-              padding: const EdgeInsets.only(top: 30),
-              child: Row(children: [
-                Expanded(
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                      AutoSizeText(
-                        widget.ovrWalletBalance ?? '0.221746',
-                        style: const TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: GeniusWalletFontSize.sectionHeaderLarge,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.28000009059906006,
-                          color: Colors.white,
-                        ),
+              )),
+              Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: WalletTypeIcon(walletType: widget.walletType)),
+            ]),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Flexible(
+                  child: Padding(
+                      padding: EdgeInsets.only(left: 46),
+                      child: AutoSizeText(
+                          WalletUtils.getAddressForDisplay(
+                              widget.walletAddress ?? ""),
+                          maxLines: 1,
+                          style: const TextStyle(
+                              color: GeniusWalletColors.gray500)))),
+              const SizedBox(width: 8),
+              Flexible(
+                  child:
+                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                Flexible(
+                    child: AutoSizeText(
+                  WalletUtils.truncateToDecimals(widget.ovrWalletBalance ?? ""),
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                )),
+                const SizedBox(width: 5),
+                Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: AutoSizeText(
+                      widget.ovrCoinSymbol ?? '',
+                      style: const TextStyle(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2571428716182709,
+                        color: GeniusWalletColors.gray500,
                       ),
-                      const SizedBox(width: 5),
-                      Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: AutoSizeText(
-                            widget.ovrCoinSymbol ?? 'Btc',
-                            style: const TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2571428716182709,
-                              color: GeniusWalletColors.gray500,
-                            ),
-                          ))
-                    ])),
+                    ))
               ])),
+            ]),
+          ]),
           Positioned(
             left: 20.0,
             right: 20.0,
             bottom: 0,
-            height: 100.0,
+            height: 120.0,
             child: SizedBox(
                 child: Stack(children: [
               Positioned(
@@ -153,7 +150,7 @@ class _WalletModule extends State<WalletModule> {
                     height: 12.0,
                     width: widget.constraints.maxWidth * 0.33762057877813506,
                     child: AutoSizeText(
-                      widget.ovrTimestamp ?? '16:01, 12 dec 2018',
+                      widget.ovrTimestamp ?? '',
                       style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 10.0,
@@ -173,7 +170,7 @@ class _WalletModule extends State<WalletModule> {
                     height: 14.0,
                     width: widget.constraints.maxWidth * 0.24437299035369775,
                     child: AutoSizeText(
-                      widget.ovrLastTransactionValue ?? '+1.045 BTC',
+                      widget.ovrLastTransactionValue ?? '',
                       style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 12.0,
@@ -185,25 +182,22 @@ class _WalletModule extends State<WalletModule> {
                     )),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.039,
-                width: widget.constraints.maxWidth * 0.788,
-                top: 80.0,
-                height: 14.0,
-                child: SizedBox(
-                    height: 14.0,
-                    width: widget.constraints.maxWidth * 0.7877813504823151,
-                    child: AutoSizeText(
-                      widget.ovrLastTransactionID ??
-                          '1PRj85hu9RXPZTzxtko9stfs6nRo1vyrQB',
-                      style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.30000001192092896,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )),
+                bottom: 0,
+                left: 0,
+                child: Center(
+                    child: SizedBox(
+                        child: AutoSizeText(
+                  widget.ovrLastTransactionID ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ))),
               ),
             ])),
           ),

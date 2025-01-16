@@ -1,130 +1,96 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/widgets/components/custom/wallet_card_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/white_arrow_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/white_arrow/pointing_right.g.dart';
 
 class WalletCard extends StatefulWidget {
-  final BoxConstraints constraints;
-  final String? ovrEthereum;
-  final Widget? ovrEllipse1;
-  const WalletCard(
-    this.constraints, {
+  final String? walletName;
+  final String? walletIcon;
+  final VoidCallback? onTap;
+
+  const WalletCard({
     Key? key,
-    this.ovrEthereum,
-    this.ovrEllipse1,
+    this.walletName = "Ethereum",
+    this.walletIcon,
+    this.onTap,
   }) : super(key: key);
+
   @override
-  _WalletCard createState() => _WalletCard();
+  _WalletCardState createState() => _WalletCardState();
 }
 
-class _WalletCard extends State<WalletCard> {
-  _WalletCard();
-
+class _WalletCardState extends State<WalletCard> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: BoxDecoration(),
-        child: WalletCardCustom(
-            child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: widget.constraints.maxWidth * 1.0,
-            top: 0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: Stack(children: [
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
-                  decoration: const BoxDecoration(
-                    color: GeniusWalletColors.blue500,
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(GeniusWalletConsts.borderRadiusButton)),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 19.0,
-                width: 7.0,
-                top: widget.constraints.maxHeight * 0.436,
-                height: widget.constraints.maxHeight * 0.164,
-                child: Center(
-                    child: Container(
-                        height: 12.0,
-                        width: 7.0,
-                        child: WhiteArrowCustom(child:
-                            LayoutBuilder(builder: (context, constraints) {
-                          return PointingRight(
-                            constraints,
-                            ovrWhiteArrowRight: SvgPicture.asset(
-                              'assets/images/whitearrowright.svg',
-                              package: 'genius_wallet',
-                              height: 12.0,
-                              width: 7.0,
-                              fit: BoxFit.none,
-                            ),
-                          );
-                        })))),
-              ),
-              Positioned(
-                left: 62.0,
-                width: 61.0,
-                top: widget.constraints.maxHeight * 0.364,
-                height: widget.constraints.maxHeight * 0.291,
-                child: Container(
-                    height: widget.constraints.maxHeight * 0.2909090909090909,
-                    width: 61.0,
-                    child: AutoSizeText(
-                      widget.ovrEthereum ?? 'Ethereum',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.13750000298023224,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
-              ),
-              Positioned(
-                left: 12.0,
-                width: 30.0,
-                top: widget.constraints.maxHeight * 0.236,
-                height: widget.constraints.maxHeight * 0.545,
-                child: Center(
-                    child: Container(
-                        height: 30.0,
-                        width: 30.0,
-                        child: widget.ovrEllipse1 ??
-                            Image.asset(
-                              'assets/images/ellipse1.png',
-                              package: 'genius_wallet',
-                              height: 30.0,
-                              width: 30.0,
-                              fit: BoxFit.scaleDown,
-                            ))),
-              ),
-            ]),
-          ),
-        ])));
-  }
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-  @override
-  void dispose() {
-    super.dispose();
+    return Container(
+      decoration: BoxDecoration(
+        color: GeniusWalletColors.deepBlueCardColor,
+        borderRadius:
+            BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
+      ),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
+          ),
+          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+        ),
+        onPressed: widget.onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Icon and Wallet Name
+            Flexible(
+                child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Wallet Icon
+                if (widget.walletIcon != null)
+                  Image.asset(
+                    widget.walletIcon!,
+                    package: 'genius_wallet',
+                    height: 30.0 * textScaleFactor,
+                    width: 30.0 * textScaleFactor,
+                    fit: BoxFit.contain,
+                  )
+                else
+                  CircleAvatar(
+                    radius: 15.0 * textScaleFactor,
+                    backgroundColor: Colors.grey[400],
+                    child: const Icon(Icons.account_balance_wallet, size: 16),
+                  ),
+                const SizedBox(width: 12),
+                // Wallet Name
+                Flexible(
+                    child: AutoSizeText(
+                  widget.walletName ?? '',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 14.0 * textScaleFactor,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )),
+              ],
+            )),
+            // Arrow Icon
+            SvgPicture.asset(
+              'assets/images/whitearrowright.svg',
+              package: 'genius_wallet',
+              height: 14.0 * textScaleFactor,
+              width: 12.0 * textScaleFactor,
+              fit: BoxFit.none,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

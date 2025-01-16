@@ -73,69 +73,86 @@ class WalletsOverviewState extends State<WalletsOverview> {
   @override
   Widget build(BuildContext context) {
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Row(children: [
-        Expanded(
-            child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                direction: Axis.vertical,
-                children: [
-              Text(widget.numberOfTransactions,
-                  style: const TextStyle(color: Colors.white, fontSize: 34)),
-              const Text('Transactions',
-                  style: TextStyle(color: Colors.white, fontSize: 12))
-            ])),
-        Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            direction: Axis.vertical,
-            children: [
-              Text(widget.numberOfWallets,
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Flexible(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Flexible(
+              child: AutoSizeText(widget.numberOfTransactions,
+                  textScaleFactor: 1,
                   style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700)),
-              const Text('Wallets',
-                  style: TextStyle(color: Colors.white, fontSize: 12))
-            ])
+                      fontSize: 34,
+                      overflow: TextOverflow.ellipsis))),
+          const Flexible(
+              child: AutoSizeText('Transactions',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white, fontSize: 12)))
+        ])),
+        Flexible(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          AutoSizeText(widget.numberOfWallets,
+              textScaleFactor: 1,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700)),
+          const AutoSizeText('Wallets',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(color: Colors.white, fontSize: 12))
+        ]))
       ]),
       Row(children: [
-        Column(
+        Flexible(
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Current Balance',
-                style: TextStyle(color: Colors.white, fontSize: 12)),
-            FutureBuilder<String?>(
+            const Flexible(
+                child: AutoSizeText('Current Balance',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.white, fontSize: 12))),
+            Flexible(
+                child: FutureBuilder<String?>(
               future: futurePrices,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return Row(
                       textBaseline: TextBaseline.alphabetic,
                       crossAxisAlignment: CrossAxisAlignment.baseline,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        AutoSizeText(
-                            // fallback to stale account balance if call fails
-                            snapshot.data != ""
-                                ? snapshot.data ??
-                                    "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}"
-                                : "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}",
-                            style: const TextStyle(
-                              fontSize: 32.0,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.left),
+                        Flexible(
+                            child: AutoSizeText(
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                // fallback to stale account balance if call fails
+                                snapshot.data != ""
+                                    ? snapshot.data ??
+                                        "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}"
+                                    : "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}",
+                                style: const TextStyle(
+                                  overflow: TextOverflow.ellipsis,
+                                  fontSize: 32.0,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.left)),
                         const SizedBox(width: 4),
                         const AutoSizeText('USD')
                       ]);
                 }
                 return const SizedBox();
               },
-            ),
+            )),
           ],
-        )
+        ))
       ]),
       const Row(
           mainAxisAlignment: MainAxisAlignment.end,
-          children: [SGNUSConnectionWidget()])
+          children: [Flexible(child: SGNUSConnectionWidget())])
     ]);
   }
 

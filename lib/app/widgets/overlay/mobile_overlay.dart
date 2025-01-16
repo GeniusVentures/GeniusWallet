@@ -17,9 +17,9 @@ class MobileOverlay extends StatelessWidget {
     return Scaffold(
       endDrawer: const HamburgerMenu(),
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
-      body: Column(
+      body: SafeArea(
+          child: Column(
         children: [
-          const SizedBox(height: 60),
           Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: GeniusWalletConsts.horizontalPadding),
@@ -32,7 +32,7 @@ class MobileOverlay extends StatelessWidget {
           ),
           Expanded(child: child),
         ],
-      ),
+      )),
       bottomNavigationBar: const GeniusTabbar(),
     );
   }
