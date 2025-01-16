@@ -5,7 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 
 class SubmitJobCubit extends Cubit<SubmitJobState> {
@@ -36,7 +36,10 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       return 0; // TODO: handle error
     }
 
-    emit(state.copyWith(gnusBalance: balance));
+    // this can be long running since we delay it..
+    if (!isClosed) {
+      emit(state.copyWith(gnusBalance: balance));
+    }
 
     return balance;
   }
@@ -208,6 +211,6 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   void resetFilePickerError() {
-    emit(state.copyWith(filePickerError: null)); // Reset error state
+    setFilePickerError(""); // Reset error state
   }
 }

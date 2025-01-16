@@ -108,7 +108,8 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.only(top: 0),
+            margin: const EdgeInsets.only(bottom: 20),
             width: MediaQuery.of(context).size.width * 0.8,
             child: const _WordsAndCopy(),
           ),

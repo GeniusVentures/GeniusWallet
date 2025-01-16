@@ -16,10 +16,6 @@ class WalletCardCustom extends StatefulWidget {
 class _WalletCardCustomState extends State<WalletCardCustom> {
   @override
   Widget build(BuildContext context) {
-    return widget.child ??
-        WalletCard(BoxConstraints(
-          maxWidth: 311.0,
-          maxHeight: 55.0,
-        ));
+    return widget.child ?? WalletCard();
   }
 }

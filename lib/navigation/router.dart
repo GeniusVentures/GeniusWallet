@@ -7,15 +7,17 @@ import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
-import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/receive/view/receive_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
-import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/swap/swap_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
+import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
+import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
+import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/receive/view/receive_screen.dart';
+import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
+import 'package:genius_wallet/wallets/send/routes/send_flow.dart';
+import 'package:genius_wallet/wallets/send/view/not_enough_balance_screen.dart';
+import 'package:genius_wallet/wallets/swap/swap_screen.dart';
+import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
+import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -49,15 +51,6 @@ final geniusWalletRouter = GoRouter(
     if (appBloc.state.loadUserStatus == AppStatus.initial) {
       appBloc.add(CheckIfUserExists());
     }
-
-    ///TODO: Make sure we're fetching the wallets if they are not cached.
-    // final appState = context.watch<AppBloc>().state;
-    // if (appState.subscribeToWalletStatus == AppStatus.initial) {
-    //   context.read<AppBloc>().add(SubscribeToWallets());
-    //   return '/';
-    // } else if (appState.wallets.isEmpty && state.subloc != '/landing_screen') {
-    //   return '/landing_screen';
-    // }
     return null;
   },
   routes: [
@@ -135,6 +128,17 @@ final geniusWalletRouter = GoRouter(
       path: '/dashboard',
       builder: ((context, state) {
         return const ResponsiveOverlay();
+      }),
+    ),
+    GoRoute(
+      path: '/geniusWallet',
+      builder: ((context, state) {
+        return BlocProvider(
+          create: (context) => GeniusWalletDetailsCubit(
+            geniusApi: context.read<GeniusApi>(),
+          ),
+          child: const GeniusWalletDetailsScreen(),
+        );
       }),
     ),
     GoRoute(

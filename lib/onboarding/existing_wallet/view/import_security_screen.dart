@@ -224,11 +224,17 @@ class _ImportSecurityBody extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          height: 20,
           width: MediaQuery.of(context).size.width * 0.9,
-          child: const Text(
-            'Name',
-            style: TextStyle(fontSize: GeniusWalletFontSize.medium),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Name',
+              style: TextStyle(
+                fontSize: GeniusWalletFontSize.medium,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -255,6 +261,8 @@ class _ImportSecurityBody extends StatelessWidget {
         const SizedBox(height: 20),
         const SizedBox(
           child: TabBar(
+            tabAlignment: TabAlignment.center,
+            isScrollable: true,
             tabs: [
               Tab(text: 'Phrase'),
               Tab(text: 'Private Key'),
@@ -266,7 +274,7 @@ class _ImportSecurityBody extends StatelessWidget {
         const SizedBox(height: 20),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
-          height: 350,
+          height: 400,
           child: TabBarView(
             children: [
               Padding(
