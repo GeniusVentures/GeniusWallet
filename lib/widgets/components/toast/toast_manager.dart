@@ -40,7 +40,7 @@ class ToastManager {
     late OverlayEntry overlayEntry;
 
     // Determine the position for the new toast
-    final topOffset = 80 + (_activeToasts.length * 80.0);
+    final topOffset = 100 + (_activeToasts.length * 85.0);
 
     overlayEntry = OverlayEntry(
       builder: (context) {

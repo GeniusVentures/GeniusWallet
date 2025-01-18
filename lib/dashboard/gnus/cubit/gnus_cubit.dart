@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/token.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 
 class GnusState {

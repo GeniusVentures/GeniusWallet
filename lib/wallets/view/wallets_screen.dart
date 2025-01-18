@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -86,15 +87,11 @@ class Desktop extends StatelessWidget {
                     },
                   ),
                 ),
-              SizedBox(
-                  height: 350,
-                  width: 350,
-                  child: LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return AddWalletBlock(constraints);
-                    },
-                  )),
+              SizedBox(child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return AddWalletBlock(constraints);
+                },
+              )),
             ]);
           }
           return const Text('No Wallets');
@@ -115,19 +112,24 @@ class Mobile extends StatelessWidget {
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
           child: Column(
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  const Flexible(
+                      child: AutoSizeText(
                     'Wallets',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 24),
-                  ),
-                  const Spacer(),
+                  )),
                   TextButton.icon(
-                      onPressed: () => context.push('/landing_screen'),
+                      onPressed: () =>
+                          context.push('/landing_screen', extra: true),
                       style: ButtonStyle(
+                          padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
                           backgroundColor:
                               MaterialStateProperty.resolveWith((states) {
                             if (!states.contains(MaterialState.selected)) {
@@ -140,8 +142,9 @@ class Mobile extends StatelessWidget {
                                   RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ))),
-                      label: const Text(
+                      label: const AutoSizeText(
                         GeniusWalletText.btnAddWallet,
+                        maxLines: 1,
                         style: TextStyle(
                             color: GeniusWalletColors.deepBlueTertiary),
                       ),

@@ -1,6 +1,6 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
+import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
 
 class GeniusCloseButtonCustom extends StatefulWidget {
   final Widget? child;

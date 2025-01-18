@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +10,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class TransactionsSlimView extends StatefulWidget {
-  const TransactionsSlimView({super.key});
+  final List<Transaction> transactions;
+  const TransactionsSlimView({super.key, required this.transactions});
 
   @override
   TransactionsSlimViewState createState() => TransactionsSlimViewState();
@@ -62,12 +64,13 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
   @override
   Widget build(BuildContext context) {
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final transactions = [...widget.transactions];
 
     return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-      final transactions = [...state.transactions];
-
       transactions.retainWhere((transaction) {
         if (selectedFilter == 'All') return true;
+        if (selectedFilter == 'Escrow' &&
+            transaction.type == TransactionType.escrow) return true;
         if (selectedFilter == 'Mint' &&
             transaction.type == TransactionType.mint) return true;
         if (selectedFilter == 'Received' &&
@@ -135,8 +138,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           'width': 230.0,
           'rowValue': (transaction) =>
               _truncateAddress(transaction.recipients.first.toAddr),
-          'rowFullValue': (transaction) =>
-              transaction.recipients.first.toAddr,
+          'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
           'isCopyable': true,
         },
         {
@@ -157,25 +159,16 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TransactionFilters(onFilterSelected: handleFilterSelected),
-          if (transactions.isEmpty)
-            const Center(
-              heightFactor: 5,
-              child: Text(
-                'No Transactions Found',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          const SizedBox(height: 16),
-
-          // Scrollable Table Section
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.vertical,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header Row
+                    const SizedBox(height: 16),
                     Container(
                       color: GeniusWalletColors.rowFilterBlue,
                       child: Row(
@@ -184,14 +177,22 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                             width: (column['width'] as double) *
                                 textScaleFactor.clamp(1.0, 1.5),
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(
+                            child: AutoSizeText(
                               column['title'] as String,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           );
                         }).toList(),
                       ),
                     ),
+                    if (widget.transactions.isEmpty)
+                      const Padding(
+                          padding: EdgeInsets.only(top: 20),
+                          child: Text(
+                            ' No Transactions Found',
+                            style: TextStyle(fontSize: 20),
+                          )),
                     // Data Rows
                     for (var transaction in transactions)
                       Row(
@@ -210,12 +211,13 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                                     value.toString(),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                if (column['isCopyable'] == true)
+                                if (column['isCopyable'] == true &&
+                                    (value as String).isNotEmpty)
                                   IconButton(
                                     icon: const Icon(Icons.copy, size: 16),
                                     onPressed: () => _copyToClipboard(
-                                        (column['rowFullValue'] as Function)(
-                                            transaction)),
+                                        (column['rowFullValue']
+                                            as Function)(transaction)),
                                   ),
                               ],
                             ),
@@ -229,8 +231,9 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           ),
           const SizedBox(height: 16),
           Center(
-            child: Text(
-              "Transactions: ${transactions.length}",
+            child: AutoSizeText(
+              maxLines: 1,
+              "Transactions: ${widget.transactions.length}",
               style: const TextStyle(
                   fontSize: 16, color: GeniusWalletColors.gray500),
             ),
