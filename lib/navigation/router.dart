@@ -7,6 +7,7 @@ import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
@@ -168,6 +169,25 @@ final geniusWalletRouter = GoRouter(
             },
           ),
         ]),
+    GoRoute(
+      path: '/token-info',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return TokenInfoScreen(
+          tokenName: extra["tokenName"],
+          currentPrice: extra["currentPrice"],
+          priceChange: extra["priceChange"],
+          priceChangePercent: extra["priceChangePercent"],
+          userBalance: extra["userBalance"],
+          tokenSymbol: extra["tokenSymbol"],
+          tokenAddress: extra["tokenAddress"],
+          securityInfo: extra["securityInfo"],
+          transactionHistory: List<String>.from(extra["transactionHistory"]),
+          tokenIconPath: extra["tokenIconPath"],
+          chartPlaceholder: "",
+        );
+      },
+    ),
     GoRoute(
       path: '/transactions',
       builder: ((context, state) {

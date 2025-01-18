@@ -166,14 +166,15 @@ class FilterDrawer extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
+              const Center(
+                  child: Text(
                 'Filters',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
-              ),
+              )),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
@@ -183,7 +184,6 @@ class FilterDrawer extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(color: Colors.white),
           const SizedBox(height: 16),
           Column(
             children: filters.map((filter) {

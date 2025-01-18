@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/widgets/components/action_button.dart';
 import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
@@ -116,36 +117,32 @@ class WalletInformationState extends State<WalletInformation> {
           ))
         ],
         if (widget.walletType != WalletType.tracking) ...[
-          Expanded(
-              child: SquareButton(
-                  text: 'Receive',
-                  icon: Icons.qr_code,
-                  onPressed: () {
-                    context.push('/receive',
-                        extra: context.read<WalletDetailsCubit>());
-                  })),
+          ActionButton(
+              text: 'Receive',
+              icon: Icons.qr_code,
+              onPressed: () {
+                context.push('/receive',
+                    extra: context.read<WalletDetailsCubit>());
+              }),
           const SizedBox(width: 8),
-          const Expanded(
-              child: SquareButton(
+          const ActionButton(
             text: 'Send',
             icon: Icons.send,
-          )),
+          ),
           const SizedBox(width: 8),
-          const Expanded(
-              child: SquareButton(
-                  text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
-                  // TODO: renable swap...
-                  // Open the Swap Screen as a popup
-                  // context.push('/swap',
-                  //     extra: context.read<WalletDetailsCubit>());
-                  //}
-                  )),
+          const ActionButton(
+              text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
+              // TODO: renable swap...
+              // Open the Swap Screen as a popup
+              // context.push('/swap',
+              //     extra: context.read<WalletDetailsCubit>());
+              //}
+              ),
           const SizedBox(width: 8),
-          const Expanded(
-              child: SquareButton(
+          const ActionButton(
             text: 'Buy',
             icon: Icons.attach_money,
-          )),
+          ),
         ]
       ]),
       const SizedBox(height: 8),
@@ -244,71 +241,5 @@ class WalletInformationState extends State<WalletInformation> {
   @override
   void dispose() {
     super.dispose();
-  }
-}
-
-class SquareButton extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final VoidCallback? onPressed;
-  final Color backgroundColor;
-  final Color iconColor;
-  final Color textColor;
-
-  const SquareButton({
-    Key? key,
-    required this.icon,
-    required this.text,
-    this.onPressed,
-    this.backgroundColor = GeniusWalletColors.deepBlueCardColor,
-    this.iconColor = GeniusWalletColors.lightGreenSecondary,
-    this.textColor = GeniusWalletColors.gray500,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final _iconColor =
-        onPressed != null ? iconColor : GeniusWalletColors.gray600;
-    final _textColor =
-        onPressed != null ? textColor : GeniusWalletColors.gray600;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.all(4),
-            fixedSize: Size(constraints.maxWidth * 0.25, constraints.maxWidth),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                GeniusWalletConsts.borderRadiusCard,
-              ),
-            ),
-            disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
-            backgroundColor: backgroundColor,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon,
-                  size: constraints.maxWidth * 0.35, color: _iconColor), // Icon
-              const SizedBox(height: 4),
-              Flexible(
-                child: AutoSizeText(
-                  text,
-                  style: TextStyle(
-                    color: _textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1, // Ensure it doesn't overflow
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ), // Text below the icon
-            ],
-          ),
-        );
-      },
-    );
   }
 }
