@@ -262,6 +262,8 @@ class _ImportSecurityBody extends StatelessWidget {
 
         const SizedBox(
           child: TabBar(
+            tabAlignment: TabAlignment.center,
+            isScrollable: true,
             tabs: [
               Tab(text: 'Phrase'),
               Tab(text: 'Private Key'),

@@ -47,7 +47,8 @@ class _IsactiveTrue extends State<IsactiveTrue> {
             Positioned(
               left: 16.0, // Consistent horizontal padding
               right: 16.0,
-              top: widget.constraints.maxHeight * 0.3, // Balanced vertical alignment
+              top: widget.constraints.maxHeight *
+                  0.3, // Balanced vertical alignment
               bottom: widget.constraints.maxHeight * 0.3,
               child: Center(
                 child: FittedBox(

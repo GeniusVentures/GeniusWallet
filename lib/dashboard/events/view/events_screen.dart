@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -82,30 +83,55 @@ class EventsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-        color: GeniusWalletColors.deepBlueCardColor,
+      color: GeniusWalletColors.deepBlueCardColor,
+      child: SizedBox(
+        height: 250, // Adjust height based on your layout
         child: Padding(
-            padding:
-                const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 24),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(event.date ?? "", style: const TextStyle(fontSize: 20)),
-                Text(event.weekDay ?? "")
-              ]),
-              const SizedBox(height: 4),
-              const Divider(),
-              const SizedBox(height: 4),
-              ListTile(
-                horizontalTitleGap: 1,
-                contentPadding: const EdgeInsets.only(left: 0),
-                leading: const Icon(Icons.pin_drop),
-                title: Text(event.location ?? ''),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                event.body ?? "",
-                style: const TextStyle(fontSize: 20),
-              )
-            ])));
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 24),
+          child: SingleChildScrollView(
+            // Make content scrollable
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: AutoSizeText(
+                        event.date ?? "",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                    Flexible(
+                      child: AutoSizeText(
+                        event.weekDay ?? "",
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Divider(),
+                const SizedBox(height: 4),
+                ListTile(
+                  horizontalTitleGap: 1,
+                  contentPadding: const EdgeInsets.only(left: 0),
+                  leading: const Icon(Icons.pin_drop),
+                  title: Text(event.location ?? ''),
+                ),
+                const SizedBox(height: 16),
+                AutoSizeText(
+                  event.body ?? "",
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

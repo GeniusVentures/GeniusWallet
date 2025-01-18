@@ -1,4 +1,4 @@
-package com.example.genius_wallet
+package com.gnus.genius_wallet
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -54,25 +55,22 @@ class SubmitJobScreen extends StatelessWidget {
         return Stack(children: [
           Scaffold(
             appBar: AppBar(
-              title: const Text("Submit a New Job"),
+              centerTitle: false,
+              title: const AutoSizeText(
+                "Submit a New Job",
+                maxLines: 1,
+              ),
               actions: [
                 TextButton.icon(
                   onPressed: submitJobCubit.openFilePicker,
                   style: const ButtonStyle(
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(
-                              GeniusWalletConsts.borderRadiusButton),
-                        ),
-                      ),
-                    ),
+                    backgroundColor: WidgetStatePropertyAll(Colors.transparent),
                     padding: WidgetStatePropertyAll(
-                      EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+                      EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 12),
                     ),
                   ),
-                  icon: const Icon(Icons.upload, size: 20),
-                  label: const Text('Upload'),
+                  icon: const Icon(Icons.upload, size: 22),
+                  label: const AutoSizeText('Upload'),
                 ),
               ],
             ),
@@ -99,12 +97,12 @@ class SubmitJobScreen extends StatelessWidget {
                                   children: [
                                     Image.asset(
                                       'assets/images/crypto/gnus.png',
-                                      height: 30,
-                                      width: 30,
+                                      height: 25,
+                                      width: 25,
                                     ),
                                     const SizedBox(width: 8),
                                     SizedBox(
-                                      width: 100,
+                                      width: 90,
                                       child: Text(
                                         '$gnusBalance',
                                         style: const TextStyle(
@@ -122,19 +120,21 @@ class SubmitJobScreen extends StatelessWidget {
                                     const Icon(
                                       FontAwesomeIcons.gasPump,
                                       color: Colors.red,
-                                      size: 24,
+                                      size: 20,
                                     ),
                                     const SizedBox(width: 8),
-                                    SizedBox(
-                                      width: 100,
-                                      child: Text(
+                                    Flexible(
+                                        child: SizedBox(
+                                      width: 90,
+                                      child: AutoSizeText(
+                                        maxLines: 1,
                                         state.jobGasCost,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ),
+                                    )),
                                   ],
                                 )
                               ],
@@ -150,7 +150,7 @@ class SubmitJobScreen extends StatelessWidget {
                                 if (uploadedFileName.isNotEmpty)
                                   Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Wrap(
                                         crossAxisAlignment:
@@ -158,16 +158,15 @@ class SubmitJobScreen extends StatelessWidget {
                                         runSpacing: 12,
                                         spacing: 12,
                                         children: [
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
+                                          Wrap(
                                             children: [
-                                              const Text(
+                                              const AutoSizeText(
                                                 'Uploaded File: ',
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                 ),
                                               ),
-                                              Text(
+                                              AutoSizeText(
                                                 uploadedFileName,
                                                 style: const TextStyle(
                                                   fontSize: 16,
@@ -177,16 +176,15 @@ class SubmitJobScreen extends StatelessWidget {
                                               ),
                                             ],
                                           ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
+                                          Wrap(
                                             children: [
-                                              const Text(
+                                              const AutoSizeText(
                                                 'Cost: ',
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                 ),
                                               ),
-                                              Text(
+                                              AutoSizeText(
                                                 "$jobCost GNUS",
                                                 style: const TextStyle(
                                                   fontSize: 16,
@@ -233,13 +231,14 @@ class SubmitJobScreen extends StatelessWidget {
                                       ),
                                       if (!isPurchaseable) ...[
                                         const SizedBox(height: 8),
-                                        const Text(
-                                          '* You do not have enough GNUS to submit this job',
+                                        const Center(
+                                            child: const AutoSizeText(
+                                          '* You do not have enough GNUS',
                                           style: TextStyle(
                                             color: GeniusWalletColors.red,
-                                            fontSize: 18,
+                                            fontSize: 14,
                                           ),
-                                        ),
+                                        )),
                                       ]
                                     ],
                                   ),

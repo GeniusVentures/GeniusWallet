@@ -34,14 +34,14 @@ class _AddWalletBlock extends State<AddWalletBlock> {
             child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxWidth,
             child: Stack(children: [
               Positioned(
                 left: 0,
                 width: widget.constraints.maxWidth,
-                top: widget.constraints.maxHeight * 0.1,
+                top: widget.constraints.maxHeight * 0.08,
                 height: widget.constraints.maxHeight,
                 child: Container(
                     decoration: const BoxDecoration(
@@ -56,8 +56,8 @@ class _AddWalletBlock extends State<AddWalletBlock> {
                             child: SizedBox(
                                 width: widget.constraints.maxWidth,
                                 child: ElevatedButton(
-                                    onPressed: () =>
-                                        context.push('/landing_screen'),
+                                    onPressed: () => context
+                                        .push('/landing_screen', extra: true),
                                     style: const ButtonStyle(
                                         surfaceTintColor:
                                             MaterialStatePropertyAll(
