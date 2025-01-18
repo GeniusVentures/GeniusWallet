@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class WalletCard extends StatefulWidget {
+
   final String? walletName;
   final String? walletIcon;
   final VoidCallback? onTap;
