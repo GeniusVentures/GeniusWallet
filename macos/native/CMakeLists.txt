@@ -1,11 +1,11 @@
 # Project-level configuration.
-set(ARCHS "x86_64" CACHE STRING "Default build for OSX is only x86_64 until boost can build universal image")
+set(ARCHS "x86_64;arm64" CACHE STRING "Default build for OSX is only x86_64 until boost can build universal image")
 # Set OSX specific runtime options
-set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "OSX Architectures")
+set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "OSX Architectures")
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES CXX)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "genius_wallet")
