@@ -33,7 +33,7 @@ class _WalletCardState extends State<WalletCard> {
       ),
       child: TextButton(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+          padding: const EdgeInsets.all(24),
           shape: RoundedRectangleBorder(
             borderRadius:
                 BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),

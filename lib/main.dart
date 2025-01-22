@@ -23,6 +23,7 @@ void main() async {
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,
+      defaultDevice: Devices.ios.iPhone12,
       builder: (context) => MyApp(
         geniusApi: geniusApi,
       ), // Wrap your app
@@ -99,10 +100,10 @@ class MyApp extends StatelessWidget {
                       (Set<MaterialState> states) {
                         if (states.contains(MaterialState.disabled)) {
                           return GeniusWalletColors
-                              .btnFilterBlue; // Text color for disabled state
+                              .btnFilter; // Text color for disabled state
                         }
                         return GeniusWalletColors
-                            .btnFilterBlue; // Default text color
+                            .btnFilter; // Default text color
                       },
                     ),
                     foregroundColor: MaterialStateProperty.resolveWith<Color?>(

@@ -23,11 +23,6 @@ class ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _iconColor =
-        onPressed != null ? iconColor : GeniusWalletColors.gray600;
-    final _textColor =
-        onPressed != null ? textColor : GeniusWalletColors.gray600;
-
     return Expanded(child: LayoutBuilder(
       builder: (context, constraints) {
         return ElevatedButton(
@@ -47,13 +42,13 @@ class ActionButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon,
-                  size: constraints.maxWidth * 0.35, color: _iconColor), // Icon
+                  size: constraints.maxWidth * 0.35, color: iconColor), // Icon
               const SizedBox(height: 4),
               Flexible(
                 child: AutoSizeText(
                   text,
                   style: TextStyle(
-                    color: _textColor,
+                    color: textColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
