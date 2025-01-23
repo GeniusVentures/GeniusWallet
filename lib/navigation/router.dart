@@ -184,6 +184,8 @@ final geniusWalletRouter = GoRouter(
           transactionHistory: List<String>.from(extra["transactionHistory"]),
           tokenIconPath: extra["tokenIconPath"],
           chartPlaceholder: "",
+          walletAddress: extra["walletAddress"],
+          networkName: extra["networkName"],
         );
       },
     ),

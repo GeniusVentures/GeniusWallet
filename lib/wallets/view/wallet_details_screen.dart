@@ -51,16 +51,18 @@ class View extends StatelessWidget {
       builder: (context, state) {
         final selectedWallet = state.selectedWallet!;
         return Scaffold(
-            appBar: AppBar(
-              actions: [
-                SizedBox(
-                    width: 250,
-                    child: NetworkDropdown(
-                        wallet: selectedWallet,
-                        network: state.selectedNetwork,
-                        networkList: state.networks)),
-              ],
-            ),
+            appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(60),
+                child: AppBar(
+                  actions: [
+                    SizedBox(
+                        width: 250,
+                        child: NetworkDropdown(
+                            wallet: selectedWallet,
+                            network: state.selectedNetwork,
+                            networkList: state.networks)),
+                  ],
+                )),
             body: Center(
                 child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 500),
@@ -102,8 +104,6 @@ class View extends StatelessWidget {
                                       textAlign: TextAlign.center,
                                     ))
                                   ])),
-                                  const SizedBox(width: 12),
-                                  const SubmitJobButton()
                                 ]);
                           },
                         ),
@@ -124,38 +124,6 @@ class View extends StatelessWidget {
                       const SizedBox(height: 18),
                       const SizedBox(child: CoinsScreen()),
                       const SizedBox(height: 18),
-                      SizedBox(
-                        height: 370,
-                        child: LayoutBuilder(
-                          builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            return Transactions(constraints);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                        MaterialButton(
-                          padding: const EdgeInsets.only(
-                              left: 24, top: 12, bottom: 12, right: 24),
-                          shape: const RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: Colors.red,
-                              ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(4))),
-                          onPressed: () {
-                            context
-                                .read<GeniusApi>()
-                                .deleteWallet(selectedWallet.address);
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text(
-                                    'Wallet ${selectedWallet.walletName} deleted!')));
-                            context.go('/dashboard');
-                          },
-                          child: const AutoSizeText("Delete Wallet"),
-                        )
-                      ])
                     ],
                   ),
                 ),

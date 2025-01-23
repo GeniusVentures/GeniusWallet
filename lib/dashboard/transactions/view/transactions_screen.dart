@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
+import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/widgets/components/date_selector.g.dart';
@@ -17,17 +19,20 @@ class TransactionsScreen extends StatelessWidget {
               minHeight: MediaQuery.of(context).size.height, // Minimum height
             ),
             child: Container(
-                padding: const EdgeInsets.all(20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Column(
                   children: [
-                    SizedBox(height: 10),
                     SizedBox(
-                        height: 500,
+                        height: GeniusBreakpoints.useDesktopLayout(context)
+                            ? MediaQuery.of(context).size.height - 30
+                            : MediaQuery.of(context).size.height - 200,
                         width: 1342,
                         child: BlocBuilder<AppBloc, AppState>(
                             builder: (context, state) {
-                          return TransactionsSlimView(
-                              transactions: state.transactions);
+                          return DashboardViewNoFlexContainer(
+                              child: TransactionsSlimView(
+                                  transactions: state.transactions));
                         }))
                   ],
                 ))));

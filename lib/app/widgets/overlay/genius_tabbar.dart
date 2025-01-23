@@ -14,6 +14,9 @@ class GeniusTabbar extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         return BottomNavigationBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            enableFeedback: false,
             onTap: (int index) {
               context.read<NavigationOverlayCubit>().navigationTapped(index);
             },
@@ -30,6 +33,8 @@ class GeniusTabbar extends StatelessWidget {
         .take(_numTabs)
         .map(
           (e) => BottomNavigationBarItem(
+            backgroundColor: Colors.transparent,
+            tooltip: e.label.data,
             icon: Container(padding: const EdgeInsets.all(8), child: e.icon),
             activeIcon: Container(
                 padding: const EdgeInsets.all(8), child: e.selectedIcon),

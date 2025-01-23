@@ -1,14 +1,17 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/app/widgets/button/copy_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CryptoAddressQR extends StatelessWidget {
   final String address;
   final String network;
-  final AssetImage? icon;
+  final String? iconPath;
 
   const CryptoAddressQR(
-      {Key? key, required this.address, required this.network, this.icon})
+      {Key? key, required this.address, required this.network, this.iconPath})
       : super(key: key);
 
   @override
@@ -23,12 +26,11 @@ class CryptoAddressQR extends StatelessWidget {
           version: QrVersions.auto,
           size: 280,
           gapless: false,
-          backgroundColor: Colors.white,
-          embeddedImage: icon,
+          backgroundColor: GeniusWalletColors.white.withOpacity(.2),
+          embeddedImage: AssetImage(iconPath ?? ""),
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(60, 60)),
         ),
         const SizedBox(height: 32),
-
         Text(
           "Your $network Address",
           style: const TextStyle(
@@ -48,7 +50,13 @@ class CryptoAddressQR extends StatelessWidget {
               color: Colors.grey[600],
             ),
           )),
-        ])
+        ]),
+
+        const SizedBox(height: 50),
+        CopyButton(
+            width: 300,
+            buttonText: WalletUtils.getAddressForDisplay(address),
+            textToCopy: address)
       ],
     );
   }

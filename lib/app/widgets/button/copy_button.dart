@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -5,11 +6,13 @@ import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 class CopyButton extends StatefulWidget {
   final String textToCopy;
   final String buttonText;
+  final double? width;
 
   const CopyButton({
     Key? key,
     required this.textToCopy,
-    this.buttonText = "Copy", // Default button text
+    this.buttonText = "Copy",
+    this.width, // Default button text
   }) : super(key: key);
 
   @override
@@ -38,12 +41,12 @@ class CopyButtonState extends State<CopyButton> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, // Full width
+      width: widget.width ?? double.infinity,
       child: ElevatedButton(
         onPressed: _copyToClipboard,
         style: ElevatedButton.styleFrom(
           backgroundColor: GeniusWalletColors.deepBlueCardColor,
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20), // Nice padding
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -57,14 +60,15 @@ class CopyButtonState extends State<CopyButton> {
               color: Colors.white,
             ),
             const SizedBox(width: 8), // Space between icon & text
-            Text(
+            Flexible(
+                child: AutoSizeText(
               _copied ? "Copied!" : widget.buttonText,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-            ),
+            )),
           ],
         ),
       ),

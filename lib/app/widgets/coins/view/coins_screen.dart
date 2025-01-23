@@ -71,6 +71,10 @@ class CoinsScreenState extends State<CoinsScreen> {
                           extra: {
                             "tokenName": coin.name ?? "Unknown",
                             "tokenIconPath": coin.iconPath ?? "",
+                            "walletAddress":
+                                walletCubit.state.selectedWallet?.address,
+                            "networkName":
+                                walletCubit.state.selectedNetwork?.name,
                             "currentPrice":
                                 100.0, // Replace with actual price data
                             "priceChange":

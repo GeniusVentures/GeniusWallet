@@ -91,7 +91,8 @@ class TransactionFiltersState extends State<TransactionFilters> {
         ),
 
         /// **Desktop: Horizontal Filter Buttons**
-        if (!isMobile)
+        if (!isMobile) ...[
+          SizedBox(height: 22),
           Align(
             alignment: Alignment.centerRight,
             child: Row(
@@ -114,7 +115,8 @@ class TransactionFiltersState extends State<TransactionFilters> {
                 );
               }).toList(),
             ),
-          ),
+          )
+        ],
       ],
     );
   }

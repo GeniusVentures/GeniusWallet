@@ -124,10 +124,7 @@ class SlidingDrawerState extends State<SlidingDrawer> {
                       // Drawer Content
                       Expanded(
                         child: SingleChildScrollView(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: widget.content,
-                          ),
+                          child: widget.content,
                         ),
                       ),
                     ],
@@ -165,5 +162,9 @@ class SlidingDrawerController {
 
   void openDrawer() {
     _drawerState?.toggleDrawer();
+  }
+
+  void closeDrawer() {
+    _drawerState?._closeDrawer();
   }
 }

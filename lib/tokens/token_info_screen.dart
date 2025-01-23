@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:genius_api/models/network.dart';
+import 'package:genius_api/models/wallet.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/app/widgets/button/copy_button.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coin_card_container.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coin_card_row.dart';
+import 'package:genius_wallet/app/widgets/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/action_button.dart';
+import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
 
 class TokenInfoScreen extends StatelessWidget {
   final String tokenName;
@@ -15,6 +21,8 @@ class TokenInfoScreen extends StatelessWidget {
   final String tokenAddress;
   final String securityInfo;
   final String tokenIconPath;
+  final String walletAddress;
+  final String networkName;
   final List<String> transactionHistory;
 
   const TokenInfoScreen(
@@ -29,50 +37,88 @@ class TokenInfoScreen extends StatelessWidget {
       required this.tokenAddress,
       required this.securityInfo,
       required this.transactionHistory,
-      required this.tokenIconPath})
+      required this.networkName,
+      required this.tokenIconPath,
+      required this.walletAddress})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final SlidingDrawerController qrCodeDrawerController =
+        SlidingDrawerController();
     return Scaffold(
-      appBar: AppBar(
-        title: Text(tokenName, style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+        appBar: AppBar(
+          title: Text(tokenName, style: TextStyle(fontWeight: FontWeight.bold)),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildPriceSection(),
-                  SizedBox(height: 16),
-                  _buildChartPlaceholder(),
-                  SizedBox(height: 16),
-                  _buildActionButtons(context),
-                  SizedBox(height: 16),
-                  _buildYourBalance(),
-                  SizedBox(height: 16),
-                  _buildInfoSection(),
-                  SizedBox(height: 16),
-                  _buildSecuritySection(),
-                  SizedBox(height: 16),
-                  _buildActivitySection(),
-                ],
+        body: Stack(children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildPriceSection(),
+                      SizedBox(height: 16),
+                      _buildChartPlaceholder(),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          ActionButton(
+                              text: "Receive",
+                              icon: Icons.qr_code,
+                              onPressed: () {
+                                qrCodeDrawerController.openDrawer();
+                              }),
+                          const SizedBox(width: 8),
+                          const ActionButton(text: "Send", icon: Icons.send),
+                          const SizedBox(width: 8),
+                          const ActionButton(
+                              text: "Swap", icon: Icons.swap_horiz),
+                          const SizedBox(width: 8),
+                          ActionButton(
+                            text: "More",
+                            icon: Icons.more_horiz,
+                            onPressed: () => _showMoreOptionsDrawer(context),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      _buildYourBalance(),
+                      SizedBox(height: 16),
+                      _buildInfoSection(),
+                      SizedBox(height: 16),
+                      _buildSecuritySection(),
+                      SizedBox(height: 16),
+                      _buildActivitySection(),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+          SlidingDrawer(
+              controller: qrCodeDrawerController,
+              title: "Receive $tokenName",
+              content: Container(
+                  margin: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * .15),
+                  alignment: Alignment.center,
+                  child: Column(children: [
+                    CryptoAddressQR(
+                        iconPath: tokenIconPath,
+                        address: walletAddress,
+                        network: networkName),
+                  ]))),
+        ]));
   }
 
   /// Price Section
@@ -117,25 +163,6 @@ class TokenInfoScreen extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: const Text("Chart Placeholder"),
-    );
-  }
-
-  /// Action Buttons: Receive, Send, Swap, More
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        ActionButton(text: "Receive", icon: Icons.qr_code, onPressed: () {}),
-        const SizedBox(width: 8),
-        const ActionButton(text: "Send", icon: Icons.send),
-        const SizedBox(width: 8),
-        const ActionButton(text: "Swap", icon: Icons.swap_horiz),
-        const SizedBox(width: 8),
-        ActionButton(
-          text: "More",
-          icon: Icons.more_horiz,
-          onPressed: () => _showMoreOptionsDrawer(context),
-        ),
-      ],
     );
   }
 
