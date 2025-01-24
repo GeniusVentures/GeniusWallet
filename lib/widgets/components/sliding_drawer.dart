@@ -66,7 +66,7 @@ class SlidingDrawerState extends State<SlidingDrawer> {
                 child: GestureDetector(
                   onTap: _closeDrawer,
                   child: Container(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -89,7 +89,7 @@ class SlidingDrawerState extends State<SlidingDrawer> {
                     color: GeniusWalletColors.deepBlueTertiary,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withOpacity(0.8),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
