@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
             ),
             appBarTheme: const AppBarTheme(
                 iconTheme: IconThemeData(size: 24),
-                titleTextStyle: TextStyle(fontSize: 24),
+                titleTextStyle: TextStyle(fontSize: 18),
                 titleSpacing: 10,
                 centerTitle: true,
                 surfaceTintColor: GeniusWalletColors.deepBlueCardColor,
@@ -157,9 +157,9 @@ class MyApp extends StatelessWidget {
                 labelType: NavigationRailLabelType.none,
                 useIndicator: false,
                 selectedIconTheme: IconThemeData(
-                    color: GeniusWalletColors.lightGreenSecondary, size: 30),
+                    color: GeniusWalletColors.lightGreenSecondary, size: 35),
                 unselectedIconTheme:
-                    IconThemeData(color: Colors.white, opacity: 1, size: 30)),
+                    IconThemeData(color: Colors.white, opacity: 1, size: 35)),
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 backgroundColor: Colors.transparent,
                 elevation: 0,

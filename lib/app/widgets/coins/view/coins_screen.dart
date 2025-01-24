@@ -12,8 +12,13 @@ import 'package:go_router/go_router.dart';
 class CoinsScreen extends StatefulWidget {
   final Function(Coin)? onCoinSelected;
   final List<Coin?>? filterCoins;
+  final bool? isGnusWalletConnected;
 
-  const CoinsScreen({Key? key, this.onCoinSelected, this.filterCoins})
+  const CoinsScreen(
+      {Key? key,
+      this.onCoinSelected,
+      this.filterCoins,
+      this.isGnusWalletConnected})
       : super(key: key);
 
   @override
@@ -66,24 +71,19 @@ class CoinsScreenState extends State<CoinsScreen> {
                         widget.onCoinSelected!(coin);
                       } else {
                         // Navigate to TokenInfoScreen
+                        walletCubit.selectCoin(coin);
                         context.push(
                           '/token-info',
                           extra: {
-                            "tokenName": coin.name ?? "Unknown",
-                            "tokenIconPath": coin.iconPath ?? "",
-                            "walletAddress":
-                                walletCubit.state.selectedWallet?.address,
-                            "networkName":
-                                walletCubit.state.selectedNetwork?.name,
+                            "walletDetailsCubit": walletCubit,
+                            "isGnusWalletConnected":
+                                widget.isGnusWalletConnected,
                             "currentPrice":
                                 100.0, // Replace with actual price data
                             "priceChange":
                                 5.0, // Replace with actual price change
                             "priceChangePercent":
                                 2.5, // Replace with actual percentage
-                            "userBalance": coin.balance ?? 0.0,
-                            "tokenSymbol": coin.symbol ?? "",
-                            "tokenAddress": coin.address ?? "",
                             "securityInfo": "Secure Token",
                             "transactionHistory": [
                               "Tx1",

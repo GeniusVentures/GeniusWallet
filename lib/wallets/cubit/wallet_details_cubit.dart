@@ -108,7 +108,16 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
           .then((List<Coin> coinList) {
         if (!isClosed) {
           emit(state.copyWith(
-              coinsStatus: WalletStatus.successful, coins: coinList));
+              coinsStatus: WalletStatus.successful,
+              coins: coinList,
+              // update selected coin to updated values after retrieval
+              selectedCoin: state.selectedCoin != null
+                  ? coinList.firstWhere(
+                      (coin) => coin.address == state.selectedCoin?.address,
+                      orElse: () =>
+                          state.selectedCoin!, // Keep the old coin if not found
+                    )
+                  : null));
         }
       });
     } catch (e) {

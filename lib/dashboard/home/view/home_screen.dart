@@ -11,6 +11,7 @@ import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 
 double gridSpacing = 8;
@@ -168,6 +169,11 @@ class OneColumnDashBoardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 350, child: OverviewDashboardView()),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  child: AutoSizeText("Wallets",
+                      style: TextStyle(
+                          fontSize: GeniusWalletFontSize.sectionHeader))),
               WalletDashboardView(),
               SizedBox(height: 600, child: TransactionsDashboardView()),
               SizedBox(height: 300, child: ContributionsDashboardView()),

@@ -1,16 +1,13 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
-import 'package:genius_wallet/app/widgets/job/submit_job_button.dart';
 import 'package:genius_wallet/app/widgets/networks/network_dropdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/widgets/components/transactions.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
-import 'package:go_router/go_router.dart';
 
 class WalletDetailsScreen extends StatelessWidget {
   const WalletDetailsScreen({Key? key}) : super(key: key);
@@ -122,8 +119,18 @@ class View extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 18),
-                      const SizedBox(child: CoinsScreen()),
-                      const SizedBox(height: 18),
+                      SizedBox(
+                          child: StreamBuilder<SGNUSConnection>(
+                              stream: context
+                                  .read<GeniusApi>()
+                                  .getSGNUSConnectionStream(),
+                              builder: (context, snapshot) {
+                                final connection = snapshot.data;
+                                return CoinsScreen(
+                                    isGnusWalletConnected:
+                                        (connection?.walletAddress ?? false) ==
+                                            state.selectedWallet?.address);
+                              })),
                     ],
                   ),
                 ),

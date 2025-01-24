@@ -134,7 +134,7 @@ class View extends StatelessWidget {
                                             ),
                                           ),
                                         ]),
-                                    const SizedBox(height: 20),
+
                                     // TODO: add any square buttons for actions within the genius wallet view
                                     // const Row(children: [
                                     //   Expanded(
@@ -149,10 +149,9 @@ class View extends StatelessWidget {
                                     //     icon: Icons.attach_money,
                                     //   )),
                                     // ]),
-                                    const SizedBox(height: 8),
                                   ]);
                             }),
-                            const SizedBox(height: 18),
+
                             // TODO: wire up an alternate coins screen to show child tokens of the sgnus wallet
                             // const SizedBox(child: CoinsScreen()),
                             const SizedBox(height: 18),

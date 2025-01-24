@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 
 class SlidingDrawerButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData? icon; // Optional icon
   final Color? color; // Configurable color for both text and icon
 
   const SlidingDrawerButton({
     Key? key,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.color, // Color is now required for customization
     this.icon,
   }) : super(key: key);

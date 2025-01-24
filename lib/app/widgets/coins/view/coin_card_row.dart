@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class CoinCardRow extends StatelessWidget {
@@ -63,7 +64,10 @@ class CoinCardRow extends StatelessWidget {
                     Row(
                       children: [
                         AutoSizeText(
-                          balance == 0 ? '0' : balance.toStringAsFixed(2),
+                          balance == 0
+                              ? '0'
+                              : WalletUtils.truncateToDecimals(
+                                  balance.toString()),
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               color: GeniusWalletColors.gray500),

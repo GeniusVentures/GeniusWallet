@@ -20,22 +20,40 @@ class SlidingDrawer extends StatefulWidget {
 
 class SlidingDrawerState extends State<SlidingDrawer> {
   OverlayEntry? _overlayEntry;
+  bool _isDrawerOpen = false; // Track drawer state
 
   @override
   void initState() {
     super.initState();
-    widget.controller._attachDrawer(this); // Attach controller to instance
+    widget.controller._attachDrawer(this); // Always attach controller
+  }
+
+  @override
+  void didUpdateWidget(covariant SlidingDrawer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      widget.controller._attachDrawer(this); // Ensure controller reattaches
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller._detachDrawer(this); // Detach when widget is removed
+    _closeDrawer(); // Ensure drawer is closed to avoid orphaned overlays
+    super.dispose();
   }
 
   void toggleDrawer() {
-    if (_overlayEntry == null) {
-      _showDrawer();
-    } else {
+    if (_isDrawerOpen) {
       _closeDrawer();
+    } else {
+      _showDrawer();
     }
   }
 
   void _showDrawer() {
+    if (_isDrawerOpen) return; // Prevent multiple insertions
+
     _overlayEntry = OverlayEntry(
       builder: (context) => Material(
         color: Colors.transparent,
@@ -139,11 +157,19 @@ class SlidingDrawerState extends State<SlidingDrawer> {
 
     // Insert Drawer Overlay
     Overlay.of(context).insert(_overlayEntry!);
+    setState(() {
+      _isDrawerOpen = true;
+    });
   }
 
   void _closeDrawer() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+      setState(() {
+        _isDrawerOpen = false;
+      });
+    }
   }
 
   @override
@@ -160,8 +186,14 @@ class SlidingDrawerController {
     _drawerState = state;
   }
 
+  void _detachDrawer(SlidingDrawerState state) {
+    if (_drawerState == state) {
+      _drawerState = null; // Reset when detached
+    }
+  }
+
   void openDrawer() {
-    _drawerState?.toggleDrawer();
+    _drawerState?._showDrawer();
   }
 
   void closeDrawer() {

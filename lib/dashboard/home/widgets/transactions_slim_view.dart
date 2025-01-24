@@ -252,11 +252,12 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
             ),
           ),
 
-          const SizedBox(height: 16),
-          Center(
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerRight,
             child: AutoSizeText(
               maxLines: 1,
-              "Transactions: ${widget.transactions.length}",
+              "Transactions: ${transactions.length}",
               style: const TextStyle(
                   fontSize: 16, color: GeniusWalletColors.gray500),
             ),

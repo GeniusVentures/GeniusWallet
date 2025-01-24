@@ -5,8 +5,6 @@ import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
-import 'package:genius_wallet/widgets/components/date_selector.g.dart';
-import 'package:genius_wallet/widgets/components/export_history.g.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({Key? key}) : super(key: key);

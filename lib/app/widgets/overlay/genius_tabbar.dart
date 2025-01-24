@@ -14,7 +14,6 @@ class GeniusTabbar extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         return BottomNavigationBar(
-            elevation: 0,
             backgroundColor: Colors.transparent,
             enableFeedback: false,
             onTap: (int index) {

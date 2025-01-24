@@ -172,20 +172,19 @@ final geniusWalletRouter = GoRouter(
       path: '/token-info',
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>;
-        return TokenInfoScreen(
-          tokenName: extra["tokenName"],
-          currentPrice: extra["currentPrice"],
-          priceChange: extra["priceChange"],
-          priceChangePercent: extra["priceChangePercent"],
-          userBalance: extra["userBalance"],
-          tokenSymbol: extra["tokenSymbol"],
-          tokenAddress: extra["tokenAddress"],
-          securityInfo: extra["securityInfo"],
-          transactionHistory: List<String>.from(extra["transactionHistory"]),
-          tokenIconPath: extra["tokenIconPath"],
-          chartPlaceholder: "",
-          walletAddress: extra["walletAddress"],
-          networkName: extra["networkName"],
+        final walletDetailsCubit =
+            extra["walletDetailsCubit"] as WalletDetailsCubit;
+        return BlocProvider.value(
+          value: walletDetailsCubit, // Provide the cubit here
+          child: TokenInfoScreen(
+            currentPrice: extra["currentPrice"],
+            priceChange: extra["priceChange"],
+            priceChangePercent: extra["priceChangePercent"],
+            securityInfo: extra["securityInfo"],
+            transactionHistory: List<String>.from(extra["transactionHistory"]),
+            chartPlaceholder: "",
+            isGnusWalletConnected: extra["isGnusWalletConnected"],
+          ),
         );
       },
     ),
