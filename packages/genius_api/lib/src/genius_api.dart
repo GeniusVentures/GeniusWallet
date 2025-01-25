@@ -259,6 +259,11 @@ class GeniusApi {
         .GeniusSDKMintTokens(amount, transhash, chainid, tokenid);
   }
 
+  void shutdownSDK() {
+    ffiBridgePrebuilt.wallet_lib.GeniusSDKShutdown();
+    print("Shutting Down SDK");
+  }
+
   void requestAIProcess() {
     //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
 //
