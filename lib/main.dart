@@ -10,6 +10,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:window_manager/window_manager.dart';
+import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,7 @@ void main() async {
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
+  await windowManager.ensureInitialized();
 
   windowManager.addListener(MyWindowListener(geniusApi));
 
@@ -46,7 +48,8 @@ class MyWindowListener extends WindowListener {
     // Trigger cleanup when the window is closed
     geniusApi.shutdownSDK();
     print("Window closed. GeniusApi shutdown.");
-    super.onWindowClose();
+    
+    exit(0);
   }
 }
 
