@@ -34,7 +34,7 @@ dependencies:
   file_picker: ^8.1.4
   font_awesome_flutter: ^10.8.0
   device_preview: ^1.2.0
-  
+  window_manager: ^0.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

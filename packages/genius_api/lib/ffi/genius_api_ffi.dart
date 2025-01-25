@@ -677,6 +677,15 @@ class NativeLibrary {
   late final _GeniusSDKFreeTransactions =
       _GeniusSDKFreeTransactionsPtr.asFunction<void Function(GeniusMatrix)>();
 
+  void GeniusSDKShutdown() {
+    return _GeniusSDKShutdown();
+  }
+
+  late final _GeniusSDKShutdownPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('GeniusSDKShutdown');
+  late final _GeniusSDKShutdown =
+      _GeniusSDKShutdownPtr.asFunction<void Function()>();
+
   void GeniusSDKMintTokens(int amount, ffi.Pointer<Utf8> transaction_hash,
       ffi.Pointer<Utf8> chain_id, ffi.Pointer<Utf8> token_id) {
     return _GeniusSDKMintTokens(amount, transaction_hash, chain_id, token_id);
