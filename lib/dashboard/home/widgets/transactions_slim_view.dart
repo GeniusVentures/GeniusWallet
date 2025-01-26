@@ -67,49 +67,47 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
 
     return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
       transactions.retainWhere((transaction) {
-        if (selectedFilter == 'All') return true;
+        if (selectedFilter == 'All') {
+          return true;
+        }
         if (selectedFilter == 'Escrow' &&
-            transaction.type == TransactionType.escrow) return true;
+            transaction.type == TransactionType.escrow) {
+          return true;
+        }
         if (selectedFilter == 'Mint' &&
-            transaction.type == TransactionType.mint) return true;
+            transaction.type == TransactionType.mint) {
+          return true;
+        }
         if (selectedFilter == 'Received' &&
-            transaction.transactionDirection == TransactionDirection.received)
+            transaction.transactionDirection == TransactionDirection.received) {
           return true;
+        }
         if (selectedFilter == 'Sent' &&
-            transaction.transactionDirection == TransactionDirection.sent)
+            transaction.transactionDirection == TransactionDirection.sent) {
           return true;
+        }
         return false;
       });
 
       final tableColumns = [
         {
           'title': 'Transaction Hash',
-          'width': 180.0,
-          'rowValue': (transaction) {
-            String hash = transaction.hash;
-            if (hash.length > 10) {
-              return hash.substring(0, 10) + '...';
-            }
-            return hash;
-          },
+          'width': 230.0,
+          'rowValue': (transaction) => _truncateAddress(transaction.hash),
           'rowFullValue': (transaction) => transaction.hash,
-          'isCopyable': true,
+          'isCopyable': true
         },
         {
           'title': 'Method',
           'width': 100.0,
-          'rowValue': (transaction) => transaction.type.toString(),
+          'rowValue': (transaction) => transaction.type.toString()
         },
-        {
-          'title': 'Block',
-          'width': 100.0,
-          'rowValue': (transaction) => "TODO",
-        },
+        {'title': 'Block', 'width': 100.0, 'rowValue': (transaction) => "TODO"},
         {
           'title': 'Age',
           'width': 150.0,
           'rowValue': (transaction) =>
-              timeago.format(transaction.timeStamp.toLocal()),
+              timeago.format(transaction.timeStamp.toLocal())
         },
         {
           'title': 'From',
@@ -117,20 +115,15 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           'rowValue': (transaction) =>
               _truncateAddress(transaction.fromAddress),
           'rowFullValue': (transaction) => transaction.fromAddress,
-          'isCopyable': true,
+          'isCopyable': true
         },
         {
           'title': '',
           'width': 55.0,
-          'rowValue': (transaction) {
-            if (transaction.transactionDirection == TransactionDirection.sent) {
-              return const Icon(Icons.arrow_forward_sharp, color: Colors.green);
-            } else if (transaction.transactionDirection ==
-                TransactionDirection.received) {
-              return const Icon(Icons.arrow_back_sharp, color: Colors.red);
-            }
-            return const SizedBox.shrink();
-          }
+          'rowValue': (transaction) =>
+              transaction.transactionDirection == TransactionDirection.sent
+                  ? const Icon(Icons.arrow_forward_sharp, color: Colors.green)
+                  : const Icon(Icons.arrow_back_sharp, color: Colors.red)
         },
         {
           'title': 'To',
@@ -138,19 +131,19 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           'rowValue': (transaction) =>
               _truncateAddress(transaction.recipients.first.toAddr),
           'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
-          'isCopyable': true,
+          'isCopyable': true
         },
         {
           'title': 'Amount',
           'width': 150.0,
           'rowValue': (transaction) =>
-              "${transaction.recipients.first.amount} ${transaction.coinSymbol}",
+              "${transaction.recipients.first.amount} ${transaction.coinSymbol}"
         },
         {
           'title': 'Fee',
           'width': 150.0,
           'rowValue': (transaction) =>
-              "${transaction.fees} ${transaction.coinSymbol}",
+              "${transaction.fees} ${transaction.coinSymbol}"
         },
       ];
 
@@ -158,81 +151,113 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TransactionFilters(onFilterSelected: handleFilterSelected),
+          const SizedBox(height: 20),
+
+          // **Scrollable Container for Header & Data Rows**
           Expanded(
             child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header Row
-                    const SizedBox(height: 16),
-                    Container(
-                      color: GeniusWalletColors.rowFilterBlue,
-                      child: Row(
-                        children: tableColumns.map((column) {
-                          return Container(
-                            width: (column['width'] as double) *
-                                textScaleFactor.clamp(1.0, 1.5),
-                            padding: const EdgeInsets.all(8.0),
-                            child: AutoSizeText(
-                              column['title'] as String,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          );
-                        }).toList(),
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // **Fixed Header (Doesn't Scroll Vertically)**
+                  Container(
+                    color: GeniusWalletColors.rowFilterBlue,
+                    child: Row(
+                      children: tableColumns.map((column) {
+                        return Container(
+                          width: (column['width'] as double) *
+                              textScaleFactor.clamp(1.0, 1.5),
+                          padding: const EdgeInsets.only(
+                              top: 16.0, bottom: 16, left: 8),
+                          child: AutoSizeText(
+                            column['title'] as String,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 16),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // **Scrollable Data Rows (Scrolls Vertically)**
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: widget.transactions.isEmpty
+                            ? [
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 20),
+                                  child: Text(
+                                    ' No Transactions Found',
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                )
+                              ]
+                            : transactions.asMap().entries.map((entry) {
+                                final transaction = entry.value;
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey.withOpacity(
+                                            0.3), // ✅ Slight border between rows
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Row(
+                                    children: tableColumns.map((column) {
+                                      final value = (column['rowValue']
+                                          as Function)(transaction);
+                                      return Container(
+                                        width: (column['width'] as double) *
+                                            textScaleFactor.clamp(1.0, 1.5),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          children: [
+                                            if (value is Icon) value,
+                                            if (value is! Icon)
+                                              Text(
+                                                value.toString(),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            if (column['isCopyable'] == true &&
+                                                (value as String).isNotEmpty)
+                                              IconButton(
+                                                icon: const Icon(Icons.copy,
+                                                    size: 16),
+                                                onPressed: () =>
+                                                    _copyToClipboard(
+                                                        (column['rowFullValue']
+                                                                as Function)(
+                                                            transaction)),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                );
+                              }).toList(),
                       ),
                     ),
-                    if (widget.transactions.isEmpty)
-                      const Padding(
-                          padding: EdgeInsets.only(top: 20),
-                          child: Text(
-                            ' No Transactions Found',
-                            style: TextStyle(fontSize: 20),
-                          )),
-                    // Data Rows
-                    for (var transaction in transactions)
-                      Row(
-                        children: tableColumns.map((column) {
-                          final value =
-                              (column['rowValue'] as Function)(transaction);
-                          return Container(
-                            width: (column['width'] as double) *
-                                textScaleFactor.clamp(1.0, 1.5),
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                if (value is Icon) value,
-                                if (value is! Icon)
-                                  Text(
-                                    value.toString(),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                if (column['isCopyable'] == true &&
-                                    (value as String).isNotEmpty)
-                                  IconButton(
-                                    icon: const Icon(Icons.copy, size: 16),
-                                    onPressed: () => _copyToClipboard(
-                                        (column['rowFullValue']
-                                            as Function)(transaction)),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Center(
+
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerRight,
             child: AutoSizeText(
               maxLines: 1,
-              "Transactions: ${widget.transactions.length}",
+              "Transactions: ${transactions.length}",
               style: const TextStyle(
                   fontSize: 16, color: GeniusWalletColors.gray500),
             ),

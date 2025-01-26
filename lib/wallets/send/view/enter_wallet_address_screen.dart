@@ -11,7 +11,6 @@ import 'package:genius_wallet/widgets/components/back_button_header.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_q_r_scan.g.dart';
 import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
 
 class EnterWalletAddressScreen extends StatelessWidget {
@@ -62,19 +61,6 @@ class Desktop extends StatelessWidget {
                           context,
                           hintText: 'Type the wallet address',
                           onChanged: context.read<SendCubit>().addressUpdated,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        height: 62,
-                        width: MediaQuery.of(context).size.width,
-                        child: Center(
-                          child: LayoutBuilder(
-                            builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              return WalletQRScan(constraints);
-                            },
-                          ),
                         ),
                       ),
                       const SizedBox(

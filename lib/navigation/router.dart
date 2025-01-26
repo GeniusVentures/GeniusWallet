@@ -7,11 +7,11 @@ import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/wallets/receive/view/receive_screen.dart';
 import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/wallets/send/view/not_enough_balance_screen.dart';
@@ -169,6 +169,26 @@ final geniusWalletRouter = GoRouter(
           ),
         ]),
     GoRoute(
+      path: '/token-info',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        final walletDetailsCubit =
+            extra["walletDetailsCubit"] as WalletDetailsCubit;
+        return BlocProvider.value(
+          value: walletDetailsCubit, // Provide the cubit here
+          child: TokenInfoScreen(
+            currentPrice: extra["currentPrice"],
+            priceChange: extra["priceChange"],
+            priceChangePercent: extra["priceChangePercent"],
+            securityInfo: extra["securityInfo"],
+            transactionHistory: List<String>.from(extra["transactionHistory"]),
+            chartPlaceholder: "",
+            isGnusWalletConnected: extra["isGnusWalletConnected"],
+          ),
+        );
+      },
+    ),
+    GoRoute(
       path: '/transactions',
       builder: ((context, state) {
         return const ResponsiveOverlay(
@@ -235,17 +255,6 @@ final geniusWalletRouter = GoRouter(
             BlocProvider.value(value: walletDetailsCubit)
           ],
           child: const BuyFlow(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/receive',
-      builder: (context, state) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: state.extra as WalletDetailsCubit),
-          ],
-          child: const ReceiveScreen(),
         );
       },
     ),
