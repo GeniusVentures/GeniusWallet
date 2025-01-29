@@ -21,9 +21,11 @@ void main() async {
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
-  await windowManager.ensureInitialized();
-
-  windowManager.addListener(MyWindowListener(geniusApi));
+  /// Initialize window_manager only on **desktop**
+  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+    await windowManager.ensureInitialized();
+    windowManager.addListener(MyWindowListener(geniusApi));
+  }
 
   runApp(
     AppLifecycleHandler(
