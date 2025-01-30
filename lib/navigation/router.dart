@@ -177,12 +177,8 @@ final geniusWalletRouter = GoRouter(
         return BlocProvider.value(
           value: walletDetailsCubit, // Provide the cubit here
           child: TokenInfoScreen(
-            currentPrice: extra["currentPrice"],
-            priceChange: extra["priceChange"],
-            priceChangePercent: extra["priceChangePercent"],
             securityInfo: extra["securityInfo"],
             transactionHistory: List<String>.from(extra["transactionHistory"]),
-            chartPlaceholder: "",
             isGnusWalletConnected: extra["isGnusWalletConnected"],
           ),
         );

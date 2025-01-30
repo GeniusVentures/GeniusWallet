@@ -5,10 +5,12 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,17 +18,29 @@ void main() async {
   await secureStorage.init();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
+  final coinProvider = CoinGeckoCoinProvider();
+  await coinProvider.loadCoins();
+
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
 
   runApp(
-    DevicePreview(
-      enabled: !kReleaseMode,
-      defaultDevice: Devices.ios.iPhone12,
-      builder: (context) => MyApp(
-        geniusApi: geniusApi,
-      ), // Wrap your app
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (_) => coinProvider), // 🟢 Add Coin Provider
+        Provider(
+            create: (_) =>
+                geniusApi), // 🟢 Provide Genius API if needed elsewhere
+      ],
+      child: DevicePreview(
+        enabled: !kReleaseMode,
+        defaultDevice: Devices.ios.iPhone12,
+        builder: (context) => MyApp(
+          geniusApi: geniusApi, // Ensure Genius API is passed if needed
+        ),
+      ),
     ),
   );
 }

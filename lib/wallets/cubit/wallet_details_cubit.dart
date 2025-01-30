@@ -102,7 +102,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       // IF SUPERGENIUS NETWORK... call the SDK to retrieve balances, etc.
       // WE SHOULD NOT CALL THE RPC STUFF
       // WE SHOULD CALL BALANCEOF and pass in the tokenIds from tokens.json
-
+      // TODO: move this to the provider in main for performance
       readTokenAssets(
               walletAddress: walletAddress, network: state.selectedNetwork!)
           .then((List<Coin> coinList) {

@@ -78,16 +78,9 @@ class CoinsScreenState extends State<CoinsScreen> {
                             "walletDetailsCubit": walletCubit,
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
-                            "currentPrice":
-                                100.0, // Replace with actual price data
-                            "priceChange":
-                                5.0, // Replace with actual price change
-                            "priceChangePercent":
-                                2.5, // Replace with actual percentage
-                            "securityInfo": "Secure Token",
+                            "securityInfo": "Coming Soon",
                             "transactionHistory": [
-                              "Tx1",
-                              "Tx2"
+                              "Coming Soon"
                             ], // Replace with actual history
                           },
                         );

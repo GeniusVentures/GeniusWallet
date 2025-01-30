@@ -87,6 +87,29 @@ class Web3 {
     }
   }
 
+  Future<String> decimals(
+      {required String contractAddress, required String rpcUrl}) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
+
+    final contract = DeployedContract(abi, contractAddr);
+    final decimals = contract.function('decimals');
+
+    try {
+      final tokenDecimals =
+          await client.call(contract: contract, function: decimals, params: []);
+
+      print(tokenDecimals.first);
+
+      await client.dispose();
+      return tokenDecimals.first;
+    } catch (e) {
+      await client.dispose();
+      return '';
+    }
+  }
+
   Future<String> name(
       {required String contractAddress, required String rpcUrl}) async {
     final client = Web3Client(rpcUrl, Client());

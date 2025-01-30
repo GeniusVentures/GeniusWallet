@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_api/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
 
