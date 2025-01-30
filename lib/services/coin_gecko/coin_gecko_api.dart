@@ -197,3 +197,88 @@ double calculateTotalBalance(
     return sum + (coinPrice * element.balance);
   });
 }
+
+/// **Cache to store API responses with expiration times**
+class CoinMarketCache {
+  final Map<String, dynamic> _cache = {};
+  final Map<String, DateTime> _cacheTimestamps = {};
+  final Duration cacheDuration = const Duration(seconds: 60);
+
+  /// Get cached data for specific coins
+  Map<String, dynamic> getCachedData(List<String> coinIds) {
+    final Map<String, dynamic> cachedResults = {};
+
+    for (var coinId in coinIds) {
+      if (_cache.containsKey(coinId)) {
+        final cacheTime = _cacheTimestamps[coinId];
+        if (cacheTime != null &&
+            DateTime.now().difference(cacheTime) < cacheDuration) {
+          cachedResults[coinId] = _cache[coinId];
+        }
+      }
+    }
+
+    return cachedResults;
+  }
+
+  /// Save new data to cache with timestamps
+  void setCachedData(Map<String, dynamic> newData) {
+    for (var entry in newData.entries) {
+      _cache[entry.key] = entry.value;
+      _cacheTimestamps[entry.key] = DateTime.now();
+    }
+  }
+}
+
+final CoinMarketCache _coinMarketCache = CoinMarketCache();
+
+/// **Fetches market data for multiple coins from CoinGecko**
+Future<Map<String, dynamic>> fetchCoinsMarketData(
+    {required List<String> coinIds}) async {
+  if (coinIds.isEmpty) return {};
+
+  // 🔹 **Check if some data exists in cache**
+  final cachedData = _coinMarketCache.getCachedData(coinIds);
+
+  // 🔹 **Find which coins are missing from cache**
+  final List<String> missingCoinIds =
+      coinIds.where((id) => !cachedData.containsKey(id)).toList();
+
+  if (missingCoinIds.isEmpty) {
+    print("✅ Returning all coins from cache.");
+    return cachedData;
+  }
+
+  print("🆕 Fetching missing coins from API: ${missingCoinIds.join(',')}");
+
+  // 🔹 **API Call for only missing coins**
+  final String marketApi =
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}';
+
+  try {
+    final response = await http.get(Uri.parse(marketApi));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+
+      // 🔹 **Convert list to map using `id` as key**
+      Map<String, dynamic> newMarketData = {
+        for (var coin in data) coin['id']: coin
+      };
+
+      // 🔹 **Cache the new data**
+      _coinMarketCache.setCachedData(newMarketData);
+
+      // 🔹 **Merge cached and new data**
+      return {...cachedData, ...newMarketData};
+    } else {
+      print('❌ Failed to fetch market data: ${response.body}');
+    }
+  } catch (e) {
+    print('⚠️ Error fetching market data: $e');
+  }
+
+  // 🔹 **Return only cached data if API fails**
+  print("⚠️ Returning only cached data due to API failure.");
+  return cachedData;
+}

@@ -127,13 +127,11 @@ class TokenInfoScreen extends StatelessWidget {
                               style:
                                   TextStyle(color: GeniusWalletColors.gray500),
                             ),
-                            subtitle: CoinCardContainer(
-                              child: CoinCardRow(
-                                iconPath: selectedCoin?.iconPath ?? "",
-                                balance: selectedCoin?.balance ?? 0.0,
-                                name: selectedCoin?.name ?? "unknown",
-                                symbol: selectedCoin?.symbol ?? "unknown",
-                              ),
+                            subtitle: CoinCardRow(
+                              iconPath: selectedCoin?.iconPath ?? "",
+                              balance: selectedCoin?.balance ?? 0.0,
+                              name: selectedCoin?.name ?? "unknown",
+                              symbol: selectedCoin?.symbol ?? "unknown",
                             ),
                           ),
                           const SizedBox(height: 16),

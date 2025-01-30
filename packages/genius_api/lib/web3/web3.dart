@@ -100,8 +100,6 @@ class Web3 {
       final tokenDecimals =
           await client.call(contract: contract, function: decimals, params: []);
 
-      print(tokenDecimals.first);
-
       await client.dispose();
       return tokenDecimals.first;
     } catch (e) {
