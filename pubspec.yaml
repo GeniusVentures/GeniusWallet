@@ -35,6 +35,8 @@ dependencies:
   font_awesome_flutter: ^10.8.0
   device_preview: ^1.2.0
   window_manager: ^0.2.0
+  qr_flutter: ^4.1.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

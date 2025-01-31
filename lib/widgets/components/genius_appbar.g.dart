@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
-import 'package:genius_wallet/widgets/components/custom/alerts_custom.dart';
 import 'package:genius_wallet/widgets/components/custom/hamburger_menu_icon_custom.dart';
 
 class GeniusAppbar extends StatefulWidget {
@@ -30,39 +29,6 @@ class _GeniusAppbar extends State<GeniusAppbar> {
           Container(
               decoration: BoxDecoration(),
               child: Stack(children: [
-                Positioned(
-                  right: 45.0,
-                  width: 41.0,
-                  top: 0,
-                  height: 41.0,
-                  child: AlertsCustom(
-                      child: const Stack(children: [
-                    Positioned(
-                      left: 0,
-                      width: 34.0,
-                      top: 7.0,
-                      height: 34.0,
-                      child: SizedBox(
-                        height: 34.0,
-                        width: 34.0,
-                      ),
-                    ),
-                    // TODO: implement chat
-                    // Positioned(
-                    //   left: 7.0,
-                    //   width: 20.0,
-                    //   top: 14.0,
-                    //   height: 20.0,
-                    //   child: widget.ovrChatbubbles ??
-                    //       Image.asset(
-                    //         'assets/images/chat_bubble.png',
-                    //         height: 20.0,
-                    //         width: 20.0,
-                    //         fit: BoxFit.none,
-                    //       ),
-                    // ),
-                  ])),
-                ),
                 Positioned(
                   right: 0,
                   width: 36.6,

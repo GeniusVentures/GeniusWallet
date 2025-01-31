@@ -5,6 +5,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
@@ -133,7 +134,7 @@ class View extends StatelessWidget {
                                             ),
                                           ),
                                         ]),
-                                    const SizedBox(height: 20),
+
                                     // TODO: add any square buttons for actions within the genius wallet view
                                     // const Row(children: [
                                     //   Expanded(
@@ -148,21 +149,21 @@ class View extends StatelessWidget {
                                     //     icon: Icons.attach_money,
                                     //   )),
                                     // ]),
-                                    const SizedBox(height: 8),
                                   ]);
                             }),
-                            const SizedBox(height: 18),
+
                             // TODO: wire up an alternate coins screen to show child tokens of the sgnus wallet
                             // const SizedBox(child: CoinsScreen()),
                             const SizedBox(height: 18),
                             SizedBox(
-                              height: 460,
+                              height: 600,
                               child: LayoutBuilder(
                                 builder: (BuildContext context,
                                     BoxConstraints constraints) {
-                                  return TransactionsSlimView(
-                                      transactions:
-                                          geniusApi.getSGNUSTransactions());
+                                  return DashboardViewNoFlexContainer(
+                                      child: TransactionsSlimView(
+                                          transactions: geniusApi
+                                              .getSGNUSTransactions()));
                                 },
                               ),
                             ),
