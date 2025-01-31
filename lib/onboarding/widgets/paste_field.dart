@@ -45,6 +45,9 @@ class PasteField extends StatelessWidget {
               TextFormField(
                 controller: controller,
                 decoration: InputDecoration(
+                  hintStyle: const TextStyle(
+                      color: GeniusWalletColors.gray500,
+                      fontSize: GeniusWalletFontSize.base),
                   hintText: hintText,
                   border: InputBorder.none,
                 ),

@@ -141,7 +141,7 @@ class MyApp extends StatelessWidget {
             ),
             appBarTheme: const AppBarTheme(
                 iconTheme: IconThemeData(size: 24),
-                titleTextStyle: TextStyle(fontSize: 24),
+                titleTextStyle: TextStyle(fontSize: 18),
                 titleSpacing: 10,
                 centerTitle: true,
                 surfaceTintColor: GeniusWalletColors.deepBlueCardColor,
@@ -170,10 +170,10 @@ class MyApp extends StatelessWidget {
                       (Set<MaterialState> states) {
                         if (states.contains(MaterialState.disabled)) {
                           return GeniusWalletColors
-                              .btnFilterBlue; // Text color for disabled state
+                              .btnFilter; // Text color for disabled state
                         }
                         return GeniusWalletColors
-                            .btnFilterBlue; // Default text color
+                            .btnFilter; // Default text color
                       },
                     ),
                     foregroundColor: MaterialStateProperty.resolveWith<Color?>(
@@ -221,25 +221,31 @@ class MyApp extends StatelessWidget {
                             GeniusWalletConsts.borderRadiusButton))))),
             navigationRailTheme: const NavigationRailThemeData(
                 backgroundColor: GeniusWalletColors.deepBlueCardColor,
-                useIndicator: true,
-                indicatorColor: GeniusWalletColors.blue500,
-                minWidth: 70,
+                indicatorColor: Colors.transparent,
+                selectedLabelTextStyle:
+                    TextStyle(color: GeniusWalletColors.lightGreenSecondary),
                 labelType: NavigationRailLabelType.none,
-                selectedIconTheme: IconThemeData(color: Colors.white),
+                useIndicator: false,
+                selectedIconTheme: IconThemeData(
+                    color: GeniusWalletColors.lightGreenSecondary, size: 35),
                 unselectedIconTheme:
-                    IconThemeData(color: Colors.white, opacity: 1)),
+                    IconThemeData(color: Colors.white, opacity: 1, size: 35)),
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
                 type: BottomNavigationBarType.fixed,
                 selectedLabelStyle:
                     TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
                 unselectedLabelStyle:
                     TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-                selectedItemColor: GeniusWalletColors.blue500,
-                selectedIconTheme:
-                    IconThemeData(size: 24, color: GeniusWalletColors.blue500),
+                selectedItemColor: GeniusWalletColors.lightGreenSecondary,
+                selectedIconTheme: IconThemeData(
+                    size: 35, color: GeniusWalletColors.lightGreenSecondary),
                 unselectedIconTheme:
-                    IconThemeData(size: 24, color: Colors.white)),
+                    IconThemeData(size: 35, color: Colors.white)),
             checkboxTheme: CheckboxThemeData(
                 side: const BorderSide(
                     color: GeniusWalletColors.lightGreenPrimary),

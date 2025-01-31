@@ -45,8 +45,7 @@ class ImportSecurityScreen extends StatelessWidget {
       },
     };
 
-    final walletNameController =
-        TextEditingController(text: '$walletType Wallet');
+    final walletNameController = TextEditingController();
 
     final formKey = GlobalKey<FormState>();
 
@@ -239,12 +238,13 @@ class _ImportSecurityBody extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 50,
+          height: 70,
           width: MediaQuery.of(context).size.width * 0.9,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               return TextEntryFieldWidget(
                 logic: TextFormFieldLogic(
+                  hintText: 'Enter wallet name',
                   context,
                   controller: walletNameController,
                   validator: (value) {

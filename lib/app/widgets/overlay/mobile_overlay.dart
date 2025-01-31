@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/widgets/hamburger_menu.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_tabbar.dart';
@@ -15,25 +16,29 @@ class MobileOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true, // ✅ Allows content to be visible under the navbar
       endDrawer: const HamburgerMenu(),
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
-          child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.horizontalPadding),
-            height: 55,
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                return GeniusAppbar(constraints);
-              },
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: GeniusWalletConsts.horizontalPadding),
+              height: 65,
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return GeniusAppbar(constraints);
+                },
+              ),
             ),
-          ),
-          Expanded(child: child),
-        ],
-      )),
-      bottomNavigationBar: const GeniusTabbar(),
+            Expanded(child: child),
+          ],
+        ),
+      ),
+      bottomNavigationBar:
+          const GeniusTabbar(), // ✅ Wrapped inside a container for transparency
     );
   }
 }

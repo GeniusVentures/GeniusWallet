@@ -64,7 +64,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
 
     // if we can't fetch (rate limit) just return the account balance (stale)
     completer.complete(
-        "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}");
+        "\$${NumberFormat('#,##0.00').format(widget.account?.balance)}");
 
     futurePrices = completer.future;
     return;
@@ -131,8 +131,8 @@ class WalletsOverviewState extends State<WalletsOverview> {
                                 // fallback to stale account balance if call fails
                                 snapshot.data != ""
                                     ? snapshot.data ??
-                                        "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}"
-                                    : "\$ ${NumberFormat('#,##0.00').format(widget.account?.balance)}",
+                                        "\$${NumberFormat('#,##0.00').format(widget.account?.balance)}"
+                                    : "\$${NumberFormat('#,##0.00').format(widget.account?.balance)}",
                                 style: const TextStyle(
                                   overflow: TextOverflow.ellipsis,
                                   fontSize: 32.0,
@@ -141,7 +141,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
                                 ),
                                 textAlign: TextAlign.left)),
                         const SizedBox(width: 4),
-                        const AutoSizeText('USD')
                       ]);
                 }
                 return const SizedBox();

@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -226,43 +229,267 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 showDialog(
                                   context: context,
                                   builder: (_) => AlertDialog(
-                                    contentPadding: const EdgeInsets.all(20),
+                                    backgroundColor:
+                                        GeniusWalletColors.deepBlueCardColor,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 18, vertical: 20),
                                     actionsAlignment: MainAxisAlignment.center,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            12)), // Rounded corners
                                     title: Center(
-                                        child: !bridgeTokensResponse.isSuccess
-                                            ? const Text(
-                                                'Bridge Failed!',
-                                                style: TextStyle(
-                                                    color:
-                                                        GeniusWalletColors.red),
-                                              )
-                                            : const Text('Bridge Success!',
-                                                style: TextStyle(
-                                                    color: GeniusWalletColors
-                                                        .lightGreenPrimary))),
-                                    content: Container(
-                                        child: !bridgeTokensResponse.isSuccess
-                                            ? Text(bridgeTokensResponse
-                                                    .errorMessage ??
-                                                "Failed to bridge tokens")
-                                            : Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                    Text(
-                                                        'Bridged ${fromAmountController.text} ${fromToken?.symbol} for ${toAmountController.text} ${toNetwork?.name} - ${toNetwork?.symbol}.',
-                                                        style: const TextStyle(
-                                                            fontSize: 16)),
-                                                    const SizedBox(height: 12),
-                                                    const Text('Hash:',
-                                                        style: TextStyle(
-                                                            fontSize: 16)),
-                                                    SelectableText(
-                                                        ' ${bridgeTokensResponse.data}',
-                                                        style: const TextStyle(
-                                                            fontSize: 16))
-                                                  ])),
+                                      child: Text(
+                                        bridgeTokensResponse.isSuccess
+                                            ? 'Bridge Success!'
+                                            : 'Bridge Failed!',
+                                        style: TextStyle(
+                                          color: bridgeTokensResponse.isSuccess
+                                              ? GeniusWalletColors
+                                                  .lightGreenPrimary
+                                              : GeniusWalletColors.red,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    content: SizedBox(
+                                        width:
+                                            GeniusBreakpoints.useDesktopLayout(
+                                                    context)
+                                                ? 500
+                                                : MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    .85,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: bridgeTokensResponse
+                                                  .isSuccess
+                                              ? [
+                                                  const SizedBox(height: 16),
+                                                  Row(children: [
+                                                    Expanded(
+                                                        child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start, // Ensures wrapped text aligns properly
+                                                      children: [
+                                                        // From Token Section (Icon + Amount + Network Symbol)
+                                                        Expanded(
+                                                          child: Row(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              _cryptoIcon(
+                                                                  fromToken
+                                                                      ?.iconPath),
+                                                              const SizedBox(
+                                                                  width: 6),
+                                                              Expanded(
+                                                                // Allows text to wrap properly
+                                                                child: Column(
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Text(
+                                                                      '${fromAmountController.text} ${fromToken?.symbol?.toUpperCase()}',
+                                                                      maxLines:
+                                                                          1,
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      softWrap:
+                                                                          true, // Allows wrapping if needed
+                                                                      style: const TextStyle(
+                                                                          fontSize:
+                                                                              18,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                    ),
+                                                                    Text(
+                                                                      fromToken
+                                                                              ?.networkSymbol ??
+                                                                          "",
+                                                                      maxLines:
+                                                                          2, // Allows wrapping on small screens
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      softWrap:
+                                                                          true,
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                        color: GeniusWalletColors
+                                                                            .gray500,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+
+                                                        const Expanded(
+                                                            child: Icon(
+                                                                Icons
+                                                                    .arrow_forward,
+                                                                color: Colors
+                                                                    .white70,
+                                                                size:
+                                                                    30)), // Arrow Icon
+
+                                                        // To Token Section (Icon + Amount + Network Name)
+                                                        Expanded(
+                                                          child: Row(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              _cryptoIcon(
+                                                                  toNetwork
+                                                                      ?.iconPath),
+                                                              const SizedBox(
+                                                                  width: 6),
+                                                              Expanded(
+                                                                // Allows text to wrap properly
+                                                                child: Column(
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Text(
+                                                                      '${toAmountController.text} ${toNetwork?.symbol?.toUpperCase()}',
+                                                                      maxLines:
+                                                                          1,
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      softWrap:
+                                                                          true, // Allows wrapping
+                                                                      style: const TextStyle(
+                                                                          fontSize:
+                                                                              18,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                    ),
+                                                                    Text(
+                                                                      toNetwork
+                                                                              ?.name ??
+                                                                          "",
+                                                                      maxLines:
+                                                                          2, // Allows wrapping on small screens
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      softWrap:
+                                                                          true,
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                        color: GeniusWalletColors
+                                                                            .gray500,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ))
+                                                  ]),
+                                                  const SizedBox(height: 64),
+
+                                                  /// **Transaction Hash**
+                                                  const Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      'Transaction Hash:',
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            12),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black26,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: SelectableText(
+                                                            bridgeTokensResponse
+                                                                    .data ??
+                                                                "No Hash Available",
+                                                            style: const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500),
+                                                          ),
+                                                        ),
+                                                        IconButton(
+                                                          icon: const Icon(
+                                                              Icons.copy,
+                                                              color: Colors
+                                                                  .white70),
+                                                          onPressed: () {
+                                                            Clipboard.setData(
+                                                              ClipboardData(
+                                                                  text: bridgeTokensResponse
+                                                                          .data ??
+                                                                      ""),
+                                                            );
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text(
+                                                                    "Transaction Hash Copied!"),
+                                                                duration:
+                                                                    Duration(
+                                                                        seconds:
+                                                                            2),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ]
+                                              : [
+                                                  const SizedBox(height: 12),
+                                                  Text(
+                                                    bridgeTokensResponse
+                                                            .errorMessage ??
+                                                        "Failed to bridge tokens",
+                                                    style: const TextStyle(
+                                                        fontSize: 16),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  const SizedBox(height: 16),
+                                                ],
+                                        )),
                                     actions: [
                                       TextButton(
                                         onPressed: () {
@@ -270,7 +497,12 @@ class BridgeScreenState extends State<BridgeScreen> {
                                           // for now return to the coins screen
                                           GoRouter.of(context).pop();
                                         },
-                                        child: const Text('Close'),
+                                        child: const Text(
+                                          'Close',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -303,6 +535,16 @@ class BridgeScreenState extends State<BridgeScreen> {
             ),
           );
         }));
+  }
+
+  Widget _cryptoIcon(String? iconPath) {
+    return iconPath != null && iconPath.isNotEmpty
+        ? Image.asset(iconPath, width: 28, height: 28,
+            errorBuilder: (_, __, ___) {
+            return const Icon(Icons.currency_bitcoin,
+                color: Colors.white70, size: 28);
+          })
+        : const Icon(Icons.currency_bitcoin, color: Colors.white70, size: 28);
   }
 
   Widget _buildDropdown<T>({
