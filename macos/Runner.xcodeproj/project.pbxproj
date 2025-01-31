@@ -27,6 +27,8 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		CF4DC813181BE31A282906B2 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D269164831F425DC61E49CA /* Pods_Runner.framework */; };
+		D780AD472D16083D00DC3A8F /* GeniusWallet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D780AD462D16083D00DC3A8F /* GeniusWallet.framework */; };
+		D780AD482D16083D00DC3A8F /* GeniusWallet.framework in Bundle Framework */ = {isa = PBXBuildFile; fileRef = D780AD462D16083D00DC3A8F /* GeniusWallet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				D780AD482D16083D00DC3A8F /* GeniusWallet.framework in Bundle Framework */,
 			);
 			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,6 +76,7 @@
 		75FD9E9AFB3B98D8CC561D3D /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		D780AD462D16083D00DC3A8F /* GeniusWallet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GeniusWallet.framework; path = native/build/GeniusWallet.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D780AD472D16083D00DC3A8F /* GeniusWallet.framework in Frameworks */,
 				CF4DC813181BE31A282906B2 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -165,6 +170,7 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D780AD462D16083D00DC3A8F /* GeniusWallet.framework */,
 				5D269164831F425DC61E49CA /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
@@ -178,11 +184,12 @@
 			buildConfigurationList = 33CC10FB2044A3C60003C045 /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				4E8C26C910685BD3831FAFBE /* [CP] Check Pods Manifest.lock */,
+				D76F99452D08D9E6001A5E96 /* Build GeniusWallet lib */,
 				33CC10E92044A3C60003C045 /* Sources */,
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
 				33CC110E2044A8840003C045 /* Bundle Framework */,
-				3399D490228B24CF009A79C7 /* ShellScript */,
+				3399D490228B24CF009A79C7 /* Run Script */,
 				C9DA052AA4D86828998E6E64 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -202,13 +209,12 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					33CC10EC2044A3C60003C045 = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
-						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
 								enabled = 1;
@@ -253,7 +259,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3399D490228B24CF009A79C7 /* ShellScript */ = {
+		3399D490228B24CF009A79C7 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -263,6 +269,7 @@
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -329,6 +336,24 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		D76F99452D08D9E6001A5E96 /* Build GeniusWallet lib */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build GeniusWallet lib";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd native\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -405,7 +430,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -420,24 +445,32 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = 0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					"\"flutter_secure_storage_macos\"",
-					"-framework",
-					"\"url_launcher_macos\"",
-					"-lc++",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
@@ -498,7 +531,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -539,6 +572,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -546,7 +580,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -561,290 +595,34 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = 0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					"\"flutter_secure_storage_macos\"",
 					"-framework",
 					"\"url_launcher_macos\"",
-					"-lc++",
-					"-Wl,-force_load,${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/wallet-core/lib/libTrustWalletCore.a",
-					"-Wl,-force_load,${PROJECT_DIR}/../../GeniusSDK/build/OSX/Debug/GeniusSDK/lib/libGeniusSDK.a",
-					"${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/wallet-core/lib/libTrezorCrypto.a",
-					"${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/wallet-core/lib/libwallet_core_rs.a",
-					"${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libprotobufd.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libblob.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libblock_header_repository.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libblock_storage.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libblockchain_common.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libbuffer.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcomponent_factory.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_bcast.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_datastore.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_delta.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_globaldb_proto.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_globaldb.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_graphsync_dagsyncer.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_heads.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libcrdt_set.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libdatabase_error.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libephemeral_trie_batch.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libGeniusKDF.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libhasher.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libhexutil.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libhierarchical_key.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libin_memory_storage.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libjson_secure_storage.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libkeccak.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/liblogger.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libpersistent_trie_batch.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libprimitives.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libprocessing_service.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/librocksdb.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libscale.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libSGBlocksProto.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libsgns_account.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libSGProcessingProto.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libSGTransactionProto.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libsha.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libsupergenius_codec.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libsupergenius_node.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libsupergenius_trie_cursor.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libsupergenius_trie.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libtopper_trie_batch.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libtrie_error.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libtrie_storage_backend.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libtrie_storage.a",
-                    "${PROJECT_DIR}/../../SuperGenius/build/OSX/Debug/SuperGenius/lib/libtwox.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/AsyncIOManager/lib/libAsyncIOManager.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/AsyncIOManager/lib/libipfs-unixfs.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_atomic.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_chrono.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_date_time.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_filesystem.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_log.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_random.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_regex.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_system.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/boost/build/Darwin/lib/libboost_thread.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/cares/lib/libcares.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/fmt/lib/libfmtd.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/gnus_upnp/lib/libgnus_upnp.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_bad_optional_access.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_bad_variant_access.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_base.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_city.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_civil_time.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_cord_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_cord.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_cordz_functions.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_cordz_handle.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_cordz_info.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_crc_cord_state.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_crc_cpu_detect.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_crc_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_crc32c.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_debugging_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_decode_rust_punycode.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_demangle_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_demangle_rust.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_die_if_null.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_examine_stack.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_exponential_biased.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_commandlineflag_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_commandlineflag.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_config.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_marshalling.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_private_handle_accessor.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_program_name.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_flags_reflection.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_graphcycles_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_hash.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_hashtablez_sampler.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_int128.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_kernel_timeout_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_leak_check.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_entry.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_globals.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_initialize.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_check_op.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_conditions.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_fnmatch.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_format.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_globals.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_log_sink_set.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_message.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_nullguard.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_internal_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_severity.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_log_sink.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_low_level_hash.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_malloc_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_raw_hash_set.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_raw_logging_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_spinlock_wait.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_stacktrace.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_status.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_statusor.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_str_format_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_strerror.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_string_view.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_strings_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_strings.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_symbolize.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_synchronization.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_throw_delegate.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_time_zone.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_time.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_utf8_for_code_point.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libabsl_vlog_config_internal.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libprotobufd.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/grpc/lib/libutf8_validity.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-bitswap-cpp/lib/libipfs-bitswap-cpp.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-bitswap-cpp/lib/libipfs-bitswap-proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libblake2.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libblob.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libbuffer.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libcbor.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libcid.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libgraphsync_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libgraphsync.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libhexutil.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_blockservice.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_datastore_error.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_datastore_in_memory.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_datastore_rocksdb.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_kad_dht.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_lite_hasher.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipfs_merkledag_service.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipld_link.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipld_node_protobuf.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libipld_node.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/liblogger.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/librocksdb_wrapper.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-lite-cpp/lib/libtinycbor.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/ipfs-pubsub/lib/libipfs-pubsub.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libasio_scheduler.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_address_repository.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_aes_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_asio_scheduler_backend.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_basic_host.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_basic_scheduler.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_byteutil.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_cares.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_chachapoly_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_cid.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_connection_error.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_connection_manager.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_converters.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_crypto_common.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_crypto_error.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_crypto_key.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_crypto_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_default_host.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_default_network.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_dialer.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_dnsaddr_resolver.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_ecdsa_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_ed25519_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_gossip_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_gossip.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_hexutil.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_hmac_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_identify_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_identify.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_identity_manager.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_inmem_address_repository.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_inmem_key_repository.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_inmem_protocol_repository.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_kademlia_error.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_kademlia_message.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_kademlia_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_kademlia.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_key_marshaller.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_key_validator.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_keys_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_listener_manager.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_literals.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_logger.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_message_read_writer_error.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_message_read_writer.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_mplex.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_mplexed_connection.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_multiaddress.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_multibase_codec.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_multihash.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_multiselect.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_network.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_noise_handshake_message_marshaller.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_noise_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_noise.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_peer_address.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_peer_errors.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_peer_id.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_peer_repository.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_ping.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_plaintext_exchange_message_marshaller.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_plaintext_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_plaintext.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_protobuf_message_read_writer.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_protocol_echo.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_random_generator.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_read_buffer.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_router.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_rsa_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_scheduler.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_secio_exchange_message_marshaller.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_secio_propose_message_marshaller.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_secio_proto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_secio.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_secp256k1_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_security_error.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_sha.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_tcp_connection.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_tcp_listener.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_tcp.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_tls.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_transport_manager.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_upgrader_session.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_upgrader.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_uvarint.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_varint_prefix_reader.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_varint_reader.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_write_queue.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_x25519_provider.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_yamux.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p_yamuxed_connection.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libp2p.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/libp2p/lib/libsubscription.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/MNN/lib/libMNN.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/openssl/build/Darwin/lib/libcrypto.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/openssl/build/Darwin/lib/libssl.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/rocksdb/lib/librocksdb.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libconfigurator_yaml.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libfallback_configurator.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libgroup.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/liblogger.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/liblogging_system.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libsink_to_console.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libsink_to_file.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libsink_to_nowhere.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/soralog/lib/soralog/libsoralog.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/spdlog/lib/libspdlogd.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/xxhash/lib/libxxhash.a",
-                    "${PROJECT_DIR}/../../thirdparty/build/OSX/Debug/yaml-cpp/lib/libyaml-cppd.a",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -858,28 +636,36 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=*]" = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/native/build",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Genius Wallet";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				"MACOSX_DEPLOYMENT_TARGET[arch=*]" = 12.2;
+				MARKETING_VERSION = 0.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					"\"flutter_secure_storage_macos\"",
 					"-framework",
 					"\"url_launcher_macos\"",
-					"-lc++",
-					"-Wl,-force_load,${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrustWalletCore.a",
-					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libTrezorCrypto.a",
-					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/wallet-core/lib/libwallet_core_rs.a",
-					"${PROJECT_DIR}/../../thirdparty/build/OSX/Release/grpc/lib/libprotobuf.a",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
@@ -900,6 +686,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = "";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
