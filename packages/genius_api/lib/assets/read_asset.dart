@@ -109,6 +109,7 @@ Future<List<Coin>> readTokenAssets(
   final web3 = Web3();
   final balance =
       await web3.getBalance(rpcUrl: network.rpcUrl!, address: walletAddress);
+
   coinList.add(Coin(
       balance: balance,
       name: network.name,
@@ -121,14 +122,18 @@ Future<List<Coin>> readTokenAssets(
       final web3 = Web3();
       final coinSymbol = await web3.symbol(
           contractAddress: tokenContract.address!, rpcUrl: network.rpcUrl!);
+      final coinDecimals = await web3.decimals(
+          contractAddress: tokenContract.address!, rpcUrl: network.rpcUrl!);
       final balance = await web3.balanceOf(
           address: walletAddress,
           contractAddress: tokenContract.address!,
           rpcUrl: network.rpcUrl!);
       if (coinSymbol.isEmpty) {
+        print("❌ Could not find token ${tokenContract.name}, skipping");
         continue;
       }
       coinList.add(Coin(
+          decimals: coinDecimals,
           balance: balance,
           address: tokenContract.address,
           name: await web3.name(

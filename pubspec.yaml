@@ -36,6 +36,8 @@ dependencies:
   device_preview: ^1.2.0
   window_manager: ^0.2.0
   qr_flutter: ^4.1.0
+  fl_chart: ^0.63.0
+  provider: ^6.1.2
   
 dev_dependencies:
   flutter_test:
@@ -48,6 +50,7 @@ flutter:
   assets:
     - assets/json/networks/
     - assets/json/tokens/
+    - assets/json/coins_list/
     - assets/images/
     - assets/images/crypto/
     - packages/genius_wallet/assets/images/mask2.png

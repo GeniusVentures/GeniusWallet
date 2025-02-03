@@ -5,10 +5,13 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:io';
 
@@ -18,9 +21,16 @@ void main() async {
   await secureStorage.init();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
+  final coinProvider = CoinGeckoCoinProvider();
+  await coinProvider.loadCoins();
+
+  final networkProvider = NetworkProvider();
+  await networkProvider.loadNetworks();
+
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
+
   /// Initialize window_manager only on **desktop**
   if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
     await windowManager.ensureInitialized();
@@ -28,15 +38,21 @@ void main() async {
   }
 
   runApp(
-    AppLifecycleHandler(
-      geniusApi: geniusApi,
-      child: DevicePreview(
-        enabled: !kReleaseMode,
-        builder: (context) => MyApp(
+    MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => coinProvider),
+          ChangeNotifierProvider(create: (_) => networkProvider),
+          Provider(create: (_) => geniusApi),
+        ],
+        child: AppLifecycleHandler(
           geniusApi: geniusApi,
-        ),
-      ),
-    ),
+          child: DevicePreview(
+            enabled: !kReleaseMode,
+            builder: (context) => MyApp(
+              geniusApi: geniusApi,
+            ),
+          ),
+        )),
   );
 }
 
@@ -50,7 +66,7 @@ class MyWindowListener extends WindowListener {
     // Trigger cleanup when the window is closed
     geniusApi.shutdownSDK();
     print("Window closed. GeniusApi shutdown.");
-    
+
     exit(0);
   }
 }

@@ -156,7 +156,7 @@ class View extends StatelessWidget {
                             // const SizedBox(child: CoinsScreen()),
                             const SizedBox(height: 18),
                             SizedBox(
-                              height: 600,
+                              height: MediaQuery.of(context).size.height - 280,
                               child: LayoutBuilder(
                                 builder: (BuildContext context,
                                     BoxConstraints constraints) {

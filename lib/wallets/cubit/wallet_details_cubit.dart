@@ -20,8 +20,6 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     emit(state.copyWith(selectedNetwork: network));
     // fetch coins if selecting a network
     getCoins();
-    // fetch new balance if selecting a network
-    getWalletBalance();
   }
 
   void selectCoin(Coin coin) {
@@ -57,32 +55,6 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     }
   }
 
-  FutureOr<void> getNetworks() async {
-    try {
-      emit(state.copyWith(fetchNetworksStatus: WalletStatus.loading));
-      if (state.selectedWallet == null) {
-        emit(state.copyWith(fetchNetworksStatus: WalletStatus.error));
-        return;
-      }
-
-      readNetworkAssets().then((List<Network>? networks) {
-        if (networks == null || networks.isEmpty) {
-          return emit(state.copyWith(fetchNetworksStatus: WalletStatus.error));
-        }
-        final network = networks.where((element) =>
-            element.symbol == state.selectedWallet?.currencySymbol);
-        final Network selectedNetwork =
-            network.isNotEmpty ? network.first : networks.first;
-        emit(state.copyWith(
-            fetchNetworksStatus: WalletStatus.successful,
-            selectedNetwork: selectedNetwork,
-            networks: networks));
-      });
-    } catch (e) {
-      emit(state.copyWith(fetchNetworksStatus: WalletStatus.error));
-    }
-  }
-
   FutureOr<void> getCoins() async {
     try {
       emit(state.copyWith(coinsStatus: WalletStatus.loading));
@@ -102,7 +74,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       // IF SUPERGENIUS NETWORK... call the SDK to retrieve balances, etc.
       // WE SHOULD NOT CALL THE RPC STUFF
       // WE SHOULD CALL BALANCEOF and pass in the tokenIds from tokens.json
-
+      // TODO: move this to the provider in main for performance
       readTokenAssets(
               walletAddress: walletAddress, network: state.selectedNetwork!)
           .then((List<Coin> coinList) {
@@ -122,23 +94,6 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       });
     } catch (e) {
       emit(state.copyWith(coinsStatus: WalletStatus.error));
-    }
-  }
-
-  FutureOr<void> getWalletBalance() async {
-    try {
-      emit(state.copyWith(balanceStatus: WalletStatus.loading));
-      if (state.selectedWallet == null || state.selectedNetwork == null) {
-        emit(state.copyWith(balanceStatus: WalletStatus.error));
-        return;
-      }
-      final balance = await geniusApi.getWalletBalance(
-          state.selectedNetwork?.rpcUrl ?? "",
-          state.selectedWallet?.address ?? "");
-      emit(state.copyWith(
-          balance: balance, balanceStatus: WalletStatus.successful));
-    } catch (e) {
-      emit(state.copyWith(balanceStatus: WalletStatus.error));
     }
   }
 }

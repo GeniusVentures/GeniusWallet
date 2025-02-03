@@ -5,8 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/app/utils/wallet_utils.dart';
-import 'package:genius_wallet/app/widgets/button/copy_button.dart';
 import 'package:genius_wallet/app/widgets/job/submit_job_button.dart';
 import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/app/widgets/qr/crypto_address_qr.dart';
@@ -22,17 +20,13 @@ import 'package:go_router/go_router.dart';
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
   final Widget? ovrShowMoreIcon;
-  final String? ovrTotalbalance;
-  final String? ovrCurrency;
-  final String? ovrQuantity;
+  final String? totalBalance;
   final String ovrAddressField;
   final WalletType walletType;
   const WalletInformation(this.constraints,
       {Key? key,
       this.ovrShowMoreIcon,
-      this.ovrTotalbalance,
-      this.ovrCurrency,
-      this.ovrQuantity,
+      this.totalBalance,
       required this.ovrAddressField,
       this.walletType = WalletType.tracking})
       : super(key: key);
@@ -55,38 +49,25 @@ class WalletInformationState extends State<WalletInformation> {
         builder: (context, state) {
       return Stack(children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (state.balanceStatus == WalletStatus.loading) const Loading(),
-          if (state.balanceStatus == WalletStatus.successful)
-            Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Flexible(
-                      child: AutoSizeText(
-                    widget.ovrQuantity ?? "0",
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 48.0,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.left,
-                  )),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.ovrCurrency ?? "",
-                    style: const TextStyle(
-                      overflow: TextOverflow.ellipsis,
-                      fontFamily: 'Roboto',
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w600,
-                      color: GeniusWalletColors.gray500,
-                    ),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Flexible(
+                    child: AutoSizeText(
+                  widget.totalBalance ?? "0",
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 48.0,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
+                    color: Colors.white,
                   ),
-                ]),
+                  textAlign: TextAlign.left,
+                )),
+              ]),
           const SizedBox(height: 20),
           Row(children: [
             if (widget.walletType == WalletType.tracking) ...[

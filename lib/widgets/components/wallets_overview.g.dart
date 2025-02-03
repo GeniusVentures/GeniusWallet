@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_api/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -50,6 +50,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
         differenceInMinutes >= fetchDelay || nowDate == retrievalDate;
 
     // fetch prices if last fetch < x mins or there is no previous fetch
+    // TODO UPDATE THIS LOGIC TO PROVIDE A BETTER CURRENT BALANCE....
     if (isFetchAllowed) {
       futurePrices = fetchCoinPricesSum(
           coinIds:
