@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/assets/read_asset.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
@@ -32,6 +30,7 @@ void main() async {
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
+
   /// Initialize window_manager only on **desktop**
   if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
     await windowManager.ensureInitialized();
@@ -40,20 +39,20 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => coinProvider),
-        ChangeNotifierProvider(create: (_) => networkProvider),
-        Provider(create: (_) => geniusApi),
-      ],
-      child: AppLifecycleHandler(
-      geniusApi: geniusApi,
-      child: DevicePreview(
-        enabled: !kReleaseMode,
-        builder: (context) => MyApp(
+        providers: [
+          ChangeNotifierProvider(create: (_) => coinProvider),
+          ChangeNotifierProvider(create: (_) => networkProvider),
+          Provider(create: (_) => geniusApi),
+        ],
+        child: AppLifecycleHandler(
           geniusApi: geniusApi,
-        ),
-      ),
-    ),
+          child: DevicePreview(
+            enabled: !kReleaseMode,
+            builder: (context) => MyApp(
+              geniusApi: geniusApi,
+            ),
+          ),
+        )),
   );
 }
 
@@ -67,7 +66,7 @@ class MyWindowListener extends WindowListener {
     // Trigger cleanup when the window is closed
     geniusApi.shutdownSDK();
     print("Window closed. GeniusApi shutdown.");
-    
+
     exit(0);
   }
 }
