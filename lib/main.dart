@@ -14,6 +14,8 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
+import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +32,11 @@ void main() async {
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
+  /// Initialize window_manager only on **desktop**
+  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+    await windowManager.ensureInitialized();
+    windowManager.addListener(MyWindowListener(geniusApi));
+  }
 
   runApp(
     MultiProvider(
@@ -38,15 +45,77 @@ void main() async {
         ChangeNotifierProvider(create: (_) => networkProvider),
         Provider(create: (_) => geniusApi),
       ],
+      child: AppLifecycleHandler(
+      geniusApi: geniusApi,
       child: DevicePreview(
         enabled: !kReleaseMode,
-        defaultDevice: Devices.ios.iPhone12,
         builder: (context) => MyApp(
-          geniusApi: geniusApi, // Ensure Genius API is passed if needed
+          geniusApi: geniusApi,
         ),
       ),
     ),
   );
+}
+
+class MyWindowListener extends WindowListener {
+  final GeniusApi geniusApi;
+
+  MyWindowListener(this.geniusApi);
+
+  @override
+  void onWindowClose() async {
+    // Trigger cleanup when the window is closed
+    geniusApi.shutdownSDK();
+    print("Window closed. GeniusApi shutdown.");
+    
+    exit(0);
+  }
+}
+
+class AppLifecycleHandler extends StatefulWidget {
+  final Widget child;
+  final GeniusApi geniusApi;
+
+  const AppLifecycleHandler({
+    Key? key,
+    required this.child,
+    required this.geniusApi,
+  }) : super(key: key);
+
+  @override
+  State<AppLifecycleHandler> createState() => _AppLifecycleHandlerState();
+}
+
+class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    print(
+        "---------------------------------------------------------------------------------------------------");
+    widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      print(
+          "---------------------------------------------------------------------------------------------------");
+      widget.geniusApi.shutdownSDK(); // Handle app exit
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child; // Pass the wrapped widget tree
+  }
 }
 
 class MyApp extends StatelessWidget {

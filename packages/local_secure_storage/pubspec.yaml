@@ -11,7 +11,7 @@ dev_dependencies:
   test: ^1.16.0
 
 dependencies:
-  flutter_secure_storage: ^7.0.1
+  flutter_secure_storage: ^9.2.4
   genius_api:
     path: ../genius_api
   flutter:

@@ -26,6 +26,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:rxdart/rxdart.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class GeniusApi {
   final LocalWalletStorage _secureStorage;
@@ -40,6 +41,15 @@ class GeniusApi {
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt(),
         _sgnusConnectionController = SGNUSConnectionController();
+
+  Future<void> requestPermissions() async {
+    if (await Permission.storage.isDenied) {
+      await Permission.storage.request();
+    }
+    if (await Permission.location.isDenied) {
+      await Permission.location.request();
+    }
+  }
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
@@ -75,6 +85,7 @@ class GeniusApi {
   }
 
   Future<void> initSDK() async {
+    requestPermissions();
     final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
 
     if (storedKey == null) {
@@ -109,7 +120,7 @@ class GeniusApi {
         .join();
 
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-
+    print('Json File Path: ${jsonFilePath}');
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001);
 
@@ -135,17 +146,35 @@ class GeniusApi {
   }
 
   Future<String> copyJsonToWritableDirectory() async {
-    // Get the directory to store files
-    final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/dev_config.json';
+    try {
+      // Get the directory to store files
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/dev_config.json';
 
-    // Copy the asset file to the directory
-    final jsonString = await rootBundle.loadString('assets/dev_config.json');
-    final file = File(filePath);
-    await file.writeAsString(jsonString);
+      print(
+          'Application documents directory: ${directory.path}'); // Log the directory path
 
-    // Return the file path to be used in FFI
-    return '${directory.path}/';
+      // Load the asset file
+      final jsonString = await rootBundle.loadString('assets/dev_config.json');
+      print('Loaded JSON string: $jsonString'); // Log the content of the JSON
+
+      // Write the file to the writable directory
+      final file = File(filePath);
+      await file.writeAsString(jsonString);
+      print('File written to: $filePath'); // Log the file path after writing
+
+      // Verify the file was written correctly
+      final writtenFileContent = await file.readAsString();
+      print(
+          'Content of the written file: $writtenFileContent'); // Log the written file content
+
+      // Return the directory path for use in FFI
+      return '${directory.path}/';
+    } catch (e) {
+      // Log any error that occurs
+      print('Error in copyJsonToWritableDirectory: $e');
+      rethrow;
+    }
   }
 
   Future<double> getGasFees() async {
@@ -228,6 +257,11 @@ class GeniusApi {
     final Pointer<Utf8> tokenid = token_id.toNativeUtf8();
     ffiBridgePrebuilt.wallet_lib
         .GeniusSDKMintTokens(amount, transhash, chainid, tokenid);
+  }
+
+  void shutdownSDK() {
+    ffiBridgePrebuilt.wallet_lib.GeniusSDKShutdown();
+    print("Shutting Down SDK");
   }
 
   void requestAIProcess() {
