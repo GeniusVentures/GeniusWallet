@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:intl/intl.dart';
 
@@ -9,9 +10,7 @@ class CoinCardRow extends StatelessWidget {
   final String name;
   final String symbol;
   final double balance;
-  final double? price;
-  final double? priceChange24h;
-  final double? priceChangePercentage24h;
+  final CoinGeckoMarketData? marketData;
   final VoidCallback? onTap;
 
   const CoinCardRow({
@@ -20,9 +19,7 @@ class CoinCardRow extends StatelessWidget {
     required this.name,
     required this.balance,
     required this.symbol,
-    this.priceChange24h,
-    this.priceChangePercentage24h,
-    this.price,
+    this.marketData,
     this.onTap,
   }) : super(key: key);
 
@@ -32,10 +29,11 @@ class CoinCardRow extends StatelessWidget {
         NumberFormat.currency(locale: "en_US", symbol: "\$");
 
     // **Calculate Total Value**
-    double totalValue = (price ?? 0.0) * balance;
+    double totalValue = (marketData?.currentPrice ?? 0.0) * balance;
 
     // **Calculate 24h Gain/Loss**
-    double gainLoss = totalValue * ((priceChangePercentage24h ?? 0.0) / 100);
+    double gainLoss =
+        totalValue * ((marketData?.priceChangePercentage24h ?? 0.0) / 100);
 
     // **Determine Color (Green = Positive, Red = Negative, Gray for Zero Balance)**
     Color changeColor = balance > 0

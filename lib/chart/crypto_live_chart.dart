@@ -8,8 +8,10 @@ import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 class CryptoLiveChart extends StatefulWidget {
   final String coinId;
   final String? tokenDecimals;
+  final Widget? child;
 
-  const CryptoLiveChart({Key? key, required this.coinId, this.tokenDecimals})
+  const CryptoLiveChart(
+      {Key? key, required this.coinId, this.tokenDecimals, this.child})
       : super(key: key);
 
   @override
@@ -116,126 +118,133 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     final displayPrice = _isHovering ? _hoveredPrice : _latestPrice;
     final tokenDecimalsToDisplay = displayPrice >= 1 ? 2 : 6;
 
-    return SizedBox(
-      height: 300,
-      child: MouseRegion(
-        onExit: _onHoverExit,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "\$${(displayPrice).toStringAsFixed(tokenDecimalsToDisplay)}",
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
+    return MouseRegion(
+      onExit: _onHoverExit,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "\$${(displayPrice).toStringAsFixed(tokenDecimalsToDisplay)}",
+            style: const TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "${priceChange >= 0 ? "+" : ""}\$${priceChange.toStringAsFixed(tokenDecimalsToDisplay)}",
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "${priceChange >= 0 ? "+" : ""}\$${priceChange.toStringAsFixed(tokenDecimalsToDisplay)}",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: priceColor,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: priceColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: priceColor,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: priceColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: priceColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: LineChart(
-                LineChartData(
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: _priceData,
-                      isCurved: true,
-                      color: priceColor,
-                      barWidth: 2,
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            priceColor.withOpacity(0.3),
-                            Colors.transparent,
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                      ),
-                      dotData: const FlDotData(show: false),
-                    ),
-                  ],
-                  titlesData: const FlTitlesData(
-                    leftTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      tooltipBgColor: Colors.transparent,
-
-                      fitInsideHorizontally: true, // Prevents clipping
-                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                        return touchedSpots.map((spot) {
-                          return LineTooltipItem(
-                            _formatTime(spot.x.toInt()),
-                            TextStyle(
-                              color: Colors.grey[400],
-                              fontWeight: FontWeight.normal,
-                            ),
-                          );
-                        }).toList();
-                      },
-                    ),
-                    touchCallback: _onHover,
-                    handleBuiltInTouches: true,
-                    getTouchedSpotIndicator:
-                        (LineChartBarData barData, List<int> indicators) {
-                      return indicators.map((index) {
-                        return TouchedSpotIndicatorData(
-                          FlLine(
-                            color: Colors.grey[400]!,
-                            strokeWidth: 1.5,
-                          ),
-                          const FlDotData(show: false),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
               ),
-            ),
+            ],
+          ),
+          if (widget.child != null) ...[
+            const SizedBox(height: 24),
+            widget.child!,
+            const SizedBox(height: 24),
           ],
-        ),
+          const SizedBox(height: 24),
+          ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * .2,
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: LineChart(
+                    LineChartData(
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: _priceData,
+                          isCurved: true,
+                          color: priceColor,
+                          barWidth: 2,
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                priceColor.withOpacity(0.3),
+                                Colors.transparent,
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                          dotData: const FlDotData(show: false),
+                        ),
+                      ],
+                      titlesData: const FlTitlesData(
+                        leftTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      lineTouchData: LineTouchData(
+                        touchTooltipData: LineTouchTooltipData(
+                          tooltipBgColor: Colors.transparent,
+
+                          fitInsideHorizontally: true, // Prevents clipping
+                          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                            return touchedSpots.map((spot) {
+                              return LineTooltipItem(
+                                _formatTime(spot.x.toInt()),
+                                TextStyle(
+                                  color: Colors.grey[400],
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              );
+                            }).toList();
+                          },
+                        ),
+                        touchCallback: _onHover,
+                        handleBuiltInTouches: true,
+                        getTouchedSpotIndicator:
+                            (LineChartBarData barData, List<int> indicators) {
+                          return indicators.map((index) {
+                            return TouchedSpotIndicatorData(
+                              FlLine(
+                                color: Colors.grey[400]!,
+                                strokeWidth: 1.5,
+                              ),
+                              const FlDotData(show: false),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                  ),
+                )
+              ])),
+        ],
       ),
     );
   }

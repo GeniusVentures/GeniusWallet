@@ -199,12 +199,12 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                             : transactions.asMap().entries.map((entry) {
                                 final transaction = entry.value;
                                 return Container(
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
-                                        color: Colors.grey.withOpacity(
-                                            0.3), // ✅ Slight border between rows
-                                        width: 1.0,
+                                        color: GeniusWalletColors
+                                            .deepBlueTertiary, // ✅ Slight border between rows
+                                        width: 3.0,
                                       ),
                                     ),
                                   ),

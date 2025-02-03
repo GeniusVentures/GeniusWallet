@@ -50,6 +50,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
         differenceInMinutes >= fetchDelay || nowDate == retrievalDate;
 
     // fetch prices if last fetch < x mins or there is no previous fetch
+    // TODO UPDATE THIS LOGIC TO PROVIDE A BETTER CURRENT BALANCE....
     if (isFetchAllowed) {
       futurePrices = fetchCoinPricesSum(
           coinIds:

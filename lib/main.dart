@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/assets/read_asset.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -21,6 +24,9 @@ void main() async {
   final coinProvider = CoinGeckoCoinProvider();
   await coinProvider.loadCoins();
 
+  final networkProvider = NetworkProvider();
+  await networkProvider.loadNetworks();
+
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
@@ -28,11 +34,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (_) => coinProvider), // 🟢 Add Coin Provider
-        Provider(
-            create: (_) =>
-                geniusApi), // 🟢 Provide Genius API if needed elsewhere
+        ChangeNotifierProvider(create: (_) => coinProvider),
+        ChangeNotifierProvider(create: (_) => networkProvider),
+        Provider(create: (_) => geniusApi),
       ],
       child: DevicePreview(
         enabled: !kReleaseMode,

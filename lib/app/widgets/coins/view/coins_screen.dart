@@ -5,6 +5,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coin_card_container.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -16,12 +17,14 @@ class CoinsScreen extends StatefulWidget {
   final Function(Coin)? onCoinSelected;
   final List<Coin?>? filterCoins;
   final bool? isGnusWalletConnected;
+  final Function(double)? onTotalValueCalculated;
 
   const CoinsScreen({
     Key? key,
     this.onCoinSelected,
     this.filterCoins,
     this.isGnusWalletConnected,
+    this.onTotalValueCalculated,
   }) : super(key: key);
 
   @override
@@ -29,20 +32,16 @@ class CoinsScreen extends StatefulWidget {
 }
 
 class CoinsScreenState extends State<CoinsScreen> {
-  /// Store market data including current price, 24h price change & percentage
-  Map<String, Map<String, double>> _marketData = {};
+  Map<String, CoinGeckoMarketData> _marketData = {};
   bool _isFetchingMarketData = false;
 
-  /// **Fetches market prices for all coins in the wallet**
   Future<void> _fetchMarketData(List<Coin> coins) async {
-    if (_isFetchingMarketData || coins.isEmpty)
-      return; // Prevent duplicate calls
+    if (_isFetchingMarketData || coins.isEmpty) return;
     setState(() => _isFetchingMarketData = true);
 
     final coinGeckoCoinsList =
         Provider.of<CoinGeckoCoinProvider>(context, listen: false).coins;
 
-    // Extract CoinGecko IDs for wallet coins
     List<String> coinGeckoIds = coins
         .map((walletCoin) {
           final matchingCoin = coinGeckoCoinsList.firstWhere(
@@ -54,24 +53,34 @@ class CoinsScreenState extends State<CoinsScreen> {
           return matchingCoin.id.isNotEmpty ? matchingCoin.id : null;
         })
         .whereType<String>()
-        .toList(); // Remove nulls
+        .toList();
 
     if (coinGeckoIds.isNotEmpty) {
       final marketData = await fetchCoinsMarketData(coinIds: coinGeckoIds);
       setState(() {
         _marketData = marketData.map((id, data) => MapEntry(
               data['symbol'].toLowerCase(),
-              {
-                'current_price': data['current_price'] ?? 0.0,
-                'price_change_24h': data['price_change_24h'] ?? 0.0,
-                'price_change_percentage_24h':
-                    data['price_change_percentage_24h'] ?? 0.0,
-              },
+              CoinGeckoMarketData.fromJson(data),
             ));
         _isFetchingMarketData = false;
       });
+
+      _calculateTotalValue(coins);
     } else {
       setState(() => _isFetchingMarketData = false);
+    }
+  }
+
+  void _calculateTotalValue(List<Coin> coins) {
+    double totalValue = 0.0;
+    for (var coin in coins) {
+      final marketData = _marketData[coin.symbol?.toLowerCase()];
+      if (marketData != null) {
+        totalValue += (coin.balance ?? 0.0) * marketData.currentPrice;
+      }
+    }
+    if (widget.onTotalValueCalculated != null) {
+      widget.onTotalValueCalculated!(totalValue);
     }
   }
 
@@ -86,7 +95,6 @@ class CoinsScreenState extends State<CoinsScreen> {
           walletCubit.getCoins();
         }
 
-        // Only fetch market data when coins have been successfully loaded
         if (state.coinsStatus == WalletStatus.successful) {
           _fetchMarketData(state.coins);
         }
@@ -120,38 +128,30 @@ class CoinsScreenState extends State<CoinsScreen> {
                 if (widget.filterCoins?.contains(coin) == false ||
                     widget.filterCoins == null)
                   CoinCardRow(
-                    onTap: () {
-                      if (widget.onCoinSelected != null) {
-                        widget.onCoinSelected!(coin);
-                      } else {
-                        walletCubit.selectCoin(coin);
-                        context.push(
-                          '/token-info',
-                          extra: {
-                            "walletDetailsCubit": walletCubit,
-                            "isGnusWalletConnected":
-                                widget.isGnusWalletConnected,
-                            "securityInfo": "Coming Soon",
-                            "transactionHistory": ["Coming Soon"],
-                          },
-                        );
-                      }
-                    },
-                    iconPath: coin.iconPath ?? "",
-                    balance: coin.balance ?? 0.0,
-                    name: coin.name ?? "",
-                    symbol: coin.symbol ?? "",
-                    price: _marketData[coin.symbol?.toLowerCase()]
-                            ?['current_price'] ??
-                        0.0,
-                    priceChange24h: _marketData[coin.symbol?.toLowerCase()]
-                            ?['price_change_24h'] ??
-                        0.0,
-                    priceChangePercentage24h:
-                        _marketData[coin.symbol?.toLowerCase()]
-                                ?['price_change_percentage_24h'] ??
-                            0.0,
-                  ),
+                      onTap: () {
+                        if (widget.onCoinSelected != null) {
+                          widget.onCoinSelected!(coin);
+                        } else {
+                          walletCubit.selectCoin(coin);
+                          context.push(
+                            '/token-info',
+                            extra: {
+                              "walletDetailsCubit": walletCubit,
+                              "isGnusWalletConnected":
+                                  widget.isGnusWalletConnected,
+                              "securityInfo": "Coming Soon",
+                              "transactionHistory": ["Coming Soon"],
+                              "marketData":
+                                  _marketData[coin.symbol?.toLowerCase()]
+                            },
+                          );
+                        }
+                      },
+                      iconPath: coin.iconPath ?? "",
+                      balance: coin.balance ?? 0.0,
+                      name: coin.name ?? "",
+                      symbol: coin.symbol ?? "",
+                      marketData: _marketData[coin.symbol?.toLowerCase()]),
             ],
           );
         },

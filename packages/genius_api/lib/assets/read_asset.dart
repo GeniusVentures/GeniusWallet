@@ -129,6 +129,7 @@ Future<List<Coin>> readTokenAssets(
           contractAddress: tokenContract.address!,
           rpcUrl: network.rpcUrl!);
       if (coinSymbol.isEmpty) {
+        print("❌ Could not find token ${tokenContract.name}, skipping");
         continue;
       }
       coinList.add(Coin(

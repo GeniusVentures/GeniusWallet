@@ -2,19 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:provider/provider.dart';
 
 class NetworkDropdown extends StatefulWidget {
   final Wallet wallet;
   final Network? network;
-  final List<Network> networkList;
-  const NetworkDropdown(
-      {super.key,
-      required this.wallet,
-      this.network,
-      required this.networkList});
+  const NetworkDropdown({super.key, required this.wallet, this.network});
 
   @override
   State<NetworkDropdown> createState() => _NetworkDropdownState();
@@ -25,9 +22,14 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
   Widget build(BuildContext context) {
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
+      final networks = Provider.of<NetworkProvider>(context).networks;
       final walletCubit = context.read<WalletDetailsCubit>();
       if (state.selectedNetwork == null) {
-        return const SizedBox();
+        final network = networks.where((element) =>
+            element.symbol == state.selectedWallet?.currencySymbol);
+        final Network selectedNetwork =
+            network.isNotEmpty ? network.first : networks.first;
+        walletCubit.selectNetwork(selectedNetwork);
       }
       return DropdownMenu<Network>(
         menuHeight: 400,
@@ -75,7 +77,7 @@ class _NetworkDropdownState extends State<NetworkDropdown> {
           });
         },
         dropdownMenuEntries:
-            widget.networkList.map<DropdownMenuEntry<Network>>((Network value) {
+            networks.map<DropdownMenuEntry<Network>>((Network value) {
           return DropdownMenuEntry<Network>(
             style: const ButtonStyle(
                 padding: WidgetStatePropertyAll(

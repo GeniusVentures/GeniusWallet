@@ -8,9 +8,23 @@ import 'package:genius_wallet/app/widgets/networks/network_dropdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
 import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
+import 'package:intl/intl.dart';
 
-class WalletDetailsScreen extends StatelessWidget {
+class WalletDetailsScreen extends StatefulWidget {
   const WalletDetailsScreen({Key? key}) : super(key: key);
+
+  @override
+  _WalletDetailsScreenState createState() => _WalletDetailsScreenState();
+}
+
+class _WalletDetailsScreenState extends State<WalletDetailsScreen> {
+  double _totalValue = 0.0;
+
+  void _updateTotalValue(double value) {
+    setState(() {
+      _totalValue = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,24 +37,22 @@ class WalletDetailsScreen extends StatelessWidget {
           );
         }
 
-        if (state.fetchNetworksStatus == WalletStatus.initial) {
-          walletCubit.getNetworks();
-        }
-
-        // load networks / select network first then fetch balance
-        if (state.balanceStatus == WalletStatus.initial &&
-            state.fetchNetworksStatus == WalletStatus.successful) {
-          walletCubit.getWalletBalance();
-        }
-
-        return const View();
+        return View(
+            onTotalValueCalculated: _updateTotalValue, totalValue: _totalValue);
       },
     );
   }
 }
 
 class View extends StatelessWidget {
-  const View({Key? key}) : super(key: key);
+  final Function(double) onTotalValueCalculated;
+  final double totalValue;
+
+  const View(
+      {Key? key,
+      required this.onTotalValueCalculated,
+      required this.totalValue})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +67,9 @@ class View extends StatelessWidget {
                     SizedBox(
                         width: 250,
                         child: NetworkDropdown(
-                            wallet: selectedWallet,
-                            network: state.selectedNetwork,
-                            networkList: state.networks)),
+                          wallet: selectedWallet,
+                          network: state.selectedNetwork,
+                        )),
                   ],
                 )),
             body: Center(
@@ -110,10 +122,10 @@ class View extends StatelessWidget {
                         builder:
                             (BuildContext context, BoxConstraints constraints) {
                           return WalletInformation(constraints,
-                              ovrQuantity: state.balance == 0
-                                  ? "0"
-                                  : state.balance.toStringAsFixed(4),
-                              ovrCurrency: state.selectedNetwork?.symbol,
+                              totalBalance: totalValue == 0
+                                  ? "\$0.00"
+                                  : NumberFormat.simpleCurrency()
+                                      .format(totalValue),
                               ovrAddressField: selectedWallet.address,
                               walletType: selectedWallet.walletType);
                         },
@@ -129,7 +141,9 @@ class View extends StatelessWidget {
                                 return CoinsScreen(
                                     isGnusWalletConnected:
                                         (connection?.walletAddress ?? false) ==
-                                            state.selectedWallet?.address);
+                                            state.selectedWallet?.address,
+                                    onTotalValueCalculated:
+                                        onTotalValueCalculated);
                               })),
                     ],
                   ),

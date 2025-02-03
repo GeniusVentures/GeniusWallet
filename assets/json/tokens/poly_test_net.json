@@ -8,5 +8,30 @@
     "name": "USDC",
     "address": "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
     "iconPath": "assets/images/crypto/usdc.png"
+  },
+  {
+    "name": "USDT",
+    "address": "0xbCF39d8616d15FD146dd5dB4a86b4f244A9Bc772",
+    "iconPath": "assets/images/crypto/usdt.png"
+  },
+  {
+    "name": "UNI",
+    "address": "0x39179cb99f7BA1244665AA7Ff2c2886CBCBcE3bc",
+    "iconPath": "assets/images/crypto/uni.png"
+  },
+  {
+    "name": "SUSHI",
+    "address": "0x96132b109609f91CF234224B448c2f9067326C06",
+    "iconPath": "assets/images/crypto/sushi.png"
+  },
+  {
+    "name": "DAI",
+    "address": "0xb2df85a09cAB3a391Fd9ade76342583A0d4B75ce",
+    "iconPath": "assets/images/crypto/dai.png"
+  },
+  {
+    "name": "XRP",
+    "address": "0xFE32f3022D3ed2551f4De05C5330D0259915F393",
+    "iconPath": "assets/images/crypto/xrp.png"
   }
 ]

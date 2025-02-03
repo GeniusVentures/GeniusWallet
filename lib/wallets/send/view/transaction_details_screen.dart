@@ -248,15 +248,9 @@ class AmountFormState extends State<AmountForm> {
                         child: LayoutBuilder(
                           builder: (BuildContext context,
                               BoxConstraints constraints) {
-                            return TransactionDetailTile(
-                              constraints,
-                              ovrLeftfield: 'Available Balance',
-                              ovrAmount: context
-                                  .read<WalletDetailsCubit>()
-                                  .state
-                                  .balance
-                                  .toString(),
-                            );
+                            return TransactionDetailTile(constraints,
+                                ovrLeftfield: 'Available Balance',
+                                ovrAmount: '0');
                           },
                         ),
                       ),
