@@ -200,7 +200,9 @@ class OverviewDashboardView extends StatelessWidget {
           ).toStringAsFixed(5),
           numberOfWallets: state.wallets.length.toString(),
           numberOfTransactions:
-              WalletUtils.getTransactionNumber(state.wallets).toString(),
+              (WalletUtils.getTransactionNumber(state.wallets) +
+                      state.transactions.length)
+                  .toString(),
         );
       },
     ));

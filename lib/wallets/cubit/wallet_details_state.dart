@@ -8,15 +8,11 @@ class WalletDetailsState {
   final WalletStatus gasFeesStatus;
   final WalletStatus fetchWalletsStatus;
   final WalletStatus coinsStatus;
-  final WalletStatus balanceStatus;
-  final WalletStatus fetchNetworksStatus;
   final WalletStatus fetchTransactionsStatus;
   final List<Transaction> transactions;
-  final List<Network> networks;
   final List<Wallet> wallets;
   final double gasFees;
   final List<Coin> coins;
-  final double balance;
 
   const WalletDetailsState(
       {this.selectedWallet,
@@ -24,14 +20,10 @@ class WalletDetailsState {
       this.gasFeesStatus = WalletStatus.initial,
       this.gasFees = 0,
       this.fetchWalletsStatus = WalletStatus.initial,
-      this.fetchNetworksStatus = WalletStatus.initial,
-      this.networks = const [],
       this.selectedNetwork,
       this.wallets = const [],
       this.coinsStatus = WalletStatus.initial,
       this.coins = const [],
-      this.balanceStatus = WalletStatus.initial,
-      this.balance = 0,
       this.transactions = const [],
       this.fetchTransactionsStatus = WalletStatus.initial,
       this.selectedCoin});
@@ -44,14 +36,10 @@ class WalletDetailsState {
       WalletStatus? gasFeesStatus,
       WalletStatus? fetchWalletsStatus,
       WalletStatus? coinsStatus,
-      WalletStatus? balanceStatus,
-      WalletStatus? fetchNetworksStatus,
       WalletStatus? fetchTransactionsStatus,
-      List<Network>? networks,
       List<Wallet>? wallets,
       double? gasFees,
       List<Coin>? coins,
-      double? balance,
       List<Transaction>? transactions}) {
     return WalletDetailsState(
         selectedWallet: selectedWallet ?? this.selectedWallet,
@@ -64,13 +52,9 @@ class WalletDetailsState {
         selectedNetwork: selectedNetwork ?? this.selectedNetwork,
         coinsStatus: coinsStatus ?? this.coinsStatus,
         coins: coins ?? this.coins,
-        balanceStatus: balanceStatus ?? this.balanceStatus,
-        balance: balance ?? this.balance,
-        fetchNetworksStatus: fetchNetworksStatus ?? this.fetchNetworksStatus,
-        networks: networks ?? this.networks,
         transactions: transactions ?? this.transactions,
         fetchTransactionsStatus:
-            fetchNetworksStatus ?? this.fetchTransactionsStatus);
+            fetchTransactionsStatus ?? this.fetchTransactionsStatus);
   }
 }
 

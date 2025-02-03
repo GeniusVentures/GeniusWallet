@@ -42,7 +42,6 @@ class SubmitJobButtonState extends State<SubmitJobButton> {
         await context.push('/submit_job', extra: widget.walletDetailsCubit);
         // after we come back to the wallet details screen reload coins / balance
         widget.walletDetailsCubit.getCoins();
-        widget.walletDetailsCubit.getWalletBalance();
       },
     );
   }

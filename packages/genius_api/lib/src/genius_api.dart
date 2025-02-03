@@ -608,10 +608,6 @@ class GeniusApi {
 
   Future<void> getWalletTransactions(String address) async {}
 
-  Future<double> getWalletBalance(String rpcUrl, String address) async {
-    return await Web3().getBalance(rpcUrl: rpcUrl, address: address);
-  }
-
   int getSGNUSBalance() {
     if (!isSdkInitialized) {
       return 0;
