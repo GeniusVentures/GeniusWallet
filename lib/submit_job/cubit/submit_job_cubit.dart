@@ -107,7 +107,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     }
   }
 
-  Future<void> getBridgeOutGasCost(int jobCost) async {
+  Future<void> getBridgeOutGasCost(double jobCost) async {
     final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
     final chainId = selectedNetwork?.chainId;
     final rpcUrl = selectedNetwork?.rpcUrl;
@@ -167,7 +167,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       contractAddress: gnusAddress,
       rpcUrl: rpcUrl,
       address: walletAddress,
-      amountToBurn: state.jobCost.toString(),
+      amountToBurn: state.jobCost.toStringAsFixed(3),
       destinationChainId: 15305752297694, // TODO: unhardcode bridge address
     );
 

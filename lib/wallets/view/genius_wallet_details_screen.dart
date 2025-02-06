@@ -112,7 +112,7 @@ class View extends StatelessWidget {
                                               child: AutoSizeText(
                                             geniusApi
                                                 .getSGNUSBalance()
-                                                .toString(),
+                                                .toStringAsFixed(3),
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontFamily: 'Roboto',

@@ -251,7 +251,7 @@ class GeniusApi {
   }
 
   void mintTokens(
-      int amount, String transaction_hash, String chain_id, String token_id) {
+      double amount, String transaction_hash, String chain_id, String token_id) {
     final Pointer<Utf8> transhash = transaction_hash.toNativeUtf8();
     final Pointer<Utf8> chainid = chain_id.toNativeUtf8();
     final Pointer<Utf8> tokenid = token_id.toNativeUtf8();
@@ -296,7 +296,7 @@ class GeniusApi {
     }
   }
 
-  int requestGeniusSDKCost({required String jobJson}) {
+  double requestGeniusSDKCost({required String jobJson}) {
     if (jobJson.isEmpty || !isSdkInitialized) {
       return 0;
     }
@@ -304,7 +304,7 @@ class GeniusApi {
     // Allocate memory for the jobJson string
     final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
 
-    int cost = 0; // Default value if something goes wrong
+    double cost = 0; // Default value if something goes wrong
 
     try {
       // Call the native function
@@ -608,7 +608,7 @@ class GeniusApi {
 
   Future<void> getWalletTransactions(String address) async {}
 
-  int getSGNUSBalance() {
+  double getSGNUSBalance() {
     if (!isSdkInitialized) {
       return 0;
     }
@@ -689,7 +689,7 @@ class GeniusApi {
     return ret;
   }
 
-  bool transferTokens(int amount, String address) {
+  bool transferTokens(double amount, String address) {
     final convertedAddress = calloc<GeniusAddress>();
 
     final bytes = Uint8List.fromList(address.codeUnits);
@@ -732,7 +732,7 @@ class GeniusApi {
       final hardCodedTokenIdForNow = 0;
 
       mintTokens(
-        int.parse(amountToBurn),
+        double.parse(amountToBurn),
         resp.data!,
         destinationChainId.toString(),
         '$hardCodedTokenIdForNow',

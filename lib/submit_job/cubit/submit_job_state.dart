@@ -4,7 +4,7 @@ class SubmitJobState {
   final String txHash;
   final String uploadedFileName;
   final Map<String, dynamic> uploadedJson;
-  final int jobCost;
+  final double jobCost;
   final String jobGasCost;
   final Token gnusTokenDetails;
   final double gnusBalance;
@@ -28,7 +28,7 @@ class SubmitJobState {
       {String? txHash,
       String? uploadedFileName,
       Map<String, dynamic>? uploadedJson,
-      int? jobCost,
+      double? jobCost,
       String? jobGasCost,
       Token? gnusTokenDetails,
       double? gnusBalance,
