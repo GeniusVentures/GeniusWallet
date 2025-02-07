@@ -7,12 +7,12 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_wallet/app/assets/read_asset.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_api/assets/read_asset.dart';
 import 'package:go_router/go_router.dart';
 
 class BridgeScreen extends StatefulWidget {

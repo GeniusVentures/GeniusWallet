@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
@@ -8,7 +9,6 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
-import 'package:genius_api/assets/read_asset.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LocalWalletStorage {
@@ -351,5 +351,30 @@ class LocalWalletStorage {
         address: wallet.address,
         walletType: wallet.walletType,
         transactions: []);
+  }
+}
+
+Future<List<Network>> readNetworkAssets() async {
+  const String assetLocation = 'assets/json/networks/networks.json';
+  final String? response = await safeLoadAsset(assetLocation);
+
+  if (response == null) {
+    return List.empty();
+  }
+
+  final networksJson = await jsonDecode(response);
+
+  List<Network> networkList = List<Network>.from(
+      networksJson.map((network) => Network.fromJson(network)));
+
+  return networkList;
+}
+
+Future<String?> safeLoadAsset(String path) async {
+  try {
+    return await rootBundle.loadString(path);
+  } catch (e) {
+    print(e);
+    return null;
   }
 }

@@ -1,10 +1,11 @@
 import 'dart:convert';
 
-import 'package:genius_api/assets/assets.dart';
+import 'assets.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
 import 'package:genius_api/web3/web3.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
 
 Future<List<Network>> readNetworkAssets() async {
   const String assetLocation = 'assets/json/networks/networks.json';
@@ -100,49 +101,81 @@ Future<Coin?> fetchCoinBalance(
       iconPath: token.iconPath);
 }
 
-Future<List<Coin>> readTokenAssets(
-    {required String walletAddress, required Network network}) async {
-  List<Token> tokensList = await getTokensFromNetwork(network: network);
-  List<Coin> coinList = [];
-
-  // add chains native coin
+Future<List<Coin>> readTokenAssets({
+  required String walletAddress,
+  required Network network,
+  required NetworkTokensProvider networkTokensProvider,
+}) async {
   final web3 = Web3();
-  final balance =
-      await web3.getBalance(rpcUrl: network.rpcUrl!, address: walletAddress);
+  List<Token> tokensList = networkTokensProvider.getTokensByNetwork(network);
 
-  coinList.add(Coin(
+  // Create futures for native token balance and token contract data
+  final List<Future<Coin?>> futures = [
+    _fetchNativeToken(web3, walletAddress, network),
+    ...tokensList
+        .where((token) => token.address != null && token.address!.isNotEmpty)
+        .map((token) => _fetchTokenData(token, network, walletAddress)),
+  ];
+
+  final results = await Future.wait(futures);
+
+  // Filter out null results and return the combined coin list
+  return results.whereType<Coin>().toList();
+}
+
+/// **Fetch Native Token Data**
+Future<Coin?> _fetchNativeToken(
+    Web3 web3, String walletAddress, Network network) async {
+  try {
+    final balance = await web3.getBalance(
+      rpcUrl: network.rpcUrl!,
+      address: walletAddress,
+    );
+
+    return Coin(
       balance: balance,
       name: network.name,
       symbol: network.symbol?.toUpperCase(),
       networkSymbol: network.symbol,
-      iconPath: network.iconPath));
-
-  for (var tokenContract in tokensList) {
-    if (tokenContract.address != null && tokenContract.address!.isNotEmpty) {
-      final web3 = Web3();
-      final coinSymbol = await web3.symbol(
-          contractAddress: tokenContract.address!, rpcUrl: network.rpcUrl!);
-      final coinDecimals = await web3.decimals(
-          contractAddress: tokenContract.address!, rpcUrl: network.rpcUrl!);
-      final balance = await web3.balanceOf(
-          address: walletAddress,
-          contractAddress: tokenContract.address!,
-          rpcUrl: network.rpcUrl!);
-      if (coinSymbol.isEmpty) {
-        print("❌ Could not find token ${tokenContract.name}, skipping");
-        continue;
-      }
-      coinList.add(Coin(
-          decimals: coinDecimals,
-          balance: balance,
-          address: tokenContract.address,
-          name: await web3.name(
-              contractAddress: tokenContract.address!, rpcUrl: network.rpcUrl!),
-          symbol: coinSymbol,
-          networkSymbol: network.symbol,
-          iconPath: tokenContract.iconPath));
-    }
+      iconPath: network.iconPath,
+    );
+  } catch (e) {
+    print("⚠️ Error fetching native token for ${network.name}: $e");
+    return null;
   }
+}
 
-  return coinList;
+/// **Fetch Token Contract Data**
+Future<Coin?> _fetchTokenData(
+  Token tokenContract,
+  Network network,
+  String walletAddress,
+) async {
+  try {
+    final web3 = Web3();
+
+    final result = await web3.fetchTokenDetailsMulticall(
+      contractAddress: tokenContract.address!,
+      walletAddress: walletAddress,
+      rpcUrl: network.rpcUrl!,
+    );
+
+    if (result['symbol'].isEmpty) {
+      print("❌ Could not find token ${tokenContract.name}, skipping");
+      return null;
+    }
+
+    return Coin(
+      decimals: result['decimals'].toString(),
+      balance: result['balance'],
+      address: tokenContract.address,
+      name: result['name'],
+      symbol: result['symbol'],
+      networkSymbol: network.symbol,
+      iconPath: tokenContract.iconPath,
+    );
+  } catch (e) {
+    print("⚠️ Error fetching data for ${tokenContract.name}: $e");
+    return null;
+  }
 }
