@@ -7,6 +7,7 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -27,6 +28,9 @@ void main() async {
   final networkProvider = NetworkProvider();
   await networkProvider.loadNetworks();
 
+  final networkTokensProvider = NetworkTokensProvider();
+  await networkTokensProvider.loadTokensForNetworks(networkProvider.networks);
+
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
   }
@@ -42,6 +46,7 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => coinProvider),
           ChangeNotifierProvider(create: (_) => networkProvider),
+          ChangeNotifierProvider(create: (_) => networkTokensProvider),
           Provider(create: (_) => geniusApi),
         ],
         child: AppLifecycleHandler(

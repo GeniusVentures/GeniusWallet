@@ -5,16 +5,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_api/assets/read_asset.dart';
+import 'package:genius_wallet/app/assets/read_asset.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
 
 part 'wallet_details_state.dart';
 
 class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   GeniusApi geniusApi;
-  WalletDetailsCubit({
-    WalletDetailsState initialState = const WalletDetailsState(),
-    required this.geniusApi,
-  }) : super(initialState);
+  NetworkTokensProvider networkTokensProvider;
+  WalletDetailsCubit(
+      {WalletDetailsState initialState = const WalletDetailsState(),
+      required this.geniusApi,
+      required this.networkTokensProvider})
+      : super(initialState);
 
   void selectNetwork(Network network) {
     emit(state.copyWith(selectedNetwork: network));
@@ -76,7 +79,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       // WE SHOULD CALL BALANCEOF and pass in the tokenIds from tokens.json
       // TODO: move this to the provider in main for performance
       readTokenAssets(
-              walletAddress: walletAddress, network: state.selectedNetwork!)
+              walletAddress: walletAddress,
+              network: state.selectedNetwork!,
+              networkTokensProvider: networkTokensProvider)
           .then((List<Coin> coinList) {
         if (!isClosed) {
           emit(state.copyWith(

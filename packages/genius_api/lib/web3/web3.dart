@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -14,9 +15,10 @@ class Web3 {
 
   Web3({this.geniusApi});
 
-  static final abi = ContractAbi.fromJson(
-      '''[{ "constant": true, "inputs": [], "name": "name", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [ { "name": "", "type": "uint8" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [ { "name": "_owner", "type": "address" } ], "name": "balanceOf", "outputs": [ { "name": "balance", "type": "uint256" } ], "payable": false, "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "type": "function" }]''',
-      '');
+  // Should be the same accross most chains
+  final multiCallContractAddress =
+      EthereumAddress.fromHex("0xca11bde05977b3631167028862be2a173976ca11");
+
   static final bridgeOutAbi = ContractAbi.fromJson('''
     [
       {
@@ -32,6 +34,155 @@ class Web3 {
       }
     ]
   ''', '');
+
+  static final abi = ContractAbi.fromJson('''[
+          { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
+          { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" },
+          { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
+          { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "name": "", "type": "string" }], "type": "function" }
+        ]''', '');
+
+  Future<Map<String, dynamic>> fetchTokenDetailsMulticall({
+    required String contractAddress,
+    required String walletAddress,
+    required String rpcUrl,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+    final multicallAbi = '''[
+      {
+        "constant": true,
+        "inputs": [
+          { "components": [{ "name": "target", "type": "address" }, { "name": "callData", "type": "bytes" }], "name": "calls", "type": "tuple[]" }
+        ],
+        "name": "aggregate",
+        "outputs": [{ "name": "blockNumber", "type": "uint256" }, { "name": "returnData", "type": "bytes[]" }],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ]''';
+
+    final multicallContract = DeployedContract(
+        ContractAbi.fromJson(multicallAbi, "Multicall"),
+        multiCallContractAddress);
+
+    final tokenContract =
+        DeployedContract(abi, EthereumAddress.fromHex(contractAddress));
+
+    final List<List<dynamic>> calls = [
+      [
+        EthereumAddress.fromHex(contractAddress),
+        _encodeFunctionCall(tokenContract, "symbol", [])
+      ],
+      [
+        EthereumAddress.fromHex(contractAddress),
+        _encodeFunctionCall(tokenContract, "decimals", [])
+      ],
+      [
+        EthereumAddress.fromHex(contractAddress),
+        _encodeFunctionCall(tokenContract, "name", [])
+      ],
+      [
+        EthereumAddress.fromHex(contractAddress),
+        _encodeFunctionCall(tokenContract, "balanceOf",
+            [EthereumAddress.fromHex(walletAddress)])
+      ],
+    ];
+
+    final List<dynamic> results =
+        await _executeMulticall(client, multicallContract, calls);
+
+    if (results.length < 4) {
+      print("⚠️ Multicall returned incomplete results: $results");
+      return {};
+    }
+
+    // Decode responses properly
+    final String symbol = _decodeString(results[0], "symbol");
+    final int decimals = _decodeInt(results[1], "decimals");
+    final String name = _decodeString(results[2], "name");
+    final BigInt balance = _decodeBigInt(results[3], "balanceOf");
+
+    await client.dispose();
+
+    return {
+      'symbol': symbol,
+      'decimals': decimals,
+      'name': name,
+      'balance': balance.toDouble() / pow(10, decimals),
+    };
+  }
+
+  /// **Encodes Function Call for Multicall**
+  Uint8List _encodeFunctionCall(
+      DeployedContract contract, String functionName, List<dynamic> params) {
+    final function = contract.function(functionName);
+    return function.encodeCall(params);
+  }
+
+  /// **Executes Multicall Request**
+  Future<List<dynamic>> _executeMulticall(Web3Client client,
+      DeployedContract multicallContract, List<List<dynamic>> calls) async {
+    final ContractFunction aggregateFunction =
+        multicallContract.function("aggregate");
+
+    final List<dynamic> response = await client.call(
+      contract: multicallContract,
+      function: aggregateFunction,
+      params: [calls],
+    );
+
+    if (response.length < 2 || response[1] is! List<dynamic>) {
+      throw Exception("Invalid response from multicall: $response");
+    }
+
+    return response[1] as List<dynamic>; // Extract returnData
+  }
+
+  /// **Decodes String from Multicall**
+  String _decodeString(dynamic data, String fieldName) {
+    try {
+      if (data is Uint8List) {
+        return utf8
+            .decode(data)
+            .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'),
+                '') // Remove non-printable characters
+            .trim();
+      }
+      return data.toString();
+    } catch (e) {
+      print("⚠️ Decoding error for $fieldName: $e");
+      return '';
+    }
+  }
+
+  /// **Decodes Int (e.g., Decimals) from Multicall Response**
+  int _decodeInt(dynamic data, String fieldName) {
+    try {
+      if (data is Uint8List && data.isNotEmpty) {
+        return data.last; // Extracts last byte for integer values
+      }
+      return int.tryParse(data.toString()) ?? 0;
+    } catch (e) {
+      print("⚠️ Decoding error for $fieldName: $e");
+      return 0;
+    }
+  }
+
+  /// **Decodes BigInt from Multicall**
+  BigInt _decodeBigInt(dynamic data, String fieldName) {
+    try {
+      if (data is Uint8List) {
+        return BigInt.parse(
+            data.map((e) => e.toRadixString(16).padLeft(2, '0')).join(),
+            radix: 16);
+      }
+      return BigInt.tryParse(data.toString()) ?? BigInt.zero;
+    } catch (e) {
+      print("⚠️ Decoding error for $fieldName: $e");
+      return BigInt.zero;
+    }
+  }
 
   Future<double> balanceOf(
       {required String address,

@@ -7,6 +7,7 @@ import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
@@ -160,9 +161,10 @@ final geniusWalletRouter = GoRouter(
 
               return BlocProvider(
                 create: (context) => WalletDetailsCubit(
-                  initialState: WalletDetailsState(selectedWallet: wallet),
-                  geniusApi: context.read<GeniusApi>(),
-                ),
+                    initialState: WalletDetailsState(selectedWallet: wallet),
+                    geniusApi: context.read<GeniusApi>(),
+                    networkTokensProvider:
+                        context.read<NetworkTokensProvider>()),
                 child: const WalletDetailsScreen(),
               );
             },
