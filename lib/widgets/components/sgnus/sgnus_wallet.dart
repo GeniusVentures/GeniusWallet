@@ -30,7 +30,7 @@ class SGNUSWalletState extends State<SGNUSWallet> {
           return WalletPreview(
               ovrWalletBalance: geniusApi.getSGNUSBalance() == 0
                   ? '0'
-                  : geniusApi.getSGNUSBalance().toStringAsFixed(3),
+                  : geniusApi.getSGNUSBalance(),
               walletAddress: connection.sgnusAddress,
               walletType: WalletType.privateKey,
               ovrCoinSymbol: 'GNUS',
