@@ -256,7 +256,7 @@ class GeniusApi {
     final Pointer<Utf8> chainid = chain_id.toNativeUtf8();
     final Pointer<Utf8> tokenid = token_id.toNativeUtf8();
     ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKMintTokens(amount, transhash, chainid, tokenid);
+        .GeniusSDKMint(amount, transhash, chainid, tokenid);
   }
 
   void shutdownSDK() {
@@ -620,7 +620,7 @@ class GeniusApi {
       return '';
     }
     GeniusTokenValue tokenValue =
-        ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalanceAsString();
+        ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalanceGNUS();
     final array = tokenValue.value; 
     List<int> charCodes = [];
     for (int i = 0; i < 22; i++) {
@@ -718,7 +718,7 @@ class GeniusApi {
     }
 
     final ret = ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKTransferTokens(amount, convertedAddress);
+        .GeniusSDKTransfer(amount, convertedAddress);
 
     calloc.free(convertedAddress);
 
