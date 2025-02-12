@@ -608,12 +608,31 @@ class GeniusApi {
 
   Future<void> getWalletTransactions(String address) async {}
 
-  int getSGNUSBalance() {
+  int getMinionsBalance() {
     if (!isSdkInitialized) {
       return 0;
     }
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
+  String getSGNUSBalance() {
+
+    if (!isSdkInitialized) {
+      return '';
+    }
+    GeniusTokenValue tokenValue =
+        ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalanceAsString();
+    final array = tokenValue.value; 
+    List<int> charCodes = [];
+    for (int i = 0; i < 22; i++) {
+      final c = array[i];
+      if (c == 0) {
+        break;
+      }
+      charCodes.add(c);
+    }
+
+    return String.fromCharCodes(charCodes);
+    }
 
   /// Returns address as a hexadecimal string, with 64 hex characters prepended
   /// by `0x`.

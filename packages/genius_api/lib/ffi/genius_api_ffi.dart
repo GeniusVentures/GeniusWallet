@@ -726,6 +726,16 @@ class NativeLibrary {
   late final _GeniusSDKTransferTokens = _GeniusSDKTransferTokensPtr.asFunction<
       bool Function(int, ffi.Pointer<GeniusAddress>)>();
 
+
+  GeniusTokenValue GeniusSDKGetBalanceAsString() {
+    return _GeniusSDKGetBalanceAsString();
+  }
+  late final _GeniusSDKGetBalanceAsStringPtr =
+      _lookup<ffi.NativeFunction<GeniusTokenValue Function()>>(
+          'GeniusSDKGetBalanceAsString');
+  late final _GeniusSDKGetBalanceAsString =
+      _GeniusSDKGetBalanceAsStringPtr.asFunction<GeniusTokenValue Function()>();
+
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,
   ) {
@@ -9112,6 +9122,12 @@ class GeniusAddress extends ffi.Struct {
   /// A string prepended with `0x` followed by 64 hex characters
   @ffi.Array.multi([67])
   external ffi.Array<ffi.Char> address;
+}
+
+class GeniusTokenValue extends ffi.Struct {
+  /// Represents a Genius token value in fixed-point format as a string
+  @ffi.Array.multi([22])
+  external ffi.Array<ffi.Char> value;
 }
 
 /// Defines a resizable block of data.
