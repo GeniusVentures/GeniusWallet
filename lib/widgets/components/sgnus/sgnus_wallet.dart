@@ -28,9 +28,8 @@ class SGNUSWalletState extends State<SGNUSWallet> {
 
         if (connection.isConnected) {
           return WalletPreview(
-              ovrWalletBalance: geniusApi.getSGNUSBalance() == 0
-                  ? '0'
-                  : geniusApi.getSGNUSBalance(),
+              ovrWalletBalance:
+                  double.parse(geniusApi.getSGNUSBalance()).toStringAsFixed(3),
               walletAddress: connection.sgnusAddress,
               walletType: WalletType.privateKey,
               ovrCoinSymbol: 'GNUS',
