@@ -353,7 +353,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd native\nmkdir -p build\ncd build\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
+			shellScript = "cd native\nmkdir -p build\ncd build\nrm -rf *\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -450,7 +450,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P7T32QQX5V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/native/build",
@@ -600,7 +600,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P7T32QQX5V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/native/build",
@@ -641,7 +641,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P7T32QQX5V;
 				"EXCLUDED_ARCHS[sdk=*]" = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

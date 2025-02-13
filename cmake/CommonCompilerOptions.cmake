@@ -6,12 +6,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT DEFINED ZKLLVM_DIR)
     if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM")
-        print("Setting default zkLLVM directory")
-        get_filename_component(BUILD_PLATFORM_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/build/${BUILD_PLATFORM_NAME}/Release/" CACHE STRING "Default zkllvm Library")
+        message("Setting default zkLLVM directory")
+        #get_filename_component(BUILD_PLATFORM_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_OUTPUT_DIR}" CACHE STRING "Default zkllvm Library")
 
         # get absolute path
         cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")
+        message("ZKLLVM DIR: ${ZKLLVM_DIR}")
     else()
         message(FATAL_ERROR "Cannot find zkLLVM directory required to build")
     endif()
