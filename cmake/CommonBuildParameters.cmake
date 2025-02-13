@@ -316,6 +316,73 @@ set(gnus_upnp_DIR "${THIRDPARTY_RELEASE_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
 find_package(gnus_upnp CONFIG REQUIRED)
 include_directories(${gnus_upnp_INCLUDE_DIR})
 
+# --------------------------------------------------------
+# Set config of crypto3
+add_library(crypto3::algebra INTERFACE IMPORTED)
+add_library(crypto3::block INTERFACE IMPORTED)
+add_library(crypto3::blueprint INTERFACE IMPORTED)
+add_library(crypto3::codec INTERFACE IMPORTED)
+add_library(crypto3::math INTERFACE IMPORTED)
+add_library(crypto3::multiprecision INTERFACE IMPORTED)
+add_library(crypto3::pkpad INTERFACE IMPORTED)
+add_library(crypto3::pubkey INTERFACE IMPORTED)
+add_library(crypto3::random INTERFACE IMPORTED)
+add_library(crypto3::zk INTERFACE IMPORTED)
+add_library(marshalling::core INTERFACE IMPORTED)
+add_library(marshalling::crypto3_algebra INTERFACE IMPORTED)
+add_library(marshalling::crypto3_multiprecision INTERFACE IMPORTED)
+add_library(marshalling::crypto3_zk INTERFACE IMPORTED)
+
+set_target_properties(crypto3::algebra PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::block PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::blueprint PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::codec PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::math PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::multiprecision PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::pkpad PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::pubkey PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::random PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(crypto3::zk PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(marshalling::core PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(marshalling::crypto3_algebra PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(marshalling::crypto3_multiprecision PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+set_target_properties(marshalling::crypto3_zk PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+)
+# zkLLVM
+set(zkLLVM_INCLUDE_DIR "${ZKLLVM_DIR}/zkLLVM/include")
+
+# Set config of llvm
+set(LLVM_DIR "${ZKLLVM_DIR}/zkLLVM/lib/cmake/llvm")
+find_package(LLVM CONFIG REQUIRED)
+
+
 set(SUPERGENIUS_RELEASE_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
 set(SuperGenius_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/SuperGenius/")
 set(ProofSystem_DIR "${SUPERGENIUS_RELEASE_DIR}/SuperGenius/lib/cmake/ProofSystem/")
