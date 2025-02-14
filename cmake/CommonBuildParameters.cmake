@@ -20,10 +20,10 @@ set(WALLET_CORE_RUST_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFI
 include_directories(${WALLET_CORE_INCLUDE_DIR})
 add_library(TrustWalletCore STATIC IMPORTED)
 set_target_properties(TrustWalletCore PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_LIBRARY})
-add_library(WalletCoreRust STATIC IMPORTED)
-set_target_properties(WalletCoreRust PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_RUST_LIBRARY})
-add_library(WalletCoreTrezorCrypto STATIC IMPORTED)
-set_target_properties(WalletCoreTrezorCrypto PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY})
+add_library(wallet_core_rs STATIC IMPORTED)
+set_target_properties(wallet_core_rs PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_RUST_LIBRARY})
+add_library(TrezorCrypto STATIC IMPORTED)
+set_target_properties(TrezorCrypto PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_TREZOR_CRYPTO_LIBRARY})
 
 # Set Boost Versions
 set(BOOST_MAJOR_VERSION "1" CACHE STRING "Boost Major Version")
@@ -454,7 +454,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     )
 
     target_link_libraries(GeniusWallet PRIVATE
-        WalletCoreRust
-        WalletCoreTrezorCrypto
+        wallet_core_rs
+        TrezorCrypto
     )
 endif()
