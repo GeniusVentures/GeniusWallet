@@ -288,7 +288,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"${SRCROOT}/native\"\nmkdir -p build\ncd build\n\n# Run CMake and build the framework\ncmake .. -DCMAKE_BUILD_TYPE=Release\nmake\n\nmkdir -p \"${SRCROOT}/native/build/GeniusWallet.framework\"\ncp -R \"${SRCROOT}/native/build/libGeniusWallet.dylib\" \"${SRCROOT}/native/build/GeniusWallet.framework/GeniusWallet\"\ncp -R \"${SRCROOT}/native/GeniusWallet_Info.plist\" \"${SRCROOT}/native/build/GeniusWallet.framework/Info.plist\"\ninstall_name_tool -id @rpath/GeniusWallet.framework/GeniusWallet \"${SRCROOT}/native/build/GeniusWallet.framework/GeniusWallet\"\n";
+			shellScript = "cd \"${SRCROOT}/native\"\nmkdir -p build\ncd build\n\n# Run CMake and build the framework, default to Debug (for flutter)\ncmake .. ${CMAKE_ARGUMENTS:=-DCMAKE_BUILD_TYPE=Debug}\nmake\n\nmkdir -p \"${SRCROOT}/native/build/GeniusWallet.framework\"\ncp -R \"${SRCROOT}/native/build/libGeniusWallet.dylib\" \"${SRCROOT}/native/build/GeniusWallet.framework/GeniusWallet\"\ncp -R \"${SRCROOT}/native/GeniusWallet_Info.plist\" \"${SRCROOT}/native/build/GeniusWallet.framework/Info.plist\"\ninstall_name_tool -id @rpath/GeniusWallet.framework/GeniusWallet \"${SRCROOT}/native/build/GeniusWallet.framework/GeniusWallet\"\n";
 		};
 		D77EBEADAD710722DE2C3E2C /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -396,7 +396,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -503,7 +503,7 @@
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app requires access to your photo library to upload photos.";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -560,7 +560,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				TARGETED_DEVICE_FAMILY = "1,2";

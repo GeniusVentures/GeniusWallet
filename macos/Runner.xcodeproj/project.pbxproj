@@ -353,7 +353,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd native\nmkdir -p build\ncd build\nrm -rf *\nif [[ -z \"${CMAKE_BUILD_TYPE}\" ]]; then\n  cmake .. -DCMAKE_BUILD_TYPE=Debug\nelse\n  cmake .. -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\nfi\nmake\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
+			shellScript = "cd native\nmkdir -p build\ncd build\nrm -rf *\n\n# Run CMake and build the framework, default to Debug (for flutter)\ncmake .. ${CMAKE_ARGUMENTS:=-DCMAKE_BUILD_TYPE=Debug}\nmake\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -533,7 +533,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
