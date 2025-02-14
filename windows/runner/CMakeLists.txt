@@ -4,6 +4,7 @@ include(../../cmake/Utilities.cmake)
 include(../../cmake/CommonCompilerOptions.cmake)
 
 set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
 set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
 
 if(NOT DEFINED absl_DIR)
