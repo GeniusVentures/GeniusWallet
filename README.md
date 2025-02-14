@@ -42,14 +42,24 @@ You're going to be prompted a run option. For example:
 - Must have Zenity installed - `sudo apt install zenity`
 
 ## Building Release/Debug/RelWithDebInfo
-### <ostype> - linux, chrome, ios, android, macos, windows
+### \<ostype\> = linux, chrome, ios, android, macos, windows
 
-### Release (default)
-flutter build <ostype> --release --dart-define=CMAKE_BUILD_TYPE=Release
+### Release
+``` 
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --release
+```
 
 ### Debug (default)
-flutter build <ostype> --debug --dart-define=CMAKE_BUILD_TYPE=Debug
+``` 
+flutter build <ostype>
+```
+ - OR -
+
+ ```  
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --debug
+```
 
 ### Release with Debug Info
-flutter build <ostype> --profile --dart-define=CMAKE_BUILD_TYPE=RelWithDebInfo --dart-define=SANITIZE_CODE=adress
-
+``` 
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DSANITIZE_CODE=address" flutter -v build <ostype> --profile
+```
