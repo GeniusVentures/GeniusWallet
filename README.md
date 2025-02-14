@@ -40,3 +40,16 @@ You're going to be prompted a run option. For example:
 ## File Upload for Submitting a SGNUS Job
 ### Linux
 - Must have Zenity installed - `sudo apt install zenity`
+
+## Building Release/Debug/RelWithDebInfo
+### <ostype> - linux, chrome, ios, android, macos, windows
+
+### Release (default)
+flutter build <ostype> --release --dart-define=CMAKE_BUILD_TYPE=Release
+
+### Debug (default)
+flutter build <ostype> --debug --dart-define=CMAKE_BUILD_TYPE=Debug
+
+### Release with Debug Info
+flutter build <ostype> --profile --dart-define=CMAKE_BUILD_TYPE=RelWithDebInfo --dart-define=SANITIZE_CODE=adress
+

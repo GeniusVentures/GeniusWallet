@@ -11,7 +11,7 @@ set(BINARY_NAME "genius_wallet")
 cmake_policy(SET CMP0063 NEW)
 
 # Define build configuration option.
-set(CMAKE_BUILD_TYPE "Release")
+#set(CMAKE_BUILD_TYPE "Release")
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 if(IS_MULTICONFIG)
