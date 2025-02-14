@@ -12,13 +12,19 @@ endif()
 
 if(NOT DEFINED ZKLLVM_DIR)
     if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM")
-        message("Setting default zkLLVM directory")
-        #get_filename_component(BUILD_PLATFORM_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_BUILD_DIR}/Release" CACHE STRING "Default zkllvm Library")
+      message(STATUS "Setting default zkLLVM directory")
+      get_filename_component(BUILD_PLATFORM_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+      if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_BUILD_DIR}/Debug")
+        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_BUILD_DIR}/Debug" CACHE STRING "Default zkLLVM Library")
 
-        # get absolute path
+        # Get absolute path
+        cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")	
+      else()
+        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_BUILD_DIR}/Release" CACHE STRING "Default zkLLVM Library")
+
+        # Get absolute path
         cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")
-        message("ZKLLVM DIR: ${ZKLLVM_DIR}")
+      endif()
     else()
         message(FATAL_ERROR "Cannot find zkLLVM directory required to build")
     endif()
