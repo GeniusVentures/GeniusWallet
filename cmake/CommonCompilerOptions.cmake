@@ -8,7 +8,7 @@ if(NOT DEFINED ZKLLVM_DIR)
     if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM")
         message("Setting default zkLLVM directory")
         #get_filename_component(BUILD_PLATFORM_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_OUTPUT_DIR}" CACHE STRING "Default zkllvm Library")
+        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_OUTPUT_DIR_REL}" CACHE STRING "Default zkllvm Library")
 
         # get absolute path
         cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")

@@ -12,6 +12,7 @@ set(APPLICATION_ID "com.example.genius_wallet")
 
 
 set(ARCH_OUTPUT_DIR /build/Linux/${CMAKE_BUILD_TYPE})
+set(ARCH_OUTPUT_DIR_REL /build/Linux/Release)
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

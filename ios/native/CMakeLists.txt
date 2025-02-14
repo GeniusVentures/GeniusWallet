@@ -24,6 +24,7 @@ find_package(Threads REQUIRED)
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 
 set(ARCH_OUTPUT_DIR /build/iOS/${CMAKE_BUILD_TYPE})
+set(ARCH_OUTPUT_DIR_REL /build/iOS/Release)
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
