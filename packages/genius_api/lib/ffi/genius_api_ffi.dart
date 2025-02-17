@@ -598,29 +598,34 @@ class NativeLibrary {
   late final _TWHDVersionIsPrivate =
       _TWHDVersionIsPrivatePtr.asFunction<bool Function(int)>();
 
+  /// This function sets up the Genius SDK and starts a node.
   ffi.Pointer<Utf8> GeniusSDKInit(
-    ffi.Pointer<Utf8> base_path,
-    ffi.Pointer<Utf8> eth_private_key,
-    bool autodht,
-    bool process,
-    int baseport,
-  ) {
+      ffi.Pointer<Utf8> base_path,
+      ffi.Pointer<Utf8> eth_private_key,
+      bool autodht,
+      bool process,
+      int baseport) {
     return _GeniusSDKInit(
-      base_path,
-      eth_private_key,
-      autodht ? 1 : 0,
-      process ? 1 : 0,
-      baseport,
-    );
+        base_path, eth_private_key, autodht ? 1 : 0, process ? 1 : 0, baseport);
   }
 
   late final _GeniusSDKInitPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-              ffi.Int32, ffi.Int32, ffi.Int32)>>('GeniusSDKInit');
+              ffi.Int32, ffi.Int32, ffi.Uint16)>>('GeniusSDKInit');
   late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
       ffi.Pointer<Utf8> Function(
           ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
+
+  /// Shuts down the Genius SDK.
+  void GeniusSDKShutdown() {
+    return _GeniusSDKShutdown();
+  }
+
+  late final _GeniusSDKShutdownPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('GeniusSDKShutdown');
+  late final _GeniusSDKShutdown =
+      _GeniusSDKShutdownPtr.asFunction<void Function()>();
 
   void GeniusSDKProcess(ffi.Pointer<ffi.Char> jsondata) {
     _GeniusSDKProcess(jsondata);
@@ -699,15 +704,6 @@ class NativeLibrary {
           'GeniusSDKFreeTransactions');
   late final _GeniusSDKFreeTransactions =
       _GeniusSDKFreeTransactionsPtr.asFunction<void Function(GeniusMatrix)>();
-
-  void GeniusSDKShutdown() {
-    return _GeniusSDKShutdown();
-  }
-
-  late final _GeniusSDKShutdownPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function()>>('GeniusSDKShutdown');
-  late final _GeniusSDKShutdown =
-      _GeniusSDKShutdownPtr.asFunction<void Function()>();
 
   /// Mints new tokens using an amount in **Minion Tokens**.
   void GeniusSDKMint(
