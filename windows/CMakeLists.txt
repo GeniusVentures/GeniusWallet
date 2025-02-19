@@ -1,5 +1,6 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.18)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded" CACHE STRING "Use /MT for static runtime" FORCE)
 project(genius_wallet LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
@@ -9,6 +10,7 @@ set(BINARY_NAME "genius_wallet")
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
 cmake_policy(SET CMP0063 NEW)
+
 
 # Define build configuration option.
 #set(CMAKE_BUILD_TYPE "Release")
@@ -47,7 +49,8 @@ set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
 
 message("Build Type: ${CMAKE_BUILD_TYPE}")
-
+set(ARCH_BUILD_DIR /build/Windows/)
+set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
 
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)

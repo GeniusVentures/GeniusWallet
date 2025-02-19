@@ -19,11 +19,13 @@ if(NOT DEFINED ZKLLVM_DIR)
 
         # Get absolute path
         cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")	
+        message(STATUS "Set Zkllvm Directory to: ${ZKLLVM_DIR}")
       else()
         set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM/${ARCH_BUILD_DIR}/Release/${ANDROID_ABI}" CACHE STRING "Default zkLLVM Library")
 
         # Get absolute path
         cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")
+        message(STATUS "Set Zkllvm Directory to: ${ZKLLVM_DIR}")
       endif()
     else()
         message(FATAL_ERROR "Cannot find zkLLVM directory required to build")
