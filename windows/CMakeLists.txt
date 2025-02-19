@@ -13,23 +13,41 @@ cmake_policy(SET CMP0063 NEW)
 # Define build configuration option.
 #set(CMAKE_BUILD_TYPE "Release")
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-
-if(IS_MULTICONFIG)
-  set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
-    CACHE STRING "" FORCE)
-else()
-  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "Debug" CACHE
-      STRING "Flutter build mode" FORCE)
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-      "Debug" "Profile" "Release")
-  endif()
+message("CMAKE ARGS: $ENV{CMAKE_ARGUMENTS}")
+if(DEFINED ENV{CMAKE_ARGUMENTS})
+    string(REGEX MATCH "-DCMAKE_BUILD_TYPE=([^ ]+)" _match "$ENV{CMAKE_ARGUMENTS}")
+    if(_match)
+          set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
+          set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
+    endif()
 endif()
+
+# Fallback to Debug if still not set
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
+  set(BUILD_TYPE_SEARCH "Debug")
+endif()
+
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release")
+
+# if(IS_MULTICONFIG)
+#   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
+#     CACHE STRING "" FORCE)
+#     set(CMAKE_BUILD_TYPE "$ENV{CONFIGURATION}" CACHE STRING "Build type for single-config compatibility" FORCE)
+# else()
+#   if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+#     set(CMAKE_BUILD_TYPE "Debug" CACHE
+#       STRING "Flutter build mode" FORCE)
+#     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+#       "Debug" "Profile" "Release")
+#   endif()
+# endif()
 
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
 
 message("Build Type: ${CMAKE_BUILD_TYPE}")
+
 
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
