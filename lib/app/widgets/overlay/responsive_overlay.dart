@@ -13,6 +13,7 @@ import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/wallets/view/wallets_screen.dart';
 import 'package:genius_wallet/markets/view/markets_screen.dart';
+import 'package:genius_wallet/web/web_view_screen.dart';
 
 /// Widget that adds a navigation overlay according to the platform and size of the screen.
 class ResponsiveOverlay extends StatelessWidget {
@@ -55,6 +56,9 @@ class ResponsiveOverlay extends StatelessWidget {
             break;
           case NavigationScreen.settings:
             child = const Center(child: Text('Coming soon'));
+            break;
+          case NavigationScreen.web:
+            child = const WebViewScreen(url: "https://www.gnus.ai/");
             break;
           case NavigationScreen.dashboard:
           default:

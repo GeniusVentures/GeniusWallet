@@ -28,6 +28,7 @@ enum NavigationScreen {
   wallets,
   transactions,
   trade,
+  web,
   markets,
   calculator,
   news,
