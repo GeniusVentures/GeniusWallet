@@ -111,8 +111,7 @@ class View extends StatelessWidget {
                                           Flexible(
                                               child: AutoSizeText(
                                             geniusApi
-                                                .getSGNUSBalance()
-                                                .toString(),
+                                                .getSGNUSBalance(),
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontFamily: 'Roboto',
