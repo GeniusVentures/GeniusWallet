@@ -5,7 +5,7 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/destinations.dart';
 
 class GeniusTabbar extends StatelessWidget {
-  static const _numTabs = 4;
+  static const _numTabs = 5;
   const GeniusTabbar({super.key});
 
   @override

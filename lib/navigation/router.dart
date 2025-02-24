@@ -339,6 +339,14 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
+    GoRoute(
+      path: '/web',
+      builder: ((context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.web,
+        );
+      }),
+    ),
     ...LandingRoutes().landingRoutes,
   ],
 );
