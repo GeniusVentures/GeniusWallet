@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_destination.dart';
 
 // This order must match whats in `navigation_overlay_state/NavigationScreen` enum
@@ -25,6 +26,12 @@ class GeniusTabDestinations {
       icon: Icon(Icons.candlestick_chart),
       label: Text('Trade'),
       selectedIcon: Icon(Icons.candlestick_chart),
+    ),
+    const GeniusDestination(
+      destination: '/web',
+      icon: Icon(FontAwesomeIcons.globe),
+      label: Text('Web Browser'),
+      selectedIcon: Icon(FontAwesomeIcons.globe),
     ),
     const GeniusDestination(
         destination: '/markets',
