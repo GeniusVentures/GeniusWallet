@@ -40,3 +40,26 @@ You're going to be prompted a run option. For example:
 ## File Upload for Submitting a SGNUS Job
 ### Linux
 - Must have Zenity installed - `sudo apt install zenity`
+
+## Building Release/Debug/RelWithDebInfo
+### \<ostype\> = linux, chrome, ios, android, macos, windows
+
+### Release
+``` 
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --release
+```
+
+### Debug (default)
+``` 
+flutter build <ostype>
+```
+ - OR -
+
+ ```  
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --debug
+```
+
+### Release with Debug Info
+``` 
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DSANITIZE_CODE=address" flutter -v build <ostype> --profile
+```

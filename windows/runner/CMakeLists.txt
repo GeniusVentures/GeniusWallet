@@ -4,6 +4,7 @@ include(../../cmake/Utilities.cmake)
 include(../../cmake/CommonCompilerOptions.cmake)
 
 set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
 set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
 
 if(NOT DEFINED absl_DIR)
@@ -71,8 +72,8 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
 TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
 target_link_libraries(${BINARY_NAME} PRIVATE
-    WalletCoreRust
-    WalletCoreTrezorCrypto
+    wallet_core_rs
+    TrezorCrypto
     ws2_32 userenv ntdll
 )
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")

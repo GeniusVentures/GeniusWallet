@@ -3,7 +3,7 @@ set(ARCHS "x86_64;arm64" CACHE STRING "Default build for OSX is only x86_64 unti
 # Set OSX specific runtime options
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "OSX Architectures")
 cmake_minimum_required(VERSION 3.18)
-project(runner LANGUAGES CXX)
+project(runner LANGUAGES C CXX)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
 # The name of the executable created for the application. Change this to change
@@ -12,10 +12,11 @@ set(BINARY_NAME "genius_wallet")
 
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.genius_wallet")
+set(APPLICATION_ID "io.geniusventures.genius_wallet")
 
 
-set(ARCH_OUTPUT_DIR /build/OSX/${CMAKE_BUILD_TYPE})
+set(ARCH_BUILD_DIR /build/OSX/)
+set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
