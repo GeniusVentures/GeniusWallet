@@ -102,7 +102,7 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   COMPONENT Runtime)
 
 
-# ******************** Add none flutter breaking dependencies under this if  
+# ******************** Add non-flutter / breaking dependencies under this if  
 if(NOT CMAKE_SKIP_THIRD_PARTY)
 
   # Define build configuration option.
