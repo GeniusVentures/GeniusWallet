@@ -48,47 +48,46 @@ add_dependencies(${BINARY_NAME} flutter_assemble)
 # **************************************************** FLUTTER DEPENDENCIES 
 
 
-
-return()
-
-
 # *** Add all none flutter dependencies here:
 
-# set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
-# set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
-# find_package(GTest CONFIG REQUIRED)
-# include_directories(${GTest_INCLUDE_DIR})
+if(NOT CMAKE_SKIP_THIRD_PARTY)
 
-TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
-target_link_libraries(${BINARY_NAME} PRIVATE
-    wallet_core_rs
-    TrezorCrypto
-    ws2_32 userenv ntdll
-)
+    # set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
+    # set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
+    # find_package(GTest CONFIG REQUIRED)
+    # include_directories(${GTest_INCLUDE_DIR})
 
-set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
-set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
-set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
+    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
+    target_link_libraries(${BINARY_NAME} PRIVATE
+        wallet_core_rs
+        TrezorCrypto
+        ws2_32 userenv ntdll
+    )
 
-if(NOT DEFINED absl_DIR)
-    set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
-endif()
+    set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+    set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
+    set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
 
-if(NOT DEFINED utf8_range_DIR)
-    set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
-endif()
+    if(NOT DEFINED absl_DIR)
+        set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
+    endif()
 
-# --------------------------------------------------------
-# Set config of protobuf project
-if(NOT DEFINED Protobuf_DIR)
-    set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/cmake")
-    set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
-    find_package(Protobuf CONFIG REQUIRED)
-    include_directories(${Protobuf_INCLUDE_DIR})
-endif()
+    if(NOT DEFINED utf8_range_DIR)
+        set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
+    endif()
 
-if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
-    set(Boost_COMPILER "-vc142")
-else() # v143 toolset
-    set(Boost_COMPILER "-vc143")
+    # --------------------------------------------------------
+    # Set config of protobuf project
+    if(NOT DEFINED Protobuf_DIR)
+        set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/cmake")
+        set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
+        find_package(Protobuf CONFIG REQUIRED)
+        include_directories(${Protobuf_INCLUDE_DIR})
+    endif()
+
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
+        set(Boost_COMPILER "-vc142")
+    else() # v143 toolset
+        set(Boost_COMPILER "-vc143")
+    endif()
 endif()
