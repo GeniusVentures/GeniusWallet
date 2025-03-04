@@ -1,4 +1,4 @@
-package com.gnus.genius_wallet
+package ai.gnus.genius_wallet
 
 import io.flutter.embedding.android.FlutterActivity
 

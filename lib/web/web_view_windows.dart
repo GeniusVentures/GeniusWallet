@@ -16,6 +16,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   final WebviewController _controller = WebviewController();
   final TextEditingController _urlController = TextEditingController();
   StreamSubscription<String>? _urlSubscription;
+  final List<String> history = [];
+  int currentHistoryIndex = -1;
 
   @override
   void initState() {
@@ -26,14 +28,44 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   Future<void> _initializeWebView() async {
     await _controller.initialize();
     _controller.loadUrl(widget.url);
-    _urlController.text = widget.url; // Set initial URL in text field
+    _urlController.text = widget.url;
 
-    // Listen for URL changes and update the search bar
+    // Listen for URL changes
     _urlSubscription = _controller.url.listen((url) {
+      if (currentHistoryIndex == -1 ||
+          history.isEmpty ||
+          history[currentHistoryIndex] != url) {
+        // If we navigated back, remove "forward" history
+        if (currentHistoryIndex < history.length - 1) {
+          history.removeRange(currentHistoryIndex + 1, history.length);
+        }
+
+        history.add(url);
+        currentHistoryIndex = history.length - 1;
+      }
       setState(() {
         _urlController.text = url;
       });
     });
+  }
+
+  bool canGoBack() => currentHistoryIndex > 0;
+  bool canGoForward() => currentHistoryIndex < history.length - 1;
+
+  void goBack() {
+    if (canGoBack()) {
+      currentHistoryIndex--;
+      _controller.loadUrl(history[currentHistoryIndex]);
+      setState(() {}); // Refresh UI
+    }
+  }
+
+  void goForward() {
+    if (canGoForward()) {
+      currentHistoryIndex++;
+      _controller.loadUrl(history[currentHistoryIndex]);
+      setState(() {}); // Refresh UI
+    }
   }
 
   void _loadUrl() {
@@ -46,18 +78,17 @@ class _WebViewWindowsState extends State<WebViewWindows> {
 
   @override
   void dispose() {
-    _urlSubscription?.cancel(); // Stop listening to URL changes
+    _urlSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Soft background
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor:
-            GeniusWalletColors.deepBlueCardColor, // Search bar background color
-        elevation: 2,
+        toolbarHeight: 80,
+        backgroundColor: GeniusWalletColors.deepBlueCardColor,
         titleSpacing: 0,
         title: _buildSearchBar(),
       ),
@@ -73,41 +104,42 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                   ),
                 ],
               ),
-              child: ClipRRect(
-                child: Webview(_controller),
-              ),
+              child: ClipRRect(child: Webview(_controller)),
             )
           : const Center(
               child: CircularProgressIndicator(
-                  color: GeniusWalletColors.lightGreenPrimary)),
+                color: GeniusWalletColors.lightGreenPrimary,
+              ),
+            ),
     );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.only(left: 8, right: 16),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor, // Search bar background
+        color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildIconButton(Icons.arrow_back, _controller.goBack),
-          _buildIconButton(Icons.arrow_forward, _controller.goForward),
+          _buildIconButton(Icons.arrow_back, canGoBack() ? goBack : null),
+          _buildIconButton(
+            Icons.arrow_forward,
+            canGoForward() ? goForward : null,
+          ),
           _buildIconButton(Icons.refresh, _controller.reload),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _urlController,
-              style:
-                  const TextStyle(color: Colors.white), // White text in input
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: "Enter URL...",
                 hintStyle: TextStyle(color: Colors.white70),
                 filled: true,
-                fillColor: GeniusWalletColors
-                    .deepBlueTertiary, // Darker blue input background
+                fillColor: GeniusWalletColors.deepBlueTertiary,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
@@ -121,17 +153,14 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     );
   }
 
-  /// **Reusable Icon Button with Hover & Press Effects**
-  Widget _buildIconButton(IconData icon, VoidCallback onPressed) {
+  Widget _buildIconButton(IconData icon, VoidCallback? onPressed) {
     return IconButton(
       icon: Icon(icon),
-      color: GeniusWalletColors.lightGreenPrimary, // Default color
-      iconSize: 24, // Standard icon size
+      color: GeniusWalletColors.lightGreenPrimary,
+      iconSize: 24,
       onPressed: onPressed,
-      hoverColor:
-          GeniusWalletColors.deepBlueCardColor.withOpacity(0.3), // Hover effect
-      splashColor:
-          GeniusWalletColors.deepBlueCardColor.withOpacity(0.5), // Press effect
+      hoverColor: GeniusWalletColors.deepBlueCardColor.withOpacity(0.3),
+      splashColor: GeniusWalletColors.deepBlueCardColor.withOpacity(0.5),
     );
   }
 }
