@@ -1,3 +1,5 @@
+include(../../cmake/CommonOverrideFlags.cmake)
+
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     cmake_minimum_required(VERSION 3.18)
     set(CMAKE_VERBOSE_MAKEFILE on)
