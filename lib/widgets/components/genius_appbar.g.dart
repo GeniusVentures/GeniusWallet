@@ -24,41 +24,46 @@ class _GeniusAppbar extends State<GeniusAppbar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(),
-        child: Stack(children: [
+      decoration: BoxDecoration(),
+      child: Stack(
+        children: [
           Container(
-              decoration: BoxDecoration(),
-              child: Stack(children: [
+            decoration: BoxDecoration(),
+            child: Stack(
+              children: [
                 Positioned(
                   right: 0,
                   width: 36.6,
                   top: 7.5,
                   child: HamburgerMenuIconCustom(
-                      child: const Icon(
-                    Icons.menu,
-                    size: 30,
-                  )),
+                    child: const Icon(Icons.menu, size: 30),
+                  ),
                 ),
                 Positioned(
                   left: 2,
                   top: 0,
                   child: widget.ovrGeniusAppbarLogo ??
                       IconButton(
-                          onPressed: () {
-                            context
-                                .read<NavigationOverlayCubit>()
-                                .selectNavigation(NavigationScreen.dashboard);
-                          },
-                          iconSize: 30,
-                          icon: Image.asset(
-                            'assets/images/geniusappbarlogo.png',
-                            package: 'genius_wallet',
-                            height: 30,
-                            width: 30,
-                          )),
+                        onPressed: () {
+                          context
+                              .read<NavigationOverlayCubit>()
+                              .selectNavigation(NavigationScreen.dashboard);
+                        },
+                        iconSize: 30,
+                        icon: Image.asset(
+                          'assets/images/geniusappbarlogo.png',
+                          package: 'genius_wallet',
+                          height: 30,
+                          width: 30,
+                        ),
+                      ),
                 ),
-              ])),
-        ]));
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

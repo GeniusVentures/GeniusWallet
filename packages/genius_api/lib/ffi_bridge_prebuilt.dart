@@ -7,9 +7,9 @@ class FFIBridgePrebuilt {
   late NativeLibrary wallet_lib;
 
   FFIBridgePrebuilt() {
-    final DynamicLibrary _dylib = () {
+    final DynamicLibrary? _dylib = () {
       if (Platform.isAndroid) {
-        return DynamicLibrary.open('libGeniusWallet.so');
+        return loadGeniusWalletLibrary();
       } else if (Platform.isIOS) {
         return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
       } else if (Platform.isMacOS) {
@@ -18,6 +18,21 @@ class FFIBridgePrebuilt {
       return DynamicLibrary.executable();
     }();
 
+    if (_dylib == null) {
+      return;
+    }
+
     wallet_lib = NativeLibrary(_dylib);
+  }
+}
+
+DynamicLibrary? loadGeniusWalletLibrary() {
+  try {
+    // Attempt to load the shared library
+    final library = DynamicLibrary.open('libGeniusWallet.so');
+    return library;
+  } catch (e) {
+    print("❌ Error loading library: $e");
+    return null; // Return null to handle errors gracefully
   }
 }
