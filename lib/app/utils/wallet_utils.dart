@@ -1,13 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
-
-final symbolImageMap = {
-  'ETH': Image.asset(
-    'assets/images/crypto/eth.png',
-  ),
-  'BTC': Image.asset('assets/images/crypto/btc.png'),
-  null: const SizedBox()
-};
 
 class WalletUtils {
   /// Iterates [wallets] and returns the number of transactions as an [int].
@@ -31,18 +22,6 @@ class WalletUtils {
     }
 
     return total;
-  }
-
-  /// Takes in a [String symbol] of the currency and returns an image of the currency.
-  ///
-  /// Will return empty Widget if the currency was not found.
-  ///
-  /// Example:
-  /// ```
-  /// currencySymbolToImage('ETH') -> Image.asset('path/to/ETH.png')
-  /// ```
-  static Widget? currencySymbolToImage(String symbol) {
-    return symbolImageMap[symbol.trim()];
   }
 
   static String getAddressForDisplay(String address) {

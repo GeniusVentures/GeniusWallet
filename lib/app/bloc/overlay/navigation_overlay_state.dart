@@ -30,7 +30,6 @@ enum NavigationScreen {
   trade,
   web,
   markets,
-  calculator,
   news,
   events,
   settings

@@ -39,12 +39,6 @@ class GeniusTabDestinations {
         icon: Icon(Icons.stacked_line_chart),
         selectedIcon: Icon(Icons.stacked_line_chart)),
     const GeniusDestination(
-      destination: '/calculator',
-      label: Text('Calculator'),
-      icon: Icon(Icons.calculate),
-      selectedIcon: Icon(Icons.calculate),
-    ),
-    const GeniusDestination(
       destination: '/news',
       label: Text('News'),
       icon: Icon(Icons.library_books),

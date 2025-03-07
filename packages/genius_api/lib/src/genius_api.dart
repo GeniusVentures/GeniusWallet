@@ -203,36 +203,6 @@ class GeniusApi {
     return fiatAmount / 1551.40;
   }
 
-  /// Returns a list of supported [Currencies] for calculating conversions
-  Future<List<Currency>> getCalculatorCurrencies() async {
-    await Future.delayed(Duration(seconds: 2));
-    return [
-      Currency(
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        price: '16949.30',
-        priceCurrency: 'USD',
-        priceDate: DateTime.now().toIso8601String(),
-      ),
-      Currency(
-        symbol: 'ETH',
-        name: 'Ethereum',
-        price: '1268.94',
-        priceCurrency: 'USD',
-        priceDate: DateTime.now().toIso8601String(),
-      ),
-    ];
-  }
-
-  /// Converts [fromCurrency] to [toCurrency] and returns a [String] representation of the conversion.
-  Future<String> convertCurrencies(
-      {required Currency fromCurrency, required Currency toCurrency}) async {
-    await Future.delayed(Duration(seconds: 1));
-    final randomNum = Random().nextDouble() * 500;
-
-    return randomNum.toStringAsFixed(2);
-  }
-
   /// Verifies that the saved user pin matches [pin].
   Future<bool> verifyUserPin(String pin) async =>
       await _secureStorage.verifyUserPin(pin);
@@ -614,14 +584,14 @@ class GeniusApi {
     }
     return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
   }
-  String getSGNUSBalance() {
 
+  String getSGNUSBalance() {
     if (!isSdkInitialized) {
       return '';
     }
     GeniusTokenValue tokenValue =
         ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalanceGNUS();
-    final array = tokenValue.value; 
+    final array = tokenValue.value;
     List<int> charCodes = [];
     for (int i = 0; i < 22; i++) {
       final c = array[i];
@@ -632,7 +602,7 @@ class GeniusApi {
     }
 
     return String.fromCharCodes(charCodes);
-    }
+  }
 
   /// Returns address as a hexadecimal string, with 64 hex characters prepended
   /// by `0x`.

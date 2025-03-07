@@ -80,9 +80,6 @@ class Desktop extends StatelessWidget {
                             ovrLastTransactionValue: transactionValue,
                             ovrTimestamp: timestamp,
                             ovrTrendLine: trendLine,
-                            ovrCoinImage: WalletUtils.currencySymbolToImage(
-                              wallet.currencySymbol,
-                            ),
                           ));
                     },
                   ),
@@ -222,10 +219,6 @@ class Mobile extends StatelessWidget {
                                       ovrLastTransactionValue: transactionValue,
                                       ovrTimestamp: timestamp,
                                       ovrTrendLine: trendLine,
-                                      ovrCoinImage:
-                                          WalletUtils.currencySymbolToImage(
-                                        currentWallet.currencySymbol,
-                                      ),
                                     ));
                               },
                             ),

@@ -11,7 +11,6 @@ import 'package:genius_wallet/widgets/components/wallet_type_icon.dart';
 
 class WalletModule extends StatefulWidget {
   final BoxConstraints constraints;
-  final Widget? ovrCoinImage;
   final String? ovrWalletBalance;
   final String? walletName;
   final String? ovrLastTransactionID;
@@ -23,7 +22,6 @@ class WalletModule extends StatefulWidget {
   final WalletType? walletType;
   const WalletModule(this.constraints,
       {Key? key,
-      this.ovrCoinImage,
       this.ovrWalletBalance,
       this.walletName,
       this.ovrLastTransactionID,
@@ -54,16 +52,6 @@ class _WalletModule extends State<WalletModule> {
               Radius.circular(GeniusWalletConsts.borderRadiusCard)),
         ),
         child: Stack(children: [
-          Positioned(
-              top: 8,
-              width: 30,
-              height: 30,
-              child: widget.ovrCoinImage ??
-                  Image.asset(
-                    'assets/images/coinimage.png',
-                    package: 'genius_wallet',
-                    fit: BoxFit.fill,
-                  )),
           Center(
               child: Container(
                   height: 150,
@@ -76,10 +64,12 @@ class _WalletModule extends State<WalletModule> {
                     )
                   ]))),
           Column(children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Row(children: [
+              Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: WalletTypeIcon(walletType: widget.walletType)),
               Flexible(
                   child: Container(
-                padding: const EdgeInsets.only(left: 46),
                 child: AutoSizeText(
                   overflow: TextOverflow.ellipsis,
                   widget.walletName ?? '',
@@ -93,14 +83,11 @@ class _WalletModule extends State<WalletModule> {
                   textAlign: TextAlign.left,
                 ),
               )),
-              Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: WalletTypeIcon(walletType: widget.walletType)),
             ]),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Flexible(
                   child: Padding(
-                      padding: EdgeInsets.only(left: 46),
+                      padding: EdgeInsets.only(left: 4),
                       child: AutoSizeText(
                           WalletUtils.getAddressForDisplay(
                               widget.walletAddress ?? ""),

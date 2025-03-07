@@ -42,11 +42,6 @@ class HamburgerMenu extends StatelessWidget {
               screen: NavigationScreen.events,
             ),
             MenuListTile(
-              menuTitle: 'Calculator',
-              menuIcon: Icon(Icons.calculate),
-              screen: NavigationScreen.calculator,
-            ),
-            MenuListTile(
               menuTitle: 'Settings',
               menuIcon: Icon(Icons.settings),
               screen: NavigationScreen.settings,
