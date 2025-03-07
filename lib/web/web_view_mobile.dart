@@ -39,15 +39,17 @@ class WebViewMobileState extends State<WebViewMobile> {
           onPageStarted: (String url) {
             if (_currentTabIndex < _tabUrls.length) {
               setState(() {
-                _tabUrls.add(url);
+                _tabUrls[_currentTabIndex] = url;
                 _urlController.text = url;
               });
             }
           },
-          onPageFinished: (String url) {
+          onPageFinished: (String url) async {
             setState(() {
+              _tabUrls[_currentTabIndex] = url;
               _showTabManager = false;
             });
+            await Future.delayed(const Duration(milliseconds: 300));
             captureScreenshot();
           },
         ),

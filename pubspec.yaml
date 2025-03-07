@@ -159,8 +159,6 @@ flutter:
     - packages/genius_wallet/assets/images/navstatsbuttonactive.png
     - packages/genius_wallet/assets/images/navtimerbuttoncustom.png
     - packages/genius_wallet/assets/images/navtimerbuttonactive.png
-    - packages/genius_wallet/assets/images/navcalculatorbuttoncustom.png
-    - packages/genius_wallet/assets/images/navcalculatorbuttonactive.png
     - packages/genius_wallet/assets/images/navcalendarbuttoncustom.png
     - packages/genius_wallet/assets/images/navcalendarbuttonactive.png
     - packages/genius_wallet/assets/images/navwalletbuttoncustom2.png
@@ -168,7 +166,6 @@ flutter:
     - packages/genius_wallet/assets/images/navnewsbuttonactive.png
     - packages/genius_wallet/assets/images/combinedshape2.png
     - packages/genius_wallet/assets/images/navcalendarbuttoncustom.svg
-    - packages/genius_wallet/assets/images/navcalculatorbuttoncustom.svg
     - packages/genius_wallet/assets/images/navnewsbuttoncustom.svg
     - packages/genius_wallet/assets/images/navtimerbuttoncustom.svg
     - packages/genius_wallet/assets/images/navstatsbuttoncustom.svg

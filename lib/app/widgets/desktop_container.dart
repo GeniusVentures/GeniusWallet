@@ -142,7 +142,7 @@ class HeaderButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Flexible(
         child: TextButton.icon(
-      onPressed: () => context.push(route ?? ''),
+      onPressed: route != null ? () => context.push(route!) : null,
       style: ButtonStyle(
         padding: const MaterialStatePropertyAll(EdgeInsets.all(20)),
         backgroundColor: MaterialStateProperty.resolveWith((states) {

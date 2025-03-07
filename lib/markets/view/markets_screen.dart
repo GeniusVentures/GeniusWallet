@@ -95,20 +95,6 @@ class Mobile extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     letterSpacing: .3),
               ),
-              GestureDetector(
-                onTap: () {
-                  context
-                      .read<NavigationOverlayCubit>()
-                      .selectNavigation(NavigationScreen.calculator);
-                },
-                child: Text(
-                  'Calculator',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(color: GeniusWalletColors.lightGreenSecondary),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 50),

@@ -57,12 +57,7 @@ class _DesktopSideRail extends StatelessWidget {
     return GeniusTabDestinations.destinations
         .map(
           (e) => NavigationRailDestination(
-            icon: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 6,
-              ), // Adjust spacing as needed
-              child: Tooltip(message: e.label.data ?? "", child: e.icon),
-            ),
+            icon: Tooltip(message: e.label.data ?? "", child: e.icon),
             label: e.label,
             selectedIcon: e.selectedIcon,
           ),
