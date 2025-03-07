@@ -308,14 +308,6 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/calculator',
-      builder: (context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.calculator,
-        );
-      },
-    ),
-    GoRoute(
       path: '/news',
       builder: (context, state) {
         return const ResponsiveOverlay(

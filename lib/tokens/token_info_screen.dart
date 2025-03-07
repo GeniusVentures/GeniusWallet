@@ -8,6 +8,7 @@ import 'package:genius_wallet/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/tokens/convert_section.dart';
 import 'package:genius_wallet/tokens/market_data_info.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/action_button.dart';
@@ -261,7 +262,8 @@ class TokenInfoScreen extends StatelessWidget {
         ),
 
         const SizedBox(height: 16),
-
+        ConvertSection(tokenPrice: marketData?.currentPrice ?? 0.0),
+        const SizedBox(height: 16),
         _buildSecuritySection(),
         const SizedBox(height: 16),
         _buildActivitySection(),
@@ -269,7 +271,6 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  /// **Security Section**
   Widget _buildSecuritySection() {
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -289,7 +290,6 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  /// **Activity Section**
   Widget _buildActivitySection() {
     return ListTile(
       contentPadding: EdgeInsets.zero,
