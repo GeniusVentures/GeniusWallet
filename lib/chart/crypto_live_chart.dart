@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
@@ -6,12 +7,20 @@ import 'package:intl/intl.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 
 class CryptoLiveChart extends StatefulWidget {
-  final String coinId;
-  final String? tokenDecimals;
+  /// Coin Gecko Coin Id
+  final String coinGeckoCoinId;
+  final String tokenSymbol;
   final Widget? child;
+  final double? chartHeight;
+  final double? priceHeight;
 
   const CryptoLiveChart(
-      {Key? key, required this.coinId, this.tokenDecimals, this.child})
+      {Key? key,
+      required this.coinGeckoCoinId,
+      required this.tokenSymbol,
+      this.chartHeight,
+      this.priceHeight,
+      this.child})
       : super(key: key);
 
   @override
@@ -41,7 +50,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   Future<void> _fetchHistoricalData() async {
-    final historicalPrices = await fetchHistoricalPrices(widget.coinId);
+    final historicalPrices =
+        await fetchHistoricalPrices(widget.coinGeckoCoinId);
 
     if (historicalPrices.isNotEmpty) {
       List<FlSpot> historicalData = historicalPrices.entries
@@ -61,9 +71,11 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   void _startLiveUpdates() {
     _timer = Timer.periodic(const Duration(seconds: 60), (timer) async {
-      final coinPrices = await fetchCoinPrices(coinIds: widget.coinId);
+      final coinPrices =
+          await fetchCoinsMarketData(coinIds: [widget.coinGeckoCoinId]);
       if (coinPrices.isNotEmpty) {
-        double newPrice = coinPrices[widget.coinId] ?? 0.0;
+        double newPrice =
+            coinPrices[widget.tokenSymbol.toLowerCase()]?.currentPrice ?? 0.0;
         _addNewPricePoint(newPrice);
       }
     });
@@ -118,15 +130,22 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     final displayPrice = _isHovering ? _hoveredPrice : _latestPrice;
     final tokenDecimalsToDisplay = displayPrice >= 1 ? 2 : 6;
 
+    final formattedPrice = NumberFormat.currency(
+            locale: "en_US",
+            symbol: "\$",
+            decimalDigits: tokenDecimalsToDisplay)
+        .format(displayPrice);
+
     return MouseRegion(
       onExit: _onHoverExit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            "\$${(displayPrice).toStringAsFixed(tokenDecimalsToDisplay)}",
-            style: const TextStyle(
-              fontSize: 48,
+          AutoSizeText(
+            formattedPrice,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: widget.priceHeight ?? 48,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -170,7 +189,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
           const SizedBox(height: 24),
           ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * .2,
+                maxHeight: widget.chartHeight ??
+                    MediaQuery.of(context).size.height * .2,
               ),
               child: Row(children: [
                 Expanded(

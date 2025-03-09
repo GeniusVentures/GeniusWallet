@@ -7,9 +7,13 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
+import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
+import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
+import 'package:genius_wallet/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
@@ -108,14 +112,14 @@ class ThreeColumnDashboardView extends StatelessWidget {
                                 ]))
                       ])),
                   SizedBox(
-                      height: 480,
+                      height: 580,
                       child: Row(children: [
                         Expanded(flex: 2, child: ChartDashboardView()),
                         Expanded(flex: 1, child: MarketsDashboardView())
                       ])),
                 ])),
             SizedBox(
-                width: 600, height: 888, child: TransactionsDashboardView())
+                width: 600, height: 980, child: TransactionsDashboardView())
           ])
         ]));
   }
@@ -179,7 +183,7 @@ class OneColumnDashBoardView extends StatelessWidget {
               SizedBox(height: 300, child: ContributionsDashboardView()),
               SizedBox(height: 300, child: SendReceiveDashboardView()),
               SizedBox(height: 400, child: ChartDashboardView()),
-              SizedBox(height: 400, child: MarketsDashboardView()),
+              SizedBox(height: 480, child: MarketsDashboardView()),
             ]));
   }
 }
@@ -189,7 +193,7 @@ class OverviewDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewNoFlexContainer(child: BlocBuilder<AppBloc, AppState>(
+    return DashboardScrollContainer(child: BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
         return WalletsOverview(
           geniusApi: context.read<GeniusApi>(),
@@ -226,7 +230,7 @@ class TransactionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardViewNoFlexContainer(
+    return DashboardScrollContainer(
         child: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
       return TransactionsSlimView(transactions: state.transactions);
     }));
@@ -238,10 +242,27 @@ class MarketsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DashboardViewContainer(
-        child: Flexible(
-            child: AutoSizeText('Markets - Coming Soon',
-                style: TextStyle(color: Colors.grey))));
+    return FutureBuilder<List<CoinGeckoCoin>>(
+      future: getDashboardMarketCoins(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child: CircularProgressIndicator()); // Show loading
+        } else if (snapshot.hasError) {
+          return const Center(child: Text("Failed to load market coins"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No market data available"));
+        }
+
+        // Successfully fetched coins
+        return DashboardScrollContainer(
+          child: DashboardMarkets(
+            title: 'Markets',
+            coins: snapshot.data!, // Use the fetched coin list
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -252,8 +273,11 @@ class ChartDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return const DashboardViewContainer(
         child: Flexible(
-            child: AutoSizeText('Chart - Coming Soon',
-                style: TextStyle(color: Colors.grey))));
+            child: DashboardChart(
+                title: "Bitcoin Chart",
+                coinGeckoCoinId: 'bitcoin',
+                tokenSymbol: 'btc',
+                tokenDecimals: '8')));
   }
 }
 
