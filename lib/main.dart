@@ -5,9 +5,9 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
-import 'package:genius_wallet/providers/coin_gecko_coin_provider.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -22,14 +22,13 @@ void main() async {
   await secureStorage.init();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
-  final coinProvider = CoinGeckoCoinProvider();
-  await coinProvider.loadCoins();
-
   final networkProvider = NetworkProvider();
   await networkProvider.loadNetworks();
 
   final networkTokensProvider = NetworkTokensProvider();
   await networkTokensProvider.loadTokensForNetworks(networkProvider.networks);
+
+  await fetchAllCoinGeckoCoins();
 
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
@@ -44,7 +43,6 @@ void main() async {
   runApp(
     MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => coinProvider),
           ChangeNotifierProvider(create: (_) => networkProvider),
           ChangeNotifierProvider(create: (_) => networkTokensProvider),
           Provider(create: (_) => geniusApi),
@@ -249,9 +247,11 @@ class MyApp extends StatelessWidget {
                 labelType: NavigationRailLabelType.none,
                 useIndicator: false,
                 selectedIconTheme: IconThemeData(
-                    color: GeniusWalletColors.lightGreenSecondary, size: 35),
+                  color: GeniusWalletColors.lightGreenSecondary,
+                  size: 30,
+                ),
                 unselectedIconTheme:
-                    IconThemeData(color: Colors.white, opacity: 1, size: 35)),
+                    IconThemeData(color: Colors.white, opacity: 1, size: 30)),
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 backgroundColor: Colors.transparent,
                 elevation: 0,

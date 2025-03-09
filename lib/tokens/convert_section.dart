@@ -57,38 +57,54 @@ class _ConvertSectionState extends State<ConvertSection> {
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: _tokenPriceController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Token Price",
                   labelStyle: TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: GeniusWalletColors.deepBlue,
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.white12), // Bottom border color
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                        color: GeniusWalletColors
+                            .lightGreenPrimary), // Highlighted border
                   ),
                 ),
                 style: const TextStyle(color: Colors.white),
                 onChanged: (_) => _calculateTotalValue(),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               TextField(
                 controller: _tokenAmountController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Token Amount",
                   labelStyle: TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: GeniusWalletColors.deepBlue,
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.white12), // Bottom border color
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                        color: GeniusWalletColors
+                            .lightGreenPrimary), // Highlighted border
                   ),
                 ),
                 style: const TextStyle(color: Colors.white),

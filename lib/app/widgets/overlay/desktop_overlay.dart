@@ -41,7 +41,7 @@ class _DesktopSideRail extends StatelessWidget {
                 .selectedScreen
                 .index,
             leading: Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 20),
+              padding: const EdgeInsets.only(top: 16, bottom: 20, left: 4),
               child: Image.asset(
                 'assets/images/geniusappbarlogo.png',
                 package: 'genius_wallet',
@@ -57,9 +57,18 @@ class _DesktopSideRail extends StatelessWidget {
     return GeniusTabDestinations.destinations
         .map(
           (e) => NavigationRailDestination(
-            icon: Tooltip(message: e.label.data ?? "", child: e.icon),
+            icon: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 6,
+              ),
+              child: Tooltip(message: e.label.data ?? "", child: e.icon),
+            ),
             label: e.label,
-            selectedIcon: e.selectedIcon,
+            selectedIcon: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 6,
+                ),
+                child: e.selectedIcon),
           ),
         )
         .toList();

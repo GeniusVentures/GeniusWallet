@@ -28,7 +28,7 @@ class TransactionsScreen extends StatelessWidget {
                         width: 1342,
                         child: BlocBuilder<AppBloc, AppState>(
                             builder: (context, state) {
-                          return DashboardViewNoFlexContainer(
+                          return DashboardScrollContainer(
                               child: TransactionsSlimView(
                                   transactions: state.transactions));
                         }))

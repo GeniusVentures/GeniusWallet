@@ -8,14 +8,12 @@ import 'package:intl/intl.dart';
 class MarketDataInfo extends StatelessWidget {
   final CoinGeckoMarketData? marketData;
   final String? address;
-  final String network;
+  final String? network;
+  final Widget? topSlot;
 
-  const MarketDataInfo({
-    Key? key,
-    this.marketData,
-    required this.network,
-    this.address,
-  }) : super(key: key);
+  const MarketDataInfo(
+      {Key? key, this.marketData, this.network, this.address, this.topSlot})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +39,15 @@ class MarketDataInfo extends StatelessWidget {
           margin: EdgeInsets.zero,
           child: Column(
             children: [
+              if (topSlot != null) ...[
+                topSlot!,
+                Container(
+                  height: 2,
+                  color: GeniusWalletColors.deepBlueTertiary,
+                ),
+              ],
               _buildInfoRow("Symbol", marketData?.symbol.toUpperCase()),
-              _buildInfoRow("Network", network),
+              if (network != null) _buildInfoRow("Network", network),
               if (address != null)
                 _buildCopyableRow(context, "Address", address!),
               _buildInfoRow(

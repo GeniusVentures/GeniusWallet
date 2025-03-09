@@ -6,7 +6,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class TransactionsSlimView extends StatefulWidget {

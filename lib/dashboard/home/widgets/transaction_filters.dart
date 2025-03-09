@@ -36,9 +36,9 @@ class TransactionFiltersState extends State<TransactionFilters> {
               'Transactions',
               maxLines: 1,
               style: TextStyle(
-                fontSize: GeniusWalletFontSize.sectionHeader,
-                fontWeight: FontWeight.w500,
-              ),
+                  fontSize: GeniusWalletFontSize.sectionHeader,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
             if (isMobile)
               Stack(

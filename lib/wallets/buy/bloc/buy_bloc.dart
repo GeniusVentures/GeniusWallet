@@ -23,15 +23,15 @@ class BuyBloc extends Bloc<BuyEvent, BuyState> {
 
     emit(state.copyWith(conversionStatus: ConversionStatus.loading));
 
-    try {
-      final cryptoConversion =
-          await geniusApi.getConversion(fiatAmountNum, state.cryptoCurrency);
-      emit(state.copyWith(
-        approxCryptoConversion: cryptoConversion.toString(),
-        conversionStatus: ConversionStatus.success,
-      ));
-    } catch (e) {
-      emit(state.copyWith(conversionStatus: ConversionStatus.error));
-    }
+    //   try {
+    //     final cryptoConversion =
+    //         await geniusApi.getConversion(fiatAmountNum, state.cryptoCurrency);
+    //     emit(state.copyWith(
+    //       approxCryptoConversion: cryptoConversion.toString(),
+    //       conversionStatus: ConversionStatus.success,
+    //     ));
+    //   } catch (e) {
+    //     emit(state.copyWith(conversionStatus: ConversionStatus.error));
+    //   }
   }
 }

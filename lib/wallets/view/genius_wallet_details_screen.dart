@@ -110,8 +110,7 @@ class View extends StatelessWidget {
                                         children: [
                                           Flexible(
                                               child: AutoSizeText(
-                                            geniusApi
-                                                .getSGNUSBalance(),
+                                            geniusApi.getSGNUSBalance(),
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontFamily: 'Roboto',
@@ -159,7 +158,7 @@ class View extends StatelessWidget {
                               child: LayoutBuilder(
                                 builder: (BuildContext context,
                                     BoxConstraints constraints) {
-                                  return DashboardViewNoFlexContainer(
+                                  return DashboardScrollContainer(
                                       child: TransactionsSlimView(
                                           transactions: geniusApi
                                               .getSGNUSTransactions()));

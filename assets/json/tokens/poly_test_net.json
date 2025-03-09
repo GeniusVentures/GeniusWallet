@@ -20,11 +20,6 @@
     "iconPath": "assets/images/crypto/uni.png"
   },
   {
-    "name": "SUSHI",
-    "address": "0x96132b109609f91CF234224B448c2f9067326C06",
-    "iconPath": "assets/images/crypto/sushi.png"
-  },
-  {
     "name": "DAI",
     "address": "0xb2df85a09cAB3a391Fd9ade76342583A0d4B75ce",
     "iconPath": "assets/images/crypto/dai.png"
