@@ -41,9 +41,9 @@ class DashboardViewNoWrapperContainer extends StatelessWidget {
   }
 }
 
-class DashboardViewNoFlexContainer extends StatelessWidget {
+class DashboardScrollContainer extends StatelessWidget {
   final Widget child;
-  const DashboardViewNoFlexContainer({super.key, required this.child});
+  const DashboardScrollContainer({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

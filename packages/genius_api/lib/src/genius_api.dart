@@ -194,15 +194,6 @@ class GeniusApi {
     );
   }
 
-  /// Converts [fiatAmount] in USD to [cryptoCurrency].
-  ///
-  /// Returns a [num] of how many coins [fiatAmount] converts to.
-  Future<num> getConversion(num fiatAmount, String cryptoCurrency) async {
-    await Future.delayed(Duration(seconds: 1));
-
-    return fiatAmount / 1551.40;
-  }
-
   /// Verifies that the saved user pin matches [pin].
   Future<bool> verifyUserPin(String pin) async =>
       await _secureStorage.verifyUserPin(pin);
@@ -292,27 +283,6 @@ class GeniusApi {
   }
 
   Future<List<Currency>> getMarkets() async {
-    await Future.delayed(Duration(seconds: 2));
-    return [
-      Currency(
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        price: '17000',
-        priceCurrency: 'USD',
-        priceDate: DateTime.now().toIso8601String(),
-      ),
-      Currency(
-        symbol: 'ETH',
-        name: 'Ethereum',
-        price: '1300',
-        priceCurrency: 'USD',
-        priceDate: DateTime.now().toIso8601String(),
-      ),
-    ];
-  }
-
-  Future<List<Currency>> get() async {
-    await Future.delayed(Duration(seconds: 2));
     return [
       Currency(
         symbol: 'BTC',
@@ -333,7 +303,6 @@ class GeniusApi {
 
   // Only built to show 5 max. This layout is complex
   Future<List<News>> getNews() async {
-    await Future.delayed(Duration(seconds: 2));
     return [
       News(
           headline: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
@@ -374,7 +343,6 @@ class GeniusApi {
   }
 
   Future<List<Events>> getEvents() async {
-    await Future.delayed(Duration(seconds: 2));
     return [
       Events(
           body: 'Blockchain in Energy Conference',
@@ -415,40 +383,7 @@ class GeniusApi {
 
   // TODO: this still needs implemented from GNUS sdk
   Future<List<Transaction>> getTransactionsFor(String address) async {
-    return [
-      Transaction(
-        hash:
-            '5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02',
-        fromAddress: '0x0',
-        recipients: [TransferRecipients(toAddr: '0x1', amount: '0.0002')],
-        timeStamp: DateTime.utc(2022, 10, 10, 13, 26),
-        transactionDirection: TransactionDirection.sent,
-        fees: '',
-        coinSymbol: 'ETH',
-        transactionStatus: TransactionStatus.pending,
-      ),
-      Transaction(
-          hash:
-              '7f5979fb78f082e8b1c676635db8795c4ac6faba03525fb708cb5fd68fd40c5e',
-          fromAddress: '0x2',
-          recipients: [TransferRecipients(toAddr: '0x0', amount: '0.0003')],
-          timeStamp: DateTime.utc(2022, 10, 09, 15, 20),
-          transactionDirection: TransactionDirection.received,
-          fees: '',
-          coinSymbol: 'ETH',
-          transactionStatus: TransactionStatus.cancelled),
-      Transaction(
-        hash:
-            '6146ccf6a66d994f7c363db875e31ca35581450a4bf6d3be6cc9ac79233a69d0',
-        fromAddress: '0x1',
-        recipients: [TransferRecipients(toAddr: '0x0', amount: '0.0023')],
-        timeStamp: DateTime.utc(2022, 10, 10, 15, 22),
-        transactionDirection: TransactionDirection.received,
-        fees: '0.000001',
-        coinSymbol: 'ETH',
-        transactionStatus: TransactionStatus.completed,
-      ),
-    ];
+    return [];
   }
 
   // Currently we just create a account with Ethereum wallet for the user

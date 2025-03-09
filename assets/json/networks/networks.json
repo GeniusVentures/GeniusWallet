@@ -17,7 +17,7 @@
   },
   {
     "name": "Polygon",
-    "symbol": "poly",
+    "symbol": "matic",
     "chainId": 137,
     "rpcUrl": "https://polygon.drpc.org",
     "iconPath": "assets/images/crypto/matic.png",
@@ -25,7 +25,7 @@
   },
   {
     "name": "Polygon Amoy",
-    "symbol": "poly",
+    "symbol": "matic",
     "chainId": 80002,
     "rpcUrl": "https://polygon-amoy.core.chainstack.com/267520074174662c0a58c3c1126c7e51",
     "iconPath": "assets/images/crypto/matic-testnet.png",

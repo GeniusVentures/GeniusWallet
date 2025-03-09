@@ -53,13 +53,15 @@ class WalletsOverviewState extends State<WalletsOverview> {
     // TODO UPDATE THIS LOGIC TO PROVIDE A BETTER CURRENT BALANCE....
     if (isFetchAllowed) {
       futurePrices = fetchCoinPricesSum(
-          coinIds:
-              'ethereum', // these ids are mapped from the coingecko list in assets/json/coins_list
-          coinBalances: [
-            CoinBalance(
-                coinId: 'ethereum', balance: double.parse(widget.totalBalance)),
-          ],
-          geniusApi: widget.geniusApi);
+        coinIds: [
+          'ethereum'
+        ], // these ids are mapped from the coingecko list in assets/json/coins_list
+        coinBalances: [
+          CoinBalance(
+              coinId: 'ethereum', balance: double.parse(widget.totalBalance)),
+        ],
+        geniusApi: widget.geniusApi,
+      );
       return;
     }
 

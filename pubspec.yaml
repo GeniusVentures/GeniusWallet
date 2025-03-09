@@ -55,7 +55,6 @@ flutter:
   assets:
     - assets/json/networks/
     - assets/json/tokens/
-    - assets/json/coins_list/
     - assets/images/
     - assets/images/crypto/
     - packages/genius_wallet/assets/images/mask2.png
