@@ -6,7 +6,7 @@ import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/app/widgets/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
-import 'package:genius_wallet/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/tokens/convert_section.dart';
 import 'package:genius_wallet/tokens/market_data_info.dart';

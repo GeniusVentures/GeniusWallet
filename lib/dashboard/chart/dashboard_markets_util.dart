@@ -1,4 +1,4 @@
-import 'package:genius_wallet/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 
 final List<String> dashboardCoinIds = [

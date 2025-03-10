@@ -9,6 +9,7 @@ class Network with _$Network {
       {String? name,
       String? symbol,
       int? chainId,
+      String? coinGeckoId,
       String? rpcUrl,
       String? iconPath,
       String? tokensPath}) = _Network;

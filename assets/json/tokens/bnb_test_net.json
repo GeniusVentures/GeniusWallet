@@ -2,16 +2,19 @@
   {
     "name": "GNUS",
     "address": "0xeC20bDf2f9f77dc37Ee8313f719A3cbCFA0CD1eB",
-    "iconPath": "assets/images/crypto/gnus.png"
+    "iconPath": "assets/images/crypto/gnus.png",
+    "coinGeckoId": "genius-ai"
   },
   {
     "name": "USDC",
     "address": "0x89C8da7569085D406800C473619d0c6B7AC0CE8E",
-    "iconPath": "assets/images/crypto/usdc.png"
+    "iconPath": "assets/images/crypto/usdc.png",
+    "coinGeckoId": "usd-coin"
   },
   {
     "name": "USDT",
     "address": "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
-    "iconPath": "assets/images/crypto/usdt.png"
+    "iconPath": "assets/images/crypto/usdt.png",
+    "coinGeckoId": "tether"
   }
 ]

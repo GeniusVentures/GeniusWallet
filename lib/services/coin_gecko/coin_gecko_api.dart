@@ -1,45 +1,36 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
-import 'package:genius_wallet/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/services/coin_gecko/coin_market_cache.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/hive/models/historical_price_cache_entry.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-/// Represents a balance for a specific coin
-class CoinBalance {
-  final String coinId;
-  final double balance;
-
-  CoinBalance({required this.coinId, required this.balance});
-}
-
-// Cache storage with expiration
-final Map<String, _CacheEntry> _historicalPricesCache = {};
-
 /// **Fetches historical prices for a coin from CoinGecko API**
-/// - If cached data exists and is fresh (≤60 seconds old), return it.
-/// - If API call fails (rate-limited or error), return existing cached data.
-/// - If API call succeeds, update the cache.
 Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
   final now =
-      DateTime.now().millisecondsSinceEpoch ~/ 1000; // Current time (sec)
+      DateTime.now().millisecondsSinceEpoch ~/ 1000; // Current time in seconds
 
-  // Check if the coin data is already in cache and is still valid
-  if (_historicalPricesCache.containsKey(coinId)) {
-    final cacheEntry = _historicalPricesCache[coinId]!;
+  final Box<HistoricalPriceCacheEntry> box =
+      Hive.box<HistoricalPriceCacheEntry>(historicalPricesBox);
+
+  // Check for existing cached entry
+  HistoricalPriceCacheEntry? cacheEntry = box.get(coinId);
+
+  if (cacheEntry != null) {
     final cacheAge = now - cacheEntry.timestamp;
 
     if (cacheAge <= 60) {
       print('✅ Returning cached data for $coinId (Age: $cacheAge sec)');
-      return cacheEntry.data;
+      return cacheEntry.toIntMap();
     }
   }
 
   // API endpoint
-  String historyApi =
+  final String historyApi =
       'https://api.coingecko.com/api/v3/coins/$coinId/market_chart?vs_currency=usd&days=1';
 
   try {
@@ -50,53 +41,216 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       final List<dynamic> prices = data['prices'];
 
       // Convert API response into a map of { timestamp (sec) : price }
-      Map<int, double> historicalPrices = {
+      final Map<int, double> historicalPrices = {
         for (var entry in prices)
-          (entry[0] ~/ 1000):
-              (entry[1] as num).toDouble(), // Convert timestamp & price
+          (entry[0] ~/ 1000): (entry[1] as num).toDouble(),
       };
 
-      // ✅ Update the cache with new data
-      _historicalPricesCache[coinId] = _CacheEntry(
-        data: historicalPrices,
-        timestamp: now,
-      );
+      // ✅ Save the new cache entry
+      final newCacheEntry =
+          HistoricalPriceCacheEntry.fromIntMap(historicalPrices, now);
+      await box.put(coinId, newCacheEntry);
 
-      print('🆕 Historical - Fetched new data for $coinId from API');
+      print('🆕 Historical - Fetched and cached new data for $coinId from API');
       return historicalPrices;
     } else {
       print(
           '❌ Historical - API error (${response.statusCode}): ${response.body}');
 
-      // ⚠️ If API fails, return existing cache instead of invalidating it
-      if (_historicalPricesCache.containsKey(coinId)) {
-        print(
-            '⚠️ Historical - Returning old cached data for $coinId due to API failure');
-        return _historicalPricesCache[coinId]!.data;
+      if (cacheEntry != null) {
+        print('‼️Returning old cached data for $coinId due to API failure');
+        return cacheEntry.toIntMap();
       }
 
-      return {}; // No cache available, return empty data
+      return {}; // No cache available
     }
   } catch (e) {
-    print('⚠️ Historical - Network error while fetching $coinId prices: $e');
+    print('‼️ Network error while fetching $coinId prices: $e');
 
-    // ⚠️ If API fails, return existing cache instead of invalidating it
-    if (_historicalPricesCache.containsKey(coinId)) {
-      print(
-          '⚠️ Historical - Returning old cached data for $coinId due to network error');
-      return _historicalPricesCache[coinId]!.data;
+    if (cacheEntry != null) {
+      print('‼️Returning old cached data for $coinId due to network error');
+      return cacheEntry.toIntMap();
     }
 
-    return {}; // No cache available, return empty data
+    return {}; // No cache available
   }
 }
 
-/// **Cache Entry Class**
-class _CacheEntry {
-  final Map<int, double> data;
-  final int timestamp;
+Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
+  required List<String> coinIds,
+}) async {
+  if (coinIds.isEmpty) return {};
 
-  _CacheEntry({required this.data, required this.timestamp});
+  // 🔹 Combine with other market coins if needed
+  final marketCoins = getAllMarketDataCoinIds();
+  final allCoinIds = {...coinIds, ...marketCoins}.toList();
+
+  final Map<String, CoinGeckoMarketData> cachedData = {};
+
+  final Box<CoinGeckoMarketData> marketBox =
+      Hive.box<CoinGeckoMarketData>(marketDataBox);
+  final Box<String> timestampsBox = Hive.box<String>(marketTimestampsBox);
+
+  // 🔹 Look for valid cache entries
+  for (var coinId in allCoinIds) {
+    final CoinGeckoMarketData? cachedCoin = marketBox.get(coinId);
+    final String? timestampStr = timestampsBox.get(coinId);
+
+    if (cachedCoin != null && timestampStr != null) {
+      final DateTime? cacheTime = DateTime.tryParse(timestampStr);
+
+      if (cacheTime != null &&
+          DateTime.now().difference(cacheTime) < cacheDuration) {
+        cachedData[cachedCoin.symbol.toLowerCase()] = cachedCoin;
+      } else {
+        // ❌ Remove expired entries
+        await marketBox.delete(coinId);
+        await timestampsBox.delete(coinId);
+      }
+    }
+  }
+
+  // 🔹 Determine which coins need fetching
+  final List<String> missingCoinIds = allCoinIds.where((id) {
+    final String? timestampStr = timestampsBox.get(id);
+    final DateTime? cacheTime =
+        timestampStr != null ? DateTime.tryParse(timestampStr) : null;
+    return cacheTime == null ||
+        DateTime.now().difference(cacheTime) >= cacheDuration;
+  }).toList();
+
+  if (missingCoinIds.isEmpty) {
+    print("✅ Returning all market data from Hive cache.");
+    return cachedData;
+  }
+
+  print(
+      "🆕 Fetching missing market data from API: ${missingCoinIds.join(',')}");
+
+  final String marketApi =
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}';
+
+  try {
+    final response = await http.get(Uri.parse(marketApi));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+
+      final nowString = DateTime.now().toIso8601String();
+      final Map<String, CoinGeckoMarketData> newMarketData = {};
+
+      for (var coin in data) {
+        final marketData = CoinGeckoMarketData.fromJson(coin);
+
+        // Update Hive cache
+        await marketBox.put(marketData.id, marketData);
+        await timestampsBox.put(marketData.id, nowString);
+
+        newMarketData[marketData.symbol.toLowerCase()] = marketData;
+      }
+
+      return {
+        ...cachedData,
+        ...newMarketData,
+      };
+    } else {
+      print('❌ Failed to fetch market data: ${response.body}');
+    }
+  } catch (e) {
+    print('‼️ Error fetching market data: $e');
+  }
+
+  // 🔹 Return cached only (fallback)
+  print("‼️ Returning cached market data due to API failure.");
+  return cachedData;
+}
+
+Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
+  final box = Hive.box(coinGeckoCacheBox);
+
+  // Check for cached data
+  final cachedCoins = box.get(coinListBoxKey);
+  final expiry = box.get(cacheExpiryKey);
+
+  if (cachedCoins != null && expiry != null) {
+    final expiryDate = DateTime.tryParse(expiry);
+    if (expiryDate != null && DateTime.now().isBefore(expiryDate)) {
+      print("✅ Returning cached coin list from Hive...");
+      return List<CoinGeckoCoin>.from(cachedCoins as List);
+    }
+  }
+
+  // If cache is missing or expired, fetch new data
+  print("🌐 Fetching new coin list from CoinGecko...");
+  final url = Uri.parse("https://api.coingecko.com/api/v3/coins/list");
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final coins = json.decode(response.body) as List<dynamic>;
+
+      final coinList = coins
+          .map((coin) => CoinGeckoCoin(
+                id: coin['id'] ?? '',
+                symbol: coin['symbol'] ?? '',
+                name: coin['name'] ?? '',
+              ))
+          .toList();
+
+      // Cache the new list and expiry time
+      await box.put(coinListBoxKey, coinList);
+      await box.put(
+          cacheExpiryKey, DateTime.now().add(cacheDuration).toIso8601String());
+
+      print("✅ New coin list cached in Hive");
+      return coinList;
+    } else {
+      throw Exception("Failed to load coins from CoinGecko");
+    }
+  } catch (e) {
+    print("❌ Error fetching coin list: $e");
+
+    // Return cached data even if expired as fallback
+    if (cachedCoins != null) {
+      print("‼️ Returning expired cached data...");
+      return List<CoinGeckoCoin>.from(cachedCoins as List);
+    }
+
+    return [];
+  }
+}
+
+/// **Search for coins by name (case-insensitive)**
+Future<List<CoinGeckoCoin>> searchCoinsByName(
+  String query, {
+  int? maxResults, // Optional param with no default limit
+}) async {
+  final allCoins = await fetchAllCoinGeckoCoins(); // Get cached or fresh data
+
+  // Filter coins matching the query (case-insensitive)
+  final matchingCoins = allCoins
+      .where((coin) => coin.name.toLowerCase().contains(query.toLowerCase()))
+      .toList();
+
+  // If maxResults is provided, return a limited subset
+  if (maxResults != null && maxResults > 0) {
+    final endIndex =
+        matchingCoins.length < maxResults ? matchingCoins.length : maxResults;
+
+    return matchingCoins.sublist(0, endIndex);
+  }
+
+  // Return all matching coins if no limit specified
+  return matchingCoins;
+}
+
+/// Represents a balance for a specific coin
+class CoinBalance {
+  final String coinId;
+  final double balance;
+
+  CoinBalance({required this.coinId, required this.balance});
 }
 
 /// 💰 **Fetches Coin Prices & Calculates Total Balance in USD**
@@ -128,121 +282,4 @@ double calculateTotalBalance(
     final coinPrice = coinPrices[element.coinId] ?? 0.0;
     return sum + (coinPrice * element.balance);
   });
-}
-
-final CoinMarketCache _coinMarketCache = CoinMarketCache();
-
-/// **Fetches market data from CoinGecko**
-Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData(
-    {required List<String> coinIds}) async {
-  if (coinIds.isEmpty) return {};
-
-  // 🔹 **Include all market coins in cache**
-  final marketCoins = getAllMarketDataCoinIds();
-  final allCoinIds = {...coinIds, ...marketCoins}.toList();
-
-  // 🔹 **Check cache first**
-  final Map<String, CoinGeckoMarketData> cachedData =
-      _coinMarketCache.getCachedData(allCoinIds);
-
-  // 🔹 **Find missing coins that need API fetching**
-  final List<String> missingCoinIds =
-      allCoinIds.where((id) => !_coinMarketCache.isCoinCached(id)).toList();
-
-  if (missingCoinIds.isEmpty) {
-    print("✅ Returning all coins from cache.");
-    return cachedData;
-  }
-
-  print("🆕 Fetching missing coins from API: ${missingCoinIds.join(',')}");
-
-  // 🔹 **API Call for only missing coins**
-  final String marketApi =
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}';
-
-  try {
-    final response = await http.get(Uri.parse(marketApi));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-
-      // 🔹 **Convert list to map using CoinGecko ID as key**
-      Map<String, CoinGeckoMarketData> newMarketData = {
-        for (var coin in data) coin['id']: CoinGeckoMarketData.fromJson(coin)
-      };
-
-      // 🔹 **Cache the new data using CoinGecko ID**
-      _coinMarketCache.setCachedData(newMarketData);
-
-      // 🔹 **Return data using Coin Symbol as the key**
-      return {
-        ...cachedData,
-        ...{
-          for (var entry in newMarketData.entries)
-            entry.value.symbol.toLowerCase(): entry.value
-        }
-      };
-    } else {
-      print('❌ Failed to fetch market data: ${response.body}');
-    }
-  } catch (e) {
-    print('⚠️ Error fetching market data: $e');
-  }
-
-  // 🔹 **Return only cached data if API fails**
-  print("⚠️ Returning only cached data due to API failure.");
-  return cachedData;
-}
-
-// Cache variables
-List<CoinGeckoCoin>? _cachedCoinList;
-DateTime? _cacheExpiryTime;
-
-/// **Fetch the complete list of coins from CoinGecko (with 1 hour caching)**
-Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
-  final url = Uri.parse("https://api.coingecko.com/api/v3/coins/list");
-
-  // If cached data is available and still valid, return it
-  if (_cachedCoinList != null &&
-      _cacheExpiryTime != null &&
-      DateTime.now().isBefore(_cacheExpiryTime!)) {
-    print("Returning cached coin list...");
-    return _cachedCoinList!;
-  }
-
-  try {
-    print("Fetching new coin list from CoinGecko...");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List<dynamic> coins = json.decode(response.body);
-
-      // Convert JSON list to List<CoinGeckoCoin>
-      _cachedCoinList = coins
-          .map((coin) => CoinGeckoCoin(
-                id: coin["id"] ?? "",
-                symbol: coin["symbol"] ?? "",
-                name: coin["name"] ?? "",
-              ))
-          .toList();
-
-      // Set cache expiry time to 1 hour from now
-      _cacheExpiryTime = DateTime.now().add(const Duration(hours: 1));
-
-      return _cachedCoinList!;
-    } else {
-      throw Exception("Failed to load coins from CoinGecko");
-    }
-  } catch (e) {
-    print("Error fetching coin list: $e");
-    return [];
-  }
-}
-
-/// **Search for coins by name (case-insensitive)**
-Future<List<CoinGeckoCoin>> searchCoinsByName(String query) async {
-  final allCoins = await fetchAllCoinGeckoCoins(); // Get cached or fresh data
-
-  return allCoins
-      .where((coin) => coin.name.toLowerCase().contains(query.toLowerCase()))
-      .toList();
 }

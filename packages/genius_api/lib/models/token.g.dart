@@ -10,6 +10,7 @@ _$TokenImpl _$$TokenImplFromJson(Map<String, dynamic> json) => _$TokenImpl(
       address: json['address'] as String?,
       iconPath: json['iconPath'] as String?,
       name: json['name'] as String?,
+      coinGeckoId: json['coinGeckoId'] as String?,
     );
 
 Map<String, dynamic> _$$TokenImplToJson(_$TokenImpl instance) =>
@@ -17,4 +18,5 @@ Map<String, dynamic> _$$TokenImplToJson(_$TokenImpl instance) =>
       'address': instance.address,
       'iconPath': instance.iconPath,
       'name': instance.name,
+      'coinGeckoId': instance.coinGeckoId,
     };

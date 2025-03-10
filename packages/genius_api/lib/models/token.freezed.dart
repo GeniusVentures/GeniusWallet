@@ -23,13 +23,10 @@ mixin _$Token {
   String? get address => throw _privateConstructorUsedError;
   String? get iconPath => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
+  String? get coinGeckoId => throw _privateConstructorUsedError;
 
-  /// Serializes this Token to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Token
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TokenCopyWith<Token> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -38,7 +35,8 @@ abstract class $TokenCopyWith<$Res> {
   factory $TokenCopyWith(Token value, $Res Function(Token) then) =
       _$TokenCopyWithImpl<$Res, Token>;
   @useResult
-  $Res call({String? address, String? iconPath, String? name});
+  $Res call(
+      {String? address, String? iconPath, String? name, String? coinGeckoId});
 }
 
 /// @nodoc
@@ -51,14 +49,13 @@ class _$TokenCopyWithImpl<$Res, $Val extends Token>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Token
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? address = freezed,
     Object? iconPath = freezed,
     Object? name = freezed,
+    Object? coinGeckoId = freezed,
   }) {
     return _then(_value.copyWith(
       address: freezed == address
@@ -73,6 +70,10 @@ class _$TokenCopyWithImpl<$Res, $Val extends Token>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
+      coinGeckoId: freezed == coinGeckoId
+          ? _value.coinGeckoId
+          : coinGeckoId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -84,7 +85,8 @@ abstract class _$$TokenImplCopyWith<$Res> implements $TokenCopyWith<$Res> {
       __$$TokenImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? address, String? iconPath, String? name});
+  $Res call(
+      {String? address, String? iconPath, String? name, String? coinGeckoId});
 }
 
 /// @nodoc
@@ -95,14 +97,13 @@ class __$$TokenImplCopyWithImpl<$Res>
       _$TokenImpl _value, $Res Function(_$TokenImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Token
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? address = freezed,
     Object? iconPath = freezed,
     Object? name = freezed,
+    Object? coinGeckoId = freezed,
   }) {
     return _then(_$TokenImpl(
       address: freezed == address
@@ -117,6 +118,10 @@ class __$$TokenImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
+      coinGeckoId: freezed == coinGeckoId
+          ? _value.coinGeckoId
+          : coinGeckoId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -124,7 +129,7 @@ class __$$TokenImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$TokenImpl implements _Token {
-  const _$TokenImpl({this.address, this.iconPath, this.name});
+  const _$TokenImpl({this.address, this.iconPath, this.name, this.coinGeckoId});
 
   factory _$TokenImpl.fromJson(Map<String, dynamic> json) =>
       _$$TokenImplFromJson(json);
@@ -135,10 +140,12 @@ class _$TokenImpl implements _Token {
   final String? iconPath;
   @override
   final String? name;
+  @override
+  final String? coinGeckoId;
 
   @override
   String toString() {
-    return 'Token(address: $address, iconPath: $iconPath, name: $name)';
+    return 'Token(address: $address, iconPath: $iconPath, name: $name, coinGeckoId: $coinGeckoId)';
   }
 
   @override
@@ -149,16 +156,17 @@ class _$TokenImpl implements _Token {
             (identical(other.address, address) || other.address == address) &&
             (identical(other.iconPath, iconPath) ||
                 other.iconPath == iconPath) &&
-            (identical(other.name, name) || other.name == name));
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.coinGeckoId, coinGeckoId) ||
+                other.coinGeckoId == coinGeckoId));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, address, iconPath, name);
+  int get hashCode =>
+      Object.hash(runtimeType, address, iconPath, name, coinGeckoId);
 
-  /// Create a copy of Token
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TokenImplCopyWith<_$TokenImpl> get copyWith =>
@@ -176,7 +184,8 @@ abstract class _Token implements Token {
   const factory _Token(
       {final String? address,
       final String? iconPath,
-      final String? name}) = _$TokenImpl;
+      final String? name,
+      final String? coinGeckoId}) = _$TokenImpl;
 
   factory _Token.fromJson(Map<String, dynamic> json) = _$TokenImpl.fromJson;
 
@@ -186,11 +195,10 @@ abstract class _Token implements Token {
   String? get iconPath;
   @override
   String? get name;
-
-  /// Create a copy of Token
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? get coinGeckoId;
+  @override
+  @JsonKey(ignore: true)
   _$$TokenImplCopyWith<_$TokenImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

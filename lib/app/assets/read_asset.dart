@@ -138,6 +138,7 @@ Future<Coin?> _fetchNativeToken(
       symbol: network.symbol?.toUpperCase(),
       networkSymbol: network.symbol,
       iconPath: network.iconPath,
+      coinGeckoId: network.coinGeckoId,
     );
   } catch (e) {
     print("⚠️ Error fetching native token for ${network.name}: $e");
@@ -173,6 +174,7 @@ Future<Coin?> _fetchTokenData(
       symbol: result['symbol'],
       networkSymbol: network.symbol,
       iconPath: tokenContract.iconPath,
+      coinGeckoId: tokenContract.coinGeckoId,
     );
   } catch (e) {
     print("⚠️ Error fetching data for ${tokenContract.name}: $e");
