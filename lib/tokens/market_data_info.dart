@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:genius_wallet/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:intl/intl.dart';
 

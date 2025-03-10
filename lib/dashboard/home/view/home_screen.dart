@@ -13,7 +13,7 @@ import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
-import 'package:genius_wallet/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';

@@ -14,6 +14,7 @@ _$CoinImpl _$$CoinImplFromJson(Map<String, dynamic> json) => _$CoinImpl(
       networkSymbol: json['networkSymbol'] as String?,
       decimals: json['decimals'] as String?,
       iconPath: json['iconPath'] as String?,
+      coinGeckoId: json['coinGeckoId'] as String?,
     );
 
 Map<String, dynamic> _$$CoinImplToJson(_$CoinImpl instance) =>
@@ -25,4 +26,5 @@ Map<String, dynamic> _$$CoinImplToJson(_$CoinImpl instance) =>
       'networkSymbol': instance.networkSymbol,
       'decimals': instance.decimals,
       'iconPath': instance.iconPath,
+      'coinGeckoId': instance.coinGeckoId,
     };

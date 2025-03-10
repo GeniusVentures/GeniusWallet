@@ -12,7 +12,8 @@ class Coin with _$Coin {
       double? balance,
       String? networkSymbol,
       String? decimals,
-      String? iconPath}) = _Coin;
+      String? iconPath,
+      String? coinGeckoId}) = _Coin;
 
   factory Coin.fromJson(Map<String, Object?> json) => _$CoinFromJson(json);
 }

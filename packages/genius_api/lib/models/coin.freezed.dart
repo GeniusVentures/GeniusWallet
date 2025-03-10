@@ -27,13 +27,10 @@ mixin _$Coin {
   String? get networkSymbol => throw _privateConstructorUsedError;
   String? get decimals => throw _privateConstructorUsedError;
   String? get iconPath => throw _privateConstructorUsedError;
+  String? get coinGeckoId => throw _privateConstructorUsedError;
 
-  /// Serializes this Coin to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Coin
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CoinCopyWith<Coin> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -49,7 +46,8 @@ abstract class $CoinCopyWith<$Res> {
       double? balance,
       String? networkSymbol,
       String? decimals,
-      String? iconPath});
+      String? iconPath,
+      String? coinGeckoId});
 }
 
 /// @nodoc
@@ -62,8 +60,6 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Coin
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -74,6 +70,7 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
     Object? networkSymbol = freezed,
     Object? decimals = freezed,
     Object? iconPath = freezed,
+    Object? coinGeckoId = freezed,
   }) {
     return _then(_value.copyWith(
       name: freezed == name
@@ -104,6 +101,10 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      coinGeckoId: freezed == coinGeckoId
+          ? _value.coinGeckoId
+          : coinGeckoId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -122,7 +123,8 @@ abstract class _$$CoinImplCopyWith<$Res> implements $CoinCopyWith<$Res> {
       double? balance,
       String? networkSymbol,
       String? decimals,
-      String? iconPath});
+      String? iconPath,
+      String? coinGeckoId});
 }
 
 /// @nodoc
@@ -132,8 +134,6 @@ class __$$CoinImplCopyWithImpl<$Res>
   __$$CoinImplCopyWithImpl(_$CoinImpl _value, $Res Function(_$CoinImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Coin
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -144,6 +144,7 @@ class __$$CoinImplCopyWithImpl<$Res>
     Object? networkSymbol = freezed,
     Object? decimals = freezed,
     Object? iconPath = freezed,
+    Object? coinGeckoId = freezed,
   }) {
     return _then(_$CoinImpl(
       name: freezed == name
@@ -174,6 +175,10 @@ class __$$CoinImplCopyWithImpl<$Res>
           ? _value.iconPath
           : iconPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      coinGeckoId: freezed == coinGeckoId
+          ? _value.coinGeckoId
+          : coinGeckoId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -188,7 +193,8 @@ class _$CoinImpl implements _Coin {
       this.balance,
       this.networkSymbol,
       this.decimals,
-      this.iconPath});
+      this.iconPath,
+      this.coinGeckoId});
 
   factory _$CoinImpl.fromJson(Map<String, dynamic> json) =>
       _$$CoinImplFromJson(json);
@@ -207,10 +213,12 @@ class _$CoinImpl implements _Coin {
   final String? decimals;
   @override
   final String? iconPath;
+  @override
+  final String? coinGeckoId;
 
   @override
   String toString() {
-    return 'Coin(name: $name, symbol: $symbol, address: $address, balance: $balance, networkSymbol: $networkSymbol, decimals: $decimals, iconPath: $iconPath)';
+    return 'Coin(name: $name, symbol: $symbol, address: $address, balance: $balance, networkSymbol: $networkSymbol, decimals: $decimals, iconPath: $iconPath, coinGeckoId: $coinGeckoId)';
   }
 
   @override
@@ -227,17 +235,17 @@ class _$CoinImpl implements _Coin {
             (identical(other.decimals, decimals) ||
                 other.decimals == decimals) &&
             (identical(other.iconPath, iconPath) ||
-                other.iconPath == iconPath));
+                other.iconPath == iconPath) &&
+            (identical(other.coinGeckoId, coinGeckoId) ||
+                other.coinGeckoId == coinGeckoId));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, name, symbol, address, balance,
-      networkSymbol, decimals, iconPath);
+      networkSymbol, decimals, iconPath, coinGeckoId);
 
-  /// Create a copy of Coin
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CoinImplCopyWith<_$CoinImpl> get copyWith =>
@@ -259,7 +267,8 @@ abstract class _Coin implements Coin {
       final double? balance,
       final String? networkSymbol,
       final String? decimals,
-      final String? iconPath}) = _$CoinImpl;
+      final String? iconPath,
+      final String? coinGeckoId}) = _$CoinImpl;
 
   factory _Coin.fromJson(Map<String, dynamic> json) = _$CoinImpl.fromJson;
 
@@ -277,11 +286,10 @@ abstract class _Coin implements Coin {
   String? get decimals;
   @override
   String? get iconPath;
-
-  /// Create a copy of Coin
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? get coinGeckoId;
+  @override
+  @JsonKey(ignore: true)
   _$$CoinImplCopyWith<_$CoinImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

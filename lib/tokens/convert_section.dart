@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:intl/intl.dart';
 
 class ConvertSection extends StatefulWidget {
   final double tokenPrice;
@@ -23,7 +24,7 @@ class _ConvertSectionState extends State<ConvertSection> {
   void initState() {
     super.initState();
     _tokenPriceController = TextEditingController(
-      text: widget.tokenPrice.toStringAsFixed(2),
+      text: widget.tokenPrice.toString(),
     );
     _tokenAmountController = TextEditingController(
       text: "1",
@@ -114,7 +115,10 @@ class _ConvertSectionState extends State<ConvertSection> {
               Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    "Total: \$${_totalValue.toStringAsFixed(2)}",
+                    "Total: ${NumberFormat.currency(
+                      locale: "en_US",
+                      symbol: "\$",
+                    ).format(_totalValue)}",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,

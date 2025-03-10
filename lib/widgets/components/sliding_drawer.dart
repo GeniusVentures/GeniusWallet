@@ -73,82 +73,83 @@ class SlidingDrawerState extends State<SlidingDrawer> {
 
               // Sliding Drawer Panel
               AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: GeniusBreakpoints.useDesktopLayout(context)
-                        ? 500
-                        : MediaQuery.of(context).size.width * 0.9,
-                  ),
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  decoration: BoxDecoration(
-                    color: GeniusWalletColors.deepBlueTertiary,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.8),
-                        blurRadius: 10,
-                        spreadRadius: 2,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: SafeArea(
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxWidth: GeniusBreakpoints.useDesktopLayout(context)
+                            ? 500
+                            : MediaQuery.of(context).size.width * 0.9,
                       ),
-                    ],
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      bottomLeft: Radius.circular(12),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: GeniusWalletColors.deepBlueCardColor,
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      decoration: BoxDecoration(
+                        color: GeniusWalletColors.deepBlueTertiary,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.8),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon:
-                                  const Icon(Icons.close, color: Colors.white),
-                              onPressed: toggleDrawer,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: GeniusWalletColors.deepBlueCardColor,
                             ),
-                            Expanded(
-                              child: Center(
-                                child: Text(
-                                  widget.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                  textAlign: TextAlign.center,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.white),
+                                  onPressed: toggleDrawer,
                                 ),
-                              ),
+                                Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      widget.title,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 48),
+                              ],
                             ),
-                            const SizedBox(width: 48),
-                          ],
-                        ),
-                      ),
+                          ),
 
-                      const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                      // Drawer Content
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: widget.content,
-                        ),
+                          // Drawer Content
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: widget.content,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                  )),
             ],
           ),
         ),

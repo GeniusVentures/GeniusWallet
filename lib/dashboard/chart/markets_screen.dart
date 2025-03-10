@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
-import 'package:genius_wallet/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/dashboard/chart/markets_search_bar.dart'; // 🔥 Import your search bar
+import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
+import 'package:genius_wallet/widgets/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
 
 class MarketsScreen extends StatelessWidget {
@@ -27,79 +31,123 @@ class MarketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final SlidingDrawerController searchDrawerController =
+        SlidingDrawerController();
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Text("Markets",
-                style: TextStyle(color: Colors.white, fontSize: 32))),
-        backgroundColor: Colors.black,
-      ),
       backgroundColor: Colors.black,
-      body: FutureBuilder<List<CoinGeckoCoin>>(
-        future: getMarketCoins(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(
-                child: Text("Failed to load market coins",
-                    style: TextStyle(color: Colors.white)));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-                child: Text("No market data available",
-                    style: TextStyle(color: Colors.white)));
-          }
-
-          final coins = snapshot.data!;
-
-          return FutureBuilder<Map<String, CoinGeckoMarketData?>>(
-            future: fetchCoinsMarketData(
-              coinIds: coins.map((coin) => coin.id).toList(),
-            ),
-            builder: (context, marketSnapshot) {
-              if (marketSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (marketSnapshot.hasError) {
-                return const Center(
-                    child: Text("Failed to load market data",
-                        style: TextStyle(color: Colors.white)));
-              } else if (!marketSnapshot.hasData ||
-                  marketSnapshot.data!.isEmpty) {
-                return const Center(
-                    child: Text("No market data available",
-                        style: TextStyle(color: Colors.white)));
-              }
-
-              final marketData = marketSnapshot.data!;
-
-              return Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: getCrossAxisCount(context),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
-                    childAspectRatio:
-                        getChildAspectRatio(context), // Keeps the chart compact
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header and SearchBar
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  "Markets",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  itemCount: coins.length,
-                  itemBuilder: (context, index) {
-                    final coin = coins[index];
-                    final data = marketData[coin.symbol.toLowerCase()];
-
-                    if (data == null) {
-                      return const SizedBox.shrink(); // Skip if data is missing
-                    }
-
-                    return _buildMarketChartCard(data, coin);
-                  },
                 ),
-              );
-            },
-          );
-        },
+                const SizedBox(width: 20),
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+                  onPressed: searchDrawerController.openDrawer,
+                )
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Expanded to take the remaining space for grid view
+            Expanded(
+              child: FutureBuilder<List<CoinGeckoCoin>>(
+                future: getMarketCoins(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(
+                      child: Text(
+                        "Failed to load market coins",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "No market data available",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  final coins = snapshot.data!;
+
+                  return FutureBuilder<Map<String, CoinGeckoMarketData?>>(
+                    future: fetchCoinsMarketData(
+                      coinIds: coins.map((coin) => coin.id).toList(),
+                    ),
+                    builder: (context, marketSnapshot) {
+                      if (marketSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (marketSnapshot.hasError) {
+                        return const Center(
+                          child: Text(
+                            "Failed to load market data",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      } else if (!marketSnapshot.hasData ||
+                          marketSnapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "No market data available",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }
+
+                      final marketData = marketSnapshot.data!;
+
+                      return GridView.builder(
+                        padding: const EdgeInsets.only(top: 8),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: getCrossAxisCount(context),
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: getChildAspectRatio(context),
+                        ),
+                        itemCount: coins.length,
+                        itemBuilder: (context, index) {
+                          final coin = coins[index];
+                          final data = marketData[coin.symbol.toLowerCase()];
+
+                          if (data == null) {
+                            return const SizedBox
+                                .shrink(); // Skip if data is missing
+                          }
+
+                          return _buildMarketChartCard(data, coin);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            SlidingDrawer(
+              controller: searchDrawerController,
+              title: "Search Coins",
+              content: MarketSearchBar(
+                  onCoinPressed: () => searchDrawerController.closeDrawer()),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -114,7 +162,8 @@ class MarketsScreen extends StatelessWidget {
                     "isGnusWalletConnected": false,
                     "securityInfo": "Coming Soon",
                     "transactionHistory": ["Coming Soon"],
-                    "marketData": data
+                    "marketData": data,
+                    "coin": coin, // Make sure coin is passed
                   },
                 );
               },
