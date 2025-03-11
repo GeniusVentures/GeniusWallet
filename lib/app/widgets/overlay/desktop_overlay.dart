@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/destinations.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
@@ -25,6 +26,13 @@ class _DesktopSideRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final destinations = _buildDestinations();
+    final screenList = destinations.map((e) => e.key).toList();
+
+    final selectedScreen =
+        context.watch<NavigationOverlayCubit>().state.selectedScreen;
+
+    final selectedIndex = screenList.indexOf(selectedScreen);
+
     return SingleChildScrollView(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -32,14 +40,14 @@ class _DesktopSideRail extends StatelessWidget {
         ),
         child: IntrinsicHeight(
           child: NavigationRail(
-            destinations: destinations,
-            onDestinationSelected: (index) =>
-                context.read<NavigationOverlayCubit>().navigationTapped(index),
-            selectedIndex: context
-                .watch<NavigationOverlayCubit>()
-                .state
-                .selectedScreen
-                .index,
+            destinations: destinations.map((e) => e.value).toList(),
+            onDestinationSelected: (index) {
+              final selectedScreen = screenList[index];
+              context
+                  .read<NavigationOverlayCubit>()
+                  .navigationTapped(selectedScreen);
+            },
+            selectedIndex: selectedIndex,
             leading: Padding(
               padding: const EdgeInsets.only(top: 16, bottom: 20, left: 4),
               child: Image.asset(
@@ -53,22 +61,28 @@ class _DesktopSideRail extends StatelessWidget {
     );
   }
 
-  List<NavigationRailDestination> _buildDestinations() {
+  List<MapEntry<NavigationScreen, NavigationRailDestination>>
+      _buildDestinations() {
     return GeniusTabDestinations.destinations
+        .where((e) =>
+            e.isVisible ?? true) // Optional: Add your visibility condition
         .map(
-          (e) => NavigationRailDestination(
-            icon: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 6,
-              ),
-              child: Tooltip(message: e.label.data ?? "", child: e.icon),
-            ),
-            label: e.label,
-            selectedIcon: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 6,
+          (e) => MapEntry(
+            e.navScreen,
+            NavigationRailDestination(
+              icon: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Tooltip(
+                  message: e.label.data ?? "",
+                  child: e.icon,
                 ),
-                child: e.selectedIcon),
+              ),
+              label: e.label,
+              selectedIcon: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: e.selectedIcon,
+              ),
+            ),
           ),
         )
         .toList();

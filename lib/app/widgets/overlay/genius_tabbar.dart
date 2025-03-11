@@ -11,33 +11,52 @@ class GeniusTabbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final destinations = _buildDestinations();
+    final screenList = destinations.map((e) => e.key).toList();
+
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
+        final selectedScreen = state.selectedScreen;
+
+        // Get the index in the currently visible screens
+        final selectedIndex = screenList.indexOf(selectedScreen);
+
         return BottomNavigationBar(
-            backgroundColor: Colors.transparent,
-            enableFeedback: false,
-            onTap: (int index) {
-              context.read<NavigationOverlayCubit>().navigationTapped(index);
-            },
-            currentIndex: state.selectedScreen.index >= _numTabs
-                ? 0
-                : state.selectedScreen.index,
-            items: destinations);
+          backgroundColor: Colors.transparent,
+          enableFeedback: false,
+          currentIndex: selectedIndex >= 0 ? selectedIndex : 0,
+          onTap: (int index) {
+            final tappedScreen = screenList[index];
+            context
+                .read<NavigationOverlayCubit>()
+                .navigationTapped(tappedScreen);
+          },
+          items: destinations.map((e) => e.value).toList(),
+        );
       },
     );
   }
 
-  List<BottomNavigationBarItem> _buildDestinations() {
+  List<MapEntry<NavigationScreen, BottomNavigationBarItem>>
+      _buildDestinations() {
     return GeniusTabDestinations.destinations
+        .where((e) => e.isVisible ?? true) // Optional visibility logic
         .take(_numTabs)
         .map(
-          (e) => BottomNavigationBarItem(
-            backgroundColor: Colors.transparent,
-            tooltip: e.label.data,
-            icon: Container(padding: const EdgeInsets.all(8), child: e.icon),
-            activeIcon: Container(
-                padding: const EdgeInsets.all(8), child: e.selectedIcon),
-            label: e.label.data,
+          (e) => MapEntry(
+            e.navScreen,
+            BottomNavigationBarItem(
+              backgroundColor: Colors.transparent,
+              tooltip: e.label.data,
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                child: e.icon,
+              ),
+              activeIcon: Container(
+                padding: const EdgeInsets.all(8),
+                child: e.selectedIcon,
+              ),
+              label: e.label.data,
+            ),
           ),
         )
         .toList();

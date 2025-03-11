@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -330,14 +332,15 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
-    GoRoute(
-      path: '/web',
-      builder: ((context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.web,
-        );
-      }),
-    ),
+    if (!Platform.isLinux)
+      GoRoute(
+        path: '/web',
+        builder: ((context, state) {
+          return const ResponsiveOverlay(
+            selectedScreen: NavigationScreen.web,
+          );
+        }),
+      ),
     ...LandingRoutes().landingRoutes,
   ],
 );

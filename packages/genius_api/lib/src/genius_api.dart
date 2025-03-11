@@ -43,11 +43,15 @@ class GeniusApi {
         _sgnusConnectionController = SGNUSConnectionController();
 
   Future<void> requestPermissions() async {
-    if (await Permission.storage.isDenied) {
-      await Permission.storage.request();
-    }
-    if (await Permission.location.isDenied) {
-      await Permission.location.request();
+    try {
+      if (await Permission.storage.isDenied) {
+        await Permission.storage.request();
+      }
+      if (await Permission.location.isDenied) {
+        await Permission.location.request();
+      }
+    } catch (e) {
+      print("❌ Failed to check permissions ${e.toString()}");
     }
   }
 
