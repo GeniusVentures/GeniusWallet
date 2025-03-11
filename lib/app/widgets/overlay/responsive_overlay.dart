@@ -23,9 +23,7 @@ class ResponsiveOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (selectedScreen != null) {
-      context
-          .read<NavigationOverlayCubit>()
-          .navigationTapped(NavigationScreen.values.indexOf(selectedScreen!));
+      context.read<NavigationOverlayCubit>().navigationTapped(selectedScreen!);
     }
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
@@ -43,7 +41,7 @@ class ResponsiveOverlay extends StatelessWidget {
             child = const NewsScreen();
             break;
           case NavigationScreen.markets:
-            child = MarketsScreen();
+            child = const MarketsScreen();
             break;
           case NavigationScreen.events:
             child = const EventsScreen();
