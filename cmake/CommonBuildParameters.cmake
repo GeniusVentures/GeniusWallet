@@ -1,4 +1,4 @@
-include(../../cmake/CommonOverrideFlags.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/CommonOverrideFlags.cmake)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     cmake_minimum_required(VERSION 3.18)
