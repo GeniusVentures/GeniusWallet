@@ -5,8 +5,11 @@ import 'package:webview_windows/webview_windows.dart';
 
 class WebViewWindows extends StatefulWidget {
   final String url;
+  final bool? includeBackButton;
 
-  const WebViewWindows({Key? key, required this.url}) : super(key: key);
+  const WebViewWindows(
+      {Key? key, required this.url, this.includeBackButton = false})
+      : super(key: key);
 
   @override
   _WebViewWindowsState createState() => _WebViewWindowsState();
@@ -84,13 +87,26 @@ class _WebViewWindowsState extends State<WebViewWindows> {
 
   @override
   Widget build(BuildContext context) {
+    final includeBackButton = widget.includeBackButton ?? false;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         toolbarHeight: 80,
+        leadingWidth: 80,
         backgroundColor: GeniusWalletColors.deepBlueCardColor,
         titleSpacing: 0,
         title: _buildSearchBar(),
+        leading: includeBackButton
+            ? Builder(
+                builder: (context) => IconButton(
+                    icon: const Icon(
+                      Icons.cancel,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    }),
+              )
+            : null,
       ),
       body: _controller.value.isInitialized
           ? Container(

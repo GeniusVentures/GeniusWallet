@@ -7,8 +7,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewMobile extends StatefulWidget {
   final String url;
+  final bool? includeBackButton;
 
-  const WebViewMobile({Key? key, required this.url}) : super(key: key);
+  const WebViewMobile(
+      {Key? key, required this.url, this.includeBackButton = false})
+      : super(key: key);
 
   @override
   WebViewMobileState createState() => WebViewMobileState();
@@ -154,42 +157,56 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   Widget _buildSearchBar() {
+    final includeBackButton = widget.includeBackButton ?? false;
     return Container(
       color: GeniusWalletColors.deepBlueCardColor,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
-          IconButton(
-            icon: FutureBuilder<bool>(
-              future: _controllers[_currentTabIndex].canGoBack(),
-              builder: (context, snapshot) {
-                final canGoBack = snapshot.data ?? false;
-                return Icon(
-                  Icons.arrow_back,
-                  color: canGoBack
-                      ? GeniusWalletColors.lightGreenPrimary
-                      : Colors.grey,
+          if (includeBackButton)
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  icon: const Icon(Icons.cancel),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Pops the current page
+                  },
                 );
               },
             ),
-            onPressed: _goBack,
-          ),
-          IconButton(
-            icon: FutureBuilder<bool>(
-              future: _controllers[_currentTabIndex].canGoForward(),
-              builder: (context, snapshot) {
-                final canGoForward = snapshot.data ?? false;
-                return Icon(
-                  Icons.arrow_forward,
-                  color: canGoForward
-                      ? GeniusWalletColors.lightGreenPrimary
-                      : Colors.grey,
-                );
-              },
+          if (!includeBackButton) ...[
+            IconButton(
+              icon: FutureBuilder<bool>(
+                future: _controllers[_currentTabIndex].canGoBack(),
+                builder: (context, snapshot) {
+                  final canGoBack = snapshot.data ?? false;
+                  return Icon(
+                    Icons.arrow_back,
+                    color: canGoBack
+                        ? GeniusWalletColors.lightGreenPrimary
+                        : Colors.grey,
+                  );
+                },
+              ),
+              onPressed: _goBack,
             ),
-            onPressed: _goForward,
-          ),
-          const SizedBox(width: 8),
+            IconButton(
+              icon: FutureBuilder<bool>(
+                future: _controllers[_currentTabIndex].canGoForward(),
+                builder: (context, snapshot) {
+                  final canGoForward = snapshot.data ?? false;
+                  return Icon(
+                    Icons.arrow_forward,
+                    color: canGoForward
+                        ? GeniusWalletColors.lightGreenPrimary
+                        : Colors.grey,
+                  );
+                },
+              ),
+              onPressed: _goForward,
+            ),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: TextField(
               controller: _urlController,

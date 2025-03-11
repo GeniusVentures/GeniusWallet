@@ -9,7 +9,7 @@ import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/events/view/events_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
-import 'package:genius_wallet/dashboard/news/view/news_screen.dart';
+import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/wallets/view/wallets_screen.dart';
@@ -38,7 +38,7 @@ class ResponsiveOverlay extends StatelessWidget {
             child = const TransactionsScreen();
             break;
           case NavigationScreen.news:
-            child = const NewsScreen();
+            child = const CryptoNewsScreen();
             break;
           case NavigationScreen.markets:
             child = const MarketsScreen();
