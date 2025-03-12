@@ -107,7 +107,7 @@ apply_standard_settings(${BINARY_NAME})
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+if(NOT CMAKE_SKIP_THIRD_PARTY)
   target_link_libraries(${BINARY_NAME} PUBLIC GeniusWallet)
 endif()
 
