@@ -9,6 +9,8 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+const Duration cacheDuration = Duration(minutes: 3);
+
 /// **Fetches historical prices for a coin from CoinGecko API**
 Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
   final now =
@@ -128,7 +130,7 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
       "🆕 Fetching missing market data from API: ${missingCoinIds.join(',')}");
 
   final String marketApi =
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}';
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}&sparkline=true';
 
   try {
     final response = await http.get(Uri.parse(marketApi));
@@ -182,7 +184,8 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
 
   // If cache is missing or expired, fetch new data
   print("🌐 Fetching new coin list from CoinGecko...");
-  final url = Uri.parse("https://api.coingecko.com/api/v3/coins/list");
+  final url = Uri.parse(
+      "https://api.coingecko.com/api/v3/coins/list?include_platform=true");
 
   try {
     final response = await http.get(url);

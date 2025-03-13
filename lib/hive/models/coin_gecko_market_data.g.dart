@@ -42,13 +42,14 @@ class CoinGeckoMarketDataAdapter extends TypeAdapter<CoinGeckoMarketData> {
       atlChangePercentage: fields[22] as double,
       atlDate: fields[23] as DateTime,
       lastUpdated: fields[24] as DateTime,
+      sparkline: (fields[25] as List?)?.cast<double>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, CoinGeckoMarketData obj) {
     writer
-      ..writeByte(25)
+      ..writeByte(26)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -98,7 +99,9 @@ class CoinGeckoMarketDataAdapter extends TypeAdapter<CoinGeckoMarketData> {
       ..writeByte(23)
       ..write(obj.atlDate)
       ..writeByte(24)
-      ..write(obj.lastUpdated);
+      ..write(obj.lastUpdated)
+      ..writeByte(25)
+      ..write(obj.sparkline);
   }
 
   @override

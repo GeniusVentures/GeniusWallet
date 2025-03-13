@@ -79,33 +79,36 @@ class CoinGeckoMarketData {
   @HiveField(24)
   final DateTime lastUpdated;
 
-  CoinGeckoMarketData({
-    required this.id,
-    required this.symbol,
-    required this.name,
-    required this.imageUrl,
-    required this.currentPrice,
-    required this.marketCap,
-    required this.marketCapRank,
-    required this.fullyDilutedValuation,
-    required this.totalVolume,
-    required this.high24h,
-    required this.low24h,
-    required this.priceChange24h,
-    required this.priceChangePercentage24h,
-    required this.marketCapChange24h,
-    required this.marketCapChangePercentage24h,
-    required this.circulatingSupply,
-    required this.totalSupply,
-    required this.maxSupply,
-    required this.ath,
-    required this.athChangePercentage,
-    required this.athDate,
-    required this.atl,
-    required this.atlChangePercentage,
-    required this.atlDate,
-    required this.lastUpdated,
-  });
+  @HiveField(25)
+  final List<double>? sparkline;
+
+  CoinGeckoMarketData(
+      {required this.id,
+      required this.symbol,
+      required this.name,
+      required this.imageUrl,
+      required this.currentPrice,
+      required this.marketCap,
+      required this.marketCapRank,
+      required this.fullyDilutedValuation,
+      required this.totalVolume,
+      required this.high24h,
+      required this.low24h,
+      required this.priceChange24h,
+      required this.priceChangePercentage24h,
+      required this.marketCapChange24h,
+      required this.marketCapChangePercentage24h,
+      required this.circulatingSupply,
+      required this.totalSupply,
+      required this.maxSupply,
+      required this.ath,
+      required this.athChangePercentage,
+      required this.athDate,
+      required this.atl,
+      required this.atlChangePercentage,
+      required this.atlDate,
+      required this.lastUpdated,
+      required this.sparkline});
 
   /// From JSON (API Response)
   factory CoinGeckoMarketData.fromJson(Map<String, dynamic> json) {
@@ -142,6 +145,9 @@ class CoinGeckoMarketData {
           (json['atl_change_percentage'] as num?)?.toDouble() ?? 0.0,
       atlDate: _parseDateTime(json['atl_date']),
       lastUpdated: _parseDateTime(json['last_updated']),
+      sparkline: (json['sparkline_in_7d']?['price'] as List<dynamic>?)
+          ?.map((e) => (e as num).toDouble())
+          .toList(),
     );
   }
 
@@ -185,6 +191,9 @@ class CoinGeckoMarketData {
       'atl_change_percentage': atlChangePercentage,
       'atl_date': atlDate.toIso8601String(),
       'last_updated': lastUpdated.toIso8601String(),
+      'sparkline_in_7d': {
+        'price': sparkline,
+      },
     };
   }
 }

@@ -75,7 +75,9 @@ class Desktop extends StatelessWidget {
                             walletAddress: wallet.address,
                             walletName: wallet.walletName,
                             ovrCoinSymbol: wallet.currencySymbol,
-                            ovrWalletBalance: wallet.balance.toStringAsFixed(8),
+                            ovrWalletBalance: wallet.balance == 0
+                                ? '0'
+                                : wallet.balance.toStringAsFixed(8),
                             ovrLastTransactionID: transactionId,
                             ovrLastTransactionValue: transactionValue,
                             ovrTimestamp: timestamp,
@@ -213,8 +215,11 @@ class Mobile extends StatelessWidget {
                                       walletType: currentWallet.walletType,
                                       ovrCoinSymbol:
                                           currentWallet.currencySymbol,
-                                      ovrWalletBalance: currentWallet.balance
-                                          .toStringAsFixed(8),
+                                      ovrWalletBalance:
+                                          currentWallet.balance == 0
+                                              ? '0'
+                                              : currentWallet.balance
+                                                  .toStringAsFixed(8),
                                       ovrLastTransactionID: transactionId,
                                       ovrLastTransactionValue: transactionValue,
                                       ovrTimestamp: timestamp,
