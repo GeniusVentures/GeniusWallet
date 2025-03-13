@@ -176,7 +176,7 @@ class MarketsScreen extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Center(
-                  child: CryptoSimpleChart(
+                  child: CryptoSparkLineChart(
                     title: coin.name,
                     iconPath: data.imageUrl,
                     currentPrice: data.currentPrice,
@@ -184,6 +184,7 @@ class MarketsScreen extends StatelessWidget {
                     low24h: data.low24h,
                     priceChangePercent: data.priceChangePercentage24h,
                     iconSize: 32,
+                    sparkline: data.sparkline,
                   ),
                 ),
               ),

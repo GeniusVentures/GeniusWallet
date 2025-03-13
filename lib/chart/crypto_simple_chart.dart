@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -6,22 +5,24 @@ import 'package:genius_wallet/app/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:intl/intl.dart';
 
-class CryptoSimpleChart extends StatelessWidget {
+class CryptoSparkLineChart extends StatelessWidget {
   final String title;
   final String? iconPath;
   final double high24h;
   final double low24h;
   final double currentPrice;
   final double priceChangePercent;
+  final List<double>? sparkline; // New data source
   final double? iconSize;
 
-  const CryptoSimpleChart({
+  const CryptoSparkLineChart({
     Key? key,
     required this.title,
     required this.high24h,
     required this.low24h,
     required this.currentPrice,
     required this.priceChangePercent,
+    this.sparkline,
     this.iconSize,
     this.iconPath,
   }) : super(key: key);
@@ -29,22 +30,16 @@ class CryptoSimpleChart extends StatelessWidget {
   Color get priceColor =>
       priceChangePercent >= 0 ? Colors.greenAccent : Colors.redAccent;
 
-  List<FlSpot> getGeneratedChartData() {
-    Random random = Random();
-    List<FlSpot> spots = [];
-    double range = high24h - low24h;
-    double basePrice = low24h;
-
-    for (int i = 0; i < 24; i++) {
-      double time = i.toDouble();
-      double fluctuation =
-          (random.nextDouble() - 0.5) * range * 0.2; // ±10% fluctuation
-      double price = basePrice +
-          ((range * (i / 24.0)) * (priceChangePercent >= 0 ? 1 : -1)) +
-          fluctuation;
-      spots.add(FlSpot(time, price));
+  /// Converts sparkline data into FlSpot points for the chart
+  List<FlSpot> getSparklineChartData() {
+    if (sparkline == null || sparkline!.isEmpty) {
+      return [FlSpot(0, 0)];
     }
-    return spots;
+
+    return List.generate(
+      sparkline!.length,
+      (index) => FlSpot(index.toDouble(), sparkline![index]),
+    );
   }
 
   @override
@@ -62,7 +57,6 @@ class CryptoSimpleChart extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Icon centered vertically for both rows
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -70,24 +64,23 @@ class CryptoSimpleChart extends StatelessWidget {
           ],
         ),
         const SizedBox(width: 8),
-
-        // Chart & text content
         Expanded(
           child: Column(
             children: [
-              // First Row: Title on the left, Change Percentage on the right
+              // First Row: Title and % Change
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Flexible(
-                      child: AutoSizeText(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: GeniusWalletColors.gray500,
+                    child: AutoSizeText(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: GeniusWalletColors.gray500,
+                      ),
+                      maxLines: 1,
                     ),
-                    maxLines: 1,
-                  )),
+                  ),
                   AutoSizeText(
                     "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
                     style: TextStyle(
@@ -99,8 +92,7 @@ class CryptoSimpleChart extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 2),
-
-              // Second Row: Current Price on the left, Chart on the right
+              // Second Row: Price and Chart
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -112,13 +104,13 @@ class CryptoSimpleChart extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 70, // Adjust as needed
+                    width: 70,
                     height: 15,
                     child: LineChart(
                       LineChartData(
                         lineBarsData: [
                           LineChartBarData(
-                            spots: getGeneratedChartData(),
+                            spots: getSparklineChartData(),
                             isCurved: true,
                             color: priceColor,
                             barWidth: 2,
@@ -137,8 +129,7 @@ class CryptoSimpleChart extends StatelessWidget {
                         ),
                         gridData: const FlGridData(show: false),
                         borderData: FlBorderData(show: false),
-                        lineTouchData: const LineTouchData(
-                            enabled: false), // No interactivity
+                        lineTouchData: const LineTouchData(enabled: false),
                       ),
                     ),
                   ),

@@ -79,13 +79,14 @@ class DashboardMarkets extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: CryptoSimpleChart(
+                            child: CryptoSparkLineChart(
                               title: coin.name,
                               iconPath: data.imageUrl,
                               currentPrice: data.currentPrice,
                               high24h: data.high24h,
                               low24h: data.low24h,
                               priceChangePercent: data.priceChangePercentage24h,
+                              sparkline: data.sparkline,
                             ),
                           ),
                         ),

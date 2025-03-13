@@ -9,6 +9,7 @@ import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
@@ -30,6 +31,7 @@ import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/web/web_view_screen.dart';
 import 'package:genius_wallet/widgets/components/toast/toast_manager.dart';
 import 'package:genius_wallet/widgets/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
@@ -336,9 +338,11 @@ final geniusWalletRouter = GoRouter(
       GoRoute(
         path: '/web',
         builder: ((context, state) {
-          return const ResponsiveOverlay(
-            selectedScreen: NavigationScreen.web,
-          );
+          final WebViewExtras extras = state.extra != null
+              ? state.extra as WebViewExtras
+              : WebViewExtras();
+          return WebViewScreen(
+              url: extras.url, includeBackButton: extras.includeBackButton);
         }),
       ),
     ...LandingRoutes().landingRoutes,
