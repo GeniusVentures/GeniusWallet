@@ -5,19 +5,6 @@ include(../../cmake/Utilities.cmake)
 include(../../cmake/CommonCompilerOptions.cmake)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
-
-    # set(GTest_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/lib/cmake/GTest")
-    # set(GTest_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/GTest/include")
-    # find_package(GTest CONFIG REQUIRED)
-    # include_directories(${GTest_INCLUDE_DIR})
-
-    TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
-    target_link_libraries(${BINARY_NAME} PRIVATE
-        wallet_core_rs
-        TrezorCrypto
-        ws2_32 userenv ntdll
-    )
-
     set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
     set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
     set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
@@ -80,6 +67,14 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
+if(NOT CMAKE_SKIP_THIRD_PARTY)
+	TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
+	target_link_libraries(${BINARY_NAME} PRIVATE
+		wallet_core_rs
+		TrezorCrypto
+		ws2_32 userenv ntdll
+	)
+endif()
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
