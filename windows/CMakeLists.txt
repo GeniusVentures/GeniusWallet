@@ -5,6 +5,43 @@ cmake_minimum_required(VERSION 3.18)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded" CACHE STRING "Use /MT for static runtime" FORCE)
 project(genius_wallet LANGUAGES CXX)
 
+# ******************** Add non-flutter / breaking dependencies under this if  
+if(NOT CMAKE_SKIP_THIRD_PARTY)
+
+  # Define build configuration option.
+  #set(CMAKE_BUILD_TYPE "Release")
+  get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  message("CMAKE ARGS: $ENV{CMAKE_ARGUMENTS}")
+  if(DEFINED ENV{CMAKE_ARGUMENTS})
+      string(REGEX MATCH "-DCMAKE_BUILD_TYPE=([^ ]+)" _match "$ENV{CMAKE_ARGUMENTS}")
+      if(_match)
+            set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
+            set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
+      endif()
+  endif()
+
+  # Fallback to Debug if still not set
+  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
+    set(BUILD_TYPE_SEARCH "Debug")
+  endif()
+
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release")
+
+  # if(IS_MULTICONFIG)
+  #   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
+  #     CACHE STRING "" FORCE)
+  #     set(CMAKE_BUILD_TYPE "$ENV{CONFIGURATION}" CACHE STRING "Build type for single-config compatibility" FORCE)
+  # else()
+  #   if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  #     set(CMAKE_BUILD_TYPE "Debug" CACHE
+  #       STRING "Flutter build mode" FORCE)
+  #     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+  #       "Debug" "Profile" "Release")
+  #   endif()
+  # endif()
+endif()
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "genius_wallet")
@@ -102,39 +139,3 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   COMPONENT Runtime)
 
 
-# ******************** Add non-flutter / breaking dependencies under this if  
-if(NOT CMAKE_SKIP_THIRD_PARTY)
-
-  # Define build configuration option.
-  #set(CMAKE_BUILD_TYPE "Release")
-  get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-  message("CMAKE ARGS: $ENV{CMAKE_ARGUMENTS}")
-  if(DEFINED ENV{CMAKE_ARGUMENTS})
-      string(REGEX MATCH "-DCMAKE_BUILD_TYPE=([^ ]+)" _match "$ENV{CMAKE_ARGUMENTS}")
-      if(_match)
-            set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
-            set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
-      endif()
-  endif()
-
-  # Fallback to Debug if still not set
-  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
-    set(BUILD_TYPE_SEARCH "Debug")
-  endif()
-
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release")
-
-  # if(IS_MULTICONFIG)
-  #   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
-  #     CACHE STRING "" FORCE)
-  #     set(CMAKE_BUILD_TYPE "$ENV{CONFIGURATION}" CACHE STRING "Build type for single-config compatibility" FORCE)
-  # else()
-  #   if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  #     set(CMAKE_BUILD_TYPE "Debug" CACHE
-  #       STRING "Flutter build mode" FORCE)
-  #     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-  #       "Debug" "Profile" "Release")
-  #   endif()
-  # endif()
-endif()
