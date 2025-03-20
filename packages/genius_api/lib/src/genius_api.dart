@@ -151,30 +151,47 @@ class GeniusApi {
     try {
       // Get the directory to store files
       final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/dev_config.json';
-
-      print(
-          'Application documents directory: ${directory.path}'); // Log the directory path
-
-      // Load the asset file
+      final dirPath = directory.path;
+      print('Application documents directory: $dirPath');
+      
+      // Copy dev_config.json
       final jsonString = await rootBundle.loadString('assets/dev_config.json');
-      print('Loaded JSON string: $jsonString'); // Log the content of the JSON
-
-      // Write the file to the writable directory
-      final file = File(filePath);
-      await file.writeAsString(jsonString);
-      print('File written to: $filePath'); // Log the file path after writing
-
-      // Verify the file was written correctly
-      final writtenFileContent = await file.readAsString();
-      print(
-          'Content of the written file: $writtenFileContent'); // Log the written file content
-
+      final jsonFile = File('$dirPath/dev_config.json');
+      await jsonFile.writeAsString(jsonString);
+      print('dev_config.json written to: ${jsonFile.path}');
+      
+      // Copy model.mnn
+      final modelBytes = await rootBundle.load('assets/model.mnn');
+      final modelFile = File('$dirPath/model.mnn');
+      await modelFile.writeAsBytes(modelBytes.buffer.asUint8List());
+      print('model.mnn written to: ${modelFile.path}');
+      
+      // Copy data directory contents
+      // Copy ballet.data
+      final balletBytes = await rootBundle.load('assets/data/ballet.data');
+      final balletDir = Directory('$dirPath/data');
+      if (!await balletDir.exists()) {
+        await balletDir.create(recursive: true);
+      }
+      final balletFile = File('$dirPath/data/ballet.data');
+      await balletFile.writeAsBytes(balletBytes.buffer.asUint8List());
+      print('ballet.data written to: ${balletFile.path}');
+      
+      // Copy frisbee3.data
+      final frisbeeBytes = await rootBundle.load('assets/data/frisbee3.data');
+      final frisbeeFile = File('$dirPath/data/frisbee3.data');
+      await frisbeeFile.writeAsBytes(frisbeeBytes.buffer.asUint8List());
+      print('frisbee3.data written to: ${frisbeeFile.path}');
+      
+      // Verify files were written correctly
+      final writtenJsonContent = await jsonFile.readAsString();
+      print('Content of the written json file: $writtenJsonContent');
+      
       // Return the directory path for use in FFI
-      return '${directory.path}/';
+      return dirPath + '/';
     } catch (e) {
       // Log any error that occurs
-      print('Error in copyJsonToWritableDirectory: $e');
+      print('Error in copyAssetsToWritableDirectory: $e');
       rethrow;
     }
   }
