@@ -5,7 +5,6 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/overlay/desktop_overlay.dart';
 import 'package:genius_wallet/app/widgets/overlay/mobile_overlay.dart';
-import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/events/view/events_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';

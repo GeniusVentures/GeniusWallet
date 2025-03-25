@@ -151,7 +151,6 @@ class _HorizontalWalletsScrollviewState
                             const SizedBox(width: 16),
                           ],
                           WalletContainerButton(
-                            width: 250,
                             onPressed: () =>
                                 context.push('/landing_screen', extra: true),
                             child: const Center(
@@ -249,7 +248,6 @@ class _HorizontalWalletsScrollviewState
 class WalletContainerButton extends StatelessWidget {
   final Widget child; // The content inside the button
   final VoidCallback? onPressed; // The callback for button press
-  final double width; // Customizable width
   final double borderRadius; // Border radius
   final Color color; // Background color
 
@@ -257,15 +255,22 @@ class WalletContainerButton extends StatelessWidget {
     Key? key,
     required this.child,
     required this.onPressed,
-    this.width = 330.0,
     this.borderRadius = GeniusWalletConsts.borderRadiusCard,
     this.color = GeniusWalletColors.deepBlueCardColor, // Default color
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    bool is3Column = width > 1500;
+    bool is2Column = width > 1150;
+    final double buttonWidth = is3Column
+        ? 365
+        : is2Column
+            ? 425
+            : 300;
     return SizedBox(
-      width: width,
+      width: buttonWidth,
       child: MaterialButton(
         shape: ContinuousRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
