@@ -8,6 +8,7 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
+import 'package:genius_wallet/dashboard/chart/dashboard_holdings_progress_list.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
@@ -286,10 +287,18 @@ class ContributionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DashboardViewContainer(
-        child: Flexible(
-            child: AutoSizeText('Contributions - Coming Soon',
-                style: TextStyle(color: Colors.grey))));
+    return const DashboardScrollContainer(
+        child: DashboardHoldingsProgressList(
+      holdings: {
+        'BTC': 40,
+        'ETH': 25,
+        'USDT': 15,
+        'BNB': 10,
+        'XRP': 5,
+        'ADA': 3,
+        'DOT': 2,
+      },
+    ));
   }
 }
 
