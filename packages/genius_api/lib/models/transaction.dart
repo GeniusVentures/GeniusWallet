@@ -7,9 +7,16 @@ enum TransactionType {
   transfer,
   mint,
   escrow,
-  process;
+  process,
+  escrowRelease;
 
   static TransactionType fromString(String value) {
+    // Special case for escrow-release
+    if (value == 'escrow-release') {
+      return TransactionType.escrowRelease;
+    }
+    
+    // Handle other cases normally
     return TransactionType.values.firstWhere(
       (e) => e.toString() == value,
       orElse: () => throw ArgumentError('Invalid transaction: $value'),
@@ -18,10 +25,21 @@ enum TransactionType {
 
   @override
   String toString() {
+    // Special case for escrowRelease
+    if (this == TransactionType.escrowRelease) {
+      return 'escrow-release';
+    }
+    
+    // Default behavior for other enum values
     return name;
   }
 
   String toCapitalizedString() {
+    // Handle escrowRelease special case
+    if (this == TransactionType.escrowRelease) {
+      return 'Escrow-Release';
+    }
+    
     return name[0].toUpperCase() + name.substring(1);
   }
 }

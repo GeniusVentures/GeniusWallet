@@ -542,14 +542,17 @@ class GeniusApi {
         // No recipients in this kind of transaction
       } else if (header.type == "transfer") {
         rawRecipients = TransferTx.fromBuffer(buffer).utxoParams.outputs;
+      } else if (header.type == "escrow-release") {
+          rawRecipients = EscrowReleaseTx.fromBuffer(buffer).utxoParams.outputs;
       }
+
 
       if (rawRecipients != null) {
         recipients.addAll(rawRecipients.map((output) => TransferRecipients(
             toAddr: output.destAddr
                 .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
                 .join(),
-            amount: output.encryptedAmount.join())));
+            amount: output.encryptedAmount.toString())));
       }
 
       Transaction trans = Transaction(

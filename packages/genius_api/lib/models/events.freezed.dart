@@ -25,12 +25,8 @@ mixin _$Events {
   String? get weekDay => throw _privateConstructorUsedError;
   String? get date => throw _privateConstructorUsedError;
 
-  /// Serializes this Events to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Events
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $EventsCopyWith<Events> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -52,8 +48,6 @@ class _$EventsCopyWithImpl<$Res, $Val extends Events>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Events
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -101,8 +95,6 @@ class __$$EventsImplCopyWithImpl<$Res>
       _$EventsImpl _value, $Res Function(_$EventsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Events
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -166,13 +158,11 @@ class _$EventsImpl implements _Events {
             (identical(other.date, date) || other.date == date));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, location, body, weekDay, date);
 
-  /// Create a copy of Events
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$EventsImplCopyWith<_$EventsImpl> get copyWith =>
@@ -203,11 +193,8 @@ abstract class _Events implements Events {
   String? get weekDay;
   @override
   String? get date;
-
-  /// Create a copy of Events
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$EventsImplCopyWith<_$EventsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
