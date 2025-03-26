@@ -23,6 +23,7 @@ class DAGStruct extends $pb.GeneratedMessage {
     $fixnum.Int64? timestamp,
     $core.List<$core.int>? uncleHash,
     $core.List<$core.int>? dataHash,
+    $core.List<$core.int>? signature,
   }) {
     final $result = create();
     if (type != null) {
@@ -46,6 +47,9 @@ class DAGStruct extends $pb.GeneratedMessage {
     if (dataHash != null) {
       $result.dataHash = dataHash;
     }
+    if (signature != null) {
+      $result.signature = signature;
+    }
     return $result;
   }
   DAGStruct._() : super();
@@ -60,6 +64,7 @@ class DAGStruct extends $pb.GeneratedMessage {
     ..aInt64(5, _omitFieldNames ? '' : 'timestamp')
     ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'uncleHash', $pb.PbFieldType.OY)
     ..a<$core.List<$core.int>>(7, _omitFieldNames ? '' : 'dataHash', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(8, _omitFieldNames ? '' : 'signature', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
 
@@ -146,6 +151,15 @@ class DAGStruct extends $pb.GeneratedMessage {
   $core.bool hasDataHash() => $_has(6);
   @$pb.TagNumber(7)
   void clearDataHash() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.List<$core.int> get signature => $_getN(7);
+  @$pb.TagNumber(8)
+  set signature($core.List<$core.int> v) { $_setBytes(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasSignature() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearSignature() => clearField(8);
 }
 
 class DAGWrapper extends $pb.GeneratedMessage {
@@ -280,7 +294,7 @@ class TransferUTXOInput extends $pb.GeneratedMessage {
 
 class TransferOutput extends $pb.GeneratedMessage {
   factory TransferOutput({
-    $core.List<$core.int>? encryptedAmount,
+    $fixnum.Int64? encryptedAmount,
     $core.List<$core.int>? destAddr,
   }) {
     final $result = create();
@@ -297,7 +311,7 @@ class TransferOutput extends $pb.GeneratedMessage {
   factory TransferOutput.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TransferOutput', package: const $pb.PackageName(_omitMessageNames ? '' : 'SGTransaction'), createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'encryptedAmount', $pb.PbFieldType.OY)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'encryptedAmount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'destAddr', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
@@ -324,9 +338,9 @@ class TransferOutput extends $pb.GeneratedMessage {
   static TransferOutput? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$core.int> get encryptedAmount => $_getN(0);
+  $fixnum.Int64 get encryptedAmount => $_getI64(0);
   @$pb.TagNumber(1)
-  set encryptedAmount($core.List<$core.int> v) { $_setBytes(0, v); }
+  set encryptedAmount($fixnum.Int64 v) { $_setInt64(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasEncryptedAmount() => $_has(0);
   @$pb.TagNumber(1)
@@ -686,7 +700,7 @@ class EscrowTx extends $pb.GeneratedMessage {
     UTXOTxParams? utxoParams,
     $fixnum.Int64? amount,
     $core.List<$core.int>? devAddr,
-    $core.double? peersCut,
+    $fixnum.Int64? peersCut,
   }) {
     final $result = create();
     if (dagStruct != null) {
@@ -715,7 +729,7 @@ class EscrowTx extends $pb.GeneratedMessage {
     ..aOM<UTXOTxParams>(2, _omitFieldNames ? '' : 'utxoParams', subBuilder: UTXOTxParams.create)
     ..a<$fixnum.Int64>(3, _omitFieldNames ? '' : 'amount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'devAddr', $pb.PbFieldType.OY)
-    ..a<$core.double>(5, _omitFieldNames ? '' : 'peersCut', $pb.PbFieldType.OF)
+    ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'peersCut', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false
   ;
 
@@ -781,13 +795,137 @@ class EscrowTx extends $pb.GeneratedMessage {
   void clearDevAddr() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.double get peersCut => $_getN(4);
+  $fixnum.Int64 get peersCut => $_getI64(4);
   @$pb.TagNumber(5)
-  set peersCut($core.double v) { $_setFloat(4, v); }
+  set peersCut($fixnum.Int64 v) { $_setInt64(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasPeersCut() => $_has(4);
   @$pb.TagNumber(5)
   void clearPeersCut() => clearField(5);
+}
+
+class EscrowReleaseTx extends $pb.GeneratedMessage {
+  factory EscrowReleaseTx({
+    DAGStruct? dagStruct,
+    UTXOTxParams? utxoParams,
+    $fixnum.Int64? releaseAmount,
+    $core.String? releaseAddress,
+    $core.String? escrowSource,
+    $core.String? originalEscrowHash,
+  }) {
+    final $result = create();
+    if (dagStruct != null) {
+      $result.dagStruct = dagStruct;
+    }
+    if (utxoParams != null) {
+      $result.utxoParams = utxoParams;
+    }
+    if (releaseAmount != null) {
+      $result.releaseAmount = releaseAmount;
+    }
+    if (releaseAddress != null) {
+      $result.releaseAddress = releaseAddress;
+    }
+    if (escrowSource != null) {
+      $result.escrowSource = escrowSource;
+    }
+    if (originalEscrowHash != null) {
+      $result.originalEscrowHash = originalEscrowHash;
+    }
+    return $result;
+  }
+  EscrowReleaseTx._() : super();
+  factory EscrowReleaseTx.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory EscrowReleaseTx.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'EscrowReleaseTx', package: const $pb.PackageName(_omitMessageNames ? '' : 'SGTransaction'), createEmptyInstance: create)
+    ..aOM<DAGStruct>(1, _omitFieldNames ? '' : 'dagStruct', subBuilder: DAGStruct.create)
+    ..aOM<UTXOTxParams>(2, _omitFieldNames ? '' : 'utxoParams', subBuilder: UTXOTxParams.create)
+    ..a<$fixnum.Int64>(3, _omitFieldNames ? '' : 'releaseAmount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOS(4, _omitFieldNames ? '' : 'releaseAddress')
+    ..aOS(5, _omitFieldNames ? '' : 'escrowSource')
+    ..aOS(6, _omitFieldNames ? '' : 'originalEscrowHash')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  EscrowReleaseTx clone() => EscrowReleaseTx()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  EscrowReleaseTx copyWith(void Function(EscrowReleaseTx) updates) => super.copyWith((message) => updates(message as EscrowReleaseTx)) as EscrowReleaseTx;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EscrowReleaseTx create() => EscrowReleaseTx._();
+  EscrowReleaseTx createEmptyInstance() => create();
+  static $pb.PbList<EscrowReleaseTx> createRepeated() => $pb.PbList<EscrowReleaseTx>();
+  @$core.pragma('dart2js:noInline')
+  static EscrowReleaseTx getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EscrowReleaseTx>(create);
+  static EscrowReleaseTx? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  DAGStruct get dagStruct => $_getN(0);
+  @$pb.TagNumber(1)
+  set dagStruct(DAGStruct v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasDagStruct() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDagStruct() => clearField(1);
+  @$pb.TagNumber(1)
+  DAGStruct ensureDagStruct() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  UTXOTxParams get utxoParams => $_getN(1);
+  @$pb.TagNumber(2)
+  set utxoParams(UTXOTxParams v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasUtxoParams() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUtxoParams() => clearField(2);
+  @$pb.TagNumber(2)
+  UTXOTxParams ensureUtxoParams() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get releaseAmount => $_getI64(2);
+  @$pb.TagNumber(3)
+  set releaseAmount($fixnum.Int64 v) { $_setInt64(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasReleaseAmount() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReleaseAmount() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get releaseAddress => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set releaseAddress($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasReleaseAddress() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearReleaseAddress() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get escrowSource => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set escrowSource($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasEscrowSource() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearEscrowSource() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get originalEscrowHash => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set originalEscrowHash($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasOriginalEscrowHash() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearOriginalEscrowHash() => clearField(6);
 }
 
 

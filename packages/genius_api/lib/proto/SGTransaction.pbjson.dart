@@ -24,6 +24,7 @@ const DAGStruct$json = {
     {'1': 'timestamp', '3': 5, '4': 1, '5': 3, '10': 'timestamp'},
     {'1': 'uncle_hash', '3': 6, '4': 1, '5': 12, '10': 'uncleHash'},
     {'1': 'data_hash', '3': 7, '4': 1, '5': 12, '10': 'dataHash'},
+    {'1': 'signature', '3': 8, '4': 1, '5': 12, '10': 'signature'},
   ],
 };
 
@@ -32,7 +33,8 @@ final $typed_data.Uint8List dAGStructDescriptor = $convert.base64Decode(
     'CglEQUdTdHJ1Y3QSEgoEdHlwZRgBIAEoCVIEdHlwZRIjCg1wcmV2aW91c19oYXNoGAIgASgMUg'
     'xwcmV2aW91c0hhc2gSHwoLc291cmNlX2FkZHIYAyABKAxSCnNvdXJjZUFkZHISFAoFbm9uY2UY'
     'BCABKARSBW5vbmNlEhwKCXRpbWVzdGFtcBgFIAEoA1IJdGltZXN0YW1wEh0KCnVuY2xlX2hhc2'
-    'gYBiABKAxSCXVuY2xlSGFzaBIbCglkYXRhX2hhc2gYByABKAxSCGRhdGFIYXNo');
+    'gYBiABKAxSCXVuY2xlSGFzaBIbCglkYXRhX2hhc2gYByABKAxSCGRhdGFIYXNoEhwKCXNpZ25h'
+    'dHVyZRgIIAEoDFIJc2lnbmF0dXJl');
 
 @$core.Deprecated('Use dAGWrapperDescriptor instead')
 const DAGWrapper$json = {
@@ -67,14 +69,14 @@ final $typed_data.Uint8List transferUTXOInputDescriptor = $convert.base64Decode(
 const TransferOutput$json = {
   '1': 'TransferOutput',
   '2': [
-    {'1': 'encrypted_amount', '3': 1, '4': 1, '5': 12, '10': 'encryptedAmount'},
+    {'1': 'encrypted_amount', '3': 1, '4': 1, '5': 4, '10': 'encryptedAmount'},
     {'1': 'dest_addr', '3': 2, '4': 1, '5': 12, '10': 'destAddr'},
   ],
 };
 
 /// Descriptor for `TransferOutput`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List transferOutputDescriptor = $convert.base64Decode(
-    'Cg5UcmFuc2Zlck91dHB1dBIpChBlbmNyeXB0ZWRfYW1vdW50GAEgASgMUg9lbmNyeXB0ZWRBbW'
+    'Cg5UcmFuc2Zlck91dHB1dBIpChBlbmNyeXB0ZWRfYW1vdW50GAEgASgEUg9lbmNyeXB0ZWRBbW'
     '91bnQSGwoJZGVzdF9hZGRyGAIgASgMUghkZXN0QWRkcg==');
 
 @$core.Deprecated('Use uTXOTxParamsDescriptor instead')
@@ -154,7 +156,7 @@ const EscrowTx$json = {
     {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
     {'1': 'amount', '3': 3, '4': 1, '5': 4, '10': 'amount'},
     {'1': 'dev_addr', '3': 4, '4': 1, '5': 12, '10': 'devAddr'},
-    {'1': 'peers_cut', '3': 5, '4': 1, '5': 2, '10': 'peersCut'},
+    {'1': 'peers_cut', '3': 5, '4': 1, '5': 4, '10': 'peersCut'},
   ],
 };
 
@@ -163,5 +165,27 @@ final $typed_data.Uint8List escrowTxDescriptor = $convert.base64Decode(
     'CghFc2Nyb3dUeBI3CgpkYWdfc3RydWN0GAEgASgLMhguU0dUcmFuc2FjdGlvbi5EQUdTdHJ1Y3'
     'RSCWRhZ1N0cnVjdBI8Cgt1dHhvX3BhcmFtcxgCIAEoCzIbLlNHVHJhbnNhY3Rpb24uVVRYT1R4'
     'UGFyYW1zUgp1dHhvUGFyYW1zEhYKBmFtb3VudBgDIAEoBFIGYW1vdW50EhkKCGRldl9hZGRyGA'
-    'QgASgMUgdkZXZBZGRyEhsKCXBlZXJzX2N1dBgFIAEoAlIIcGVlcnNDdXQ=');
+    'QgASgMUgdkZXZBZGRyEhsKCXBlZXJzX2N1dBgFIAEoBFIIcGVlcnNDdXQ=');
+
+@$core.Deprecated('Use escrowReleaseTxDescriptor instead')
+const EscrowReleaseTx$json = {
+  '1': 'EscrowReleaseTx',
+  '2': [
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
+    {'1': 'release_amount', '3': 3, '4': 1, '5': 4, '10': 'releaseAmount'},
+    {'1': 'release_address', '3': 4, '4': 1, '5': 9, '10': 'releaseAddress'},
+    {'1': 'escrow_source', '3': 5, '4': 1, '5': 9, '10': 'escrowSource'},
+    {'1': 'original_escrow_hash', '3': 6, '4': 1, '5': 9, '10': 'originalEscrowHash'},
+  ],
+};
+
+/// Descriptor for `EscrowReleaseTx`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List escrowReleaseTxDescriptor = $convert.base64Decode(
+    'Cg9Fc2Nyb3dSZWxlYXNlVHgSNwoKZGFnX3N0cnVjdBgBIAEoCzIYLlNHVHJhbnNhY3Rpb24uRE'
+    'FHU3RydWN0UglkYWdTdHJ1Y3QSPAoLdXR4b19wYXJhbXMYAiABKAsyGy5TR1RyYW5zYWN0aW9u'
+    'LlVUWE9UeFBhcmFtc1IKdXR4b1BhcmFtcxIlCg5yZWxlYXNlX2Ftb3VudBgDIAEoBFINcmVsZW'
+    'FzZUFtb3VudBInCg9yZWxlYXNlX2FkZHJlc3MYBCABKAlSDnJlbGVhc2VBZGRyZXNzEiMKDWVz'
+    'Y3Jvd19zb3VyY2UYBSABKAlSDGVzY3Jvd1NvdXJjZRIwChRvcmlnaW5hbF9lc2Nyb3dfaGFzaB'
+    'gGIAEoCVISb3JpZ2luYWxFc2Nyb3dIYXNo');
 
