@@ -68,4 +68,5 @@ const _$TransactionTypeEnumMap = {
   TransactionType.mint: 'mint',
   TransactionType.escrow: 'escrow',
   TransactionType.process: 'process',
+  TransactionType.escrowRelease: 'escrowRelease',
 };

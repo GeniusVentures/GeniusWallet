@@ -24,12 +24,8 @@ mixin _$SGNUSConnection {
   String get walletAddress => throw _privateConstructorUsedError;
   bool get isConnected => throw _privateConstructorUsedError;
 
-  /// Serializes this SGNUSConnection to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SGNUSConnection
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SGNUSConnectionCopyWith<SGNUSConnection> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -53,8 +49,6 @@ class _$SGNUSConnectionCopyWithImpl<$Res, $Val extends SGNUSConnection>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SGNUSConnection
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -98,8 +92,6 @@ class __$$SGNUSConnectionImplCopyWithImpl<$Res>
       _$SGNUSConnectionImpl _value, $Res Function(_$SGNUSConnectionImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of SGNUSConnection
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -160,14 +152,12 @@ class _$SGNUSConnectionImpl implements _SGNUSConnection {
                 other.isConnected == isConnected));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, sgnusAddress, walletAddress, isConnected);
 
-  /// Create a copy of SGNUSConnection
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SGNUSConnectionImplCopyWith<_$SGNUSConnectionImpl> get copyWith =>
@@ -197,11 +187,8 @@ abstract class _SGNUSConnection implements SGNUSConnection {
   String get walletAddress;
   @override
   bool get isConnected;
-
-  /// Create a copy of SGNUSConnection
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SGNUSConnectionImplCopyWith<_$SGNUSConnectionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
