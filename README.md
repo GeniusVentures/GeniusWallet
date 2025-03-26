@@ -46,7 +46,7 @@ You're going to be prompted a run option. For example:
 
 ### Release
 ``` 
-CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --release
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Release" flutter build <ostype> --release
 ```
 
 ### Debug (default)
