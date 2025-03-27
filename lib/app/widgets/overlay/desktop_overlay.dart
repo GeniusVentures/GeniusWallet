@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/destinations.dart';
+import 'package:genius_wallet/app/widgets/test/dev_overrides.dart';
+import 'package:genius_wallet/app/widgets/test/test_transaction_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class DesktopOverlay extends StatelessWidget {
@@ -50,10 +52,17 @@ class _DesktopSideRail extends StatelessWidget {
             selectedIndex: selectedIndex,
             leading: Padding(
               padding: const EdgeInsets.only(top: 16, bottom: 20, left: 4),
-              child: Image.asset(
-                'assets/images/geniusappbarlogo.png',
-                package: 'genius_wallet',
-              ),
+              child: Column(children: [
+                // FOR TESTING TRANSACTION STREAMING
+                if (isWalletPKBypass()) ...[
+                  const TestTransactionButton(),
+                  const SizedBox(height: 20)
+                ],
+                Image.asset(
+                  'assets/images/geniusappbarlogo.png',
+                  package: 'genius_wallet',
+                )
+              ]),
             ),
           ),
         ),

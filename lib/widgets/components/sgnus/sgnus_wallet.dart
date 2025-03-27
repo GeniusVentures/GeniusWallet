@@ -28,8 +28,7 @@ class SGNUSWalletState extends State<SGNUSWallet> {
 
         if (connection.isConnected) {
           return WalletPreview(
-              ovrWalletBalance:
-                  geniusApi.getMinionsBalance(),
+              ovrWalletBalance: geniusApi.getMinionsBalance(),
               walletAddress: connection.sgnusAddress,
               walletType: WalletType.privateKey,
               ovrCoinSymbol: 'minions',

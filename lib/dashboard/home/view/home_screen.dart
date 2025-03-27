@@ -3,10 +3,12 @@ import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/controllers/transactions_controller.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/app/widgets/test/test_transaction_button.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_holdings_progress_list.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
@@ -194,23 +196,35 @@ class OverviewDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardScrollContainer(child: BlocBuilder<AppBloc, AppState>(
-      builder: (context, state) {
-        return WalletsOverview(
-          geniusApi: context.read<GeniusApi>(),
-          account: state.account,
-          totalBalance: WalletUtils.totalBalance(
-            context.read<GeniusApi>(),
-            state.wallets,
-          ).toStringAsFixed(5),
-          numberOfWallets: state.wallets.length.toString(),
-          numberOfTransactions:
-              (WalletUtils.getTransactionNumber(state.wallets) +
-                      state.transactions.length)
-                  .toString(),
-        );
-      },
-    ));
+    final txController = context.read<GeniusApi>().getTransactionsController();
+
+    return DashboardScrollContainer(
+      child: StreamBuilder<List<Transaction>>(
+        stream: txController.stream,
+        builder: (context, snapshot) {
+          final controllerTransactions = snapshot.data ?? [];
+
+          return BlocBuilder<AppBloc, AppState>(
+            builder: (context, state) {
+              final totalTxCount =
+                  WalletUtils.getTransactionNumber(state.wallets) +
+                      controllerTransactions.length;
+
+              return WalletsOverview(
+                geniusApi: context.read<GeniusApi>(),
+                account: state.account,
+                totalBalance: WalletUtils.totalBalance(
+                  context.read<GeniusApi>(),
+                  state.wallets,
+                ).toStringAsFixed(5),
+                numberOfWallets: state.wallets.length.toString(),
+                numberOfTransactions: totalTxCount.toString(),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -233,7 +247,7 @@ class TransactionsDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return DashboardScrollContainer(
         child: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-      return TransactionsSlimView(transactions: state.transactions);
+      return const TransactionsSlimView();
     }));
   }
 }

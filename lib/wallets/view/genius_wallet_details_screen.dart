@@ -158,10 +158,9 @@ class View extends StatelessWidget {
                               child: LayoutBuilder(
                                 builder: (BuildContext context,
                                     BoxConstraints constraints) {
-                                  return DashboardScrollContainer(
+                                  return const DashboardScrollContainer(
                                       child: TransactionsSlimView(
-                                          transactions: geniusApi
-                                              .getSGNUSTransactions()));
+                                          isShowOnlySGNUSTransactions: true));
                                 },
                               ),
                             ),

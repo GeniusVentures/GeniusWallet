@@ -10,3 +10,5 @@ class CheckIfUserExists extends AppEvent {}
 class FFITestEvent extends AppEvent {}
 
 class FetchAccount extends AppEvent {}
+
+class StreamSGNUSTransactions extends AppEvent {}

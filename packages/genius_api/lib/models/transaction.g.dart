@@ -34,6 +34,7 @@ _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
       coinSymbol: json['coinSymbol'] as String,
       transactionStatus:
           $enumDecode(_$TransactionStatusEnumMap, json['transactionStatus']),
+      isSGNUS: json['isSGNUS'] as bool?,
       type: $enumDecodeNullable(_$TransactionTypeEnumMap, json['type']),
     );
 
@@ -49,6 +50,7 @@ Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
       'coinSymbol': instance.coinSymbol,
       'transactionStatus':
           _$TransactionStatusEnumMap[instance.transactionStatus]!,
+      'isSGNUS': instance.isSGNUS,
       'type': _$TransactionTypeEnumMap[instance.type],
     };
 
