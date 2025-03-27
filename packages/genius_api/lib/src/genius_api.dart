@@ -474,11 +474,13 @@ class GeniusApi {
 
   Future<void> getWalletTransactions(String address) async {}
 
-  int getMinionsBalance() {
+  String getMinionsBalance() {
     if (!isSdkInitialized) {
-      return 0;
+      return "0";
     }
-    return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+    //return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+    final balance = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+    return balance.toString();
   }
 
   String getSGNUSBalance() {
@@ -565,7 +567,7 @@ class GeniusApi {
               ? TransactionDirection.sent
               : TransactionDirection.received,
           fees: '0',
-          coinSymbol: 'GNUS',
+          coinSymbol: 'minions',
           transactionStatus: TransactionStatus.completed,
           type: TransactionType.fromString(header.type));
 

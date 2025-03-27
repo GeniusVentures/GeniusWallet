@@ -110,7 +110,7 @@ class View extends StatelessWidget {
                                         children: [
                                           Flexible(
                                               child: AutoSizeText(
-                                            geniusApi.getSGNUSBalance(),
+                                            geniusApi.getMinionsBalance(),
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontFamily: 'Roboto',
@@ -123,7 +123,7 @@ class View extends StatelessWidget {
                                           )),
                                           const SizedBox(width: 8),
                                           const Text(
-                                            "GNUS",
+                                            "minions",
                                             style: TextStyle(
                                               overflow: TextOverflow.ellipsis,
                                               fontSize: 16.0,
