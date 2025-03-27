@@ -33,19 +33,6 @@ class LocalWalletStorage {
     final localWalletStorage =
         LocalWalletStorage._create(storageInstance, web3Instance);
     //await localWalletStorage.deleteAllWallets();
-    const walletPK = String.fromEnvironment('WALLET_PK', defaultValue: '');
-    if (walletPK.isNotEmpty) {
-      // cyan text
-      print('\x1B[36m** Manually importing wallet from variable\x1B[0m');
-      localWalletStorage.addWalletToController(Wallet(
-          walletName: 'Bypass Wallet',
-          currencySymbol: 'eth',
-          coinType: TWCoinType.TWCoinTypeEthereum,
-          balance: 0,
-          address: '0x6084a30B8CFe3fd27b0672b8fE740B9a8541403e',
-          walletType: WalletType.privateKey,
-          transactions: []));
-    }
     return localWalletStorage;
   }
 

@@ -15,7 +15,7 @@ enum TransactionType {
     if (value == 'escrow-release') {
       return TransactionType.escrowRelease;
     }
-    
+
     // Handle other cases normally
     return TransactionType.values.firstWhere(
       (e) => e.toString() == value,
@@ -29,7 +29,7 @@ enum TransactionType {
     if (this == TransactionType.escrowRelease) {
       return 'escrow-release';
     }
-    
+
     // Default behavior for other enum values
     return name;
   }
@@ -39,7 +39,7 @@ enum TransactionType {
     if (this == TransactionType.escrowRelease) {
       return 'Escrow-Release';
     }
-    
+
     return name[0].toUpperCase() + name.substring(1);
   }
 }
@@ -66,6 +66,7 @@ class Transaction with _$Transaction {
     required String fees,
     required String coinSymbol,
     required TransactionStatus transactionStatus,
+    bool? isSGNUS,
     TransactionType? type,
   }) = _Transaction;
 

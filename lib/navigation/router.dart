@@ -47,6 +47,7 @@ final geniusWalletRouter = GoRouter(
 
     if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
       appBloc.add(SubscribeToWallets());
+      appBloc.add(StreamSGNUSTransactions());
     }
 
     if (appBloc.state.accountStatus == AppStatus.initial) {

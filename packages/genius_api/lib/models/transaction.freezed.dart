@@ -184,6 +184,7 @@ mixin _$Transaction {
   String get fees => throw _privateConstructorUsedError;
   String get coinSymbol => throw _privateConstructorUsedError;
   TransactionStatus get transactionStatus => throw _privateConstructorUsedError;
+  bool? get isSGNUS => throw _privateConstructorUsedError;
   TransactionType? get type => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -207,6 +208,7 @@ abstract class $TransactionCopyWith<$Res> {
       String fees,
       String coinSymbol,
       TransactionStatus transactionStatus,
+      bool? isSGNUS,
       TransactionType? type});
 }
 
@@ -231,6 +233,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
     Object? fees = null,
     Object? coinSymbol = null,
     Object? transactionStatus = null,
+    Object? isSGNUS = freezed,
     Object? type = freezed,
   }) {
     return _then(_value.copyWith(
@@ -266,6 +269,10 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
           ? _value.transactionStatus
           : transactionStatus // ignore: cast_nullable_to_non_nullable
               as TransactionStatus,
+      isSGNUS: freezed == isSGNUS
+          ? _value.isSGNUS
+          : isSGNUS // ignore: cast_nullable_to_non_nullable
+              as bool?,
       type: freezed == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -291,6 +298,7 @@ abstract class _$$TransactionImplCopyWith<$Res>
       String fees,
       String coinSymbol,
       TransactionStatus transactionStatus,
+      bool? isSGNUS,
       TransactionType? type});
 }
 
@@ -313,6 +321,7 @@ class __$$TransactionImplCopyWithImpl<$Res>
     Object? fees = null,
     Object? coinSymbol = null,
     Object? transactionStatus = null,
+    Object? isSGNUS = freezed,
     Object? type = freezed,
   }) {
     return _then(_$TransactionImpl(
@@ -348,6 +357,10 @@ class __$$TransactionImplCopyWithImpl<$Res>
           ? _value.transactionStatus
           : transactionStatus // ignore: cast_nullable_to_non_nullable
               as TransactionStatus,
+      isSGNUS: freezed == isSGNUS
+          ? _value.isSGNUS
+          : isSGNUS // ignore: cast_nullable_to_non_nullable
+              as bool?,
       type: freezed == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -368,6 +381,7 @@ class _$TransactionImpl implements _Transaction {
       required this.fees,
       required this.coinSymbol,
       required this.transactionStatus,
+      this.isSGNUS,
       this.type})
       : _recipients = recipients;
 
@@ -397,11 +411,13 @@ class _$TransactionImpl implements _Transaction {
   @override
   final TransactionStatus transactionStatus;
   @override
+  final bool? isSGNUS;
+  @override
   final TransactionType? type;
 
   @override
   String toString() {
-    return 'Transaction(hash: $hash, fromAddress: $fromAddress, recipients: $recipients, timeStamp: $timeStamp, transactionDirection: $transactionDirection, fees: $fees, coinSymbol: $coinSymbol, transactionStatus: $transactionStatus, type: $type)';
+    return 'Transaction(hash: $hash, fromAddress: $fromAddress, recipients: $recipients, timeStamp: $timeStamp, transactionDirection: $transactionDirection, fees: $fees, coinSymbol: $coinSymbol, transactionStatus: $transactionStatus, isSGNUS: $isSGNUS, type: $type)';
   }
 
   @override
@@ -423,6 +439,7 @@ class _$TransactionImpl implements _Transaction {
                 other.coinSymbol == coinSymbol) &&
             (identical(other.transactionStatus, transactionStatus) ||
                 other.transactionStatus == transactionStatus) &&
+            (identical(other.isSGNUS, isSGNUS) || other.isSGNUS == isSGNUS) &&
             (identical(other.type, type) || other.type == type));
   }
 
@@ -438,6 +455,7 @@ class _$TransactionImpl implements _Transaction {
       fees,
       coinSymbol,
       transactionStatus,
+      isSGNUS,
       type);
 
   @JsonKey(ignore: true)
@@ -464,6 +482,7 @@ abstract class _Transaction implements Transaction {
       required final String fees,
       required final String coinSymbol,
       required final TransactionStatus transactionStatus,
+      final bool? isSGNUS,
       final TransactionType? type}) = _$TransactionImpl;
 
   factory _Transaction.fromJson(Map<String, dynamic> json) =
@@ -485,6 +504,8 @@ abstract class _Transaction implements Transaction {
   String get coinSymbol;
   @override
   TransactionStatus get transactionStatus;
+  @override
+  bool? get isSGNUS;
   @override
   TransactionType? get type;
   @override

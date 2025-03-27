@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
+import 'package:genius_api/controllers/sgnus_connection_controller.dart';
+import 'package:genius_api/controllers/transactions_controller.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
@@ -30,6 +32,7 @@ class GeniusApi {
   final LocalWalletStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   final SGNUSConnectionController _sgnusConnectionController;
+  final TransactionsController _transactionsController;
   late final String address;
   late final String jsonFilePath;
   bool isSdkInitialized = false;
@@ -38,7 +41,8 @@ class GeniusApi {
     required LocalWalletStorage secureStorage,
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt(),
-        _sgnusConnectionController = SGNUSConnectionController();
+        _sgnusConnectionController = SGNUSConnectionController(),
+        _transactionsController = TransactionsController();
 
   Future<void> requestPermissions() async {
     try {
@@ -60,6 +64,14 @@ class GeniusApi {
 
   BehaviorSubject<List<Wallet>> getWalletsController() {
     return _secureStorage.walletsController;
+  }
+
+  TransactionsController getTransactionsController() {
+    return _transactionsController;
+  }
+
+  Stream<List<Transaction>> getTransactionsStream() {
+    return getTransactionsController().stream;
   }
 
   SGNUSConnectionController getSGNUSController() {
@@ -485,7 +497,7 @@ class GeniusApi {
 
   String getSGNUSBalance() {
     if (!isSdkInitialized) {
-      return '';
+      return "0";
     }
     GeniusTokenValue tokenValue =
         ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalanceGNUS();
@@ -516,9 +528,9 @@ class GeniusApi {
     return String.fromCharCodes(charCodes);
   }
 
-  List<Transaction> getSGNUSTransactions() {
+  void streamSGNUSTransactions() {
     if (!isSdkInitialized) {
-      return [];
+      return;
     }
 
     var transactions =
@@ -545,9 +557,8 @@ class GeniusApi {
       } else if (header.type == "transfer") {
         rawRecipients = TransferTx.fromBuffer(buffer).utxoParams.outputs;
       } else if (header.type == "escrow-release") {
-          rawRecipients = EscrowReleaseTx.fromBuffer(buffer).utxoParams.outputs;
+        rawRecipients = EscrowReleaseTx.fromBuffer(buffer).utxoParams.outputs;
       }
-
 
       if (rawRecipients != null) {
         recipients.addAll(rawRecipients.map((output) => TransferRecipients(
@@ -569,6 +580,7 @@ class GeniusApi {
           fees: '0',
           coinSymbol: 'minions',
           transactionStatus: TransactionStatus.completed,
+          isSGNUS: true,
           type: TransactionType.fromString(header.type));
 
       return trans;
@@ -576,7 +588,8 @@ class GeniusApi {
 
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
 
-    return ret;
+    // Stream transactions to the UI
+    getTransactionsController().addTransactions(ret);
   }
 
   bool transferTokens(int amount, String address) {

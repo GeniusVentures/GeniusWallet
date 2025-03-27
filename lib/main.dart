@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/app/widgets/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -36,6 +37,9 @@ void main() async {
 
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
+  } else {
+    byPassSGNUSConnecton(geniusApi);
+    byPassWalletCreation(secureStorage);
   }
 
   /// Initialize window_manager only on **desktop**

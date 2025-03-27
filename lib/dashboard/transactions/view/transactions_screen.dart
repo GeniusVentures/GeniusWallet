@@ -11,28 +11,29 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-        child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height, // Minimum height
-            ),
-            child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Column(
-                  children: [
-                    SizedBox(
-                        height: GeniusBreakpoints.useDesktopLayout(context)
-                            ? MediaQuery.of(context).size.height - 30
-                            : MediaQuery.of(context).size.height - 200,
-                        width: 1342,
-                        child: BlocBuilder<AppBloc, AppState>(
-                            builder: (context, state) {
-                          return DashboardScrollContainer(
-                              child: TransactionsSlimView(
-                                  transactions: state.transactions));
-                        }))
-                  ],
-                ))));
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Container(
+          height: screenHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              // You can add a header or filter here if needed
+              Expanded(
+                child: BlocBuilder<AppBloc, AppState>(
+                  builder: (context, state) {
+                    return const DashboardScrollContainer(
+                      child: TransactionsSlimView(),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

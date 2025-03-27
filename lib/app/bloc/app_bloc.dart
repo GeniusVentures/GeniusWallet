@@ -21,6 +21,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<FFITestEvent>(_onFFITestEvent);
 
     on<FetchAccount>(_onFetchAccount);
+
+    on<StreamSGNUSTransactions>(_onStreamSGNUSTransactions);
   }
 
   Future<void> _onFetchAccount(FetchAccount event, Emitter emit) async {
@@ -48,22 +50,27 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       api.getWallets(),
       onData: (wallets) {
         return state.copyWith(
-          wallets: wallets,
-          subscribeToWalletStatus: AppStatus.loaded,
-          transactions: getTransactionsFrom(wallets),
-        );
+            wallets: wallets, subscribeToWalletStatus: AppStatus.loaded);
       },
     );
+    streamTransactionsFrom(state.wallets);
   }
 
-  /// Iterates through [wallets] and returns an aggregate lists of all [Transactions]
-  List<Transaction> getTransactionsFrom(List<Wallet> wallets) {
+  Future<void> _onStreamSGNUSTransactions(
+      StreamSGNUSTransactions event, Emitter emit) async {
+    api.streamSGNUSTransactions();
+    print('🎞️ Streaming SGNUS transactions...');
+  }
+
+  /// Iterates through [wallets] and aggregate a lists of all [Transactions] to stream to the UI.
+  void streamTransactionsFrom(List<Wallet> wallets) {
     final transactions = <Transaction>[];
+
     for (var wallet in wallets) {
       transactions.addAll(wallet.transactions);
     }
-    transactions.addAll(api.getSGNUSTransactions());
-    return transactions;
+
+    api.getTransactionsController().addTransactions(transactions);
   }
 
   FutureOr<void> _onCheckIfUserExists(
