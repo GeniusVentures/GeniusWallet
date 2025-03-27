@@ -42,6 +42,10 @@ void byPassWalletCreation(localWalletStorage) {
 }
 
 void addFakeTransactions(TransactionsController txController) {
+  if (!isWalletPKBypass()) {
+    return;
+  }
+
   print('\x1B[37m** Adding fake transactions\x1B[0m');
   txController.addTransactions([
     getFakeTransaction(),
