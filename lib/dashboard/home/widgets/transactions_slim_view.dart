@@ -85,6 +85,8 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           if (selectedFilter == 'All') return true;
           if (selectedFilter == 'Escrow' &&
               transaction.type == TransactionType.escrow) return true;
+          if (selectedFilter == 'Escrow' &&
+              transaction.type == TransactionType.escrowRelease) return true;
           if (selectedFilter == 'Mint' &&
               transaction.type == TransactionType.mint) return true;
           if (selectedFilter == 'Received' &&
