@@ -143,7 +143,8 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
             'width': 55.0,
             'rowValue': (transaction) =>
                 transaction.transactionDirection == TransactionDirection.sent
-                    ? const Icon(Icons.arrow_forward_sharp, color: Colors.green)
+                    ? const Icon(Icons.arrow_forward_sharp,
+                        color: Colors.greenAccent)
                     : const Icon(Icons.arrow_back_sharp, color: Colors.red)
           },
           {
