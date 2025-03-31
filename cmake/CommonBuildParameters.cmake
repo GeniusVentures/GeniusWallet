@@ -459,9 +459,6 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
             TrustWalletCore
         )
         TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
-            MNN::MNN
-        )
-        TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
             sgns::GeniusSDK
         )
 

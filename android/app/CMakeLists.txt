@@ -31,6 +31,6 @@ endif()
 set(ARCH_BUILD_DIR /build/Android/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${BUILD_TYPE_SEARCH}/${ANDROID_ABI})
 
-find_package(Vulkan REQUIRED)
+#find_package(Vulkan REQUIRED)
 
 include(../../cmake/CommonBuildParameters.cmake)
