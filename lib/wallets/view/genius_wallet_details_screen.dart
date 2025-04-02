@@ -2,14 +2,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
-import 'package:genius_wallet/widgets/components/wallet_information.g.dart';
+import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 
 class GeniusWalletDetailsScreen extends StatelessWidget {
   const GeniusWalletDetailsScreen({Key? key}) : super(key: key);
@@ -24,154 +22,175 @@ class GeniusWalletDetailsScreen extends StatelessWidget {
   }
 }
 
-class View extends StatelessWidget {
+class View extends StatefulWidget {
   const View({Key? key}) : super(key: key);
 
   @override
+  State<View> createState() => _ViewState();
+}
+
+class _ViewState extends State<View> {
+  bool useMinionIcon = true;
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<SGNUSConnection>(
-        stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-        builder: (context, snapshot) {
-          return BlocBuilder<GeniusWalletDetailsCubit,
-              GeniusWalletDetailsState>(
-            builder: (context, state) {
-              final geniusApi = context.read<GeniusApi>();
-              final connection = snapshot.data;
-              final isDisabled = connection == null || !connection.isConnected;
-              final walletCubit = context.read<GeniusWalletDetailsCubit>();
+    final geniusApi = context.read<GeniusApi>();
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-              return Scaffold(
-                  appBar: AppBar(),
-                  body: Center(
-                      child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: AppScreenView(
-                      body: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Super Genius Wallet"),
+        centerTitle: false,
+        actions: isDesktop
+            ? null
+            : [
+                _buildToggle(),
+                const SizedBox(width: 8),
+              ],
+      ),
+      body: isDesktop
+          ? Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  // Left Side: Balance & Toggle
+                  Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Container(
+                        width: 300,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: GeniusWalletColors.deepBlueCardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const SizedBox(height: 18),
-                            SizedBox(
-                              child: LayoutBuilder(
-                                builder: (BuildContext context,
-                                    BoxConstraints constraints) {
-                                  return Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Flexible(
-                                            child: Row(children: [
-                                          Image.asset(
-                                            "assets/images/crypto/gnus.png",
-                                            height: 36,
-                                            width: 36,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return const SizedBox(
-                                                  height: 40, width: 40);
-                                            },
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Flexible(
-                                              child: Text(
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            "Super Genius Wallet",
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.w400,
-                                              color: Colors.white,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ))
-                                        ])),
-                                      ]);
-                                },
+                            const Text(
+                              "Wallet Balance",
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: GeniusWalletColors.gray500,
                               ),
                             ),
-                            const SizedBox(height: 18),
-                            LayoutBuilder(builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // if (walletCubit.state.balanceStatus == WalletStatus.loading)
-                                    //   const Loading(),
-                                    // if (walletCubit.state.balanceStatus == WalletStatus.successful)
-                                    Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.baseline,
-                                        textBaseline: TextBaseline.alphabetic,
-                                        children: [
-                                          Flexible(
-                                              child: AutoSizeText(
-                                            geniusApi.getMinionsBalance(),
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: 48.0,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 1.0,
-                                              color: Colors.white,
-                                            ),
-                                            textAlign: TextAlign.left,
-                                          )),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            "minions",
-                                            style: TextStyle(
-                                              overflow: TextOverflow.ellipsis,
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.w600,
-                                              color: GeniusWalletColors.gray500,
-                                            ),
-                                          ),
-                                        ]),
-
-                                    // TODO: add any square buttons for actions within the genius wallet view
-                                    // const Row(children: [
-                                    //   Expanded(
-                                    //       child: SquareButton(
-                                    //     text: 'Bridge',
-                                    //     icon: Icons.send,
-                                    //   )),
-                                    //   SizedBox(width: 8),
-                                    //   Expanded(
-                                    //       child: SquareButton(
-                                    //     text: 'Other',
-                                    //     icon: Icons.attach_money,
-                                    //   )),
-                                    // ]),
-                                  ]);
-                            }),
-
-                            // TODO: wire up an alternate coins screen to show child tokens of the sgnus wallet
-                            // const SizedBox(child: CoinsScreen()),
-                            const SizedBox(height: 18),
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height - 280,
-                              child: LayoutBuilder(
-                                builder: (BuildContext context,
-                                    BoxConstraints constraints) {
-                                  return const DashboardScrollContainer(
-                                      child: TransactionsSlimView(
-                                          isShowOnlySGNUSTransactions: true));
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 18)
+                            const SizedBox(height: 16),
+                            GeniusBalanceDisplay(
+                                useMinions: useMinionIcon,
+                                fontSize: isDesktop ? 24 : 48,
+                                isShowSuffix: isDesktop ? false : true),
+                            const SizedBox(height: 24),
+                            _buildToggle(),
                           ],
                         ),
+                      )),
+                  // Right Side: Transactions
+                  const Expanded(
+                    child: DashboardScrollContainer(
+                      child: TransactionsSlimView(
+                        isShowOnlySGNUSTransactions: true,
                       ),
                     ),
-                  )));
-            },
-          );
+                  ),
+                ],
+              ),
+            )
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: AppScreenView(
+                  body: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Flexible(
+                              child: AutoSizeText(
+                                geniusApi.getMinionsBalance(),
+                                style: const TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              useMinionIcon ? "Minions" : "GNUS",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: GeniusWalletColors.gray500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height - 220,
+                            child: LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                return const DashboardScrollContainer(
+                                    child: TransactionsSlimView(
+                                        isShowOnlySGNUSTransactions: true));
+                              },
+                            )),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildToggle() {
+    return ToggleButtons(
+      isSelected: [!useMinionIcon, useMinionIcon],
+      onPressed: (index) {
+        setState(() {
+          useMinionIcon = index == 1;
         });
+      },
+      borderRadius: BorderRadius.circular(12),
+      borderColor: Colors.white24,
+      selectedBorderColor: Colors.white,
+      fillColor: Colors.white10,
+      selectedColor: Colors.white,
+      constraints: const BoxConstraints(minHeight: 40, minWidth: 110),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              "assets/images/crypto/gnus.png",
+              height: 28,
+              width: 28,
+            ),
+            const SizedBox(width: 8),
+            const Text("GNUS"),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              "assets/images/crypto/minion.png",
+              height: 28,
+              width: 28,
+            ),
+            const SizedBox(width: 8),
+            const Text("Minions"),
+          ],
+        ),
+      ],
+    );
   }
 }

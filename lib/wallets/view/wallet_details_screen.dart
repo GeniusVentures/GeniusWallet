@@ -30,7 +30,6 @@ class _WalletDetailsScreenState extends State<WalletDetailsScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
       builder: (context, state) {
-        final walletCubit = context.read<WalletDetailsCubit>();
         if (state.selectedWallet == null) {
           return const Center(
             child: Text('Error'),

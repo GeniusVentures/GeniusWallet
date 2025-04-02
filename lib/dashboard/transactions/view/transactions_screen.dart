@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
