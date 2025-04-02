@@ -137,11 +137,15 @@ class _HorizontalWalletsScrollviewState
                                     connection.isConnected &&
                                     connection.walletAddress ==
                                         sortedWallets[i].address,
-                                ovrWalletBalance: sortedWallets[i].balance == 0
-                                    ? '0'
-                                    : sortedWallets[i]
-                                        .balance
-                                        .toStringAsFixed(3),
+                                walletBalance: AutoSizeText(
+                                    style: const TextStyle(
+                                        color: GeniusWalletColors.gray500,
+                                        fontSize: 14),
+                                    sortedWallets[i].balance == 0
+                                        ? '0'
+                                        : sortedWallets[i]
+                                            .balance
+                                            .toStringAsFixed(3)),
                                 walletAddress: sortedWallets[i].address,
                                 walletType: sortedWallets[i].walletType,
                                 ovrCoinSymbol: sortedWallets[i].currencySymbol,

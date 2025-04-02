@@ -9,21 +9,23 @@ import 'package:genius_wallet/app/utils/wallet_utils.dart';
 
 class WalletPreview extends StatefulWidget {
   final WalletType? walletType;
-  final String? ovrWalletBalance;
+  final Widget? walletBalance;
   final String? ovrCoinSymbol;
   final String? walletName;
   final String? walletAddress;
   final bool? isConnected;
+  final bool? isShowSymbol;
 
-  const WalletPreview({
-    Key? key,
-    this.isConnected,
-    this.walletType,
-    this.ovrWalletBalance,
-    this.ovrCoinSymbol,
-    this.walletAddress,
-    this.walletName = "",
-  }) : super(key: key);
+  const WalletPreview(
+      {Key? key,
+      this.isConnected,
+      this.walletType,
+      this.walletBalance,
+      this.ovrCoinSymbol,
+      this.walletAddress,
+      this.walletName = "",
+      this.isShowSymbol})
+      : super(key: key);
 
   @override
   WalletPreviewState createState() => WalletPreviewState();
@@ -112,21 +114,24 @@ class WalletPreviewState extends State<WalletPreview> {
                     const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Flexible(
-                          child: AutoSizeText(
-                            (widget.ovrWalletBalance ?? "") +
-                                " " +
-                                (widget.ovrCoinSymbol ?? ""),
-                            maxLines: 1,
-                            style: const TextStyle(
-                              color: GeniusWalletColors.gray500,
-                              fontSize: 14,
+                        widget.walletBalance ??
+                            const SizedBox
+                                .shrink(), // Fallback if no balance widget is provided
+                        if (widget.isShowSymbol ?? true)
+                          Flexible(
+                            child: AutoSizeText(
+                              (" ${widget.ovrCoinSymbol}"),
+                              maxLines: 1,
+                              style: const TextStyle(
+                                color: GeniusWalletColors.gray500,
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
                       ],
                     ),
                   ],

@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/widgets/components/wallet_preview.g.dart';
 
 class SGNUSWallet extends StatefulWidget {
@@ -28,10 +30,16 @@ class SGNUSWalletState extends State<SGNUSWallet> {
 
         if (connection.isConnected) {
           return WalletPreview(
-              ovrWalletBalance: geniusApi.getMinionsBalance(),
+              walletBalance: const Flexible(
+                  child: GeniusBalanceDisplay(
+                      useMinions: true,
+                      fontSize: 12,
+                      isShowSuffix: true,
+                      fontColor: GeniusWalletColors.gray500)),
               walletAddress: connection.sgnusAddress,
               walletType: WalletType.privateKey,
               ovrCoinSymbol: 'minions',
+              isShowSymbol: false,
               walletName: 'Super Genius Wallet');
         }
 
