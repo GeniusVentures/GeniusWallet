@@ -7,8 +7,12 @@ class NavigationOverlayCubit extends Cubit<NavigationOverlayState> {
     this.initialState = const NavigationOverlayState(),
   }) : super(initialState);
 
-  void navigationTapped(int index) {
-    emit(state.copyWith(selectedScreen: NavigationScreen.values[index]));
+  void navigationTapped(NavigationScreen selectedScreen) {
+    emit(state.copyWith(selectedScreen: selectedScreen));
+  }
+
+  void selectNavigation(NavigationScreen screen) {
+    emit(state.copyWith(selectedScreen: screen));
   }
 
   void setVisibility({

@@ -180,9 +180,9 @@ class _CryptoChart extends State<CryptoChart> {
                             left: 0,
                             width: 137.0,
                             top: 0,
-                            height: 14.0,
+                            height: 30.0,
                             child: Container(
-                                height: 14.0,
+                                height: 30.0,
                                 width: 137.0,
                                 child: AutoSizeText(
                                   widget.ovrBTCUSD ?? 'BTC/USD',

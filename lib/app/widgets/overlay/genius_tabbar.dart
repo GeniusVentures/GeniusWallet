@@ -3,50 +3,60 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/destinations.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class GeniusTabbar extends StatelessWidget {
-  static const _numTabs = 4;
+  static const _numTabs = 5;
   const GeniusTabbar({super.key});
 
   @override
   Widget build(BuildContext context) {
     final destinations = _buildDestinations();
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: GeniusWalletColors.blue500,
-            width: 2,
-          ),
-        ),
-      ),
-      child: BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
-        builder: (context, state) {
-          return BottomNavigationBar(
-            onTap: (int index) {
-              context.read<NavigationOverlayCubit>().navigationTapped(index);
-            },
-            currentIndex: state.selectedScreen.index >= _numTabs
-                ? 0
-                : state.selectedScreen.index,
-            backgroundColor: GeniusWalletColors.gray800,
-            type: BottomNavigationBarType.fixed,
-            items: destinations,
-          );
-        },
-      ),
+    final screenList = destinations.map((e) => e.key).toList();
+
+    return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
+      builder: (context, state) {
+        final selectedScreen = state.selectedScreen;
+
+        // Get the index in the currently visible screens
+        final selectedIndex = screenList.indexOf(selectedScreen);
+
+        return BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          enableFeedback: false,
+          currentIndex: selectedIndex >= 0 ? selectedIndex : 0,
+          onTap: (int index) {
+            final tappedScreen = screenList[index];
+            context
+                .read<NavigationOverlayCubit>()
+                .navigationTapped(tappedScreen);
+          },
+          items: destinations.map((e) => e.value).toList(),
+        );
+      },
     );
   }
 
-  List<BottomNavigationBarItem> _buildDestinations() {
+  List<MapEntry<NavigationScreen, BottomNavigationBarItem>>
+      _buildDestinations() {
     return GeniusTabDestinations.destinations
+        .where((e) => e.isVisible ?? true) // Optional visibility logic
         .take(_numTabs)
         .map(
-          (e) => BottomNavigationBarItem(
-            icon: e.icon,
-            activeIcon: e.selectedIcon,
-            label: e.label.data,
+          (e) => MapEntry(
+            e.navScreen,
+            BottomNavigationBarItem(
+              backgroundColor: Colors.transparent,
+              tooltip: e.label.data,
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                child: e.icon,
+              ),
+              activeIcon: Container(
+                padding: const EdgeInsets.all(8),
+                child: e.selectedIcon,
+              ),
+              label: e.label.data,
+            ),
           ),
         )
         .toList();

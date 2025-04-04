@@ -41,16 +41,16 @@ class _CryptoMarketOverview extends State<CryptoMarketOverview> {
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: 2.0,
+                left: -5,
                 width: 70.0,
                 top: 1.0,
-                height: 12.0,
-                child: Container(
-                    height: 12.0,
+                height: 16.0,
+                child: SizedBox(
+                    height: 16.0,
                     width: 70.0,
                     child: AutoSizeText(
                       widget.ovrCoinCurrency ?? 'DASH/EUR',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 10.0,
                         fontWeight: FontWeight.w700,
@@ -65,12 +65,12 @@ class _CryptoMarketOverview extends State<CryptoMarketOverview> {
                 width: 81.0,
                 top: 18.0,
                 height: 16.0,
-                child: Container(
+                child: SizedBox(
                     height: 16.0,
                     width: 81.0,
                     child: AutoSizeText(
                       widget.ovrCurencyValue ?? '0.0834  EUR',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 14.0,
                         fontWeight: FontWeight.w400,
@@ -85,12 +85,12 @@ class _CryptoMarketOverview extends State<CryptoMarketOverview> {
                 width: 56.0,
                 top: 0,
                 height: 13.0,
-                child: Container(
+                child: SizedBox(
                     height: 13.0,
                     width: 56.0,
                     child: AutoSizeText(
                       widget.ovrPercentChange ?? '1.93%',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 11.0,
                         fontWeight: FontWeight.w400,
@@ -108,7 +108,7 @@ class _CryptoMarketOverview extends State<CryptoMarketOverview> {
                 child: Container(
                   height: widget.constraints.maxHeight * 0.02127659574468085,
                   width: widget.constraints.maxWidth * 1.0,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Color(0xff3a3c43),
                   ),
                 ),

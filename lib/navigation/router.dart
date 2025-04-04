@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -5,45 +7,56 @@ import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/app/widgets/splash.dart';
-import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transaction_details_cubit.dart';
-import 'package:genius_wallet/dashboard/transactions/view/transaction_information_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/buy/bloc/buy_bloc.dart';
-import 'package:genius_wallet/dashboard/wallets/buy/routes/buy_flow.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/receive/view/receive_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/send/cubit/send_cubit.dart';
-import 'package:genius_wallet/dashboard/wallets/send/routes/send_flow.dart';
-import 'package:genius_wallet/dashboard/wallets/send/view/not_enough_balance_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/view/wallet_details_screen.dart';
+import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/navigation/web_view_extras.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/tokens/token_info_screen.dart';
+import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
+import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
+import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
+import 'package:genius_wallet/wallets/send/routes/send_flow.dart';
+import 'package:genius_wallet/wallets/send/view/not_enough_balance_screen.dart';
+import 'package:genius_wallet/wallets/swap/swap_screen.dart';
+import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
+import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
+import 'package:genius_wallet/services/coins_service.dart';
+import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
+import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/web/web_view_screen.dart';
+import 'package:genius_wallet/widgets/components/toast/toast_manager.dart';
+import 'package:genius_wallet/widgets/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
 
+final toastManager = ToastManager();
+
 final geniusWalletRouter = GoRouter(
+  observers: [
+    ToastNavigatorObserver(toastManager),
+  ],
   redirect: (context, state) {
     final appBloc = context.read<AppBloc>();
 
     if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
       appBloc.add(SubscribeToWallets());
+      appBloc.add(StreamSGNUSTransactions());
+    }
+
+    if (appBloc.state.accountStatus == AppStatus.initial) {
+      appBloc.add(FetchAccount());
     }
 
     if (appBloc.state.loadUserStatus == AppStatus.initial) {
       appBloc.add(CheckIfUserExists());
     }
-
-    ///TODO: Make sure we're fetching the wallets if they are not cached.
-    // final appState = context.watch<AppBloc>().state;
-    // if (appState.subscribeToWalletStatus == AppStatus.initial) {
-    //   context.read<AppBloc>().add(SubscribeToWallets());
-    //   return '/';
-    // } else if (appState.wallets.isEmpty && state.subloc != '/landing_screen') {
-    //   return '/landing_screen';
-    // }
     return null;
   },
   routes: [
@@ -97,8 +110,8 @@ final geniusWalletRouter = GoRouter(
                 providers: [
                   BlocProvider(
                     create: (context) => NewWalletBloc(
-                      api: context.read<GeniusApi>(),
-                    ),
+                        api: context.read<GeniusApi>(),
+                        wallet: context.read<GeniusApi>().createNewWallet()),
                   ),
                   BlocProvider(
                     create: (context) => NewPinCubit(
@@ -124,6 +137,17 @@ final geniusWalletRouter = GoRouter(
       }),
     ),
     GoRoute(
+      path: '/geniusWallet',
+      builder: ((context, state) {
+        return BlocProvider(
+          create: (context) => GeniusWalletDetailsCubit(
+            geniusApi: context.read<GeniusApi>(),
+          ),
+          child: const GeniusWalletDetailsScreen(),
+        );
+      }),
+    ),
+    GoRoute(
         path: '/wallets',
         builder: ((context, state) {
           return const ResponsiveOverlay(
@@ -133,22 +157,42 @@ final geniusWalletRouter = GoRouter(
           GoRoute(
             path: ':wallet_address',
             builder: (context, state) {
-              final id = state.params['wallet_address'];
+              final id = state.pathParameters['wallet_address'];
               final wallet = context
                   .read<AppBloc>()
                   .state
                   .wallets
                   .firstWhere((element) => element.address == id);
+
               return BlocProvider(
                 create: (context) => WalletDetailsCubit(
-                  initialState: WalletDetailsState(selectedWallet: wallet),
-                  geniusApi: context.read<GeniusApi>(),
-                ),
+                    initialState: WalletDetailsState(selectedWallet: wallet),
+                    geniusApi: context.read<GeniusApi>(),
+                    networkTokensProvider:
+                        context.read<NetworkTokensProvider>()),
                 child: const WalletDetailsScreen(),
               );
             },
           ),
         ]),
+    GoRoute(
+      path: '/token-info',
+      builder: (context, state) {
+        final extra = state.extra != null
+            ? state.extra as Map<String, dynamic>
+            : <String, dynamic>{};
+        final walletDetailsCubit =
+            extra["walletDetailsCubit"] is WalletDetailsCubit
+                ? extra["walletDetailsCubit"] as WalletDetailsCubit
+                : null;
+        return TokenInfoScreen(
+            walletDetailsCubit: walletDetailsCubit,
+            securityInfo: extra["securityInfo"],
+            transactionHistory: List<String>.from(extra["transactionHistory"]),
+            isGnusWalletConnected: extra["isGnusWalletConnected"],
+            marketData: extra["marketData"]);
+      },
+    ),
     GoRoute(
       path: '/transactions',
       builder: ((context, state) {
@@ -156,19 +200,6 @@ final geniusWalletRouter = GoRouter(
           selectedScreen: NavigationScreen.transactions,
         );
       }),
-      routes: [
-        GoRoute(
-          path: ':transaction_id',
-          builder: (context, state) {
-            final cubit = (state.extra as TransactionDetailsCubit);
-            final transaction = cubit.state.selectedTransaction;
-            return BlocProvider.value(
-              value: cubit,
-              child: TransactionInformationScreen(transaction: transaction),
-            );
-          },
-        ),
-      ],
     ),
     GoRoute(
       path: '/trade',
@@ -189,18 +220,16 @@ final geniusWalletRouter = GoRouter(
                   currentTransaction: Transaction(
                     hash: '',
                     fromAddress: walletCubit.state.selectedWallet!.address,
-                    toAddress: '',
-                    amount: '',
+                    recipients: List.empty(),
                     fees: '',
-                    timeStamp: '',
+                    timeStamp: DateTime.now(),
                     transactionDirection: TransactionDirection.sent,
                     coinSymbol:
                         walletCubit.state.selectedWallet!.currencySymbol,
                     transactionStatus: TransactionStatus.pending,
                   ),
-                  flowStep: walletCubit.state.selectedWallet!.balance == 0
-                      ? SendFlowStep.noFunds
-                      : SendFlowStep.enterAddress,
+                  flowStep:
+                      true ? SendFlowStep.noFunds : SendFlowStep.enterAddress,
                 ),
               ),
             ),
@@ -234,13 +263,34 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/receive',
+      path: '/swap',
       builder: (context, state) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: state.extra as WalletDetailsCubit),
-          ],
-          child: const ReceiveScreen(),
+        return BlocProvider.value(
+          value: state.extra as WalletDetailsCubit,
+          child: const SwapScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/bridge',
+      builder: (context, state) {
+        final cubit = state.extra as WalletDetailsCubit;
+        return BlocProvider.value(
+          value: cubit,
+          child: BridgeScreen(fromToken: cubit.state.selectedCoin),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/submit_job',
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => SubmitJobCubit(
+              geniusApi: context.read<GeniusApi>(),
+              gnusCubit:
+                  GnusCubit(CoinService(), state.extra as WalletDetailsCubit),
+              walletDetailsCubit: state.extra as WalletDetailsCubit),
+          child: const SubmitJobScreen(),
         );
       },
     ),
@@ -262,13 +312,40 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/calculator',
+      path: '/news',
       builder: (context, state) {
         return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.calculator,
+          selectedScreen: NavigationScreen.news,
         );
       },
     ),
+    GoRoute(
+      path: '/events',
+      builder: (context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.events,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) {
+        return const ResponsiveOverlay(
+          selectedScreen: NavigationScreen.settings,
+        );
+      },
+    ),
+    if (!Platform.isLinux)
+      GoRoute(
+        path: '/web',
+        builder: ((context, state) {
+          final WebViewExtras extras = state.extra != null
+              ? state.extra as WebViewExtras
+              : WebViewExtras();
+          return WebViewScreen(
+              url: extras.url, includeBackButton: extras.includeBackButton);
+        }),
+      ),
     ...LandingRoutes().landingRoutes,
   ],
 );

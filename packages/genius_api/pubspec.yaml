@@ -1,6 +1,6 @@
 name: genius_api
 description: A starting point for Dart libraries or applications.
-version: 1.0.0
+version: 1.0.1
 # homepage: https://www.example.com
 
 environment:
@@ -10,7 +10,7 @@ environment:
 #   path: ^1.8.0
 
 dev_dependencies:
-  build_runner: ^2.2.1
+  build_runner: ^2.4.9
   freezed: ^2.1.1
   json_serializable: ^6.5.0
   lints: ^2.0.0
@@ -26,5 +26,14 @@ dependencies:
   json_annotation: ^4.7.0
   rxdart: ^0.27.7
   ffi: ^2.0.1
-  secure_storage:
-    path: ../secure_storage
+  local_secure_storage:
+    path: ../local_secure_storage
+  path_provider: ^2.1.2
+  convert: ^3.1.1
+  web3dart: ^2.7.3
+  http: ^1.2.2
+  path: ^1.9.0
+  protobuf: ^3.1.0
+  intl: ^0.19.0
+  mockito: ^5.4.4
+  permission_handler: ^11.3.1

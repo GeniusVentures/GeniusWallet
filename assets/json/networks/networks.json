@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Ethereum",
+    "symbol": "eth",
+    "chainId": 1,
+    "coinGeckoId": "ethereum",
+    "rpcUrl": "https://eth.drpc.org",
+    "iconPath": "assets/images/crypto/eth.png",
+    "tokensPath": "assets/json/tokens/eth.json"
+  },
+  {
+    "name": "Ethereum Sepolia",
+    "symbol": "eth",
+    "coinGeckoId": "ethereum",
+    "chainId": 11155111,
+    "rpcUrl": "https://nd-964-217-560.p2pify.com/8c17a356234963100895499dc535c9f4",
+    "iconPath": "assets/images/crypto/eth-testnet.png",
+    "tokensPath": "assets/json/tokens/eth_test_net.json"
+  },
+  {
+    "name": "Polygon",
+    "symbol": "matic",
+    "coinGeckoId": "matic-network",
+    "chainId": 137,
+    "rpcUrl": "https://polygon.drpc.org",
+    "iconPath": "assets/images/crypto/matic.png",
+    "tokensPath": "assets/json/tokens/poly.json"
+  },
+  {
+    "name": "Polygon Amoy",
+    "symbol": "matic",
+    "coinGeckoId": "matic-network",
+    "chainId": 80002,
+    "rpcUrl": "https://polygon-amoy.core.chainstack.com/267520074174662c0a58c3c1126c7e51",
+    "iconPath": "assets/images/crypto/matic-testnet.png",
+    "tokensPath": "assets/json/tokens/poly_test_net.json"
+  },
+  {
+    "name": "Super Genius",
+    "symbol": "gnus",
+    "coinGeckoId": "genius-ai",
+    "chainId": 50070933806,
+    "rpcUrl": "",
+    "iconPath": "assets/images/crypto/sgnus.png",
+    "tokensPath": "assets/json/tokens/super_genius.json"
+  },
+  {
+    "name": "Super Genius - TestNet",
+    "symbol": "gnus",
+    "coinGeckoId": "genius-ai",
+    "chainId": 15305752297694,
+    "rpcUrl": "",
+    "iconPath": "assets/images/crypto/sgnus.png",
+    "tokensPath": "assets/json/tokens/super_genius_test_net.json"
+  },
+  {
+    "name": "BNB",
+    "symbol": "bnb",
+    "coinGeckoId": "binancecoin",
+    "chainId": 56,
+    "rpcUrl": "https://bsc.drpc.org",
+    "iconPath": "assets/images/crypto/bnb.png",
+    "tokensPath": "assets/json/tokens/bnb.json"
+  },
+  {
+    "name": "BNB TestNet",
+    "symbol": "bnb",
+    "coinGeckoId": "binancecoin",
+    "chainId": 97,
+    "rpcUrl": "https://bsc-testnet.core.chainstack.com/5618a55d065ee1deb911e2c38f3f5341",
+    "iconPath": "assets/images/crypto/bnb-testnet.png",
+    "tokensPath": "assets/json/tokens/bnb_test_net.json"
+  },
+  {
+    "name": "Base",
+    "symbol": "base",
+    "coinGeckoId": "base",
+    "chainId": 8453,
+    "rpcUrl": "https://base.drpc.org",
+    "iconPath": "assets/images/crypto/base.png",
+    "tokensPath": "assets/json/tokens/base.json"
+  },
+  {
+    "name": "Base - Sepolia",
+    "symbol": "base",
+    "coinGeckoId": "base",
+    "chainId": 84531,
+    "rpcUrl": "https://base-sepolia.core.chainstack.com/93f6135415539e11963fa6d83541454b",
+    "iconPath": "assets/images/crypto/base-testnet.png",
+    "tokensPath": "assets/json/tokens/base_test_net.json"
+  }
+]

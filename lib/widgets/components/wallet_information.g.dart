@@ -1,282 +1,192 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
-import 'package:flutter/material.dart';
-import 'package:genius_wallet/widgets/components/send/property1_default.g.dart';
-import 'package:genius_wallet/widgets/components/send/property1_buy.g.dart';
-import 'package:genius_wallet/widgets/components/send/property1_receive.g.dart';
-import 'package:genius_wallet/widgets/components/custom/total_balance_custom.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:genius_wallet/widgets/components/custom/send_button_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/buy_button_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/receive_button_custom.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/app/widgets/job/submit_job_button.dart';
+import 'package:genius_wallet/app/widgets/loading/loading.dart';
+import 'package:genius_wallet/app/widgets/qr/crypto_address_qr.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/widgets/components/action_button.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
-import 'package:genius_wallet/widgets/components/custom/q_r_code_button_custom.dart';
+import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
+import 'package:genius_wallet/widgets/components/sliding_drawer_button.dart';
+import 'package:go_router/go_router.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
   final Widget? ovrShowMoreIcon;
-  final String? ovrTotalbalance;
-  final String? ovrCurrency;
-  final String? ovrQuantity;
-  final String? ovrAddressField;
-  final String? ovrYourbitcoinaddress;
-  const WalletInformation(
-    this.constraints, {
-    Key? key,
-    this.ovrShowMoreIcon,
-    this.ovrTotalbalance,
-    this.ovrCurrency,
-    this.ovrQuantity,
-    this.ovrAddressField,
-    this.ovrYourbitcoinaddress,
-  }) : super(key: key);
+  final String? totalBalance;
+  final String ovrAddressField;
+  final WalletType walletType;
+  const WalletInformation(this.constraints,
+      {Key? key,
+      this.ovrShowMoreIcon,
+      this.totalBalance,
+      required this.ovrAddressField,
+      this.walletType = WalletType.tracking})
+      : super(key: key);
   @override
-  _WalletInformation createState() => _WalletInformation();
+  WalletInformationState createState() => WalletInformationState();
 }
 
-class _WalletInformation extends State<WalletInformation> {
-  _WalletInformation();
+class WalletInformationState extends State<WalletInformation> {
+  final SlidingDrawerController qrCodeDrawerController =
+      SlidingDrawerController();
+  final SlidingDrawerController moreDrawerController =
+      SlidingDrawerController();
+
+  WalletInformationState();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: BoxDecoration(),
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: widget.constraints.maxWidth * 1.0,
-            top: 0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: Stack(children: [
-              Positioned(
-                left: 0,
-                width: widget.constraints.maxWidth * 1.0,
-                top: 0,
-                height: 91.0,
-                child: Center(
-                    child: Container(
-                        height: 91.0,
-                        width: 312.0,
-                        child: TotalBalanceCustom(
-                            child: Container(
-                                decoration: BoxDecoration(),
-                                child: Stack(children: [
-                                  Positioned(
-                                    left: 19.0,
-                                    width: 205.0,
-                                    top: 35.0,
-                                    height: 56.0,
-                                    child: Container(
-                                        height: 56.0,
-                                        width: 205.0,
-                                        child: AutoSizeText(
-                                          widget.ovrQuantity ?? '0.221746',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 48.0,
-                                            fontWeight: FontWeight.w300,
-                                            letterSpacing: 1.0,
-                                            color: Colors.white,
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        )),
-                                  ),
-                                  Positioned(
-                                    right: 29.0,
-                                    width: 50.0,
-                                    top: 39.0,
-                                    height: 14.0,
-                                    child: Container(
-                                        height: 14.0,
-                                        width: 50.0,
-                                        child: AutoSizeText(
-                                          widget.ovrCurrency ?? 'BTC ',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.25714290142059326,
-                                            color: Color(0xff3a3c43),
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        )),
-                                  ),
-                                  Positioned(
-                                    left: 19.0,
-                                    width: 111.0,
-                                    top: 2.0,
-                                    height: 14.0,
-                                    child: Container(
-                                        height: 14.0,
-                                        width: 111.0,
-                                        child: AutoSizeText(
-                                          widget.ovrTotalbalance ??
-                                              'Total balance:',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.w500,
-                                            letterSpacing: 0.30000001192092896,
-                                            color: Color(0xff606166),
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        )),
-                                  ),
-                                  Positioned(
-                                    left: 288.0,
-                                    width: 4.0,
-                                    top: 0,
-                                    height: 16.0,
-                                    child: widget.ovrShowMoreIcon ??
-                                        Image.asset(
-                                          'assets/images/showmoreicon.png',
-                                          package: 'genius_wallet',
-                                          height: 16.0,
-                                          width: 4.0,
-                                          fit: BoxFit.none,
-                                        ),
-                                  ),
-                                ]))))),
-              ),
-              Positioned(
-                left: 4.0,
-                right: 5.0,
-                top: 107.0,
-                height: 23.0,
-                child: Container(
-                    decoration: BoxDecoration(),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                              height: 23.0,
-                              width: 90.0,
-                              child: SendButtonCustom(child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                return Property1Default(
-                                  constraints,
-                                  ovrSend: 'Send ',
-                                );
-                              }))),
-                          Container(
-                              height: 23.0,
-                              width: 90.0,
-                              child: BuyButtonCustom(child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                return Property1Buy(
-                                  constraints,
-                                  ovrSend: 'Buy',
-                                );
-                              }))),
-                          Container(
-                              height: 23.0,
-                              width: 90.0,
-                              child: ReceiveButtonCustom(child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                return Property1Receive(
-                                  constraints,
-                                  ovrSend: 'Receive',
-                                );
-                              }))),
-                        ])),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.067,
-                width: widget.constraints.maxWidth * 0.865,
-                bottom: 0,
-                height: 35.0,
-                child: Center(
-                    child: Container(
-                        height: 35.0,
-                        width: 270.0,
-                        child: WalletAddressCustom(
-                            child: Container(
-                                decoration: BoxDecoration(),
-                                child: Stack(children: [
-                                  Positioned(
-                                    left: 0,
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0,
-                                    child: Container(
-                                      height: 35.0,
-                                      width: 271.0,
-                                      decoration: BoxDecoration(
-                                        color: Color(0xff2a2b31),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(2.0)),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    left: 8.0,
-                                    right: 0,
-                                    top: 11.0,
-                                    bottom: 10.0,
-                                    child: Container(
-                                        height: 14.0,
-                                        width: 263.0,
-                                        child: AutoSizeText(
-                                          widget.ovrAddressField ??
-                                              '1Cs4wu6pu5qCZ35bSLNVzGyEx5N6uzbg9t',
-                                          style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.w400,
-                                            letterSpacing: 0.30000001192092896,
-                                            color: Color(0xff42434b),
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        )),
-                                  ),
-                                ]))))),
-              ),
-              Positioned(
-                left: 20.0,
-                width: 139.0,
-                bottom: 49.0,
-                height: 14.0,
-                child: Container(
-                    height: 14.0,
-                    width: 139.0,
+    final walletDetailsCubit = context.read<WalletDetailsCubit>();
+    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, state) {
+      return Stack(children: [
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Flexible(
                     child: AutoSizeText(
-                      widget.ovrYourbitcoinaddress ?? 'Your bitcoin adress:',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.30000001192092896,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
-              ),
-              Positioned(
-                right: 21.0,
-                width: 63.0,
-                bottom: 49.0,
-                height: 14.0,
-                child: QRCodeButtonCustom(
-                    child: AutoSizeText(
-                  'QR-code',
-                  style: TextStyle(
+                  widget.totalBalance ?? "0",
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     fontFamily: 'Roboto',
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.30000001192092896,
-                    color: Color(0xff606166),
+                    fontSize: 48.0,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
+                    color: Colors.white,
                   ),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.left,
                 )),
+              ]),
+          const SizedBox(height: 20),
+          Row(children: [
+            if (widget.walletType == WalletType.tracking) ...[
+              Expanded(
+                  child: Column(
+                children: [
+                  Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              GeniusWalletConsts.borderRadiusCard),
+                          color: GeniusWalletColors.deepBlueCardColor),
+                      child: const Text(
+                        "You are watching this account",
+                        style: TextStyle(fontSize: 20),
+                      )),
+                  const SizedBox(height: 24),
+                  WalletAddressCustom(
+                      child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                        Flexible(
+                            child: Text(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          widget.ovrAddressField,
+                          style: const TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.4,
+                            color: Colors.white,
+                          ),
+                        )),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.copy_rounded, size: 24)
+                      ]))
+                ],
+              ))
+            ],
+            if (widget.walletType != WalletType.tracking) ...[
+              ActionButton(
+                onPressed: () => qrCodeDrawerController.openDrawer(),
+                text: 'Receive',
+                icon: Icons.qr_code,
               ),
-            ]),
-          ),
-        ]));
+              const SizedBox(width: 8),
+              const ActionButton(
+                text: 'Send',
+                icon: Icons.send,
+              ),
+              const SizedBox(width: 8),
+              const ActionButton(
+                  text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
+                  // TODO: renable swap...
+                  // Open the Swap Screen as a popup
+                  // context.push('/swap',
+                  //     extra: context.read<WalletDetailsCubit>());
+                  //}
+                  ),
+              const SizedBox(width: 8),
+              ActionButton(
+                text: "More",
+                icon: Icons.more_horiz,
+                onPressed: () => {moreDrawerController.openDrawer()},
+              ),
+            ]
+          ]),
+          const SizedBox(height: 8),
+        ]),
+        SlidingDrawer(
+            controller: qrCodeDrawerController,
+            title: "Your ${state.selectedNetwork?.name} address",
+            content: Container(
+                margin: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * .15),
+                alignment: Alignment.center,
+                child: Column(children: [
+                  CryptoAddressQR(
+                      iconPath: state.selectedNetwork?.iconPath,
+                      address: state.selectedWallet?.address ?? "",
+                      network: state.selectedNetwork?.name ?? ""),
+                ]))),
+        SlidingDrawer(
+            controller: moreDrawerController,
+            title: "More Options",
+            content: Column(children: [
+              StreamBuilder<SGNUSConnection>(
+                  stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+                  builder: (context, snapshot) {
+                    final connection = snapshot.data;
+                    return SubmitJobButton(
+                        onPressed: () {
+                          moreDrawerController.closeDrawer();
+                        },
+                        walletDetailsCubit: walletDetailsCubit,
+                        walletAddress: state.selectedWallet?.address ?? "",
+                        gnusConnectedWalletAddress:
+                            connection?.walletAddress ?? "");
+                  }),
+              SlidingDrawerButton(
+                onPressed: () {
+                  context
+                      .read<GeniusApi>()
+                      .deleteWallet(state.selectedWallet?.address ?? "");
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!')));
+                  context.go('/dashboard');
+                },
+                color: Colors.red,
+                icon: FontAwesomeIcons.trash,
+                label: "Delete Wallet",
+              )
+            ])),
+      ]);
+    });
   }
 
   @override

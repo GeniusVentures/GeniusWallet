@@ -24,7 +24,9 @@ class ExistingWalletFlow extends StatelessWidget {
               const MaterialPage(child: LegalScreen()),
               const MaterialPage(child: ImportWalletScreen()),
               MaterialPage(
-                child: ImportSecurityScreen(walletType: state.selectedWallet),
+                child: ImportSecurityScreen(
+                    walletType: state.selectedWallet,
+                    coinType: state.selectedCoinType),
               ),
             ];
           case FlowStep.importWallet:

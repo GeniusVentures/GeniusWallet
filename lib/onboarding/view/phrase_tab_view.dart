@@ -11,6 +11,7 @@ class PhraseTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PasteField(
+      hintText: 'Wallet Mnemonic Phrase',
       subtitle: 'Typically 12 (sometimes 24) words separated by single spaces.',
       controller: controller,
     );

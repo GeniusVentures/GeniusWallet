@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/account.dart';
 part 'app_event.dart';
 part 'app_state.dart';
 
@@ -17,6 +19,25 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<CheckIfUserExists>(_onCheckIfUserExists);
 
     on<FFITestEvent>(_onFFITestEvent);
+
+    on<FetchAccount>(_onFetchAccount);
+
+    on<StreamSGNUSTransactions>(_onStreamSGNUSTransactions);
+  }
+
+  Future<void> _onFetchAccount(FetchAccount event, Emitter emit) async {
+    emit(state.copyWith(
+      accountStatus: AppStatus.loading,
+    ));
+    try {
+      final account = await api.getAccount();
+      emit(state.copyWith(
+        accountStatus: AppStatus.loaded,
+        account: account,
+      ));
+    } catch (e) {
+      emit(state.copyWith(accountStatus: AppStatus.error));
+    }
   }
 
   Future<void> _onSubscribeToWallets(
@@ -29,21 +50,27 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       api.getWallets(),
       onData: (wallets) {
         return state.copyWith(
-          wallets: wallets,
-          subscribeToWalletStatus: AppStatus.loaded,
-          transactions: getTransactionsFrom(wallets),
-        );
+            wallets: wallets, subscribeToWalletStatus: AppStatus.loaded);
       },
     );
+    streamTransactionsFrom(state.wallets);
   }
 
-  /// Iterates through [wallets] and returns an aggregate lists of all [Transactions]
-  List<Transaction> getTransactionsFrom(List<Wallet> wallets) {
+  Future<void> _onStreamSGNUSTransactions(
+      StreamSGNUSTransactions event, Emitter emit) async {
+    api.streamSGNUSTransactions();
+    print('🎞️ Streaming SGNUS transactions...');
+  }
+
+  /// Iterates through [wallets] and aggregate a lists of all [Transactions] to stream to the UI.
+  void streamTransactionsFrom(List<Wallet> wallets) {
     final transactions = <Transaction>[];
+
     for (var wallet in wallets) {
       transactions.addAll(wallet.transactions);
     }
-    return transactions;
+
+    api.getTransactionsController().addTransactions(transactions);
   }
 
   FutureOr<void> _onCheckIfUserExists(
@@ -64,8 +91,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   FutureOr<void> _onFFITestEvent(FFITestEvent event, Emitter<AppState> emit) {
     //NOTE: No asyncs/awaits here since this method is synchronous.
     //NOTE: If they were async, we'd need to have a loading status
-    final ffiDouble = api.getNativeValue();
+    api.mintTokens(500, "", "", "");
+    // Future.delayed(Duration(seconds: 5));
+    // api.requestAIProcess();
+    // final ffiString = "AI Process dispatched!";
+    // final ffiWallet = api.createWalletWithSize(500);
 
-    emit(state.copyWith(ffiDouble: ffiDouble));
+    // emit(state.copyWith(ffiString: ffiString));
+    // emit(state.copyWith(testWallet: ffiWallet));
   }
 }

@@ -74,12 +74,9 @@ class NumberPad extends StatelessWidget {
           const Spacer(),
           Row(
             children: [
-              /// Clear all button
-              MaterialButton(
-                onPressed: () {
-                  context.read<PinCubit>().clearAll();
-                },
-                child: const Icon(Icons.refresh),
+              /// Disabled spacer button
+              const MaterialButton(
+                onPressed: null,
               ),
 
               const Spacer(),

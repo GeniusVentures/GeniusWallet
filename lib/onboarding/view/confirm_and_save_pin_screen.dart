@@ -5,6 +5,7 @@ import 'package:genius_wallet/app/bloc/pin_cubit.dart';
 import 'package:genius_wallet/app/screens/pin_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_state.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 /// Confirms the pin entered and saves it to the user if it matches with the previous pin
 class ConfirmAndSavePinScreen extends StatelessWidget {
@@ -27,7 +28,7 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
       },
       child: BlocProvider(
         create: (context) => PinCubit(
-          pinMaxLength: 6,
+          pinMaxLength: GeniusWalletConsts.pinCount,
           geniusApi: context.read<GeniusApi>(),
         ),
         child: PinScreen(

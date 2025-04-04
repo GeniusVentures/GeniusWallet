@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/dashboard/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/app/utils/formatters.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/transaction_card.g.dart';
 
 class TransactionsPreviewCustom extends StatefulWidget {
@@ -22,8 +23,9 @@ class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
         builder: (context, state) {
       if (state.selectedWallet == null ||
           state.selectedWallet!.transactions.isEmpty) {
-        return const Center(
-          child: Text('No Transactions detected.'),
+        return Container(
+          alignment: Alignment.center,
+          child: const Text('No Transactions detected.'),
         );
       }
       final transactions = state.selectedWallet!.transactions;
@@ -36,9 +38,11 @@ class _TransactionsPreviewCustomState extends State<TransactionsPreviewCustom> {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return TransactionCard(
                   constraints,
-                  ovrTimestamp: currentTransaction.timeStamp,
-                  ovrTransactionQuantity: currentTransaction.amount,
-                  ovrTransactionID: currentTransaction.toAddress,
+                  ovrTimestamp:
+                      dateFormatter.format(currentTransaction.timeStamp),
+                  ovrTransactionQuantity:
+                      currentTransaction.recipients.first.amount,
+                  ovrTransactionID: currentTransaction.recipients.first.toAddr,
                 );
               },
             ),

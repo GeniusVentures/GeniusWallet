@@ -1,25 +1,38 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 
 class FFIBridgePrebuilt {
-  late double? Function() _libFunction;
+  static const String _libName = 'GeniusWallet';
+  late NativeLibrary wallet_lib;
 
   FFIBridgePrebuilt() {
-    DynamicLibrary? dylib;
-    if (Platform.isAndroid) {
-      dylib = DynamicLibrary.open('libnative.so');
-    } else if (Platform.isIOS) {
-      dylib = DynamicLibrary.process();
-    } else {
-      dylib = null;
-    }
-    if (dylib != null) {
-      _libFunction = dylib.lookupFunction<Double Function(), double Function()>(
-          'get_temperature');
-    } else {
-      _libFunction = () => null;
-    }
-  }
+    final DynamicLibrary? _dylib = () {
+      if (Platform.isAndroid) {
+        return loadGeniusWalletLibrary();
+      } else if (Platform.isIOS) {
+        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
+      } else if (Platform.isMacOS) {
+        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
+      }
+      return DynamicLibrary.executable();
+    }();
 
-  double? getValueFromNative() => _libFunction();
+    if (_dylib == null) {
+      return;
+    }
+
+    wallet_lib = NativeLibrary(_dylib);
+  }
+}
+
+DynamicLibrary? loadGeniusWalletLibrary() {
+  try {
+    // Attempt to load the shared library
+    final library = DynamicLibrary.open('libGeniusWallet.so');
+    return library;
+  } catch (e) {
+    print("❌ Error loading library: $e");
+    return null; // Return null to handle errors gracefully
+  }
 }

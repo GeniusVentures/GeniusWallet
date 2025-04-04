@@ -1,11 +1,7 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/trend_line_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -39,9 +35,9 @@ class _CoinStatsCard extends State<CoinStatsCard> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxHeight,
             child: Stack(children: [
               Positioned(
                 left: 0,
@@ -49,11 +45,12 @@ class _CoinStatsCard extends State<CoinStatsCard> {
                 top: 0,
                 bottom: 0,
                 child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
+                  height: widget.constraints.maxHeight,
+                  width: widget.constraints.maxWidth,
                   decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
+                    color: GeniusWalletColors.deepBlueCardColor,
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(GeniusWalletConsts.borderRadiusCard)),
                   ),
                 ),
               ),
@@ -78,21 +75,15 @@ class _CoinStatsCard extends State<CoinStatsCard> {
                     )),
               ),
               Positioned(
-                right: 20.359,
-                width: 35.0,
-                top: 15.672,
-                height: 35.0,
+                left: 20,
+                width: 24,
+                top: 20,
+                height: 24,
                 child: Container(
                     decoration: BoxDecoration(),
                     child: Stack(children: [
                       Positioned(
-                        left: 0,
-                        width: 35.0,
-                        top: 0,
-                        height: 35.0,
                         child: Container(
-                          height: 35.0,
-                          width: 35.0,
                           decoration: BoxDecoration(
                             color: Color(0xff3a3c43),
                             borderRadius:
@@ -125,64 +116,49 @@ class _CoinStatsCard extends State<CoinStatsCard> {
                     ])),
               ),
               Positioned(
-                left: 21.0,
-                width: 62.0,
+                left: 60,
                 top: 22.0,
-                height: 23.0,
                 child: Container(
-                    height: 23.0,
-                    width: 62.0,
                     child: AutoSizeText(
-                      widget.ovrCoinName ?? 'Bitcoin',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 0.25,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
+                  widget.ovrCoinName ?? 'Bitcoin',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.33,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.left,
+                )),
               ),
               Positioned(
-                right: 20.0,
-                width: 136.0,
-                bottom: 12.0,
-                height: 41.0,
-                child: Container(
-                    height: 41.0,
-                    width: 136.0,
-                    child: AutoSizeText(
-                      widget.ovrPrice ?? '11 329.2',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 35.0,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 0.3500000238418579,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.right,
-                    )),
-              ),
-              Positioned(
-                right: 20.0,
-                width: 66.0,
-                bottom: 51.0,
-                height: 14.0,
-                child: Container(
-                    height: 14.0,
-                    width: 66.0,
-                    child: AutoSizeText(
-                      widget.ovrCurrencySymbol ?? 'USD',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2571428716182709,
-                        color: Color(0xff3a3c43),
-                      ),
-                      textAlign: TextAlign.right,
-                    )),
+                top: 20,
+                right: 30,
+                child:
+                    Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Container(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: AutoSizeText(
+                        widget.ovrPrice ?? '11 329.2',
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: Colors.white,
+                        ),
+                      )),
+                  AutoSizeText(
+                    widget.ovrCurrencySymbol ?? 'USD',
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.26,
+                      color: GeniusWalletColors.gray500,
+                    ),
+                  )
+                ]),
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.084,
@@ -191,6 +167,15 @@ class _CoinStatsCard extends State<CoinStatsCard> {
                 height: widget.constraints.maxHeight * 0.354,
                 child: Center(
                     child: Container(
+                        decoration:
+                            BoxDecoration(shape: BoxShape.circle, boxShadow: [
+                          BoxShadow(
+                            color: GeniusWalletColors.lightGreenPrimary
+                                .withOpacity(.8),
+                            spreadRadius: 2,
+                            blurRadius: 90,
+                          )
+                        ]),
                         height: 68.0,
                         width: 259.0,
                         child: TrendLineCustom(
