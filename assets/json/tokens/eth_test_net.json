@@ -1,0 +1,14 @@
+[
+  {
+    "name": "GNUS",
+    "address": "0x9af8050220D8C355CA3c6dC00a78B474cd3e3c70",
+    "iconPath": "assets/images/crypto/gnus.png",
+    "coinGeckoId": "genius-ai" 
+  },
+  {
+    "name": "USDC",
+    "address": "0x2C032Aa43D119D7bf4Adc42583F1f94f3bf3023a",
+    "iconPath": "assets/images/crypto/usdc.png",
+    "coinGeckoId": "usd-coin"
+  }
+]

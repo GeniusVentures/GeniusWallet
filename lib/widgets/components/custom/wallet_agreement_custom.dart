@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class WalletAgreementCustom extends StatefulWidget {
@@ -22,16 +23,18 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Checkbox(
           value: widget.value ?? false,
           onChanged: widget.onChanged,
         ),
         Flexible(
-          flex: 10,
-          child: Text(
+          child: AutoSizeText(
             widget.text ??
                 'I’ve read and accept the Terms of Service and Privacy Policy',
+            maxLines: 2,
+            textScaleFactor: 1,
           ),
         ),
       ],

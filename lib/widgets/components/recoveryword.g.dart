@@ -1,20 +1,14 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class Recoveryword extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrWord;
-  const Recoveryword(
-    this.constraints, {
-    Key? key,
-    this.ovrWord,
-  }) : super(key: key);
+  final bool isEnabled;
+  const Recoveryword(this.constraints,
+      {Key? key, this.ovrWord, this.isEnabled = true})
+      : super(key: key);
   @override
   _Recoveryword createState() => _Recoveryword();
 }
@@ -25,58 +19,33 @@ class _Recoveryword extends State<Recoveryword> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(),
-        child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: widget.constraints.maxWidth * 1.0,
-            top: 0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: Container(
-                clipBehavior: Clip.hardEdge,
-                decoration: BoxDecoration(),
-                child: Stack(children: [
-                  Positioned(
-                    left: 0,
-                    width: widget.constraints.maxWidth * 1.0,
-                    top: 0,
-                    height: widget.constraints.maxHeight * 1.0,
-                    child: Container(
-                      height: widget.constraints.maxHeight * 1.0,
-                      width: widget.constraints.maxWidth * 1.0,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
-                        border: Border.all(
-                          color: Color(0xff00efae),
-                          width: 1.0,
-                        ),
-                      ),
+        decoration: const BoxDecoration(),
+        child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(48)),
+              border: widget.isEnabled
+                  ? Border.all(
+                      color: GeniusWalletColors.lightGreenSecondary,
+                      width: 1.0,
+                    )
+                  : Border.all(
+                      color: GeniusWalletColors.borderGrey,
+                      width: 1.0,
                     ),
-                  ),
-                  Positioned(
-                    left: widget.constraints.maxWidth * 0.118,
-                    width: widget.constraints.maxWidth * 0.784,
-                    top: widget.constraints.maxHeight * 0.286,
-                    height: widget.constraints.maxHeight * 0.464,
-                    child: Container(
-                        height:
-                            widget.constraints.maxHeight * 0.4642866853983504,
-                        width: widget.constraints.maxWidth * 0.7843116554054054,
-                        child: AutoSizeText(
-                          widget.ovrWord ?? '1 limb',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 0.0,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )),
-                  ),
-                ])),
-          ),
-        ]));
+            ),
+            child: AutoSizeText(
+              widget.ovrWord ?? '1 limb',
+              style: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 0.0,
+                  color: widget.isEnabled
+                      ? Colors.white
+                      : GeniusWalletColors.btnTextDisabled),
+              textAlign: TextAlign.center,
+            )));
   }
 
   @override

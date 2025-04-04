@@ -36,11 +36,13 @@ class _ImportWalletViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: title,
-      subtitle: subtitle,
-      body: const Center(
+      title: '',
+      subtitle: '',
+      body: Center(
         child: DesktopBodyContainer(
-          child: SupportedExistingWallets(),
+          title: title,
+          subText: subtitle,
+          child: const SupportedExistingWallets(),
         ),
       ),
     );
@@ -62,7 +64,7 @@ class _ImportWalletViewMobile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       body: Container(
-        padding: const EdgeInsets.only(top: 40, left: 40, right: 40),
+        padding: const EdgeInsets.only(top: 40),
         constraints: BoxConstraints(
           minHeight: 100,
           maxHeight: MediaQuery.of(context).size.height * 0.6,

@@ -1,12 +1,7 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class HistoricTransactionDetailView extends StatefulWidget {
   final BoxConstraints constraints;
@@ -14,7 +9,6 @@ class HistoricTransactionDetailView extends StatefulWidget {
   final String? ovrReceiverWalletIDLabel;
   final String? ovrTransactionIDLabel;
   final String? ovrTransactionFeeLabel;
-  final String? ovrTransactionTypeLabel;
   final String? ovrTransactionTimestampLabel;
   final String? ovrTransactionAmountLabel;
   final String? ovrCryptoType;
@@ -32,7 +26,6 @@ class HistoricTransactionDetailView extends StatefulWidget {
     this.ovrReceiverWalletIDLabel,
     this.ovrTransactionIDLabel,
     this.ovrTransactionFeeLabel,
-    this.ovrTransactionTypeLabel,
     this.ovrTransactionTimestampLabel,
     this.ovrTransactionAmountLabel,
     this.ovrCryptoType,
@@ -65,33 +58,17 @@ class _HistoricTransactionDetailView
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
-                  decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
-                  ),
-                ),
-              ),
-              Positioned(
                 left: 15.0,
                 width: 298.0,
                 top: 85.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 298.0,
                     child: AutoSizeText(
                       widget.ovrCryptoTypeLabel ?? 'Cryptocurrency',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -102,16 +79,14 @@ class _HistoricTransactionDetailView
                 left: 15.0,
                 width: 302.0,
                 top: 149.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 302.0,
                     child: AutoSizeText(
                       widget.ovrReceiverWalletIDLabel ?? 'Receiver',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -120,38 +95,32 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 15.0,
-                width: 88.0,
                 top: 211.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
-                    width: 88.0,
                     child: AutoSizeText(
-                      widget.ovrTransactionIDLabel ?? 'Transaction',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.30000001192092896,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.left,
-                    )),
+                  widget.ovrTransactionIDLabel ?? 'Transaction',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.30000001192092896,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.left,
+                )),
               ),
               Positioned(
                 left: 15.0,
                 width: 302.0,
                 top: 273.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 302.0,
                     child: AutoSizeText(
                       widget.ovrTransactionFeeLabel ?? 'Fee',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -162,16 +131,14 @@ class _HistoricTransactionDetailView
                 left: 15.0,
                 width: 302.0,
                 top: 345.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 302.0,
                     child: AutoSizeText(
-                      widget.ovrTransactionTypeLabel ?? 'Transaction Type',
+                      'Transaction Direction',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -182,16 +149,14 @@ class _HistoricTransactionDetailView
                 left: 15.0,
                 width: 302.0,
                 top: 421.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 302.0,
                     child: AutoSizeText(
                       widget.ovrTransactionTimestampLabel ?? 'Date',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -202,16 +167,14 @@ class _HistoricTransactionDetailView
                 left: 15.0,
                 width: 298.0,
                 top: 31.0,
-                height: 14.0,
                 child: Container(
-                    height: 14.0,
                     width: 298.0,
                     child: AutoSizeText(
                       widget.ovrTransactionAmountLabel ?? 'Amount',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w400,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,
                       ),
@@ -261,12 +224,10 @@ class _HistoricTransactionDetailView
               ),
               Positioned(
                 left: 17.0,
-                width: 300.0,
                 top: 235.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,
-                    width: 300.0,
                     child: AutoSizeText(
                       widget.ovrTransactionID ??
                           '0xeacdacdvafedswvsvxfsafedavedvaseav832',
@@ -289,8 +250,7 @@ class _HistoricTransactionDetailView
                     height: 16.0,
                     width: 300.0,
                     child: AutoSizeText(
-                      widget.ovrTransactionFee ??
-                          '0xeacdacdvafedswvsvxfsafedavedvaseav832',
+                      widget.ovrTransactionFee ?? '123',
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 14.0,
@@ -304,7 +264,7 @@ class _HistoricTransactionDetailView
               Positioned(
                 left: 36.0,
                 width: 281.0,
-                top: 369.0,
+                top: 375.0,
                 height: 16.0,
                 child: Container(
                     height: 16.0,

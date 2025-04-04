@@ -56,7 +56,7 @@ class _LegalViewMobile extends StatelessWidget {
         constraints: BoxConstraints(
           minHeight: 50,
           minWidth: MediaQuery.of(context).size.width * 0.8,
-          maxHeight: MediaQuery.of(context).size.width * 0.5,
+          maxHeight: MediaQuery.of(context).size.width * 0.8,
           maxWidth: MediaQuery.of(context).size.width * 0.8,
         ),
         child: const _ToSButtons(),
@@ -78,18 +78,17 @@ class _LegalViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: title,
-      subtitle: subtitle,
+      title: '',
+      subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
-          padding: const EdgeInsets.symmetric(
-            vertical: 80,
-            horizontal: 100,
-          ),
+          title: title,
+          subText: subtitle,
           height: 500,
-          child: Column(
+          width: 420,
+          child: const Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               _ToSButtons(),
               _Agreement(),
             ],
@@ -105,36 +104,39 @@ class _ToSButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          height: 50,
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return TypeExisting(
-                constraints,
-                ovrIalreadyhaveawallet: 'Privacy Policy',
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          height: 50,
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return TypeExisting(
-                constraints,
-                ovrIalreadyhaveawallet: 'Terms of Service',
-              );
-            },
-          ),
-        ),
-      ],
-    );
+    return SizedBox(
+        width: 300,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 50,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return TypeExisting(
+                    constraints,
+                    ovrIalreadyhaveawallet: 'Privacy Policy',
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 50,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return TypeExisting(
+                    constraints,
+                    ovrIalreadyhaveawallet: 'Terms of Service',
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ));
   }
 }
 
@@ -149,7 +151,7 @@ class _Agreement extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 30,
+          height: 100,
           width: MediaQuery.of(context).size.width * 0.8,
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -161,7 +163,7 @@ class _Agreement extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.8,
           height: 50,

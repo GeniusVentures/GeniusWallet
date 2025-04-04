@@ -6,6 +6,7 @@ import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.dart';
@@ -41,20 +42,18 @@ class _BackupPhraseViewMobile extends StatelessWidget {
             width: MediaQuery.of(context).size.width,
             height: 190,
             child: LayoutBuilder(builder: (context, constraints) {
-              return RegistrationHeader(constraints);
+              return RegistrationHeader(
+                constraints,
+                ovrSubtitle: GeniusWalletText.helpTextWalletBackup,
+              );
             }),
           ),
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.2,
+            height: MediaQuery.of(context).size.height * 0.47,
           ),
-          Image.asset(
-            'assets/images/shield_icon.png',
-            package: 'genius_wallet',
-          ),
-          const SizedBox(height: 30),
           SizedBox(
-            height: 50,
-            width: MediaQuery.of(context).size.width * 0.8,
+            height: 100,
+            width: MediaQuery.of(context).size.width * 0.86,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return WalletAgreementCustom(
@@ -62,13 +61,11 @@ class _BackupPhraseViewMobile extends StatelessWidget {
                   onChanged: (value) {
                     context.read<NewWalletBloc>().add(ToggleCheckbox());
                   },
-                  text:
-                      'I understand that if I lose my recovery words, I will not be able to access my wallet.',
+                  text: GeniusWalletText.helpRecoveryWords,
                 );
               },
             ),
           ),
-          const SizedBox(height: 20)
         ],
       ),
       footer: SizedBox(
@@ -108,24 +105,16 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreenWithHeaderDesktop(
-      title: 'Back up your wallet now!',
-      subtitle:
-          'In the next step you will see 12 words that allow you to recover a wallet.',
+      title: '',
+      subtitle: '',
       body: Center(
         child: DesktopBodyContainer(
+          height: 500,
+          title: "Wallet Backup",
+          subText:
+              'In the next step you will see 12 words that allow you to recover a wallet.',
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: 300,
-                child: Image.asset(
-                  'assets/images/shield_icon.png',
-                  package: 'genius_wallet',
-                ),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
               SizedBox(
                 height: 50,
                 width: 400,
@@ -137,12 +126,12 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
                       onChanged: (value) {
                         context.read<NewWalletBloc>().add(ToggleCheckbox());
                       },
-                      text:
-                          'I understand that if I lose my recovery words, I will not be able to access my wallet.',
+                      text: GeniusWalletText.helpRecoveryWords,
                     );
                   },
                 ),
               ),
+              const SizedBox(height: 20),
               SizedBox(
                 width: 400,
                 height: 46,

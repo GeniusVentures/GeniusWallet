@@ -5,12 +5,14 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/utils/breakpoints.dart';
 import 'package:genius_wallet/app/widgets/overlay/desktop_overlay.dart';
 import 'package:genius_wallet/app/widgets/overlay/mobile_overlay.dart';
-import 'package:genius_wallet/calculator/view/calculator_screen.dart';
+import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
+import 'package:genius_wallet/dashboard/events/view/events_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
+import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
-import 'package:genius_wallet/dashboard/wallets/view/wallets_screen.dart';
-import 'package:genius_wallet/markets/view/markets_screen.dart';
+import 'package:genius_wallet/wallets/view/wallets_screen.dart';
+import 'package:genius_wallet/web/web_view_screen.dart';
 
 /// Widget that adds a navigation overlay according to the platform and size of the screen.
 class ResponsiveOverlay extends StatelessWidget {
@@ -20,9 +22,7 @@ class ResponsiveOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (selectedScreen != null) {
-      context
-          .read<NavigationOverlayCubit>()
-          .navigationTapped(NavigationScreen.values.indexOf(selectedScreen!));
+      context.read<NavigationOverlayCubit>().navigationTapped(selectedScreen!);
     }
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
@@ -37,31 +37,34 @@ class ResponsiveOverlay extends StatelessWidget {
             child = const TransactionsScreen();
             break;
           case NavigationScreen.news:
-            child = const Center(child: Text('Coming soon'));
+            child = const CryptoNewsScreen();
             break;
           case NavigationScreen.markets:
             child = const MarketsScreen();
             break;
           case NavigationScreen.events:
-            child = const Center(child: Text('Coming soon'));
-            break;
-          case NavigationScreen.calculator:
-            child = const CalculatorScreen();
+            child = const EventsScreen();
             break;
           case NavigationScreen.trade:
             child = const TradeScreen();
+            break;
+          case NavigationScreen.settings:
+            child = const Center(child: Text('Coming soon'));
+            break;
+          case NavigationScreen.web:
+            child = const WebViewScreen(url: "https://www.gnus.ai/");
             break;
           case NavigationScreen.dashboard:
           default:
             child = const HomeScreen();
         }
 
-        if (platform == Platforms.mobile) {
+        if (!GeniusBreakpoints.useDesktopLayout(context) ||
+            platform == Platforms.mobile) {
           return MobileOverlay(child: child);
-        } else if (platform == Platforms.desktop) {
+        } else {
           return DesktopOverlay(child: child);
         }
-        return child;
       },
     );
   }

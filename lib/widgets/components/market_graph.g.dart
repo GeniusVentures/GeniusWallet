@@ -1,16 +1,13 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/custom/graph_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class MarketGraph extends StatefulWidget {
   final BoxConstraints constraints;
+  final String? ovrPriceCurrency;
   final String? ovrCoinToFiat;
   final String? ovrPricePerCoin;
   final String? ovrVolume;
@@ -18,6 +15,7 @@ class MarketGraph extends StatefulWidget {
   const MarketGraph(
     this.constraints, {
     Key? key,
+    this.ovrPriceCurrency,
     this.ovrCoinToFiat,
     this.ovrPricePerCoin,
     this.ovrVolume,
@@ -37,9 +35,9 @@ class _MarketGraph extends State<MarketGraph> {
         child: Stack(children: [
           Positioned(
             left: 0,
-            width: widget.constraints.maxWidth * 1.0,
+            width: widget.constraints.maxWidth,
             top: 0,
-            height: widget.constraints.maxHeight * 1.0,
+            height: widget.constraints.maxHeight,
             child: Stack(children: [
               Positioned(
                 left: 0,
@@ -47,11 +45,12 @@ class _MarketGraph extends State<MarketGraph> {
                 top: 0,
                 bottom: 0,
                 child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
-                  decoration: BoxDecoration(
-                    color: Color(0xff2a2b31),
-                    borderRadius: BorderRadius.all(Radius.circular(2.0)),
+                  height: widget.constraints.maxHeight,
+                  width: widget.constraints.maxWidth,
+                  decoration: const BoxDecoration(
+                    color: GeniusWalletColors.deepBlueCardColor,
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(GeniusWalletConsts.borderRadiusCard)),
                   ),
                 ),
               ),
@@ -62,99 +61,105 @@ class _MarketGraph extends State<MarketGraph> {
                 height: widget.constraints.maxHeight * 0.073,
                 child: Center(
                     child: Container(
-                        height: 14.0,
+                        height: 30.0,
                         width:
                             widget.constraints.maxWidth * 0.24437299035369775,
                         child: AutoSizeText(
                           widget.ovrCoinToFiat ?? 'ETH/USD',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.25714290142059326,
-                            color: Color(0xff4c4d55),
-                          ),
-                          textAlign: TextAlign.left,
-                        ))),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.521,
-                width: widget.constraints.maxWidth * 0.418,
-                top: widget.constraints.maxHeight * 0.089,
-                height: widget.constraints.maxHeight * 0.24,
-                child: Center(
-                    child: Container(
-                        height: 46.0,
-                        width: widget.constraints.maxWidth * 0.4180064308681672,
-                        child: AutoSizeText(
-                          widget.ovrPricePerCoin ?? '1,307.96  USD',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 20.0,
+                            fontSize: 16.0,
                             fontWeight: FontWeight.w400,
-                            letterSpacing: 0.6000000238418579,
+                            letterSpacing: 0.3,
                             color: Colors.white,
                           ),
-                          textAlign: TextAlign.right,
-                        ))),
-              ),
-              Positioned(
-                left: widget.constraints.maxWidth * 0.064,
-                width: widget.constraints.maxWidth * 0.447,
-                top: widget.constraints.maxHeight * 0.807,
-                height: widget.constraints.maxHeight * 0.083,
-                child: Center(
-                    child: Container(
-                        height: 16.0,
-                        width:
-                            widget.constraints.maxWidth * 0.44694533762057875,
-                        child: AutoSizeText(
-                          widget.ovrVolume ?? 'Volume: 126,478 LTC',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.30000001192092896,
-                            color: Color(0xff606166),
-                          ),
                           textAlign: TextAlign.left,
                         ))),
               ),
               Positioned(
-                left: widget.constraints.maxWidth * 0.823,
-                width: widget.constraints.maxWidth * 0.113,
-                top: widget.constraints.maxHeight * 0.813,
-                height: widget.constraints.maxHeight * 0.073,
-                child: Center(
-                    child: Container(
-                        height: 14.0,
-                        width:
-                            widget.constraints.maxWidth * 0.11254019292604502,
-                        child: AutoSizeText(
-                          widget.ovrPercentage ?? '1.93%',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: 12.0,
+                right: 20,
+                top: widget.constraints.maxHeight * 0.1,
+                height: widget.constraints.maxHeight * 0.24,
+                child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: 5,
+                    children: [
+                      AutoSizeText(
+                        widget.ovrPricePerCoin ?? '1,307.96',
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                      Text(
+                        widget.ovrPriceCurrency ?? 'USD',
+                        style: const TextStyle(
+                            color: GeniusWalletColors.gray500,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.44999998807907104,
-                            color: Color(0xff7ac231),
-                          ),
-                          textAlign: TextAlign.right,
-                        ))),
+                            letterSpacing: .25),
+                      )
+                    ]),
+              ),
+              Positioned(
+                left: 20,
+                bottom: 20,
+                width: widget.constraints.maxWidth - 40,
+                child: Center(
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                      AutoSizeText(
+                        widget.ovrVolume ?? 'Volume: 126,478 LTC',
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 0.25,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      AutoSizeText(
+                        widget.ovrPercentage ?? '1.93%',
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                          color: Color(0xff7ac231),
+                        ),
+                        textAlign: TextAlign.right,
+                      )
+                    ])),
               ),
               Positioned(
                 left: widget.constraints.maxWidth * 0.071,
                 width: widget.constraints.maxWidth * 0.855,
                 top: widget.constraints.maxHeight * 0.359,
                 height: widget.constraints.maxHeight * 0.411,
-                child: GraphCustom(
-                    child: SvgPicture.asset(
-                  'assets/images/graphcustom.svg',
-                  package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 0.4114583333333333,
-                  width: widget.constraints.maxWidth * 0.8553054662379421,
-                  fit: BoxFit.fill,
-                )),
+                child: Container(
+                    decoration:
+                        BoxDecoration(shape: BoxShape.circle, boxShadow: [
+                      BoxShadow(
+                        color: GeniusWalletColors.lightGreenPrimary
+                            .withOpacity(.8),
+                        spreadRadius: 2,
+                        blurRadius: 90,
+                      )
+                    ]),
+                    child: GraphCustom(
+                        child: SvgPicture.asset(
+                      'assets/images/graphcustom.svg',
+                      package: 'genius_wallet',
+                      height: widget.constraints.maxHeight * 0.4114583333333333,
+                      width: widget.constraints.maxWidth * 0.8553054662379421,
+                      fit: BoxFit.fill,
+                    ))),
               ),
             ]),
           ),

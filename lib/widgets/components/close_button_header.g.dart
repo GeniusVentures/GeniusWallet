@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/widgets/components/genius_close_button.g.dart';
 import 'package:genius_wallet/widgets/components/custom/genius_close_button_custom.dart';
@@ -32,13 +26,13 @@ class _CloseButtonHeader extends State<CloseButtonHeader> {
           Positioned(
             left: 0,
             width: widget.constraints.maxWidth * 1.0,
-            top: 0,
+            top: 10,
             height: widget.constraints.maxHeight * 1.0,
             child: Stack(children: [
               Positioned(
                 left: 0,
                 width: 79.0,
-                top: 0,
+                top: 5,
                 height: 35.0,
                 child: GeniusCloseButtonCustom(
                     child: LayoutBuilder(builder: (context, constraints) {
@@ -60,7 +54,7 @@ class _CloseButtonHeader extends State<CloseButtonHeader> {
                       widget.ovrSendBitcoin ?? 'Send Bitcoin',
                       style: TextStyle(
                         fontFamily: 'Roboto',
-                        fontSize: 12.0,
+                        fontSize: 24.0,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.30000001192092896,
                         color: Colors.white,

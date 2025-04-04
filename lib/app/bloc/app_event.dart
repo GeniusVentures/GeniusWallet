@@ -8,3 +8,7 @@ class CheckIfUserExists extends AppEvent {}
 
 /// Class whose purpose is to test FFI Bridge functionality
 class FFITestEvent extends AppEvent {}
+
+class FetchAccount extends AppEvent {}
+
+class StreamSGNUSTransactions extends AppEvent {}

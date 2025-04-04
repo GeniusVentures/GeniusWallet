@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -37,11 +31,11 @@ class _Header extends State<Header> {
                 width: 213.0,
                 child: AutoSizeText(
                   widget.ovrHeaderName ?? 'Header Name',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Roboto',
                     fontSize: 24.0,
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 0.30000001192092896,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.left,
