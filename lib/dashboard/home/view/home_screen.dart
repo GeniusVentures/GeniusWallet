@@ -88,6 +88,12 @@ class ThreeColumnDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final availableHeight = MediaQuery.of(context).size.height - 24;
+    final topRowHeight = availableHeight * .45;
+    const topRowMinHeight = 300.0;
+    final bottomRowHeight = availableHeight * .55;
+    const bottomRowMinHeight = 380.0;
+    const secondRowMinHeight = topRowMinHeight + bottomRowMinHeight;
+
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
         child: Column(children: [
@@ -96,8 +102,13 @@ class ThreeColumnDashboardView extends StatelessWidget {
             Expanded(
                 flex: 3,
                 child: Column(children: [
-                  SizedBox(
-                      height: availableHeight * .45,
+                  ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: topRowMinHeight,
+                        maxHeight: topRowHeight < topRowMinHeight
+                            ? topRowMinHeight
+                            : topRowHeight,
+                      ),
                       child: Row(children: [
                         Expanded(child: OverviewDashboardView()),
                         Expanded(
@@ -114,16 +125,26 @@ class ThreeColumnDashboardView extends StatelessWidget {
                                   ]))
                                 ]))
                       ])),
-                  SizedBox(
-                      height: availableHeight * .55,
+                  ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: bottomRowMinHeight,
+                        maxHeight: bottomRowHeight < bottomRowMinHeight
+                            ? bottomRowMinHeight
+                            : bottomRowHeight,
+                      ),
                       child: Row(children: [
                         Expanded(flex: 2, child: ChartDashboardView()),
                         Expanded(flex: 1, child: MarketsDashboardView())
                       ])),
                 ])),
-            SizedBox(
-                width: 600,
-                height: availableHeight,
+            ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 600,
+                  minHeight: secondRowMinHeight,
+                  maxHeight: availableHeight < secondRowMinHeight
+                      ? secondRowMinHeight
+                      : availableHeight,
+                ),
                 child: TransactionsDashboardView())
           ])
         ]));
@@ -156,13 +177,13 @@ class TwoColumnDashBoardView extends StatelessWidget {
                       ]))
             ]),
           ),
-          SizedBox(height: 600, child: TransactionsDashboardView()),
           SizedBox(
               height: 480,
               child: Row(children: [
                 Expanded(flex: 2, child: ChartDashboardView()),
                 Expanded(flex: 1, child: MarketsDashboardView())
               ])),
+          SizedBox(height: 600, child: TransactionsDashboardView()),
         ]));
   }
 }
@@ -184,11 +205,11 @@ class OneColumnDashBoardView extends StatelessWidget {
                       style: TextStyle(
                           fontSize: GeniusWalletFontSize.sectionHeader))),
               WalletDashboardView(),
-              SizedBox(height: 600, child: TransactionsDashboardView()),
-              SizedBox(height: 300, child: ContributionsDashboardView()),
-              SizedBox(height: 300, child: SendReceiveDashboardView()),
               SizedBox(height: 400, child: ChartDashboardView()),
               SizedBox(height: 480, child: MarketsDashboardView()),
+              SizedBox(height: 300, child: ContributionsDashboardView()),
+              SizedBox(height: 300, child: SendReceiveDashboardView()),
+              SizedBox(height: 600, child: TransactionsDashboardView()),
             ]));
   }
 }
