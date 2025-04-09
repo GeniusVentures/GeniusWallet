@@ -87,16 +87,17 @@ class ThreeColumnDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final availableHeight = MediaQuery.of(context).size.height - 24;
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
         child: Column(children: [
           SizedBox(height: gridSpacing),
-          const Row(children: [
+          Row(children: [
             Expanded(
                 flex: 3,
                 child: Column(children: [
                   SizedBox(
-                      height: 400,
+                      height: availableHeight * .45,
                       child: Row(children: [
                         Expanded(child: OverviewDashboardView()),
                         Expanded(
@@ -114,14 +115,16 @@ class ThreeColumnDashboardView extends StatelessWidget {
                                 ]))
                       ])),
                   SizedBox(
-                      height: 580,
+                      height: availableHeight * .55,
                       child: Row(children: [
                         Expanded(flex: 2, child: ChartDashboardView()),
                         Expanded(flex: 1, child: MarketsDashboardView())
                       ])),
                 ])),
             SizedBox(
-                width: 600, height: 980, child: TransactionsDashboardView())
+                width: 600,
+                height: availableHeight,
+                child: TransactionsDashboardView())
           ])
         ]));
   }
