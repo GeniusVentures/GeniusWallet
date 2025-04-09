@@ -4,6 +4,14 @@ import 'package:genius_wallet/widgets/components/action_button.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
+final List<String> supportedMethods = [
+  'eth_sendTransaction',
+  'eth_signTransaction',
+  'personal_sign',
+  'eth_sign',
+  'eth_signTypedData',
+];
+
 class ReownConnectButton extends StatefulWidget {
   final String walletAddress;
   const ReownConnectButton({super.key, required this.walletAddress});
@@ -49,6 +57,114 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       });
     }
 
+    // Listen for incoming requests
+    walletKit.onSessionRequest.subscribe((SessionRequestEvent? event) async {
+      print('🔄 Session request received: $event');
+
+      if (event != null) {
+        final String method = event.method;
+        final int requestId = event.id;
+        final String topic = event.topic; // ✅ Comes directly from the event
+
+        final dappMetadata =
+            walletKit.getActiveSessions()[topic]?.peer.metadata;
+        final dappName = dappMetadata?.name ?? 'Unknown DApp';
+        final dappUrl = dappMetadata?.url ?? '';
+
+        final bool? shouldApprove = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            title: Row(
+              children: [
+                const Icon(Icons.shield_outlined, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Request from $dappName",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (dappUrl.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(dappUrl,
+                          style: const TextStyle(
+                              color: GeniusWalletColors.gray500, fontSize: 12)),
+                    ),
+                  Text("Method: $method",
+                      style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 12),
+                  const Text("Params:",
+                      style: TextStyle(color: GeniusWalletColors.gray500)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: GeniusWalletColors.deepBlueCardColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      event.params.toString(),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Deny",
+                    style: TextStyle(color: Colors.redAccent)),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                child: const Text("Approve"),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldApprove == true) {
+          // ✅ TODO: Implement real logic to generate response result
+          await walletKit.respondSessionRequest(
+            topic: topic,
+            response: JsonRpcResponse(
+              id: requestId,
+              jsonrpc: '2.0',
+              result: '0x123456...', // Replace with real logic
+            ),
+          );
+          print('✅ Request approved and responded.');
+        } else {
+          // ❌ Reject
+          await walletKit.respondSessionRequest(
+            topic: topic,
+            response: JsonRpcResponse(
+              id: requestId,
+              jsonrpc: '2.0',
+              error: JsonRpcError(
+                code: Errors.USER_REJECTED.toInt(),
+                message: 'User rejected the request.',
+              ),
+            ),
+          );
+          print('❌ Request rejected.');
+        }
+      }
+    });
+
     walletKit.onSessionConnect.subscribe((event) {
       setState(() {
         _session = event.session;
@@ -73,13 +189,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         namespaces: {
           'eip155': Namespace(
             chains: ['eip155:1'],
-            methods: [
-              'eth_sendTransaction',
-              'eth_signTransaction',
-              'eth_sign',
-              'personal_sign',
-              'eth_signTypedData',
-            ],
+            methods: supportedMethods,
             events: ['chainChanged', 'accountsChanged'],
             accounts: ['eip155:1:${widget.walletAddress}'],
           ),
