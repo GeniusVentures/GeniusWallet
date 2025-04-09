@@ -305,7 +305,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       iconColor = Colors.amber;
       textColor = Colors.amber;
       backgroundColor = Colors.amber.withOpacity(0.1);
-      text = 'Connecting...';
+      text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
       iconColor = Colors.orange;
@@ -332,6 +332,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       iconColor: iconColor,
       textColor: textColor,
       backgroundColor: backgroundColor,
+      animation: _isConnecting
+          ? ActionButtonAnimation.rotate
+          : ActionButtonAnimation.none,
       onPressed: () {
         if (_isConnecting) return;
         if (isConnected) {
