@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/app/reown/reown_connect_button.dart';
 import 'package:genius_wallet/app/widgets/job/submit_job_button.dart';
 import 'package:genius_wallet/app/widgets/loading/loading.dart';
 import 'package:genius_wallet/app/widgets/qr/crypto_address_qr.dart';
@@ -122,14 +123,7 @@ class WalletInformationState extends State<WalletInformation> {
                 icon: Icons.send,
               ),
               const SizedBox(width: 8),
-              const ActionButton(
-                  text: 'Swap', icon: Icons.swap_horiz, onPressed: null //() {
-                  // TODO: renable swap...
-                  // Open the Swap Screen as a popup
-                  // context.push('/swap',
-                  //     extra: context.read<WalletDetailsCubit>());
-                  //}
-                  ),
+              ReownConnectButton(walletAddress: widget.ovrAddressField),
               const SizedBox(width: 8),
               ActionButton(
                 text: "More",
