@@ -17,6 +17,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   SessionData? _session;
   bool _isConnecting = false;
   bool _hasError = false;
+  bool _timedOut = false;
   String _statusMessage = '';
   final TextEditingController _uriController = TextEditingController();
 
@@ -54,6 +55,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
         _isConnecting = false;
         _hasError = false;
+        _timedOut = false;
       });
     });
 
@@ -90,12 +92,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     setState(() {
       _isConnecting = true;
       _hasError = false;
+      _timedOut = false;
       _statusMessage = "🔄 Generating QR Code...";
     });
 
     try {
       final CreateResponse pairingInfo = await walletKit.core.pairing.create();
       final wcUri = pairingInfo.uri.toString();
+      print("🔗 WalletConnect URI: $wcUri");
+      String? manualInputError;
 
       if (!mounted) return;
 
@@ -108,53 +113,80 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           return StatefulBuilder(
             builder: (context, setInnerState) => AlertDialog(
               backgroundColor: GeniusWalletColors.deepBlueTertiary,
-              title: const Center(child: Text("Connect to Wallet")),
+              title: Row(mainAxisSize: MainAxisSize.min, children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                      15), // Half of width/height for a circle
+                  child: Image.asset(
+                    'assets/images/crypto/wallet-connect.png',
+                    height: 50,
+                    width: 50,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text("Wallet Connect"),
+              ]),
               content: SizedBox(
                 width: 300,
                 height: 320,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 12),
                     Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: showManualInput
-                            ? Column(
-                                key: const ValueKey("manual"),
+                        child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      switchInCurve: Curves.easeIn,
+                      switchOutCurve: Curves.easeOut,
+                      child: showManualInput
+                          ? KeyedSubtree(
+                              key: ValueKey(
+                                  "manual-${DateTime.now().millisecondsSinceEpoch}"),
+                              child: Column(
                                 children: [
-                                  const Text("Paste WalletConnect URI"),
-                                  const SizedBox(height: 12),
                                   TextField(
                                     controller: _uriController,
-                                    style: const TextStyle(color: Colors.white),
                                     decoration: const InputDecoration(
                                       hintText: "wc:...",
                                       hintStyle:
                                           TextStyle(color: Colors.white38),
-                                      border: OutlineInputBorder(),
                                     ),
                                   ),
+                                  if (manualInputError != null) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      manualInputError!,
+                                      style: const TextStyle(
+                                          color: Colors.redAccent),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ]
                                 ],
-                              )
-                            : QrImageView(
+                              ))
+                          : KeyedSubtree(
+                              key: ValueKey(
+                                  "qr-${DateTime.now().millisecondsSinceEpoch}"),
+                              child: QrImageView(
                                 backgroundColor: Colors.white,
-                                key: const ValueKey("qr"),
                                 data: wcUri,
                                 version: QrVersions.auto,
-                                size: 250,
                               ),
-                      ),
-                    ),
+                            ),
+                    )),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         setInnerState(() => showManualInput = !showManualInput);
                       },
+                      style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          backgroundColor: Colors.transparent),
                       child: Text(
-                        showManualInput
-                            ? "← Show QR Code"
-                            : "Enter URI Manually",
-                        style: const TextStyle(color: Colors.white70),
+                        style:
+                            const TextStyle(color: GeniusWalletColors.gray500),
+                        showManualInput ? "Show QR Code" : "Enter URI Manually",
                       ),
                     )
                   ],
@@ -164,9 +196,31 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                 if (showManualInput)
                   TextButton(
                     onPressed: () async {
-                      Navigator.of(context).pop();
-                      await walletKit.pair(uri: Uri.parse(_uriController.text));
+                      final input = _uriController.text.trim();
+
+                      if (!input.startsWith('wc:') || !input.contains('@')) {
+                        setInnerState(() {
+                          manualInputError =
+                              '❌ Invalid WalletConnect URI format.';
+                        });
+                        print('❌ Invalid format: $input');
+                        return;
+                      }
+
+                      try {
+                        await walletKit.pair(uri: Uri.parse(input));
+                        Navigator.of(context).pop(); // Only close if successful
+                      } catch (e) {
+                        setInnerState(() {
+                          manualInputError = '❌ URI Connect Failed: $e';
+                        });
+                        print('❌ WalletKit pair failed: $e');
+                      }
                     },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                    ),
                     child: const Text("Connect"),
                   ),
                 TextButton(
@@ -174,6 +228,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                     Navigator.of(context).pop();
                     setState(() => _isConnecting = false);
                   },
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  ),
                   child: const Text("Cancel"),
                 ),
               ],
@@ -186,6 +244,22 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _statusMessage = "🔄 Waiting for session proposal...";
       });
       print('🔄 Waiting for session proposal...');
+
+      // ⏱ Timeout fallback if no session is received
+      Future.delayed(const Duration(seconds: 15), () {
+        if (_isConnecting && _session == null && mounted) {
+          setState(() {
+            _isConnecting = false;
+            _hasError = true;
+            _timedOut = true; // 👈 Flag timeout separately
+            _statusMessage = "⏱ Connection timed out. Please try again.";
+          });
+          print('⏱ Timeout hit – no session received.');
+        }
+      });
+
+      // Call pairing to start the process
+      await walletKit.pair(uri: Uri.parse(wcUri));
     } catch (e) {
       setState(() {
         _statusMessage = '❌ Connection failed: $e';
@@ -232,6 +306,12 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       textColor = Colors.amber;
       backgroundColor = Colors.amber.withOpacity(0.1);
       text = 'Connecting...';
+    } else if (_timedOut) {
+      icon = Icons.timer_off;
+      iconColor = Colors.orange;
+      textColor = Colors.orange;
+      backgroundColor = Colors.orange.withOpacity(0.1);
+      text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
       iconColor = Colors.redAccent;
