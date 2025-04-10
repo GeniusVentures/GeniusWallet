@@ -7,7 +7,9 @@ import 'package:genius_api/src/genius_api.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/utilities.dart';
 import 'package:http/http.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:flutter/material.dart';
 
@@ -481,6 +483,9 @@ class Web3 {
 
   String getPrivateKeyStr(wallet) {
     PrivateKey privateKey;
+    if (wallet == null) {
+      return '';
+    }
     if (wallet.storedKey.isMnemonic()) {
       privateKey = wallet.storedKey
           .wallet("")!
@@ -493,5 +498,53 @@ class Web3 {
         .data()
         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
         .join();
+  }
+
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String privateKey,
+    required int chainId,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    try {
+      final from = EthereumAddress.fromHex(tx['from']);
+      final to = EthereumAddress.fromHex(tx['to']);
+      final value = parseHexToBigInt(tx['value']);
+      final gasLimit = parseHexToBigInt(tx['gas'] ?? tx['gasLimit']);
+      final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
+      final maxPriorityFee = parseHexToBigInt(tx['maxPriorityFeePerGas']);
+      final data = tx['data'] != null ? hexToBytes(tx['data']) : Uint8List(0);
+
+      final transaction = Transaction(
+        from: from,
+        to: to,
+        value: EtherAmount.inWei(value),
+        gasPrice: EtherAmount.inWei(maxFeePerGas),
+        maxPriorityFeePerGas: EtherAmount.inWei(maxPriorityFee),
+        maxFeePerGas: EtherAmount.inWei(maxFeePerGas),
+        data: data,
+        maxGas: gasLimit.toInt(),
+      );
+
+      if (privateKey.isEmpty) {
+        return ApiResponse.error("No private key provided for signing");
+      }
+
+      final credentials = EthPrivateKey.fromHex(privateKey);
+
+      final txHash = await client.sendTransaction(
+        credentials,
+        transaction,
+        chainId: chainId,
+      );
+
+      return ApiResponse.success(txHash);
+    } catch (e) {
+      return ApiResponse.error("Sign/Send failed: $e");
+    } finally {
+      client.dispose();
+    }
   }
 }

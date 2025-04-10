@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/app/reown/send_transaction_details.dart';
 import 'package:genius_wallet/app/reown/utilites.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
-Future<void> handleDappRequests({
-  required ReownWalletKit walletKit,
-}) async {
+Future<void> handleDappRequests(
+    {required ReownWalletKit walletKit,
+    required GeniusApi geniusApi,
+    required WalletDetailsCubit walletDetailsCubit}) async {
   walletKit.onSessionRequest.subscribe((SessionRequestEvent? event) async {
     debugPrint('🔄 Session request received: ${event?.eventName}');
     //debugPrint(event.toString());
@@ -190,16 +194,47 @@ Future<void> handleDappRequests({
           );
         });
 
+    // TODO... make sure proper chain, network is selected before sending the transaction
     if (shouldApprove == true) {
-      await walletKit.respondSessionRequest(
-        topic: topic,
-        response: JsonRpcResponse(
-          id: requestId,
-          jsonrpc: '2.0',
-          result: '0x123456...', // Replace with real logic
-        ),
-      );
-      debugPrint('✅ Request approved and responded.');
+      final chainId = walletDetailsCubit.state.selectedNetwork?.chainId;
+      final rpcUrl = walletDetailsCubit.state.selectedNetwork?.rpcUrl;
+      final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
+
+      if (chainId == null || rpcUrl == null || walletAddress == null) {
+        debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
+        return;
+      }
+
+      final result = await geniusApi.signAndSendTransaction(
+          tx: event.params[0],
+          sourceChainId: chainId,
+          rpcUrl: rpcUrl,
+          address: walletAddress);
+
+      if (result.isSuccess) {
+        await walletKit.respondSessionRequest(
+          topic: topic,
+          response: JsonRpcResponse(
+            id: requestId,
+            jsonrpc: '2.0',
+            result: result.data, // tx hash
+          ),
+        );
+        debugPrint('✅ Success on Swap!: ${result.data}');
+      } else {
+        await walletKit.respondSessionRequest(
+          topic: topic,
+          response: JsonRpcResponse(
+            id: requestId,
+            jsonrpc: '2.0',
+            error: JsonRpcError(
+              code: Errors.USER_REJECTED.toInt(),
+              message: result.errorMessage ?? 'Signing failed',
+            ),
+          ),
+        );
+        debugPrint('❌ Failed to Swap: ${result.errorMessage}');
+      }
     } else {
       await walletKit.respondSessionRequest(
         topic: topic,

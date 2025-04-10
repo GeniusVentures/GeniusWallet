@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/action_button.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
@@ -13,7 +15,13 @@ final List<String> supportedMethods = [
 
 class ReownConnectButton extends StatefulWidget {
   final String walletAddress;
-  const ReownConnectButton({super.key, required this.walletAddress});
+  final GeniusApi geniusApi;
+  final WalletDetailsCubit walletDetailsCubit;
+  const ReownConnectButton(
+      {super.key,
+      required this.walletAddress,
+      required this.geniusApi,
+      required this.walletDetailsCubit});
 
   @override
   State<ReownConnectButton> createState() => _ReownConnectButtonState();
@@ -57,7 +65,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
 
     // Listen for incoming requests
-    handleDappRequests(walletKit: walletKit);
+    handleDappRequests(
+        walletKit: walletKit,
+        geniusApi: widget.geniusApi,
+        walletDetailsCubit: widget.walletDetailsCubit);
 
     walletKit.onSessionConnect.subscribe((event) {
       setState(() {

@@ -679,4 +679,22 @@ class GeniusApi {
     // Return as a nicely formatted string
     return ApiResponse.success("${gasPriceInGwei?.toStringAsFixed(2)} Gwei");
   }
+
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async {
+    final wallet = await _secureStorage.getWallet(address);
+    final web3 = Web3(geniusApi: this);
+
+    final privateKey = web3.getPrivateKeyStr(wallet);
+
+    final resp = await web3.signAndSendTransaction(
+        tx: tx, rpcUrl: rpcUrl, chainId: sourceChainId, privateKey: privateKey);
+
+    // TODO: Record this transaction to the wallet!!
+    return resp;
+  }
 }
