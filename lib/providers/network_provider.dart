@@ -13,7 +13,7 @@ class NetworkProvider extends ChangeNotifier {
       _networks = await readNetworkAssets();
       notifyListeners();
     } catch (error) {
-      print('Error loading networks: $error');
+      debugPrint('Error loading networks: $error');
     }
   }
 

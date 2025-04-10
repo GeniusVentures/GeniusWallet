@@ -8,7 +8,7 @@ class LastNameLogic extends TextFormFieldLogic {
   /// See [TextFormFieldLogic] for overridable methods.
   @override
   ValueChanged<String>? get onChanged => (value) {
-        //print('Value changed to $value');
+        //debugPrint('Value changed to $value');
       };
 
   @override

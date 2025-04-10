@@ -9,6 +9,7 @@ import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:flutter/material.dart';
 
 class Web3 {
   final GeniusApi? geniusApi;
@@ -93,7 +94,7 @@ class Web3 {
         await _executeMulticall(client, multicallContract, calls);
 
     if (results.length < 4) {
-      print("⚠️ Multicall returned incomplete results: $results");
+      debugPrint("⚠️ Multicall returned incomplete results: $results");
       return {};
     }
 
@@ -146,12 +147,12 @@ class Web3 {
         return utf8
             .decode(data)
             .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'),
-                '') // Remove non-printable characters
+                '') // Remove non-debugPrintable characters
             .trim();
       }
       return data.toString();
     } catch (e) {
-      print("⚠️ Decoding error for $fieldName: $e");
+      debugPrint("⚠️ Decoding error for $fieldName: $e");
       return '';
     }
   }
@@ -164,7 +165,7 @@ class Web3 {
       }
       return int.tryParse(data.toString()) ?? 0;
     } catch (e) {
-      print("⚠️ Decoding error for $fieldName: $e");
+      debugPrint("⚠️ Decoding error for $fieldName: $e");
       return 0;
     }
   }
@@ -179,7 +180,7 @@ class Web3 {
       }
       return BigInt.tryParse(data.toString()) ?? BigInt.zero;
     } catch (e) {
-      print("⚠️ Decoding error for $fieldName: $e");
+      debugPrint("⚠️ Decoding error for $fieldName: $e");
       return BigInt.zero;
     }
   }

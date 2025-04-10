@@ -50,7 +50,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
         : context.read<GeniusApi>().getSGNUSBalance();
     if (mounted) {
       setState(() => _balance = newBalance);
-      print(
+      debugPrint(
           '🅱️ Fetched New ${widget.useMinions ? 'Minions' : 'Gnus'} Balance: $_balance');
     }
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -53,7 +54,7 @@ class GeniusApi {
         await Permission.location.request();
       }
     } catch (e) {
-      print("❌ Failed to check permissions ${e.toString()}");
+      debugPrint("❌ Failed to check permissions ${e.toString()}");
     }
   }
 
@@ -103,7 +104,7 @@ class GeniusApi {
     final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
 
     if (storedKey == null) {
-      print("No suitable wallet found");
+      debugPrint("No suitable wallet found");
       return;
     }
 
@@ -134,7 +135,7 @@ class GeniusApi {
         .join();
 
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-    print('Json File Path: ${jsonFilePath}');
+    debugPrint('Json File Path: ${jsonFilePath}');
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001);
 
@@ -165,28 +166,30 @@ class GeniusApi {
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/dev_config.json';
 
-      print(
+      debugPrint(
           'Application documents directory: ${directory.path}'); // Log the directory path
 
       // Load the asset file
       final jsonString = await rootBundle.loadString('assets/dev_config.json');
-      print('Loaded JSON string: $jsonString'); // Log the content of the JSON
+      debugPrint(
+          'Loaded JSON string: $jsonString'); // Log the content of the JSON
 
       // Write the file to the writable directory
       final file = File(filePath);
       await file.writeAsString(jsonString);
-      print('File written to: $filePath'); // Log the file path after writing
+      debugPrint(
+          'File written to: $filePath'); // Log the file path after writing
 
       // Verify the file was written correctly
       final writtenFileContent = await file.readAsString();
-      print(
+      debugPrint(
           'Content of the written file: $writtenFileContent'); // Log the written file content
 
       // Return the directory path for use in FFI
       return '${directory.path}/';
     } catch (e) {
       // Log any error that occurs
-      print('Error in copyJsonToWritableDirectory: $e');
+      debugPrint('Error in copyJsonToWritableDirectory: $e');
       rethrow;
     }
   }
@@ -236,7 +239,7 @@ class GeniusApi {
 
   void shutdownSDK() {
     ffiBridgePrebuilt.wallet_lib.GeniusSDKShutdown();
-    print("Shutting Down SDK");
+    debugPrint("Shutting Down SDK");
   }
 
   void requestAIProcess() {
@@ -286,8 +289,8 @@ class GeniusApi {
       cost = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetCost(jsonPointer);
     } catch (e, stackTrace) {
       // Handle the exception gracefully, e.g., log it
-      print("Error in GeniusSDKGetCost: $e");
-      print(stackTrace);
+      debugPrint("Error in GeniusSDKGetCost: $e");
+      debugPrint('$stackTrace');
     } finally {
       // Free the allocated memory to prevent memory leaks
       calloc.free(jsonPointer);
@@ -433,7 +436,7 @@ class GeniusApi {
 
   Future<bool> importWalletFromAddress(address, walletName, coinType) async {
     if (!AnyAddress.isValid(address, coinType)) {
-      print('Invalid Address');
+      debugPrint('Invalid Address');
       return false;
     }
 

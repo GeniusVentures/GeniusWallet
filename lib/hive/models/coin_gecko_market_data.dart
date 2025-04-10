@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 part 'coin_gecko_market_data.g.dart'; // This will be generated
@@ -158,7 +159,7 @@ class CoinGeckoMarketData {
     try {
       return DateTime.parse(dateStr);
     } catch (e) {
-      print("⚠️ Failed to parse DateTime: $dateStr");
+      debugPrint("⚠️ Failed to parse DateTime: $dateStr");
       return DateTime.fromMillisecondsSinceEpoch(0);
     }
   }

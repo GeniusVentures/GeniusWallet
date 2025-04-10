@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/tw/coin_util.dart';
@@ -11,6 +10,7 @@ import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter/material.dart';
 
 class LocalWalletStorage {
   /// Key used for storing user PIN locally.
@@ -46,7 +46,7 @@ class LocalWalletStorage {
 
           // A key was not able to be parsed, delete it
           if (storedKey == null) {
-            print("Deleted storedkey ${entry.key}");
+            debugPrint("Deleted storedkey ${entry.key}");
             await deleteKey(entry.key);
           }
 
@@ -60,8 +60,8 @@ class LocalWalletStorage {
           addWalletToController(await mapWalletToWallets(wallet));
         }
       } catch (e) {
-        print('** Issue with loading wallets ');
-        print(e.toString());
+        debugPrint('** Issue with loading wallets ');
+        debugPrint(e.toString());
       }
     }
 
@@ -93,8 +93,8 @@ class LocalWalletStorage {
       return account;
     } catch (e) {
       // What to do if the account doesn't load? Is deleting / creating a new one appropriate? We don't want to brick the app
-      print('** Issue with loading acount');
-      print(e.toString());
+      debugPrint('** Issue with loading acount');
+      debugPrint(e.toString());
       _secureStorage.delete(key: _accountKeyPrefix);
       return await createNewAccount();
     }
@@ -312,7 +312,7 @@ class LocalWalletStorage {
             address: address, rpcUrl: network.first.rpcUrl ?? "");
       }
     } catch (e) {
-      print('Failed to fetch wallet balance');
+      debugPrint('Failed to fetch wallet balance');
     }
 
     return Wallet(
@@ -341,7 +341,7 @@ class LocalWalletStorage {
             address: wallet.address, rpcUrl: network.first.rpcUrl ?? "");
       }
     } catch (e) {
-      print('Failed to fetch wallet balance');
+      debugPrint('Failed to fetch wallet balance');
     }
 
     return Wallet(
@@ -375,7 +375,7 @@ Future<String?> safeLoadAsset(String path) async {
   try {
     return await rootBundle.loadString(path);
   } catch (e) {
-    print(e);
+    debugPrint('$e');
     return null;
   }
 }

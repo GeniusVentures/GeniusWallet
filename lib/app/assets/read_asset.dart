@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 
 import 'assets.dart';
 import 'package:genius_api/models/coin.dart';
@@ -141,7 +142,7 @@ Future<Coin?> _fetchNativeToken(
       coinGeckoId: network.coinGeckoId,
     );
   } catch (e) {
-    print("⚠️ Error fetching native token for ${network.name}: $e");
+    debugPrint("⚠️ Error fetching native token for ${network.name}: $e");
     return null;
   }
 }
@@ -162,7 +163,7 @@ Future<Coin?> _fetchTokenData(
     );
 
     if (result['symbol'].isEmpty) {
-      print("❌ Could not find token ${tokenContract.name}, skipping");
+      debugPrint("❌ Could not find token ${tokenContract.name}, skipping");
       return null;
     }
 
@@ -177,7 +178,7 @@ Future<Coin?> _fetchTokenData(
       coinGeckoId: tokenContract.coinGeckoId,
     );
   } catch (e) {
-    print("⚠️ Error fetching data for ${tokenContract.name}: $e");
+    debugPrint("⚠️ Error fetching data for ${tokenContract.name}: $e");
     return null;
   }
 }

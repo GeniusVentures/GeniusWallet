@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -58,6 +59,6 @@ class CoinMarketCache {
   Future<void> clearCache() async {
     await _marketDataBox.clear();
     await _timestampsBox.clear();
-    print("🗑️ Cleared all Coin Market caches.");
+    debugPrint("🗑️ Cleared all Coin Market caches.");
   }
 }

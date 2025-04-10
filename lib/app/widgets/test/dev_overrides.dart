@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:genius_api/controllers/transactions_controller.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
@@ -18,7 +19,7 @@ void byPassSGNUSConnecton(geniusApi) {
     return;
   }
 
-  print('\x1B[37m** Manually skipping SGNUS connection\x1B[0m');
+  debugPrint('\x1B[37m** Manually skipping SGNUS connection\x1B[0m');
 
   geniusApi.getSGNUSController().updateConnection(const SGNUSConnection(
       sgnusAddress: "0x67890", walletAddress: "0x12345", isConnected: true));
@@ -29,7 +30,7 @@ void byPassWalletCreation(localWalletStorage) {
     return;
   }
 
-  print('\x1B[37m** Manually importing wallet from variable\x1B[0m');
+  debugPrint('\x1B[37m** Manually importing wallet from variable\x1B[0m');
 
   localWalletStorage.addWalletToController(const Wallet(
       walletName: 'Bypass Wallet',
@@ -46,7 +47,7 @@ void addFakeTransactions(TransactionsController txController) {
     return;
   }
 
-  print('\x1B[37m** Adding fake transactions\x1B[0m');
+  debugPrint('\x1B[37m** Adding fake transactions\x1B[0m');
   txController.addTransactions([
     getFakeTransaction(),
     getFakeTransaction(),

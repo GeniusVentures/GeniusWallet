@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/app/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/widgets/components/action_button.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
 final List<String> supportedMethods = [
-  'eth_sendTransaction',
-  'eth_signTransaction',
-  'personal_sign',
-  'eth_sign',
-  'eth_signTypedData',
+  'eth_sendTransaction', // For sending, approvals, swaps
+  'personal_sign', // For signing messages (login, etc.)
+  'eth_signTypedData', // For EIP-712 signatures (used in advanced DApps)
 ];
 
 class ReownConnectButton extends StatefulWidget {
@@ -58,112 +57,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
 
     // Listen for incoming requests
-    walletKit.onSessionRequest.subscribe((SessionRequestEvent? event) async {
-      print('🔄 Session request received: $event');
-
-      if (event != null) {
-        final String method = event.method;
-        final int requestId = event.id;
-        final String topic = event.topic; // ✅ Comes directly from the event
-
-        final dappMetadata =
-            walletKit.getActiveSessions()[topic]?.peer.metadata;
-        final dappName = dappMetadata?.name ?? 'Unknown DApp';
-        final dappUrl = dappMetadata?.url ?? '';
-
-        final bool? shouldApprove = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            backgroundColor: GeniusWalletColors.deepBlueTertiary,
-            title: Row(
-              children: [
-                const Icon(Icons.shield_outlined, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Request from $dappName",
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (dappUrl.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(dappUrl,
-                          style: const TextStyle(
-                              color: GeniusWalletColors.gray500, fontSize: 12)),
-                    ),
-                  Text("Method: $method",
-                      style: const TextStyle(color: Colors.white)),
-                  const SizedBox(height: 12),
-                  const Text("Params:",
-                      style: TextStyle(color: GeniusWalletColors.gray500)),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: GeniusWalletColors.deepBlueCardColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      event.params.toString(),
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Deny",
-                    style: TextStyle(color: Colors.redAccent)),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
-                child: const Text("Approve"),
-              ),
-            ],
-          ),
-        );
-
-        if (shouldApprove == true) {
-          // ✅ TODO: Implement real logic to generate response result
-          await walletKit.respondSessionRequest(
-            topic: topic,
-            response: JsonRpcResponse(
-              id: requestId,
-              jsonrpc: '2.0',
-              result: '0x123456...', // Replace with real logic
-            ),
-          );
-          print('✅ Request approved and responded.');
-        } else {
-          // ❌ Reject
-          await walletKit.respondSessionRequest(
-            topic: topic,
-            response: JsonRpcResponse(
-              id: requestId,
-              jsonrpc: '2.0',
-              error: JsonRpcError(
-                code: Errors.USER_REJECTED.toInt(),
-                message: 'User rejected the request.',
-              ),
-            ),
-          );
-          print('❌ Request rejected.');
-        }
-      }
-    });
+    handleDappRequests(walletKit: walletKit);
 
     walletKit.onSessionConnect.subscribe((event) {
       setState(() {
@@ -209,7 +103,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     try {
       final CreateResponse pairingInfo = await walletKit.core.pairing.create();
       final wcUri = pairingInfo.uri.toString();
-      print("🔗 WalletConnect URI: $wcUri");
+      debugPrint("🔗 WalletConnect URI: $wcUri");
       String? manualInputError;
 
       if (!mounted) return;
@@ -313,7 +207,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                           manualInputError =
                               '❌ Invalid WalletConnect URI format.';
                         });
-                        print('❌ Invalid format: $input');
+                        debugPrint('❌ Invalid format: $input');
                         return;
                       }
 
@@ -324,7 +218,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                         setInnerState(() {
                           manualInputError = '❌ URI Connect Failed: $e';
                         });
-                        print('❌ WalletKit pair failed: $e');
+                        debugPrint('❌ WalletKit pair failed: $e');
                       }
                     },
                     style: TextButton.styleFrom(
@@ -353,7 +247,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       setState(() {
         _statusMessage = "🔄 Waiting for session proposal...";
       });
-      print('🔄 Waiting for session proposal...');
+      debugPrint('🔄 Waiting for session proposal...');
 
       // ⏱ Timeout fallback if no session is received
       Future.delayed(const Duration(seconds: 15), () {
@@ -364,7 +258,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             _timedOut = true; // 👈 Flag timeout separately
             _statusMessage = "⏱ Connection timed out. Please try again.";
           });
-          print('⏱ Timeout hit – no session received.');
+          debugPrint('⏱ Timeout hit – no session received.');
         }
       });
 
@@ -376,7 +270,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _isConnecting = false;
         _hasError = true;
       });
-      print('❌ Connection failed: $e');
+      debugPrint('❌ Connection failed: $e');
     }
   }
 

@@ -35,9 +35,12 @@ import 'package:genius_wallet/widgets/components/toast/toast_manager.dart';
 import 'package:genius_wallet/widgets/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 final toastManager = ToastManager();
 
 final geniusWalletRouter = GoRouter(
+  navigatorKey: navigatorKey,
   observers: [
     ToastNavigatorObserver(toastManager),
   ],
