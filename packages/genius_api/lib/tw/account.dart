@@ -1,6 +1,5 @@
 import 'dart:ffi';
 
-import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/string_util.dart';
 

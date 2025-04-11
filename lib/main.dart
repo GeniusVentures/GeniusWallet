@@ -59,7 +59,8 @@ void main() async {
         child: AppLifecycleHandler(
           geniusApi: geniusApi,
           child: DevicePreview(
-            enabled: !kReleaseMode,
+            enabled: !kReleaseMode &&
+                (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
             builder: (context) => MyApp(
               geniusApi: geniusApi,
             ),

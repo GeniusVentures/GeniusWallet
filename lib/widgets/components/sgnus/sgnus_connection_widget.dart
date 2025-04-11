@@ -38,7 +38,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   'SGNUS Connection ',
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 14),
                 )),
                 const SizedBox(width: 8),
                 if (connection.isConnected) const CheckmarkAnimation(),

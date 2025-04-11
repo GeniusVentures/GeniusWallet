@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
+import 'package:genius_wallet/account/account_dropdown_selector.dart';
+import 'package:genius_wallet/account/models/account_dropdown.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
@@ -76,6 +78,12 @@ class WalletsOverviewState extends State<WalletsOverview> {
   @override
   Widget build(BuildContext context) {
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      AccountDropdownSelector(
+        onAccountSelected: (wallet) {
+          // TODO WIRE UP ACCOUNT SELECTOR
+          print('Selected account: ${wallet.walletName}');
+        },
+      ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Flexible(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -84,7 +92,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
                   textScaleFactor: 1,
                   style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 34,
+                      fontSize: 24,
                       overflow: TextOverflow.ellipsis))),
           const Flexible(
               child: AutoSizeText('Transactions',
@@ -98,7 +106,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
               textScaleFactor: 1,
               style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 30,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700)),
           const AutoSizeText('Wallets',
               overflow: TextOverflow.ellipsis,
