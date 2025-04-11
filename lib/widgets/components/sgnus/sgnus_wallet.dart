@@ -37,7 +37,7 @@ class SGNUSWalletState extends State<SGNUSWallet> {
                       isShowSuffix: true,
                       fontColor: GeniusWalletColors.gray500)),
               walletAddress: connection.sgnusAddress,
-              walletType: WalletType.privateKey,
+              walletType: WalletType.sgnus,
               ovrCoinSymbol: 'minions',
               isShowSymbol: false,
               walletName: 'Super Genius Wallet');

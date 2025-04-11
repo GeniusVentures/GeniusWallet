@@ -197,12 +197,7 @@ class OneColumnDashBoardView extends StatelessWidget {
         child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 350, child: OverviewDashboardView()),
-              Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  child: AutoSizeText("Wallets",
-                      style: TextStyle(
-                          fontSize: GeniusWalletFontSize.sectionHeader))),
+              SizedBox(height: 260, child: OverviewDashboardView()),
               WalletDashboardView(),
               SizedBox(height: 400, child: ChartDashboardView()),
               SizedBox(height: 480, child: MarketsDashboardView()),
@@ -239,8 +234,6 @@ class OverviewDashboardView extends StatelessWidget {
                   context.read<GeniusApi>(),
                   state.wallets,
                 ).toStringAsFixed(5),
-                numberOfWallets: state.wallets.length.toString(),
-                numberOfTransactions: totalTxCount.toString(),
               );
             },
           );

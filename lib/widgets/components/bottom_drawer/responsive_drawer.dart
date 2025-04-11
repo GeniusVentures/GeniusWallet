@@ -9,6 +9,7 @@ class ResponsiveDrawer {
     required BuildContext context,
     required String title,
     required List<Widget> children,
+    Widget? footer,
   }) {
     final isDesktop = MediaQuery.of(context).size.width >= _desktopBreakpoint;
 
@@ -26,6 +27,7 @@ class ResponsiveDrawer {
                 height: double.infinity,
                 child: BottomDrawer(
                   title: title,
+                  footer: footer,
                   children: children,
                 ),
               ),
@@ -47,6 +49,7 @@ class ResponsiveDrawer {
       builder: (context) {
         return BottomDrawer(
           title: title,
+          footer: footer,
           children: children,
         );
       },

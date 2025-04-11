@@ -61,7 +61,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   Future<void> _onStreamSGNUSTransactions(
       StreamSGNUSTransactions event, Emitter emit) async {
     api.streamSGNUSTransactions();
-    debugPrint('🎞️ Streaming SGNUS transactions...');
+    //debugPrint('🎞️ Streaming SGNUS transactions...');
   }
 
   /// Iterates through [wallets] and aggregate a lists of all [Transactions] to stream to the UI.

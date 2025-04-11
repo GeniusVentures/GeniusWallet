@@ -5,22 +5,17 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
-import 'package:genius_wallet/account/models/account_dropdown.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
 
 class WalletsOverview extends StatefulWidget {
   final String totalBalance;
-  final String numberOfWallets;
-  final String numberOfTransactions;
   final Account? account;
   final GeniusApi geniusApi;
   const WalletsOverview(
       {Key? key,
       required this.totalBalance,
-      required this.numberOfWallets,
-      required this.numberOfTransactions,
       required this.geniusApi,
       required this.account})
       : super(key: key);
@@ -84,36 +79,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
           print('Selected account: ${wallet.walletName}');
         },
       ),
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Flexible(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Flexible(
-              child: AutoSizeText(widget.numberOfTransactions,
-                  textScaleFactor: 1,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      overflow: TextOverflow.ellipsis))),
-          const Flexible(
-              child: AutoSizeText('Transactions',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white, fontSize: 12)))
-        ])),
-        Flexible(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-          AutoSizeText(widget.numberOfWallets,
-              textScaleFactor: 1,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700)),
-          const AutoSizeText('Wallets',
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: TextStyle(color: Colors.white, fontSize: 12))
-        ]))
-      ]),
       Row(children: [
         Flexible(
             child: Column(
