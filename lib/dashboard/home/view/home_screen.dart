@@ -108,7 +108,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
                             ? topRowMinHeight
                             : topRowHeight,
                       ),
-                      child: Row(children: [
+                      child: const Row(children: [
                         Expanded(child: OverviewDashboardView()),
                         Expanded(
                             flex: 2,
@@ -131,7 +131,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
                             ? bottomRowMinHeight
                             : bottomRowHeight,
                       ),
-                      child: Row(children: [
+                      child: const Row(children: [
                         Expanded(flex: 2, child: ChartDashboardView()),
                         Expanded(flex: 1, child: MarketsDashboardView())
                       ])),

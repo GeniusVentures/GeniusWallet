@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
@@ -26,6 +27,24 @@ class BottomDrawer extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
+                  // Centered Title
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30), // Leaves space for X
+                    child: Text(
+                      title ?? '',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  // Left-aligned Close Icon
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
@@ -33,17 +52,6 @@ class BottomDrawer extends StatelessWidget {
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
-                  if (title != null)
-                    Center(
-                      child: Text(
-                        title!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),

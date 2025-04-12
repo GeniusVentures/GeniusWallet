@@ -53,11 +53,6 @@ class _DesktopSideRail extends StatelessWidget {
             leading: Padding(
               padding: const EdgeInsets.only(top: 16, bottom: 20, left: 4),
               child: Column(children: [
-                // FOR TESTING TRANSACTION STREAMING
-                if (isWalletPKBypass()) ...[
-                  const TestTransactionButton(),
-                  const SizedBox(height: 20)
-                ],
                 Image.asset(
                   'assets/images/geniusappbarlogo.png',
                   package: 'genius_wallet',

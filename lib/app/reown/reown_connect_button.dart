@@ -4,6 +4,7 @@ import 'package:genius_wallet/app/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/action_button.dart';
+import 'package:genius_wallet/widgets/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
@@ -116,144 +117,138 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       final wcUri = pairingInfo.uri.toString();
       debugPrint("🔗 WalletConnect URI: $wcUri");
       String? manualInputError;
+      bool showManualInput = false;
 
       if (!mounted) return;
 
-      await showDialog(
-        barrierColor: Colors.black.withOpacity(0.90),
-        context: context,
-        builder: (_) {
-          bool showManualInput = false;
-
-          return StatefulBuilder(
-            builder: (context, setInnerState) => AlertDialog(
-              backgroundColor: GeniusWalletColors.deepBlueTertiary,
-              title: Row(mainAxisSize: MainAxisSize.min, children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                      15), // Half of width/height for a circle
-                  child: Image.asset(
-                    'assets/images/crypto/wallet-connect.png',
-                    height: 50,
-                    width: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text("Wallet Connect"),
-              ]),
-              content: SizedBox(
-                width: 300,
-                height: 320,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 12),
-                    Expanded(
-                        child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      switchInCurve: Curves.easeIn,
-                      switchOutCurve: Curves.easeOut,
-                      child: showManualInput
-                          ? KeyedSubtree(
-                              key: ValueKey(
-                                  "manual-${DateTime.now().millisecondsSinceEpoch}"),
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    controller: _uriController,
-                                    decoration: const InputDecoration(
-                                      hintText: "wc:...",
-                                      hintStyle:
-                                          TextStyle(color: Colors.white38),
-                                    ),
-                                  ),
-                                  if (manualInputError != null) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      manualInputError!,
-                                      style: const TextStyle(
-                                          color: Colors.redAccent),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ]
-                                ],
-                              ))
-                          : KeyedSubtree(
-                              key: ValueKey(
-                                  "qr-${DateTime.now().millisecondsSinceEpoch}"),
-                              child: QrImageView(
-                                backgroundColor: Colors.white,
-                                data: wcUri,
-                                version: QrVersions.auto,
-                              ),
-                            ),
-                    )),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        setInnerState(() => showManualInput = !showManualInput);
-                      },
-                      style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          backgroundColor: Colors.transparent),
-                      child: Text(
-                        style:
-                            const TextStyle(color: GeniusWalletColors.gray500),
-                        showManualInput ? "Show QR Code" : "Enter URI Manually",
-                      ),
-                    )
-                  ],
+      await ResponsiveDrawer.show<
+          void>(context: context, title: "Wallet Connect", children: [
+        StatefulBuilder(
+          builder: (context, setInnerState) => AlertDialog(
+            backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            title: Row(mainAxisSize: MainAxisSize.min, children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                    15), // Half of width/height for a circle
+                child: Image.asset(
+                  'assets/images/crypto/wallet-connect.png',
+                  height: 50,
+                  width: 50,
+                  fit: BoxFit.cover,
                 ),
               ),
-              actions: [
-                if (showManualInput)
+              const SizedBox(width: 12),
+              const Text("Wallet Connect"),
+            ]),
+            content: SizedBox(
+              width: 300,
+              height: 320,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 12),
+                  Expanded(
+                      child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeIn,
+                    switchOutCurve: Curves.easeOut,
+                    child: showManualInput
+                        ? KeyedSubtree(
+                            key: ValueKey(
+                                "manual-${DateTime.now().millisecondsSinceEpoch}"),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _uriController,
+                                  decoration: const InputDecoration(
+                                    hintText: "wc:...",
+                                    hintStyle: TextStyle(color: Colors.white38),
+                                  ),
+                                ),
+                                if (manualInputError != null) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    manualInputError!,
+                                    style: const TextStyle(
+                                        color: Colors.redAccent),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ]
+                              ],
+                            ))
+                        : KeyedSubtree(
+                            key: ValueKey(
+                                "qr-${DateTime.now().millisecondsSinceEpoch}"),
+                            child: QrImageView(
+                              backgroundColor: Colors.white,
+                              data: wcUri,
+                              version: QrVersions.auto,
+                            ),
+                          ),
+                  )),
+                  const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () async {
-                      final input = _uriController.text.trim();
-
-                      if (!input.startsWith('wc:') || !input.contains('@')) {
-                        setInnerState(() {
-                          manualInputError =
-                              '❌ Invalid WalletConnect URI format.';
-                        });
-                        debugPrint('❌ Invalid format: $input');
-                        return;
-                      }
-
-                      try {
-                        await walletKit.pair(uri: Uri.parse(input));
-                        Navigator.of(context).pop(); // Only close if successful
-                      } catch (e) {
-                        setInnerState(() {
-                          manualInputError = '❌ URI Connect Failed: $e';
-                        });
-                        debugPrint('❌ WalletKit pair failed: $e');
-                      }
+                    onPressed: () {
+                      setInnerState(() => showManualInput = !showManualInput);
                     },
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        backgroundColor: Colors.transparent),
+                    child: Text(
+                      style: const TextStyle(color: GeniusWalletColors.gray500),
+                      showManualInput ? "Show QR Code" : "Enter URI Manually",
                     ),
-                    child: const Text("Connect"),
-                  ),
+                  )
+                ],
+              ),
+            ),
+            actions: [
+              if (showManualInput)
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() => _isConnecting = false);
+                  onPressed: () async {
+                    final input = _uriController.text.trim();
+
+                    if (!input.startsWith('wc:') || !input.contains('@')) {
+                      setInnerState(() {
+                        manualInputError =
+                            '❌ Invalid WalletConnect URI format.';
+                      });
+                      debugPrint('❌ Invalid format: $input');
+                      return;
+                    }
+
+                    try {
+                      await walletKit.pair(uri: Uri.parse(input));
+                      Navigator.of(context).pop(); // Only close if successful
+                    } catch (e) {
+                      setInnerState(() {
+                        manualInputError = '❌ URI Connect Failed: $e';
+                      });
+                      debugPrint('❌ WalletKit pair failed: $e');
+                    }
                   },
                   style: TextButton.styleFrom(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   ),
-                  child: const Text("Cancel"),
+                  child: const Text("Connect"),
                 ),
-              ],
-            ),
-          );
-        },
-      );
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() => _isConnecting = false);
+                },
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                ),
+                child: const Text("Cancel"),
+              ),
+            ],
+          ),
+        )
+      ]);
 
       setState(() {
         _statusMessage = "🔄 Waiting for session proposal...";

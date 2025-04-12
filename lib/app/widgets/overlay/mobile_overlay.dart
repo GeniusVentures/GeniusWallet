@@ -76,6 +76,7 @@ class MobileOverlay extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Expanded(child: child),
                 ],
               ),

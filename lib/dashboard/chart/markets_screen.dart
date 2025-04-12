@@ -7,8 +7,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/widgets/components/bottom_drawer/responsive_drawer.dart';
 import 'package:go_router/go_router.dart';
 
 class MarketsScreen extends StatelessWidget {
@@ -31,10 +30,7 @@ class MarketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SlidingDrawerController searchDrawerController =
-        SlidingDrawerController();
     return Scaffold(
-      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: Column(
@@ -55,8 +51,18 @@ class MarketsScreen extends StatelessWidget {
                 const SizedBox(width: 20),
                 IconButton(
                   icon: const Icon(FontAwesomeIcons.magnifyingGlass),
-                  onPressed: searchDrawerController.openDrawer,
-                )
+                  onPressed: () {
+                    ResponsiveDrawer.show<void>(
+                      context: context,
+                      title: "Search Coins",
+                      children: [
+                        MarketSearchBar(
+                          onCoinPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
 
@@ -140,12 +146,6 @@ class MarketsScreen extends StatelessWidget {
                 },
               ),
             ),
-            SlidingDrawer(
-              controller: searchDrawerController,
-              title: "Search Coins",
-              content: MarketSearchBar(
-                  onCoinPressed: () => searchDrawerController.closeDrawer()),
-            )
           ],
         ),
       ),

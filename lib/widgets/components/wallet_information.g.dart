@@ -12,8 +12,8 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/widgets/components/action_button.dart';
+import 'package:genius_wallet/widgets/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/widgets/components/custom/wallet_address_custom.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
 import 'package:genius_wallet/widgets/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,11 +35,6 @@ class WalletInformation extends StatefulWidget {
 }
 
 class WalletInformationState extends State<WalletInformation> {
-  final SlidingDrawerController qrCodeDrawerController =
-      SlidingDrawerController();
-  final SlidingDrawerController moreDrawerController =
-      SlidingDrawerController();
-
   WalletInformationState();
 
   @override
@@ -113,7 +108,24 @@ class WalletInformationState extends State<WalletInformation> {
             ],
             if (widget.walletType != WalletType.tracking) ...[
               ActionButton(
-                onPressed: () => qrCodeDrawerController.openDrawer(),
+                onPressed: () {
+                  ResponsiveDrawer.show<void>(
+                    context: context,
+                    title: "Your ${state.selectedNetwork?.name} address",
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * .15),
+                        alignment: Alignment.center,
+                        child: CryptoAddressQR(
+                          iconPath: state.selectedNetwork?.iconPath,
+                          address: state.selectedWallet?.address ?? "",
+                          network: state.selectedNetwork?.name ?? "",
+                        ),
+                      ),
+                    ],
+                  );
+                },
                 text: 'Receive',
                 icon: Icons.qr_code,
               ),
@@ -131,55 +143,49 @@ class WalletInformationState extends State<WalletInformation> {
               ActionButton(
                 text: "More",
                 icon: Icons.more_horiz,
-                onPressed: () => {moreDrawerController.openDrawer()},
+                onPressed: () {
+                  ResponsiveDrawer.show<void>(
+                    context: context,
+                    title: "More Options",
+                    children: [
+                      StreamBuilder<SGNUSConnection>(
+                        stream: geniusApi.getSGNUSConnectionStream(),
+                        builder: (context, snapshot) {
+                          final connection = snapshot.data;
+                          return SubmitJobButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // closes drawer
+                            },
+                            walletDetailsCubit: walletDetailsCubit,
+                            walletAddress: state.selectedWallet?.address ?? "",
+                            gnusConnectedWalletAddress:
+                                connection?.walletAddress ?? "",
+                          );
+                        },
+                      ),
+                      SlidingDrawerButton(
+                        onPressed: () {
+                          geniusApi.deleteWallet(
+                              state.selectedWallet?.address ?? "");
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                              'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!',
+                            ),
+                          ));
+                          context.go('/dashboard');
+                        },
+                        color: Colors.red,
+                        icon: FontAwesomeIcons.trash,
+                        label: "Delete Wallet",
+                      ),
+                    ],
+                  );
+                },
               ),
             ]
           ]),
           const SizedBox(height: 8),
         ]),
-        SlidingDrawer(
-            controller: qrCodeDrawerController,
-            title: "Your ${state.selectedNetwork?.name} address",
-            content: Container(
-                margin: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * .15),
-                alignment: Alignment.center,
-                child: Column(children: [
-                  CryptoAddressQR(
-                      iconPath: state.selectedNetwork?.iconPath,
-                      address: state.selectedWallet?.address ?? "",
-                      network: state.selectedNetwork?.name ?? ""),
-                ]))),
-        SlidingDrawer(
-            controller: moreDrawerController,
-            title: "More Options",
-            content: Column(children: [
-              StreamBuilder<SGNUSConnection>(
-                  stream: geniusApi.getSGNUSConnectionStream(),
-                  builder: (context, snapshot) {
-                    final connection = snapshot.data;
-                    return SubmitJobButton(
-                        onPressed: () {
-                          moreDrawerController.closeDrawer();
-                        },
-                        walletDetailsCubit: walletDetailsCubit,
-                        walletAddress: state.selectedWallet?.address ?? "",
-                        gnusConnectedWalletAddress:
-                            connection?.walletAddress ?? "");
-                  }),
-              SlidingDrawerButton(
-                onPressed: () {
-                  geniusApi.deleteWallet(state.selectedWallet?.address ?? "");
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!')));
-                  context.go('/dashboard');
-                },
-                color: Colors.red,
-                icon: FontAwesomeIcons.trash,
-                label: "Delete Wallet",
-              )
-            ])),
       ]);
     });
   }

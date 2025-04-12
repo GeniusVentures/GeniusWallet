@@ -10,7 +10,6 @@ import 'package:genius_wallet/app/widgets/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
-import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
@@ -20,7 +19,6 @@ import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
-import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -148,25 +146,6 @@ final geniusWalletRouter = GoRouter(
           child: const GeniusWalletDetailsScreen(),
         );
       }),
-    ),
-    GoRoute(
-      path: '/wallets:wallet_address',
-      builder: (context, state) {
-        final id = state.pathParameters['wallet_address'];
-        final wallet = context
-            .read<AppBloc>()
-            .state
-            .wallets
-            .firstWhere((element) => element.address == id);
-
-        return BlocProvider(
-          create: (context) => WalletDetailsCubit(
-              initialState: WalletDetailsState(selectedWallet: wallet),
-              geniusApi: context.read<GeniusApi>(),
-              networkTokensProvider: context.read<NetworkTokensProvider>()),
-          child: const WalletDetailsScreen(),
-        );
-      },
     ),
     GoRoute(
       path: '/token-info',
