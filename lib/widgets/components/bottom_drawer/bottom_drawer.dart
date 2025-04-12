@@ -48,7 +48,7 @@ class BottomDrawer extends StatelessWidget {
               ),
             ),
             const Divider(height: 1, color: Colors.white12),
-
+            const SizedBox(height: 8),
             // Scrollable content
             Expanded(
               child: ListView.builder(

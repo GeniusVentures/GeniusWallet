@@ -29,6 +29,12 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     emit(state.copyWith(selectedCoin: coin));
   }
 
+  void selectWallet(Wallet wallet) {
+    emit(state.copyWith(selectedWallet: wallet));
+    // fetch coins after selecting a wallet
+    getCoins();
+  }
+
   /// Method that clears the state of `copyAddressStatus` once
   /// the Snackbar has been shown to the user.
   void messageShowed() {

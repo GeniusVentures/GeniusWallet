@@ -5,18 +5,21 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/widgets/components/bottom_drawer/responsive_drawer.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class AccountDropdownSelector extends StatefulWidget {
-  final Function(Wallet selectedWallet) onAccountSelected;
+  final Function(Wallet selectedWallet)? onAccountSelected;
   final Wallet? initialSelected;
 
   const AccountDropdownSelector({
     super.key,
-    required this.onAccountSelected,
+    this.onAccountSelected,
     this.initialSelected,
   });
 
@@ -27,8 +30,28 @@ class AccountDropdownSelector extends StatefulWidget {
 
 class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
   Wallet? selectedWallet;
+  String? savedWalletAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedWallet();
+  }
+
+  void _loadSavedWallet() async {
+    final box = Hive.box(walletBoxName);
+    final address = box.get(selectedWalletKey);
+
+    //print("Saved wallet address: $address");
+
+    if (!mounted) return;
+    setState(() {
+      savedWalletAddress = address;
+    });
+  }
 
   void _showAccountDrawer(List<Wallet> wallets) async {
+    final walletCubit = context.read<WalletDetailsCubit>();
     final selected = await ResponsiveDrawer.show<Wallet>(
         context: context,
         title: "Your Accounts",
@@ -60,7 +83,15 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
     if (selected != null && selected != selectedWallet) {
       setState(() => selectedWallet = selected);
-      widget.onAccountSelected(selected);
+      if (widget.onAccountSelected != null) {
+        widget.onAccountSelected!(selected);
+      }
+
+      // Update the wallet details cubit with the selected wallet
+      walletCubit.selectWallet(selected);
+
+      final box = Hive.box(walletBoxName);
+      await box.put(selectedWalletKey, selected.address);
     }
   }
 
@@ -86,7 +117,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         child: ListTile(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: _buildAccountAvatar(wallet, isSelected),
+          leading: _buildAccountAvatar(wallet, isSelected, 35),
           title: Row(
             children: [
               Flexible(
@@ -144,32 +175,51 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     );
   }
 
-  Widget _buildAccountAvatar(Wallet wallet, bool isSelected) {
+  Widget _buildAccountAvatar(Wallet wallet, bool isSelected, double size) {
     final isWatched = wallet.walletType == WalletType.tracking;
     final borderColor =
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.transparent;
 
     return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.greenAccent,
-        border: Border.all(color: borderColor, width: 2),
+        color: borderColor, // Outer ring / border effect
       ),
-      width: 35,
-      height: 35,
-      alignment: Alignment.center,
-      child: isWatched
-          ? const Icon(Icons.remove_red_eye_outlined,
-              size: 20, color: GeniusWalletColors.deepBlueTertiary)
-          : Text(
-              wallet.walletName.isNotEmpty
-                  ? wallet.walletName[0].toUpperCase()
-                  : '?',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
-            ),
+      padding: const EdgeInsets.all(2), // border width
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.greenAccent,
+        ),
+        child: Center(
+          // ✅ Ensures perfect centering
+          child: isWatched
+              ? const Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 20,
+                  color: GeniusWalletColors.deepBlueTertiary,
+                )
+              : SizedBox(
+                  height: 20, // match icon height
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      wallet.walletName.isNotEmpty
+                          ? wallet.walletName[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        height: 1.0, // tighter vertical alignment
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+      ),
     );
   }
 
@@ -183,6 +233,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             final connection = snapshot.data;
             final wallets = [...state.wallets];
 
+            // TODO: Can we insert this wallet in genius_api?, We would need to be mindful if the connection drops though
             if (connection != null && connection.isConnected) {
               wallets.insert(
                 0,
@@ -200,33 +251,30 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
             if (wallets.isEmpty) {
               return const Center(
-                child: Text(
-                  "You have no wallets!",
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
-                ),
+                child: Text("You have no wallets!",
+                    style: TextStyle(fontSize: 16, color: Colors.white70)),
               );
             }
 
-            selectedWallet ??= widget.initialSelected ?? wallets.first;
+            selectedWallet ??= wallets.firstWhere(
+              (w) => w.address == savedWalletAddress,
+              orElse: () => widget.initialSelected ?? wallets.first,
+            );
 
             return GestureDetector(
               onTap: () => _showAccountDrawer(wallets),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(8),
-                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildAccountAvatar(selectedWallet!, false),
+                    _buildAccountAvatar(selectedWallet!, false, 25),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         selectedWallet!.walletName,
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

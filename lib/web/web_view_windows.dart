@@ -141,10 +141,11 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildIconButton(Icons.arrow_back, canGoBack() ? goBack : null),
-          _buildIconButton(
-            Icons.arrow_forward,
-            canGoForward() ? goForward : null,
-          ),
+          // HIDE FORWARD BUTTON FOR SPACE
+          // _buildIconButton(
+          //   Icons.arrow_forward,
+          //   canGoForward() ? goForward : null,
+          // ),
           _buildIconButton(Icons.refresh, _controller.reload),
           const SizedBox(width: 8),
           Expanded(

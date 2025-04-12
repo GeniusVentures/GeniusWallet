@@ -27,7 +27,7 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
   if (cachedNews.isNotEmpty && cachedTimestamp != null) {
     final cacheAge = now.difference(DateTime.parse(cachedTimestamp));
     if (cacheAge < cacheDuration) {
-      debugPrint('✅ Returning cached news');
+      // debugPrint('✅ Returning cached news');
       return cachedNews;
     }
   }
@@ -91,7 +91,7 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
     await newsBox.addAll(newsList);
     await timestampBox.put('timestamp', now.toIso8601String());
 
-    debugPrint('🆕 Returning fresh news and updating cache');
+    //debugPrint('🆕 Returning fresh news and updating cache');
 
     return newsList;
   } catch (e) {

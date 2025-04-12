@@ -22,7 +22,9 @@ void byPassSGNUSConnecton(geniusApi) {
   debugPrint('\x1B[37m** Manually skipping SGNUS connection\x1B[0m');
 
   geniusApi.getSGNUSController().updateConnection(const SGNUSConnection(
-      sgnusAddress: "0x67890", walletAddress: "0x12345", isConnected: true));
+      sgnusAddress: "0x67890-Bypass",
+      walletAddress: "0x12345-Bypass",
+      isConnected: true));
 }
 
 void byPassWalletCreation(localWalletStorage) {

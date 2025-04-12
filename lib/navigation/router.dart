@@ -150,33 +150,24 @@ final geniusWalletRouter = GoRouter(
       }),
     ),
     GoRoute(
-        path: '/wallets',
-        builder: ((context, state) {
-          return const ResponsiveOverlay(
-              selectedScreen: NavigationScreen.wallets);
-        }),
-        routes: [
-          GoRoute(
-            path: ':wallet_address',
-            builder: (context, state) {
-              final id = state.pathParameters['wallet_address'];
-              final wallet = context
-                  .read<AppBloc>()
-                  .state
-                  .wallets
-                  .firstWhere((element) => element.address == id);
+      path: '/wallets:wallet_address',
+      builder: (context, state) {
+        final id = state.pathParameters['wallet_address'];
+        final wallet = context
+            .read<AppBloc>()
+            .state
+            .wallets
+            .firstWhere((element) => element.address == id);
 
-              return BlocProvider(
-                create: (context) => WalletDetailsCubit(
-                    initialState: WalletDetailsState(selectedWallet: wallet),
-                    geniusApi: context.read<GeniusApi>(),
-                    networkTokensProvider:
-                        context.read<NetworkTokensProvider>()),
-                child: const WalletDetailsScreen(),
-              );
-            },
-          ),
-        ]),
+        return BlocProvider(
+          create: (context) => WalletDetailsCubit(
+              initialState: WalletDetailsState(selectedWallet: wallet),
+              geniusApi: context.read<GeniusApi>(),
+              networkTokensProvider: context.read<NetworkTokensProvider>()),
+          child: const WalletDetailsScreen(),
+        );
+      },
+    ),
     GoRoute(
       path: '/token-info',
       builder: (context, state) {

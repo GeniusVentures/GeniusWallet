@@ -190,21 +190,22 @@ class WebViewMobileState extends State<WebViewMobile> {
               ),
               onPressed: _goBack,
             ),
-            IconButton(
-              icon: FutureBuilder<bool>(
-                future: _controllers[_currentTabIndex].canGoForward(),
-                builder: (context, snapshot) {
-                  final canGoForward = snapshot.data ?? false;
-                  return Icon(
-                    Icons.arrow_forward,
-                    color: canGoForward
-                        ? GeniusWalletColors.lightGreenPrimary
-                        : Colors.grey,
-                  );
-                },
-              ),
-              onPressed: _goForward,
-            ),
+            // HIDE FORWARD BUTTON FOR MORE SPACE
+            // IconButton(
+            //   icon: FutureBuilder<bool>(
+            //     future: _controllers[_currentTabIndex].canGoForward(),
+            //     builder: (context, snapshot) {
+            //       final canGoForward = snapshot.data ?? false;
+            //       return Icon(
+            //         Icons.arrow_forward,
+            //         color: canGoForward
+            //             ? GeniusWalletColors.lightGreenPrimary
+            //             : Colors.grey,
+            //       );
+            //     },
+            //   ),
+            //   onPressed: _goForward,
+            // ),
             const SizedBox(width: 8),
           ],
           Expanded(

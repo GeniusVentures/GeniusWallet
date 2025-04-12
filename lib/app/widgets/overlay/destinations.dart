@@ -15,13 +15,6 @@ class GeniusTabDestinations {
         label: Text('Dashboard'),
         selectedIcon: Icon(Icons.dashboard)),
     const GeniusDestination(
-      navScreen: NavigationScreen.wallets,
-      destination: '/wallets',
-      icon: Icon(Icons.account_balance_wallet),
-      label: Text('Wallets'),
-      selectedIcon: Icon(Icons.account_balance_wallet),
-    ),
-    const GeniusDestination(
         navScreen: NavigationScreen.transactions,
         destination: '/transactions',
         icon: Icon(Icons.timer_rounded),
