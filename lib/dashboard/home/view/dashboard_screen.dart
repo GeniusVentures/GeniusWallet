@@ -16,13 +16,34 @@ import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
 import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 
 double gridSpacing = 8;
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
+
+  @override
+  State<DashboardScreen> createState() => DashboardScreenState();
+}
+
+class DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Delay execution until after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final walletCubit = context.read<WalletDetailsCubit>();
+
+      if (walletCubit.state.selectedWallet != null &&
+          walletCubit.state.selectedNetwork != null) {
+        walletCubit.getCoins();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,11 +187,19 @@ class OneColumnDashBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(
-          height: MediaQuery.of(context).size.height - 175,
-          child: const WalletDetailsScreen()),
-    ]);
+    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, walletState) {
+      final selectedWallet = walletState.selectedWallet;
+      final isSgnusWallet = selectedWallet?.walletType == WalletType.sgnus;
+
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+            height: MediaQuery.of(context).size.height - 175,
+            child: isSgnusWallet
+                ? const GeniusWalletDetailsScreen()
+                : const WalletDetailsScreen()),
+      ]);
+    });
   }
 }
 
@@ -179,34 +208,24 @@ class OverviewDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final txController = context.read<GeniusApi>().getTransactionsController();
-
-    return DashboardScrollContainer(
-      child: StreamBuilder<List<Transaction>>(
-        stream: txController.stream,
-        builder: (context, snapshot) {
-          return BlocBuilder<AppBloc, AppState>(
-            builder: (context, state) {
-              return WalletsOverview(
-                geniusApi: context.read<GeniusApi>(),
-                account: state.account,
-                totalBalance: WalletUtils.totalBalance(
-                  context.read<GeniusApi>(),
-                  state.wallets,
-                ).toStringAsFixed(5),
-              );
-            },
-          );
-        },
-      ),
-    );
+    return DashboardScrollContainer(child: BlocBuilder<AppBloc, AppState>(
+      builder: (context, state) {
+        return WalletsOverview(
+          geniusApi: context.read<GeniusApi>(),
+          account: state.account,
+          totalBalance: WalletUtils.totalBalance(
+            context.read<GeniusApi>(),
+            state.wallets,
+          ).toStringAsFixed(5),
+        );
+      },
+    ));
   }
 }
 
 class TransactionsDashboardView extends StatelessWidget {
   const TransactionsDashboardView({super.key});
 
-  @override
   @override
   Widget build(BuildContext context) {
     return DashboardScrollContainer(

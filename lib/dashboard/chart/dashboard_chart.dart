@@ -37,7 +37,7 @@ class DashboardChart extends StatelessWidget {
             maxLines: 1,
             style: const TextStyle(
               fontSize: GeniusWalletFontSize.sectionHeader,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
           )),

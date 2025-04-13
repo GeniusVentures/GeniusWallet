@@ -298,6 +298,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   Widget build(BuildContext context) {
     final isConnected = _session != null;
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     IconData icon;
     Color iconColor;
     Color textColor;
@@ -337,7 +339,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
 
     return SizedBox(
-        width: 140,
+        width: isMobile ? 60 : 120,
         child: TextButton(
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -356,17 +358,20 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           },
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AnimatedRotation(
                 duration: const Duration(milliseconds: 600),
                 turns: _isConnecting ? 1 : 0,
-                child: Icon(icon, color: iconColor, size: 16),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
-              const SizedBox(width: 6),
-              Text(
-                text,
-                style: TextStyle(fontSize: 13, color: textColor),
-              ),
+              if (!isMobile) ...[
+                const SizedBox(width: 6),
+                Text(
+                  text,
+                  style: TextStyle(fontSize: 14, color: textColor),
+                ),
+              ]
             ],
           ),
         ));

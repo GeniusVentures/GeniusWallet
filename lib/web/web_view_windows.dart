@@ -72,11 +72,23 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   }
 
   void _loadUrl() {
-    String url = _urlController.text.trim();
-    if (url.isNotEmpty && !url.startsWith("http")) {
-      url = "https://$url";
+    String input = _urlController.text.trim();
+
+    // Basic check for whether it's likely a URL
+    final isLikelyUrl = input.contains('.') && !input.contains(' ');
+
+    if (input.isEmpty) return;
+
+    if (!isLikelyUrl) {
+      // Treat as search query
+      final query = Uri.encodeComponent(input);
+      input = "https://www.google.com/search?q=$query";
+    } else if (!input.startsWith('http://') && !input.startsWith('https://')) {
+      // Prepend https if it's a plain domain
+      input = "https://$input";
     }
-    _controller.loadUrl(url);
+
+    _controller.loadUrl(input);
   }
 
   @override

@@ -26,7 +26,7 @@ class GeniusTabDestinations {
         navScreen: NavigationScreen.web,
         destination: '/web',
         icon: Icon(FontAwesomeIcons.globe, size: iconSize),
-        label: const Text('Web Browser'),
+        label: const Text('Web'),
         selectedIcon: Icon(FontAwesomeIcons.globe, size: iconSize),
         isVisible: !Platform.isLinux), // HIDE ON LINUX
     GeniusDestination(
@@ -41,13 +41,6 @@ class GeniusTabDestinations {
       label: const Text('News'),
       icon: Icon(Icons.library_books, size: iconSize),
       selectedIcon: Icon(Icons.library_books, size: iconSize),
-    ),
-    GeniusDestination(
-      navScreen: NavigationScreen.events,
-      destination: '/events',
-      label: const Text('Events'),
-      icon: Icon(Icons.calendar_month, size: iconSize),
-      selectedIcon: Icon(Icons.calendar_month, size: iconSize),
     ),
   ];
 }

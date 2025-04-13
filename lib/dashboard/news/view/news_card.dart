@@ -45,16 +45,18 @@ class NewsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    article.title,
+                  Flexible(
+                      child: Text(
+                    article.title.trim(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                     ),
                     maxLines: 2,
+                    textAlign: TextAlign.start,
                     overflow: TextOverflow.ellipsis,
-                  ),
+                  )),
                   const SizedBox(height: 8),
                   Text(
                     article.pubDate,
@@ -145,7 +147,7 @@ class NewsCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  article.title,
+                  article.title.trim(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,

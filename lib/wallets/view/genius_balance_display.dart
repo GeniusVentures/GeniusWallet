@@ -78,7 +78,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
           child: AutoSizeText(
             _balance,
             style: TextStyle(
-              fontSize: widget.fontSize ?? 24,
+              fontSize: widget.fontSize ?? 48,
               fontWeight: FontWeight.w500,
               color: widget.fontColor ?? Colors.white,
             ),

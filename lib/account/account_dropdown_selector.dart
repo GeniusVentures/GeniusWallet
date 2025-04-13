@@ -264,8 +264,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             return GestureDetector(
               onTap: () => _showAccountDrawer(wallets),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

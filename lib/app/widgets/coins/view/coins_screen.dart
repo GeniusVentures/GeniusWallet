@@ -170,6 +170,9 @@ class CoinsScreenState extends State<CoinsScreen> {
                       color: GeniusWalletColors.deepBlueTertiary,
                       height: 16,
                     ),
+                  if (!(widget.isUseDivider ?? false) &&
+                      i != filteredCoins.length - 1)
+                    const SizedBox(height: 8),
                 ],
               ],
             ),

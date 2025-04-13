@@ -108,8 +108,8 @@ class DesktopTopBar extends StatelessWidget {
           Row(children: [
             const SizedBox(width: 8),
             const NetworkDropdownSelector(),
-            const SizedBox(width: 200, child: AccountDropdownSelector()),
             const SizedBox(width: 8),
+            const SizedBox(width: 155, child: AccountDropdownSelector()),
             ReownConnectButton(
                 walletAddress:
                     walletDetailsCubit.state.selectedWallet?.address ?? "",

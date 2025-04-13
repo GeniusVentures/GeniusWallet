@@ -25,16 +25,15 @@ class MarketsScreen extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     int columns = getCrossAxisCount(context);
     double cardWidth = screenWidth / columns - 8; // Account for padding
-    return cardWidth / 100; // Ensures 100px height
+    return cardWidth / 80; // Ensures 100px height
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header and SearchBar
             Row(
@@ -44,7 +43,7 @@ class MarketsScreen extends StatelessWidget {
                   "Markets",
                   style: TextStyle(
                     fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
@@ -121,11 +120,11 @@ class MarketsScreen extends StatelessWidget {
                       final marketData = marketSnapshot.data!;
 
                       return GridView.builder(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.only(bottom: 16),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: getCrossAxisCount(context),
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
                           childAspectRatio: getChildAspectRatio(context),
                         ),
                         itemCount: coins.length,
@@ -174,7 +173,8 @@ class MarketsScreen extends StatelessWidget {
                   color: GeniusWalletColors.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.all(16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Center(
                   child: CryptoSparkLineChart(
                     title: coin.name,

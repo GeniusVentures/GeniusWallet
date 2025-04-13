@@ -41,6 +41,7 @@ class WalletInformationState extends State<WalletInformation> {
   Widget build(BuildContext context) {
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
     final geniusApi = context.read<GeniusApi>();
+
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

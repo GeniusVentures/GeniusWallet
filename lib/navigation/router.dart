@@ -13,12 +13,10 @@ import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
 import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
-import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/wallets/send/routes/send_flow.dart';
 import 'package:genius_wallet/wallets/send/view/not_enough_balance_screen.dart';
-import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -134,17 +132,6 @@ final geniusWalletRouter = GoRouter(
       path: '/dashboard',
       builder: ((context, state) {
         return const ResponsiveOverlay();
-      }),
-    ),
-    GoRoute(
-      path: '/geniusWallet',
-      builder: ((context, state) {
-        return BlocProvider(
-          create: (context) => GeniusWalletDetailsCubit(
-            geniusApi: context.read<GeniusApi>(),
-          ),
-          child: const GeniusWalletDetailsScreen(),
-        );
       }),
     ),
     GoRoute(
@@ -273,14 +260,6 @@ final geniusWalletRouter = GoRouter(
       builder: (context, state) {
         return const ResponsiveOverlay(
           selectedScreen: NavigationScreen.news,
-        );
-      },
-    ),
-    GoRoute(
-      path: '/events',
-      builder: (context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.events,
         );
       },
     ),

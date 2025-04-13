@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/widgets/hamburger_menu.dart';
+import 'package:genius_wallet/app/reown/reown_connect_button.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_tabbar.dart';
 import 'package:genius_wallet/app/widgets/overlay/selected_wallet_and_network.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -24,36 +24,39 @@ class MobileOverlay extends StatelessWidget {
       final result = getSelectedWalletAndNetwork(context, state.wallets);
       final selectedWallet = result.wallet;
       final selectedNetwork = result.network;
+      final walletDetailsCubit = WalletDetailsCubit(
+          geniusApi: context.read<GeniusApi>(),
+          networkTokensProvider: context.read<NetworkTokensProvider>(),
+          initialState: WalletDetailsState(
+              selectedWallet: selectedWallet,
+              selectedWalletBalance: selectedWallet.balance.toString(),
+              selectedNetwork: selectedNetwork));
 
       return BlocProvider(
-          create: (context) => WalletDetailsCubit(
-                geniusApi: context.read<GeniusApi>(),
-                networkTokensProvider: context.read<NetworkTokensProvider>(),
-                initialState: WalletDetailsState(
-                    selectedWallet: selectedWallet,
-                    selectedWalletBalance: selectedWallet.balance.toString(),
-                    selectedNetwork: selectedNetwork),
-              ),
+          create: (context) => walletDetailsCubit,
           child: Scaffold(
             extendBody: true, // ✅ Allows content to be visible under the navbar
             backgroundColor: GeniusWalletColors.deepBlueTertiary,
             body: SafeArea(
               child: Column(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        NetworkDropdownSelector(),
-                        Expanded(
+                        const NetworkDropdownSelector(),
+                        const Expanded(
                           child: Align(
                             alignment: Alignment.center,
                             child: AccountDropdownSelector(),
                           ),
                         ),
-                        HamburgerMenu(),
+                        ReownConnectButton(
+                            walletAddress: selectedWallet.address,
+                            geniusApi: context.read<GeniusApi>(),
+                            walletDetailsCubit: walletDetailsCubit),
                       ],
                     ),
                   ),

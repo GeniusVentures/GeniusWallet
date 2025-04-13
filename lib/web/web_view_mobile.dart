@@ -90,14 +90,25 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   void _loadUrl() {
-    String url = _urlController.text.trim();
-    if (url.isNotEmpty && !url.startsWith("http")) {
-      url = "https://$url";
+    String input = _urlController.text.trim();
+
+    if (input.isEmpty) return;
+
+    final isLikelyUrl = input.contains('.') && !input.contains(' ');
+
+    if (!isLikelyUrl) {
+      // Treat as a search query
+      final query = Uri.encodeComponent(input);
+      input = "https://www.google.com/search?q=$query";
+    } else if (!input.startsWith('http://') && !input.startsWith('https://')) {
+      // Prepend https:// if missing
+      input = "https://$input";
     }
-    _controllers[_currentTabIndex].loadRequest(Uri.parse(url));
+
+    _controllers[_currentTabIndex].loadRequest(Uri.parse(input));
 
     setState(() {
-      _tabUrls[_currentTabIndex] = url;
+      _tabUrls[_currentTabIndex] = input;
     });
   }
 

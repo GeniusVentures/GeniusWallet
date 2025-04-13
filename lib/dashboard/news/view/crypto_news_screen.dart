@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'news_card.dart';
 
 class CryptoNewsScreen extends StatefulWidget {
@@ -40,20 +41,20 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
               const Text(
                 'Crypto News',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 32,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 24),
@@ -86,8 +87,8 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
 
                       return MasonryGridView.count(
                         crossAxisCount: isMobile ? 1 : 3,
-                        mainAxisSpacing: 20,
-                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
                         itemCount: articles.length,
                         itemBuilder: (context, index) {
                           final article = articles[index];
@@ -129,6 +130,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                   );
                 },
               )),
+              const SizedBox(height: 16)
             ],
           ),
         ),
