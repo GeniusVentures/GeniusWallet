@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
@@ -32,7 +33,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final balance = resp?.balance;
 
     if (balance == null) {
-      print('balance issue');
+      debugPrint('balance issue');
       return 0; // TODO: handle error
     }
 
@@ -49,7 +50,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final info = await gnusCubit.fetchGnusInfo();
 
     if (info == null) {
-      print('token issue');
+      debugPrint('token issue');
       return; //TODO: handle error
     }
 

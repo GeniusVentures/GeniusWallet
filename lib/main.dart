@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_cubit.dart';
-import 'package:genius_wallet/app/widgets/test/dev_overrides.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -59,7 +59,8 @@ void main() async {
         child: AppLifecycleHandler(
           geniusApi: geniusApi,
           child: DevicePreview(
-            enabled: !kReleaseMode,
+            enabled: !kReleaseMode &&
+                (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
             builder: (context) => MyApp(
               geniusApi: geniusApi,
             ),
@@ -77,7 +78,7 @@ class MyWindowListener extends WindowListener {
   void onWindowClose() async {
     // Trigger cleanup when the window is closed
     geniusApi.shutdownSDK();
-    print("Window closed. GeniusApi shutdown.");
+    debugPrint("Window closed. GeniusApi shutdown.");
 
     exit(0);
   }
@@ -108,7 +109,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    print(
+    debugPrint(
         "---------------------------------------------------------------------------------------------------");
     widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
     super.dispose();
@@ -117,7 +118,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
-      print(
+      debugPrint(
           "---------------------------------------------------------------------------------------------------");
       widget.geniusApi.shutdownSDK(); // Handle app exit
     }

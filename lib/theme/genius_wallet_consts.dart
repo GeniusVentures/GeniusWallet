@@ -10,4 +10,6 @@ class GeniusWalletConsts {
 
   static const double borderRadiusCard = 15.0;
   static const double borderRadiusButton = 48.0;
+
+  static const double appBarHeight = 65;
 }

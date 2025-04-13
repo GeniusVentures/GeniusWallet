@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
+import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/dashboard/home/widgets/sgnus_transactions_screen.dart';
 
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({Key? key}) : super(key: key);
 
+  @override
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -16,15 +18,25 @@ class TransactionsScreen extends StatelessWidget {
       body: SafeArea(
         child: Container(
           height: screenHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Column(
             children: [
-              // You can add a header or filter here if needed
+              // Optional: Add a header or filter here
               Expanded(
-                child: BlocBuilder<AppBloc, AppState>(
-                  builder: (context, state) {
-                    return const DashboardScrollContainer(
-                      child: TransactionsSlimView(),
+                child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                  builder: (context, walletState) {
+                    final selectedWallet = walletState.selectedWallet;
+                    final isSgnusWallet =
+                        selectedWallet?.walletType == WalletType.sgnus;
+
+                    return Container(
+                      padding:
+                          const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+                      child: isSgnusWallet
+                          ? const SgnusTransactionsScreen()
+                          : TransactionsSlimView(
+                              transactions: selectedWallet?.transactions ?? [],
+                            ),
                     );
                   },
                 ),

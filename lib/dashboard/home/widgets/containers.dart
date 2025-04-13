@@ -18,7 +18,7 @@ class DashboardViewContainer extends StatelessWidget {
                 borderRadius: BorderRadius.all(
                     Radius.circular(GeniusWalletConsts.borderRadiusCard))),
             child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 child: Column(children: [
                   Row(children: [child])
                 ]))));
@@ -54,6 +54,6 @@ class DashboardScrollContainer extends StatelessWidget {
                 color: GeniusWalletColors.deepBlueCardColor,
                 borderRadius: BorderRadius.all(
                     Radius.circular(GeniusWalletConsts.borderRadiusCard))),
-            child: Padding(padding: const EdgeInsets.all(24), child: child)));
+            child: Padding(padding: const EdgeInsets.all(16), child: child)));
   }
 }

@@ -50,8 +50,8 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
         : context.read<GeniusApi>().getSGNUSBalance();
     if (mounted) {
       setState(() => _balance = newBalance);
-      print(
-          '🅱️ Fetched New ${widget.useMinions ? 'Minions' : 'Gnus'} Balance: $_balance');
+      // debugPrint(
+      //     '🅱️ Fetched New ${widget.useMinions ? 'Minions' : 'Gnus'} Balance: $_balance');
     }
   }
 
@@ -78,20 +78,21 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
           child: AutoSizeText(
             _balance,
             style: TextStyle(
-              fontSize: widget.fontSize ?? 24,
-              fontWeight: FontWeight.bold,
+              fontSize: widget.fontSize ?? 48,
+              fontWeight: FontWeight.w500,
               color: widget.fontColor ?? Colors.white,
             ),
             maxLines: 1,
           ),
         ),
         if (widget.isShowSuffix ?? false) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           AutoSizeText(
-            widget.useMinions ? "MIN" : "GNUS",
+            widget.useMinions ? "min" : "gnus",
             maxLines: 1,
             style: TextStyle(
               fontSize: widget.fontSize ?? 16,
+              fontWeight: FontWeight.w500,
               color: widget.fontColor ?? GeniusWalletColors.gray500,
             ),
           )

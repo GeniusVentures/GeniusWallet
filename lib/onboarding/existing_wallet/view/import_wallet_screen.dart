@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
-import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
+import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
+import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/widgets/supported_existing_wallets.dart';
 
 class ImportWalletScreen extends StatelessWidget {

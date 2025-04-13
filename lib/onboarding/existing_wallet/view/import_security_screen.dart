@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/security_type.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
-import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
+import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
+import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
@@ -14,9 +14,9 @@ import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
-import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
+import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
+import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
@@ -259,7 +259,6 @@ class _ImportSecurityBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
         const SizedBox(
           child: TabBar(
             tabAlignment: TabAlignment.center,

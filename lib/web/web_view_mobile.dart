@@ -90,14 +90,25 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   void _loadUrl() {
-    String url = _urlController.text.trim();
-    if (url.isNotEmpty && !url.startsWith("http")) {
-      url = "https://$url";
+    String input = _urlController.text.trim();
+
+    if (input.isEmpty) return;
+
+    final isLikelyUrl = input.contains('.') && !input.contains(' ');
+
+    if (!isLikelyUrl) {
+      // Treat as a search query
+      final query = Uri.encodeComponent(input);
+      input = "https://www.google.com/search?q=$query";
+    } else if (!input.startsWith('http://') && !input.startsWith('https://')) {
+      // Prepend https:// if missing
+      input = "https://$input";
     }
-    _controllers[_currentTabIndex].loadRequest(Uri.parse(url));
+
+    _controllers[_currentTabIndex].loadRequest(Uri.parse(input));
 
     setState(() {
-      _tabUrls[_currentTabIndex] = url;
+      _tabUrls[_currentTabIndex] = input;
     });
   }
 
@@ -166,11 +177,12 @@ class WebViewMobileState extends State<WebViewMobile> {
           if (includeBackButton)
             Builder(
               builder: (context) {
-                return IconButton(
-                  icon: const Icon(Icons.cancel),
-                  onPressed: () {
+                return InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () {
                     Navigator.of(context).pop(); // Pops the current page
                   },
+                  child: Icon(Icons.cancel, size: 20),
                 );
               },
             ),
@@ -185,26 +197,28 @@ class WebViewMobileState extends State<WebViewMobile> {
                     color: canGoBack
                         ? GeniusWalletColors.lightGreenPrimary
                         : Colors.grey,
+                    size: 20,
                   );
                 },
               ),
               onPressed: _goBack,
             ),
-            IconButton(
-              icon: FutureBuilder<bool>(
-                future: _controllers[_currentTabIndex].canGoForward(),
-                builder: (context, snapshot) {
-                  final canGoForward = snapshot.data ?? false;
-                  return Icon(
-                    Icons.arrow_forward,
-                    color: canGoForward
-                        ? GeniusWalletColors.lightGreenPrimary
-                        : Colors.grey,
-                  );
-                },
-              ),
-              onPressed: _goForward,
-            ),
+            // HIDE FORWARD BUTTON FOR MORE SPACE
+            // IconButton(
+            //   icon: FutureBuilder<bool>(
+            //     future: _controllers[_currentTabIndex].canGoForward(),
+            //     builder: (context, snapshot) {
+            //       final canGoForward = snapshot.data ?? false;
+            //       return Icon(
+            //         Icons.arrow_forward,
+            //         color: canGoForward
+            //             ? GeniusWalletColors.lightGreenPrimary
+            //             : Colors.grey,
+            //       );
+            //     },
+            //   ),
+            //   onPressed: _goForward,
+            // ),
             const SizedBox(width: 8),
           ],
           Expanded(

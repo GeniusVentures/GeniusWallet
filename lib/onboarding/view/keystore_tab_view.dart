@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
-import 'package:genius_wallet/widgets/components/text_entry_field_widget.g.dart';
-import 'package:genius_wallet/widgets/text_form_field_logic.g.dart';
+import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
+import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class KeystoreTabView extends StatelessWidget {
   final TextEditingController pasteFieldController;
