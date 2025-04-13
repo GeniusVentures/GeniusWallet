@@ -53,7 +53,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       ),
     );
 
-    await walletKit.init();
+    try {
+      //await walletKit.init();
+    } catch (e) {
+      debugPrint("❌ WalletKit initialization failed: $e");
+    }
 
     final sessions = walletKit.getActiveSessions();
     if (sessions.isNotEmpty) {
