@@ -273,7 +273,10 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        selectedWallet!.walletName,
+                        selectedWallet!.walletType == WalletType.sgnus
+                            ? 'Super Genius'
+                            : WalletUtils.getAddressForDisplay(
+                                selectedWallet!.address),
                         style: const TextStyle(fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),

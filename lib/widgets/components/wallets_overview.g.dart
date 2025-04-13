@@ -5,6 +5,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_wallet/app/widgets/job/submit_job_button.dart';
+import 'package:genius_wallet/app/widgets/job/submit_job_dashboard_button.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
@@ -93,7 +96,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
                 );
               }
 
-              final selectedWallet = state.selectedWallet!;
               final balance =
                   double.tryParse(state.selectedWalletBalance ?? '0') ?? 0;
 
@@ -116,9 +118,22 @@ class WalletsOverviewState extends State<WalletsOverview> {
           ],
         ))
       ]),
-      const Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [Flexible(child: SGNUSConnectionWidget())])
+      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        const Row(children: [Flexible(child: SGNUSConnectionWidget())]),
+        BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+            builder: (context, state) {
+          return StreamBuilder<SGNUSConnection>(
+              stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+              builder: (context, snapshot) {
+                final connection = snapshot.data;
+                return SubmitJobDashboardButton(
+                  walletDetailsCubit: context.read<WalletDetailsCubit>(),
+                  walletAddress: state.selectedWallet!.address,
+                  gnusConnectedWalletAddress: connection?.walletAddress ?? "",
+                );
+              });
+        }),
+      ])
     ]);
   }
 

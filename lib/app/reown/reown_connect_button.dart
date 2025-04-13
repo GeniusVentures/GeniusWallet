@@ -3,7 +3,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/widgets/components/action_button.dart';
 import 'package:genius_wallet/widgets/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
@@ -79,6 +78,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _hasError = false;
         _timedOut = false;
       });
+      print("✅ Connected to ${event.session.peer.metadata.name}");
     });
 
     walletKit.onSessionProposal.subscribe((event) async {

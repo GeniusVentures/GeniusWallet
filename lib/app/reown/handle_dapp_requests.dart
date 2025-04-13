@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/app/reown/send_transaction_details.dart';
 import 'package:genius_wallet/app/reown/utilites.dart';
 import 'package:genius_wallet/navigation/router.dart';
