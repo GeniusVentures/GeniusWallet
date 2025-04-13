@@ -11,7 +11,6 @@ import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
@@ -315,36 +314,6 @@ class GeniusApi {
         priceCurrency: 'USD',
         priceDate: DateTime.now().toIso8601String(),
       ),
-    ];
-  }
-
-  Future<List<Events>> getEvents() async {
-    return [
-      Events(
-          body: 'Blockchain in Energy Conference',
-          date: 'October 5',
-          location: 'Rome',
-          weekDay: "Monday"),
-      Events(
-          body: 'Blockchain in Energy Conference 2',
-          date: 'October 8',
-          location: 'Rome',
-          weekDay: "Thursday"),
-      Events(
-          body: 'Blockchain in Energy Conference 3',
-          date: 'October 9',
-          location: 'Rome',
-          weekDay: "Friday"),
-      Events(
-          body: 'Blockchain in Energy Conference 4',
-          date: 'October 22',
-          location: 'Rome',
-          weekDay: "Monday"),
-      Events(
-          body: 'Blockchain in Energy Conference 5',
-          date: 'October 23',
-          location: 'Rome',
-          weekDay: "Tuesday"),
     ];
   }
 
