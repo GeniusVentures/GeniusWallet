@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/widgets/components/recoveryword.g.dart';
+import 'package:genius_wallet/components/recoveryword.g.dart';
 
 class RecoveryWords extends StatefulWidget {
   final List<String> recoveryWords;

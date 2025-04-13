@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_mobile.dart';
-import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
+import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
+import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/widgets/components/continue_button/isactive_false.g.dart';
-import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/custom/wallet_agreement_custom.dart';
-import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_false.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
+import 'package:genius_wallet/components/custom/wallet_agreement_custom.dart';
+import 'package:genius_wallet/components/wallet_button/type_existing.g.dart';
 
 class LegalScreen extends StatelessWidget {
   static const title = 'Legal';

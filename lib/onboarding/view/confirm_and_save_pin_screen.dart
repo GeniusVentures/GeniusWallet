@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/app/bloc/pin_cubit.dart';
-import 'package:genius_wallet/app/screens/pin_screen.dart';
+import 'package:genius_wallet/bloc/pin_cubit.dart';
+import 'package:genius_wallet/screens/pin_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';

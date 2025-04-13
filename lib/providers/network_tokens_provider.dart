@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
-import 'package:genius_wallet/app/assets/assets.dart';
+import 'package:genius_wallet/assets/assets.dart';
 
 class NetworkTokensProvider with ChangeNotifier {
   final Map<Network, List<Token>> _tokensByNetwork = {};

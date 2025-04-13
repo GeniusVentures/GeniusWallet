@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/widgets/components/wallet_card.g.dart';
+import 'package:genius_wallet/components/wallet_card.g.dart';
 
 class SupportedExistingWallets extends StatelessWidget {
   const SupportedExistingWallets({Key? key}) : super(key: key);
