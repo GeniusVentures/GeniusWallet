@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:flutter/material.dart';
 
 class FFIBridgePrebuilt {
   static const String _libName = 'GeniusWallet';
@@ -32,7 +33,7 @@ DynamicLibrary? loadGeniusWalletLibrary() {
     final library = DynamicLibrary.open('libGeniusWallet.so');
     return library;
   } catch (e) {
-    print("❌ Error loading library: $e");
+    debugPrint("❌ Error loading library: $e");
     return null; // Return null to handle errors gracefully
   }
 }

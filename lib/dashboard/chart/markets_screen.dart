@@ -7,8 +7,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:go_router/go_router.dart';
 
 class MarketsScreen extends StatelessWidget {
@@ -26,19 +25,15 @@ class MarketsScreen extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     int columns = getCrossAxisCount(context);
     double cardWidth = screenWidth / columns - 8; // Account for padding
-    return cardWidth / 100; // Ensures 100px height
+    return cardWidth / 80; // Ensures 100px height
   }
 
   @override
   Widget build(BuildContext context) {
-    final SlidingDrawerController searchDrawerController =
-        SlidingDrawerController();
     return Scaffold(
-      backgroundColor: Colors.black,
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header and SearchBar
             Row(
@@ -48,15 +43,25 @@ class MarketsScreen extends StatelessWidget {
                   "Markets",
                   style: TextStyle(
                     fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 20),
                 IconButton(
                   icon: const Icon(FontAwesomeIcons.magnifyingGlass),
-                  onPressed: searchDrawerController.openDrawer,
-                )
+                  onPressed: () {
+                    ResponsiveDrawer.show<void>(
+                      context: context,
+                      title: "Search Coins",
+                      children: [
+                        MarketSearchBar(
+                          onCoinPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
 
@@ -115,11 +120,11 @@ class MarketsScreen extends StatelessWidget {
                       final marketData = marketSnapshot.data!;
 
                       return GridView.builder(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.only(bottom: 16),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: getCrossAxisCount(context),
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
                           childAspectRatio: getChildAspectRatio(context),
                         ),
                         itemCount: coins.length,
@@ -140,12 +145,6 @@ class MarketsScreen extends StatelessWidget {
                 },
               ),
             ),
-            SlidingDrawer(
-              controller: searchDrawerController,
-              title: "Search Coins",
-              content: MarketSearchBar(
-                  onCoinPressed: () => searchDrawerController.closeDrawer()),
-            )
           ],
         ),
       ),
@@ -174,7 +173,8 @@ class MarketsScreen extends StatelessWidget {
                   color: GeniusWalletColors.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.all(16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Center(
                   child: CryptoSparkLineChart(
                     title: coin.name,

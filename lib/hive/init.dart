@@ -24,4 +24,8 @@ Future<void> initHive() async {
   Hive.registerAdapter(NewsArticleAdapter());
   await Hive.openBox<NewsArticle>(coinTelegraphNewsBox);
   await Hive.openBox<String>(coinTelegraphTimestampBox);
+
+  await Hive.openBox(walletBoxName);
+
+  await Hive.openBox(networkBoxName);
 }

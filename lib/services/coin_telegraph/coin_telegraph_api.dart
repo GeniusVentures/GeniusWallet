@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:hive/hive.dart';
@@ -26,7 +27,7 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
   if (cachedNews.isNotEmpty && cachedTimestamp != null) {
     final cacheAge = now.difference(DateTime.parse(cachedTimestamp));
     if (cacheAge < cacheDuration) {
-      print('✅ Returning cached news');
+      // debugPrint('✅ Returning cached news');
       return cachedNews;
     }
   }
@@ -90,14 +91,14 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
     await newsBox.addAll(newsList);
     await timestampBox.put('timestamp', now.toIso8601String());
 
-    print('🆕 Returning fresh news and updating cache');
+    //debugPrint('🆕 Returning fresh news and updating cache');
 
     return newsList;
   } catch (e) {
-    print('❌ Failed fetching news: $e');
+    debugPrint('❌ Failed fetching news: $e');
 
     if (cachedNews.isNotEmpty) {
-      print('‼️ Returning cached news data due to API failure');
+      debugPrint('‼️ Returning cached news data due to API failure');
       return cachedNews;
     }
 

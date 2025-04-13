@@ -1,17 +1,17 @@
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/app/utils/breakpoints.dart';
-import 'package:genius_wallet/app/widgets/app_screen_view.dart';
-import 'package:genius_wallet/app/widgets/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/app/widgets/desktop_body_container.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/components/app_screen_view.dart';
+import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
+import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
-import 'package:genius_wallet/widgets/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/widgets/components/registration_header.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
+import 'package:genius_wallet/components/registration_header.g.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});

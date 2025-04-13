@@ -34,4 +34,5 @@ const _$WalletTypeEnumMap = {
   WalletType.privateKey: 'privateKey',
   WalletType.mnemonic: 'mnemonic',
   WalletType.keystore: 'keystore',
+  WalletType.sgnus: 'sgnus',
 };

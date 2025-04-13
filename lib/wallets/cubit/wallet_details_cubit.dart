@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_wallet/app/assets/read_asset.dart';
+import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 
 part 'wallet_details_state.dart';
@@ -27,6 +27,18 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
   void selectCoin(Coin coin) {
     emit(state.copyWith(selectedCoin: coin));
+  }
+
+  void selectWallet(Wallet wallet) {
+    emit(state.copyWith(selectedWallet: wallet));
+    // fetch coins after selecting a wallet
+    getCoins();
+  }
+
+  void setSelectedWalletBalance(String balance) {
+    if (balance != state.selectedWalletBalance) {
+      emit(state.copyWith(selectedWalletBalance: balance));
+    }
   }
 
   /// Method that clears the state of `copyAddressStatus` once

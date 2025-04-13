@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/app/bloc/app_bloc.dart';
-import 'package:genius_wallet/app/widgets/app_screen_view.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_button/type_create.g.dart';
-import 'package:genius_wallet/widgets/components/wallet_button/type_existing.g.dart';
+import 'package:genius_wallet/components/wallet_button/type_create.g.dart';
+import 'package:genius_wallet/components/wallet_button/type_existing.g.dart';
 
 class LandingScreen extends StatelessWidget {
   final bool isIncludeBackButton;

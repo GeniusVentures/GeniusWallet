@@ -2,7 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 
 final filters = ['All', 'Sent', 'Received', 'Escrow', 'Mint'];
 
@@ -16,8 +16,6 @@ class TransactionFilters extends StatefulWidget {
 }
 
 class TransactionFiltersState extends State<TransactionFilters> {
-  final SlidingDrawerController filtersDrawerController =
-      SlidingDrawerController();
   String? _selectedFilter = 'All';
 
   @override
@@ -32,41 +30,39 @@ class TransactionFiltersState extends State<TransactionFilters> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const AutoSizeText(
+            const Center(
+                child: AutoSizeText(
               'Transactions',
               maxLines: 1,
               style: TextStyle(
                   fontSize: GeniusWalletFontSize.sectionHeader,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: Colors.white),
-            ),
+            )),
             if (isMobile)
               Stack(
                 children: [
-                  SlidingDrawer(
-                    controller: filtersDrawerController,
-                    title: "Filters",
-                    content: StatefulBuilder(
-                      builder: (context, setState) {
-                        return Column(
-                          children: filters.map((filter) {
-                            return HoverableFilterItem(
-                              filter: filter,
-                              isSelected: filter == _selectedFilter,
-                              onTap: () {
-                                setState(() {
-                                  _selectedFilter = filter;
-                                });
-                                widget.onFilterSelected(filter);
-                              },
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                  ),
                   IconButton(
-                    onPressed: () => filtersDrawerController.openDrawer(),
+                    onPressed: () {
+                      ResponsiveDrawer.show<void>(
+                        context: context,
+                        title: "Filters",
+                        children: filters.map((filter) {
+                          return HoverableFilterItem(
+                            filter: filter,
+                            isSelected: filter == _selectedFilter,
+                            onTap: () {
+                              setState(() {
+                                _selectedFilter = filter;
+                              });
+                              widget.onFilterSelected(filter);
+                              Navigator.of(context)
+                                  .pop(); // Close drawer after selection
+                            },
+                          );
+                        }).toList(),
+                      );
+                    },
                     icon: const Icon(Icons.filter_list, size: 30),
                     color: isFilterApplied
                         ? GeniusWalletColors.lightGreenPrimary

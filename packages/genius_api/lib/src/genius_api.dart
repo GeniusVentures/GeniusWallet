@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -10,7 +11,6 @@ import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:genius_api/models/events.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
@@ -53,7 +53,7 @@ class GeniusApi {
         await Permission.location.request();
       }
     } catch (e) {
-      print("❌ Failed to check permissions ${e.toString()}");
+      debugPrint("❌ Failed to check permissions ${e.toString()}");
     }
   }
 
@@ -103,7 +103,7 @@ class GeniusApi {
     final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
 
     if (storedKey == null) {
-      print("No suitable wallet found");
+      debugPrint("No suitable wallet found");
       return;
     }
 
@@ -134,7 +134,7 @@ class GeniusApi {
         .join();
 
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-    print('Json File Path: ${jsonFilePath}');
+    debugPrint('Json File Path: ${jsonFilePath}');
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001);
 
@@ -165,28 +165,30 @@ class GeniusApi {
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/dev_config.json';
 
-      print(
+      debugPrint(
           'Application documents directory: ${directory.path}'); // Log the directory path
 
       // Load the asset file
       final jsonString = await rootBundle.loadString('assets/dev_config.json');
-      print('Loaded JSON string: $jsonString'); // Log the content of the JSON
+      debugPrint(
+          'Loaded JSON string: $jsonString'); // Log the content of the JSON
 
       // Write the file to the writable directory
       final file = File(filePath);
       await file.writeAsString(jsonString);
-      print('File written to: $filePath'); // Log the file path after writing
+      debugPrint(
+          'File written to: $filePath'); // Log the file path after writing
 
       // Verify the file was written correctly
       final writtenFileContent = await file.readAsString();
-      print(
+      debugPrint(
           'Content of the written file: $writtenFileContent'); // Log the written file content
 
       // Return the directory path for use in FFI
       return '${directory.path}/';
     } catch (e) {
       // Log any error that occurs
-      print('Error in copyJsonToWritableDirectory: $e');
+      debugPrint('Error in copyJsonToWritableDirectory: $e');
       rethrow;
     }
   }
@@ -236,7 +238,7 @@ class GeniusApi {
 
   void shutdownSDK() {
     ffiBridgePrebuilt.wallet_lib.GeniusSDKShutdown();
-    print("Shutting Down SDK");
+    debugPrint("Shutting Down SDK");
   }
 
   void requestAIProcess() {
@@ -286,8 +288,8 @@ class GeniusApi {
       cost = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetCost(jsonPointer);
     } catch (e, stackTrace) {
       // Handle the exception gracefully, e.g., log it
-      print("Error in GeniusSDKGetCost: $e");
-      print(stackTrace);
+      debugPrint("Error in GeniusSDKGetCost: $e");
+      debugPrint('$stackTrace');
     } finally {
       // Free the allocated memory to prevent memory leaks
       calloc.free(jsonPointer);
@@ -312,36 +314,6 @@ class GeniusApi {
         priceCurrency: 'USD',
         priceDate: DateTime.now().toIso8601String(),
       ),
-    ];
-  }
-
-  Future<List<Events>> getEvents() async {
-    return [
-      Events(
-          body: 'Blockchain in Energy Conference',
-          date: 'October 5',
-          location: 'Rome',
-          weekDay: "Monday"),
-      Events(
-          body: 'Blockchain in Energy Conference 2',
-          date: 'October 8',
-          location: 'Rome',
-          weekDay: "Thursday"),
-      Events(
-          body: 'Blockchain in Energy Conference 3',
-          date: 'October 9',
-          location: 'Rome',
-          weekDay: "Friday"),
-      Events(
-          body: 'Blockchain in Energy Conference 4',
-          date: 'October 22',
-          location: 'Rome',
-          weekDay: "Monday"),
-      Events(
-          body: 'Blockchain in Energy Conference 5',
-          date: 'October 23',
-          location: 'Rome',
-          weekDay: "Tuesday"),
     ];
   }
 
@@ -433,7 +405,7 @@ class GeniusApi {
 
   Future<bool> importWalletFromAddress(address, walletName, coinType) async {
     if (!AnyAddress.isValid(address, coinType)) {
-      print('Invalid Address');
+      debugPrint('Invalid Address');
       return false;
     }
 
@@ -675,5 +647,23 @@ class GeniusApi {
 
     // Return as a nicely formatted string
     return ApiResponse.success("${gasPriceInGwei?.toStringAsFixed(2)} Gwei");
+  }
+
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async {
+    final wallet = await _secureStorage.getWallet(address);
+    final web3 = Web3(geniusApi: this);
+
+    final privateKey = web3.getPrivateKeyStr(wallet);
+
+    final resp = await web3.signAndSendTransaction(
+        tx: tx, rpcUrl: rpcUrl, chainId: sourceChainId, privateKey: privateKey);
+
+    // TODO: Record this transaction to the wallet!!
+    return resp;
   }
 }

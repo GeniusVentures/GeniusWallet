@@ -3,17 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/wallet.dart';
-import 'package:genius_wallet/app/widgets/coins/view/coin_card_row.dart';
-import 'package:genius_wallet/app/widgets/qr/crypto_address_qr.dart';
+import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
+import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/tokens/convert_section.dart';
 import 'package:genius_wallet/tokens/market_data_info.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/widgets/components/action_button.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer.dart';
-import 'package:genius_wallet/widgets/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/components/action_button.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
 
 class TokenInfoScreen extends StatelessWidget {
@@ -272,18 +272,30 @@ class TokenInfoScreen extends StatelessWidget {
   /// **Action Buttons**
   Widget _buildStaticActions(selectedCoin, context, selectedWallet,
       selectedNetwork, isGnusBridgeEnabled, walletDetailsCubit) {
-    final SlidingDrawerController qrCodeDrawerController =
-        SlidingDrawerController();
-    final SlidingDrawerController moreOptionsDrawerController =
-        SlidingDrawerController();
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ActionButton(
           text: "Receive",
           icon: Icons.qr_code,
-          onPressed: qrCodeDrawerController.openDrawer,
+          onPressed: () {
+            ResponsiveDrawer.show<void>(
+              context: context,
+              title: "Receive ${selectedCoin?.name}",
+              children: [
+                Container(
+                  margin: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * .15),
+                  alignment: Alignment.center,
+                  child: CryptoAddressQR(
+                    iconPath: selectedCoin?.iconPath,
+                    address: selectedWallet?.address ?? "",
+                    network: selectedNetwork?.name ?? "",
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(width: 8),
         const ActionButton(text: "Send", icon: Icons.send),
@@ -293,44 +305,28 @@ class TokenInfoScreen extends StatelessWidget {
         ActionButton(
           text: "More",
           icon: Icons.more_horiz,
-          onPressed: moreOptionsDrawerController.openDrawer,
-        ),
-        SlidingDrawer(
-          controller: qrCodeDrawerController,
-          title: "Receive ${selectedCoin?.name}",
-          content: Container(
-            margin:
-                EdgeInsets.only(top: MediaQuery.of(context).size.height * .15),
-            alignment: Alignment.center,
-            child: Column(
+          onPressed: () {
+            ResponsiveDrawer.show<void>(
+              context: context,
+              title: "More Options",
               children: [
-                CryptoAddressQR(
-                  iconPath: selectedCoin?.iconPath,
-                  address: selectedWallet?.address ?? "",
-                  network: selectedNetwork?.name ?? "",
-                ),
+                if (isGnusBridgeEnabled)
+                  SlidingDrawerButton(
+                    onPressed: selectedCoin?.balance == 0
+                        ? null
+                        : () async {
+                            Navigator.of(context).pop(); // Close drawer
+                            await GoRouter.of(context)
+                                .push('/bridge', extra: walletDetailsCubit);
+                            walletDetailsCubit
+                                .getCoins(); // Refresh after return
+                          },
+                    label: "Bridge Tokens",
+                  ),
               ],
-            ),
-          ),
+            );
+          },
         ),
-        SlidingDrawer(
-            controller: moreOptionsDrawerController,
-            title: "More Options",
-            content: Container(
-                child: isGnusBridgeEnabled
-                    ? SlidingDrawerButton(
-                        onPressed: selectedCoin?.balance == 0
-                            ? null
-                            : () async {
-                                moreOptionsDrawerController.closeDrawer();
-                                await GoRouter.of(context)
-                                    .push('/bridge', extra: walletDetailsCubit);
-                                // after we come back to coins screen reload coins / balance
-                                walletDetailsCubit.getCoins();
-                              },
-                        label: "Bridge Tokens",
-                      )
-                    : null))
       ],
     );
   }

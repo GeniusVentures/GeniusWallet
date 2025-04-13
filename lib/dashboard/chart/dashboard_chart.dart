@@ -31,16 +31,16 @@ class DashboardChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title != null) ...[
-          const SizedBox(height: 16),
-          AutoSizeText(
+          Center(
+              child: AutoSizeText(
             title!,
             maxLines: 1,
             style: const TextStyle(
               fontSize: GeniusWalletFontSize.sectionHeader,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
-          ),
+          )),
           const SizedBox(height: 16),
         ],
         CryptoLiveChart(

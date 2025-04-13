@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/network.dart';
-import 'package:genius_wallet/app/assets/read_asset.dart';
+import 'package:genius_wallet/assets/read_asset.dart';
 
 class NetworkProvider extends ChangeNotifier {
   List<Network> _networks = [];
@@ -13,7 +13,7 @@ class NetworkProvider extends ChangeNotifier {
       _networks = await readNetworkAssets();
       notifyListeners();
     } catch (error) {
-      print('Error loading networks: $error');
+      debugPrint('Error loading networks: $error');
     }
   }
 

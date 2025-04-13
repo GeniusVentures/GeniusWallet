@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
@@ -26,7 +27,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
     final cacheAge = now - cacheEntry.timestamp;
 
     if (cacheAge <= 60) {
-      print('✅ Returning cached data for $coinId (Age: $cacheAge sec)');
+      //debugPrint('✅ Returning cached data for $coinId (Age: $cacheAge sec)');
       return cacheEntry.toIntMap();
     }
   }
@@ -53,24 +54,27 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
           HistoricalPriceCacheEntry.fromIntMap(historicalPrices, now);
       await box.put(coinId, newCacheEntry);
 
-      print('🆕 Historical - Fetched and cached new data for $coinId from API');
+      // debugPrint(
+      //     '🆕 Historical - Fetched and cached new data for $coinId from API');
       return historicalPrices;
     } else {
-      print(
+      debugPrint(
           '❌ Historical - API error (${response.statusCode}): ${response.body}');
 
       if (cacheEntry != null) {
-        print('‼️Returning old cached data for $coinId due to API failure');
+        // debugPrint(
+        //     '‼️Returning old cached data for $coinId due to API failure');
         return cacheEntry.toIntMap();
       }
 
       return {}; // No cache available
     }
   } catch (e) {
-    print('‼️ Network error while fetching $coinId prices: $e');
+    debugPrint('‼️ Network error while fetching $coinId prices: $e');
 
     if (cacheEntry != null) {
-      print('‼️Returning old cached data for $coinId due to network error');
+      debugPrint(
+          '‼️Returning old cached data for $coinId due to network error');
       return cacheEntry.toIntMap();
     }
 
@@ -122,12 +126,12 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   }).toList();
 
   if (missingCoinIds.isEmpty) {
-    print("✅ Returning all market data from Hive cache.");
+    //debugPrint("✅ Returning all market data from Hive cache.");
     return cachedData;
   }
 
-  print(
-      "🆕 Fetching missing market data from API: ${missingCoinIds.join(',')}");
+  // debugPrint(
+  //     "🆕 Fetching missing market data from API: ${missingCoinIds.join(',')}");
 
   final String marketApi =
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}&sparkline=true';
@@ -156,14 +160,14 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
         ...newMarketData,
       };
     } else {
-      print('❌ Failed to fetch market data: ${response.body}');
+      debugPrint('❌ Failed to fetch market data: ${response.body}');
     }
   } catch (e) {
-    print('‼️ Error fetching market data: $e');
+    debugPrint('‼️ Error fetching market data: $e');
   }
 
   // 🔹 Return cached only (fallback)
-  print("‼️ Returning cached market data due to API failure.");
+  debugPrint("‼️ Returning cached market data due to API failure.");
   return cachedData;
 }
 
@@ -177,13 +181,13 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
   if (cachedCoins != null && expiry != null) {
     final expiryDate = DateTime.tryParse(expiry);
     if (expiryDate != null && DateTime.now().isBefore(expiryDate)) {
-      print("✅ Returning cached coin list from Hive...");
+      //debugPrint("✅ Returning cached coin list from Hive...");
       return List<CoinGeckoCoin>.from(cachedCoins as List);
     }
   }
 
   // If cache is missing or expired, fetch new data
-  print("🌐 Fetching new coin list from CoinGecko...");
+  //debugPrint("🌐 Fetching new coin list from CoinGecko...");
   final url = Uri.parse(
       "https://api.coingecko.com/api/v3/coins/list?include_platform=true");
 
@@ -206,17 +210,17 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
       await box.put(
           cacheExpiryKey, DateTime.now().add(cacheDuration).toIso8601String());
 
-      print("✅ New coin list cached in Hive");
+      //debugPrint("✅ New coin list cached in Hive");
       return coinList;
     } else {
       throw Exception("Failed to load coins from CoinGecko");
     }
   } catch (e) {
-    print("❌ Error fetching coin list: $e");
+    debugPrint("❌ Error fetching coin list: $e");
 
     // Return cached data even if expired as fallback
     if (cachedCoins != null) {
-      print("‼️ Returning expired cached data...");
+      debugPrint("‼️ Returning expired cached data...");
       return List<CoinGeckoCoin>.from(cachedCoins as List);
     }
 

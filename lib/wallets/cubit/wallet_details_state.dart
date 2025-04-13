@@ -13,6 +13,7 @@ class WalletDetailsState {
   final List<Wallet> wallets;
   final double gasFees;
   final List<Coin> coins;
+  final String? selectedWalletBalance;
 
   const WalletDetailsState(
       {this.selectedWallet,
@@ -26,7 +27,8 @@ class WalletDetailsState {
       this.coins = const [],
       this.transactions = const [],
       this.fetchTransactionsStatus = WalletStatus.initial,
-      this.selectedCoin});
+      this.selectedCoin,
+      this.selectedWalletBalance});
 
   WalletDetailsState copyWith(
       {Wallet? selectedWallet,
@@ -40,7 +42,8 @@ class WalletDetailsState {
       List<Wallet>? wallets,
       double? gasFees,
       List<Coin>? coins,
-      List<Transaction>? transactions}) {
+      List<Transaction>? transactions,
+      String? selectedWalletBalance}) {
     return WalletDetailsState(
         selectedWallet: selectedWallet ?? this.selectedWallet,
         selectedCoin: selectedCoin ?? this.selectedCoin,
@@ -54,7 +57,9 @@ class WalletDetailsState {
         coins: coins ?? this.coins,
         transactions: transactions ?? this.transactions,
         fetchTransactionsStatus:
-            fetchTransactionsStatus ?? this.fetchTransactionsStatus);
+            fetchTransactionsStatus ?? this.fetchTransactionsStatus,
+        selectedWalletBalance:
+            selectedWalletBalance ?? this.selectedWalletBalance);
   }
 }
 
