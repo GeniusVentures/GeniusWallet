@@ -11,12 +11,7 @@ import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
-import 'package:genius_wallet/wallets/buy/bloc/buy_bloc.dart';
-import 'package:genius_wallet/wallets/buy/routes/buy_flow.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
-import 'package:genius_wallet/wallets/send/routes/send_flow.dart';
-import 'package:genius_wallet/wallets/send/view/not_enough_balance_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
@@ -161,61 +156,6 @@ final geniusWalletRouter = GoRouter(
       }),
     ),
     GoRoute(
-      path: '/send',
-      builder: (context, state) {
-        final walletCubit = state.extra as WalletDetailsCubit;
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (context) => SendCubit(
-                geniusApi: context.read<GeniusApi>(),
-                initialState: SendState(
-                  currentTransaction: Transaction(
-                    hash: '',
-                    fromAddress: walletCubit.state.selectedWallet!.address,
-                    recipients: List.empty(),
-                    fees: '',
-                    timeStamp: DateTime.now(),
-                    transactionDirection: TransactionDirection.sent,
-                    coinSymbol:
-                        walletCubit.state.selectedWallet!.currencySymbol,
-                    transactionStatus: TransactionStatus.pending,
-                  ),
-                  flowStep:
-                      true ? SendFlowStep.noFunds : SendFlowStep.enterAddress,
-                ),
-              ),
-            ),
-            BlocProvider.value(
-              value: walletCubit,
-            ),
-          ],
-          child: const SendFlow(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/buy',
-      builder: (context, state) {
-        final walletDetailsCubit = state.extra as WalletDetailsCubit;
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (context) => BuyBloc(
-                initialState: BuyState(
-                  cryptoCurrency:
-                      walletDetailsCubit.state.selectedWallet!.currencySymbol,
-                ),
-                geniusApi: context.read<GeniusApi>(),
-              ),
-            ),
-            BlocProvider.value(value: walletDetailsCubit)
-          ],
-          child: const BuyFlow(),
-        );
-      },
-    ),
-    GoRoute(
       path: '/bridge',
       builder: (context, state) {
         final cubit = state.extra as WalletDetailsCubit;
@@ -235,15 +175,6 @@ final geniusWalletRouter = GoRouter(
                   GnusCubit(CoinService(), state.extra as WalletDetailsCubit),
               walletDetailsCubit: state.extra as WalletDetailsCubit),
           child: const SubmitJobScreen(),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/not_enough_balance',
-      builder: (context, state) {
-        return BlocProvider.value(
-          value: state.extra as WalletDetailsCubit,
-          child: const NotEnoughBalanceScreen(),
         );
       },
     ),
