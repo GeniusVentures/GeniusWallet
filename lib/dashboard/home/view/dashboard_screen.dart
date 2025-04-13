@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -9,14 +8,12 @@ import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
 import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
-import 'package:genius_wallet/dashboard/chart/dashboard_holdings_progress_list.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
@@ -24,8 +21,8 @@ import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 
 double gridSpacing = 8;
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

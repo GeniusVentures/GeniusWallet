@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/screens/verify_pin_screen.dart';
-import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
+import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/send/cubit/send_cubit.dart';
 import 'package:genius_wallet/wallets/send/view/enter_wallet_address_screen.dart';
@@ -27,7 +27,7 @@ class SendFlow extends StatelessWidget {
             ];
           case SendFlowStep.transactionSummary:
             return [
-              const MaterialPage(child: HomeScreen()),
+              const MaterialPage(child: DashboardScreen()),
               MaterialPage(
                 child: TransactionSummaryScreen(
                   transaction: state.currentTransaction,

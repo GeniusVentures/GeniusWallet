@@ -7,7 +7,7 @@ import 'package:genius_wallet/app/widgets/overlay/desktop_overlay.dart';
 import 'package:genius_wallet/app/widgets/overlay/mobile_overlay.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/events/view/events_screen.dart';
-import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
+import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
@@ -28,7 +28,7 @@ class ResponsiveOverlay extends StatelessWidget {
 
         // Map screen enum to actual widget
         final screenMap = <NavigationScreen, Widget>{
-          NavigationScreen.dashboard: const HomeScreen(),
+          NavigationScreen.dashboard: const DashboardScreen(),
           NavigationScreen.transactions: const TransactionsScreen(),
           NavigationScreen.news: const CryptoNewsScreen(),
           NavigationScreen.markets: const MarketsScreen(),
