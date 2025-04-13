@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/app/widgets/app_screen_view.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
+import 'package:genius_wallet/dashboard/home/widgets/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/genius_wallet_details_cubit.dart';
@@ -86,9 +87,7 @@ class _ViewState extends State<View> {
                   // Right Side: Transactions
                   const Expanded(
                     child: DashboardScrollContainer(
-                      child: TransactionsSlimView(
-                        isShowOnlySGNUSTransactions: true,
-                      ),
+                      child: SgnusTransactionsScreen(),
                     ),
                   ),
                 ],
@@ -138,8 +137,7 @@ class _ViewState extends State<View> {
                               builder: (BuildContext context,
                                   BoxConstraints constraints) {
                                 return const DashboardScrollContainer(
-                                    child: TransactionsSlimView(
-                                        isShowOnlySGNUSTransactions: true));
+                                    child: SgnusTransactionsScreen());
                               },
                             )),
                       ],

@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/widgets/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -83,38 +85,34 @@ class WalletsOverviewState extends State<WalletsOverview> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.white, fontSize: 12))),
-            Flexible(
-                child: FutureBuilder<String?>(
-              future: futurePrices,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Row(
-                      textBaseline: TextBaseline.alphabetic,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                            child: AutoSizeText(
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                // fallback to stale account balance if call fails
-                                snapshot.data != ""
-                                    ? snapshot.data ??
-                                        "\$${NumberFormat('#,##0.00').format(widget.account?.balance)}"
-                                    : "\$${NumberFormat('#,##0.00').format(widget.account?.balance)}",
-                                style: const TextStyle(
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: 32.0,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.left)),
-                        const SizedBox(width: 4),
-                      ]);
-                }
-                return const SizedBox();
-              },
-            )),
+            BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                builder: (context, state) {
+              if (state.selectedWallet == null) {
+                return const Center(
+                  child: Text('Error'),
+                );
+              }
+
+              final selectedWallet = state.selectedWallet!;
+              final balance =
+                  double.tryParse(state.selectedWalletBalance ?? '0') ?? 0;
+
+              final displayBalance = balance == 0
+                  ? "\$0.00"
+                  : NumberFormat.simpleCurrency().format(balance);
+
+              return Flexible(
+                  child: AutoSizeText(
+                displayBalance,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 48.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.left,
+              ));
+            })
           ],
         ))
       ]),

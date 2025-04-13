@@ -331,28 +331,44 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     } else {
       icon = Icons.link;
       iconColor = Colors.greenAccent;
-      textColor = Colors.greenAccent;
+      textColor = GeniusWalletColors.gray500;
       backgroundColor = GeniusWalletColors.deepBlueCardColor;
       text = 'Connect';
     }
 
-    return ActionButton(
-      text: text,
-      icon: icon,
-      iconColor: iconColor,
-      textColor: textColor,
-      backgroundColor: backgroundColor,
-      animation: _isConnecting
-          ? ActionButtonAnimation.rotate
-          : ActionButtonAnimation.none,
-      onPressed: () {
-        if (_isConnecting) return;
-        if (isConnected) {
-          _disconnect();
-        } else {
-          _connect();
-        }
-      },
-    );
+    return SizedBox(
+        width: 140,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            backgroundColor: backgroundColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          onPressed: () {
+            if (_isConnecting) return;
+            if (isConnected) {
+              _disconnect();
+            } else {
+              _connect();
+            }
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedRotation(
+                duration: const Duration(milliseconds: 600),
+                turns: _isConnecting ? 1 : 0,
+                child: Icon(icon, color: iconColor, size: 16),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                text,
+                style: TextStyle(fontSize: 13, color: textColor),
+              ),
+            ],
+          ),
+        ));
   }
 }

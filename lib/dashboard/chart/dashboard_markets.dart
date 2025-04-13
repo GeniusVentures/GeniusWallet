@@ -43,8 +43,8 @@ class DashboardMarkets extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (title != null) ...[
-                      const SizedBox(height: 16),
-                      AutoSizeText(
+                      Center(
+                          child: AutoSizeText(
                         title!,
                         maxLines: 1,
                         style: const TextStyle(
@@ -52,7 +52,7 @@ class DashboardMarkets extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
-                      ),
+                      )),
                       const SizedBox(height: 16),
                     ],
                     ...coins.map((coin) {

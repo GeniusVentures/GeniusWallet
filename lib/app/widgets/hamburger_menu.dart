@@ -46,11 +46,6 @@ class HamburgerMenu extends StatelessWidget {
           icon: Icons.calendar_month,
           screen: NavigationScreen.events,
         ),
-        _DrawerListTile(
-          title: 'Settings',
-          icon: Icons.settings,
-          screen: NavigationScreen.settings,
-        ),
       ],
     );
   }

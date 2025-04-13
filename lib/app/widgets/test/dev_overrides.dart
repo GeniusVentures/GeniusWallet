@@ -50,14 +50,7 @@ void addFakeTransactions(TransactionsController txController) {
   }
 
   debugPrint('\x1B[37m** Adding fake transactions\x1B[0m');
-  txController.addTransactions([
-    getFakeTransaction(),
-    getFakeTransaction(),
-    getFakeTransaction(),
-    getFakeTransaction(),
-    getFakeTransaction(),
-    getFakeTransaction()
-  ]);
+  txController.addTransactions(List.generate(20, (_) => getFakeTransaction()));
 }
 
 Transaction getFakeTransaction() {

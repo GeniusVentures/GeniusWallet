@@ -166,11 +166,12 @@ class WebViewMobileState extends State<WebViewMobile> {
           if (includeBackButton)
             Builder(
               builder: (context) {
-                return IconButton(
-                  icon: const Icon(Icons.cancel),
-                  onPressed: () {
+                return InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () {
                     Navigator.of(context).pop(); // Pops the current page
                   },
+                  child: Icon(Icons.cancel, size: 20),
                 );
               },
             ),
@@ -185,6 +186,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                     color: canGoBack
                         ? GeniusWalletColors.lightGreenPrimary
                         : Colors.grey,
+                    size: 20,
                   );
                 },
               ),

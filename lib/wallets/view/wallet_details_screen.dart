@@ -16,11 +16,18 @@ class WalletDetailsScreen extends StatefulWidget {
 }
 
 class WalletDetailsScreenState extends State<WalletDetailsScreen> {
-  double _totalValue = 0.0;
+  @override
+  void initState() {
+    super.initState();
 
-  void _updateTotalValue(double value) {
-    setState(() {
-      _totalValue = value;
+    // Fetch coins once the widget is mounted
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cubit = context.read<WalletDetailsCubit>();
+      final wallet = cubit.state.selectedWallet;
+
+      if (wallet != null) {
+        cubit.getCoins();
+      }
     });
   }
 
@@ -34,85 +41,54 @@ class WalletDetailsScreenState extends State<WalletDetailsScreen> {
           );
         }
 
-        return View(
-            onTotalValueCalculated: _updateTotalValue, totalValue: _totalValue);
-      },
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Safely wait for the first frame to access context without BuildContext warnings
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final cubit = context.read<WalletDetailsCubit>();
-      final wallet = cubit.state.selectedWallet;
-
-      if (wallet != null) {
-        cubit.getCoins();
-      }
-    });
-  }
-}
-
-class View extends StatelessWidget {
-  final Function(double) onTotalValueCalculated;
-  final double totalValue;
-
-  const View(
-      {Key? key,
-      required this.onTotalValueCalculated,
-      required this.totalValue})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-      builder: (context, state) {
         final selectedWallet = state.selectedWallet!;
+        final balance =
+            double.tryParse(state.selectedWalletBalance ?? '0') ?? 0;
+
+        final displayBalance = balance == 0
+            ? "\$0.00"
+            : NumberFormat.simpleCurrency().format(balance);
 
         return Center(
-            child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: AppScreenView(
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 18),
-                  LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return WalletInformation(constraints,
-                          totalBalance: totalValue == 0
-                              ? "\$0.00"
-                              : NumberFormat.simpleCurrency()
-                                  .format(totalValue),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: AppScreenView(
+              body: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return WalletInformation(
+                          constraints,
+                          totalBalance: displayBalance,
                           ovrAddressField: selectedWallet.address,
-                          walletType: selectedWallet.walletType);
-                    },
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                      child: StreamBuilder<SGNUSConnection>(
-                          stream: context
-                              .read<GeniusApi>()
-                              .getSGNUSConnectionStream(),
-                          builder: (context, snapshot) {
-                            final connection = snapshot.data;
-                            return CoinsScreen(
-                                isGnusWalletConnected:
-                                    (connection?.walletAddress ?? false) ==
-                                        state.selectedWallet?.address,
-                                onTotalValueCalculated: onTotalValueCalculated);
-                          })),
-                ],
+                          walletType: selectedWallet.walletType,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    StreamBuilder<SGNUSConnection>(
+                      stream:
+                          context.read<GeniusApi>().getSGNUSConnectionStream(),
+                      builder: (context, snapshot) {
+                        final connection = snapshot.data;
+                        return CoinsScreen(
+                          isGnusWalletConnected:
+                              (connection?.walletAddress ?? false) ==
+                                  selectedWallet.address,
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ));
+        );
       },
     );
   }

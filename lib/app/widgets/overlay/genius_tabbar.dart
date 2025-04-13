@@ -48,11 +48,9 @@ class GeniusTabbar extends StatelessWidget {
               backgroundColor: Colors.transparent,
               tooltip: e.label.data,
               icon: Container(
-                padding: const EdgeInsets.all(8),
                 child: e.icon,
               ),
               activeIcon: Container(
-                padding: const EdgeInsets.all(8),
                 child: e.selectedIcon,
               ),
               label: e.label.data,

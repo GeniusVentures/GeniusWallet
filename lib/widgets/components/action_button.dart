@@ -84,7 +84,7 @@ class _ActionButtonState extends State<ActionButton>
           return ElevatedButton(
             onPressed: widget.onPressed,
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(0),
               fixedSize:
                   Size(constraints.maxWidth * 0.25, constraints.maxWidth),
               shape: RoundedRectangleBorder(
@@ -99,13 +99,12 @@ class _ActionButtonState extends State<ActionButton>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 animatedIcon,
-                const SizedBox(height: 4),
                 Flexible(
                   child: AutoSizeText(
                     widget.text,
                     style: TextStyle(
                       color: widget.textColor,
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,

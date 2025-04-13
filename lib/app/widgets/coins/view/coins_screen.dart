@@ -14,16 +14,16 @@ import 'package:go_router/go_router.dart';
 class CoinsScreen extends StatefulWidget {
   final Function(Coin)? onCoinSelected;
   final List<Coin?>? filterCoins;
+  final bool? isUseDivider;
   final bool? isGnusWalletConnected;
-  final Function(double)? onTotalValueCalculated;
 
-  const CoinsScreen({
-    Key? key,
-    this.onCoinSelected,
-    this.filterCoins,
-    this.isGnusWalletConnected,
-    this.onTotalValueCalculated,
-  }) : super(key: key);
+  const CoinsScreen(
+      {Key? key,
+      this.onCoinSelected,
+      this.filterCoins,
+      this.isGnusWalletConnected,
+      this.isUseDivider})
+      : super(key: key);
 
   @override
   CoinsScreenState createState() => CoinsScreenState();
@@ -71,15 +71,18 @@ class CoinsScreenState extends State<CoinsScreen> {
 
   void _calculateTotalValue(List<Coin> coins) {
     double totalValue = 0.0;
+
     for (var coin in coins) {
       final marketData = _marketData[coin.symbol?.toLowerCase()];
       if (marketData != null) {
         totalValue += (coin.balance ?? 0.0) * marketData.currentPrice;
       }
     }
-    if (widget.onTotalValueCalculated != null) {
-      widget.onTotalValueCalculated!(totalValue);
-    }
+
+    final formattedTotal = totalValue.toStringAsFixed(2);
+
+    // ✅ Set it in the cubit
+    context.read<WalletDetailsCubit>().setSelectedWalletBalance(formattedTotal);
   }
 
   @override
@@ -102,55 +105,74 @@ class CoinsScreenState extends State<CoinsScreen> {
           final walletCubit = context.read<WalletDetailsCubit>();
 
           if (state.coinsStatus == WalletStatus.loading) {
-            return const CoinCardContainer(
+            return const Card(
+              color: GeniusWalletColors.deepBlueCardColor,
+              shadowColor: Colors.transparent,
               child: Center(child: CircularProgressIndicator()),
             );
           }
 
           if (state.coins.isEmpty) {
-            return const CoinCardContainer(
-              child: Center(
-                child: AutoSizeText(
-                  'No Coins Detected',
-                  style: TextStyle(
-                      fontSize: 24, color: GeniusWalletColors.btnTextDisabled),
-                ),
+            return const Card(
+              color: GeniusWalletColors.deepBlueCardColor,
+              shadowColor: Colors.transparent,
+              child: AutoSizeText(
+                'No Coins Detected',
+                style: TextStyle(
+                    fontSize: 24, color: GeniusWalletColors.btnTextDisabled),
               ),
             );
           }
 
-          return Wrap(
-            runSpacing: 8,
-            children: [
-              for (var coin in state.coins)
-                if (widget.filterCoins?.contains(coin) == false ||
-                    widget.filterCoins == null)
+          final filteredCoins = state.coins
+              .where((coin) =>
+                  widget.filterCoins?.contains(coin) == false ||
+                  widget.filterCoins == null)
+              .toList();
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              children: [
+                for (int i = 0; i < filteredCoins.length; i++) ...[
                   CoinCardRow(
-                      onTap: () {
-                        if (widget.onCoinSelected != null) {
-                          widget.onCoinSelected!(coin);
-                        } else {
-                          walletCubit.selectCoin(coin);
-                          context.push(
-                            '/token-info',
-                            extra: {
-                              "walletDetailsCubit": walletCubit,
-                              "isGnusWalletConnected":
-                                  widget.isGnusWalletConnected,
-                              "securityInfo": "Coming Soon",
-                              "transactionHistory": ["Coming Soon"],
-                              "marketData":
-                                  _marketData[coin.symbol?.toLowerCase()]
-                            },
-                          );
-                        }
-                      },
-                      iconPath: coin.iconPath ?? "",
-                      balance: coin.balance ?? 0.0,
-                      name: coin.name ?? "",
-                      symbol: coin.symbol ?? "",
-                      marketData: _marketData[coin.symbol?.toLowerCase()]),
-            ],
+                    onTap: () {
+                      final coin = filteredCoins[i];
+                      if (widget.onCoinSelected != null) {
+                        widget.onCoinSelected!(coin);
+                      } else {
+                        walletCubit.selectCoin(coin);
+                        context.push(
+                          '/token-info',
+                          extra: {
+                            "walletDetailsCubit": walletCubit,
+                            "isGnusWalletConnected":
+                                widget.isGnusWalletConnected,
+                            "securityInfo": "Coming Soon",
+                            "transactionHistory": ["Coming Soon"],
+                            "marketData":
+                                _marketData[coin.symbol?.toLowerCase()]
+                          },
+                        );
+                      }
+                    },
+                    iconPath: filteredCoins[i].iconPath ?? "",
+                    balance: filteredCoins[i].balance ?? 0.0,
+                    name: filteredCoins[i].name ?? "",
+                    symbol: filteredCoins[i].symbol ?? "",
+                    marketData:
+                        _marketData[filteredCoins[i].symbol?.toLowerCase()],
+                  ),
+                  if ((widget.isUseDivider ?? false) &&
+                      i != filteredCoins.length - 1)
+                    const Divider(
+                      thickness: 3.0,
+                      color: GeniusWalletColors.deepBlueTertiary,
+                      height: 16,
+                    ),
+                ],
+              ],
+            ),
           );
         },
       ),

@@ -35,6 +35,12 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     getCoins();
   }
 
+  void setSelectedWalletBalance(String balance) {
+    if (balance != state.selectedWalletBalance) {
+      emit(state.copyWith(selectedWalletBalance: balance));
+    }
+  }
+
   /// Method that clears the state of `copyAddressStatus` once
   /// the Snackbar has been shown to the user.
   void messageShowed() {

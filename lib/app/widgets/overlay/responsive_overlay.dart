@@ -9,7 +9,6 @@ import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/events/view/events_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/home_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
-import 'package:genius_wallet/dashboard/trade/view/trade_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
 
@@ -34,9 +33,6 @@ class ResponsiveOverlay extends StatelessWidget {
           NavigationScreen.news: const CryptoNewsScreen(),
           NavigationScreen.markets: const MarketsScreen(),
           NavigationScreen.events: const EventsScreen(),
-          NavigationScreen.trade: const TradeScreen(),
-          NavigationScreen.settings:
-              const Center(child: Text('Coming soon')), // Placeholder
           NavigationScreen.web:
               const WebViewScreen(url: "https://www.gnus.ai/"),
         };

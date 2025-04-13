@@ -89,50 +89,62 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   Widget build(BuildContext context) {
     final includeBackButton = widget.includeBackButton ?? false;
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        toolbarHeight: 80,
-        leadingWidth: 80,
         backgroundColor: GeniusWalletColors.deepBlueCardColor,
-        titleSpacing: 0,
-        title: _buildSearchBar(),
-        leading: includeBackButton
-            ? Builder(
-                builder: (context) => IconButton(
-                    icon: const Icon(
-                      Icons.cancel,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    }),
-              )
-            : null,
-      ),
-      body: _controller.value.isInitialized
-          ? Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 70,
+                color: GeniusWalletColors.deepBlueCardColor,
+                padding: const EdgeInsets.only(left: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (includeBackButton)
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(Icons.cancel,
+                            size: 20, color: Colors.white),
+                      ),
+                    Flexible(child: _buildSearchBar()),
+                  ],
+                ),
               ),
-              child: ClipRRect(child: Webview(_controller)),
-            )
-          : const Center(
-              child: CircularProgressIndicator(
-                color: GeniusWalletColors.lightGreenPrimary,
+
+              const SizedBox(height: 4),
+
+              // Webview or loader
+              Expanded(
+                child: _controller.value.isInitialized
+                    ? Container(
+                        decoration: const BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(child: Webview(_controller)),
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(
+                          color: GeniusWalletColors.lightGreenPrimary,
+                        ),
+                      ),
               ),
-            ),
-    );
+            ],
+          ),
+        ));
   }
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.only(left: 8, right: 16),
+      padding: const EdgeInsets.only(
+        left: 8,
+        right: 16,
+      ),
       decoration: BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.circular(20),

@@ -91,15 +91,15 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
         ),
         child: ListTile(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           leading: SizedBox(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             child: Image.asset(
               network.iconPath ?? "",
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox(width: 40, height: 40),
+                  const SizedBox(width: 36, height: 36),
             ),
           ),
           minLeadingWidth: 0,
@@ -115,7 +115,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
           subtitle: Text(
             network.symbol ?? "",
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: subColor,
             ),
           ),

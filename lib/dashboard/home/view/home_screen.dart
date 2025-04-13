@@ -1,21 +1,24 @@
-import 'dart:ui';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/app/bloc/app_bloc.dart';
 import 'package:genius_wallet/app/screens/loading_screen.dart';
 import 'package:genius_wallet/app/utils/wallet_utils.dart';
+import 'package:genius_wallet/app/widgets/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_holdings_progress_list.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
-import 'package:genius_wallet/dashboard/home/widgets/horizontal_wallets_scrollview.dart';
+import 'package:genius_wallet/dashboard/home/widgets/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/widgets/components/wallets_overview.g.dart';
 
@@ -26,58 +29,35 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> onRefresh() async {
-      final appBloc = context.read<AppBloc>();
+    return SafeArea(
+        child: Stack(fit: StackFit.expand, children: [
+      BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+        double width = MediaQuery.of(context).size.width;
+        bool is3Column = width > 1500;
+        bool is2Column = width > 1150;
 
-      // refresh the account data / wallets when swiping down in the app
-      if (appBloc.state.accountStatus != AppStatus.loading) {
-        appBloc.add(FetchAccount());
-        appBloc.add(SubscribeToWallets());
-        // MINT TOKENS ON PULL DOWN OF APP
-        //appBloc.add(FFITestEvent());
-      }
-    }
+        if (state.subscribeToWalletStatus == AppStatus.loaded &&
+            state.accountStatus == AppStatus.loaded) {
+          return ListView(shrinkWrap: true, children: [
+            if (is3Column) ...[
+              const ThreeColumnDashboardView()
+            ] else if (is2Column) ...[
+              const TwoColumnDashBoardView()
+            ] else ...[
+              const OneColumnDashBoardView()
+            ]
+          ]);
+        }
+        if (state.subscribeToWalletStatus == AppStatus.error ||
+            state.accountStatus == AppStatus.error) {
+          return const Center(
+            child: Text('Something went wrong!'),
+          );
+        }
 
-    return ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse, // Enable mouse drag for desktop
-          },
-        ),
-        child: RefreshIndicator(
-            backgroundColor: GeniusWalletColors.deepBlueTertiary,
-            onRefresh: onRefresh,
-            color: GeniusWalletColors.lightGreenPrimary,
-            child: SafeArea(
-                child: Stack(fit: StackFit.expand, children: [
-              BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-                double width = MediaQuery.of(context).size.width;
-                bool is3Column = width > 1500;
-                bool is2Column = width > 1150;
-
-                if (state.subscribeToWalletStatus == AppStatus.loaded &&
-                    state.accountStatus == AppStatus.loaded) {
-                  return ListView(shrinkWrap: true, children: [
-                    if (is3Column) ...[
-                      const ThreeColumnDashboardView()
-                    ] else if (is2Column) ...[
-                      const TwoColumnDashBoardView()
-                    ] else ...[
-                      const OneColumnDashBoardView()
-                    ]
-                  ]);
-                }
-                if (state.subscribeToWalletStatus == AppStatus.error ||
-                    state.accountStatus == AppStatus.error) {
-                  return const Center(
-                    child: Text('Something went wrong!'),
-                  );
-                }
-
-                return const LoadingScreen();
-              }),
-            ]))));
+        return const LoadingScreen();
+      }),
+    ]));
   }
 }
 
@@ -86,7 +66,9 @@ class ThreeColumnDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final availableHeight = MediaQuery.of(context).size.height - 24;
+    final availableHeight = MediaQuery.of(context).size.height -
+        GeniusWalletConsts.appBarHeight -
+        18;
     final topRowHeight = availableHeight * .45;
     const topRowMinHeight = 300.0;
     final bottomRowHeight = availableHeight * .55;
@@ -96,7 +78,6 @@ class ThreeColumnDashboardView extends StatelessWidget {
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
         child: Column(children: [
-          SizedBox(height: gridSpacing),
           Row(children: [
             Expanded(
                 flex: 3,
@@ -115,12 +96,10 @@ class ThreeColumnDashboardView extends StatelessWidget {
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  WalletDashboardView(),
                                   Expanded(
                                       child: Row(children: [
                                     Expanded(
                                         child: ContributionsDashboardView()),
-                                    Expanded(child: SendReceiveDashboardView())
                                   ]))
                                 ]))
                       ])),
@@ -144,7 +123,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
                       ? secondRowMinHeight
                       : availableHeight,
                 ),
-                child: TransactionsDashboardView())
+                child: const TransactionsDashboardView())
           ])
         ]));
   }
@@ -167,11 +146,9 @@ class TwoColumnDashBoardView extends StatelessWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        WalletDashboardView(),
                         Expanded(
                             child: Row(children: [
                           Expanded(child: ContributionsDashboardView()),
-                          Expanded(child: SendReceiveDashboardView())
                         ]))
                       ]))
             ]),
@@ -192,20 +169,11 @@ class OneColumnDashBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.all(gridSpacing),
-        child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 600, child: WalletDetailsScreen()),
-              SizedBox(height: 260, child: OverviewDashboardView()),
-              WalletDashboardView(),
-              SizedBox(height: 400, child: ChartDashboardView()),
-              SizedBox(height: 480, child: MarketsDashboardView()),
-              SizedBox(height: 300, child: ContributionsDashboardView()),
-              SizedBox(height: 300, child: SendReceiveDashboardView()),
-              SizedBox(height: 600, child: TransactionsDashboardView()),
-            ]));
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(
+          height: MediaQuery.of(context).size.height - 175,
+          child: const WalletDetailsScreen()),
+    ]);
   }
 }
 
@@ -220,14 +188,8 @@ class OverviewDashboardView extends StatelessWidget {
       child: StreamBuilder<List<Transaction>>(
         stream: txController.stream,
         builder: (context, snapshot) {
-          final controllerTransactions = snapshot.data ?? [];
-
           return BlocBuilder<AppBloc, AppState>(
             builder: (context, state) {
-              final totalTxCount =
-                  WalletUtils.getTransactionNumber(state.wallets) +
-                      controllerTransactions.length;
-
               return WalletsOverview(
                 geniusApi: context.read<GeniusApi>(),
                 account: state.account,
@@ -244,27 +206,26 @@ class OverviewDashboardView extends StatelessWidget {
   }
 }
 
-class WalletDashboardView extends StatelessWidget {
-  const WalletDashboardView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-        height: 120,
-        child: DashboardViewNoWrapperContainer(
-            child: HorizontalWalletsScrollview()));
-  }
-}
-
 class TransactionsDashboardView extends StatelessWidget {
   const TransactionsDashboardView({super.key});
 
   @override
+  @override
   Widget build(BuildContext context) {
     return DashboardScrollContainer(
-        child: BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-      return const TransactionsSlimView();
-    }));
+      child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, walletState) {
+          final selectedWallet = walletState.selectedWallet;
+          final isSgnusWallet = selectedWallet?.walletType == WalletType.sgnus;
+
+          return isSgnusWallet
+              ? const SgnusTransactionsScreen()
+              : TransactionsSlimView(
+                  transactions: selectedWallet?.transactions ?? [],
+                );
+        },
+      ),
+    );
   }
 }
 
@@ -316,30 +277,50 @@ class ContributionsDashboardView extends StatelessWidget {
   const ContributionsDashboardView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const DashboardScrollContainer(
-        child: DashboardHoldingsProgressList(
-      holdings: {
-        'BTC': 40,
-        'ETH': 25,
-        'USDT': 15,
-        'BNB': 10,
-        'XRP': 5,
-        'ADA': 3,
-        'DOT': 2,
-      },
-    ));
-  }
-}
-
-class SendReceiveDashboardView extends StatelessWidget {
-  const SendReceiveDashboardView({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return const DashboardViewContainer(
-        child: Flexible(
-            child: AutoSizeText('Send / Receive - Coming Soon',
-                style: TextStyle(color: Colors.grey))));
+    return DashboardScrollContainer(
+      child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, walletState) {
+          final selectedWallet = walletState.selectedWallet;
+          return StreamBuilder<SGNUSConnection>(
+            stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+            builder: (context, snapshot) {
+              final connection = snapshot.data;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // const Flexible(
+                  //     child: AutoSizeText('Holdings',
+                  //         maxLines: 1,
+                  //         overflow: TextOverflow.ellipsis,
+                  //         style: TextStyle(color: Colors.white, fontSize: 12))),
+                  Expanded(
+                    child: CoinsScreen(
+                      isUseDivider: true,
+                      isGnusWalletConnected:
+                          (connection?.walletAddress ?? false) ==
+                              selectedWallet?.address,
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+
+    //     child: DashboardHoldingsProgressList(
+    //   holdings: {
+    //     'BTC': 40,
+    //     'ETH': 25,
+    //     'USDT': 15,
+    //     'BNB': 10,
+    //     'XRP': 5,
+    //     'ADA': 3,
+    //     'DOT': 2,
+    //   },
+    // ));
   }
 }

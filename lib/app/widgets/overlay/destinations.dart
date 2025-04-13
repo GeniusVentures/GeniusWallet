@@ -6,60 +6,48 @@ import 'package:genius_wallet/app/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/app/widgets/overlay/genius_destination.dart';
 
 // This order must match whats in `navigation_overlay_state/NavigationScreen` enum
+double iconSize = 24.0;
+
 class GeniusTabDestinations {
   static final destinations = [
-    const GeniusDestination(
+    GeniusDestination(
         navScreen: NavigationScreen.dashboard,
         destination: '/dashboard',
-        icon: Icon(Icons.dashboard),
-        label: Text('Dashboard'),
-        selectedIcon: Icon(Icons.dashboard)),
-    const GeniusDestination(
+        icon: Icon(Icons.dashboard, size: iconSize),
+        label: const Text('Dashboard'),
+        selectedIcon: Icon(Icons.dashboard, size: iconSize)),
+    GeniusDestination(
         navScreen: NavigationScreen.transactions,
         destination: '/transactions',
-        icon: Icon(Icons.timer_rounded),
-        label: Text('Transactions'),
-        selectedIcon: Icon(Icons.timer_rounded)),
-    const GeniusDestination(
-      navScreen: NavigationScreen.trade,
-      destination: '/trade',
-      icon: Icon(Icons.candlestick_chart),
-      label: Text('Trade'),
-      selectedIcon: Icon(Icons.candlestick_chart),
-    ),
+        icon: Icon(FontAwesomeIcons.clock, size: iconSize),
+        label: const Text('Transactions'),
+        selectedIcon: Icon(FontAwesomeIcons.clock, size: iconSize)),
     GeniusDestination(
         navScreen: NavigationScreen.web,
         destination: '/web',
-        icon: const Icon(FontAwesomeIcons.globe),
+        icon: Icon(FontAwesomeIcons.globe, size: iconSize),
         label: const Text('Web Browser'),
-        selectedIcon: const Icon(FontAwesomeIcons.globe),
+        selectedIcon: Icon(FontAwesomeIcons.globe, size: iconSize),
         isVisible: !Platform.isLinux), // HIDE ON LINUX
-    const GeniusDestination(
+    GeniusDestination(
         navScreen: NavigationScreen.markets,
         destination: '/markets',
-        label: Text('Markets'),
-        icon: Icon(Icons.stacked_line_chart),
-        selectedIcon: Icon(Icons.stacked_line_chart)),
-    const GeniusDestination(
+        label: const Text('Markets'),
+        icon: Icon(Icons.stacked_line_chart, size: iconSize),
+        selectedIcon: Icon(Icons.stacked_line_chart, size: iconSize)),
+    GeniusDestination(
       navScreen: NavigationScreen.news,
       destination: '/news',
-      label: Text('News'),
-      icon: Icon(Icons.library_books),
-      selectedIcon: Icon(Icons.library_books),
+      label: const Text('News'),
+      icon: Icon(Icons.library_books, size: iconSize),
+      selectedIcon: Icon(Icons.library_books, size: iconSize),
     ),
-    const GeniusDestination(
+    GeniusDestination(
       navScreen: NavigationScreen.events,
       destination: '/events',
-      label: Text('Events'),
-      icon: Icon(Icons.calendar_month),
-      selectedIcon: Icon(Icons.calendar_month),
-    ),
-    const GeniusDestination(
-      navScreen: NavigationScreen.settings,
-      destination: '/settings',
-      label: Text('Settings'),
-      icon: Icon(Icons.settings),
-      selectedIcon: Icon(Icons.settings),
+      label: const Text('Events'),
+      icon: Icon(Icons.calendar_month, size: iconSize),
+      selectedIcon: Icon(Icons.calendar_month, size: iconSize),
     ),
   ];
 }

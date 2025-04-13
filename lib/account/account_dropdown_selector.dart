@@ -116,8 +116,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         ),
         child: ListTile(
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: _buildAccountAvatar(wallet, isSelected, 35),
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          leading: _buildAccountAvatar(wallet, isSelected, 36),
           title: Row(
             children: [
               Flexible(
@@ -145,7 +145,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 child: Text(
                   WalletUtils.getAddressForDisplay(wallet.address),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: subColor,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -155,7 +155,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               if (wallet.walletType == WalletType.sgnus)
                 GeniusBalanceDisplay(
                   useMinions: true,
-                  fontSize: 14,
+                  fontSize: 12,
                   isShowSuffix: true,
                   fontColor: subColor,
                 )
@@ -164,7 +164,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   '${wallet.balance} ${wallet.currencySymbol}',
                   style: TextStyle(
                     color: subColor,
-                    fontSize: 14,
+                    fontSize: 12,
                   ),
                 ),
             ],
@@ -211,7 +211,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                           : '?',
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: Colors.black,
                         height: 1.0, // tighter vertical alignment
                       ),

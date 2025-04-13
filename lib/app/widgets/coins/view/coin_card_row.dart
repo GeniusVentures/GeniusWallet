@@ -47,7 +47,7 @@ class CoinCardRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity, // Ensures the row fits within the screen
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           color: GeniusWalletColors.deepBlueCardColor,
           borderRadius: BorderRadius.circular(10),
@@ -55,7 +55,7 @@ class CoinCardRow extends StatelessWidget {
         child: Row(
           children: [
             // **Icon**
-            buildTokenIcon(iconPath: iconPath, size: 48),
+            buildTokenIcon(iconPath: iconPath, size: 38),
             const SizedBox(width: 12),
 
             // **Name & Balance Column**
@@ -75,8 +75,6 @@ class CoinCardRow extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 4),
-
                   // **Balance & Symbol**
                   if (balance != null)
                     AutoSizeText(
@@ -85,12 +83,15 @@ class CoinCardRow extends StatelessWidget {
                       minFontSize: 10,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: GeniusWalletColors.gray500,
-                      ),
+                          color: GeniusWalletColors.gray500,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500),
                     ),
                 ],
               ),
             ),
+
+            const SizedBox(width: 12),
 
             // **Right Column - Price & Gain/Loss**
             if (balance != null)
@@ -110,9 +111,6 @@ class CoinCardRow extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-
-                  const SizedBox(height: 4),
-
                   // **24h Gain/Loss**
                   Row(
                     children: [
@@ -123,7 +121,7 @@ class CoinCardRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 12,
                           color: changeColor,
                         ),
                       ),

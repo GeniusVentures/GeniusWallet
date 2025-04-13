@@ -174,12 +174,6 @@ final geniusWalletRouter = GoRouter(
       }),
     ),
     GoRoute(
-      path: '/trade',
-      builder: ((context, state) {
-        return const ResponsiveOverlay(selectedScreen: NavigationScreen.trade);
-      }),
-    ),
-    GoRoute(
       path: '/send',
       builder: (context, state) {
         final walletCubit = state.extra as WalletDetailsCubit;
@@ -287,14 +281,6 @@ final geniusWalletRouter = GoRouter(
       builder: (context, state) {
         return const ResponsiveOverlay(
           selectedScreen: NavigationScreen.events,
-        );
-      },
-    ),
-    GoRoute(
-      path: '/settings',
-      builder: (context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.settings,
         );
       },
     ),
