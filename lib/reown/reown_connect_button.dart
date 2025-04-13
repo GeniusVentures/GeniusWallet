@@ -339,7 +339,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
 
     return SizedBox(
-        width: isMobile ? 60 : 120,
+        width: isMobile ? 60 : 130,
         child: TextButton(
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
