@@ -6,6 +6,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
+import 'dart:io';
 
 final List<String> supportedMethods = [
   'eth_sendTransaction', // For sending, approvals, swaps
@@ -53,11 +54,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       ),
     );
 
-    try {
-      //await walletKit.init();
-    } catch (e) {
-      debugPrint("❌ WalletKit initialization failed: $e");
-    }
+    maybeInitWalletKit();
 
     final sessions = walletKit.getActiveSessions();
     if (sessions.isNotEmpty) {
@@ -106,6 +103,23 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         },
       );
     });
+  }
+
+  void maybeInitWalletKit() async {
+    final arch = Platform.version.toLowerCase();
+
+    // Skip if running on x86 or x86_64 (i.e. emulators without native .so support)
+    if (arch.contains('x86') || arch.contains('x64') || arch.contains('ia32')) {
+      debugPrint("❌  Skipping WalletKit init on x86/x86_64 architecture");
+      return;
+    }
+
+    try {
+      await walletKit.init();
+      debugPrint("✅ WalletKit initialized");
+    } catch (e) {
+      debugPrint("❌ WalletKit initialization failed: $e");
+    }
   }
 
   Future<void> _connect() async {
