@@ -54,62 +54,69 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       ),
     );
 
-    maybeInitWalletKit();
+    await maybeInitWalletKit();
 
-    final sessions = walletKit.getActiveSessions();
-    if (sessions.isNotEmpty) {
-      final restored = sessions.values.first;
-      setState(() {
-        _session = restored;
-        _statusMessage = "🔄 Session restored";
+    try {
+      final sessions = walletKit.getActiveSessions();
+      if (sessions.isNotEmpty) {
+        final restored = sessions.values.first;
+        setState(() {
+          _session = restored;
+          _statusMessage = "🔄 Session restored";
+        });
+      }
+
+      // Listen for incoming requests
+      handleDappRequests(
+          walletKit: walletKit,
+          geniusApi: widget.geniusApi,
+          walletDetailsCubit: widget.walletDetailsCubit);
+
+      walletKit.onSessionConnect.subscribe((event) {
+        setState(() {
+          _session = event.session;
+          _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
+          _isConnecting = false;
+          _hasError = false;
+          _timedOut = false;
+        });
+        print("✅ Connected to ${event.session.peer.metadata.name}");
       });
+
+      walletKit.onSessionProposal.subscribe((event) async {
+        final dappName = event.params.proposer.metadata.name;
+        final dappUrl = event.params.proposer.metadata.url;
+
+        setState(() {
+          _statusMessage = "🔵 Connection requested from $dappName ($dappUrl)";
+        });
+
+        await Future.delayed(const Duration(seconds: 1));
+        await walletKit.approveSession(
+          id: event.id,
+          namespaces: {
+            'eip155': Namespace(
+              chains: ['eip155:1'],
+              methods: supportedMethods,
+              events: ['chainChanged', 'accountsChanged'],
+              accounts: ['eip155:1:${widget.walletAddress}'],
+            ),
+          },
+        );
+      });
+    } catch (e) {
+      debugPrint("❌ WalletKit initialization failed: $e");
     }
-
-    // Listen for incoming requests
-    handleDappRequests(
-        walletKit: walletKit,
-        geniusApi: widget.geniusApi,
-        walletDetailsCubit: widget.walletDetailsCubit);
-
-    walletKit.onSessionConnect.subscribe((event) {
-      setState(() {
-        _session = event.session;
-        _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
-        _isConnecting = false;
-        _hasError = false;
-        _timedOut = false;
-      });
-      print("✅ Connected to ${event.session.peer.metadata.name}");
-    });
-
-    walletKit.onSessionProposal.subscribe((event) async {
-      final dappName = event.params.proposer.metadata.name;
-      final dappUrl = event.params.proposer.metadata.url;
-
-      setState(() {
-        _statusMessage = "🔵 Connection requested from $dappName ($dappUrl)";
-      });
-
-      await Future.delayed(const Duration(seconds: 1));
-      await walletKit.approveSession(
-        id: event.id,
-        namespaces: {
-          'eip155': Namespace(
-            chains: ['eip155:1'],
-            methods: supportedMethods,
-            events: ['chainChanged', 'accountsChanged'],
-            accounts: ['eip155:1:${widget.walletAddress}'],
-          ),
-        },
-      );
-    });
   }
 
-  void maybeInitWalletKit() async {
+  maybeInitWalletKit() async {
     final arch = Platform.version.toLowerCase();
 
     // Skip if running on x86 or x86_64 (i.e. emulators without native .so support)
-    if (arch.contains('x86') || arch.contains('x64') || arch.contains('ia32')) {
+    if ((arch.contains('x86') ||
+            arch.contains('x64') ||
+            arch.contains('ia32')) &&
+        !arch.contains('windows')) {
       debugPrint("❌  Skipping WalletKit init on x86/x86_64 architecture");
       return;
     }
