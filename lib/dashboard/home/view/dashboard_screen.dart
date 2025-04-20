@@ -4,16 +4,17 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
-import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/home/widgets/containers.dart';
 import 'package:genius_wallet/dashboard/home/widgets/sgnus_transactions_screen.dart';
-import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
@@ -213,10 +214,6 @@ class OverviewDashboardView extends StatelessWidget {
         return WalletsOverview(
           geniusApi: context.read<GeniusApi>(),
           account: state.account,
-          totalBalance: WalletUtils.totalBalance(
-            context.read<GeniusApi>(),
-            state.wallets,
-          ).toStringAsFixed(5),
         );
       },
     ));
@@ -236,9 +233,7 @@ class TransactionsDashboardView extends StatelessWidget {
 
           return isSgnusWallet
               ? const SgnusTransactionsScreen()
-              : TransactionsSlimView(
-                  transactions: selectedWallet?.transactions ?? [],
-                );
+              : const TransactionsStream();
         },
       ),
     );

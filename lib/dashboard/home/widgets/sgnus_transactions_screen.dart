@@ -34,7 +34,8 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final txController = context.read<GeniusApi>().getTransactionsController();
+    final txController =
+        context.read<GeniusApi>().getSGNUSTransactionsController();
 
     return StreamBuilder<List<Transaction>>(
       stream: txController.stream,

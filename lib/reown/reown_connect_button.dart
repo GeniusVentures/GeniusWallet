@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -18,11 +19,13 @@ class ReownConnectButton extends StatefulWidget {
   final String walletAddress;
   final GeniusApi geniusApi;
   final WalletDetailsCubit walletDetailsCubit;
+  final TransactionsCubit transactionsCubit;
   const ReownConnectButton(
       {super.key,
       required this.walletAddress,
       required this.geniusApi,
-      required this.walletDetailsCubit});
+      required this.walletDetailsCubit,
+      required this.transactionsCubit});
 
   @override
   State<ReownConnectButton> createState() => _ReownConnectButtonState();
@@ -70,7 +73,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       handleDappRequests(
           walletKit: walletKit,
           geniusApi: widget.geniusApi,
-          walletDetailsCubit: widget.walletDetailsCubit);
+          walletDetailsCubit: widget.walletDetailsCubit,
+          transactionsCubit: widget.transactionsCubit);
 
       walletKit.onSessionConnect.subscribe((event) {
         setState(() {
@@ -275,10 +279,12 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         )
       ]);
 
-      setState(() {
-        _statusMessage = "🔄 Waiting for session proposal...";
-      });
-      debugPrint('🔄 Waiting for session proposal...');
+      if (_session == null) {
+        setState(() {
+          _isConnecting = false;
+          _statusMessage = "❌ Cancelled or drawer closed";
+        });
+      }
 
       // ⏱ Timeout fallback if no session is received
       Future.delayed(const Duration(seconds: 15), () {

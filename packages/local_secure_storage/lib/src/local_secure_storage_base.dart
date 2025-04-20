@@ -316,16 +316,16 @@ class LocalWalletStorage {
     }
 
     return Wallet(
-        walletName: wallet.storedKey.name(),
-        currencySymbol:
-            CoinUtil.getSymbol(wallet.storedKey.account(0).coinType()),
-        coinType: wallet.storedKey.account(0).coinType(),
-        balance: walletBalance,
-        address: wallet.storedKey.account(0).address(),
-        walletType: wallet.storedKey.isMnemonic()
-            ? WalletType.mnemonic
-            : WalletType.privateKey,
-        transactions: []);
+      walletName: wallet.storedKey.name(),
+      currencySymbol:
+          CoinUtil.getSymbol(wallet.storedKey.account(0).coinType()),
+      coinType: wallet.storedKey.account(0).coinType(),
+      balance: walletBalance,
+      address: wallet.storedKey.account(0).address(),
+      walletType: wallet.storedKey.isMnemonic()
+          ? WalletType.mnemonic
+          : WalletType.privateKey,
+    );
   }
 
   Future<Wallet> mapWalletToWallets(Wallet wallet) async {
@@ -345,13 +345,13 @@ class LocalWalletStorage {
     }
 
     return Wallet(
-        walletName: wallet.walletName,
-        currencySymbol: wallet.currencySymbol,
-        coinType: wallet.coinType,
-        balance: walletBalance,
-        address: wallet.address,
-        walletType: wallet.walletType,
-        transactions: []);
+      walletName: wallet.walletName,
+      currencySymbol: wallet.currencySymbol,
+      coinType: wallet.coinType,
+      balance: walletBalance,
+      address: wallet.address,
+      walletType: wallet.walletType,
+    );
   }
 }
 

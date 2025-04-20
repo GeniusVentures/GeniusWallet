@@ -40,7 +40,8 @@ void main() async {
   } else {
     byPassSGNUSConnecton(geniusApi);
     byPassWalletCreation(secureStorage);
-    addFakeTransactions(geniusApi.getTransactionsController());
+    addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
+    //addFakeWalletTransactions();
   }
 
   /// Initialize window_manager only on **desktop**

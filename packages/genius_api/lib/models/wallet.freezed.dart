@@ -28,7 +28,6 @@ mixin _$Wallet {
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
   double get balance => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
-  List<Transaction> get transactions => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -46,8 +45,7 @@ abstract class $WalletCopyWith<$Res> {
       String currencySymbol,
       WalletType walletType,
       double balance,
-      String address,
-      List<Transaction> transactions});
+      String address});
 }
 
 /// @nodoc
@@ -69,7 +67,6 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
     Object? walletType = null,
     Object? balance = null,
     Object? address = null,
-    Object? transactions = null,
   }) {
     return _then(_value.copyWith(
       coinType: null == coinType
@@ -96,10 +93,6 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
               as String,
-      transactions: null == transactions
-          ? _value.transactions
-          : transactions // ignore: cast_nullable_to_non_nullable
-              as List<Transaction>,
     ) as $Val);
   }
 }
@@ -117,8 +110,7 @@ abstract class _$$WalletImplCopyWith<$Res> implements $WalletCopyWith<$Res> {
       String currencySymbol,
       WalletType walletType,
       double balance,
-      String address,
-      List<Transaction> transactions});
+      String address});
 }
 
 /// @nodoc
@@ -138,7 +130,6 @@ class __$$WalletImplCopyWithImpl<$Res>
     Object? walletType = null,
     Object? balance = null,
     Object? address = null,
-    Object? transactions = null,
   }) {
     return _then(_$WalletImpl(
       coinType: null == coinType
@@ -165,10 +156,6 @@ class __$$WalletImplCopyWithImpl<$Res>
           ? _value.address
           : address // ignore: cast_nullable_to_non_nullable
               as String,
-      transactions: null == transactions
-          ? _value._transactions
-          : transactions // ignore: cast_nullable_to_non_nullable
-              as List<Transaction>,
     ));
   }
 }
@@ -182,9 +169,7 @@ class _$WalletImpl implements _Wallet {
       required this.currencySymbol,
       required this.walletType,
       required this.balance,
-      required this.address,
-      required final List<Transaction> transactions})
-      : _transactions = transactions;
+      required this.address});
 
   factory _$WalletImpl.fromJson(Map<String, dynamic> json) =>
       _$$WalletImplFromJson(json);
@@ -203,17 +188,10 @@ class _$WalletImpl implements _Wallet {
   final double balance;
   @override
   final String address;
-  final List<Transaction> _transactions;
-  @override
-  List<Transaction> get transactions {
-    if (_transactions is EqualUnmodifiableListView) return _transactions;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_transactions);
-  }
 
   @override
   String toString() {
-    return 'Wallet(coinType: $coinType, walletName: $walletName, currencySymbol: $currencySymbol, walletType: $walletType, balance: $balance, address: $address, transactions: $transactions)';
+    return 'Wallet(coinType: $coinType, walletName: $walletName, currencySymbol: $currencySymbol, walletType: $walletType, balance: $balance, address: $address)';
   }
 
   @override
@@ -230,22 +208,13 @@ class _$WalletImpl implements _Wallet {
             (identical(other.walletType, walletType) ||
                 other.walletType == walletType) &&
             (identical(other.balance, balance) || other.balance == balance) &&
-            (identical(other.address, address) || other.address == address) &&
-            const DeepCollectionEquality()
-                .equals(other._transactions, _transactions));
+            (identical(other.address, address) || other.address == address));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      coinType,
-      walletName,
-      currencySymbol,
-      walletType,
-      balance,
-      address,
-      const DeepCollectionEquality().hash(_transactions));
+  int get hashCode => Object.hash(runtimeType, coinType, walletName,
+      currencySymbol, walletType, balance, address);
 
   @JsonKey(ignore: true)
   @override
@@ -268,8 +237,7 @@ abstract class _Wallet implements Wallet {
       required final String currencySymbol,
       required final WalletType walletType,
       required final double balance,
-      required final String address,
-      required final List<Transaction> transactions}) = _$WalletImpl;
+      required final String address}) = _$WalletImpl;
 
   factory _Wallet.fromJson(Map<String, dynamic> json) = _$WalletImpl.fromJson;
 
@@ -287,8 +255,6 @@ abstract class _Wallet implements Wallet {
   double get balance;
   @override
   String get address;
-  @override
-  List<Transaction> get transactions;
   @override
   @JsonKey(ignore: true)
   _$$WalletImplCopyWith<_$WalletImpl> get copyWith =>

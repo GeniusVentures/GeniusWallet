@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/controllers/sgnus_connection_controller.dart';
-import 'package:genius_api/controllers/transactions_controller.dart';
+import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
@@ -32,7 +32,7 @@ class GeniusApi {
   final LocalWalletStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   final SGNUSConnectionController _sgnusConnectionController;
-  final TransactionsController _transactionsController;
+  final SGNUSTransactionsController _sgnusTransactionsController;
   late final String address;
   late final String jsonFilePath;
   bool isSdkInitialized = false;
@@ -42,7 +42,7 @@ class GeniusApi {
   })  : _secureStorage = secureStorage,
         ffiBridgePrebuilt = FFIBridgePrebuilt(),
         _sgnusConnectionController = SGNUSConnectionController(),
-        _transactionsController = TransactionsController();
+        _sgnusTransactionsController = SGNUSTransactionsController();
 
   Future<void> requestPermissions() async {
     try {
@@ -66,12 +66,12 @@ class GeniusApi {
     return _secureStorage.walletsController;
   }
 
-  TransactionsController getTransactionsController() {
-    return _transactionsController;
+  SGNUSTransactionsController getSGNUSTransactionsController() {
+    return _sgnusTransactionsController;
   }
 
-  Stream<List<Transaction>> getTransactionsStream() {
-    return getTransactionsController().stream;
+  Stream<List<Transaction>> getSGNUSTransactionsStream() {
+    return getSGNUSTransactionsController().stream;
   }
 
   SGNUSConnectionController getSGNUSController() {
@@ -200,16 +200,6 @@ class GeniusApi {
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.storeUserPin(pin);
 
-  Future<Transaction> postTransaction(Transaction transaction) async {
-    await Future.delayed(Duration(seconds: 5));
-
-    ///TODO: Alter this method to actually post the transaction
-    return transaction.copyWith(
-      timeStamp: DateTime.now(),
-      hash: transaction.hashCode.toString(),
-    );
-  }
-
   /// Verifies that the saved user pin matches [pin].
   Future<bool> verifyUserPin(String pin) async =>
       await _secureStorage.verifyUserPin(pin);
@@ -326,11 +316,6 @@ class GeniusApi {
     return wallet.mnemonic().split(' ');
   }
 
-  // TODO: this still needs implemented from GNUS sdk
-  Future<List<Transaction>> getTransactionsFor(String address) async {
-    return [];
-  }
-
   // Currently we just create a account with Ethereum wallet for the user
   Future<void> saveWallet(HDWallet wallet) async {
     String mnemonic = wallet.mnemonic();
@@ -415,7 +400,6 @@ class GeniusApi {
         currencySymbol: CoinUtil.getSymbol(coinType),
         coinType: coinType,
         walletType: WalletType.tracking,
-        transactions: [],
         address: address));
 
     return true;
@@ -455,8 +439,6 @@ class GeniusApi {
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);
   }
-
-  Future<void> getWalletTransactions(String address) async {}
 
   String getMinionsBalance() {
     if (!isSdkInitialized) {
@@ -561,7 +543,7 @@ class GeniusApi {
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
 
     // Stream transactions to the UI
-    getTransactionsController().addTransactions(ret);
+    getSGNUSTransactionsController().addTransactions(ret);
   }
 
   bool transferTokens(int amount, String address) {

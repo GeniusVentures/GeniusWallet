@@ -4,11 +4,10 @@ import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 String truncateAddress(String address) {
   if (address.length > 19) {
-    return "$address.substring(0, 10)...${address.substring(address.length - 9)}";
+    return "${address.substring(0, 10)}...${address.substring(address.length - 9)}";
   }
   return address;
 }

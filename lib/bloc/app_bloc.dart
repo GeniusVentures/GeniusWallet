@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:flutter/material.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
@@ -55,24 +54,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
             wallets: wallets, subscribeToWalletStatus: AppStatus.loaded);
       },
     );
-    streamTransactionsFrom(state.wallets);
   }
 
   Future<void> _onStreamSGNUSTransactions(
       StreamSGNUSTransactions event, Emitter emit) async {
     api.streamSGNUSTransactions();
     //debugPrint('🎞️ Streaming SGNUS transactions...');
-  }
-
-  /// Iterates through [wallets] and aggregate a lists of all [Transactions] to stream to the UI.
-  void streamTransactionsFrom(List<Wallet> wallets) {
-    final transactions = <Transaction>[];
-
-    for (var wallet in wallets) {
-      transactions.addAll(wallet.transactions);
-    }
-
-    api.getTransactionsController().addTransactions(transactions);
   }
 
   FutureOr<void> _onCheckIfUserExists(
