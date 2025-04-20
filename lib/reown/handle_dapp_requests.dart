@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/transaction.dart' as model;
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/utilites.dart';
 import 'package:genius_wallet/navigation/router.dart';
@@ -11,7 +14,8 @@ import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 Future<void> handleDappRequests(
     {required ReownWalletKit walletKit,
     required GeniusApi geniusApi,
-    required WalletDetailsCubit walletDetailsCubit}) async {
+    required WalletDetailsCubit walletDetailsCubit,
+    required TransactionsCubit transactionsCubit}) async {
   walletKit.onSessionRequest.subscribe((SessionRequestEvent? event) async {
     debugPrint('🔄 Session request received: ${event?.eventName}');
     //debugPrint(event.toString());
@@ -193,7 +197,6 @@ Future<void> handleDappRequests(
           );
         });
 
-    // TODO... make sure proper chain, network is selected before sending the transaction
     if (shouldApprove == true) {
       final chainId = walletDetailsCubit.state.selectedNetwork?.chainId;
       final rpcUrl = walletDetailsCubit.state.selectedNetwork?.rpcUrl;
@@ -204,8 +207,19 @@ Future<void> handleDappRequests(
         return;
       }
 
+      final tx = event.params[0];
+      final to = tx['to'] ?? 'Unknown';
+      final amountWei = parseHexToBigInt(tx['value']);
+
+      final gasLimit = parseHexToBigInt(tx['gas']);
+      final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
+
+      final totalFeeWei = gasLimit * maxFeePerGas;
+      final amountEth = formatEth(amountWei.toString());
+      final totalFeeEth = formatEth(totalFeeWei.toString());
+
       final result = await geniusApi.signAndSendTransaction(
-          tx: event.params[0],
+          tx: tx,
           sourceChainId: chainId,
           rpcUrl: rpcUrl,
           address: walletAddress);
@@ -220,6 +234,27 @@ Future<void> handleDappRequests(
           ),
         );
         debugPrint('✅ Success on Swap!: ${result.data}');
+
+        final txHash = result.data;
+
+        // TODO: we should show a pending transaction until it completes
+        // TODO: we should record the coin symbol instead of hard coding.
+        final tx = model.Transaction(
+          hash: txHash ?? "",
+          fromAddress: walletAddress,
+          recipients: [TransferRecipients(toAddr: to, amount: amountEth)],
+          timeStamp: DateTime.now(),
+          transactionDirection: TransactionDirection.sent,
+          fees: totalFeeEth,
+          coinSymbol: 'ETH',
+          transactionStatus: TransactionStatus.completed,
+          type: TransactionType.transfer,
+        );
+
+        // stream to ui
+        transactionsCubit.addTransaction(tx);
+        // save to hive
+        await TransactionStorageService().addTransaction(walletAddress, tx);
       } else {
         await walletKit.respondSessionRequest(
           topic: topic,

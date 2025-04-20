@@ -13,9 +13,6 @@ _$WalletImpl _$$WalletImplFromJson(Map<String, dynamic> json) => _$WalletImpl(
       walletType: $enumDecode(_$WalletTypeEnumMap, json['walletType']),
       balance: (json['balance'] as num).toDouble(),
       address: json['address'] as String,
-      transactions: (json['transactions'] as List<dynamic>)
-          .map((e) => Transaction.fromJson(e as Map<String, dynamic>))
-          .toList(),
     );
 
 Map<String, dynamic> _$$WalletImplToJson(_$WalletImpl instance) =>
@@ -26,7 +23,6 @@ Map<String, dynamic> _$$WalletImplToJson(_$WalletImpl instance) =>
       'walletType': _$WalletTypeEnumMap[instance.walletType]!,
       'balance': instance.balance,
       'address': instance.address,
-      'transactions': instance.transactions,
     };
 
 const _$WalletTypeEnumMap = {

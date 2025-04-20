@@ -38,7 +38,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
 
   String _truncateAddress(String address) {
     if (address.length > 19) {
-      return "$address.substring(0, 10)...${address.substring(address.length - 9)}";
+      return "${address.substring(0, 10)}...${address.substring(address.length - 9)}";
     }
     return address;
   }

@@ -4,6 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
@@ -30,6 +31,9 @@ class DesktopTopBar extends StatelessWidget {
     final geniusApi = context.read<GeniusApi>();
     final WalletDetailsCubit walletDetailsCubit =
         context.read<WalletDetailsCubit>();
+
+    final TransactionsCubit transactionsCubit =
+        context.read<TransactionsCubit>();
 
     return Container(
       height: GeniusWalletConsts.appBarHeight,
@@ -114,7 +118,8 @@ class DesktopTopBar extends StatelessWidget {
                 walletAddress:
                     walletDetailsCubit.state.selectedWallet?.address ?? "",
                 geniusApi: geniusApi,
-                walletDetailsCubit: walletDetailsCubit),
+                walletDetailsCubit: walletDetailsCubit,
+                transactionsCubit: transactionsCubit),
           ])
         ],
       ),

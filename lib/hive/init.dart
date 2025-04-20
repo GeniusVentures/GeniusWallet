@@ -1,3 +1,4 @@
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -28,4 +29,12 @@ Future<void> initHive() async {
   await Hive.openBox(walletBoxName);
 
   await Hive.openBox(networkBoxName);
+
+  // Transactions
+  Hive
+    ..registerAdapter(TransactionDirectionAdapter())
+    ..registerAdapter(TransactionStatusAdapter())
+    ..registerAdapter(TransactionTypeAdapter())
+    ..registerAdapter(TransferRecipientsAdapter())
+    ..registerAdapter(TransactionAdapter());
 }

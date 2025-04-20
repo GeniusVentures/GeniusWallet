@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
@@ -11,7 +10,8 @@ class TestTransactionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final txController = context.read<GeniusApi>().getTransactionsController();
+    final txController =
+        context.read<GeniusApi>().getSGNUSTransactionsController();
 
     return Container(
       decoration: BoxDecoration(

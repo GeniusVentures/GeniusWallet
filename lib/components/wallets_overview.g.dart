@@ -8,21 +8,16 @@ import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
-import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:intl/intl.dart';
 
 class WalletsOverview extends StatefulWidget {
-  final String totalBalance;
   final Account? account;
   final GeniusApi geniusApi;
   const WalletsOverview(
-      {Key? key,
-      required this.totalBalance,
-      required this.geniusApi,
-      required this.account})
+      {Key? key, required this.geniusApi, required this.account})
       : super(key: key);
   @override
   WalletsOverviewState createState() => WalletsOverviewState();
@@ -36,44 +31,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
   @override
   void initState() {
     super.initState();
-
-    // only fetch every x mins from the last fetch to ensure rate limiting doesn't occur
-    const fetchDelay = 5;
-    final completer = Completer<String>();
-
-    DateTime nowDate = DateTime.now();
-    DateTime retrievalDate =
-        widget.account?.lastBalanceRetrievalDate ?? nowDate;
-
-    Duration difference = nowDate.difference(retrievalDate);
-
-    int differenceInMinutes = difference.inMinutes;
-
-    final isFetchAllowed =
-        differenceInMinutes >= fetchDelay || nowDate == retrievalDate;
-
-    // fetch prices if last fetch < x mins or there is no previous fetch
-    // TODO UPDATE THIS LOGIC TO PROVIDE A BETTER CURRENT BALANCE....
-    if (isFetchAllowed) {
-      futurePrices = fetchCoinPricesSum(
-        coinIds: [
-          'ethereum'
-        ], // these ids are mapped from the coingecko list in assets/json/coins_list
-        coinBalances: [
-          CoinBalance(
-              coinId: 'ethereum', balance: double.parse(widget.totalBalance)),
-        ],
-        geniusApi: widget.geniusApi,
-      );
-      return;
-    }
-
-    // if we can't fetch (rate limit) just return the account balance (stale)
-    completer.complete(
-        "\$${NumberFormat('#,##0.00').format(widget.account?.balance)}");
-
-    futurePrices = completer.future;
-    return;
   }
 
   @override

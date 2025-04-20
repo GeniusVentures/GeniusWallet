@@ -1,22 +1,43 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hive/hive.dart';
 
-part 'transaction.freezed.dart';
 part 'transaction.g.dart';
 
+@HiveType(typeId: 4)
+enum TransactionDirection {
+  @HiveField(0)
+  sent,
+  @HiveField(1)
+  received,
+}
+
+@HiveType(typeId: 5)
+enum TransactionStatus {
+  @HiveField(0)
+  pending,
+  @HiveField(1)
+  cancelled,
+  @HiveField(2)
+  completed,
+}
+
+@HiveType(typeId: 6)
 enum TransactionType {
+  @HiveField(0)
   transfer,
+  @HiveField(1)
   mint,
+  @HiveField(2)
   escrow,
+  @HiveField(3)
   process,
+  @HiveField(4)
   escrowRelease;
 
   static TransactionType fromString(String value) {
-    // Special case for escrow-release
     if (value == 'escrow-release') {
       return TransactionType.escrowRelease;
     }
 
-    // Handle other cases normally
     return TransactionType.values.firstWhere(
       (e) => e.toString() == value,
       orElse: () => throw ArgumentError('Invalid transaction: $value'),
@@ -25,17 +46,14 @@ enum TransactionType {
 
   @override
   String toString() {
-    // Special case for escrowRelease
     if (this == TransactionType.escrowRelease) {
       return 'escrow-release';
     }
 
-    // Default behavior for other enum values
     return name;
   }
 
   String toCapitalizedString() {
-    // Handle escrowRelease special case
     if (this == TransactionType.escrowRelease) {
       return 'Escrow-Release';
     }
@@ -44,36 +62,62 @@ enum TransactionType {
   }
 }
 
-@freezed
-class TransferRecipients with _$TransferRecipients {
-  const factory TransferRecipients({
-    required String toAddr,
-    required String amount,
-  }) = _TransferRecipients;
+@HiveType(typeId: 7)
+class TransferRecipients {
+  @HiveField(0)
+  final String toAddr;
 
-  factory TransferRecipients.fromJson(Map<String, Object?> json) =>
-      _$TransferRecipientsFromJson(json);
+  @HiveField(1)
+  final String amount;
+
+  TransferRecipients({
+    required this.toAddr,
+    required this.amount,
+  });
 }
 
-@freezed
-class Transaction with _$Transaction {
-  const factory Transaction({
-    required String hash,
-    required String fromAddress,
-    required List<TransferRecipients> recipients,
-    required DateTime timeStamp,
-    required TransactionDirection transactionDirection,
-    required String fees,
-    required String coinSymbol,
-    required TransactionStatus transactionStatus,
-    bool? isSGNUS,
-    TransactionType? type,
-  }) = _Transaction;
+@HiveType(typeId: 8)
+class Transaction {
+  @HiveField(0)
+  final String hash;
 
-  factory Transaction.fromJson(Map<String, Object?> json) =>
-      _$TransactionFromJson(json);
+  @HiveField(1)
+  final String fromAddress;
+
+  @HiveField(2)
+  final List<TransferRecipients> recipients;
+
+  @HiveField(3)
+  final DateTime timeStamp;
+
+  @HiveField(4)
+  final TransactionDirection transactionDirection;
+
+  @HiveField(5)
+  final String fees;
+
+  @HiveField(6)
+  final String coinSymbol;
+
+  @HiveField(7)
+  final TransactionStatus transactionStatus;
+
+  @HiveField(8)
+  final bool? isSGNUS;
+
+  @HiveField(9)
+  final TransactionType? type;
+
+  Transaction({
+    required this.hash,
+    required this.fromAddress,
+    required this.recipients,
+    required this.timeStamp,
+    required this.transactionDirection,
+    required this.fees,
+    required this.coinSymbol,
+    required this.transactionStatus,
+    this.isSGNUS,
+    this.type,
+  });
 }
-
-enum TransactionDirection { sent, received }
-
-enum TransactionStatus { pending, cancelled, completed }
