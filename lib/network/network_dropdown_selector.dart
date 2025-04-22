@@ -81,7 +81,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Container(
         decoration: BoxDecoration(
           color: isSelected

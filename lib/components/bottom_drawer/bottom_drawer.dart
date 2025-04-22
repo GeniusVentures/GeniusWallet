@@ -59,10 +59,13 @@ class BottomDrawer extends StatelessWidget {
             const SizedBox(height: 4),
             // Scrollable content
             Expanded(
-              child: ListView.builder(
-                itemCount: children.length,
-                itemBuilder: (context, index) => children[index],
-              ),
+              child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: ListView.builder(
+                    itemCount: children.length,
+                    itemBuilder: (context, index) => children[index],
+                  )),
             ),
 
             // Footer

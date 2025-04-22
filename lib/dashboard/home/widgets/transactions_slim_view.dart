@@ -2,9 +2,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_mobile_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/web/web_utils.dart';
+import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class TransactionsSlimView extends StatefulWidget {
@@ -108,145 +111,228 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
 
   Widget _buildDesktopTableView(
       List<Transaction> transactions, double textScaleFactor) {
-    final tableColumns = [
-      {
-        'title': 'Transaction Hash',
-        'width': 230.0,
-        'rowValue': (transaction) => _truncateAddress(transaction.hash),
-        'rowFullValue': (transaction) => transaction.hash,
-        'isCopyable': true
-      },
-      {
-        'title': 'Method',
-        'width': 120.0,
-        'rowValue': (transaction) => transaction.type.toString()
-      },
-      {'title': 'Block', 'width': 100.0, 'rowValue': (transaction) => "TODO"},
-      {
-        'title': 'Age',
-        'width': 150.0,
-        'rowValue': (transaction) =>
-            timeago.format(transaction.timeStamp.toLocal())
-      },
-      {
-        'title': 'From',
-        'width': 225.0,
-        'rowValue': (transaction) => _truncateAddress(transaction.fromAddress),
-        'rowFullValue': (transaction) => transaction.fromAddress,
-        'isCopyable': true
-      },
-      {
-        'title': '',
-        'width': 55.0,
-        'rowValue': (transaction) => transaction.transactionDirection ==
-                TransactionDirection.sent
-            ? const Icon(Icons.arrow_forward_sharp, color: Colors.greenAccent)
-            : const Icon(Icons.arrow_back_sharp, color: Colors.red)
-      },
-      {
-        'title': 'To',
-        'width': 230.0,
-        'rowValue': (transaction) =>
-            _truncateAddress(transaction.recipients.first.toAddr),
-        'rowFullValue': (transaction) => transaction.recipients.first.toAddr,
-        'isCopyable': true
-      },
-      {
-        'title': 'Amount',
-        'width': 150.0,
-        'rowValue': (transaction) =>
-            "${transaction.recipients.first.amount} ${transaction.coinSymbol}"
-      },
-      {
-        'title': 'Fee',
-        'width': 150.0,
-        'rowValue': (transaction) =>
-            "${transaction.fees} ${transaction.coinSymbol}"
-      },
-    ];
+    if (transactions.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: Text(' No Transactions Found', style: TextStyle(fontSize: 20)),
+      );
+    }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            color: GeniusWalletColors.rowFilterBlue,
-            child: Row(
-              children: tableColumns.map((column) {
-                return Container(
-                  width: (column['width'] as double) *
-                      textScaleFactor.clamp(1.0, 1.5),
-                  padding:
-                      const EdgeInsets.only(top: 16.0, bottom: 16, left: 8),
-                  child: AutoSizeText(
-                    column['title'] as String,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w500, fontSize: 16),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          // ✅ Scrollable area
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: transactions.isEmpty
-                    ? [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 20),
-                          child: Text(' No Transactions Found',
-                              style: TextStyle(fontSize: 20)),
-                        )
-                      ]
-                    : transactions.asMap().entries.map((entry) {
-                        final transaction = entry.value;
-                        return Container(
-                          decoration: const BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: GeniusWalletColors.deepBlueTertiary,
-                                width: 3.0,
-                              ),
+    return ListView.builder(
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        final tx = transactions[index];
+        final isSent = tx.transactionDirection == TransactionDirection.sent;
+        final label = isSent ? "Sent" : "Received";
+        final amount =
+            "${isSent ? '-' : '+'} ${tx.recipients.first.amount} ${tx.coinSymbol}";
+        final amountColor = isSent ? Colors.white : Colors.greenAccent;
+        final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
+        final arrowBgColor =
+            isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+
+        return GestureDetector(
+          onTap: () => _showTransactionDetails(context, tx),
+          child: Card(
+            color: GeniusWalletColors.deepBlueMenu,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(
+                          child: Image.asset(
+                            'assets/images/crypto/${tx.coinSymbol.toLowerCase()}.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) =>
+                                const SizedBox.shrink(),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: -4,
+                          right: -4,
+                          child: Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(
+                              color: arrowBgColor,
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: Colors.black, width: 1.5),
                             ),
+                            child:
+                                Icon(arrowIcon, size: 12, color: Colors.black),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            children: tableColumns.map((column) {
-                              final value =
-                                  (column['rowValue'] as Function)(transaction);
-                              return Container(
-                                width: (column['width'] as double) *
-                                    textScaleFactor.clamp(1.0, 1.5),
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  children: [
-                                    if (value is Icon) value,
-                                    if (value is! Icon)
-                                      Text(
-                                        value.toString(),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    if (column['isCopyable'] == true &&
-                                        (value as String).isNotEmpty)
-                                      IconButton(
-                                        icon: const Icon(Icons.copy, size: 16),
-                                        onPressed: () => _copyToClipboard(
-                                            (column['rowFullValue']
-                                                as Function)(transaction)),
-                                      ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        );
-                      }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(label,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white)),
+                            const SizedBox(width: 8),
+                            Text(
+                              "• ${tx.coinSymbol}",
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: GeniusWalletColors.gray500),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          timeago.format(tx.timeStamp.toLocal()),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white60),
+                        )
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(amount,
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: amountColor)),
+                      const SizedBox(height: 4),
+                      Text("Fee: ${tx.fees} ${tx.coinSymbol}",
+                          style: const TextStyle(
+                              fontSize: 12, color: GeniusWalletColors.gray500)),
+                    ],
+                  )
+                ],
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTransactionDetails(BuildContext context, Transaction tx) {
+    final isSent = tx.transactionDirection == TransactionDirection.sent;
+    final label = isSent ? "Sent" : "Received";
+    final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
+    final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+    final amountText =
+        "${isSent ? '-' : '+'} ${tx.recipients.first.amount} ${tx.coinSymbol}";
+    final address = isSent ? tx.recipients.first.toAddr : tx.fromAddress;
+
+    ResponsiveDrawer.show(
+      context: context,
+      title: label,
+      children: [
+        const SizedBox(height: 16),
+        Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Image.asset(
+                'assets/images/crypto/${tx.coinSymbol.toLowerCase()}.png',
+                width: 60,
+                height: 60,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) =>
+                    const SizedBox(width: 60, height: 60),
+              ),
+              Positioned(
+                bottom: -4,
+                right: -4,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: arrowBgColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black, width: 1.5),
+                  ),
+                  child: Icon(arrowIcon, size: 14, color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            amountText,
+            style: const TextStyle(
+                fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          color: GeniusWalletColors.deepBlueMenu,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildRow("Date",
+                    DateFormat("MMMM d, y 'at' h:mm a").format(tx.timeStamp)),
+                _buildRow("Status", tx.transactionStatus.name),
+                _buildRow(isSent ? "To" : "From", truncateAddress(address)),
+                _buildRow("Network", tx.coinSymbol),
+                _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
+                _buildRow("Hash", truncateAddress(tx.hash)),
+              ],
+            ),
+          ),
+        ),
+      ],
+      footer: ElevatedButton.icon(
+        onPressed: () {
+          final url = getExplorerUrl(tx.coinSymbol, tx.hash);
+          final uri = Uri.tryParse(url);
+          if (uri?.scheme.startsWith('http') ?? false) {
+            launchWebSite(context, uri.toString());
+          }
+        },
+        icon: const Icon(Icons.open_in_new,
+            color: GeniusWalletColors.deepBlueTertiary),
+        label: const Text("View on Explorer"),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.lightBlueAccent,
+          foregroundColor: GeniusWalletColors.deepBlueTertiary,
+          minimumSize: const Size.fromHeight(48),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white70)),
+          Flexible(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),

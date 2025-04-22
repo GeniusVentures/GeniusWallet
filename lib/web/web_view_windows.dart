@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:webview_windows/webview_windows.dart';
 
@@ -26,6 +28,18 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   void initState() {
     super.initState();
     _initializeWebView();
+
+    // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
+      final clipboard = await Clipboard.getData('text/plain');
+      final text = clipboard?.text ?? '';
+      if (text.startsWith('wc:')) {
+        debugPrint('📋 WalletConnect URI from clipboard: $text');
+        WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
+        // Clear the clipboard after processing to avoid repeated connections
+        await Clipboard.setData(const ClipboardData(text: ''));
+      }
+    });
   }
 
   Future<void> _initializeWebView() async {
@@ -46,6 +60,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         history.add(url);
         currentHistoryIndex = history.length - 1;
       }
+
       setState(() {
         _urlController.text = url;
       });

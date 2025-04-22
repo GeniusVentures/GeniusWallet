@@ -32,7 +32,7 @@ class ResponsiveOverlay extends StatelessWidget {
           NavigationScreen.news: const CryptoNewsScreen(),
           NavigationScreen.markets: const MarketsScreen(),
           NavigationScreen.web:
-              const WebViewScreen(url: "https://www.gnus.ai/"),
+              const WebViewScreen(url: "https://app.uniswap.org"),
         };
 
         final selected = state.selectedScreen;
