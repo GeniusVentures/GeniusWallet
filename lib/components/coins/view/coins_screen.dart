@@ -169,9 +169,9 @@ class CoinsScreenState extends State<CoinsScreen> {
                   if ((widget.isUseDivider ?? false) &&
                       i != filteredCoins.length - 1)
                     const Divider(
-                      thickness: 3.0,
+                      thickness: 2.0,
                       color: GeniusWalletColors.deepBlueTertiary,
-                      height: 16,
+                      height: 1,
                     ),
                   if (!(widget.isUseDivider ?? false) &&
                       i != filteredCoins.length - 1)

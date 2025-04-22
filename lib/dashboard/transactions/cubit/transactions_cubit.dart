@@ -6,6 +6,7 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
 
   TransactionsCubit({List<Transaction> initial = const []}) : super(initial) {
     _transactions.addAll(initial);
+    emit(_sorted());
   }
 
   void addTransaction(Transaction tx) {
@@ -23,5 +24,9 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
     emit([]);
   }
 
-  List<Transaction> _sorted() => _transactions.toList().reversed.toList();
+  List<Transaction> _sorted() {
+    final list = _transactions.toList();
+    list.sort((a, b) => b.timeStamp.compareTo(a.timeStamp)); // newest first
+    return list;
+  }
 }
