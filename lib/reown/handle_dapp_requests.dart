@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/transaction.dart' as model;
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
@@ -18,14 +17,21 @@ Future<void> handleDappRequests(
     required GeniusApi geniusApi,
     required WalletDetailsCubit walletDetailsCubit,
     required TransactionsCubit transactionsCubit}) async {
+  final Set<int> pendingRequestIds = {};
+
   walletKit.onSessionRequest.subscribe((SessionRequestEvent? event) async {
-    debugPrint('🔄 Session request received: ${event?.eventName}');
-    //debugPrint(event.toString());
     if (event == null) return;
+
+    final int requestId = event.id;
+    if (pendingRequestIds.contains(requestId)) {
+      debugPrint('⚠️ Duplicate session request ID: $requestId – ignoring.');
+      return;
+    }
+
+    pendingRequestIds.add(requestId);
 
     final Map<String, dynamic> tx = event.params[0];
     final String method = event.method;
-    final int requestId = event.id;
     final String topic = event.topic;
     final dappMetadata = walletKit.getActiveSessions()[topic]?.peer.metadata;
     final dappName = dappMetadata?.name ?? 'Unknown DApp';
@@ -109,6 +115,7 @@ Future<void> handleDappRequests(
 
       if (chainId == null || rpcUrl == null || walletAddress == null) {
         debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
+        pendingRequestIds.remove(requestId);
         return;
       }
 
@@ -167,6 +174,8 @@ Future<void> handleDappRequests(
           coinSymbol: coinSymbol,
         );
 
+        pendingRequestIds.remove(requestId);
+
         // stream to ui
         transactionsCubit.addTransaction(txModel);
         // save to hive
@@ -190,6 +199,7 @@ Future<void> handleDappRequests(
           txHash: "",
           coinSymbol: coinSymbol,
         );
+        pendingRequestIds.remove(requestId);
         debugPrint('❌ Failed to Swap: ${result.errorMessage}');
       }
     } else {
@@ -210,6 +220,7 @@ Future<void> handleDappRequests(
         txHash: "",
         coinSymbol: "",
       );
+      pendingRequestIds.remove(requestId);
       debugPrint('❌ Request rejected.');
     }
   });
