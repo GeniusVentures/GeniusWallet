@@ -511,17 +511,17 @@ class Web3 {
     try {
       final from = EthereumAddress.fromHex(tx['from']);
       final to = EthereumAddress.fromHex(tx['to']);
-      final value = parseHexToBigInt(tx['value']);
-      final gasLimit = parseHexToBigInt(tx['gas'] ?? tx['gasLimit']);
-      final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
-      final maxPriorityFee = parseHexToBigInt(tx['maxPriorityFeePerGas']);
+      final value = parseHexToBigInt(tx['value'] ?? '0x0');
+      final gasLimit = parseHexToBigInt(tx['gas'] ?? tx['gasLimit'] ?? '0x0');
+      final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas'] ?? '0x0');
+      final maxPriorityFee =
+          parseHexToBigInt(tx['maxPriorityFeePerGas'] ?? '0x0');
       final data = tx['data'] != null ? hexToBytes(tx['data']) : Uint8List(0);
 
       final transaction = Transaction(
         from: from,
         to: to,
         value: EtherAmount.inWei(value),
-        gasPrice: EtherAmount.inWei(maxFeePerGas),
         maxPriorityFeePerGas: EtherAmount.inWei(maxPriorityFee),
         maxFeePerGas: EtherAmount.inWei(maxFeePerGas),
         data: data,
@@ -533,12 +533,15 @@ class Web3 {
       }
 
       final credentials = EthPrivateKey.fromHex(privateKey);
-
       final txHash = await client.sendTransaction(
         credentials,
         transaction,
         chainId: chainId,
       );
+
+      final receipt = await client.getTransactionReceipt(txHash);
+
+      debugPrint("📦 Receipt for $txHash: $receipt");
 
       return ApiResponse.success(txHash);
     } catch (e) {

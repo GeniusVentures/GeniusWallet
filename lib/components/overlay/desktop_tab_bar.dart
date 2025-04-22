@@ -7,6 +7,7 @@ import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
+import 'package:genius_wallet/reown/test/test_swap_buttons.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/test/test_transaction_button.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
@@ -43,6 +44,9 @@ class DesktopTopBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // FOR TESTING TRANSACTION STREAMING
+          if (isWalletPKBypass())
+            const Row(children: [TestTransactionButton(), TestSwapButtons()]),
           // Logo
           Padding(
             padding: const EdgeInsets.only(right: 24),
@@ -55,11 +59,6 @@ class DesktopTopBar extends StatelessWidget {
 
           // Navigation Buttons
           Row(children: [
-            // FOR TESTING TRANSACTION STREAMING
-            // if (isWalletPKBypass()) ...[
-            //   const TestTransactionButton(),
-            //   const SizedBox(height: 20)
-            // ],
             ...destinations.asMap().entries.map((entry) {
               final index = entry.key;
               final screen = screenList[index];

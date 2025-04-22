@@ -106,7 +106,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         : null;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Container(
         decoration: BoxDecoration(
           color: isSelected

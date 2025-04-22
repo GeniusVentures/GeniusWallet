@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
+import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -32,7 +35,7 @@ class ReownConnectButton extends StatefulWidget {
 }
 
 class _ReownConnectButtonState extends State<ReownConnectButton> {
-  late final ReownWalletKit walletKit;
+  ReownWalletKit get walletKit => WalletKitInstance().walletKit;
   SessionData? _session;
   bool _isConnecting = false;
   bool _hasError = false;
@@ -47,26 +50,19 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   }
 
   Future<void> _initializeWalletKit() async {
-    walletKit = ReownWalletKit(
-      core: ReownCore(projectId: '999123e54f32a21dbd087339746231b1'),
-      metadata: const PairingMetadata(
-        name: 'Gnus.ai Wallet',
-        description: 'Gnus.ai wallet',
-        url: 'https://gnus.ai/',
-        icons: ['https://example.com/logo.png'],
-      ),
-    );
-
     await maybeInitWalletKit();
 
     try {
       final sessions = walletKit.getActiveSessions();
       if (sessions.isNotEmpty) {
         final restored = sessions.values.first;
+
         setState(() {
           _session = restored;
           _statusMessage = "🔄 Session restored";
         });
+
+        debugPrint("🔄 Session restored: ${restored.peer.metadata.name}");
       }
 
       // Listen for incoming requests
@@ -77,6 +73,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           transactionsCubit: widget.transactionsCubit);
 
       walletKit.onSessionConnect.subscribe((event) {
+        if (!mounted) return;
+
         setState(() {
           _session = event.session;
           _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
@@ -84,18 +82,43 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           _hasError = false;
           _timedOut = false;
         });
-        print("✅ Connected to ${event.session.peer.metadata.name}");
+        debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
       });
 
       walletKit.onSessionProposal.subscribe((event) async {
-        final dappName = event.params.proposer.metadata.name;
-        final dappUrl = event.params.proposer.metadata.url;
+        final metadata = event.params.proposer.metadata;
+        final dappName = metadata.name;
+        final dappDescription = metadata.description;
+        final dappUrl = metadata.url;
+        final dappIcon =
+            metadata.icons.isNotEmpty ? metadata.icons.first : null;
+
+        if (!mounted) return;
 
         setState(() {
           _statusMessage = "🔵 Connection requested from $dappName ($dappUrl)";
         });
 
-        await Future.delayed(const Duration(seconds: 1));
+        debugPrint(
+            "🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
+
+        final bool? approved = await ApproveDappConnectionDrawer.show(
+          context: navigatorKey.currentContext!,
+          dappName: dappName,
+          dappUrl: dappUrl,
+          dappDescription: dappDescription,
+          iconUrl: dappIcon,
+        );
+
+        if (approved == null || !approved) {
+          debugPrint("❌ Connection request rejected by user");
+          await walletKit.rejectSession(
+            id: event.id,
+            reason: Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
+          );
+          return;
+        }
+
         await walletKit.approveSession(
           id: event.id,
           namespaces: {

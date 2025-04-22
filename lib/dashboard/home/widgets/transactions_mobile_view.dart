@@ -205,28 +205,25 @@ class TransactionsMobileView extends StatelessWidget {
           ),
         ),
       ],
-      footer: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ElevatedButton(
-          onPressed: () {
-            // Open external explorer
-            final url = getExplorerUrl(tx.coinSymbol, tx.hash);
-            final uri = Uri.tryParse(url);
+      footer: ElevatedButton(
+        onPressed: () {
+          // Open external explorer
+          final url = getExplorerUrl(tx.coinSymbol, tx.hash);
+          final uri = Uri.tryParse(url);
 
-            if (uri?.scheme.startsWith('http') ?? false) {
-              launchWebSite(context, uri.toString());
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.lightBlueAccent,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            minimumSize: const Size.fromHeight(48),
-          ),
-          child: const Text(
-            "View on Explorer",
-            style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
-          ),
+          if (uri?.scheme.startsWith('http') ?? false) {
+            launchWebSite(context, uri.toString());
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.lightBlueAccent,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          minimumSize: const Size.fromHeight(48),
+        ),
+        child: const Text(
+          "View on Explorer",
+          style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
         ),
       ),
     );

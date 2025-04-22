@@ -58,6 +58,9 @@ class CoinsScreenState extends State<CoinsScreen> {
 
     if (coinGeckoIds.isNotEmpty) {
       final marketData = await fetchCoinsMarketData(coinIds: coinGeckoIds);
+
+      if (!mounted) return;
+
       setState(() {
         _marketData = marketData;
         _isFetchingMarketData = false;

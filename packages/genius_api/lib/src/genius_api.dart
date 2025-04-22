@@ -12,6 +12,7 @@ import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
@@ -640,12 +641,11 @@ class GeniusApi {
     final wallet = await _secureStorage.getWallet(address);
     final web3 = Web3(geniusApi: this);
 
-    final privateKey = web3.getPrivateKeyStr(wallet);
+    final privateKey = getDevPrivateKey() ?? web3.getPrivateKeyStr(wallet);
 
     final resp = await web3.signAndSendTransaction(
         tx: tx, rpcUrl: rpcUrl, chainId: sourceChainId, privateKey: privateKey);
 
-    // TODO: Record this transaction to the wallet!!
     return resp;
   }
 }

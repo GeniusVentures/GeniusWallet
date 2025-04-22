@@ -13,26 +13,20 @@ class TestTransactionButton extends StatelessWidget {
     final txController =
         context.read<GeniusApi>().getSGNUSTransactionsController();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.greenAccent.withOpacity(0.15),
-        shape: BoxShape.circle,
-      ),
-      child: IconButton(
-        tooltip: "Add Test Transaction",
-        icon: const Icon(FontAwesomeIcons.tableList, color: Colors.greenAccent),
-        onPressed: () {
-          final fakeTx = getFakeTransaction();
-          txController.addTransaction(fakeTx);
+    return IconButton(
+      tooltip: "Add SGNUS Test Transaction",
+      icon: const Icon(FontAwesomeIcons.tableList, color: Colors.greenAccent),
+      onPressed: () {
+        final fakeTx = getFakeTransaction(true);
+        txController.addTransaction(fakeTx);
 
-          ToastManager().showToast(
-            context: context,
-            title: "Transaction Added",
-            message: "Added: ${fakeTx.type} | ${fakeTx.transactionDirection}",
-            type: ToastType.success,
-          );
-        },
-      ),
+        ToastManager().showToast(
+          context: context,
+          title: "Transaction Added",
+          message: "Added: ${fakeTx.type} | ${fakeTx.transactionDirection}",
+          type: ToastType.success,
+        );
+      },
     );
   }
 }
