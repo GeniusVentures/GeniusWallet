@@ -97,6 +97,9 @@ Future<void> handleDappRequests(
       content: content,
       dappName: dappName,
       dappUrl: dappUrl,
+      iconUrl: dappMetadata?.icons.isNotEmpty == true
+          ? dappMetadata?.icons[0]
+          : null,
     );
 
     if (shouldApprove == true) {
