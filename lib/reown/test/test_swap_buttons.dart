@@ -59,6 +59,7 @@ class TestSwapButtons extends StatelessWidget {
               dappName: 'uniswap',
               dappUrl: 'https://uniswap.org',
               context: context,
+              iconUrl: 'https://uniswap.org/favicon.ico',
               content: const SendTransactionDetails(
                 fromAddress: "0x0From",
                 toAddress: "0X0To",
