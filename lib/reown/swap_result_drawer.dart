@@ -56,7 +56,7 @@ class SwapResultDrawer {
           ElevatedButton(
             onPressed: () => context.push("/transactions"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.lightBlueAccent,
+              backgroundColor: Colors.greenAccent,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
               minimumSize: const Size.fromHeight(48),
@@ -73,11 +73,11 @@ class SwapResultDrawer {
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
-                side: const BorderSide(color: Colors.lightBlueAccent),
+                side: const BorderSide(color: Colors.greenAccent),
                 minimumSize: const Size.fromHeight(48),
               ),
               child: const Text("View on Explorer",
-                  style: TextStyle(color: Colors.lightBlueAccent)),
+                  style: TextStyle(color: Colors.greenAccent)),
             ),
         ],
       ),

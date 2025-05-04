@@ -70,7 +70,7 @@ class _ActionButtonState extends State<ActionButton>
         builder: (context, constraints) {
           final iconWidget = Icon(
             widget.icon,
-            size: constraints.maxWidth * 0.35,
+            size: constraints.maxWidth * 0.38,
             color: widget.iconColor,
           );
 
@@ -104,7 +104,7 @@ class _ActionButtonState extends State<ActionButton>
                     widget.text,
                     style: TextStyle(
                       color: widget.textColor,
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,

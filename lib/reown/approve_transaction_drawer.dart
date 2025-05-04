@@ -76,8 +76,8 @@ class ApproveTransactionDrawer {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                side: const BorderSide(color: Colors.blueAccent),
+                backgroundColor: Colors.greenAccent,
+                side: const BorderSide(color: Colors.greenAccent),
               ),
               child:
                   const Text("Approve", style: TextStyle(color: Colors.black)),

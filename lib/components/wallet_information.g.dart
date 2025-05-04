@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/banxa/banxa_service.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -133,6 +134,27 @@ class WalletInformationState extends State<WalletInformation> {
               text: 'Send',
               icon: Icons.send,
             ),
+            const SizedBox(width: 8),
+            ActionButton(
+                text: 'Buy GNUS',
+                icon: Icons.attach_money,
+                onPressed: () async {
+                  final url = await BanxaService.getBanxaCheckoutUrl(
+                    walletAddress: widget.ovrAddressField,
+                    userEmail: '',
+                  );
+
+                  if (!context.mounted) return;
+
+                  if (url != null) {
+                    context.push('/buy', extra: url);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Failed to launch Banxa checkout')),
+                    );
+                  }
+                }),
             const SizedBox(width: 8),
             ActionButton(
               text: "More",

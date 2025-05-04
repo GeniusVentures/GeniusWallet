@@ -10,6 +10,8 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/test/device_preview_extras.dart';
+import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
@@ -65,6 +67,7 @@ void main() async {
             builder: (context) => MyApp(
               geniusApi: geniusApi,
             ),
+            tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
           ),
         )),
   );

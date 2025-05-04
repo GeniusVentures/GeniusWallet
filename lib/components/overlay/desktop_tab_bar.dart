@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
+import 'package:genius_wallet/banxa/buy_gnus_button.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
-import 'package:genius_wallet/reown/test/test_swap_buttons.dart';
-import 'package:genius_wallet/test/dev_overrides.dart';
-import 'package:genius_wallet/test/test_transaction_button.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -23,7 +21,7 @@ class DesktopTopBar extends StatelessWidget {
     final destinations = _buildDestinations();
     final screenList = destinations.map((e) => e.key).toList();
 
-    final isHideMenuText = MediaQuery.of(context).size.width < 1200;
+    final isHideMenuText = MediaQuery.of(context).size.width < 1300;
 
     final selectedScreen =
         context.watch<NavigationOverlayCubit>().state.selectedScreen;
@@ -44,21 +42,17 @@ class DesktopTopBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // FOR TESTING TRANSACTION STREAMING
-          if (isWalletPKBypass())
-            const Row(children: [TestTransactionButton(), TestSwapButtons()]),
-          // Logo
-          Padding(
-            padding: const EdgeInsets.only(right: 24),
-            child: Image.asset(
-              'assets/images/geniusappbarlogo.png',
-              height: 30,
-              package: 'genius_wallet',
-            ),
-          ),
-
-          // Navigation Buttons
           Row(children: [
+            Row(children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Image.asset(
+                  'assets/images/geniusappbarlogo.png',
+                  height: 30,
+                  package: 'genius_wallet',
+                ),
+              ),
+            ]),
             ...destinations.asMap().entries.map((entry) {
               final index = entry.key;
               final screen = screenList[index];
@@ -119,6 +113,13 @@ class DesktopTopBar extends StatelessWidget {
                 geniusApi: geniusApi,
                 walletDetailsCubit: walletDetailsCubit,
                 transactionsCubit: transactionsCubit),
+            const SizedBox(width: 8),
+            BuyGnusButton(
+              userEmail: '',
+              walletAddress:
+                  walletDetailsCubit.state.selectedWallet?.address ?? "",
+            ),
+            const SizedBox(width: 8),
           ])
         ],
       ),

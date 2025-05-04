@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/overlay/selected_wallet_and_network.dar
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -55,6 +56,7 @@ class DesktopOverlay extends StatelessWidget {
                   ],
                   child: Column(
                     children: [
+                      const DevToolsWidget(),
                       const DesktopTopBar(),
                       Expanded(child: child),
                     ],

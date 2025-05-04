@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banxa/buy_gnus_screen.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
@@ -10,6 +11,7 @@ import 'package:genius_wallet/components/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
+import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
@@ -25,6 +27,9 @@ import 'package:genius_wallet/web/web_view_screen.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_windows/webview_windows.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -57,6 +62,26 @@ final geniusWalletRouter = GoRouter(
       path: '/',
       builder: (context, state) {
         return const Splash();
+      },
+    ),
+    GoRoute(
+      path: '/buy',
+      builder: (context, state) {
+        final url = state.extra as String?;
+
+        if (url == null) {
+          return const Scaffold(
+            body: Center(child: Text("Missing checkout URL")),
+          );
+        }
+
+        return BuyGnusScreen(checkoutUrl: url);
+      },
+    ),
+    GoRoute(
+      path: '/swap',
+      builder: (context, state) {
+        return const SwapScreen();
       },
     ),
     GoRoute(
