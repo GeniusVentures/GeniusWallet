@@ -76,7 +76,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
                   displayBalance,
                   maxLines: 1,
                   style: const TextStyle(
-                    fontSize: 48.0,
+                    fontSize: 36.0,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),

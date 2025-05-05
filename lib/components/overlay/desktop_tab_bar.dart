@@ -68,35 +68,52 @@ class DesktopTopBar extends StatelessWidget {
                         .navigationTapped(screen);
                   },
                   borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    child: Row(
-                      children: [
-                        IconTheme(
-                          data: IconThemeData(
-                              size: 16,
-                              color: isSelected
-                                  ? Colors.greenAccent
-                                  : Colors.white.withOpacity(0.6)),
-                          child: isSelected
-                              ? destination.selectedIcon
-                              : destination.icon,
-                        ),
-                        if (!isHideMenuText) ...[
-                          const SizedBox(width: 6),
-                          DefaultTextStyle(
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isSelected
-                                  ? Colors.greenAccent
-                                  : Colors.white.withOpacity(0.6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        child: Row(
+                          children: [
+                            IconTheme(
+                              data: IconThemeData(
+                                  size: 16,
+                                  color: isSelected
+                                      ? Colors.greenAccent
+                                      : Colors.white.withOpacity(0.6)),
+                              child: isSelected
+                                  ? destination.selectedIcon
+                                  : destination.icon,
                             ),
-                            child: destination.label,
-                          ),
-                        ]
-                      ],
-                    ),
+                            if (!isHideMenuText) ...[
+                              const SizedBox(width: 6),
+                              DefaultTextStyle(
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isSelected
+                                      ? Colors.greenAccent
+                                      : Colors.white.withOpacity(0.6),
+                                ),
+                                child: destination.label,
+                              ),
+                            ]
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 1,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.greenAccent
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );

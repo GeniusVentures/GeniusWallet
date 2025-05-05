@@ -142,10 +142,6 @@ ThemeData getThemeData() => ThemeData(
           showUnselectedLabels: false,
           landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
           type: BottomNavigationBarType.fixed,
-          selectedLabelStyle:
-              TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-          unselectedLabelStyle:
-              TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
           selectedItemColor: GeniusWalletColors.lightGreenSecondary,
           selectedIconTheme: IconThemeData(
               size: 35, color: GeniusWalletColors.lightGreenSecondary),

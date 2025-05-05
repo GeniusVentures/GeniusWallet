@@ -1,30 +1,37 @@
 class SquidTokenInfo {
-  final String address;
-  final String symbol;
-  final String name;
   final int chainId;
+  final String address;
+  final String name;
+  final String symbol;
   final int decimals;
-  final String? logoURI;
+  final bool crosschain;
+  final String commonKey;
+  final String logoURI;
+  final String coingeckoId;
 
   SquidTokenInfo({
-    required this.address,
-    required this.symbol,
-    required this.name,
     required this.chainId,
+    required this.address,
+    required this.name,
+    required this.symbol,
     required this.decimals,
-    this.logoURI,
+    required this.crosschain,
+    required this.commonKey,
+    required this.logoURI,
+    required this.coingeckoId,
   });
 
   factory SquidTokenInfo.fromJson(Map<String, dynamic> json) {
     return SquidTokenInfo(
-      address: json['address'],
-      symbol: json['symbol'],
-      name: json['name'],
       chainId: json['chainId'],
+      address: json['address'],
+      name: json['name'],
+      symbol: json['symbol'],
       decimals: json['decimals'],
+      crosschain: json['crosschain'],
+      commonKey: json['commonKey'],
       logoURI: json['logoURI'],
+      coingeckoId: json['coingeckoId'],
     );
   }
-
-  String get display => '$symbol (Chain $chainId)';
 }
