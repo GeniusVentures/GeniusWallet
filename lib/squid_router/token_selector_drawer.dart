@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
-import 'package:genius_wallet/squid_router/squid_token_info.dart';
+import 'package:genius_wallet/squid_router/models/squid_balance.dart';
+import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
 class TokenSelectorDrawer extends StatefulWidget {
@@ -42,12 +43,18 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
   String _query = '';
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final filtered = widget.tokens.where((token) {
-      final lowerQuery = _query.toLowerCase();
-      return token.symbol.toLowerCase().contains(lowerQuery) ||
-          token.name.toLowerCase().contains(lowerQuery);
-    }).toList();
+    final lowerQuery = _query.toLowerCase();
+
+    // Always filter first
+    final filtered = widget.tokens
+        .where((token) {
+          return token.symbol.toLowerCase().contains(lowerQuery) ||
+              token.name.toLowerCase().contains(lowerQuery);
+        })
+        .take(30)
+        .toList(); // Always limit to top 20 after filtering
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -100,10 +107,16 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                     },
                   ),
                 ),
-                title: Text(token.symbol,
+                title: Text(token.name,
                     style: const TextStyle(color: Colors.white)),
-                subtitle: Text(token.name,
-                    style: const TextStyle(color: Colors.white70)),
+                subtitle: Row(children: [
+                  if (token.balance != null)
+                    Text('${token.balance!.formattedBalance} ',
+                        style:
+                            const TextStyle(color: GeniusWalletColors.gray500)),
+                  Text(token.symbol,
+                      style: const TextStyle(color: GeniusWalletColors.gray500))
+                ]),
                 onTap: () {
                   Navigator.of(context).pop();
                   widget.onTokenSelected(token);

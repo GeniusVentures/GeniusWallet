@@ -1,8 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/squid_router/models/squid_balance.dart';
+import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
+import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
+import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_token_service.dart';
-import 'package:genius_wallet/squid_router/squid_token_info.dart';
-import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
+import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
+import 'package:genius_wallet/squid_router/squid_util.dart';
+import 'package:genius_wallet/squid_router/swap_field.dart';
+import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
   const SwapScreen({super.key});
@@ -18,7 +28,10 @@ class _SwapScreenState extends State<SwapScreen> {
   bool isLoading = true;
   String fromAmount = '';
   String toAmount = '';
-  double rotationTurns = 0;
+  Timer? _debounce;
+  final TextEditingController fromAmountController = TextEditingController();
+  final TextEditingController toAmountController = TextEditingController();
+  SquidRouteResponse? fetchedRoute;
 
   @override
   void initState() {
@@ -26,138 +39,136 @@ class _SwapScreenState extends State<SwapScreen> {
     _loadTokens();
   }
 
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    fromAmountController.dispose();
+    toAmountController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadTokens() async {
     try {
+      final walletState = context.read<WalletDetailsCubit>().state;
+      final walletAddress = walletState.selectedWallet?.address;
+      final chainId = walletState.selectedNetwork?.chainId;
+
       final result = await SquidTokenService.fetchTokens();
+      final balances = await SquidTokenService.fetchBalances(
+          chainIds: ["$chainId"], walletAddress: walletAddress!);
+
+      // Merge balances into tokens
+      for (final token in result) {
+        final matchingBalance = balances.cast<SquidBalance?>().firstWhere(
+              (b) =>
+                  b!.symbol.toLowerCase() == token.symbol.toLowerCase() &&
+                  b.chainId.toLowerCase() ==
+                      token.chainId.toString().toLowerCase() &&
+                  b.address.toLowerCase() == token.address.toLowerCase(),
+              orElse: () => null,
+            );
+        token.balance = matchingBalance;
+      }
+
       setState(() {
         tokens = result;
         isLoading = false;
       });
     } catch (e) {
       setState(() => isLoading = false);
-      debugPrint('Token fetch failed: $e');
+      debugPrint('Token or balance fetch failed: $e');
     }
   }
 
   void _flipTokens() {
     setState(() {
+      // Flip tokens
       final tempToken = fromToken;
       fromToken = toToken;
       toToken = tempToken;
 
+      // Flip amounts
       final tempAmount = fromAmount;
       fromAmount = toAmount;
       toAmount = tempAmount;
 
-      rotationTurns += 1;
+      // Update controllers
+      fromAmountController.text = fromAmount;
+      toAmountController.text = toAmount;
     });
+
+    _debouncedFetchRoute(); // Re-fetch route after flipping
   }
 
-  Widget _buildSwapField({
-    required String label,
-    required String value,
-    required ValueChanged<String> onChanged,
-    required SquidTokenInfo? selectedToken,
-    required bool isSelectingFrom,
-  }) {
-    return Card(
-      color: GeniusWalletColors.deepBlueCardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding:
-            const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: const TextStyle(color: Colors.white70, fontSize: 14)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: TextField(
-                    style: const TextStyle(color: Colors.white),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      hintText: "0.0",
-                      hintStyle: TextStyle(color: Colors.white30),
-                      border: InputBorder.none,
-                    ),
-                    onChanged: onChanged,
-                    controller: TextEditingController(text: value),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () {
-                    TokenSelectorDrawer.show(
-                      context: context,
-                      tokens: tokens,
-                      onTokenSelected: (token) {
-                        setState(() {
-                          if (isSelectingFrom) {
-                            fromToken = token;
-                          } else {
-                            toToken = token;
-                          }
-                        });
-                      },
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        if (selectedToken != null)
-                          ClipOval(
-                            child: Image.network(
-                              selectedToken.logoURI,
-                              width: 36,
-                              height: 36,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: 36,
-                                  height: 36,
-                                  color: Colors.grey[700],
-                                  alignment: Alignment.center,
-                                  child: const Icon(Icons.broken_image,
-                                      color: Colors.white70, size: 16),
-                                );
-                              },
-                            ),
-                          ),
-                        const SizedBox(width: 8),
-                        Text(
-                          selectedToken?.symbol ?? "Select",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.keyboard_arrow_down,
-                            color: Colors.white, size: 14),
-                      ],
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ],
-        ),
-      ),
+  bool get canSwap =>
+      fromToken != null &&
+      toToken != null &&
+      fromAmount.isNotEmpty &&
+      double.tryParse(fromAmount) != null;
+
+  SquidSwapParams? get swapParams {
+    if (!canSwap) return null;
+
+    final walletState = context.read<WalletDetailsCubit>().state;
+    final fromAddress = walletState.selectedWallet?.address;
+    final toAddress = walletState.selectedWallet?.address;
+
+    if (fromAddress == null || toAddress == null) return null;
+
+    return SquidSwapParams(
+      fromChain: fromToken!.chainId,
+      fromToken: fromToken!.address,
+      fromAmount: fromAmount,
+      toChain: toToken!.chainId,
+      toToken: toToken!.address,
+      fromAddress: fromAddress,
+      toAddress: toAddress,
     );
+  }
+
+  Future<void> _fetchRoute() async {
+    if (!canSwap) return;
+
+    final params = swapParams;
+    if (params == null) return;
+
+    try {
+      final route = await SquidTokenService.getRoute(params);
+      final formatted =
+          formatTokenAmount(BigInt.parse(route.toAmount), toToken!.decimals);
+      setState(() {
+        toAmount = formatted;
+        toAmountController.text = formatted;
+        fetchedRoute = route;
+      });
+    } catch (e) {
+      debugPrint("Route fetch failed: $e");
+    }
+  }
+
+  void _debouncedFetchRoute() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _fetchRoute();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocListener<WalletDetailsCubit, WalletDetailsState>(
+        listenWhen: (previous, current) =>
+            previous.selectedWallet?.address != current.selectedWallet?.address,
+        listener: (context, state) {
+          // You can trigger a state refresh, refetch quotes, or rebuild UI
+          setState(() {}); // Force UI to reflect new wallet address
+        },
+        child: _buildSwapContent(context),
+      ),
+    );
+  }
+
+  Widget _buildSwapContent(BuildContext context) {
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -179,39 +190,80 @@ class _SwapScreenState extends State<SwapScreen> {
                           fontSize: 24,
                           fontWeight: FontWeight.w500)),
                   const SizedBox(height: 24),
-                  _buildSwapField(
+                  SwapField(
                     label: "You Pay",
-                    value: fromAmount,
-                    onChanged: (val) => setState(() => fromAmount = val),
+                    controller: fromAmountController,
+                    onChanged: (val) {
+                      setState(() => fromAmount = val);
+                      _debouncedFetchRoute();
+                    },
                     selectedToken: fromToken,
                     isSelectingFrom: true,
+                    tokens: tokens,
+                    onTokenSelected: (token) {
+                      setState(() => fromToken = token);
+                      _debouncedFetchRoute();
+                    },
                   ),
-                  _buildSwapField(
+                  SwapField(
                     label: "You Receive",
-                    value: toAmount,
+                    controller: toAmountController,
                     onChanged: (val) => setState(() => toAmount = val),
                     selectedToken: toToken,
                     isSelectingFrom: false,
+                    tokens: tokens,
+                    onTokenSelected: (token) {
+                      setState(() => toToken = token);
+                      _debouncedFetchRoute();
+                    },
                   ),
                   // Flip Button
                   Transform.translate(
                     offset: const Offset(0, -170),
-                    child: AnimatedRotation(
-                      turns: rotationTurns,
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
-                      child: FloatingActionButton(
-                        onPressed: _flipTokens,
-                        mini: true,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(40),
-                        ),
-                        backgroundColor: Colors.greenAccent,
-                        child: const Icon(Icons.swap_vert,
-                            color: GeniusWalletColors.deepBlueTertiary),
-                      ),
+                    child: TokenFlipButton(
+                      onFlip: _flipTokens,
                     ),
                   ),
+                  if (fetchedRoute != null)
+                    if (fetchedRoute != null)
+                      RouteDetailsCard(
+                        route: fetchedRoute!,
+                        fromAmount: fromAmountController.text,
+                        toAmount: toAmountController.text,
+                        fromToken: fromToken,
+                        toToken: toToken,
+                      ),
+                  if (canSwap)
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.greenAccent,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              onPressed: swapParams == null
+                                  ? null
+                                  : () {
+                                      final params = swapParams!;
+                                      debugPrint(
+                                          'Swapping with params: ${params.toJson()}');
+                                      // TODO: invoke Squid API
+                                    },
+                              child: const Text("Swap",
+                                  style: TextStyle(
+                                      color:
+                                          GeniusWalletColors.deepBlueTertiary,
+                                      fontWeight: FontWeight.w500)),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                 ],
               )),
         ),
