@@ -20,80 +20,44 @@ class MobileOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final walletCubit = context.read<WalletDetailsCubit>();
+
     return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-      final result = getSelectedWalletAndNetwork(context, state.wallets);
-      final selectedWallet = result.wallet;
-      final selectedNetwork = result.network;
-
-      final walletDetailsCubit = WalletDetailsCubit(
-        geniusApi: context.read<GeniusApi>(),
-        networkTokensProvider: context.read<NetworkTokensProvider>(),
-        initialState: WalletDetailsState(
-          selectedWallet: selectedWallet,
-          selectedWalletBalance: selectedWallet.balance.toString(),
-          selectedNetwork: selectedNetwork,
-        ),
-      );
-
-      return FutureBuilder<List<Transaction>>(
-        future:
-            TransactionStorageService().getTransactions(selectedWallet.address),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          final existingTransactions = snapshot.data!;
-
-          TransactionsCubit transactionCubit =
-              TransactionsCubit(initial: existingTransactions);
-
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider(create: (_) => walletDetailsCubit),
-              BlocProvider(
-                create: (_) => transactionCubit,
-              ),
-            ],
-            child: Scaffold(
-              extendBody: true,
-              backgroundColor: GeniusWalletColors.deepBlueTertiary,
-              body: SafeArea(
-                child: Column(
+      return Scaffold(
+        extendBody: true,
+        backgroundColor: GeniusWalletColors.deepBlueTertiary,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const DevToolsWidget(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const DevToolsWidget(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const NetworkDropdownSelector(),
-                          const Expanded(
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: AccountDropdownSelector(),
-                            ),
-                          ),
-                          ReownConnectButton(
-                              walletAddress: selectedWallet.address,
-                              geniusApi: context.read<GeniusApi>(),
-                              walletDetailsCubit: walletDetailsCubit,
-                              transactionsCubit: transactionCubit),
-                        ],
+                    const NetworkDropdownSelector(),
+                    const Expanded(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: AccountDropdownSelector(),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Expanded(child: child),
+                    ReownConnectButton(
+                        walletAddress:
+                            walletCubit.state.selectedWallet!.address,
+                        geniusApi: context.read<GeniusApi>(),
+                        walletDetailsCubit: walletCubit,
+                        transactionsCubit: context.read<TransactionsCubit>()),
                   ],
                 ),
               ),
-              bottomNavigationBar: const GeniusTabbar(),
-            ),
-          );
-        },
+              const SizedBox(height: 8),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+        bottomNavigationBar: const GeniusTabbar(),
       );
     });
   }

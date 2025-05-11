@@ -13,6 +13,7 @@ import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
+import 'package:genius_wallet/wallet_cubits_intializer.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
@@ -27,9 +28,6 @@ import 'package:genius_wallet/web/web_view_screen.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_windows/webview_windows.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -75,7 +73,7 @@ final geniusWalletRouter = GoRouter(
           );
         }
 
-        return BuyGnusScreen(checkoutUrl: url);
+        return WalletCubitsInitializer(child: BuyGnusScreen(checkoutUrl: url));
       },
     ),
     GoRoute(

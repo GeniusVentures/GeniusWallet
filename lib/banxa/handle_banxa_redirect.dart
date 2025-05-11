@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/buy_success_drawer.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 
 /// TODO: Replace these URLs with the actual success and cancel URLs from Banxa
 const String buySuccessUrl = 'https://www.google.com';
@@ -9,6 +10,7 @@ const String buyCancelUrl = 'https://www.msn.com';
 void handleBanxaRedirect({
   required BuildContext context,
   required String uri,
+  required TransactionsCubit transactionsCubit,
 }) {
   if (uri.contains(buySuccessUrl)) {
     WidgetsBinding.instance.addPostFrameCallback((_) {

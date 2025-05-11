@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/handle_banxa_redirect.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,6 +14,9 @@ class BuyGnusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TransactionsCubit transactionsCubit =
+        context.read<TransactionsCubit>();
+
     if (Platform.isLinux) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _openBanxaInBrowser(checkoutUrl);
@@ -38,7 +43,10 @@ class BuyGnusScreen extends StatelessWidget {
 
           /// Listen to the url to respond to successful / cancelled purchases
           controller.url.listen((uri) {
-            handleBanxaRedirect(context: context, uri: uri);
+            handleBanxaRedirect(
+                context: context,
+                uri: uri,
+                transactionsCubit: transactionsCubit);
           });
 
           return Scaffold(
@@ -56,7 +64,10 @@ class BuyGnusScreen extends StatelessWidget {
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (request) {
-            handleBanxaRedirect(context: context, uri: request.url);
+            handleBanxaRedirect(
+                context: context,
+                uri: request.url,
+                transactionsCubit: transactionsCubit);
             if (request.url.contains(buySuccessUrl) ||
                 request.url.contains(buyCancelUrl)) {
               return NavigationDecision.prevent;
