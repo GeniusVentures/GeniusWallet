@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_wallet/components/coins/view/coin_card_container.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -32,6 +33,27 @@ class CoinsScreen extends StatefulWidget {
 class CoinsScreenState extends State<CoinsScreen> {
   Map<String, CoinGeckoMarketData?> _marketData = {};
   bool _isFetchingMarketData = false;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // periodically fetch market data every 20 seconds to keep wallet balance up to date
+    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
+      final state = context.read<WalletDetailsCubit>().state;
+      if (state.coinsStatus == WalletStatus.successful &&
+          state.coins.isNotEmpty) {
+        _fetchMarketData(state.coins);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _fetchMarketData(List<Coin> coins) async {
     if (_isFetchingMarketData || coins.isEmpty) return;
@@ -148,7 +170,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                         context.push(
                           '/token-info',
                           extra: {
-                            "walletDetailsCubit": walletCubit,
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
                             "securityInfo": "Coming Soon",

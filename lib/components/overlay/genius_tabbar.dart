@@ -21,6 +21,7 @@ class GeniusTabbar extends StatelessWidget {
         final selectedIndex = screenList.indexOf(selectedScreen);
 
         return BottomNavigationBar(
+          elevation: 0,
           backgroundColor: Colors.transparent,
           enableFeedback: false,
           currentIndex: selectedIndex >= 0 ? selectedIndex : 0,
@@ -39,24 +40,42 @@ class GeniusTabbar extends StatelessWidget {
   List<MapEntry<NavigationScreen, BottomNavigationBarItem>>
       _buildDestinations() {
     return GeniusTabDestinations.destinations
-        .where((e) => e.isVisible ?? true) // Optional visibility logic
+        .where((e) => e.isVisible ?? true)
         .take(_numTabs)
-        .map(
-          (e) => MapEntry(
-            e.navScreen,
-            BottomNavigationBarItem(
-              backgroundColor: Colors.transparent,
-              tooltip: e.label.data,
-              icon: Container(
-                child: e.icon,
-              ),
-              activeIcon: Container(
-                child: e.selectedIcon,
-              ),
-              label: e.label.data,
-            ),
+        .map((e) {
+      final navScreen = e.navScreen;
+      return MapEntry(
+        navScreen,
+        BottomNavigationBarItem(
+          backgroundColor: Colors.transparent,
+          tooltip: e.label.data,
+          icon: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 4),
+              Container(
+                  height: 1,
+                  width: 40,
+                  color: Colors.transparent), // empty bar for unselected
+              const SizedBox(height: 8),
+              e.icon,
+            ],
           ),
-        )
-        .toList();
+          activeIcon: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 4),
+              Container(
+                  height: 1,
+                  width: 40,
+                  color: Colors.greenAccent), // green line
+              const SizedBox(height: 8),
+              e.selectedIcon ?? e.icon, // use selected icon if available
+            ],
+          ),
+          label: e.label.data,
+        ),
+      );
+    }).toList();
   }
 }

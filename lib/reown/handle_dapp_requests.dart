@@ -214,12 +214,6 @@ Future<void> handleDappRequests(
           ),
         ),
       );
-      SwapResultDrawer.show(
-        context: navigatorKey.currentContext!,
-        isSuccess: false,
-        txHash: "",
-        coinSymbol: "",
-      );
       pendingRequestIds.remove(requestId);
       debugPrint('❌ Request rejected.');
     }

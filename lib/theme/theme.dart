@@ -21,6 +21,37 @@ ThemeData getThemeData() => ThemeData(
           centerTitle: true,
           surfaceTintColor: GeniusWalletColors.deepBlueCardColor,
           backgroundColor: GeniusWalletColors.deepBlueCardColor),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+              overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  return Colors.transparent;
+                },
+              ),
+              surfaceTintColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  return Colors.transparent;
+                },
+              ),
+              textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
+              padding: const MaterialStatePropertyAll(
+                  EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 20)),
+              shape: const MaterialStatePropertyAll(ContinuousRectangleBorder(
+                  side: BorderSide(color: Colors.greenAccent, width: 1),
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
+              backgroundColor: MaterialStatePropertyAll(Colors.transparent),
+              foregroundColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.disabled)) {
+                    return GeniusWalletColors
+                        .gray600; // Text color for disabled state
+                  }
+                  return Colors.white;
+                },
+              ),
+              iconSize: MaterialStatePropertyAll(20),
+              iconColor: MaterialStatePropertyAll(Colors.white))),
       inputDecorationTheme: const InputDecorationTheme(
           contentPadding: EdgeInsets.all(20),
           focusedBorder: OutlineInputBorder(
@@ -111,10 +142,6 @@ ThemeData getThemeData() => ThemeData(
           showUnselectedLabels: false,
           landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
           type: BottomNavigationBarType.fixed,
-          selectedLabelStyle:
-              TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-          unselectedLabelStyle:
-              TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
           selectedItemColor: GeniusWalletColors.lightGreenSecondary,
           selectedIconTheme: IconThemeData(
               size: 35, color: GeniusWalletColors.lightGreenSecondary),

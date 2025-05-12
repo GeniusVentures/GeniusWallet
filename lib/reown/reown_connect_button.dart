@@ -387,7 +387,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     } else {
       icon = Icons.link;
       iconColor = Colors.greenAccent;
-      textColor = GeniusWalletColors.gray500;
+      textColor = Colors.white;
       backgroundColor = GeniusWalletColors.deepBlueCardColor;
       text = 'Connect';
     }
@@ -399,7 +399,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             backgroundColor: backgroundColor,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(40),
             ),
           ),
           onPressed: () {

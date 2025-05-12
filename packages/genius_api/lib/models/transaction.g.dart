@@ -156,6 +156,8 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
         return TransactionStatus.cancelled;
       case 2:
         return TransactionStatus.completed;
+      case 3:
+        return TransactionStatus.failed;
       default:
         return TransactionStatus.pending;
     }
@@ -172,6 +174,9 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
         break;
       case TransactionStatus.completed:
         writer.writeByte(2);
+        break;
+      case TransactionStatus.failed:
+        writer.writeByte(3);
         break;
     }
   }
@@ -204,6 +209,8 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         return TransactionType.process;
       case 4:
         return TransactionType.escrowRelease;
+      case 5:
+        return TransactionType.purchase;
       default:
         return TransactionType.transfer;
     }
@@ -226,6 +233,9 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         break;
       case TransactionType.escrowRelease:
         writer.writeByte(4);
+        break;
+      case TransactionType.purchase:
+        writer.writeByte(5);
         break;
     }
   }
