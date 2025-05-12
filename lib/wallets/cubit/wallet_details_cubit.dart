@@ -19,6 +19,23 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       required this.networkTokensProvider})
       : super(initialState);
 
+  Future<void> loadInitial({
+    required Wallet selectedWallet,
+    required Network selectedNetwork,
+  }) async {
+    emit(state.copyWith(initStatus: WalletStatus.loading));
+
+    final balance = selectedWallet.balance.toString();
+
+    emit(WalletDetailsState(
+      selectedWallet: selectedWallet,
+      selectedWalletBalance: balance,
+      selectedNetwork: selectedNetwork,
+    ));
+
+    emit(state.copyWith(initStatus: WalletStatus.successful));
+  }
+
   void selectNetwork(Network network) {
     emit(state.copyWith(selectedNetwork: network));
     // fetch coins if selecting a network

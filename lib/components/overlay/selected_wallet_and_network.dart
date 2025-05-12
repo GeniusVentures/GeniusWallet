@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:hive/hive.dart';
-import 'package:provider/provider.dart';
 
 class SelectedWalletAndNetwork {
   final Wallet wallet;
@@ -14,7 +12,7 @@ class SelectedWalletAndNetwork {
 }
 
 SelectedWalletAndNetwork getSelectedWalletAndNetwork(
-  BuildContext context,
+  NetworkProvider networkProvider,
   List<Wallet> stateWallets,
 ) {
   final wallets = [...stateWallets];
@@ -25,8 +23,7 @@ SelectedWalletAndNetwork getSelectedWalletAndNetwork(
   final chainId = networkBox.get(selectedNetworkKeyChainId) as int?;
   final rpcUrl = networkBox.get(selectedNetworkKeyRpcUrl) as String?;
 
-  final networks =
-      Provider.of<NetworkProvider>(context, listen: false).networks;
+  final networks = networkProvider.networks;
 
   final selectedNetwork = networks.firstWhere(
     (n) => n.chainId == chainId && n.rpcUrl == rpcUrl,

@@ -18,6 +18,8 @@ enum TransactionStatus {
   cancelled,
   @HiveField(2)
   completed,
+  @HiveField(3)
+  failed,
 }
 
 @HiveType(typeId: 6)
@@ -31,7 +33,9 @@ enum TransactionType {
   @HiveField(3)
   process,
   @HiveField(4)
-  escrowRelease;
+  escrowRelease,
+  @HiveField(5)
+  purchase;
 
   static TransactionType fromString(String value) {
     if (value == 'escrow-release') {
@@ -70,10 +74,7 @@ class TransferRecipients {
   @HiveField(1)
   final String amount;
 
-  TransferRecipients({
-    required this.toAddr,
-    required this.amount,
-  });
+  TransferRecipients({required this.toAddr, required this.amount});
 }
 
 @HiveType(typeId: 8)

@@ -4,13 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/test/device_preview_extras.dart';
 import 'package:genius_wallet/theme/theme.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:provider/provider.dart';
@@ -65,6 +68,7 @@ void main() async {
             builder: (context) => MyApp(
               geniusApi: geniusApi,
             ),
+            tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
           ),
         )),
   );
@@ -145,12 +149,27 @@ class MyApp extends StatelessWidget {
       value: geniusApi,
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<TransactionsCubit>(
+            create: (_) => TransactionsCubit(), // Or with initial state
+          ),
           BlocProvider(
-            create: (context) => AppBloc(api: geniusApi),
+              create: (_) => WalletDetailsCubit(
+                    geniusApi: context.read<GeniusApi>(),
+                    networkTokensProvider:
+                        context.read<NetworkTokensProvider>(),
+                  )),
+          BlocProvider(
+            create: (context) => AppBloc(
+              api: geniusApi,
+              transactionsCubit: context.read<TransactionsCubit>(),
+              walletDetailsCubit: context.read<WalletDetailsCubit>(),
+              networkProvider:
+                  Provider.of<NetworkProvider>(context, listen: false),
+            ),
           ),
           BlocProvider(
             create: (context) => NavigationOverlayCubit(),
-          ),
+          )
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,

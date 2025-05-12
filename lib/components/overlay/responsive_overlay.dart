@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
+import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/overlay/desktop_overlay.dart';
 import 'package:genius_wallet/components/overlay/mobile_overlay.dart';
@@ -29,6 +30,7 @@ class ResponsiveOverlay extends StatelessWidget {
         final screenMap = <NavigationScreen, Widget>{
           NavigationScreen.dashboard: const DashboardScreen(),
           NavigationScreen.transactions: const TransactionsScreen(),
+          NavigationScreen.swap: const SwapScreen(),
           NavigationScreen.news: const CryptoNewsScreen(),
           NavigationScreen.markets: const MarketsScreen(),
           NavigationScreen.web:
@@ -43,7 +45,7 @@ class ResponsiveOverlay extends StatelessWidget {
           children: screenMap.values.toList(),
         );
 
-        if (!GeniusBreakpoints.useDesktopLayout(context) ||
+        if (!GeniusBreakpoints.useDesktopOverlay(context) ||
             platform == Platforms.mobile) {
           return MobileOverlay(child: child);
         } else {

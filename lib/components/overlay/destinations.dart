@@ -23,6 +23,12 @@ class GeniusTabDestinations {
         label: const Text('Transactions'),
         selectedIcon: Icon(FontAwesomeIcons.clock, size: iconSize)),
     GeniusDestination(
+        navScreen: NavigationScreen.swap,
+        destination: '/swap',
+        icon: Icon(Icons.swap_horiz_outlined, size: iconSize),
+        label: const Text('Swap'),
+        selectedIcon: Icon(Icons.swap_horiz_outlined, size: iconSize)),
+    GeniusDestination(
         navScreen: NavigationScreen.web,
         destination: '/web',
         icon: Icon(FontAwesomeIcons.globe, size: iconSize),

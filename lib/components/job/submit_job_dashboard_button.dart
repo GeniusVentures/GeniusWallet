@@ -38,7 +38,7 @@ class SubmitJobDashboardButton extends StatelessWidget {
         ),
         onPressed: () async {
           onPressed?.call();
-          await context.push('/submit_job', extra: walletDetailsCubit);
+          await context.push('/submit_job');
           walletDetailsCubit.getCoins(); // Refresh after returning
         },
         child: const Row(
