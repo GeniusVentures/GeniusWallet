@@ -36,7 +36,7 @@ class SubmitJobButtonState extends State<SubmitJobButton> {
       label: 'Create a Processing Job',
       onPressed: () async {
         widget.onPressed?.call();
-        await context.push('/submit_job', extra: widget.walletDetailsCubit);
+        await context.push('/submit_job');
         // after we come back to the wallet details screen reload coins / balance
         widget.walletDetailsCubit.getCoins();
       },

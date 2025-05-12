@@ -148,7 +148,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                         context.push(
                           '/token-info',
                           extra: {
-                            "walletDetailsCubit": walletCubit,
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
                             "securityInfo": "Coming Soon",

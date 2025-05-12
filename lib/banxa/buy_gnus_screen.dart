@@ -68,8 +68,7 @@ class BuyGnusScreen extends StatelessWidget {
                 context: context,
                 uri: request.url,
                 transactionsCubit: transactionsCubit);
-            if (request.url.contains(buySuccessUrl) ||
-                request.url.contains(buyCancelUrl)) {
+            if (request.url.contains('orderStatus')) {
               return NavigationDecision.prevent;
             }
             return NavigationDecision.navigate;

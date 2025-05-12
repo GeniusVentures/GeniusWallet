@@ -13,7 +13,6 @@ import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
-import 'package:genius_wallet/wallet_cubits_intializer.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
@@ -73,7 +72,7 @@ final geniusWalletRouter = GoRouter(
           );
         }
 
-        return WalletCubitsInitializer(child: BuyGnusScreen(checkoutUrl: url));
+        return BuyGnusScreen(checkoutUrl: url);
       },
     ),
     GoRoute(
@@ -158,12 +157,8 @@ final geniusWalletRouter = GoRouter(
         final extra = state.extra != null
             ? state.extra as Map<String, dynamic>
             : <String, dynamic>{};
-        final walletDetailsCubit =
-            extra["walletDetailsCubit"] is WalletDetailsCubit
-                ? extra["walletDetailsCubit"] as WalletDetailsCubit
-                : null;
         return TokenInfoScreen(
-            walletDetailsCubit: walletDetailsCubit,
+            walletDetailsCubit: context.read<WalletDetailsCubit>(),
             securityInfo: extra["securityInfo"],
             transactionHistory: List<String>.from(extra["transactionHistory"]),
             isGnusWalletConnected: extra["isGnusWalletConnected"],
@@ -181,22 +176,22 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/bridge',
       builder: (context, state) {
-        final cubit = state.extra as WalletDetailsCubit;
+        final walletCubit = context.read<WalletDetailsCubit>();
         return BlocProvider.value(
-          value: cubit,
-          child: BridgeScreen(fromToken: cubit.state.selectedCoin),
+          value: walletCubit,
+          child: BridgeScreen(fromToken: walletCubit.state.selectedCoin),
         );
       },
     ),
     GoRoute(
       path: '/submit_job',
       builder: (context, state) {
+        final walletCubit = context.read<WalletDetailsCubit>();
         return BlocProvider(
           create: (context) => SubmitJobCubit(
               geniusApi: context.read<GeniusApi>(),
-              gnusCubit:
-                  GnusCubit(CoinService(), state.extra as WalletDetailsCubit),
-              walletDetailsCubit: state.extra as WalletDetailsCubit),
+              gnusCubit: GnusCubit(CoinService(), walletCubit),
+              walletDetailsCubit: walletCubit),
           child: const SubmitJobScreen(),
         );
       },

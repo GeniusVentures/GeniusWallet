@@ -9,6 +9,7 @@ class WalletDetailsState {
   final WalletStatus fetchWalletsStatus;
   final WalletStatus coinsStatus;
   final WalletStatus fetchTransactionsStatus;
+  final WalletStatus? initStatus;
   final List<Transaction> transactions;
   final List<Wallet> wallets;
   final double gasFees;
@@ -27,6 +28,7 @@ class WalletDetailsState {
       this.coins = const [],
       this.transactions = const [],
       this.fetchTransactionsStatus = WalletStatus.initial,
+      this.initStatus = WalletStatus.initial,
       this.selectedCoin,
       this.selectedWalletBalance});
 
@@ -43,7 +45,8 @@ class WalletDetailsState {
       double? gasFees,
       List<Coin>? coins,
       List<Transaction>? transactions,
-      String? selectedWalletBalance}) {
+      String? selectedWalletBalance,
+      WalletStatus? initStatus}) {
     return WalletDetailsState(
         selectedWallet: selectedWallet ?? this.selectedWallet,
         selectedCoin: selectedCoin ?? this.selectedCoin,
@@ -58,6 +61,7 @@ class WalletDetailsState {
         transactions: transactions ?? this.transactions,
         fetchTransactionsStatus:
             fetchTransactionsStatus ?? this.fetchTransactionsStatus,
+        initStatus: initStatus ?? this.initStatus,
         selectedWalletBalance:
             selectedWalletBalance ?? this.selectedWalletBalance);
   }

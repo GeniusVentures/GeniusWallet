@@ -10,7 +10,6 @@ import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
-import 'package:genius_wallet/wallet_cubits_intializer.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
 
 class ResponsiveOverlay extends StatelessWidget {
@@ -48,9 +47,9 @@ class ResponsiveOverlay extends StatelessWidget {
 
         if (!GeniusBreakpoints.useDesktopOverlay(context) ||
             platform == Platforms.mobile) {
-          return WalletCubitsInitializer(child: MobileOverlay(child: child));
+          return MobileOverlay(child: child);
         } else {
-          return WalletCubitsInitializer(child: DesktopOverlay(child: child));
+          return DesktopOverlay(child: child);
         }
       },
     );

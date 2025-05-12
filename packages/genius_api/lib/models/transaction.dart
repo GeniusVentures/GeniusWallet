@@ -19,7 +19,7 @@ enum TransactionStatus {
   @HiveField(2)
   completed,
   @HiveField(3)
-  failed
+  failed,
 }
 
 @HiveType(typeId: 6)
@@ -74,10 +74,7 @@ class TransferRecipients {
   @HiveField(1)
   final String amount;
 
-  TransferRecipients({
-    required this.toAddr,
-    required this.amount,
-  });
+  TransferRecipients({required this.toAddr, required this.amount});
 }
 
 @HiveType(typeId: 8)

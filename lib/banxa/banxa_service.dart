@@ -8,8 +8,12 @@ class BanxaService {
     required String walletAddress,
     required String userEmail,
   }) async {
+    // TODO: WIRE UP ACTUAL CALL
+    final String banxaUrl =
+        "https://www.google.com?orderId=${DateTime.now().millisecondsSinceEpoch}&coinAmount=100&coin=GNUS&fiatAmount=500.00&orderStatus=complete";
+
     // FOR TESTING RETURN SUCCESS FLOW URL
-    return buySuccessUrl;
+    return banxaUrl;
     // final backendEndpoint = Uri.parse(
     //   'https://your-backend.com/api/create-banxa-checkout',
     // );

@@ -6,14 +6,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
+import 'package:genius_wallet/components/overlay/selected_wallet_and_network.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
 
 class AppBloc extends Bloc<AppEvent, AppState> {
   final GeniusApi api;
+  final TransactionsCubit transactionsCubit;
+  final WalletDetailsCubit walletDetailsCubit;
+  final NetworkProvider networkProvider;
   AppBloc({
     required this.api,
+    required this.transactionsCubit,
+    required this.walletDetailsCubit,
+    required this.networkProvider,
   }) : super(const AppState()) {
     on<SubscribeToWallets>(_onSubscribeToWallets);
 
@@ -42,18 +52,25 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   Future<void> _onSubscribeToWallets(
-      SubscribeToWallets event, Emitter emit) async {
-    emit(state.copyWith(
-      subscribeToWalletStatus: AppStatus.loading,
-    ));
+      SubscribeToWallets event, Emitter<AppState> emit) async {
+    emit(state.copyWith(subscribeToWalletStatus: AppStatus.loading));
 
-    await emit.forEach(
-      api.getWallets(),
-      onData: (wallets) {
-        return state.copyWith(
-            wallets: wallets, subscribeToWalletStatus: AppStatus.loaded);
-      },
+    final wallets = await api.getWallets().first;
+
+    // Pick selected wallet and network
+    final result = getSelectedWalletAndNetwork(networkProvider, wallets);
+    final selectedWallet = result.wallet;
+    final selectedNetwork = result.network;
+
+    // Initialize other Cubits
+    await transactionsCubit.loadInitial(selectedWallet.address);
+    await walletDetailsCubit.loadInitial(
+      selectedWallet: selectedWallet,
+      selectedNetwork: selectedNetwork,
     );
+
+    emit(state.copyWith(
+        wallets: wallets, subscribeToWalletStatus: AppStatus.loaded));
   }
 
   Future<void> _onStreamSGNUSTransactions(
