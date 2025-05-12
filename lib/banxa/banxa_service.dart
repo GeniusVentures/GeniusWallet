@@ -9,8 +9,13 @@ class BanxaService {
     required String userEmail,
   }) async {
     // TODO: WIRE UP ACTUAL CALL
+    // test buy success url callback
     final String banxaUrl =
         "https://www.google.com?orderId=${DateTime.now().millisecondsSinceEpoch}&coinAmount=100&coin=GNUS&fiatAmount=500.00&orderStatus=complete";
+
+    // test buy failed url callback
+    // final String banxaUrl =
+    //     "https://www.google.com?orderId=${DateTime.now().millisecondsSinceEpoch}&coinAmount=100&coin=GNUS&fiatAmount=500.00&orderStatus=cancelled";
 
     // FOR TESTING RETURN SUCCESS FLOW URL
     return banxaUrl;

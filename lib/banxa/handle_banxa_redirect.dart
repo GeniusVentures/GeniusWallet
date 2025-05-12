@@ -4,6 +4,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/banxa/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/buy_success_drawer.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 void handleBanxaRedirect({
@@ -47,7 +48,7 @@ void handleBanxaRedirect({
   transactionsCubit.addTransaction(transaction);
 
   // save to hive
-  //await TransactionStorageService().addTransaction(walletAddress, transaction);
+  await TransactionStorageService().addTransaction(walletAddress, transaction);
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (!context.mounted) return;
