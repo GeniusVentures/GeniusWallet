@@ -57,6 +57,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     final wallets = await api.getWallets().first;
 
+    if (wallets.isEmpty) {
+      emit(state.copyWith(
+          wallets: wallets, subscribeToWalletStatus: AppStatus.loaded));
+      return;
+    }
+
     // Pick selected wallet and network
     final result = getSelectedWalletAndNetwork(networkProvider, wallets);
     final selectedWallet = result.wallet;
