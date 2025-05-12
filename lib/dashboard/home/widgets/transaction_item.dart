@@ -20,7 +20,7 @@ class TransactionItem extends StatelessWidget {
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final amount =
-        "${isSent ? '-' : '+'} ${tx.recipients.first.amount} ${tx.coinSymbol}";
+        "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
     final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
 
@@ -142,25 +142,11 @@ class TransactionItem extends StatelessWidget {
 
   void _showTransactionDetails(BuildContext context, Transaction tx) {
     final isSent = tx.transactionDirection == TransactionDirection.sent;
-    final isPurchase = tx.type == TransactionType.purchase;
-    final label = isPurchase
-        ? "Bought"
-        : isSent
-            ? "Sent"
-            : "Received";
-    final arrowIcon = isPurchase
-        ? Icons.attach_money
-        : isSent
-            ? Icons.arrow_forward
-            : Icons.arrow_downward;
-    final arrowBgColor = isPurchase
-        ? Colors.greenAccent
-        : isSent
-            ? Colors.lightBlueAccent
-            : Colors.greenAccent;
-    final amountText = isPurchase
-        ? "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount) ?? 0)}"
-        : "${isSent ? '-' : '+'} ${tx.recipients.first.amount} ${tx.coinSymbol}";
+    final label = isSent ? "Sent" : "Received";
+    final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
+    final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+    final amountText =
+        "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
     final address = isSent ? tx.recipients.first.toAddr : tx.fromAddress;
 
     ResponsiveDrawer.show(
@@ -222,15 +208,12 @@ class TransactionItem extends StatelessWidget {
                         tx.transactionStatus.name.substring(1)),
                 _buildRow(isSent ? "To" : "From",
                     WalletUtils.getAddressForDisplay(address)),
-                _buildRow(isPurchase ? "Token" : "Network", tx.coinSymbol),
+                _buildRow("Network", tx.coinSymbol),
                 _buildRow(
-                  isPurchase ? "Spent" : "Network Fee",
-                  isPurchase
-                      ? currencyFormatter.format(double.tryParse(tx.fees) ?? 0)
-                      : "${tx.fees} ${tx.coinSymbol}",
+                  "Network Fee",
+                  "${tx.fees} ${tx.coinSymbol}",
                 ),
-                _buildRow(isPurchase ? "Order Id" : "Hash",
-                    WalletUtils.getAddressForDisplay(tx.hash)),
+                _buildRow("Hash", WalletUtils.getAddressForDisplay(tx.hash)),
               ],
             ),
           ),

@@ -193,7 +193,10 @@ class TransactionPurchasedItem extends StatelessWidget {
                     "Date",
                     DateFormat("MMMM d, y 'at' h:mm a")
                         .format(tx.timeStamp.toLocal())),
-                _buildRow("Status", tx.transactionStatus.name,
+                _buildRow(
+                    "Status",
+                    tx.transactionStatus.name[0].toUpperCase() +
+                        tx.transactionStatus.name.substring(1),
                     valueColor: isFailed ? Colors.redAccent : Colors.white),
                 _buildRow(
                     "To",
