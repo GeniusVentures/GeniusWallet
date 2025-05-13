@@ -60,21 +60,19 @@ class BuyGnusScreen extends StatelessWidget {
     // Mobile
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(checkoutUrl))
       ..setNavigationDelegate(
         NavigationDelegate(
-          onNavigationRequest: (request) {
+          onUrlChange: (urlChange) {
+            // TODO: VALIDATE URL FOR BANXA REDIRECTS
             handleBanxaRedirect(
-                context: context,
-                uri: request.url,
-                transactionsCubit: transactionsCubit);
-            if (request.url.contains('orderStatus')) {
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
+              context: context,
+              uri: urlChange.url!,
+              transactionsCubit: transactionsCubit,
+            );
           },
         ),
-      );
+      )
+      ..loadRequest(Uri.parse(checkoutUrl));
 
     return Scaffold(
       appBar: AppBar(),
