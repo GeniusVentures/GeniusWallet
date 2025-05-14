@@ -10,6 +10,7 @@ import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
+import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -32,6 +33,7 @@ class _SwapScreenState extends State<SwapScreen> {
   final TextEditingController fromAmountController = TextEditingController();
   final TextEditingController toAmountController = TextEditingController();
   SquidRouteResponse? fetchedRoute;
+  double slippage = 0.5; // Default slippage
 
   @override
   void initState() {
@@ -116,14 +118,14 @@ class _SwapScreenState extends State<SwapScreen> {
     if (fromAddress == null || toAddress == null) return null;
 
     return SquidSwapParams(
-      fromChain: fromToken!.chainId,
-      fromToken: fromToken!.address,
-      fromAmount: fromAmount,
-      toChain: toToken!.chainId,
-      toToken: toToken!.address,
-      fromAddress: fromAddress,
-      toAddress: toAddress,
-    );
+        fromChain: fromToken!.chainId,
+        fromToken: fromToken!.address,
+        fromAmount: fromAmount,
+        toChain: toToken!.chainId,
+        toToken: toToken!.address,
+        fromAddress: fromAddress,
+        toAddress: toAddress,
+        slippage: slippage);
   }
 
   Future<void> _fetchRoute() async {
@@ -184,12 +186,46 @@ class _SwapScreenState extends State<SwapScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 24),
-                  const Text("Swap Tokens",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        // Invisible widget to balance the settings icon on the right
+                        const SizedBox(width: 24), // Same width as the Icon
+                        const Expanded(
+                          child: Center(
+                            child: Text(
+                              "Swap",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.tune,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            SwapSettingsDrawer.show(
+                              context,
+                              initialSlippage: slippage,
+                              onSlippageChanged: (value) {
+                                setState(() {
+                                  slippage = value;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   SwapField(
                     label: "You Pay",
                     controller: fromAmountController,
@@ -199,7 +235,18 @@ class _SwapScreenState extends State<SwapScreen> {
                     },
                     selectedToken: fromToken,
                     isSelectingFrom: true,
-                    tokens: tokens,
+                    // filter out the selected toToken, and the token that is already selected
+                    tokens: tokens
+                        .where((t) =>
+                            (toToken == null ||
+                                t.address.toLowerCase() !=
+                                    toToken!.address.toLowerCase() ||
+                                t.chainId != toToken!.chainId) &&
+                            (fromToken == null ||
+                                t.address.toLowerCase() !=
+                                    fromToken!.address.toLowerCase() ||
+                                t.chainId != fromToken!.chainId))
+                        .toList(),
                     onTokenSelected: (token) {
                       setState(() => fromToken = token);
                       _debouncedFetchRoute();
@@ -211,7 +258,18 @@ class _SwapScreenState extends State<SwapScreen> {
                     onChanged: (val) => setState(() => toAmount = val),
                     selectedToken: toToken,
                     isSelectingFrom: false,
-                    tokens: tokens,
+                    // filter out the selected fromToken, and the token that is already selected
+                    tokens: tokens
+                        .where((t) =>
+                            (fromToken == null ||
+                                t.address.toLowerCase() !=
+                                    fromToken!.address.toLowerCase() ||
+                                t.chainId != fromToken!.chainId) &&
+                            (toToken == null ||
+                                t.address.toLowerCase() !=
+                                    toToken!.address.toLowerCase() ||
+                                t.chainId != toToken!.chainId))
+                        .toList(),
                     onTokenSelected: (token) {
                       setState(() => toToken = token);
                       _debouncedFetchRoute();
@@ -232,6 +290,7 @@ class _SwapScreenState extends State<SwapScreen> {
                         toAmount: toAmountController.text,
                         fromToken: fromToken,
                         toToken: toToken,
+                        slippage: slippage.toString(),
                       ),
                   if (canSwap)
                     LayoutBuilder(
@@ -250,6 +309,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                   ? null
                                   : () {
                                       final params = swapParams!;
+
                                       debugPrint(
                                           'Swapping with params: ${params.toJson()}');
                                       // TODO: invoke Squid API

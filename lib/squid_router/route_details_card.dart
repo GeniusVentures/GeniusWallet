@@ -9,21 +9,21 @@ class RouteDetailsCard extends StatelessWidget {
   final String toAmount;
   final SquidTokenInfo? fromToken;
   final SquidTokenInfo? toToken;
+  final String slippage;
 
-  const RouteDetailsCard({
-    super.key,
-    required this.route,
-    required this.fromAmount,
-    required this.toAmount,
-    required this.fromToken,
-    required this.toToken,
-  });
+  const RouteDetailsCard(
+      {super.key,
+      required this.route,
+      required this.fromAmount,
+      required this.toAmount,
+      required this.fromToken,
+      required this.toToken,
+      required this.slippage});
 
   @override
   Widget build(BuildContext context) {
     final pricing =
         '$fromAmount ${fromToken?.symbol} ~ $toAmount ${toToken?.symbol}';
-    final slippage = '0.5%'; // Future dynamic
     final priceImpact = '${route.aggregatePriceImpact}%';
     final totalFeesUsd = route.feeCosts.fold<double>(
       0.0,
