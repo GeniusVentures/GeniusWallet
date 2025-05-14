@@ -214,18 +214,6 @@ final mockTokens = [
     coingeckoId: 'ethereum',
   ),
   SquidTokenInfo(
-    chainId: 137,
-    address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-    name: 'USD Coin',
-    symbol: 'USDC',
-    decimals: 6,
-    crosschain: true,
-    commonKey: 'usdc',
-    logoURI:
-        'https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png',
-    coingeckoId: 'usd-coin',
-  ),
-  SquidTokenInfo(
     chainId: 1284,
     address: '0xAcc15dC74880C9944775448304B263D191c6077F',
     name: 'Wrapped GLMR',
