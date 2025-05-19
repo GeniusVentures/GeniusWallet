@@ -159,11 +159,27 @@ class _SwapScreenState extends State<SwapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<WalletDetailsCubit, WalletDetailsState>(
+        // If wallet or network changes
         listenWhen: (previous, current) =>
-            previous.selectedWallet?.address != current.selectedWallet?.address,
+            previous.selectedWallet?.address !=
+                current.selectedWallet?.address ||
+            previous.selectedNetwork?.chainId !=
+                current.selectedNetwork?.chainId,
         listener: (context, state) {
-          // You can trigger a state refresh, refetch quotes, or rebuild UI
-          setState(() {}); // Force UI to reflect new wallet address
+          // reset UI
+          setState(() {
+            fromToken = null;
+            toToken = null;
+            fromAmount = '';
+            toAmount = '';
+            fromAmountController.clear();
+            toAmountController.clear();
+            fetchedRoute = null;
+            isLoading = true;
+          });
+
+          // Refetch tokens and balances
+          _loadTokens();
         },
         child: _buildSwapContent(context),
       ),
