@@ -4,6 +4,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_item.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_purchased_item.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_swapped_item.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:intl/intl.dart';
 
@@ -95,13 +96,14 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final tx = transactions[index];
-        final isPurchase = tx.type == TransactionType.purchase;
 
-        return isPurchase
-            ? TransactionPurchasedItem(
-                tx: tx,
-              )
-            : TransactionItem(tx: tx);
+        if (tx.type == TransactionType.purchase) {
+          return TransactionPurchasedItem(tx: tx);
+        } else if (tx.type == TransactionType.swap) {
+          return TransactionSwappedItem(tx: tx);
+        } else {
+          return TransactionItem(tx: tx);
+        }
       },
     );
   }

@@ -35,7 +35,9 @@ enum TransactionType {
   @HiveField(4)
   escrowRelease,
   @HiveField(5)
-  purchase;
+  purchase,
+  @HiveField(6)
+  swap;
 
   static TransactionType fromString(String value) {
     if (value == 'escrow-release') {
@@ -109,16 +111,44 @@ class Transaction {
   @HiveField(9)
   final TransactionType? type;
 
-  Transaction({
-    required this.hash,
-    required this.fromAddress,
-    required this.recipients,
-    required this.timeStamp,
-    required this.transactionDirection,
-    required this.fees,
-    required this.coinSymbol,
-    required this.transactionStatus,
-    this.isSGNUS,
-    this.type,
-  });
+  // New fields for swap transactions
+  @HiveField(10)
+  final String? fromIconUrl;
+
+  @HiveField(11)
+  final String? fromAmount;
+
+  @HiveField(12)
+  final String? toIconUrl;
+
+  @HiveField(13)
+  final String? toAmount;
+
+  @HiveField(14)
+  final String? exchangeRate;
+
+  @HiveField(15)
+  final String? fromSymbol;
+
+  @HiveField(16)
+  final String? toSymbol;
+
+  Transaction(
+      {required this.hash,
+      required this.fromAddress,
+      required this.recipients,
+      required this.timeStamp,
+      required this.transactionDirection,
+      required this.fees,
+      required this.coinSymbol,
+      required this.transactionStatus,
+      this.isSGNUS,
+      this.type,
+      this.fromIconUrl,
+      this.fromAmount,
+      this.toIconUrl,
+      this.toAmount,
+      this.exchangeRate,
+      this.fromSymbol,
+      this.toSymbol});
 }
