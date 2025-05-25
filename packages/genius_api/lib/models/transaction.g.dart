@@ -64,13 +64,20 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       transactionStatus: fields[7] as TransactionStatus,
       isSGNUS: fields[8] as bool?,
       type: fields[9] as TransactionType?,
+      fromIconUrl: fields[10] as String?,
+      fromAmount: fields[11] as String?,
+      toIconUrl: fields[12] as String?,
+      toAmount: fields[13] as String?,
+      exchangeRate: fields[14] as String?,
+      fromSymbol: fields[15] as String?,
+      toSymbol: fields[16] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Transaction obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.hash)
       ..writeByte(1)
@@ -90,7 +97,21 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       ..writeByte(8)
       ..write(obj.isSGNUS)
       ..writeByte(9)
-      ..write(obj.type);
+      ..write(obj.type)
+      ..writeByte(10)
+      ..write(obj.fromIconUrl)
+      ..writeByte(11)
+      ..write(obj.fromAmount)
+      ..writeByte(12)
+      ..write(obj.toIconUrl)
+      ..writeByte(13)
+      ..write(obj.toAmount)
+      ..writeByte(14)
+      ..write(obj.exchangeRate)
+      ..writeByte(15)
+      ..write(obj.fromSymbol)
+      ..writeByte(16)
+      ..write(obj.toSymbol);
   }
 
   @override
@@ -211,6 +232,8 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         return TransactionType.escrowRelease;
       case 5:
         return TransactionType.purchase;
+      case 6:
+        return TransactionType.swap;
       default:
         return TransactionType.transfer;
     }
@@ -236,6 +259,9 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         break;
       case TransactionType.purchase:
         writer.writeByte(5);
+        break;
+      case TransactionType.swap:
+        writer.writeByte(6);
         break;
     }
   }

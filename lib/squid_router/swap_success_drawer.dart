@@ -1,18 +1,32 @@
-// buy_success_drawer.dart
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/buy_success_drawer_content.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/squid_router/swap_drawer_content.dart';
 
-class BuySuccessDrawer {
+class SwapSuccessDrawer {
   static void show(
     BuildContext context, {
+    required String fromAmount,
+    required String toAmount,
+    required String fromIconUrl,
+    required String toIconUrl,
+    required String fromSymbol,
+    required String toSymbol,
+    required String chain,
     VoidCallback? onClose,
   }) {
     ResponsiveDrawer.show<void>(
       context: context,
-      title: "Success",
-      children: const [
-        BuySuccessDrawerContent(),
+      title: "Swap Success",
+      children: [
+        SwapDrawerContent(
+          fromAmount: fromAmount,
+          toAmount: toAmount,
+          fromIconUrl: fromIconUrl,
+          toIconUrl: toIconUrl,
+          fromSymbol: fromSymbol,
+          toSymbol: toSymbol,
+          chain: chain,
+        ),
       ],
       footer: OutlinedButton(
         onPressed: () {
