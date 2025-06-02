@@ -6,6 +6,16 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
 
     include(${CMAKE_CURRENT_LIST_DIR}/Utilities.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/DownloadDependencies.cmake)
+
+    # Download dependencies specific to GeniusWallet
+    # The function will auto-detect the current Git branch
+    download_project_dependencies(
+        SuperGenius
+        GeniusSDK
+        zkLLVM
+        thirdparty
+    )
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
@@ -296,11 +306,11 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
 
     # --------------------------------------------------------
     # Set config of xxhash
-    set(xxhash_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/xxhash/include")
-    set(xxhash_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/xxhash/lib")
-    set(xxhash_DIR "${THIRDPARTY_BUILD_DIR}/xxhash/lib/cmake/xxhash")
-    find_package(xxhash CONFIG REQUIRED)
-    include_directories(${xxhash_INCLUDE_DIR})
+    set(xxHash_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/xxHash/include")
+    set(xxHash_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/xxHash/lib")
+    set(xxHash_DIR "${THIRDPARTY_BUILD_DIR}/xxhash/lib/cmake/xxHash")
+    find_package(xxHash CONFIG REQUIRED)
+    include_directories(${xxHash_INCLUDE_DIR})
 
     # --------------------------------------------------------
     # Set config of libssh2
