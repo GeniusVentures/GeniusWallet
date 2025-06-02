@@ -19,8 +19,7 @@ The project requires Flutter version 3.29.3 or higher. We provide installation s
 
 **Linux/macOS:**
 ```bash
-chmod +x install_flutter.sh
-./install_flutter.sh
+source install_flutter.sh
 ```
 
 **Windows:**
