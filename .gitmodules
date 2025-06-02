@@ -1,0 +1,3 @@
+[submodule "squidrouter"]
+	path = squidrouter
+	url = ../squidrouter
