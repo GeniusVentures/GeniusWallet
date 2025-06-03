@@ -76,7 +76,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
     set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
     set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
-    find_package(OpenSSL CONFIG REQUIRED)
+    find_package(OpenSSL REQUIRED)
     include_directories(${OPENSSL_INCLUDE_DIR})
 
     # --------------------------------------------------------
