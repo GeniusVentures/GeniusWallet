@@ -1,5 +1,5 @@
 # Project-level configuration.
-set(ARCHS "x86_64;arm64" CACHE STRING "Default build for OSX is only x86_64 until boost can build universal image")
+set(ARCHS "x86_64;arm64" CACHE STRING "Default build for OSX is now x86_64 and arm64")
 # Set OSX specific runtime options
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "OSX Architectures")
 cmake_minimum_required(VERSION 3.18)

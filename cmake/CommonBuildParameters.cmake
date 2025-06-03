@@ -413,7 +413,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(GeniusSDK_DIR "${GENIUSSDK_BUILD_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
     find_package(GeniusSDK CONFIG REQUIRED)
     include_directories(${GeniusSDK_INCLUDE_DIR})
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 12.1)
     set(BUILD_SHARED_LIBS ON)
     if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         add_library(
