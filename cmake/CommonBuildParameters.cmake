@@ -68,7 +68,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         set(Protobuf_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/grpc/include/google/protobuf")
     endif()
 
-    set(OPENSSL_DIR "${THIRDPARTY_BUILD_DIR}/openssl/build/${ABI_SUBFOLDER_NAME}" CACHE PATH "Path to OpenSSL install folder")
+    set(OPENSSL_DIR "${THIRDPARTY_BUILD_DIR}/openssl/build" CACHE PATH "Path to OpenSSL install folder")
     set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
     set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "OpenSSL use static RT")
     set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" CACHE PATH "Path to OpenSSL install root folder")
@@ -169,7 +169,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     # Boost should be loaded before libp2p v0.1.2
     # --------------------------------------------------------
     # Set config of Boost project
-    set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build/${CMAKE_SYSTEM_NAME}${ABI_SUBFOLDER_NAME}")
+    set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build")
     message(WARNING "BOOST ROOT ${_BOOST_ROOT}")
     set(Boost_LIB_DIR "${_BOOST_ROOT}/lib")
     set(Boost_INCLUDE_DIR "${_BOOST_ROOT}/include/boost-${BOOST_VERSION_2U}")
