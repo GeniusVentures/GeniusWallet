@@ -1,3 +1,6 @@
 [submodule "squidrouter"]
 	path = squidrouter
 	url = ../squidrouter
+[submodule "banxa"]
+	path = banxa
+	url = ../banxa
