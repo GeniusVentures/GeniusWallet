@@ -21,6 +21,31 @@ function(get_platform_dir_name PLATFORM_NAME)
     endif()
 endfunction()
 
+# Function to get Linux architecture
+function(get_linux_arch ARCH_VAR)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # Use CMAKE_HOST_SYSTEM_PROCESSOR as it's more reliable for native builds
+        # For cross-compilation, CMAKE_SYSTEM_PROCESSOR should be set correctly
+        if(CMAKE_SYSTEM_PROCESSOR)
+            set(ARCH ${CMAKE_SYSTEM_PROCESSOR})
+        else()
+            set(ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
+        endif()
+        
+        # Normalize architecture names
+        if(ARCH MATCHES "^(x86_64|AMD64|amd64)$")
+            set(${ARCH_VAR} "x86_64" PARENT_SCOPE)
+        elseif(ARCH MATCHES "^(aarch64|arm64|ARM64)$")
+            set(${ARCH_VAR} "aarch64" PARENT_SCOPE)
+        else()
+            message(WARNING "Unknown Linux architecture: ${ARCH}, using as-is")
+            set(${ARCH_VAR} ${ARCH} PARENT_SCOPE)
+        endif()
+    else()
+        set(${ARCH_VAR} "" PARENT_SCOPE)
+    endif()
+endfunction()
+
 # Function to check if dependency exists
 function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
     get_platform_dir_name(PLATFORM_NAME)
@@ -28,7 +53,6 @@ function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
     # Check various possible locations
     set(CHECK_PATHS
         "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}"
-        "${DEP_DIR}/build/${PLATFORM_NAME}/Release"  # Fallback to Release
         "${DEP_DIR}/${ARCH_OUTPUT_DIR}"  # Legacy path format
     )
 
@@ -36,7 +60,6 @@ function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
     if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
         set(CHECK_PATHS
             "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}/${ANDROID_ABI}"
-            "${DEP_DIR}/build/${PLATFORM_NAME}/Release/${ANDROID_ABI}"
             ${CHECK_PATHS}
         )
     endif()
@@ -84,14 +107,16 @@ function(download_dependency DEP_NAME)
 
     # Get platform name
     get_platform_dir_name(PLATFORM_NAME)
+    get_linux_arch(LINUX_ARCH)
 
+    set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
     # Construct archive name and release tag
     if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-        set(ARCHIVE_NAME "${PLATFORM_NAME}-${ANDROID_ABI}-${ARG_BRANCH}-${ARG_BUILD_TYPE}.tar.gz")
-        set(RELEASE_TAG "${PLATFORM_NAME}-${ANDROID_ABI}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+        set(ARCHIVE_NAME "${PLATFORM_NAME}-${ANDROID_ABI}-${ARG_BUILD_TYPE}.tar.gz")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND LINUX_ARCH)
+        set(ARCHIVE_NAME "${PLATFORM_NAME}-${LINUX_ARCH}-${ARG_BUILD_TYPE}.tar.gz")
     else()
-        set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}.tar.gz")
-        set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+        set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARG_BUILD_TYPE}.tar.gz")
     endif()
 
     # GitHub repository information
@@ -102,6 +127,9 @@ function(download_dependency DEP_NAME)
     message(STATUS "----------------------------------------")
     message(STATUS "Downloading ${DEP_NAME}")
     message(STATUS "  Platform: ${PLATFORM_NAME}")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND LINUX_ARCH)
+        message(STATUS "  Architecture: ${LINUX_ARCH}")
+    endif()
     message(STATUS "  Branch: ${ARG_BRANCH}")
     message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
     message(STATUS "  URL: ${RELEASE_URL}")
