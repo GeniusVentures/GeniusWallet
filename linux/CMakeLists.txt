@@ -64,6 +64,7 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release"
 
 set(ARCH_BUILD_DIR /build/Linux/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${BUILD_TYPE_SEARCH})
+set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}Release)
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by

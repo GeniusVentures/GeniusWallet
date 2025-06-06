@@ -7,6 +7,7 @@ include(../../cmake/CommonCompilerOptions.cmake)
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
     set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
+    set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_OUTPUT_DIR_REL})
     set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
 
     if(NOT DEFINED absl_DIR)

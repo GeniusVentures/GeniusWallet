@@ -5,10 +5,9 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(CMAKE_VERBOSE_MAKEFILE on)
 
     include(${CMAKE_CURRENT_LIST_DIR}/Utilities.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/DownloadDependencies.cmake)
-
-    # Download dependencies specific to GeniusWallet
+    
+        # Download dependencies specific to GeniusWallet
     # The function will auto-detect the current Git branch
     download_project_dependencies(
         SuperGenius
@@ -16,15 +15,18 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         zkLLVM
         thirdparty
     )
-
+    
+    
+    include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
         set(ABI_SUBFOLDER_NAME "/${ANDROID_ABI}")
     endif()
 
     set(THIRDPARTY_BUILD_DIR ${THIRDPARTY_DIR}/${ARCH_OUTPUT_DIR})
-    set(ZKLLVM_BUILD_DIR ${ZKLLVM_DIR}/${ARCH_OUTPUT_DIR})
+    set(ZKLLVM_BUILD_DIR ${ZKLLVM_DIR}/${ARCH_RELEASE_OUTPUT_DIR})
     message(WARNING "BUILD DIR: ${THIRDPARTY_BUILD_DIR}")
+    message(WARNING "ZKLLVM_BUILD_DIR DIR: ${ZKLLVM_BUILD_DIR}")
     set(WALLET_CORE_DIR "${THIRDPARTY_BUILD_DIR}/wallet-core" CACHE PATH "Path to WalletCore install folder")
     set(WALLET_CORE_INCLUDE_DIR "${WALLET_CORE_DIR}/include" CACHE PATH "Path to WalletCore include folder")
     set(WALLET_CORE_LIB_DIR "${WALLET_CORE_DIR}/lib" CACHE PATH "Path to WalletCore lib folder")
@@ -401,6 +403,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(SUPERGENIUS_BUILD_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
     set(SuperGenius_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/SuperGenius/")
     set(ProofSystem_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/ProofSystem/")
+    message(WARNING "SUPERGENIUS_BUILD_DIR DIR: ${SUPERGENIUS_BUILD_DIR}")
     find_package(ProofSystem CONFIG REQUIRED)
     find_package(SuperGenius CONFIG REQUIRED)
     include_directories(${SuperGenius_INCLUDE_DIR})

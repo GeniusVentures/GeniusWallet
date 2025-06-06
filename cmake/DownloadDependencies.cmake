@@ -251,7 +251,7 @@ function(setup_dependency DEP_NAME)
         set(USE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
     endif()
 
-    set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build" CACHE PATH "${DEP_NAME} directory" FORCE)
+    set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}" CACHE PATH "${DEP_NAME} directory" FORCE)
 
 
     if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
