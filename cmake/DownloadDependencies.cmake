@@ -46,20 +46,48 @@ function(get_linux_arch ARCH_VAR)
     endif()
 endfunction()
 
+# Function to check if a dependency is release-only
+function(is_release_only_dependency DEP_NAME RESULT_VAR)
+    # List of dependencies that only have Release builds
+    set(RELEASE_ONLY_DEPS
+        "zkLLVM"
+        # Add more release-only dependencies here as needed
+    )
+    
+    if(${DEP_NAME} IN_LIST RELEASE_ONLY_DEPS)
+        set(${RESULT_VAR} TRUE PARENT_SCOPE)
+    else()
+        set(${RESULT_VAR} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
 # Function to check if dependency exists
 function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
     get_platform_dir_name(PLATFORM_NAME)
+    
+    # Check if this is a release-only dependency
+    is_release_only_dependency(${DEP_NAME} IS_RELEASE_ONLY)
+    
+    # Determine which build type to check
+    if(IS_RELEASE_ONLY)
+        set(CHECK_BUILD_TYPE "Release")
+    else()
+        set(CHECK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+        if(NOT CHECK_BUILD_TYPE)
+            set(CHECK_BUILD_TYPE "Release")
+        endif()
+    endif()
 
     # Check various possible locations
     set(CHECK_PATHS
-        "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}"
+        "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}"
         "${DEP_DIR}/${ARCH_OUTPUT_DIR}"  # Legacy path format
     )
 
     # Add Android ABI path if needed
     if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
         set(CHECK_PATHS
-            "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}/${ANDROID_ABI}"
+            "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}/${ANDROID_ABI}"
             ${CHECK_PATHS}
         )
     endif()
@@ -67,7 +95,11 @@ function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
     foreach(CHECK_PATH ${CHECK_PATHS})
         if(EXISTS ${CHECK_PATH})
             set(${EXISTS_VAR} TRUE PARENT_SCOPE)
-            message(STATUS "${DEP_NAME} found at: ${CHECK_PATH}")
+            if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+                message(STATUS "${DEP_NAME} found at: ${CHECK_PATH} (Release-only dependency)")
+            else()
+                message(STATUS "${DEP_NAME} found at: ${CHECK_PATH}")
+            endif()
             return()
         endif()
     endforeach()
@@ -83,12 +115,21 @@ function(download_dependency DEP_NAME)
     if(NOT ARG_BRANCH)
         set(ARG_BRANCH "develop")
     endif()
+    
+    # Check if this is a release-only dependency
+    is_release_only_dependency(${DEP_NAME} IS_RELEASE_ONLY)
+    
     if(NOT ARG_BUILD_TYPE)
-        set(ARG_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
-        if(NOT ARG_BUILD_TYPE)
+        if(IS_RELEASE_ONLY)
             set(ARG_BUILD_TYPE "Release")
+        else()
+            set(ARG_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
+            if(NOT ARG_BUILD_TYPE)
+                set(ARG_BUILD_TYPE "Release")
+            endif()
         endif()
     endif()
+    
     if(NOT ARG_EXTRACT_TO)
         # Default to parent directory structure
         get_filename_component(PARENT_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
@@ -132,6 +173,9 @@ function(download_dependency DEP_NAME)
     endif()
     message(STATUS "  Branch: ${ARG_BRANCH}")
     message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+    if(IS_RELEASE_ONLY)
+        message(STATUS "  Note: This is a release-only dependency")
+    endif()
     message(STATUS "  URL: ${RELEASE_URL}")
     message(STATUS "----------------------------------------")
 
@@ -148,19 +192,7 @@ function(download_dependency DEP_NAME)
     list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
 
     if(NOT DOWNLOAD_RESULT EQUAL 0)
-        # Try with different build type as fallback
-        if(ARG_BUILD_TYPE STREQUAL "Debug")
-            message(WARNING "Failed to download Debug build, trying Release...")
-            download_dependency(${DEP_NAME}
-                BRANCH ${ARG_BRANCH}
-                BUILD_TYPE "Release"
-                EXTRACT_TO ${ARG_EXTRACT_TO}
-                FORCE ${ARG_FORCE}
-            )
-            return()
-        else()
-            message(FATAL_ERROR "Failed to download ${DEP_NAME}: ${ERROR_MESSAGE}")
-        endif()
+        message(FATAL_ERROR "Failed to download ${DEP_NAME}: ${ERROR_MESSAGE}")
     endif()
 
     # Create extraction directory
@@ -197,6 +229,9 @@ function(setup_dependency DEP_NAME)
     if(NOT ARG_VAR_PREFIX)
         string(TOUPPER ${DEP_NAME} ARG_VAR_PREFIX)
     endif()
+    
+    # Check if this is a release-only dependency
+    is_release_only_dependency(${DEP_NAME} IS_RELEASE_ONLY)
 
     # Determine dependency directory
     get_filename_component(PARENT_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
@@ -208,22 +243,22 @@ function(setup_dependency DEP_NAME)
 
     # Set the directory variable for the dependency
     get_platform_dir_name(PLATFORM_NAME)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-        set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}/${ANDROID_ABI}" CACHE PATH "${DEP_NAME} directory" FORCE)
+    
+    # For release-only dependencies, always use Release path
+    if(IS_RELEASE_ONLY)
+        set(USE_BUILD_TYPE "Release")
     else()
-        set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}" CACHE PATH "${DEP_NAME} directory" FORCE)
+        set(USE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
     endif()
 
-    # Also check for Release as fallback
-    if(NOT EXISTS ${${ARG_VAR_PREFIX}_DIR})
-        if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-            set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/Release/${ANDROID_ABI}" CACHE PATH "${DEP_NAME} directory" FORCE)
-        else()
-            set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/Release" CACHE PATH "${DEP_NAME} directory" FORCE)
-        endif()
-    endif()
+    set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build" CACHE PATH "${DEP_NAME} directory" FORCE)
 
-    message(STATUS "${DEP_NAME} directory set to: ${${ARG_VAR_PREFIX}_DIR}")
+
+    if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+        message(STATUS "${DEP_NAME} directory set to: ${${ARG_VAR_PREFIX}_DIR} (Release-only dependency)")
+    else()
+        message(STATUS "${DEP_NAME} directory set to: ${${ARG_VAR_PREFIX}_DIR}")
+    endif()
 endfunction()
 
 # Function to check if any dependencies need downloading

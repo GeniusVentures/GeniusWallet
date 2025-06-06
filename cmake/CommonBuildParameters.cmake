@@ -23,6 +23,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     endif()
 
     set(THIRDPARTY_BUILD_DIR ${THIRDPARTY_DIR}/${ARCH_OUTPUT_DIR})
+    set(ZKLLVM_BUILD_DIR ${ZKLLVM_DIR}/${ARCH_OUTPUT_DIR})
     message(WARNING "BUILD DIR: ${THIRDPARTY_BUILD_DIR}")
     set(WALLET_CORE_DIR "${THIRDPARTY_BUILD_DIR}/wallet-core" CACHE PATH "Path to WalletCore install folder")
     set(WALLET_CORE_INCLUDE_DIR "${WALLET_CORE_DIR}/include" CACHE PATH "Path to WalletCore include folder")
@@ -292,11 +293,6 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     include_directories(${RapidJSON_INCLUDE_DIR})
 
     # --------------------------------------------------------
-    # Set jsonrpc-lean include path
-    set(jsonrpc_lean_INCLUDE_DIR "${_THIRDPARTY_DIR}/jsonrpc-lean/include")
-    include_directories(${jsonrpc_lean_INCLUDE_DIR})
-
-    # --------------------------------------------------------
     # Set config of secp256k1
     set(libsecp256k1_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/include")
     set(libsecp256k1_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/lib")
@@ -353,52 +349,52 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     add_library(marshalling::crypto3_zk INTERFACE IMPORTED)
 
     set_target_properties(crypto3::algebra PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::block PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::blueprint PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::codec PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::math PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::multiprecision PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::pkpad PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::pubkey PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::random PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::zk PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::core PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::crypto3_algebra PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::crypto3_multiprecision PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::crypto3_zk PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     # zkLLVM
-    set(zkLLVM_INCLUDE_DIR "${ZKLLVM_DIR}/zkLLVM/include")
+    set(zkLLVM_INCLUDE_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/include")
 
     # Set config of llvm
-    set(LLVM_DIR "${ZKLLVM_DIR}/zkLLVM/lib/cmake/llvm")
+    set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
     find_package(LLVM CONFIG REQUIRED)
 
 
