@@ -25,8 +25,10 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
     set(BUILD_TYPE_SEARCH "Debug")
   endif()
-
+  
+  if(CMAKE_BUILD_TYPE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release")
+  endif()
 
   # if(IS_MULTICONFIG)
   #   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"

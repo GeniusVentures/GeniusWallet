@@ -5,7 +5,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 ThemeData getThemeData() => ThemeData(
       progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: GeniusWalletColors.lightGreenPrimary),
-      tabBarTheme: const TabBarTheme(
+      tabBarTheme: const TabBarThemeData(
         unselectedLabelStyle: TextStyle(fontSize: 16),
         indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: TextStyle(fontSize: 16),
