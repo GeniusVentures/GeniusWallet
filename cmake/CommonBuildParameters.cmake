@@ -71,14 +71,21 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         set(Protobuf_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/grpc/include/google/protobuf")
     endif()
 
-    set(OPENSSL_DIR "${THIRDPARTY_BUILD_DIR}/openssl/build" CACHE PATH "Path to OpenSSL install folder")
+    set(OPENSSL_DIR "${THIRDPARTY_BUILD_DIR}/openssl/build/" CACHE PATH "Path to OpenSSL install folder")
     set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
     set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "OpenSSL use static RT")
     set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" CACHE PATH "Path to OpenSSL install root folder")
     set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" CACHE PATH "Path to OpenSSL include folder")
     set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
-    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
-    set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
+    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto.lib CACHE PATH "Path to OpenSSL crypto lib")
+    set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl.lib CACHE PATH "Path to OpenSSL ssl lib")
+
+    message(STATUS "OPENSSL_DIR=${OPENSSL_DIR}")
+    message(STATUS "OPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR}")
+    message(STATUS "OPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}")
+    message(STATUS "OPENSSL_CRYPTO_LIBRARY=${OPENSSL_CRYPTO_LIBRARY}")
+    message(STATUS "OPENSSL_SSL_LIBRARY=${OPENSSL_SSL_LIBRARY}")
+
     find_package(OpenSSL REQUIRED)
     include_directories(${OPENSSL_INCLUDE_DIR})
 
@@ -397,6 +404,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
 
     # Set config of llvm
     set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
+    set(LLVM_DIR "${ZKLLVM_DIR}/zkLLVM/lib/cmake/llvm")
     find_package(LLVM CONFIG REQUIRED)
 
 

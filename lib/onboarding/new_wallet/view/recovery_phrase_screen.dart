@@ -12,6 +12,7 @@ import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/registration_header.g.dart';
+import 'package:flutter/services.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -39,8 +40,35 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
   }
 }
 
-class _RecoveryPhraseViewDesktop extends StatelessWidget {
+class _RecoveryPhraseViewDesktop extends StatefulWidget {
   const _RecoveryPhraseViewDesktop({Key? key}) : super(key: key);
+
+  @override
+  State<_RecoveryPhraseViewDesktop> createState() =>
+      _RecoveryPhraseViewDesktopState();
+}
+
+class _RecoveryPhraseViewDesktopState
+    extends State<_RecoveryPhraseViewDesktop> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus(); // Automatically focus after build
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _triggerContinue() {
+    context.read<NewWalletBloc>().add(RecoveryPhraseContinue());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +79,18 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
         child: DesktopBodyContainer(
           title: GeniusWalletText.titleRecovery,
           subText: GeniusWalletText.helpRecoveryPhrase,
-          child: SizedBox(
+          child: Focus(
+            focusNode: _focusNode,
+            onKeyEvent: (FocusNode node, KeyEvent event) {
+              if (event is KeyDownEvent &&
+                  (event.logicalKey == LogicalKeyboardKey.enter ||
+                      event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
+                _triggerContinue();
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
+            },
+            child: SizedBox(
               width: MediaQuery.of(context).size.width,
               height: 280,
               child: Column(
@@ -67,23 +106,66 @@ class _RecoveryPhraseViewDesktop extends StatelessWidget {
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
                         return MaterialButton(
-                          onPressed: () {
-                            context
-                                .read<NewWalletBloc>()
-                                .add(RecoveryPhraseContinue());
-                          },
+                          onPressed: _triggerContinue,
                           child: IsactiveTrue(constraints),
                         );
                       },
                     ),
                   ),
                 ],
-              )),
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 }
+
+// class _RecoveryPhraseViewDesktop extends StatelessWidget {
+//   const _RecoveryPhraseViewDesktop({Key? key}) : super(key: key);
+//   @override
+//   Widget build(BuildContext context) {
+//     return AppScreenWithHeaderDesktop(
+//       title: '',
+//       subtitle: '',
+//       body: Center(
+//         child: DesktopBodyContainer(
+//           title: GeniusWalletText.titleRecovery,
+//           subText: GeniusWalletText.helpRecoveryPhrase,
+//           child: SizedBox(
+//               width: MediaQuery.of(context).size.width,
+//               height: 280,
+//               child: Column(
+//                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                 mainAxisSize: MainAxisSize.min,
+//                 children: [
+//                   const _WordsAndCopy(),
+//                   const SizedBox(height: 20),
+//                   Container(
+//                     margin: const EdgeInsets.only(bottom: 20),
+//                     height: 50,
+//                     child: LayoutBuilder(
+//                       builder:
+//                           (BuildContext context, BoxConstraints constraints) {
+//                         return MaterialButton(
+//                           onPressed: () {
+//                             context
+//                                 .read<NewWalletBloc>()
+//                                 .add(RecoveryPhraseContinue());
+//                           },
+//                           child: IsactiveTrue(constraints),
+//                         );
+//                       },
+//                     ),
+//                   ),
+//                 ],
+//               )),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class _RecoveryPhraseViewMobile extends StatelessWidget {
   const _RecoveryPhraseViewMobile({Key? key}) : super(key: key);

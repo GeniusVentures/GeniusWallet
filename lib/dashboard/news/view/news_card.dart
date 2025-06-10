@@ -4,10 +4,20 @@ import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
-class NewsCard extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+class NewsCard extends StatefulWidget {
   final NewsArticle article;
 
   const NewsCard({Key? key, required this.article}) : super(key: key);
+
+  @override
+  _NewsCardState createState() => _NewsCardState();
+}
+
+class _NewsCardState extends State<NewsCard> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +25,90 @@ class NewsCard extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => launchWebSite(context, article.link),
+      onTap: () => launchWebSite(context, widget.article.link),
       child:
           isMobile ? _buildMobileLayout(context) : _buildDesktopLayout(context),
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: GeniusWalletColors.deepBlueCardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12), bottom: Radius.circular(12)),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: widget.article.imageUrl ?? '',
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey[800],
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[800],
+                        child: const Icon(Icons.error, color: Colors.red),
+                      ),
+                    ),
+                    if (_isHovered)
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          color: Colors.black54, // Semi-transparent background
+                          child: Column(
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  widget.article.pubDate,
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                widget.article.title.trim(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -39,27 +130,27 @@ class NewsCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // LEFT: Title & Date
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Flexible(
-                      child: Text(
-                    article.title.trim(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    child: Text(
+                      widget.article.title.trim(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    textAlign: TextAlign.start,
-                    overflow: TextOverflow.ellipsis,
-                  )),
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    article.pubDate,
+                    widget.article.pubDate,
                     style: const TextStyle(
                       color: Colors.white60,
                       fontSize: 12,
@@ -69,11 +160,10 @@ class NewsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // RIGHT: Image
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                imageUrl: article.imageUrl ?? '',
+                imageUrl: widget.article.imageUrl ?? '',
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
@@ -94,72 +184,6 @@ class NewsCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopLayout(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: CachedNetworkImage(
-              imageUrl: article.imageUrl ?? '',
-              height: 250,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                height: 250,
-                color: Colors.grey[800],
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-              errorWidget: (context, url, error) => Container(
-                height: 250,
-                color: Colors.grey[800],
-                child: const Icon(Icons.error, color: Colors.red),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  article.pubDate,
-                  style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  article.title.trim(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

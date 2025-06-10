@@ -9,6 +9,7 @@ import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words_input.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
+import 'package:flutter/services.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {
   static const title = 'Verify Your Recovery Phrase';
@@ -54,9 +55,10 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
   }
 }
 
-class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
+class _VerifyRecoveryPhraseViewDesktop extends StatefulWidget {
   final String title;
   final String subtitle;
+
   const _VerifyRecoveryPhraseViewDesktop({
     required this.title,
     required this.subtitle,
@@ -64,46 +66,131 @@ class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<_VerifyRecoveryPhraseViewDesktop> createState() =>
+      _VerifyRecoveryPhraseViewDesktopState();
+}
+
+class _VerifyRecoveryPhraseViewDesktopState
+    extends State<_VerifyRecoveryPhraseViewDesktop> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _triggerContinue() {
+    context.read<NewWalletBloc>().add(RecoveryVerificationContinue());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return AppScreenWithHeaderDesktop(
-      title: '',
-      subtitle: '',
-      body: Center(
+    return Focus(
+      focusNode: _focusNode,
+      onKeyEvent: (FocusNode node, KeyEvent event) {
+        if (event is KeyDownEvent &&
+            (event.logicalKey == LogicalKeyboardKey.enter ||
+                event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
+          _triggerContinue();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: AppScreenWithHeaderDesktop(
+        title: '',
+        subtitle: '',
+        body: Center(
           child: DesktopBodyContainer(
-        title: title,
-        subText: subtitle,
-        width: 650,
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 650,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const _InputAndWords(),
-              SizedBox(
-                height: 50,
-                child: MaterialButton(
-                  onPressed: () {
-                    context
-                        .read<NewWalletBloc>()
-                        .add(RecoveryVerificationContinue());
-                  },
-                  child: LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return IsactiveTrue(constraints);
-                    },
+            title: widget.title,
+            subText: widget.subtitle,
+            width: 650,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 650,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _InputAndWords(),
+                  SizedBox(
+                    height: 50,
+                    child: MaterialButton(
+                      onPressed: _triggerContinue,
+                      child: LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          return IsactiveTrue(constraints);
+                        },
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }
+// class _VerifyRecoveryPhraseViewDesktop extends StatelessWidget {
+//   final String title;
+//   final String subtitle;
+//   const _VerifyRecoveryPhraseViewDesktop({
+//     required this.title,
+//     required this.subtitle,
+//     Key? key,
+//   }) : super(key: key);
+//   @override
+//   Widget build(BuildContext context) {
+//     return AppScreenWithHeaderDesktop(
+//       title: '',
+//       subtitle: '',
+//       body: Center(
+//           child: DesktopBodyContainer(
+//         title: title,
+//         subText: subtitle,
+//         width: 650,
+//         child: SizedBox(
+//           width: MediaQuery.of(context).size.width,
+//           height: 650,
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               const _InputAndWords(),
+//               SizedBox(
+//                 height: 50,
+//                 child: MaterialButton(
+//                   onPressed: () {
+//                     context
+//                         .read<NewWalletBloc>()
+//                         .add(RecoveryVerificationContinue());
+//                   },
+//                   child: LayoutBuilder(
+//                     builder:
+//                         (BuildContext context, BoxConstraints constraints) {
+//                       return IsactiveTrue(constraints);
+//                     },
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       )),
+//     );
+//   }
+// }
 
 // tomato purity cable ramp mango good survey goddess amazing core silly outer
 
