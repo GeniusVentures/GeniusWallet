@@ -10,16 +10,6 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
   endif()
 
 
-  if(NOT DEFINED ZKLLVM_DIR)
-      if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM")
-        message(STATUS "Setting default zkLLVM directory")
-        set(ZKLLVM_DIR "${CMAKE_CURRENT_LIST_DIR}/../../zkLLVM" CACHE STRING "Default zkLLVM Library")
-        cmake_path(SET ZKLLVM_DIR NORMALIZE "${ZKLLVM_DIR}")	
-      else()
-          message(FATAL_ERROR "Cannot find zkLLVM directory required to build")
-      endif()
-  endif()
-  
   # --------------------------------------------------------
   # define third party directory
   if (NOT DEFINED THIRDPARTY_DIR)
