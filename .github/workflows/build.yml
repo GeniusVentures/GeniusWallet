@@ -1,0 +1,189 @@
+name: Flutter Build and Release
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    env:
+      GRPC_BUILD_ENABLE_CCACHE: "ON"
+      GH_TOKEN: ${{ secrets.GNUS_TOKEN_1 }}
+    runs-on: ${{matrix.host}}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [Android, iOS, OSX, Linux, Windows]
+        build-type: [Release]
+        include:
+          - target: Linux
+            host: ubuntu-latest
+            flutter-platform: linux
+          - target: Windows
+            host: windows-latest
+            flutter-platform: windows
+          - target: OSX
+            host: macos-latest
+            flutter-platform: macos
+          - target: Android
+            host: ubuntu-latest
+            flutter-platform: apk
+          - target: iOS
+            host: macos-latest
+            flutter-platform: ios
+    steps:
+      - name: Configure Linux host
+        if: ${{ runner.os == 'Linux'}}
+        run: |
+          sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
+          sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
+          sudo update-alternatives --set cc $(which clang)
+          sudo update-alternatives --set c++ $(which clang++)
+           
+          sudo apt install ccache ninja-build libvulkan-dev libzstd-dev -y
+          
+          # Flutter Linux desktop dependencies
+          if [ "${{ matrix.target }}" = "Linux" ]; then
+            sudo apt-get update -y
+            sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev
+          fi
+          
+          echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Configure Windows host
+        if: ${{ runner.os == 'Windows'}}
+        run: |
+          choco install ccache -A
+
+      - name: Configure macOS host
+        if: ${{ runner.os == 'macOS'}}
+        run: |
+          brew install ccache ninja bash gnu-tar
+          PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+          channel: 'stable'
+
+      - name: Set build directory
+        run: |
+          BUILD_DIRECTORY=build/flutter/${{matrix.target}}/${{matrix.build-type}}
+          echo "BUILD_DIRECTORY=$BUILD_DIRECTORY" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set current branch
+        run: |
+          if ${{github.event_name == 'pull_request'}}; then
+              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
+          else
+              CURRENT_BRANCH=$GITHUB_REF_NAME
+          fi
+          echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Checkout Flutter Project
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - name: Get Flutter Dependencies
+        run: flutter pub get
+
+      - name: Setup CMake Arguments
+        run: |
+          CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
+
+          if [ "${{ matrix.target }}" = "iOS" ]; then
+            EXTRA_ARGS="--no-codesign"
+          else
+            EXTRA_ARGS=""
+          fi
+   
+          echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
+          echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build Flutter
+        shell: bash
+        run: |
+          if [ "${{ matrix.build-type }}" = "Debug" ]; then
+            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS}
+          else
+            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS}
+          fi
+
+      - name: Prepare artifacts
+        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        run: |
+          mkdir -p artifacts
+          
+          case "${{ matrix.target }}" in
+            "Android")
+              if [ "${{ matrix.build-type }}" = "Debug" ]; then
+                cp build/app/outputs/flutter-apk/app-debug.apk artifacts/
+              else
+                cp build/app/outputs/flutter-apk/app-release.apk artifacts/
+              fi
+              ;;
+            "iOS")
+              cp -r build/ios/iphoneos/*.app artifacts/ || true
+              ;;
+            "OSX")
+              cp -r build/macos/Build/Products/*/[!.]*.app artifacts/ || true
+              ;;
+            "Linux")
+              cp -r build/linux/*/release/bundle artifacts/ || true
+              cp -r build/linux/*/debug/bundle artifacts/ || true
+              ;;
+            "Windows")
+              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
+              ;;
+          esac
+        shell: bash
+
+      - name: Compress build artifacts
+        working-directory: ${{github.workspace}}
+        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        run: |
+          ARTIFACT_NAME=flutter-${{matrix.target}}-${{matrix.build-type}}.tar.gz
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+          tar -czvf ${ARTIFACT_NAME} artifacts/
+        shell: bash
+
+      - name: Release Flutter App
+        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        shell: bash
+        run: |
+          RELEASE_TAG='flutter-${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+
+          if ! gh release view $RELEASE_TAG; then
+              echo "Release not found, creating with tag: $RELEASE_TAG"
+
+              if [ '${{ matrix.build-type }}' != 'Release' ]; then
+                  RELEASE_TYPE="--prerelease"
+              else
+                  RELEASE_TYPE="--latest"
+              fi
+
+              gh release create $RELEASE_TAG \
+                  -n "${CURRENT_BRANCH} branch" \
+                  --target "${CURRENT_BRANCH}" \
+                  ${RELEASE_TYPE} \
+                  -t "Flutter ${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
+          fi
+
+          echo -e "Uploading ${ARTIFACT_NAME}"
+          gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
