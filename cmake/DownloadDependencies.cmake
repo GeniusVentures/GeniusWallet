@@ -281,8 +281,8 @@ function(check_dependencies_needed DEPS RESULT_VAR)
     set(${RESULT_VAR} ${NEED_DOWNLOAD} PARENT_SCOPE)
 endfunction()
 
-# Function to detect current Git branch
-function(get_git_branch BRANCH_VAR)
+# Function to detect current Git branch and determine dependency branch
+function(get_dependency_branch BRANCH_VAR)
     find_package(Git QUIET)
     if(GIT_FOUND)
         execute_process(
@@ -294,8 +294,14 @@ function(get_git_branch BRANCH_VAR)
             RESULT_VARIABLE GIT_RESULT
         )
         if(GIT_RESULT EQUAL 0 AND GIT_BRANCH)
-            set(${BRANCH_VAR} ${GIT_BRANCH} PARENT_SCOPE)
-            message(STATUS "Detected Git branch: ${GIT_BRANCH}")
+            # If we're on main branch, use main for dependencies, otherwise use develop
+            if(GIT_BRANCH STREQUAL "main")
+                set(${BRANCH_VAR} "main" PARENT_SCOPE)
+                message(STATUS "Detected Git branch: ${GIT_BRANCH}, using 'main' for dependencies")
+            else()
+                set(${BRANCH_VAR} "develop" PARENT_SCOPE)
+                message(STATUS "Detected Git branch: ${GIT_BRANCH}, using 'develop' for dependencies")
+            endif()
         else()
             set(${BRANCH_VAR} "develop" PARENT_SCOPE)
             message(STATUS "Could not detect Git branch, defaulting to: develop")
@@ -323,8 +329,8 @@ function(download_project_dependencies)
             set(ARG_BRANCH ${GENIUS_DEPENDENCY_BRANCH})
             message(STATUS "Using dependency branch from GENIUS_DEPENDENCY_BRANCH: ${ARG_BRANCH}")
         else()
-            # Auto-detect from Git
-            get_git_branch(ARG_BRANCH)
+            # Auto-detect from Git and apply main/develop logic
+            get_dependency_branch(ARG_BRANCH)
         endif()
     endif()
 
@@ -404,3 +410,4 @@ endfunction()
 #   GENIUS_DEPENDENCY_BRANCH - Override the auto-detected Git branch
 #
 # Note: Dependencies are downloaded from https://github.com/GeniusVentures/{DEP_NAME}/releases
+# Note: When on 'main' branch, dependencies from 'main' are used. For all other branches, 'develop' dependencies are used.
