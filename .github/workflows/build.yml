@@ -124,10 +124,21 @@ jobs:
       - name: Build Flutter
         shell: bash
         run: |
-          if [ "${{ matrix.build-type }}" = "Debug" ]; then
-            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS} --verbose
+          if [ "${{ matrix.target }}" = "Windows" ]; then
+            # Windows requires a different approach for CMAKE arguments
+            set CMAKE_ARGUMENTS=$env:CMAKE_ARGUMENTS
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              flutter build windows --debug 
+            else
+              flutter build windows --release
+            fi
           else
-            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS} --verbose
+            # Other platforms respect CMAKE_ARGUMENTS environment variable
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS}
+            else
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS}
+            fi
           fi
 
       - name: Prepare artifacts
