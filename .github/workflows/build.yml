@@ -52,7 +52,7 @@ jobs:
           # Flutter Linux desktop dependencies
           if [ "${{ matrix.target }}" = "Linux" ]; then
             sudo apt-get update -y
-            sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev
+            sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev libsecret-1-dev
           fi
           
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
@@ -102,6 +102,14 @@ jobs:
       - name: Setup CMake Arguments
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
+          
+          # Add verbose output for debugging
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
+          
+          # Windows-specific: ensure message output
+          if [ "${{ matrix.target }}" = "Windows" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
+          fi
 
           if [ "${{ matrix.target }}" = "iOS" ]; then
             EXTRA_ARGS="--no-codesign"
@@ -117,9 +125,9 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.build-type }}" = "Debug" ]; then
-            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS}
+            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS} --verbose
           else
-            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS}
+            CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS} --verbose
           fi
 
       - name: Prepare artifacts
