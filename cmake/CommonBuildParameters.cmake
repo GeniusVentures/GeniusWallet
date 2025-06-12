@@ -23,8 +23,8 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         set(ABI_SUBFOLDER_NAME "/${ANDROID_ABI}")
     endif()
 
-    set(THIRDPARTY_BUILD_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
-    set(ZKLLVM_BUILD_DIR ${ZKLLVM_DIR})
+    set(THIRDPARTY_BUILD_DIR ${THIRDPARTY_DIR}/${ARCH_OUTPUT_DIR})
+    set(ZKLLVM_BUILD_DIR ${ZKLLVM_DIR}/${ARCH_RELEASE_OUTPUT_DIR})
     message(WARNING "BUILD DIR: ${THIRDPARTY_BUILD_DIR}")
     message(WARNING "ZKLLVM_BUILD_DIR DIR: ${ZKLLVM_BUILD_DIR}")
     set(WALLET_CORE_DIR "${THIRDPARTY_BUILD_DIR}/wallet-core" CACHE PATH "Path to WalletCore install folder")
@@ -71,23 +71,14 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         set(Protobuf_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/grpc/include/google/protobuf")
     endif()
 
-
-    set(OPENSSL_DIR "${THIRDPARTY_BUILD_DIR}/openssl/build/" CACHE PATH "Path to OpenSSL install folder")
-
+    set(OPENSSL_DIR "${THIRDPARTY_BUILD_DIR}/openssl/build" CACHE PATH "Path to OpenSSL install folder")
     set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "OpenSSL use static libs")
     set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "OpenSSL use static RT")
     set(OPENSSL_ROOT_DIR "${OPENSSL_DIR}" CACHE PATH "Path to OpenSSL install root folder")
     set(OPENSSL_INCLUDE_DIR "${OPENSSL_DIR}/include" CACHE PATH "Path to OpenSSL include folder")
     set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib" CACHE PATH "Path to OpenSSL lib folder")
-    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto.a CACHE PATH "Path to OpenSSL crypto lib")
-    set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl.a CACHE PATH "Path to OpenSSL ssl lib")
-
-    message(STATUS "OPENSSL_DIR=${OPENSSL_DIR}")
-    message(STATUS "OPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR}")
-    message(STATUS "OPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}")
-    message(STATUS "OPENSSL_CRYPTO_LIBRARY=${OPENSSL_CRYPTO_LIBRARY}")
-    message(STATUS "OPENSSL_SSL_LIBRARY=${OPENSSL_SSL_LIBRARY}")
-
+    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
+    set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
     find_package(OpenSSL REQUIRED)
     include_directories(${OPENSSL_INCLUDE_DIR})
 
@@ -181,7 +172,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     # Boost should be loaded before libp2p v0.1.2
     # --------------------------------------------------------
     # Set config of Boost project
-    set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build/Android")  #cdh
+    set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build")
     message(WARNING "BOOST ROOT ${_BOOST_ROOT}")
     set(Boost_LIB_DIR "${_BOOST_ROOT}/lib")
     set(Boost_INCLUDE_DIR "${_BOOST_ROOT}/include/boost-${BOOST_VERSION_2U}")
@@ -405,9 +396,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(zkLLVM_INCLUDE_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/include")
 
     # Set config of llvm
-
     set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
-
     find_package(LLVM CONFIG REQUIRED)
 
 
