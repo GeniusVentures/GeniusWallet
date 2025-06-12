@@ -64,7 +64,11 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     # --------------------------------------------------------
     # Set config of protobuf project
     if(NOT DEFINED Protobuf_DIR)
-        set(Protobuf_DIR "${THIRDPARTY_BUILD_DIR}/grpc/lib/cmake/protobuf")
+        if (NOT DEFINED PROTOBUF_CONFIG_LOCATION)
+            set(PROTOBUF_CONFIG_LOCATION "/grpc/lib/cmake/protobuf")
+        endif()
+        message("Protobuf directory: ${THIRDPARTY_BUILD_DIR}${PROTOBUF_CONFIG_LOCATION}")
+        set(Protobuf_DIR "${THIRDPARTY_BUILD_DIR}${PROTOBUF_CONFIG_LOCATION}")
     endif()
 
     if(NOT DEFINED Protobuf_INCLUDE_DIR)
