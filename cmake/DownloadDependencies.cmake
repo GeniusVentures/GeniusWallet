@@ -86,6 +86,7 @@ function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
 
     # Add Android ABI path if needed
     if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
+        message(STATUS "Android build with ABI : ${ANDROID_ABI}")
         set(CHECK_PATHS
             "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}/${ANDROID_ABI}"
             ${CHECK_PATHS}
