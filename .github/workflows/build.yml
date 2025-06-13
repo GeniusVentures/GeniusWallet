@@ -125,26 +125,56 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
           fi
 
-          if [ "${{ matrix.target }}" = "iOS" ]; then
-            EXTRA_ARGS="--no-codesign"
-          else
-            EXTRA_ARGS=""
-          fi
+          # No extra args needed - we're using proper code signing now
+          EXTRA_ARGS=""
    
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
         shell: bash
-      
-      - name: Disable macOS Code Signing
-        if: ${{ matrix.target == 'OSX' }}
+
+      - name: Install the Apple certificate and provisioning profile for MacOS
+        if: ${{ matrix.host == 'macos-latest' }}
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          SFW_MAC_DISTRIBUTION_PROFILE_BASE64: ${{ secrets.SFW_MAC_DISTRIBUTION_PROFILE_BASE64 }}
+          GENIUSWALLET_MAC_PROFILE_BASE64: ${{ secrets.GENIUSWALLET_MAC_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # Disable code signing for macOS builds
-          cd macos
-          sed -i '' 's/CODE_SIGNING_ALLOWED=YES/CODE_SIGNING_ALLOWED=NO/g' Runner.xcodeproj/project.pbxproj || true
-          sed -i '' 's/CODE_SIGN_IDENTITY = ".*"/CODE_SIGN_IDENTITY = ""/g' Runner.xcodeproj/project.pbxproj || true
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' Runner.xcodeproj/project.pbxproj || true
-          sed -i '' 's/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = "";/g' Runner.xcodeproj/project.pbxproj || true
-          cd ..
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          PP_PATH2=$RUNNER_TEMP/build_pp2.provisionprofile
+          PP_PATH3=$RUNNER_TEMP/build_pp3.provisionprofile
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          echo -n "$SFW_MAC_DISTRIBUTION_PROFILE_BASE64" | base64 --decode -o $PP_PATH2
+          echo -n "$GENIUSWALLET_MAC_PROFILE_BASE64" | base64 --decode -o $PP_PATH3
+
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH2 ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH3 ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $PP_PATH2 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $PP_PATH3 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
         shell: bash
 
       - name: Build Flutter
