@@ -134,6 +134,18 @@ jobs:
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
         shell: bash
+      
+      - name: Disable macOS Code Signing
+        if: ${{ matrix.target == 'OSX' }}
+        run: |
+          # Disable code signing for macOS builds
+          cd macos
+          sed -i '' 's/CODE_SIGNING_ALLOWED=YES/CODE_SIGNING_ALLOWED=NO/g' Runner.xcodeproj/project.pbxproj || true
+          sed -i '' 's/CODE_SIGN_IDENTITY = ".*"/CODE_SIGN_IDENTITY = ""/g' Runner.xcodeproj/project.pbxproj || true
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' Runner.xcodeproj/project.pbxproj || true
+          sed -i '' 's/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = "";/g' Runner.xcodeproj/project.pbxproj || true
+          cd ..
+        shell: bash
 
       - name: Build Flutter
         shell: bash
@@ -151,7 +163,7 @@ jobs:
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS}
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS}
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS} --verbose
             fi
           fi
 
