@@ -105,6 +105,62 @@ jobs:
           echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
         shell: bash
 
+      - name: Download dependencies
+        working-directory: ${{github.workspace}}
+        run: |
+          # Determine which branch to use for dependencies
+          if [ "$CURRENT_BRANCH" == "main" ]; then
+            DEP_BRANCH="main"
+          else
+            DEP_BRANCH="develop"
+          fi
+
+          echo "Using ${DEP_BRANCH} branch for dependencies"
+
+          # Function to download a dependency
+          download_dep() {
+            local DEP_NAME=$1
+            local FILE_NAME=$2
+            
+            mkdir -p ${DEP_NAME}
+            cd ${DEP_NAME}
+            
+            tag_name="${{matrix.target}}-${DEP_BRANCH}-${{matrix.build-type}}"
+            
+            echo "Downloading ${DEP_NAME} from tag: ${tag_name}"
+            
+            if gh release download ${tag_name} --repo GeniusVentures/${DEP_NAME} -p "${FILE_NAME}"; then
+              tar -xzf "${FILE_NAME}"
+              echo "${DEP_NAME} downloaded successfully"
+            else
+              echo "Warning: Failed to download ${DEP_NAME}, build will attempt to download via CMake"
+            fi
+            
+            cd ..
+          }
+
+          # Determine file name based on platform
+          if [ "${{ matrix.target }}" = "Android" ] && [ "${{ matrix.abi }}" != "" ]; then
+            FILE_NAME="${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}.tar.gz"
+          else
+            FILE_NAME="${{matrix.target}}-${{matrix.build-type}}.tar.gz"
+          fi
+
+          # Download each dependency
+          download_dep "thirdparty" "${FILE_NAME}"
+          download_dep "SuperGenius" "${FILE_NAME}"
+          download_dep "GeniusSDK" "${FILE_NAME}"
+          
+          # zkLLVM is release-only
+          if [ "${{ matrix.target }}" = "Windows" ]; then
+            ZKLLVM_FILE_NAME="${{matrix.target}}-${{matrix.build-type}}.tar.gz"
+          else
+            ZKLLVM_FILE_NAME="${{matrix.target}}-Release.tar.gz"
+          fi
+          download_dep "zkLLVM" "${ZKLLVM_FILE_NAME}"
+
+        shell: bash
+
       - name: Checkout Flutter Project
         uses: actions/checkout@v4
         with:
@@ -125,26 +181,75 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
           fi
 
-          if [ "${{ matrix.target }}" = "iOS" ]; then
-            EXTRA_ARGS="--no-codesign"
-          else
-            EXTRA_ARGS=""
-          fi
+          # No extra args needed - we're using proper code signing now
+          EXTRA_ARGS=""
    
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
         shell: bash
-      
-      - name: Disable macOS Code Signing
-        if: ${{ matrix.target == 'OSX' }}
+
+      - name: Install the Apple certificate and provisioning profile for MacOS
+        if: ${{ matrix.host == 'macos-latest' }}
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          BUILD_CERTIFICATE_2_BASE64: ${{ secrets.BUILD_CERTIFICATE_2_BASE64 }}
+          BUILD_CERTIFICATE_3_BASE64: ${{ secrets.BUILD_CERTIFICATE_3_BASE64 }}
+          BUILD_CERTIFICATE_4_BASE64: ${{ secrets.BUILD_CERTIFICATE_4_BASE64 }}
+          P12_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+          A23_MOBILE_PROVISION: ${{ secrets.A23_MOBILE_PROVISION }}
+          B08_MOBILE_PROVISION: ${{ secrets.B08_MOBILE_PROVISION }}
+          B4E_MOBILE_PROVISION: ${{ secrets.B4E_MOBILE_PROVISION }}
+          E05_MOBILE_PROVISION: ${{ secrets.E05_MOBILE_PROVISION }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # Disable code signing for macOS builds
-          cd macos
-          sed -i '' 's/CODE_SIGNING_ALLOWED=YES/CODE_SIGNING_ALLOWED=NO/g' Runner.xcodeproj/project.pbxproj || true
-          sed -i '' 's/CODE_SIGN_IDENTITY = ".*"/CODE_SIGN_IDENTITY = ""/g' Runner.xcodeproj/project.pbxproj || true
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' Runner.xcodeproj/project.pbxproj || true
-          sed -i '' 's/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = "";/g' Runner.xcodeproj/project.pbxproj || true
-          cd ..
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          CERTIFICATE_PATH2=$RUNNER_TEMP/build_certificate2.p12
+          CERTIFICATE_PATH3=$RUNNER_TEMP/build_certificate3.p12
+          CERTIFICATE_PATH4=$RUNNER_TEMP/build_certificate4.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          PP_PATH2=$RUNNER_TEMP/build_pp2.mobileprovision
+          PP_PATH3=$RUNNER_TEMP/build_pp3.mobileprovision
+          PP_PATH4=$RUNNER_TEMP/build_pp4.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_CERTIFICATE_2_BASE64" | base64 --decode -o $CERTIFICATE_PATH2
+          echo -n "$BUILD_CERTIFICATE_3_BASE64" | base64 --decode -o $CERTIFICATE_PATH3
+          echo -n "$BUILD_CERTIFICATE_4_BASE64" | base64 --decode -o $CERTIFICATE_PATH4
+          echo -n "$A23_MOBILE_PROVISION" | base64 --decode -o $PP_PATH
+          echo -n "$B08_MOBILE_PROVISION" | base64 --decode -o $PP_PATH2
+          echo -n "$B4E_MOBILE_PROVISION" | base64 --decode -o $PP_PATH3
+          echo -n "$E05_MOBILE_PROVISION" | base64 --decode -o $PP_PATH4
+
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH2 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH3 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH4 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH2 ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH3 ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH4 ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $PP_PATH2 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $PP_PATH3 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $PP_PATH4 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+
+          echo "Finishing importing certificates"
         shell: bash
 
       - name: Build Flutter
