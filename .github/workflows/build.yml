@@ -75,6 +75,20 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Configure Gradle memory
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create gradle.properties with increased heap size
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
+          
+          # Also set it in the project if it exists
+          if [ -f "${{github.workspace}}/android/gradle.properties" ]; then
+            echo "" >> "${{github.workspace}}/android/gradle.properties"
+            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "${{github.workspace}}/android/gradle.properties"
+          fi
+        shell: bash
+
       - name: Set build directory
         run: |
           BUILD_DIRECTORY=build/flutter/${{matrix.target}}/${{matrix.build-type}}
