@@ -27,6 +27,8 @@ void main() async {
 
   final secureStorage = await LocalWalletStorage.create();
   await secureStorage.init();
+  await secureStorage.deleteAccount();
+  await secureStorage.deleteAllWallets();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
   final networkProvider = NetworkProvider();
