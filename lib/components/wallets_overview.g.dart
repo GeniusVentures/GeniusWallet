@@ -35,8 +35,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
 
   @override
   Widget build(BuildContext context) {
-            debugPrint(
-          'Build Wallet Overview');
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Flexible(
