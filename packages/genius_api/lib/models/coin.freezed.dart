@@ -29,8 +29,12 @@ mixin _$Coin {
   String? get iconPath => throw _privateConstructorUsedError;
   String? get coinGeckoId => throw _privateConstructorUsedError;
 
+  /// Serializes this Coin to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $CoinCopyWith<Coin> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -60,6 +64,8 @@ class _$CoinCopyWithImpl<$Res, $Val extends Coin>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -134,6 +140,8 @@ class __$$CoinImplCopyWithImpl<$Res>
   __$$CoinImplCopyWithImpl(_$CoinImpl _value, $Res Function(_$CoinImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -240,12 +248,14 @@ class _$CoinImpl implements _Coin {
                 other.coinGeckoId == coinGeckoId));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, name, symbol, address, balance,
       networkSymbol, decimals, iconPath, coinGeckoId);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CoinImplCopyWith<_$CoinImpl> get copyWith =>
@@ -288,8 +298,11 @@ abstract class _Coin implements Coin {
   String? get iconPath;
   @override
   String? get coinGeckoId;
+
+  /// Create a copy of Coin
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CoinImplCopyWith<_$CoinImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
