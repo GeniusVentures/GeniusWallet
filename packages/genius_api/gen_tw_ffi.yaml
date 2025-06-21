@@ -1,0 +1,11 @@
+output: "lib/ffi/trust_wallet_api_ffi.dart"
+headers:
+  entry-points:
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWAnyAddress.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWAccount.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWCoinType.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWCoinTypeConfiguration.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWData.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWMnemonic.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWPublicKey.h"
+    - "../../../thirdparty/build/Linux/Debug/wallet-core/include/TrustWalletCore/TWStoredKey.h"
