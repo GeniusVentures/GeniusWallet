@@ -1,5 +1,6 @@
 import 'dart:ffi';
 
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/string_util.dart';
 
@@ -12,7 +13,7 @@ class Account {
     nativehandle = pointer;
   }
 
-  static Account create(String address, int coin, int derivation,
+  static Account create(String address, TWCoinType coin, TWDerivation derivation,
       String derivationPath, String publicKey, String extendedPublicKey) {
     return Account(ffiBridgePrebuilt.wallet_lib
         .TWAccountCreate(
@@ -31,11 +32,11 @@ class Account {
         .cast());
   }
 
-  int coinType() {
+  TWCoinType coinType() {
     return ffiBridgePrebuilt.wallet_lib.TWAccountCoin(nativehandle.cast());
   }
 
-  int derivation() {
+  TWDerivation derivation() {
     return ffiBridgePrebuilt.wallet_lib
         .TWAccountDerivation(nativehandle.cast());
   }

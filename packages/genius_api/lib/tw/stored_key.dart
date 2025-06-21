@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/account.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
@@ -12,7 +13,7 @@ class StoredKey {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   static StoredKey? importHDWallet(
-      String mnemonic, String name, String password, int coin) {
+      String mnemonic, String name, String password, TWCoinType coin) {
     final twPassword = Uint8List.fromList(password.codeUnits);
     final pointer =
         StoredKeyImpl.importHDWallet(mnemonic, name, twPassword, coin);
@@ -24,7 +25,7 @@ class StoredKey {
   }
 
   static StoredKey? importPrivateKey(
-      Uint8List privateKeyData, String name, String password, int coin) {
+      Uint8List privateKeyData, String name, String password, TWCoinType coin) {
     final twPassword = Uint8List.fromList(password.codeUnits);
     final pointer =
         StoredKeyImpl.importPrivateKey(privateKeyData, name, twPassword, coin);
@@ -91,16 +92,16 @@ class StoredKey {
     return Account(StoredKeyImpl.account(nativehandle, index));
   }
 
-  Account accountForCoin(int coin, HDWallet hdWallet) {
+  Account accountForCoin(TWCoinType coin, HDWallet hdWallet) {
     return Account(StoredKeyImpl.accountForCoin(
         nativehandle, coin, hdWallet.getNativeHandle()));
   }
 
-  void removeAccountForCoin(int coin) {
+  void removeAccountForCoin(TWCoinType coin) {
     StoredKeyImpl.removeAccountForCoin(nativehandle, coin);
   }
 
-  void addAccount(String address, int coin, String derivationPath,
+  void addAccount(String address, TWCoinType coin, String derivationPath,
       String publicKey, String extendedPublicKey) {
     StoredKeyImpl.addAccount(nativehandle, address, coin, derivationPath,
         publicKey, extendedPublicKey);
@@ -122,7 +123,7 @@ class StoredKey {
     return StoredKeyImpl.decryptMnemonic(nativehandle, password);
   }
 
-  PrivateKey? privateKey(int coin, Uint8List password) {
+  PrivateKey? privateKey(TWCoinType coin, Uint8List password) {
     final pointer = StoredKeyImpl.privateKey(nativehandle, coin, password);
     if (pointer.address == 0) {
       return null;

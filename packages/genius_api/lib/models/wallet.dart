@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/types/wallet_type.dart';
 part 'wallet.freezed.dart';
 part 'wallet.g.dart';
@@ -6,7 +7,7 @@ part 'wallet.g.dart';
 @freezed
 class Wallet with _$Wallet {
   const factory Wallet({
-    required int coinType,
+    required TWCoinType coinType,
     required String walletName,
     required String currencySymbol,
     required WalletType walletType,
