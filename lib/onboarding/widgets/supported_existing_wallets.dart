@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/components/wallet_card.g.dart';
@@ -55,7 +55,7 @@ class SupportedExistingWallets extends StatelessWidget {
 class SupportedWallet {
   final String name;
   final String image;
-  final int coinType;
+  final TWCoinType coinType;
 
   SupportedWallet(
       {required this.name, required this.image, required this.coinType});

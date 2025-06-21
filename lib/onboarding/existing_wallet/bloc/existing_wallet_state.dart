@@ -7,7 +7,7 @@ class ExistingWalletState {
 
   final String selectedWallet;
 
-  final int selectedCoinType;
+  final TWCoinType selectedCoinType;
 
   final ExistingWalletStatus importWalletStatus;
 
@@ -23,7 +23,7 @@ class ExistingWalletState {
     bool? acceptedLegal,
     FlowStep? currentStep,
     String? selectedWallet,
-    int? selectedCoinType,
+    TWCoinType? selectedCoinType,
     ExistingWalletStatus? importWalletStatus,
   }) {
     return ExistingWalletState(

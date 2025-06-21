@@ -6,14 +6,14 @@ class ToggleLegal extends ExistingWalletEvent {}
 
 class ImportWalletSelected extends ExistingWalletEvent {
   String walletName;
-  int coinType;
+  TWCoinType coinType;
 
   ImportWalletSelected({required this.walletName, required this.coinType});
 }
 
 class WalletSecurityEntered extends ExistingWalletEvent {
   ///TODO: Make these fields into a single object?
-  final int coinType;
+  final TWCoinType coinType;
   final String walletName;
   final String walletType;
   final SecurityType securityType;

@@ -8,7 +8,7 @@ class StringUtil {
   /// It must be deleted at the end.
   static Pointer<Utf8> toTWString(String value) {
     return ffiBridgePrebuilt.wallet_lib
-        .TWStringCreateWithUTF8Bytes(value.toNativeUtf8())
+        .TWStringCreateWithUTF8Bytes(value.toNativeUtf8().cast())
         .cast();
   }
 
