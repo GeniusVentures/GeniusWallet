@@ -499,8 +499,6 @@ class GeniusApi {
       }
       charCodes.add(c);
     }
-    debugPrint(
-          'SGNS Balance: ${String.fromCharCodes(charCodes)}');
     return String.fromCharCodes(charCodes);
   }
 
