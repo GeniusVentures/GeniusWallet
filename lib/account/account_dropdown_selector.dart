@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -242,7 +243,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   walletType: WalletType.sgnus,
                   address: connection.sgnusAddress,
                   currencySymbol: 'minions',
-                  coinType: -1,
+                  coinType: -1 as TWCoinType,
                   balance: 0,
                 ),
               );

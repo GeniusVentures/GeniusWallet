@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:genius_api/extensions/extensions.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 
 class PrivateKeyImpl {
@@ -26,7 +27,7 @@ class PrivateKeyImpl {
     return ffiBridgePrebuilt.wallet_lib.TWPrivateKeyData(pk.cast());
   }
 
-  static bool isValid(Pointer<Void> data, int curve) {
+  static bool isValid(Pointer<Void> data, TWCurve curve) {
     return ffiBridgePrebuilt.wallet_lib.TWPrivateKeyIsValid(data, curve);
   }
 
@@ -72,12 +73,13 @@ class PrivateKeyImpl {
   }
 
   static Pointer<Void> getShareKey(
-      Pointer<Void> pk, Pointer<Void> publicKey, int curve) {
+      Pointer<Void> pk, Pointer<Void> publicKey, TWCurve curve) {
     return ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeyGetSharedKey(pk.cast(), publicKey.cast(), curve);
   }
 
-  static Pointer<Void> sign(Pointer<Void> pk, Pointer<Void> digest, int curve) {
+  static Pointer<Void> sign(
+      Pointer<Void> pk, Pointer<Void> digest, TWCurve curve) {
     return ffiBridgePrebuilt.wallet_lib
         .TWPrivateKeySign(pk.cast(), digest, curve);
   }
