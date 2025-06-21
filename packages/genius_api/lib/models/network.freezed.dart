@@ -28,8 +28,12 @@ mixin _$Network {
   String? get iconPath => throw _privateConstructorUsedError;
   String? get tokensPath => throw _privateConstructorUsedError;
 
+  /// Serializes this Network to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $NetworkCopyWith<Network> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -58,6 +62,8 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -127,6 +133,8 @@ class __$$NetworkImplCopyWithImpl<$Res>
       _$NetworkImpl _value, $Res Function(_$NetworkImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -223,12 +231,14 @@ class _$NetworkImpl implements _Network {
                 other.tokensPath == tokensPath));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, name, symbol, chainId,
       coinGeckoId, rpcUrl, iconPath, tokensPath);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$NetworkImplCopyWith<_$NetworkImpl> get copyWith =>
@@ -268,8 +278,11 @@ abstract class _Network implements Network {
   String? get iconPath;
   @override
   String? get tokensPath;
+
+  /// Create a copy of Network
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$NetworkImplCopyWith<_$NetworkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
