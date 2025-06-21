@@ -1,11 +1,13 @@
 import 'dart:ffi';
 import 'dart:io';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart' as gns;
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart' as tw;
 import 'package:flutter/material.dart';
 
 class FFIBridgePrebuilt {
   static const String _libName = 'GeniusWallet';
-  late NativeLibrary wallet_lib;
+  late tw.NativeLibrary wallet_lib;
+  late gns.NativeLibrary gns_lib;
 
   FFIBridgePrebuilt() {
     final DynamicLibrary? dylib = () {
@@ -23,7 +25,7 @@ class FFIBridgePrebuilt {
       return;
     }
 
-    wallet_lib = NativeLibrary(dylib);
+    wallet_lib = tw.NativeLibrary(_dylib);
   }
 }
 

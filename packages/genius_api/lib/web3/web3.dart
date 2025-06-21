@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/src/genius_api.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
