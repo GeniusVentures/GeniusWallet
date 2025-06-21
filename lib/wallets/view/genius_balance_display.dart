@@ -29,8 +29,10 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
   @override
   void initState() {
     super.initState();
+        debugPrint(
+          'Init State Balance');
     _balance = widget.useMinions
-        ? context.read<GeniusApi>().getMinionsBalance()
+        ? context.read<GeniusApi>().getMinionsBalance("0x0000000000000000000000000000000000000000000000000000000000000000")
         : context.read<GeniusApi>().getSGNUSBalance();
     _fetchBalance();
     _startPolling();
@@ -46,12 +48,12 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
 
   void _fetchBalance() {
     final newBalance = widget.useMinions
-        ? context.read<GeniusApi>().getMinionsBalance()
+        ? context.read<GeniusApi>().getMinionsBalance("0x0000000000000000000000000000000000000000000000000000000000000000")
         : context.read<GeniusApi>().getSGNUSBalance();
     if (mounted) {
       setState(() => _balance = newBalance);
-      // debugPrint(
-      //     '🅱️ Fetched New ${widget.useMinions ? 'Minions' : 'Gnus'} Balance: $_balance');
+      debugPrint(
+          '🅱️ Fetched New ${widget.useMinions ? 'Minions' : 'Gnus'} Balance: $_balance');
     }
   }
 
