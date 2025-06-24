@@ -19,6 +19,7 @@ class SGNUSTransactionsController {
   }
 
   void addTransactions(List<Transaction> newTxs) {
+    _transactions.clear();
     _transactions.addAll(newTxs);
     _controller
         .add(List.unmodifiable(_transactions.toList().reversed.toList()));
