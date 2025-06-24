@@ -56,6 +56,7 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   build_runner: ^2.4.9
   hive_generator: ^2.0.0
+  json_serializable: ^6.8.0
 flutter:
   uses-material-design: true
   assets:
