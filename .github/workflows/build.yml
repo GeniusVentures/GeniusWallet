@@ -17,15 +17,29 @@ jobs:
       GRPC_BUILD_ENABLE_CCACHE: "ON"
       GH_TOKEN: ${{ secrets.GNUS_TOKEN_1 }}
     runs-on: ${{matrix.host}}
+    container:
+      image: ${{matrix.container}}
+      credentials:
+        username: ${{github.actor}}
+        password: ${{secrets.GNUS_TOKEN_1}}
     strategy:
       fail-fast: false
       matrix:
         target: [Android, iOS, OSX, Linux, Windows]
         build-type: [Release]
+        abi: [""]
         include:
           - target: Linux
             host: ubuntu-latest
             flutter-platform: linux
+            abi: x86_64
+            build-type: Release
+          - target: Linux
+            host: ubuntu-24.04-arm
+            flutter-platform: linux
+            abi: aarch64
+            build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Windows
             host: windows-latest
             flutter-platform: windows
@@ -38,6 +52,9 @@ jobs:
           - target: iOS
             host: macos-latest
             flutter-platform: ios
+        exclude:
+          - target: Linux
+            abi: ""
     steps:
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
@@ -83,15 +100,19 @@ jobs:
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
           
           # Also set it in the project if it exists
-          if [ -f "${{github.workspace}}/android/gradle.properties" ]; then
-            echo "" >> "${{github.workspace}}/android/gradle.properties"
+          if [ -f "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties" ]; then
+            echo "" >> "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties"
             echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "${{github.workspace}}/android/gradle.properties"
           fi
         shell: bash
 
       - name: Set build directory
         run: |
-          BUILD_DIRECTORY=build/flutter/${{matrix.target}}/${{matrix.build-type}}
+          if [ '${{matrix.abi}}' ]; then
+            BUILD_DIRECTORY=build/${{matrix.target}}/${{matrix.build-type}}/${{matrix.abi}}
+          else
+            BUILD_DIRECTORY=build/${{matrix.target}}/${{matrix.build-type}}
+          fi
           echo "BUILD_DIRECTORY=$BUILD_DIRECTORY" >> $GITHUB_ENV
         shell: bash
 
@@ -216,49 +237,43 @@ jobs:
             fi
           fi
 
-      - name: Prepare artifacts
+      - name: Prepare and compress artifacts
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          mkdir -p artifacts
+          mkdir -p ${{env.BUILD_DIRECTORY}}/flutter-app
           
           case "${{ matrix.target }}" in
             "Android")
               if [ "${{ matrix.build-type }}" = "Debug" ]; then
-                cp build/app/outputs/flutter-apk/app-debug.apk artifacts/
+                cp build/app/outputs/flutter-apk/app-debug.apk ${{env.BUILD_DIRECTORY}}/flutter-app/
               else
-                cp build/app/outputs/flutter-apk/app-release.apk artifacts/
+                cp build/app/outputs/flutter-apk/app-release.apk ${{env.BUILD_DIRECTORY}}/flutter-app/
               fi
               ;;
             "iOS")
-              cp -r build/ios/iphoneos/*.app artifacts/ || true
+              cp -r build/ios/iphoneos/*.app ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
               ;;
             "OSX")
-              cp -r build/macos/Build/Products/*/[!.]*.app artifacts/ || true
+              cp -r build/macos/Build/Products/*/[!.]*.app ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
               ;;
             "Linux")
-              cp -r build/linux/*/release/bundle artifacts/ || true
-              cp -r build/linux/*/debug/bundle artifacts/ || true
+              cp -r build/linux/*/release/bundle/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || cp -r build/linux/*/debug/bundle/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
               ;;
             "Windows")
-              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
+              cp -r build/windows/runner/Release/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || cp -r build/windows/runner/Debug/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
               ;;
           esac
-        shell: bash
-
-      - name: Compress build artifacts
-        working-directory: ${{github.workspace}}
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
-        run: |
-          ARTIFACT_NAME=flutter-${{matrix.target}}-${{matrix.build-type}}.tar.gz
-          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          tar -czvf ${ARTIFACT_NAME} artifacts/
+          
+          cd ${{env.BUILD_DIRECTORY}}
+          tar --exclude=.git -czvf ${FILE_NAME} --transform 's|^|${{env.BUILD_DIRECTORY}}/|' flutter-app/
         shell: bash
 
       - name: Release Flutter App
+        working-directory: ${{github.workspace}}
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         shell: bash
         run: |
-          RELEASE_TAG='flutter-${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+          RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
 
@@ -275,8 +290,8 @@ jobs:
                   -n "${CURRENT_BRANCH} branch" \
                   --target "${CURRENT_BRANCH}" \
                   ${RELEASE_TYPE} \
-                  -t "Flutter ${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
+                  -t "${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
           fi
 
-          echo -e "Uploading ${ARTIFACT_NAME}"
-          gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+          echo -e "Uploading ${FILE_NAME}"
+          gh release upload --clobber ${RELEASE_TAG} "${{env.BUILD_DIRECTORY}}/${FILE_NAME}"
