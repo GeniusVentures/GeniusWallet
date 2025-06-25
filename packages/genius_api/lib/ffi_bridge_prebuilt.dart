@@ -25,7 +25,8 @@ class FFIBridgePrebuilt {
       return;
     }
 
-    wallet_lib = tw.NativeLibrary(_dylib);
+    wallet_lib = tw.NativeLibrary(dylib);
+    gns_lib = gns.NativeLibrary(dylib);
   }
 }
 
