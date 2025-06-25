@@ -243,7 +243,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   walletType: WalletType.sgnus,
                   address: connection.sgnusAddress,
                   currencySymbol: 'minions',
-                  coinType: -1 as TWCoinType,
+                  coinType: TWCoinType.TWCoinTypeEthereum,
                   balance: 0,
                 ),
               );
