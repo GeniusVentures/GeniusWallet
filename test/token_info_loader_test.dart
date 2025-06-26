@@ -16,7 +16,7 @@ void main() {
       tokenLoader.dispose();
     });
 
-    test('loads single token from GitHub', () async {
+    test('loads single token from GitHub (first in array)', () async {
       final token = await tokenLoader.loadToken();
 
       expect(token, isNotNull);
@@ -30,6 +30,8 @@ void main() {
 
       expect(tokens, isNotEmpty);
       expect(tokens.first.name, equals('GNUS'));
+      // Should have multiple tokens now
+      expect(tokens.length, greaterThan(1));
     });
 
     test('handles network errors gracefully', () async {
@@ -61,16 +63,57 @@ void main() {
       expect(token, isNull);
     });
 
+    test('handles both single object and array formats', () async {
+      // Test array format
+      final mockClientArray = MockClient((request) async {
+        return http.Response('''
+          [
+            {
+              "id": "0000000000000000000000000000000000000000000000000000000000000000",
+              "name": "GNUS",
+              "iconUrl": "https://example.com/gnus.png"
+            },
+            {
+              "id": "1111111111111111111111111111111111111111111111111111111111111111",
+              "name": "TEST",
+              "iconUrl": "https://example.com/test.png"
+            }
+          ]
+        ''', 200);
+      });
+
+      final loaderArray = TokenInfoLoader(httpClient: mockClientArray);
+      final tokensFromArray = await loaderArray.loadTokens();
+      expect(tokensFromArray.length, equals(2));
+
+      // Test single object format (backward compatibility)
+      final mockClientObject = MockClient((request) async {
+        return http.Response('''
+          {
+            "id": "0000000000000000000000000000000000000000000000000000000000000000",
+            "name": "GNUS",
+            "iconUrl": "https://example.com/gnus.png"
+          }
+        ''', 200);
+      });
+
+      final loaderObject = TokenInfoLoader(httpClient: mockClientObject);
+      final tokensFromObject = await loaderObject.loadTokens();
+      expect(tokensFromObject.length, equals(1));
+    });
+
     test('caching prevents unnecessary network calls', () async {
       var callCount = 0;
       final mockClient = MockClient((request) async {
         callCount++;
         return http.Response('''
-          {
-            "id": "0000000000000000000000000000000000000000000000000000000000000000",
-            "name": "GNUS",
-            "iconUrl": "https://example.com/icon.png"
-          }
+          [
+            {
+              "id": "0000000000000000000000000000000000000000000000000000000000000000",
+              "name": "GNUS",
+              "iconUrl": "https://example.com/icon.png"
+            }
+          ]
         ''', 200);
       });
 
@@ -149,6 +192,11 @@ void main() {
       expect(token!.name, equals('GNUS'));
       expect(token.id, equals('0000000000000000000000000000000000000000000000000000000000000000'));
       expect(token.iconUrl, equals('https://raw.githubusercontent.com/GeniusVentures/tokeninfo/main/images/GNUS.png'));
+
+      // Test loading all tokens
+      final tokens = await realLoader.loadTokens();
+      expect(tokens, isNotEmpty);
+      expect(tokens.first.name, equals('GNUS'));
 
       realLoader.dispose();
     });

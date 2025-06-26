@@ -15,18 +15,12 @@ class TokenInfoLoader {
     http.Client? httpClient,
   }) : _httpClient = httpClient ?? http.Client();
 
-  /// Load a single token from the GitHub URL
-  /// Returns null if loading fails
+  /// Load the first token from the GitHub URL (for backward compatibility)
+  /// Returns null if loading fails or array is empty
   Future<SuperGeniusTokenInfo?> loadToken() async {
     try {
-      final response = await _httpClient.get(Uri.parse(tokensUrl));
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to load token: HTTP ${response.statusCode}');
-      }
-
-      final json = jsonDecode(response.body);
-      return SuperGeniusTokenInfo.fromJson(json);
+      final tokens = await loadTokens();
+      return tokens.isNotEmpty ? tokens.first : null;
     } catch (e) {
       // Return null on any error to allow graceful fallback
       print('Error loading token from $tokensUrl: $e');
@@ -34,7 +28,7 @@ class TokenInfoLoader {
     }
   }
 
-  /// Load multiple tokens if the JSON contains an array
+  /// Load all tokens from the JSON array
   /// Returns empty list if loading fails
   Future<List<SuperGeniusTokenInfo>> loadTokens() async {
     try {
@@ -49,7 +43,7 @@ class TokenInfoLoader {
       // Handle both single object and array of objects
       if (json is List) {
         return json
-            .map((item) => SuperGeniusTokenInfo.fromJson(item))
+            .map((item) => SuperGeniusTokenInfo.fromJson(item as Map<String, dynamic>))
             .toList();
       } else if (json is Map<String, dynamic>) {
         return [SuperGeniusTokenInfo.fromJson(json)];
