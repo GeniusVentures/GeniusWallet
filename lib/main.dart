@@ -5,6 +5,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/components/overlay/menu_app_controller.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
@@ -27,8 +28,6 @@ void main() async {
 
   final secureStorage = await LocalWalletStorage.create();
   await secureStorage.init();
-  await secureStorage.deleteAccount();
-  await secureStorage.deleteAllWallets();
   final geniusApi = GeniusApi(secureStorage: secureStorage);
 
   final networkProvider = NetworkProvider();
@@ -59,20 +58,19 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => networkProvider),
           ChangeNotifierProvider(create: (_) => networkTokensProvider),
+          ChangeNotifierProvider(create: (_) => MenuAppController()),
           Provider(create: (_) => geniusApi),
         ],
         child: AppLifecycleHandler(
           geniusApi: geniusApi,
-          child:
-              //DevicePreview(
-              //  enabled: !kReleaseMode &&
-              // (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
-              //  builder: (context) =>
-              MyApp(
-            geniusApi: geniusApi,
+          child: DevicePreview(
+            enabled: !kReleaseMode &&
+                (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
+            builder: (context) => MyApp(
+              geniusApi: geniusApi,
+            ),
+            tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
           ),
-          // tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
-          //),
         )),
   );
 }

@@ -6,6 +6,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banxa/buy_gnus_screen.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
+import 'package:genius_wallet/components/overlay/main_board_screen.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
@@ -148,7 +149,7 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/dashboard',
       builder: ((context, state) {
-        return const ResponsiveOverlay();
+        return const MainBoardScreen();
       }),
     ),
     GoRoute(

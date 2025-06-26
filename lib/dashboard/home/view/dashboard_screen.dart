@@ -128,8 +128,8 @@ class ThreeColumnDashboardView extends StatelessWidget {
                             : bottomRowHeight,
                       ),
                       child: const Row(children: [
+                        Expanded(flex: 1, child: MarketsDashboardView()),
                         Expanded(flex: 2, child: ChartDashboardView()),
-                        Expanded(flex: 1, child: MarketsDashboardView())
                       ])),
                 ])),
             ConstrainedBox(
@@ -173,8 +173,8 @@ class TwoColumnDashBoardView extends StatelessWidget {
           SizedBox(
               height: 480,
               child: Row(children: [
-                Expanded(flex: 2, child: ChartDashboardView()),
-                Expanded(flex: 1, child: MarketsDashboardView())
+                Expanded(flex: 1, child: MarketsDashboardView()),
+                Expanded(flex: 2, child: ChartDashboardView())
               ])),
           SizedBox(height: 600, child: TransactionsDashboardView()),
         ]));

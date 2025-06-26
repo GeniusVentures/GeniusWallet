@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/desktop_tab_bar.dart';
+import 'package:genius_wallet/components/overlay/desktop_tab_bar_leftmenu.dart';
+import 'package:genius_wallet/components/overlay/menu_app_controller.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 
@@ -19,7 +21,9 @@ class DesktopOverlay extends StatelessWidget {
             return Column(
               children: [
                 const DevToolsWidget(),
-                const DesktopTopBar(),
+                context.read<MenuAppController>().showDesktopSideMenu
+                    ? const DesktopTopBarLeftMenu()
+                    : const DesktopTopBar(),
                 Expanded(child: child),
               ],
             );

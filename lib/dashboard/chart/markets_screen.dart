@@ -25,7 +25,7 @@ class MarketsScreen extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     int columns = getCrossAxisCount(context);
     double cardWidth = screenWidth / columns - 8; // Account for padding
-    return cardWidth / 80; // Ensures 100px height
+    return cardWidth / 100; // Ensures 100px height
   }
 
   @override

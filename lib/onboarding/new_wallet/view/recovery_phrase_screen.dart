@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
@@ -12,7 +11,6 @@ import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/registration_header.g.dart';
-import 'package:flutter/services.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -56,7 +54,7 @@ class _RecoveryPhraseViewDesktopState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus(); // Automatically focus after build
+      _focusNode.requestFocus(); // Foco automático após a construção
     });
   }
 
@@ -81,7 +79,7 @@ class _RecoveryPhraseViewDesktopState
           children: [
             const Text(
               GeniusWalletText.titleRecovery,
-              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -89,7 +87,7 @@ class _RecoveryPhraseViewDesktopState
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 60),
-            const _WordsGridWithCopyAndToggle(), // grid with recovery words
+            const _WordsGridWithCopyAndToggle(), // grade com palavras de recuperação
             const SizedBox(height: 30),
             SizedBox(
               height: 50,
@@ -145,6 +143,7 @@ class _WordsGridWithCopyAndToggleState
                 color: _isVisible
                     ? GeniusWalletColors.grayPrimary
                     : GeniusWalletColors.grayPrimary
+                        // ignore: deprecated_member_use
                         .withOpacity(0.4), // darker effect
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
@@ -214,21 +213,22 @@ class _WordsGridWithCopyAndToggleState
             ),
             const SizedBox(height: 80),
             SizedBox(
-              width: 640, // Match the maxWidth of AnimatedContainer
+              width: 640, // Corresponde ao maxWidth do AnimatedContainer
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton.icon(
                     onPressed: () async {
                       await FlutterClipboard.copy(words.join(' '));
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content:
-                                Text("Recovery phrase copied to clipboard!")),
+                                Text(GeniusWalletText.copytoclipboardWallet)),
                       );
                     },
                     icon: const Icon(Icons.copy),
-                    label: const Text("Copy to clipboard"),
+                    label: const Text(GeniusWalletText.copytoclipboardBtn),
                   ),
                   TextButton.icon(
                     onPressed: () {
@@ -238,8 +238,9 @@ class _WordsGridWithCopyAndToggleState
                     },
                     icon: Icon(
                         _isVisible ? Icons.visibility_off : Icons.visibility),
-                    label: Text(
-                        _isVisible ? "Hide seed phrase" : "Show seed phrase"),
+                    label: Text(_isVisible
+                        ? GeniusWalletText.togglehideseedphraseBtn
+                        : GeniusWalletText.toggleshowseedphraseBtn),
                   ),
                 ],
               ),
@@ -323,23 +324,19 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
         TextButton.icon(
           onPressed: () async {
             await FlutterClipboard.copy(
-                context
-                    .read<NewWalletBloc>()
-                    .state
-                    .recoveryWords
-                    .join(' '));
+                context.read<NewWalletBloc>().state.recoveryWords.join(' '));
             if (!mounted) {
               return;
             }
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Recovery phrase copied to clipboard!'),
+                content: Text(GeniusWalletText.copyalarmtxt),
               ),
             );
           },
           style: OutlinedButton.styleFrom(
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
             side: const BorderSide(
                 width: 1.0, color: GeniusWalletColors.btnCopyBorder),

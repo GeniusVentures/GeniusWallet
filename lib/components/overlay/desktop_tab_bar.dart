@@ -6,6 +6,7 @@ import 'package:genius_wallet/banxa/buy_gnus_button.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/components/overlay/menu_app_controller.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
@@ -44,12 +45,17 @@ class DesktopTopBar extends StatelessWidget {
         children: [
           Row(children: [
             Row(children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Image.asset(
-                  'assets/images/geniusappbarlogo.png',
-                  height: 30,
-                  package: 'genius_wallet',
+              GestureDetector(
+                onTap: () {
+                  context.read<MenuAppController>().toggleDesktopSideMenu();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Image.asset(
+                    'assets/images/geniusappbarlogo.png',
+                    height: 30,
+                    package: 'genius_wallet',
+                  ),
                 ),
               ),
             ]),

@@ -4,13 +4,11 @@ import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
-import 'package:genius_wallet/onboarding/widgets/recovery_words_input.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:flutter/services.dart';
 
@@ -40,7 +38,7 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
           context.flow<NewWalletState>().complete();
         } else if (state.verificationStatus == VerificationStatus.failed) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Verification failed. Please try again.')));
+              content: Text(GeniusWalletText.verificationfailed)));
         }
       },
       child: Scaffold(
@@ -101,7 +99,7 @@ class _VerifyRecoveryPhraseViewDesktopState
   void _triggerContinue() {
     final completeWordsList = _inputAndWordsKey.currentState?.completeWordsList;
 
-    // Add null check and validation
+    // Adicionar verificação e validação nula
     if (completeWordsList == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -111,9 +109,7 @@ class _VerifyRecoveryPhraseViewDesktopState
       return;
     }
 
-    print("test $completeWordsList");
-
-    // Check if all empty fields are filled
+    // Verifique se todos os campos vazios estão preenchidos
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -192,7 +188,6 @@ class _InputAndWordsState extends State<_InputAndWords> {
   late final Set<int> emptyIndices;
   late final List<String> originalWords;
   late final List<String> shuffledAvailableWords;
-  static const SELECT_WORD_COUNT = 4;
   int? highlightedEmptyIndex;
 
   @override
@@ -205,37 +200,31 @@ class _InputAndWordsState extends State<_InputAndWords> {
     final words = context.read<NewWalletBloc>().state.recoveryWords;
     originalWords = List<String>.from(words);
     final random = Random();
-    int emptyCount = SELECT_WORD_COUNT;
+    int emptyCount = GeniusWalletConsts.selectwordCount;
 
-    // Select random indices to be empty
+    // Selecione índices aleatórios para ficarem vazios
     emptyIndices = <int>{};
     while (emptyIndices.length < emptyCount) {
       emptyIndices.add(random.nextInt(words.length));
     }
 
-    // Initialize user input words - empty for missing indices, original for filled
     userInputWords = List<String>.generate(words.length, (i) {
       return emptyIndices.contains(i) ? '' : words[i];
     });
 
-    // Create shuffled list of only the missing words (SELECT_WORD_COUNT words)
     shuffledAvailableWords = [];
     for (int index in emptyIndices) {
       shuffledAvailableWords.add(originalWords[index]);
     }
 
-    // Shuffle the missing words
     shuffledAvailableWords.shuffle(random);
 
-    // Set the first empty box as highlighted
     _updateHighlightedIndex();
   }
 
   void _updateHighlightedIndex() {
-    // Get sorted empty indices to process in order
     final sortedEmptyIndices = emptyIndices.toList()..sort();
 
-    // Find the first empty index in sorted order to highlight
     highlightedEmptyIndex = null;
     for (int index in sortedEmptyIndices) {
       if (userInputWords[index].isEmpty) {
@@ -246,10 +235,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
   }
 
   void _onWordClick(String word) {
-    // Get sorted empty indices to fill in order
     final sortedEmptyIndices = emptyIndices.toList()..sort();
 
-    // Find the first empty slot in order
     int? targetIndex;
     for (int index in sortedEmptyIndices) {
       if (userInputWords[index].isEmpty) {
@@ -261,7 +248,6 @@ class _InputAndWordsState extends State<_InputAndWords> {
     if (targetIndex != null) {
       setState(() {
         userInputWords[targetIndex!] = word;
-        // Remove the word from available words
         shuffledAvailableWords.remove(word);
         _updateHighlightedIndex();
       });
@@ -271,7 +257,6 @@ class _InputAndWordsState extends State<_InputAndWords> {
   void _onEmptyBoxClick(int index) {
     if (emptyIndices.contains(index) && userInputWords[index].isNotEmpty) {
       setState(() {
-        // Return the word to available words
         String wordToReturn = userInputWords[index];
         userInputWords[index] = '';
         shuffledAvailableWords.add(wordToReturn);
@@ -290,7 +275,6 @@ class _InputAndWordsState extends State<_InputAndWords> {
     return GeniusBreakpoints.useDesktopLayout(context)
         ? Column(
             children: [
-              // Recovery phrase grid
               Container(
                 constraints: const BoxConstraints(
                   maxHeight: 360,
@@ -617,7 +601,6 @@ class _InputAndWordsState extends State<_InputAndWords> {
                     ),
                   ),
                 ] else ...[
-                  // Show completion message when all words are filled
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -685,7 +668,6 @@ class _VerifyRecoveryPhraseViewMobileState
   void _triggerContinue() {
     final completeWordsList = _inputAndWordsKey.currentState?.completeWordsList;
 
-    // Add null check and validation
     if (completeWordsList == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -695,9 +677,6 @@ class _VerifyRecoveryPhraseViewMobileState
       return;
     }
 
-    print("test $completeWordsList");
-
-    // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -707,7 +686,6 @@ class _VerifyRecoveryPhraseViewMobileState
       return;
     }
 
-    // Update the BLoC state
     final newWalletBloc = context.read<NewWalletBloc>();
     newWalletBloc.add(RecoveryWordAssign(recoverywords: completeWordsList));
     newWalletBloc.add(RecoveryVerificationContinue());
@@ -718,7 +696,6 @@ class _VerifyRecoveryPhraseViewMobileState
     return AppScreenView(
       body: Column(
         children: [
-          // Fixed header - works well on mobile
           SizedBox(
             width: MediaQuery.of(context).size.width,
             height: 180,
@@ -732,11 +709,10 @@ class _VerifyRecoveryPhraseViewMobileState
               },
             ),
           ),
-          // Expanded middle section - takes remaining space
-         Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _InputAndWords(key: _inputAndWordsKey),
-            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _InputAndWords(key: _inputAndWordsKey),
+          ),
         ],
       ),
       footer: Padding(
@@ -755,4 +731,5 @@ class _VerifyRecoveryPhraseViewMobileState
         ),
       ),
     );
-  }}
+  }
+}

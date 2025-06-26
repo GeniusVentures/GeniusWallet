@@ -46,6 +46,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   @override
   void dispose() {
     _timer?.cancel();
+
     super.dispose();
   }
 

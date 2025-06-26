@@ -3,7 +3,8 @@ class GeniusWalletText {
   static const String titleWalletBackup = 'Wallet Backup';
   static const String titleRecovery = 'Your Recovery Phrase';
   static const String titleverifyRecovery = 'Verify Your Recovery Phrase';
-  static const String subtitleverifyRecovery = 'Tap the words to put them next to each other in the correct order';
+  static const String subtitleverifyRecovery =
+      'Tap the words to put them next to each other in the correct order';
   static const String wallets = 'Wallets';
 
   // Help Text
@@ -14,6 +15,16 @@ class GeniusWalletText {
   static const String helpRecoveryPhrase =
       'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.';
   static const String helpPin = 'Create a PIN';
+
+  // Function Text
+  static const String copytoclipboardWallet =
+      "Recovery phrase copied to clipboard!";
+  static const String copytoclipboardBtn = "Copy to clipboard";
+  static const String toggleshowseedphraseBtn = "Show seed phrase";
+  static const String togglehideseedphraseBtn = "Hide seed phrase";
+  static const String copyalarmtxt = 'Recovery phrase copied to clipboard!';
+  static const String verificationfailed =
+      'Verification failed. Please try again.';
 
   // Button Text
   static const String btnContinue = 'Continue';
