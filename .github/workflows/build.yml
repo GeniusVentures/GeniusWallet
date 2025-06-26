@@ -237,35 +237,46 @@ jobs:
             fi
           fi
 
-      - name: Prepare and compress artifacts
+      - name: Prepare artifacts
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
-          mkdir -p ${{env.BUILD_DIRECTORY}}/flutter-app
+          mkdir -p artifacts
           
           case "${{ matrix.target }}" in
             "Android")
               if [ "${{ matrix.build-type }}" = "Debug" ]; then
-                cp build/app/outputs/flutter-apk/app-debug.apk ${{env.BUILD_DIRECTORY}}/flutter-app/
+                cp build/app/outputs/flutter-apk/app-debug.apk artifacts/
               else
-                cp build/app/outputs/flutter-apk/app-release.apk ${{env.BUILD_DIRECTORY}}/flutter-app/
+                cp build/app/outputs/flutter-apk/app-release.apk artifacts/
               fi
               ;;
             "iOS")
-              cp -r build/ios/iphoneos/*.app ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
+              cp -r build/ios/iphoneos/*.app artifacts/ || true
               ;;
             "OSX")
-              cp -r build/macos/Build/Products/*/[!.]*.app ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
+              cp -r build/macos/Build/Products/*/[!.]*.app artifacts/ || true
               ;;
             "Linux")
-              cp -r build/linux/*/release/bundle/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || cp -r build/linux/*/debug/bundle/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
+              cp -r build/linux/*/release/bundle artifacts/ || true
+              cp -r build/linux/*/debug/bundle artifacts/ || true
               ;;
             "Windows")
-              cp -r build/windows/runner/Release/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || cp -r build/windows/runner/Debug/* ${{env.BUILD_DIRECTORY}}/flutter-app/ || true
+              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
               ;;
           esac
-          
-          cd ${{env.BUILD_DIRECTORY}}
-          tar --exclude=.git -czvf ${FILE_NAME} --transform 's|^|${{env.BUILD_DIRECTORY}}/|' flutter-app/
+        shell: bash
+
+      - name: Compress build artifacts
+        working-directory: ${{github.workspace}}
+        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        run: |
+          if [ '${{matrix.abi}}' ]; then
+            ARTIFACT_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}.tar.gz
+          else
+            ARTIFACT_NAME=${{matrix.target}}-${{matrix.build-type}}.tar.gz
+          fi
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+          tar -czvf ${ARTIFACT_NAME} artifacts/
         shell: bash
 
       - name: Release Flutter App
@@ -293,5 +304,5 @@ jobs:
                   -t "${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
           fi
 
-          echo -e "Uploading ${FILE_NAME}"
-          gh release upload --clobber ${RELEASE_TAG} "${{env.BUILD_DIRECTORY}}/${FILE_NAME}"
+          echo -e "Uploading ${ARTIFACT_NAME}"
+          gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
