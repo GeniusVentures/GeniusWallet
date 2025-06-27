@@ -1,20 +1,6 @@
 name: Flutter Build and Release
 
 on:
-  push:
-    branches:
-      - develop
-      - main
-    paths-ignore:
-      - '.github/**'
-      - 'README.md'
-  pull_request:
-    branches:
-      - develop
-      - main
-    paths-ignore:
-      - '.github/**'
-      - 'README.md'
   workflow_dispatch:
 
 jobs:
@@ -31,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [Android, iOS, OSX, Linux, Windows]
+        target: [iOS]
         build-type: [Release]
         abi: [""]
         include:
