@@ -21,26 +21,6 @@ jobs:
         build-type: [Release]
         abi: [""]
         include:
-          - target: Linux
-            host: ubuntu-latest
-            flutter-platform: linux
-            abi: x86_64
-            build-type: Release
-          - target: Linux
-            host: ubuntu-24.04-arm
-            flutter-platform: linux
-            abi: aarch64
-            build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
-          - target: Windows
-            host: windows-latest
-            flutter-platform: windows
-          - target: OSX
-            host: macos-latest
-            flutter-platform: macos
-          - target: Android
-            host: ubuntu-latest
-            flutter-platform: apk
           - target: iOS
             host: macos-latest
             flutter-platform: ios
