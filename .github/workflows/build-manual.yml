@@ -1,4 +1,4 @@
-name: Flutter Build and Release
+name: Flutter Manually Trigger Build and Release, IOS only for debugging
 
 on:
   workflow_dispatch:
