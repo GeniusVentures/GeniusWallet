@@ -64,7 +64,7 @@ jobs:
           sudo update-alternatives --set cc $(which clang)
           sudo update-alternatives --set c++ $(which clang++)
            
-          sudo apt install ccache ninja-build libvulkan-dev libzstd-dev -y
+          sudo apt install ccache ninja-build libvulkan-dev libzstd-dev jq -y
           
           # Flutter Linux desktop dependencies
           if [ "${{ matrix.target }}" = "Linux" ]; then
@@ -82,7 +82,7 @@ jobs:
       - name: Configure macOS host
         if: ${{ runner.os == 'macOS'}}
         run: |
-          brew install ccache ninja bash gnu-tar jq
+          brew install ccache ninja bash gnu-tar
           PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
           echo "PATH=$PATH" >> $GITHUB_ENV
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
