@@ -119,8 +119,8 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
           fi
 
-          # No extra args needed - we're using proper code signing now
-          EXTRA_ARGS=""
+          # extra args needed - we're using proper code signing now
+          EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
    
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
