@@ -124,7 +124,7 @@ jobs:
           EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
           if [ "${{ matrix.flutter-platform }}" = "ios" ]; then
             FLUTTER_BUILD_PLATFORM="ipa"
-          elif
+          else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi 
    
