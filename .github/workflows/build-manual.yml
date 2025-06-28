@@ -144,9 +144,8 @@ jobs:
 
           # import certificate and provisioning profile from secrets
           echo -n "$DEV_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o $DISTRIBUTION_CERTIFICATE_PATH
-          echo -n "DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
-          echo -n "DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
-
+          echo -n "$DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
+          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
