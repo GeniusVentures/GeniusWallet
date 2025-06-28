@@ -105,7 +105,8 @@ jobs:
           submodules: "recursive"
 
       - name: Get Flutter Dependencies
-        run: flutter pub get --quiet
+        run: |
+          flutter pub get 2>&1 | tee pub_get.log > /dev/null || { cat pub_get.log; exit 1; }
 
       - name: Setup CMake Arguments
         run: |
@@ -191,9 +192,9 @@ jobs:
           else
             # Other platforms respect CMAKE_ARGUMENTS environment variable
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} --verbose 2>&1 | tee pub_build.log > /dev/null || { cat pub_build.log; exit 1; }
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose 2>&1 | tee pub_build.log > /dev/null || { cat pub_build.log; exit 1; }
             fi
           fi
 
