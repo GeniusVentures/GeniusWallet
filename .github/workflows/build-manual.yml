@@ -119,10 +119,10 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
           fi
 
-          # extra args needed - we're using proper code signing now
-          #EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
+          # extra args needed only when building with flutter build ipa - we're using proper code signing now
+          # EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
           EXTRA_ARGS=""
-          
+   
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
         shell: bash
@@ -130,37 +130,22 @@ jobs:
       - name: Install the Apple certificate and provisioning profile for MacOS
         if: ${{ matrix.host == 'macos-latest' }}
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          BUILD_CERTIFICATE_2_BASE64: ${{ secrets.BUILD_CERTIFICATE_2_BASE64 }}
-          BUILD_CERTIFICATE_3_BASE64: ${{ secrets.BUILD_CERTIFICATE_3_BASE64 }}
-          BUILD_CERTIFICATE_4_BASE64: ${{ secrets.BUILD_CERTIFICATE_4_BASE64 }}
-          P12_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-          A23_MOBILE_PROVISION: ${{ secrets.A23_MOBILE_PROVISION }}
-          B08_MOBILE_PROVISION: ${{ secrets.B08_MOBILE_PROVISION }}
-          B4E_MOBILE_PROVISION: ${{ secrets.B4E_MOBILE_PROVISION }}
-          E05_MOBILE_PROVISION: ${{ secrets.E05_MOBILE_PROVISION }}
+          DEV_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.DEV_DISTRIBUTION_PRIVATE_KEY_BASE64 }}
+          DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
+          DEV_DISTRIBUTION_MAC_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_MAC_PROVISIONING_PROFILE_BASE_64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          DEV_DISTRIBUTION_P12_PASSWORD: ${{ secrets.DEV_DISTRIBUTION_P12_PASSWORD }}
         run: |
           # create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          CERTIFICATE_PATH2=$RUNNER_TEMP/build_certificate2.p12
-          CERTIFICATE_PATH3=$RUNNER_TEMP/build_certificate3.p12
-          CERTIFICATE_PATH4=$RUNNER_TEMP/build_certificate4.p12
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          PP_PATH2=$RUNNER_TEMP/build_pp2.mobileprovision
-          PP_PATH3=$RUNNER_TEMP/build_pp3.mobileprovision
-          PP_PATH4=$RUNNER_TEMP/build_pp4.mobileprovision
+          DISTRIBUTION_CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$BUILD_CERTIFICATE_2_BASE64" | base64 --decode -o $CERTIFICATE_PATH2
-          echo -n "$BUILD_CERTIFICATE_3_BASE64" | base64 --decode -o $CERTIFICATE_PATH3
-          echo -n "$BUILD_CERTIFICATE_4_BASE64" | base64 --decode -o $CERTIFICATE_PATH4
-          echo -n "$A23_MOBILE_PROVISION" | base64 --decode -o $PP_PATH
-          echo -n "$B08_MOBILE_PROVISION" | base64 --decode -o $PP_PATH2
-          echo -n "$B4E_MOBILE_PROVISION" | base64 --decode -o $PP_PATH3
-          echo -n "$E05_MOBILE_PROVISION" | base64 --decode -o $PP_PATH4
+          echo -n "$DEV_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o $DISTRIBUTION_CERTIFICATE_PATH
+          echo -n "DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
+          echo -n "DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
 
 
           # create temporary keychain
@@ -169,10 +154,7 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
           # import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $CERTIFICATE_PATH2 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $CERTIFICATE_PATH3 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $CERTIFICATE_PATH4 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DISTRIBUTION_CERTIFICATE_PATH -p "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
@@ -180,13 +162,9 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH2 ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH3 ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH4 ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          cp $PP_PATH2 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          cp $PP_PATH3 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          cp $PP_PATH4 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $MP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $MP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
 
           echo "Finishing importing certificates"
         shell: bash
