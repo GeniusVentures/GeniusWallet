@@ -7,7 +7,7 @@
 	<key>manageAppVersionAndBuildNumber</key>
 	<true/>
 	<key>method</key>
-	<string>app-store-connect</string>
+	<string>app-store</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>ai.gnus.GeniusWallet</key>
@@ -21,9 +21,9 @@
 	<true/>
 	<key>teamID</key>
 	<string>P7T32QQX5V</string>
-	<key>testFlightInternalTestingOnly</key>
-	<true/>
+	<key>uploadBitcode</key>
+	<false/>
 	<key>uploadSymbols</key>
-	<true/>
+	<false/>
 </dict>
 </plist>
