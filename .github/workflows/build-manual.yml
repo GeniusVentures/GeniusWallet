@@ -122,6 +122,10 @@ jobs:
           # extra args needed only when building with flutter build ipa - we're using proper code signing now
           # EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
           EXTRA_ARGS=""
+          # default to use what's in the xcodeproj file already
+          if [ "${{ matrix.flutter-platform }}" = "macos" -o "${{ matrix.flutter-platform }}" == "ios" ]; then
+            EXTRA_ARGS="-no-codesign"
+          fi
    
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
