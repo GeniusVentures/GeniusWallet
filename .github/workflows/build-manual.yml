@@ -124,7 +124,7 @@ jobs:
           EXTRA_ARGS=""
           # default to use what's in the xcodeproj file already
           if [ "${{ matrix.flutter-platform }}" = "macos" -o "${{ matrix.flutter-platform }}" == "ios" ]; then
-            EXTRA_ARGS="-no-codesign"
+            EXTRA_ARGS="--no-codesign"
           fi
    
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
