@@ -194,7 +194,7 @@ jobs:
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} --verbose 2>&1 | tee pub_build.log > /dev/null || { cat pub_build.log; exit 1; }
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose 2>&1 | tee pub_build.log > /dev/null || { cat pub_build.log; exit 1; }
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
             fi
           fi
 
