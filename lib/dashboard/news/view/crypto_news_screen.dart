@@ -80,13 +80,15 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                   return LayoutBuilder(
                     builder: (context, constraints) {
                       final isMobile = constraints.maxWidth <= 800;
+                      final columns =
+                          getResponsiveColumnCount(constraints.maxWidth);
 
                       if (_layoutData.length != articles.length) {
                         _generateLayoutData(articles.length);
                       }
 
                       return MasonryGridView.count(
-                        crossAxisCount: isMobile ? 1 : 3,
+                        crossAxisCount: columns,
                         mainAxisSpacing: 8,
                         crossAxisSpacing: 8,
                         itemCount: articles.length,
@@ -116,11 +118,15 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                                 card = NewsCard(article: article);
                             }
 
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: 300,
-                                maxHeight: layout.height,
-                              ),
+                            // return ConstrainedBox(
+                            //   constraints: BoxConstraints(
+                            //     minHeight: 300,
+                            //     maxHeight: layout.height,
+                            //   ),
+                            //   child: card,
+                            // );
+                            return AspectRatio(
+                              aspectRatio: 16 / 9, // or 4 / 3
                               child: card,
                             );
                           }
@@ -136,6 +142,22 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
         ),
       ),
     );
+  }
+}
+
+int getResponsiveColumnCount(double width) {
+  if (width < 400) {
+    return 1;
+  } else if (width < 800) {
+    return 2;
+  } else if (width < 900) {
+    return 3;
+  } else if (width < 1200) {
+    return 4;
+  } else if (width < 1500) {
+    return 5;
+  } else {
+    return 6;
   }
 }
 

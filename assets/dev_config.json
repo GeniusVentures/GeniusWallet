@@ -1,6 +1,6 @@
 {
     "Address": "0xcafecafe",
     "Cut": "0.7",
-    "TokenValue": 1.0,
-    "TokenID": 0
+    "TokenValue": "1.0",
+    "TokenID": "0x0000000000000000000000000000000000000000000000000000000000000000"
 }

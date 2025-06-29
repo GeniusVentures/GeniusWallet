@@ -5,10 +5,9 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(CMAKE_VERBOSE_MAKEFILE on)
 
     include(${CMAKE_CURRENT_LIST_DIR}/Utilities.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/DownloadDependencies.cmake)
-
-    # Download dependencies specific to GeniusWallet
+    
+        # Download dependencies specific to GeniusWallet
     # The function will auto-detect the current Git branch
     download_project_dependencies(
         SuperGenius
@@ -16,14 +15,18 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         zkLLVM
         thirdparty
     )
-
+    
+    
+    include(${CMAKE_CURRENT_LIST_DIR}/CommonCompilerOptions.cmake)
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
         set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
         set(ABI_SUBFOLDER_NAME "/${ANDROID_ABI}")
     endif()
 
     set(THIRDPARTY_BUILD_DIR ${THIRDPARTY_DIR}/${ARCH_OUTPUT_DIR})
-    message(WARNING "BUILD DIR: ${THIRDPARTY_BUILD_DIR}")
+    set(ZKLLVM_BUILD_DIR ${ZKLLVM_DIR}/${ARCH_RELEASE_OUTPUT_DIR})
+    message(STATUS "BUILD DIR: ${THIRDPARTY_BUILD_DIR}")
+    message(STATUS "ZKLLVM_BUILD_DIR DIR: ${ZKLLVM_BUILD_DIR}")
     set(WALLET_CORE_DIR "${THIRDPARTY_BUILD_DIR}/wallet-core" CACHE PATH "Path to WalletCore install folder")
     set(WALLET_CORE_INCLUDE_DIR "${WALLET_CORE_DIR}/include" CACHE PATH "Path to WalletCore include folder")
     set(WALLET_CORE_LIB_DIR "${WALLET_CORE_DIR}/lib" CACHE PATH "Path to WalletCore lib folder")
@@ -61,7 +64,11 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     # --------------------------------------------------------
     # Set config of protobuf project
     if(NOT DEFINED Protobuf_DIR)
-        set(Protobuf_DIR "${THIRDPARTY_BUILD_DIR}/grpc/lib/cmake/protobuf")
+        if (NOT DEFINED PROTOBUF_CONFIG_LOCATION)
+            set(PROTOBUF_CONFIG_LOCATION "/grpc/lib/cmake/protobuf")
+        endif()
+        message("Protobuf directory: ${THIRDPARTY_BUILD_DIR}${PROTOBUF_CONFIG_LOCATION}")
+        set(Protobuf_DIR "${THIRDPARTY_BUILD_DIR}${PROTOBUF_CONFIG_LOCATION}")
     endif()
 
     if(NOT DEFINED Protobuf_INCLUDE_DIR)
@@ -81,7 +88,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
 
     # --------------------------------------------------------
     # Set config of rocksdb
-    message(WARNING "ROCKSDB ${THIRDPARTY_BUILD_DIR}")
+    message(STATUS "ROCKSDB ${THIRDPARTY_BUILD_DIR}")
     set(RocksDB_DIR "${THIRDPARTY_BUILD_DIR}/rocksdb/lib/cmake/rocksdb")
     set(RocksDB_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/rocksdb/include")
     find_package(RocksDB CONFIG REQUIRED)
@@ -170,7 +177,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     # --------------------------------------------------------
     # Set config of Boost project
     set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build")
-    message(WARNING "BOOST ROOT ${_BOOST_ROOT}")
+    message(STATUS "BOOST ROOT ${_BOOST_ROOT}")
     set(Boost_LIB_DIR "${_BOOST_ROOT}/lib")
     set(Boost_INCLUDE_DIR "${_BOOST_ROOT}/include/boost-${BOOST_VERSION_2U}")
     set(Boost_DIR "${Boost_LIB_DIR}/cmake/Boost-${BOOST_VERSION}")
@@ -292,11 +299,6 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     include_directories(${RapidJSON_INCLUDE_DIR})
 
     # --------------------------------------------------------
-    # Set jsonrpc-lean include path
-    set(jsonrpc_lean_INCLUDE_DIR "${_THIRDPARTY_DIR}/jsonrpc-lean/include")
-    include_directories(${jsonrpc_lean_INCLUDE_DIR})
-
-    # --------------------------------------------------------
     # Set config of secp256k1
     set(libsecp256k1_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/include")
     set(libsecp256k1_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/lib")
@@ -353,58 +355,59 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     add_library(marshalling::crypto3_zk INTERFACE IMPORTED)
 
     set_target_properties(crypto3::algebra PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::block PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::blueprint PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::codec PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::math PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::multiprecision PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::pkpad PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::pubkey PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::random PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(crypto3::zk PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::core PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::crypto3_algebra PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::crypto3_multiprecision PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     set_target_properties(marshalling::crypto3_zk PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_DIR}/zkLLVM/include"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZKLLVM_BUILD_DIR}/zkLLVM/include"
     )
     # zkLLVM
-    set(zkLLVM_INCLUDE_DIR "${ZKLLVM_DIR}/zkLLVM/include")
+    set(zkLLVM_INCLUDE_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/include")
 
     # Set config of llvm
-    set(LLVM_DIR "${ZKLLVM_DIR}/zkLLVM/lib/cmake/llvm")
+    set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
     find_package(LLVM CONFIG REQUIRED)
 
 
     set(SUPERGENIUS_BUILD_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
     set(SuperGenius_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/SuperGenius/")
     set(ProofSystem_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/ProofSystem/")
+    message(STATUS "SUPERGENIUS_BUILD_DIR DIR: ${SUPERGENIUS_BUILD_DIR}")
     find_package(ProofSystem CONFIG REQUIRED)
     find_package(SuperGenius CONFIG REQUIRED)
     include_directories(${SuperGenius_INCLUDE_DIR})

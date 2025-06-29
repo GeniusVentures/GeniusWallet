@@ -353,7 +353,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd native\nmkdir -p build\ncd build\nrm -rf *\n\n# Run CMake and build the framework, default to Debug (for flutter)\ncmake .. ${CMAKE_ARGUMENTS:=-DCMAKE_BUILD_TYPE=Debug}\nmake\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
+			shellScript = "cd native\nmkdir -p build\ncd build\nrm -rf *\n\n# Run CMake and build the framework, default to Debug (for flutter)\ncmake .. -G \"Ninja\" ${CMAKE_ARGUMENTS:=-DCMAKE_BUILD_TYPE=Debug}\nninja\n\nmkdir -p GeniusWallet.framework\nmkdir -p GeniusWallet.framework/Versions/A\ncp libGeniusWallet.dylib GeniusWallet.framework/Versions/A/GeniusWallet\nmkdir -p GeniusWallet.framework/Versions/A/Resources\ncp ../GeniusWallet_Info.plist GeniusWallet.framework/Versions/A/Resources/Info.plist\ncd GeniusWallet.framework\nln -s A Versions/Current\nln -s Versions/Current/GeniusWallet GeniusWallet\nln -s Versions/Current/Resources Resources\ncd ..\ninstall_name_tool -id @rpath/GeniusWallet.framework/Versions/A/GeniusWallet GeniusWallet.framework/Versions/A/GeniusWallet\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -446,11 +446,13 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = P7T32QQX5V;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = P7T32QQX5V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/native/build",
@@ -472,6 +474,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "GeniusWallet Mac Profile";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Profile;
@@ -596,11 +599,13 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = P7T32QQX5V;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = P7T32QQX5V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/native/build",
@@ -624,6 +629,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "GeniusWallet Mac Profile";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -637,11 +643,13 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = P7T32QQX5V;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = P7T32QQX5V;
 				"EXCLUDED_ARCHS[sdk=*]" = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -667,6 +675,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "GeniusWallet Mac Profile";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

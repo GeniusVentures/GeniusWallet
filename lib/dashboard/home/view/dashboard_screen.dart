@@ -190,14 +190,22 @@ class OneColumnDashBoardView extends StatelessWidget {
         builder: (context, walletState) {
       final selectedWallet = walletState.selectedWallet;
       final isSgnusWallet = selectedWallet?.walletType == WalletType.sgnus;
-
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(
-            height: MediaQuery.of(context).size.height - 175,
-            child: isSgnusWallet
-                ? const GeniusWalletDetailsScreen()
-                : const WalletDetailsScreen()),
-      ]);
+      if (selectedWallet != null) {
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+              height: MediaQuery.of(context).size.height - 175,
+              child: isSgnusWallet
+                  ? const GeniusWalletDetailsScreen()
+                  : const WalletDetailsScreen()),
+        ]);
+      } else {
+        return const Center(
+          child: Text(
+            "No Wallet selected",
+            style: TextStyle(fontSize: 32, color: Colors.white),
+          ),
+        );
+      }
     });
   }
 }

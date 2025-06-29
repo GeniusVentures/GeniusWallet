@@ -23,6 +23,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   StreamSubscription<String>? _urlSubscription;
   final List<String> history = [];
   int currentHistoryIndex = -1;
+  List<String> openTabs = [];
+  int currentTabIndex = 0;
 
   @override
   void initState() {
@@ -47,22 +49,27 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _controller.loadUrl(widget.url);
     _urlController.text = widget.url;
 
-    // Listen for URL changes
+    // Add the initial tab
+    openTabs.add(widget.url);
+    currentTabIndex = 0;
+
     _urlSubscription = _controller.url.listen((url) {
-      if (currentHistoryIndex == -1 ||
-          history.isEmpty ||
-          history[currentHistoryIndex] != url) {
-        // If we navigated back, remove "forward" history
+      if (!history.contains(url)) {
         if (currentHistoryIndex < history.length - 1) {
           history.removeRange(currentHistoryIndex + 1, history.length);
         }
 
         history.add(url);
         currentHistoryIndex = history.length - 1;
+      } else {
+        currentHistoryIndex = history.indexOf(url);
       }
 
       setState(() {
         _urlController.text = url;
+        if (openTabs.isNotEmpty) {
+          openTabs[currentTabIndex] = url;
+        }
       });
     });
   }
@@ -181,10 +188,10 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         children: [
           _buildIconButton(Icons.arrow_back, canGoBack() ? goBack : null),
           // HIDE FORWARD BUTTON FOR SPACE
-          // _buildIconButton(
-          //   Icons.arrow_forward,
-          //   canGoForward() ? goForward : null,
-          // ),
+          _buildIconButton(
+            Icons.arrow_forward,
+            canGoForward() ? goForward : null,
+          ),
           _buildIconButton(Icons.refresh, _controller.reload),
           const SizedBox(width: 8),
           Expanded(
@@ -204,6 +211,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
               onSubmitted: (_) => _loadUrl(),
             ),
           ),
+          _buildIconButton(Icons.tab, _showTabSwitcher),
         ],
       ),
     );
@@ -218,5 +226,70 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       hoverColor: GeniusWalletColors.deepBlueCardColor.withOpacity(0.3),
       splashColor: GeniusWalletColors.deepBlueCardColor.withOpacity(0.5),
     );
+  }
+
+  void _showTabSwitcher() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: SizedBox(
+            width: 500,
+            height: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    "History",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                ),
+                const Divider(color: Colors.white54),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: history.length,
+                    itemBuilder: (context, index) {
+                      final url = history[index];
+                      return ListTile(
+                        title: Text(
+                          url,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: index == currentTabIndex
+                                ? GeniusWalletColors.lightGreenPrimary
+                                : Colors.white,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _switchToTab(index);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _switchToTab(int index) {
+    if (index != currentTabIndex) {
+      currentTabIndex = index;
+      _controller.loadUrl(history[currentTabIndex]);
+      _urlController.text = history[currentTabIndex];
+      setState(() {});
+    }
   }
 }

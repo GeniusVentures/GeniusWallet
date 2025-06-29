@@ -30,6 +30,7 @@ endif()
 
 set(ARCH_BUILD_DIR /build/Android/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${BUILD_TYPE_SEARCH}/${ANDROID_ABI})
+set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}Release/${ANDROID_ABI})
 
 #find_package(Vulkan REQUIRED)
 

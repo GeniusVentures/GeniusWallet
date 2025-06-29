@@ -45,7 +45,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
               child: AutoSizeText('Current Balance',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
+                  style: TextStyle(color: Colors.white, fontSize: 32)),
             ),
             BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
                 builder: (context, state) {
@@ -91,16 +91,20 @@ class WalletsOverviewState extends State<WalletsOverview> {
         const Row(children: [Flexible(child: SGNUSConnectionWidget())]),
         BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
             builder: (context, state) {
-          return StreamBuilder<SGNUSConnection>(
-              stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-              builder: (context, snapshot) {
-                final connection = snapshot.data;
-                return SubmitJobDashboardButton(
-                  walletDetailsCubit: context.read<WalletDetailsCubit>(),
-                  walletAddress: state.selectedWallet!.address,
-                  gnusConnectedWalletAddress: connection?.walletAddress ?? "",
-                );
-              });
+          if (state.selectedWallet != null) {
+            return StreamBuilder<SGNUSConnection>(
+                stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+                builder: (context, snapshot) {
+                  final connection = snapshot.data;
+                  return SubmitJobDashboardButton(
+                    walletDetailsCubit: context.read<WalletDetailsCubit>(),
+                    walletAddress: state.selectedWallet!.address,
+                    gnusConnectedWalletAddress: connection?.walletAddress ?? "",
+                  );
+                });
+          } else {
+            return const SizedBox.shrink();
+          }
         }),
       ])
     ]);

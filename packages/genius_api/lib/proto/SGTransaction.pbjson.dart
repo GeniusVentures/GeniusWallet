@@ -71,13 +71,15 @@ const TransferOutput$json = {
   '2': [
     {'1': 'encrypted_amount', '3': 1, '4': 1, '5': 4, '10': 'encryptedAmount'},
     {'1': 'dest_addr', '3': 2, '4': 1, '5': 12, '10': 'destAddr'},
+    {'1': 'token_id', '3': 3, '4': 1, '5': 12, '10': 'tokenId'},
   ],
 };
 
 /// Descriptor for `TransferOutput`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List transferOutputDescriptor = $convert.base64Decode(
     'Cg5UcmFuc2Zlck91dHB1dBIpChBlbmNyeXB0ZWRfYW1vdW50GAEgASgEUg9lbmNyeXB0ZWRBbW'
-    '91bnQSGwoJZGVzdF9hZGRyGAIgASgMUghkZXN0QWRkcg==');
+    '91bnQSGwoJZGVzdF9hZGRyGAIgASgMUghkZXN0QWRkchIZCgh0b2tlbl9pZBgDIAEoDFIHdG9r'
+    'ZW5JZA==');
 
 @$core.Deprecated('Use uTXOTxParamsDescriptor instead')
 const UTXOTxParams$json = {
@@ -99,7 +101,7 @@ const TransferTx$json = {
   '1': 'TransferTx',
   '2': [
     {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
-    {'1': 'token_id', '3': 2, '4': 1, '5': 4, '10': 'tokenId'},
+    {'1': 'token_id', '3': 2, '4': 1, '5': 12, '10': 'tokenId'},
     {'1': 'utxo_params', '3': 3, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
   ],
 };
@@ -107,7 +109,7 @@ const TransferTx$json = {
 /// Descriptor for `TransferTx`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List transferTxDescriptor = $convert.base64Decode(
     'CgpUcmFuc2ZlclR4EjcKCmRhZ19zdHJ1Y3QYASABKAsyGC5TR1RyYW5zYWN0aW9uLkRBR1N0cn'
-    'VjdFIJZGFnU3RydWN0EhkKCHRva2VuX2lkGAIgASgEUgd0b2tlbklkEjwKC3V0eG9fcGFyYW1z'
+    'VjdFIJZGFnU3RydWN0EhkKCHRva2VuX2lkGAIgASgMUgd0b2tlbklkEjwKC3V0eG9fcGFyYW1z'
     'GAMgASgLMhsuU0dUcmFuc2FjdGlvbi5VVFhPVHhQYXJhbXNSCnV0eG9QYXJhbXM=');
 
 @$core.Deprecated('Use processingTxDescriptor instead')
