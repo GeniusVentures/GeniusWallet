@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/any_address_impl.dart';
 import 'package:genius_api/tw/private_key.dart';
@@ -11,24 +12,24 @@ class AnyAddress {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
   late Pointer<Void> nativehandle;
 
-  AnyAddress.createWithString(String address, int coinType) {
+  AnyAddress.createWithString(String address, TWCoinType coinType) {
     nativehandle = AnyAddressImpl.createWithString(address, coinType);
   }
 
-  AnyAddress.createWithPublicKey(PublicKey publicKey, int coinType) {
+  AnyAddress.createWithPublicKey(PublicKey publicKey, TWCoinType coinType) {
     nativehandle =
         AnyAddressImpl.createWithPublicKey(publicKey.nativehandle, coinType);
   }
 
   AnyAddress.createWithPrivateKeyData(
-      Uint8List privateKeyData, int coinType, int curve) {
+      Uint8List privateKeyData, TWCoinType coinType, TWCurve curve) {
     PrivateKey pk = PrivateKey.createWithData(privateKeyData);
     PublicKey publicKey = pk.getTWPublicKey(curve);
     nativehandle =
         AnyAddressImpl.createWithPublicKey(publicKey.nativehandle, coinType);
   }
 
-  static bool isValid(String address, int coinType) {
+  static bool isValid(String address, TWCoinType coinType) {
     return AnyAddressImpl.isValid(address, coinType);
   }
 
