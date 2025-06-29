@@ -169,10 +169,11 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
           fi
 
-          # extra args needed only when building with flutter build ipa or macos - we're using proper code signing now
-          EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
+          EXTRA_ARGS=""
           if [ "${{ matrix.flutter-platform }}" = "ios" ]; then
             FLUTTER_BUILD_PLATFORM="ipa"
+            # extra args needed only when building with flutter build ipa or macos - we're using proper code signing now
+            EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
           else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi 
@@ -196,7 +197,7 @@ jobs:
           else
             # Other platforms respect CMAKE_ARGUMENTS environment variable
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} --verbose 2>&1 | tee pub_build.log > /dev/null || { cat pub_build.log; exit 1; }
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
             else
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
             fi
