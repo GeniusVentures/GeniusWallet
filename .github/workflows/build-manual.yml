@@ -17,13 +17,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [iOS]
+        target: [iOS, OSX]
         build-type: [Release]
         abi: [""]
         include:
           - target: iOS
             host: macos-latest
             flutter-platform: ios
+          - target: OSX
+            host: macos-latest
+            flutter-platform: macos
         exclude:
           - target: Linux
             abi: ""
