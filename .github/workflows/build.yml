@@ -70,7 +70,7 @@ jobs:
           sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
           sudo update-alternatives --set cc $(which clang)
           sudo update-alternatives --set c++ $(which clang++)
-           
+          
           sudo apt install ccache ninja-build libvulkan-dev libzstd-dev jq -y
           
           # Flutter Linux desktop dependencies
@@ -93,6 +93,52 @@ jobs:
           PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
           echo "PATH=$PATH" >> $GITHUB_ENV
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Install the Apple certificate and provisioning profile for MacOS
+        if: ${{ matrix.host == 'macos-latest' }}
+        env:
+          DEV_DISTRIBUTION_SIGNER_CERT_BASE64: ${{ secrets.DEV_DISTRIBUTION_SIGNER_CERT_BASE_64 }}
+          DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
+          DEV_DISTRIBUTION_MAC_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_MAC_PROVISIONING_PROFILE_BASE_64 }}
+          DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64: ${{ secrets.DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          DEV_DISTRIBUTION_P12_PASSWORD: ${{ secrets.DEV_DISTRIBUTION_P12_PASSWORD }}
+        run: |
+          # create variables
+          DEV_DISTRIBUTION_SIGNER_CERT_PATH=$RUNNER_TEMP/signer_certificate.p12
+          DEV_DISTRIBUTION_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.cer
+          MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificates and provisioning profile from secrets
+          echo -n "$DEV_DISTRIBUTION_SIGNER_CERT_BASE64" | base64 --decode -o $DEV_DISTRIBUTION_SIGNER_CERT_PATH
+          echo -n "$DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64" | base64 --decode -o $DEV_DISTRIBUTION_INSTALLER_CERT_PATH
+          echo -n "$DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
+          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificates to keychain
+          security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          security find-identity -v
+          
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $MP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $MP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+
+          echo "Finishing importing certificates"
+        shell: bash
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -139,7 +185,8 @@ jobs:
           submodules: "recursive"
 
       - name: Get Flutter Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get 2>&1 | tee pub_get.log > /dev/null || { cat pub_get.log; exit 1; }
 
       - name: Setup CMake Arguments
         run: |
@@ -153,75 +200,18 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
           fi
 
-          # No extra args needed - we're using proper code signing now
           EXTRA_ARGS=""
-   
+          if [ "${{ matrix.flutter-platform }}" = "ios" ]; then
+            FLUTTER_BUILD_PLATFORM="ipa"
+            # extra args needed only when building with flutter build ipa or macos - we're using proper code signing now
+            EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
+          else
+            FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
+          fi 
+          
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Install the Apple certificate and provisioning profile for MacOS
-        if: ${{ matrix.host == 'macos-latest' }}
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          BUILD_CERTIFICATE_2_BASE64: ${{ secrets.BUILD_CERTIFICATE_2_BASE64 }}
-          BUILD_CERTIFICATE_3_BASE64: ${{ secrets.BUILD_CERTIFICATE_3_BASE64 }}
-          BUILD_CERTIFICATE_4_BASE64: ${{ secrets.BUILD_CERTIFICATE_4_BASE64 }}
-          P12_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-          A23_MOBILE_PROVISION: ${{ secrets.A23_MOBILE_PROVISION }}
-          B08_MOBILE_PROVISION: ${{ secrets.B08_MOBILE_PROVISION }}
-          B4E_MOBILE_PROVISION: ${{ secrets.B4E_MOBILE_PROVISION }}
-          E05_MOBILE_PROVISION: ${{ secrets.E05_MOBILE_PROVISION }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          # create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          CERTIFICATE_PATH2=$RUNNER_TEMP/build_certificate2.p12
-          CERTIFICATE_PATH3=$RUNNER_TEMP/build_certificate3.p12
-          CERTIFICATE_PATH4=$RUNNER_TEMP/build_certificate4.p12
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          PP_PATH2=$RUNNER_TEMP/build_pp2.mobileprovision
-          PP_PATH3=$RUNNER_TEMP/build_pp3.mobileprovision
-          PP_PATH4=$RUNNER_TEMP/build_pp4.mobileprovision
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # import certificate and provisioning profile from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$BUILD_CERTIFICATE_2_BASE64" | base64 --decode -o $CERTIFICATE_PATH2
-          echo -n "$BUILD_CERTIFICATE_3_BASE64" | base64 --decode -o $CERTIFICATE_PATH3
-          echo -n "$BUILD_CERTIFICATE_4_BASE64" | base64 --decode -o $CERTIFICATE_PATH4
-          echo -n "$A23_MOBILE_PROVISION" | base64 --decode -o $PP_PATH
-          echo -n "$B08_MOBILE_PROVISION" | base64 --decode -o $PP_PATH2
-          echo -n "$B4E_MOBILE_PROVISION" | base64 --decode -o $PP_PATH3
-          echo -n "$E05_MOBILE_PROVISION" | base64 --decode -o $PP_PATH4
-
-
-          # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $CERTIFICATE_PATH2 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $CERTIFICATE_PATH3 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $CERTIFICATE_PATH4 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-
-          # apply provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH2 ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH3 ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH4 ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          cp $PP_PATH2 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          cp $PP_PATH3 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          cp $PP_PATH4 ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-
-          echo "Finishing importing certificates"
+          echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
         shell: bash
 
       - name: Build Flutter
@@ -238,9 +228,9 @@ jobs:
           else
             # Other platforms respect CMAKE_ARGUMENTS environment variable
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --debug ${EXTRA_ARGS}
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${{ matrix.flutter-platform }} --release ${EXTRA_ARGS} --verbose
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
             fi
           fi
 
@@ -258,10 +248,14 @@ jobs:
               fi
               ;;
             "iOS")
-              cp -r build/ios/iphoneos/*.app artifacts/ || true
+              # cp -r build/ios/iphoneos/*.ipa artifacts/ || true
+              echo "Check testflight or appstore for current iOS Release" > artifacts/README.txt
               ;;
             "OSX")
-              cp -r build/macos/Build/Products/*/[!.]*.app artifacts/ || true
+              cd build/macos/Build/Products/${{matrix.build-type}}
+              xcrun productbuild --component genius_wallet.app /Applications genius_wallet_unsigned.pkg
+              xcrun productsign --sign "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)" genius_wallet_unsigned.pkg genius_wallet.pkg
+              cp -r genius_wallet.pkg ../../../../../artifacts/ || true
               ;;
             "Linux")
               cp -r build/linux/*/release/bundle artifacts/ || true
