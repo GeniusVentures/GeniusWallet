@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/pin_cubit.dart';
 import 'package:genius_wallet/bloc/pin_state.dart';
@@ -67,21 +68,34 @@ class _PinViewDesktop extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(text),
-                PinCodeTextField(
-                  appContext: context,
-                  length: GeniusWalletConsts.pinCount,
-                  pinTheme: PinTheme(
-                    activeColor: Colors.white,
-                    selectedColor: Colors.white,
-                    disabledColor: Colors.white,
-                    inactiveColor: Colors.white,
+                Focus(
+                  onKeyEvent: (node, event) {
+                    if (event is KeyDownEvent &&
+                        event.logicalKey == LogicalKeyboardKey.enter) {
+                      final state = context.read<PinCubit>().state;
+                      if (state.pinFullness == PinFullness.completed) {
+                        onCompleted(state.controller.text);
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: PinCodeTextField(
+                    appContext: context,
+                    length: GeniusWalletConsts.pinCount,
+                    pinTheme: PinTheme(
+                      activeColor: Colors.white,
+                      selectedColor: Colors.white,
+                      disabledColor: Colors.white,
+                      inactiveColor: Colors.white,
+                    ),
+                    cursorColor: Colors.white,
+                    obscureText: true,
+                    onChanged: context.read<PinCubit>().desktopOnChanged,
+                    controller: context.watch<PinCubit>().state.controller,
+                    inputFormatters: [Formatters.allowIntegers],
+                    autoDisposeControllers: false,
                   ),
-                  cursorColor: Colors.white,
-                  obscureText: true,
-                  onChanged: context.read<PinCubit>().desktopOnChanged,
-                  controller: context.watch<PinCubit>().state.controller,
-                  inputFormatters: [Formatters.allowIntegers],
-                  autoDisposeControllers: false,
                 ),
                 BlocBuilder<PinCubit, PinState>(builder: (context, state) {
                   if (state.displayIncorrectPin) {

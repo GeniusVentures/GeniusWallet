@@ -99,7 +99,7 @@ class _VerifyRecoveryPhraseViewDesktopState
   void _triggerContinue() {
     final completeWordsList = _inputAndWordsKey.currentState?.completeWordsList;
 
-    // Adicionar verificação e validação nula
+    // Add null check and validation
     if (completeWordsList == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -109,7 +109,9 @@ class _VerifyRecoveryPhraseViewDesktopState
       return;
     }
 
-    // Verifique se todos os campos vazios estão preenchidos
+    
+
+    // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -202,7 +204,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
     final random = Random();
     int emptyCount = GeniusWalletConsts.selectwordCount;
 
-    // Selecione índices aleatórios para ficarem vazios
+    // Select random indices to be empty
     emptyIndices = <int>{};
     while (emptyIndices.length < emptyCount) {
       emptyIndices.add(random.nextInt(words.length));
@@ -668,6 +670,7 @@ class _VerifyRecoveryPhraseViewMobileState
   void _triggerContinue() {
     final completeWordsList = _inputAndWordsKey.currentState?.completeWordsList;
 
+    // Add null check and validation
     if (completeWordsList == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -677,6 +680,9 @@ class _VerifyRecoveryPhraseViewMobileState
       return;
     }
 
+    print("test $completeWordsList");
+
+    // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -686,6 +692,7 @@ class _VerifyRecoveryPhraseViewMobileState
       return;
     }
 
+    // Update the BLoC state
     final newWalletBloc = context.read<NewWalletBloc>();
     newWalletBloc.add(RecoveryWordAssign(recoverywords: completeWordsList));
     newWalletBloc.add(RecoveryVerificationContinue());

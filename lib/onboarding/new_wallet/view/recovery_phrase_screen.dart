@@ -54,7 +54,7 @@ class _RecoveryPhraseViewDesktopState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus(); // Foco automático após a construção
+      _focusNode.requestFocus(); // Automatically focus after build
     });
   }
 
@@ -87,7 +87,7 @@ class _RecoveryPhraseViewDesktopState
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 60),
-            const _WordsGridWithCopyAndToggle(), // grade com palavras de recuperação
+            const _WordsGridWithCopyAndToggle(), // grid with recovery words
             const SizedBox(height: 30),
             SizedBox(
               height: 50,
@@ -213,7 +213,7 @@ class _WordsGridWithCopyAndToggleState
             ),
             const SizedBox(height: 80),
             SizedBox(
-              width: 640, // Corresponde ao maxWidth do AnimatedContainer
+              width: 640, // Match the maxWidth of AnimatedContainer
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
