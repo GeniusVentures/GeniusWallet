@@ -23,31 +23,6 @@ function(get_platform_dir_name PLATFORM_NAME)
     endif()
 endfunction()
 
-# Function to get Linux architecture
-function(get_linux_arch ARCH_VAR)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        # Use CMAKE_HOST_SYSTEM_PROCESSOR as it's more reliable for native builds
-        # For cross-compilation, CMAKE_SYSTEM_PROCESSOR should be set correctly
-        if(CMAKE_SYSTEM_PROCESSOR)
-            set(ARCH ${CMAKE_SYSTEM_PROCESSOR})
-        else()
-            set(ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
-        endif()
-        
-        # Normalize architecture names
-        if(ARCH MATCHES "^(x86_64|AMD64|amd64)$")
-            set(${ARCH_VAR} "x86_64" PARENT_SCOPE)
-        elseif(ARCH MATCHES "^(aarch64|arm64|ARM64)$")
-            set(${ARCH_VAR} "aarch64" PARENT_SCOPE)
-        else()
-            message(WARNING "Unknown Linux architecture: ${ARCH}, using as-is")
-            set(${ARCH_VAR} ${ARCH} PARENT_SCOPE)
-        endif()
-    else()
-        set(${ARCH_VAR} "" PARENT_SCOPE)
-    endif()
-endfunction()
-
 # Function to get all required Android ABIs
 function(get_android_abis ABIS_VAR)
     if(CMAKE_SYSTEM_NAME STREQUAL "Android")
@@ -179,7 +154,6 @@ function(download_dependency DEP_NAME)
 
     # Get platform name
     get_platform_dir_name(PLATFORM_NAME)
-    get_linux_arch(LINUX_ARCH)
 
     set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
     
@@ -255,8 +229,8 @@ function(download_dependency DEP_NAME)
         endforeach()
     else()
         # Non-Android download logic
-        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND LINUX_ARCH)
-            set(ARCHIVE_NAME "${PLATFORM_NAME}-${LINUX_ARCH}-${ARG_BUILD_TYPE}.tar.gz")
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+            set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARCH}-${ARG_BUILD_TYPE}.tar.gz")
         else()
             set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARG_BUILD_TYPE}.tar.gz")
         endif()
@@ -267,8 +241,8 @@ function(download_dependency DEP_NAME)
         message(STATUS "----------------------------------------")
         message(STATUS "Downloading ${DEP_NAME}")
         message(STATUS "  Platform: ${PLATFORM_NAME}")
-        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND LINUX_ARCH)
-            message(STATUS "  Architecture: ${LINUX_ARCH}")
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+            message(STATUS "  Architecture: ${ARCH}")
         endif()
         message(STATUS "  Branch: ${ARG_BRANCH}")
         message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
