@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/security_type.dart';
 

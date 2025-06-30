@@ -2,13 +2,14 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:genius_api/extensions/extensions.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/string_util.dart';
 
 class StoredKeyImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
   static Pointer<Void>? importPrivateKey(
-      Uint8List pk, String name, Uint8List password, int coin) {
+      Uint8List pk, String name, Uint8List password, TWCoinType coin) {
     final twName = StringUtil.toTWString(name);
     final twPassword = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(password.toPointerUint8(), password.length);
@@ -26,7 +27,7 @@ class StoredKeyImpl {
   }
 
   static Pointer<Void>? importHDWallet(
-      String mnemonic, String name, Uint8List password, int coin) {
+      String mnemonic, String name, Uint8List password, TWCoinType coin) {
     final twMnemonic = StringUtil.toTWString(mnemonic);
     final twName = StringUtil.toTWString(name);
     final twPassword = ffiBridgePrebuilt.wallet_lib
@@ -84,7 +85,7 @@ class StoredKeyImpl {
   }
 
   static Pointer<Void> privateKey(
-      Pointer<Void> storedKey, int coinType, Uint8List password) {
+      Pointer<Void> storedKey, TWCoinType coinType, Uint8List password) {
     final twPassword = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(password.toPointerUint8(), password.length);
     final twprivateKey = ffiBridgePrebuilt.wallet_lib
@@ -146,7 +147,7 @@ class StoredKeyImpl {
 
   // Account
   static Pointer<Void> accountForCoin(
-      Pointer<Void> storedKey, int coin, Pointer<Void> wallet) {
+      Pointer<Void> storedKey, TWCoinType coin, Pointer<Void> wallet) {
     return ffiBridgePrebuilt.wallet_lib
         .TWStoredKeyAccountForCoin(storedKey.cast(), coin, wallet.cast())
         .cast();
@@ -157,12 +158,15 @@ class StoredKeyImpl {
         .TWStoredKeyAccountCount(storedKey.cast());
   }
 
-  static void removeAccountForCoin(Pointer<Void> storedKey, int coin) {
+  static void removeAccountForCoin(Pointer<Void> storedKey, TWCoinType coin) {
     ffiBridgePrebuilt.wallet_lib
         .TWStoredKeyRemoveAccountForCoin(storedKey.cast(), coin);
   }
 
-  static void addAccount(Pointer<Void> storedKey, String address, int coin,
+  static void addAccount(
+      Pointer<Void> storedKey,
+      String address,
+      TWCoinType coin,
       String derivationPath, String publicKey, String extendedPublicKey) {
     final twAddress = StringUtil.toTWString(address);
     final twDerivationPath = StringUtil.toTWString(derivationPath);
