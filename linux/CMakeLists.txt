@@ -24,12 +24,12 @@ set(CMAKE_INSTALL_RPATH "$ORIGIN/lib")
 
 # Root filesystem for cross-building.
 if(FLUTTER_TARGET_PLATFORM_SYSROOT)
-  set(CMAKE_SYSROOT ${FLUTTER_TARGET_PLATFORM_SYSROOT})
-  set(CMAKE_FIND_ROOT_PATH ${CMAKE_SYSROOT})
-  set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-  set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-  set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+    set(CMAKE_SYSROOT ${FLUTTER_TARGET_PLATFORM_SYSROOT})
+    set(CMAKE_FIND_ROOT_PATH ${CMAKE_SYSROOT})
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 endif()
 
 set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
@@ -38,42 +38,62 @@ if(DEFINED ENV{CMAKE_ARGUMENTS})
     string(REGEX MATCH "-DCMAKE_BUILD_TYPE=([^ ]+)" _match "$ENV{CMAKE_ARGUMENTS}")
     if(_match)
         if(${CMAKE_MATCH_1} STREQUAL "RelWithDebInfo")
-          set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
-          set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
-          set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
-          set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
-          set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
-          set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
-          set(BUILD_TYPE_SEARCH "RelWithDebInfo")
+            set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
+            set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
+            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
+            set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
+            set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
+            set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
+            set(BUILD_TYPE_SEARCH "RelWithDebInfo")
         else()
-          set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
-          set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
+            set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
+            set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
         endif()
     endif()
 endif()
 
 # Fallback to Debug if still not set
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
-  set(BUILD_TYPE_SEARCH "Debug")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
+    set(BUILD_TYPE_SEARCH "Debug")
 endif()
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release")
 
+if(NOT ABI_SUBFOLDER_NAME)
+    if(NOT ARCH)
+        # Use CMAKE_HOST_SYSTEM_PROCESSOR as it's more reliable for native builds
+        # For cross-compilation, CMAKE_SYSTEM_PROCESSOR should be set correctly
+        set(ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
+        # Normalize architecture names
+        if(ARCH MATCHES "(x86_64|amd64|AMD64)")
+            set(ARCH "x86_64")
+        elseif(ARCH MATCHES "(aarch64|arm64|ARM64)")
+            set(ARCH "aarch64")
+        else()
+            message(WARNING "Unknown Linux architecture: ${ARCH}, using as-is")
+        endif()
+
+        set(ARCH "${ARCH}" CACHE STRING "Target arch")
+    endif()
+
+    set(ABI_SUBFOLDER_NAME "/${ARCH}" CACHE STRING "ABI subdirectory")
+endif()
 
 set(ARCH_BUILD_DIR /build/Linux/)
-set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${BUILD_TYPE_SEARCH})
+set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${BUILD_TYPE_SEARCH}${ABI_SUBFOLDER_NAME})
+set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}Release${ABI_SUBFOLDER_NAME})
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
 # default. In most cases, you should add new options to specific targets instead
 # of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
-  target_compile_features(${TARGET} PUBLIC cxx_std_14)
-  target_compile_options(${TARGET} PRIVATE -Wall -Werror)
-  target_compile_options(${TARGET} PRIVATE "$<$<NOT:$<CONFIG:Debug>>:-O3>")
-  target_compile_definitions(${TARGET} PRIVATE "$<$<NOT:$<CONFIG:Debug>>:NDEBUG>")
+    target_compile_features(${TARGET} PUBLIC cxx_std_14)
+    target_compile_options(${TARGET} PRIVATE -Wall -Werror)
+    target_compile_options(${TARGET} PRIVATE "$<$<NOT:$<CONFIG:Debug>>:-O3>")
+    target_compile_definitions(${TARGET} PRIVATE "$<$<NOT:$<CONFIG:Debug>>:NDEBUG>")
 endfunction()
 
 #find_package(Vulkan REQUIRED)
@@ -94,9 +114,9 @@ add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
 #
 # Any new source files that you add to the application should be added here.
 add_executable(${BINARY_NAME}
-  "main.cc"
-  "my_application.cc"
-  "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
+    "main.cc"
+    "my_application.cc"
+    "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
 )
 
 # Apply the standard set of build settings. This can be removed for applications
@@ -108,7 +128,7 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
-  target_link_libraries(${BINARY_NAME} PUBLIC GeniusWallet)
+    target_link_libraries(${BINARY_NAME} PUBLIC GeniusWallet)
 endif()
 
 # Run the Flutter tool portions of the build. This must not be removed.
@@ -119,8 +139,8 @@ add_dependencies(${BINARY_NAME} flutter_assemble)
 # people trying to run the unbundled copy, put it in a subdirectory instead of
 # the default top-level location.
 set_target_properties(${BINARY_NAME}
-  PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/intermediates_do_not_run"
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/intermediates_do_not_run"
 )
 
 # Generated plugin build rules, which manage building the plugins and adding
@@ -133,35 +153,35 @@ include(flutter/generated_plugins.cmake)
 set(BUILD_BUNDLE_DIR "${PROJECT_BINARY_DIR}/bundle")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
 endif()
 
 # Start with a clean build bundle directory every time.
 install(CODE "
   file(REMOVE_RECURSE \"${BUILD_BUNDLE_DIR}/\")
-  " COMPONENT Runtime)
+  "    COMPONENT Runtime)
 
 set(INSTALL_BUNDLE_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data")
 set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
-  COMPONENT Runtime)
+    COMPONENT Runtime)
 
 install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
-  COMPONENT Runtime)
+    COMPONENT Runtime)
 
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-  COMPONENT Runtime)
+    COMPONENT Runtime)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
-  install(TARGETS GeniusWallet DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+    install(TARGETS GeniusWallet DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 endif()
 
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
-  install(FILES "${bundled_library}"
-    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
+    install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
 endforeach(bundled_library)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
@@ -169,12 +189,12 @@ endforeach(bundled_library)
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")
 install(CODE "
   file(REMOVE_RECURSE \"${INSTALL_BUNDLE_DATA_DIR}/${FLUTTER_ASSET_DIR_NAME}\")
-  " COMPONENT Runtime)
+  "    COMPONENT Runtime)
 install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
-  DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
+    DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
 
 # Install the AOT library on non-Debug builds only.
 if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
-  install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
+    install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
 endif()

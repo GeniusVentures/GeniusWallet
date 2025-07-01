@@ -45,7 +45,9 @@ class MobileOverlay extends StatelessWidget {
                     ),
                     ReownConnectButton(
                         walletAddress:
-                            walletCubit.state.selectedWallet!.address,
+                            // by everston fix
+                            walletCubit.state.selectedWallet?.address ??
+                                '0x0000000000000000000000000000000000000000',
                         geniusApi: context.read<GeniusApi>(),
                         walletDetailsCubit: walletCubit,
                         transactionsCubit: context.read<TransactionsCubit>()),

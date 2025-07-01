@@ -296,6 +296,7 @@ class TransferOutput extends $pb.GeneratedMessage {
   factory TransferOutput({
     $fixnum.Int64? encryptedAmount,
     $core.List<$core.int>? destAddr,
+    $core.List<$core.int>? tokenId,
   }) {
     final $result = create();
     if (encryptedAmount != null) {
@@ -303,6 +304,9 @@ class TransferOutput extends $pb.GeneratedMessage {
     }
     if (destAddr != null) {
       $result.destAddr = destAddr;
+    }
+    if (tokenId != null) {
+      $result.tokenId = tokenId;
     }
     return $result;
   }
@@ -313,6 +317,7 @@ class TransferOutput extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TransferOutput', package: const $pb.PackageName(_omitMessageNames ? '' : 'SGTransaction'), createEmptyInstance: create)
     ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'encryptedAmount', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'destAddr', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'tokenId', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
 
@@ -354,6 +359,15 @@ class TransferOutput extends $pb.GeneratedMessage {
   $core.bool hasDestAddr() => $_has(1);
   @$pb.TagNumber(2)
   void clearDestAddr() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get tokenId => $_getN(2);
+  @$pb.TagNumber(3)
+  set tokenId($core.List<$core.int> v) { $_setBytes(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasTokenId() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTokenId() => clearField(3);
 }
 
 class UTXOTxParams extends $pb.GeneratedMessage {
@@ -411,7 +425,7 @@ class UTXOTxParams extends $pb.GeneratedMessage {
 class TransferTx extends $pb.GeneratedMessage {
   factory TransferTx({
     DAGStruct? dagStruct,
-    $fixnum.Int64? tokenId,
+    $core.List<$core.int>? tokenId,
     UTXOTxParams? utxoParams,
   }) {
     final $result = create();
@@ -432,7 +446,7 @@ class TransferTx extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TransferTx', package: const $pb.PackageName(_omitMessageNames ? '' : 'SGTransaction'), createEmptyInstance: create)
     ..aOM<DAGStruct>(1, _omitFieldNames ? '' : 'dagStruct', subBuilder: DAGStruct.create)
-    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'tokenId', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'tokenId', $pb.PbFieldType.OY)
     ..aOM<UTXOTxParams>(3, _omitFieldNames ? '' : 'utxoParams', subBuilder: UTXOTxParams.create)
     ..hasRequiredFields = false
   ;
@@ -470,9 +484,9 @@ class TransferTx extends $pb.GeneratedMessage {
   DAGStruct ensureDagStruct() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $fixnum.Int64 get tokenId => $_getI64(1);
+  $core.List<$core.int> get tokenId => $_getN(1);
   @$pb.TagNumber(2)
-  set tokenId($fixnum.Int64 v) { $_setInt64(1, v); }
+  set tokenId($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasTokenId() => $_has(1);
   @$pb.TagNumber(2)

@@ -222,9 +222,24 @@ class GeniusApi {
       int amount, String transaction_hash, String chain_id, String token_id) {
     final Pointer<Utf8> transhash = transaction_hash.toNativeUtf8();
     final Pointer<Utf8> chainid = chain_id.toNativeUtf8();
-    final Pointer<Utf8> tokenid = token_id.toNativeUtf8();
+    
+    // Create GeniusTokenID from string
+    final tokenIdData = calloc<GeniusTokenID>();
+    
+    // Parse hex string token_id and fill the data array
+    String cleanTokenId = token_id.startsWith('0x') ? token_id.substring(2) : token_id;
+    
+    for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
+      String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+      tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
+    }
+    
     ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKMint(amount, transhash, chainid, tokenid);
+        .GeniusSDKMint(amount, transhash, chainid, tokenIdData.ref);
+        
+    calloc.free(tokenIdData);
+    malloc.free(transhash);
+    malloc.free(chainid);
   }
 
   void shutdownSDK() {
@@ -441,14 +456,33 @@ class GeniusApi {
     await _secureStorage.deleteWallet(address);
   }
 
-  String getMinionsBalance() {
+  String getMinionsBalance([String? tokenId]) {
     if (!isSdkInitialized) {
       return "0";
     }
-    //return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
-    final balance = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance();
+    
+    final tokenIdData = calloc<GeniusTokenID>();
+    
+    if (tokenId == null) {
+      // Use default token (all zeros)
+      for (int i = 0; i < 32; i++) {
+        tokenIdData.ref.data[i] = 0;
+      }
+    } else {
+      // Parse provided token ID
+      String cleanTokenId = tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      
+      for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
+        String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+        tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
+      }
+    }
+    
+    final balance = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalance(tokenIdData.ref);
+    calloc.free(tokenIdData);
     return balance.toString();
   }
+
 
   String getSGNUSBalance() {
     if (!isSdkInitialized) {
@@ -465,7 +499,6 @@ class GeniusApi {
       }
       charCodes.add(c);
     }
-
     return String.fromCharCodes(charCodes);
   }
 
@@ -481,6 +514,38 @@ class GeniusApi {
         List<int>.generate(66, (index) => address.address[index]);
 
     return String.fromCharCodes(charCodes);
+  }
+
+  DateTime parseTimestamp(int timestamp) {
+    try {
+      // Try new format (milliseconds) first - no year validation needed
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } catch (e) {
+      // Will fall through to conversions below
+    }
+    
+    // Fallback: try different nanosecond-based conversions with year validation. None of these transaction should be outside of 2024/2025 so we're filtering for that
+    final conversions = [
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1000000), // nanoseconds (Linux)
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10),      // 100ns (Windows old)
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100),     // 10ns 
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1000),    // microseconds
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1),       // already microseconds
+    ];
+    
+    for (final convert in conversions) {
+      try {
+        final dt = convert();
+        if (dt.year >= 2024 && dt.year <= 2025) {
+          return dt;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    
+    // Ultimate fallback, if nothing seems right we have to return something
+    return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
   }
 
   void streamSGNUSTransactions() {
@@ -527,8 +592,7 @@ class GeniusApi {
           hash: String.fromCharCodes(header.dataHash),
           fromAddress: fromAddress,
           recipients: recipients,
-          timeStamp: DateTime.fromMicrosecondsSinceEpoch(
-              header.timestamp.toInt() ~/ 1000),
+          timeStamp: parseTimestamp(header.timestamp.toInt()),
           transactionDirection: address == fromAddress
               ? TransactionDirection.sent
               : TransactionDirection.received,
@@ -539,7 +603,10 @@ class GeniusApi {
           type: TransactionType.fromString(header.type));
 
       return trans;
-    }).reversed.toList(); // Reverse the list to put latest first
+    }); 
+
+    // Sort by timestamp, newest first
+    ret.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
 
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
 
@@ -547,8 +614,9 @@ class GeniusApi {
     getSGNUSTransactionsController().addTransactions(ret);
   }
 
-  bool transferTokens(int amount, String address) {
+  bool transferTokens(int amount, String address, {String? tokenId}) {
     final convertedAddress = calloc<GeniusAddress>();
+    final tokenIdData = calloc<GeniusTokenID>();
 
     final bytes = Uint8List.fromList(address.codeUnits);
 
@@ -556,12 +624,71 @@ class GeniusApi {
       convertedAddress.ref.address[i] = bytes[i];
     }
 
+    if (tokenId == null) {
+      // Use default token (all zeros)
+      for (int i = 0; i < 32; i++) {
+        tokenIdData.ref.data[i] = 0;
+      }
+    } else {
+      // Parse provided token ID
+      String cleanTokenId = tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      
+      for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
+        String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+        tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
+      }
+    }
+
     final ret = ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKTransfer(amount, convertedAddress);
+        .GeniusSDKTransfer(amount, convertedAddress, tokenIdData.ref);
 
     calloc.free(convertedAddress);
+    calloc.free(tokenIdData);
 
     return ret;
+  }
+  
+  double getGNUSPrice() {
+    if (!isSdkInitialized) {
+      return 0.0;
+    }
+    return ffiBridgePrebuilt.wallet_lib.GeniusSDKGetGNUSPrice();
+  }
+
+  String getBalanceGNUSString() {
+    if (!isSdkInitialized) {
+      return "0";
+    }
+    final result = ffiBridgePrebuilt.wallet_lib.GeniusSDKGetBalanceGNUSString();
+    return result.cast<Utf8>().toDartString();
+  }
+
+  bool payDev(int amount, {String? tokenId}) {
+    if (!isSdkInitialized) {
+      return false;
+    }
+    
+    final tokenIdData = calloc<GeniusTokenID>();
+
+    if (tokenId == null) {
+      // Use default token (all zeros)
+      for (int i = 0; i < 32; i++) {
+        tokenIdData.ref.data[i] = 0;
+      }
+    } else {
+      // Parse provided token ID
+      String cleanTokenId = tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      
+      for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
+        String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+        tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
+      }
+    }
+
+    final result = ffiBridgePrebuilt.wallet_lib.GeniusSDKPayDev(amount, tokenIdData.ref);
+    calloc.free(tokenIdData);
+    
+    return result;
   }
 
   Future<ApiResponse<String>> bridgeOut(

@@ -14,8 +14,17 @@ class RecoveryWordTapped extends NewWalletEvent {
   });
 }
 
+class RecoveryWordAssign extends NewWalletEvent {
+  final List<String> recoverywords;
+  RecoveryWordAssign({
+    required this.recoverywords,
+  });
+}
+
 /// Event thrown when the user acknowledges the recovery phrase they received
 class RecoveryVerificationContinue extends NewWalletEvent {}
+
+class RecoveryVerificationContinueForMobile extends NewWalletEvent {}
 
 class ToggleCheckbox extends NewWalletEvent {}
 

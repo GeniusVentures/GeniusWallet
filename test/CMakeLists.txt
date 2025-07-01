@@ -17,6 +17,7 @@ endif()
 set(SET_NAME_UNIX_FORCE TRUE)
 
 set(ARCH_OUTPUT_DIR /build/${SYSTEM_FOLDER}/${CMAKE_BUILD_TYPE}/)
+set(ARCH_RELEASE_OUTPUT_DIR /build/${SYSTEM_FOLDER}/Release)
 
 include(../cmake/CommonBuildParameters.cmake)
 

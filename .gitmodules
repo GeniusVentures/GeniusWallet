@@ -4,3 +4,6 @@
 [submodule "banxa"]
 	path = banxa
 	url = ../banxa
+[submodule "tokeninfo"]
+	path = tokeninfo
+	url = ../tokeninfo

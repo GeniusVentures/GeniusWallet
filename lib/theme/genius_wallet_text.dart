@@ -2,6 +2,8 @@ class GeniusWalletText {
   // Title Text
   static const String titleWalletBackup = 'Wallet Backup';
   static const String titleRecovery = 'Your Recovery Phrase';
+  static const String titleverifyRecovery = 'Verify Your Recovery Phrase';
+  static const String subtitleverifyRecovery = 'Tap the words to put them next to each other in the correct order';
   static const String wallets = 'Wallets';
 
   // Help Text
@@ -10,7 +12,7 @@ class GeniusWalletText {
   static const String helpRecoveryWords =
       'I understand that if I lose my recovery words, I will not be able to access my wallet.';
   static const String helpRecoveryPhrase =
-      'Write down or copy these words in the right order and save them somewhere safe';
+      'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.';
   static const String helpPin = 'Create a PIN';
 
   // Button Text

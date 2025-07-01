@@ -32,7 +32,7 @@ class LocalWalletStorage {
     final web3Instance = web3 ?? Web3();
     final localWalletStorage =
         LocalWalletStorage._create(storageInstance, web3Instance);
-    //await localWalletStorage.deleteAllWallets();
+    // await localWalletStorage.deleteAllWallets();
     return localWalletStorage;
   }
 
@@ -66,7 +66,6 @@ class LocalWalletStorage {
     }
 
     final account = await loadAccount();
-
     if (account == null) {
       // create account if one doesn't exist
       await createNewAccount();
