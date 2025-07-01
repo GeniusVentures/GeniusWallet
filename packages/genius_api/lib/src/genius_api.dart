@@ -518,12 +518,34 @@ class GeniusApi {
 
   DateTime parseTimestamp(int timestamp) {
     try {
-      // Try new format (milliseconds) first
+      // Try new format (milliseconds) first - no year validation needed
       return DateTime.fromMillisecondsSinceEpoch(timestamp);
     } catch (e) {
-      // Fallback to old format (nanoseconds/10 or whatever unit the old ones used)
-      return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
+      // Will fall through to conversions below
     }
+    
+    // Fallback: try different nanosecond-based conversions with year validation. None of these transaction should be outside of 2024/2025 so we're filtering for that
+    final conversions = [
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1000000), // nanoseconds (Linux)
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10),      // 100ns (Windows old)
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100),     // 10ns 
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1000),    // microseconds
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1),       // already microseconds
+    ];
+    
+    for (final convert in conversions) {
+      try {
+        final dt = convert();
+        if (dt.year >= 2024 && dt.year <= 2025) {
+          return dt;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    
+    // Ultimate fallback, if nothing seems right we have to return something
+    return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
   }
 
   void streamSGNUSTransactions() {
