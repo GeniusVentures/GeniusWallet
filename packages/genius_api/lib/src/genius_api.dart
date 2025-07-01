@@ -581,7 +581,10 @@ class GeniusApi {
           type: TransactionType.fromString(header.type));
 
       return trans;
-    }).reversed.toList(); // Reverse the list to put latest first
+    }); 
+
+    // Sort by timestamp, newest first
+    ret.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
 
     ffiBridgePrebuilt.wallet_lib.GeniusSDKFreeTransactions(transactions);
 
