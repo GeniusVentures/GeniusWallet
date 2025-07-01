@@ -516,6 +516,16 @@ class GeniusApi {
     return String.fromCharCodes(charCodes);
   }
 
+  DateTime parseTimestamp(int timestamp) {
+    try {
+      // Try new format (milliseconds) first
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } catch (e) {
+      // Fallback to old format (nanoseconds/10 or whatever unit the old ones used)
+      return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
+    }
+  }
+
   void streamSGNUSTransactions() {
     if (!isSdkInitialized) {
       return;
@@ -560,8 +570,7 @@ class GeniusApi {
           hash: String.fromCharCodes(header.dataHash),
           fromAddress: fromAddress,
           recipients: recipients,
-          timeStamp: DateTime.fromMicrosecondsSinceEpoch(
-              header.timestamp.toInt() ~/ 1000),
+          timeStamp: parseTimestamp(header.timestamp.toInt()),
           transactionDirection: address == fromAddress
               ? TransactionDirection.sent
               : TransactionDirection.received,
