@@ -1,0 +1,293 @@
+name: Flutter Tag Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create releases for'
+        required: true
+        type: string
+
+jobs:
+  build:
+    env:
+      GRPC_BUILD_ENABLE_CCACHE: "ON"
+      GH_TOKEN: ${{ secrets.GNUS_TOKEN_1 }}
+    runs-on: ${{matrix.host}}
+    container:
+      image: ${{matrix.container}}
+      credentials:
+        username: ${{github.actor}}
+        password: ${{secrets.GNUS_TOKEN_1}}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [Android, iOS, OSX, Linux, Windows]
+        build-type: [Release]
+        abi: [""]
+        include:
+          - target: Linux
+            host: ubuntu-latest
+            flutter-platform: linux
+            abi: x86_64
+            build-type: Release
+          - target: Linux
+            host: ubuntu-24.04-arm
+            flutter-platform: linux
+            abi: aarch64
+            build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
+          - target: Windows
+            host: windows-latest
+            flutter-platform: windows
+          - target: OSX
+            host: macos-latest
+            flutter-platform: macos
+          - target: Android
+            host: ubuntu-latest
+            flutter-platform: apk
+          - target: iOS
+            host: macos-latest
+            flutter-platform: ios
+        exclude:
+          - target: Linux
+            abi: ""
+    steps:
+      - name: Configure Linux host
+        if: ${{ runner.os == 'Linux'}}
+        run: |
+          sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
+          sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
+          sudo update-alternatives --set cc $(which clang)
+          sudo update-alternatives --set c++ $(which clang++)
+
+          sudo apt install ninja-build libvulkan-dev libzstd-dev libsecret-1-dev -y
+
+          # Flutter Linux desktop dependencies
+          if [ "${{ matrix.target }}" = "Linux" ]; then
+            sudo apt install -y libgtk-3-dev jq
+          fi
+
+          echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Configure Windows host
+        if: ${{ runner.os == 'Windows'}}
+        run: |
+          choco install ccache -A
+
+      - name: Configure macOS host
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          brew install ccache ninja bash gnu-tar
+          PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Install the Apple certificate and provisioning profile for MacOS
+        if: ${{ runner.os == 'macOS' }}
+        env:
+          DEV_DISTRIBUTION_SIGNER_CERT_BASE64: ${{ secrets.DEV_DISTRIBUTION_SIGNER_CERT_BASE_64 }}
+          DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
+          DEV_DISTRIBUTION_MAC_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_MAC_PROVISIONING_PROFILE_BASE_64 }}
+          DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64: ${{ secrets.DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          DEV_DISTRIBUTION_P12_PASSWORD: ${{ secrets.DEV_DISTRIBUTION_P12_PASSWORD }}
+        run: |
+          # create variables
+          DEV_DISTRIBUTION_SIGNER_CERT_PATH=$RUNNER_TEMP/signer_certificate.p12
+          DEV_DISTRIBUTION_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.cer
+          MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificates and provisioning profile from secrets
+          echo -n "$DEV_DISTRIBUTION_SIGNER_CERT_BASE64" | base64 --decode -o $DEV_DISTRIBUTION_SIGNER_CERT_PATH
+          echo -n "$DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64" | base64 --decode -o $DEV_DISTRIBUTION_INSTALLER_CERT_PATH
+          echo -n "$DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
+          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificates to keychain
+          security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          security find-identity -v
+
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          cp $MP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $MP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+
+          echo "Finishing importing certificates"
+        shell: bash
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "master"
+          flutter-version: 3.32.5
+
+      - name: Configure Gradle memory
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create gradle.properties with increased heap size
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
+
+          # Also set it in the project if it exists
+          if [ -f "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties" ]; then
+            echo "" >> "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties"
+            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "${{github.workspace}}/android/gradle.properties"
+          fi
+        shell: bash
+
+      - name: Set build directory
+        run: |
+          if [ '${{matrix.abi}}' ]; then
+            BUILD_DIRECTORY=build/${{matrix.target}}/${{matrix.build-type}}/${{matrix.abi}}
+          else
+            BUILD_DIRECTORY=build/${{matrix.target}}/${{matrix.build-type}}
+          fi
+          echo "BUILD_DIRECTORY=$BUILD_DIRECTORY" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Checkout GeniusWallet
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Get Flutter Dependencies
+        run: |
+          flutter pub get
+
+      - name: Setup CMake Arguments
+        run: |
+          CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
+          CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${{ github.event.inputs.tag }}"
+          CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
+
+          # Add verbose output for debugging
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
+
+          # Windows-specific: ensure message output
+          if [ "${{ matrix.target }}" = "Windows" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
+          fi
+
+          EXTRA_ARGS=""
+          if [ "${{ matrix.flutter-platform }}" = "ios" ]; then
+            FLUTTER_BUILD_PLATFORM="ipa"
+            # extra args needed only when building with flutter build ipa or macos - we're using proper code signing now
+            EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
+          else
+            FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
+          fi 
+
+          echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
+          echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
+          echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build Flutter
+        shell: bash
+        run: |
+          if [ "${{ matrix.target }}" = "Windows" ]; then
+            # Windows requires a different approach for CMAKE arguments
+            set CMAKE_ARGUMENTS=$env:CMAKE_ARGUMENTS
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              flutter build windows --debug 
+            else
+              flutter build windows --release
+            fi
+          else
+            # Other platforms respect CMAKE_ARGUMENTS environment variable
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
+            else
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
+            fi
+          fi
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+
+          case "${{ matrix.target }}" in
+            "Android")
+              if [ "${{ matrix.build-type }}" = "Debug" ]; then
+                cp build/app/outputs/flutter-apk/app-debug.apk artifacts/
+              else
+                cp build/app/outputs/flutter-apk/app-release.apk artifacts/
+              fi
+              ;;
+            "iOS")
+              # cp -r build/ios/iphoneos/*.ipa artifacts/ || true
+              echo "Check testflight or appstore for current iOS Release" > artifacts/README.txt
+              ;;
+            "OSX")
+              cd build/macos/Build/Products/${{matrix.build-type}}
+              xcrun productbuild --component genius_wallet.app /Applications genius_wallet_unsigned.pkg
+              xcrun productsign --sign "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)" genius_wallet_unsigned.pkg genius_wallet.pkg
+              cp -r genius_wallet.pkg ../../../../../artifacts/ || true
+              ;;
+            "Linux")
+              cp -r build/linux/*/release/bundle artifacts/ || true
+              cp -r build/linux/*/debug/bundle artifacts/ || true
+              ;;
+            "Windows")
+              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
+              ;;
+          esac
+        shell: bash
+
+      - name: Create or check release
+        shell: bash
+        run: |
+          TAG_NAME='${{ github.event.inputs.tag }}'
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+          echo "Checking if GitHub release exists for tag: $TAG_NAME"
+
+          set +e
+          gh release view $TAG_NAME
+          releaseFound=$?
+          set -e
+
+          if [[ $releaseFound -ne 0 ]]; then
+              echo "Release not found, creating for tag: $TAG_NAME"
+
+              # Create a single release for the tag
+              gh release create $TAG_NAME \
+                  -n "Build artifacts for tag ${TAG_NAME}" \
+                  -t "${TAG_NAME} build artifacts"
+          else
+              echo "Release already exists for tag: $TAG_NAME"
+          fi
+
+      - name: Compress build artifacts
+        working-directory: ${{github.workspace}}
+        run: |
+          if [ '${{matrix.abi}}' ]; then
+            ARTIFACT_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}.tar.gz
+          else
+            ARTIFACT_NAME=${{matrix.target}}-${{matrix.build-type}}.tar.gz
+          fi
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+          tar -czvf ${ARTIFACT_NAME} artifacts/
+        shell: bash
+
+      - name: Release Flutter App
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: |
+          echo -e "Uploading ${ARTIFACT_NAME} to release ${TAG_NAME}"
+          gh release upload --clobber ${TAG_NAME} "${ARTIFACT_NAME}"
