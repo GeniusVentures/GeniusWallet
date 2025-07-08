@@ -244,7 +244,24 @@ jobs:
               cp -r build/linux/*/debug/bundle artifacts/ || true
               ;;
             "Windows")
-              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
+              # Windows builds to build/windows/x64/runner/Release or Debug
+              BUILD_DIR="build/windows/x64/runner/${{ matrix.build-type }}"
+              
+              echo "Looking for Windows build output in: $BUILD_DIR"
+              
+              if [ -d "$BUILD_DIR" ]; then
+                echo "Found build directory: $BUILD_DIR"
+                ls -la "$BUILD_DIR"
+                # Copy the entire directory contents
+                cp -r "$BUILD_DIR"/* artifacts/
+                echo "Copied files to artifacts:"
+                ls -la artifacts/
+              else
+                echo "Windows build directory not found at expected location: $BUILD_DIR"
+                echo "Listing actual build structure:"
+                find build/windows -type d 2>/dev/null || true
+                echo "Windows build failed - build directory not found at $BUILD_DIR" > artifacts/build_error.txt
+              fi
               ;;
           esac
         shell: bash
@@ -277,12 +294,24 @@ jobs:
         working-directory: ${{github.workspace}}
         run: |
           if [ '${{matrix.abi}}' ]; then
-            ARTIFACT_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}.tar.gz
+            BASE_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}
           else
-            ARTIFACT_NAME=${{matrix.target}}-${{matrix.build-type}}.tar.gz
+            BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
+          
+          # Use appropriate compression format per platform
+          if [ "${{ matrix.target }}" = "Windows" ]; then
+            ARTIFACT_NAME=${BASE_NAME}.zip
+            # Use PowerShell to create zip on Windows
+            powershell -Command "Compress-Archive -Path 'artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
+          else
+            ARTIFACT_NAME=${BASE_NAME}.tar.gz
+            tar -czvf ${ARTIFACT_NAME} artifacts/
+          fi
+          
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          tar -czvf ${ARTIFACT_NAME} artifacts/
+          echo "Created artifact: ${ARTIFACT_NAME}"
+          ls -la ${ARTIFACT_NAME}
         shell: bash
 
       - name: Release Flutter App
