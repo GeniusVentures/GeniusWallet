@@ -142,18 +142,23 @@ jobs:
           # Create the android directory if it doesn't exist
           mkdir -p android/app
           
-          # Decode and save the debug keystore
+          # Decode and save the debug keystore to android/app/ directory
           echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug.keystore
           
-          # Create or update key.properties file
+          # Verify keystore was created and has content
+          ls -la android/app/debug.keystore
+          
+          # Create key.properties file in android/ directory (where build.gradle looks for it)
           cat > android/key.properties << EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=debug.keystore
+          storeFile=app/debug.keystore
           EOF
           
           echo "Android keystore configured"
+          echo "Key properties created:"
+          cat android/key.properties
         shell: bash
 
       - name: Configure Gradle memory
