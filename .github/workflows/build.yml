@@ -16,7 +16,11 @@ on:
       - ".github/**"
       - "README.md"
   workflow_dispatch:
-
+    inputs:
+      tag:
+        description: "Release tag"
+        required: false
+        type: string
 jobs:
   build:
     env:
@@ -284,7 +288,11 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         shell: bash
         run: |
-          RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{inputs.tag}}' ]; then
+              RELEASE_TAG="${{inputs.tag}}"
+          else
+              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+          fi
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
 
