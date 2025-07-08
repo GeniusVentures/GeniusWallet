@@ -3,6 +3,11 @@ import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
 
+class GeniusTokenID extends ffi.Struct {
+  @ffi.Array.multi([32])
+  external ffi.Array<ffi.Uint8> data;
+}
+
 /// TWAccount
 class NativeLibrary {
   /// Holds the symbol lookup function.
@@ -617,6 +622,41 @@ class NativeLibrary {
       ffi.Pointer<Utf8> Function(
           ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
 
+  /// Secure initialization with config string
+  ffi.Pointer<ffi.Char> GeniusSDKInitSecure(
+      ffi.Pointer<Utf8> base_path,
+      ffi.Pointer<Utf8> dev_config,
+      ffi.Pointer<Utf8> eth_private_key,
+      bool autodht,
+      bool process,
+      int baseport) {
+    return _GeniusSDKInitSecure(
+        base_path, dev_config, eth_private_key, autodht ? 1 : 0, process ? 1 : 0, baseport);
+  }
+
+  late final _GeniusSDKInitSecurePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
+              ffi.Int32, ffi.Int32, ffi.Uint16)>>('GeniusSDKInitSecure');
+  late final _GeniusSDKInitSecure = _GeniusSDKInitSecurePtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
+          
+  /// Minimal initialization
+  ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(
+      ffi.Pointer<Utf8> base_path,
+      ffi.Pointer<Utf8> eth_private_key,
+      int baseport) {
+    return _GeniusSDKInitMinimal(base_path, eth_private_key, baseport);
+  }
+
+  late final _GeniusSDKInitMinimalPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
+              ffi.Uint16)>>('GeniusSDKInitMinimal');
+  late final _GeniusSDKInitMinimal = _GeniusSDKInitMinimalPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int)>();
+
   /// Shuts down the Genius SDK.
   void GeniusSDKShutdown() {
     return _GeniusSDKShutdown();
@@ -639,14 +679,14 @@ class NativeLibrary {
       void Function(ffi.Pointer<ffi.Char> jsondata)>();
 
   /// Retrieves the current balance in **Minion Tokens** (1e-9 GNUS).
-  int GeniusSDKGetBalance() {
-    return _GeniusSDKGetBalance();
+  int GeniusSDKGetBalance(GeniusTokenID tokenId) {
+    return _GeniusSDKGetBalance(tokenId);
   }
 
   late final _GeniusSDKGetBalancePtr =
-      _lookup<ffi.NativeFunction<ffi.Uint64 Function()>>('GeniusSDKGetBalance');
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function(GeniusTokenID)>>('GeniusSDKGetBalance');
   late final _GeniusSDKGetBalance =
-      _GeniusSDKGetBalancePtr.asFunction<int Function()>();
+      _GeniusSDKGetBalancePtr.asFunction<int Function(GeniusTokenID)>();
 
   /// Retrieves the current balance in **Genius Tokens** (GNUS) as a formatted string.
   GeniusTokenValue GeniusSDKGetBalanceGNUS() {
@@ -705,12 +745,23 @@ class NativeLibrary {
   late final _GeniusSDKFreeTransactions =
       _GeniusSDKFreeTransactionsPtr.asFunction<void Function(GeniusMatrix)>();
 
+
+  /// Gets incoming transactions
+  GeniusMatrix GeniusSDKGetInTransactions() {
+    return _GeniusSDKGetInTransactions();
+  }
+
+  late final _GeniusSDKGetInTransactionsPtr =
+      _lookup<ffi.NativeFunction<GeniusMatrix Function()>>('GeniusSDKGetInTransactions');
+  late final _GeniusSDKGetInTransactions =
+      _GeniusSDKGetInTransactionsPtr.asFunction<GeniusMatrix Function()>();
+
   /// Mints new tokens using an amount in **Minion Tokens**.
   void GeniusSDKMint(
     int amount,
     ffi.Pointer<Utf8> transaction_hash,
     ffi.Pointer<Utf8> chain_id,
-    ffi.Pointer<Utf8> token_id,
+    GeniusTokenID token_id,
   ) {
     return _GeniusSDKMint(amount, transaction_hash, chain_id, token_id);
   }
@@ -718,12 +769,12 @@ class NativeLibrary {
   late final _GeniusSDKMintPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Uint64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-              ffi.Pointer<Utf8>)>>(
+              GeniusTokenID)>>(
     'GeniusSDKMint',
   );
   late final _GeniusSDKMint = _GeniusSDKMintPtr.asFunction<
       void Function(
-          int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>)>();
+          int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, GeniusTokenID)>();
 
   /// Mints new tokens using a **Genius Token** string representation.
   void GeniusSDKMintGNUS(
@@ -759,17 +810,18 @@ class NativeLibrary {
   bool GeniusSDKTransfer(
     int amount,
     ffi.Pointer<GeniusAddress> dest,
+    GeniusTokenID token_id,
   ) {
-    return _GeniusSDKTransfer(amount, dest);
+    return _GeniusSDKTransfer(amount, dest, token_id);
   }
 
   late final _GeniusSDKTransferPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Bool Function(ffi.Uint64, ffi.Pointer<GeniusAddress>)>>(
+          ffi.Bool Function(ffi.Uint64, ffi.Pointer<GeniusAddress>, GeniusTokenID)>>(
     'GeniusSDKTransfer',
   );
   late final _GeniusSDKTransfer = _GeniusSDKTransferPtr.asFunction<
-      bool Function(int, ffi.Pointer<GeniusAddress>)>();
+      bool Function(int, ffi.Pointer<GeniusAddress>, GeniusTokenID)>();
 
   /// Transfers tokens using a **Genius Token** string representation.
   bool GeniusSDKTransferGNUS(
@@ -813,6 +865,68 @@ class NativeLibrary {
           'GeniusSDKToGenius');
   late final _GeniusSDKToGenius =
       _GeniusSDKToGeniusPtr.asFunction<GeniusTokenValue Function(int)>();
+
+  /// Pay the dev for in-game transactions
+  bool GeniusSDKPayDev(
+    int amount,
+    GeniusTokenID token_id,
+  ) {
+    return _GeniusSDKPayDev(amount, token_id);
+  }
+
+  late final _GeniusSDKPayDevPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Bool Function(ffi.Uint64, GeniusTokenID)>>('GeniusSDKPayDev');
+  late final _GeniusSDKPayDev = _GeniusSDKPayDevPtr.asFunction<
+      bool Function(int, GeniusTokenID)>();
+
+  /// Converts child token amount to minions
+  int GeniusSDKFromChild(
+    ffi.Pointer<GeniusTokenValue> child,
+    GeniusTokenID token_id,
+  ) {
+    return _GeniusSDKFromChild(child, token_id);
+  }
+
+  late final _GeniusSDKFromChildPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Uint64 Function(ffi.Pointer<GeniusTokenValue>, GeniusTokenID)>>('GeniusSDKFromChild');
+  late final _GeniusSDKFromChild = _GeniusSDKFromChildPtr.asFunction<
+      int Function(ffi.Pointer<GeniusTokenValue>, GeniusTokenID)>();
+
+  /// Converts minions to child token format
+  GeniusTokenValue GeniusSDKToChild(
+    int minions,
+    GeniusTokenID token_id,
+  ) {
+    return _GeniusSDKToChild(minions, token_id);
+  }
+
+  late final _GeniusSDKToChildPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusTokenValue Function(ffi.Uint64, GeniusTokenID)>>('GeniusSDKToChild');
+  late final _GeniusSDKToChild = _GeniusSDKToChildPtr.asFunction<
+      GeniusTokenValue Function(int, GeniusTokenID)>();
+
+  /// Gets current USD price of GNUS
+  double GeniusSDKGetGNUSPrice() {
+    return _GeniusSDKGetGNUSPrice();
+  }
+
+  late final _GeniusSDKGetGNUSPricePtr =
+      _lookup<ffi.NativeFunction<ffi.Double Function()>>('GeniusSDKGetGNUSPrice');
+  late final _GeniusSDKGetGNUSPrice =
+      _GeniusSDKGetGNUSPricePtr.asFunction<double Function()>();
+
+  /// Gets balance as GNUS string
+  ffi.Pointer<ffi.Char> GeniusSDKGetBalanceGNUSString() {
+    return _GeniusSDKGetBalanceGNUSString();
+  }
+
+  late final _GeniusSDKGetBalanceGNUSStringPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>('GeniusSDKGetBalanceGNUSString');
+  late final _GeniusSDKGetBalanceGNUSString =
+      _GeniusSDKGetBalanceGNUSStringPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   ffi.Pointer<ffi.Char> stringForHRP(
     int hrp,

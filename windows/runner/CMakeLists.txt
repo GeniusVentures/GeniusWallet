@@ -2,35 +2,21 @@ cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES CXX)
 include(../../cmake/CommonOverrideFlags.cmake)
 include(../../cmake/Utilities.cmake)
-include(../../cmake/CommonCompilerOptions.cmake)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
     set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
-    set(THIRDPARTY_RELEASE_DIR ${THIRDPARTY_DIR}${ARCH_OUTPUT_DIR})
+    set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_OUTPUT_DIR_REL})
 
-    if(NOT DEFINED absl_DIR)
-        set(absl_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/absl")
-    endif()
+    set(PROTOBUF_CONFIG_LOCATION "/grpc/cmake")
 
-    if(NOT DEFINED utf8_range_DIR)
-        set(utf8_range_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/lib/cmake/utf8_range")
-    endif()
-
-    # --------------------------------------------------------
-    # Set config of protobuf project
-    if(NOT DEFINED Protobuf_DIR)
-        set(Protobuf_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/cmake")
-        set(Protobuf_INCLUDE_DIR "${THIRDPARTY_RELEASE_DIR}/grpc/include/google/protobuf")
-        find_package(Protobuf CONFIG REQUIRED)
-        include_directories(${Protobuf_INCLUDE_DIR})
-    endif()
 
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
         set(Boost_COMPILER "-vc142")
     else() # v143 toolset
         set(Boost_COMPILER "-vc143")
     endif()
+
 endif()
 # FLUTTER DEPENDENCIES ****************************************************
 

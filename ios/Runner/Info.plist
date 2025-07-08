@@ -50,7 +50,9 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to your photo library to upload photos.</string>
 	<key>NSAppTransportSecurity</key>
-    <key>NSAllowsArbitraryLoads</key>
-    <true/>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

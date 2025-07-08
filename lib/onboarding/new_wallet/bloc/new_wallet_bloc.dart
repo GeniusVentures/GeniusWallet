@@ -23,7 +23,11 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
 
     on<RecoveryWordTapped>(_onRecoveryWordTapped);
 
+    on<RecoveryWordAssign>(_onRecoveryWordAssign);
+
     on<RecoveryVerificationContinue>(_onRecoveryVerificationContinue);
+
+    on<RecoveryVerificationContinueForMobile>(_onRecoveryVerificationContinueForMobile);
 
     on<ToggleCheckbox>(_onToggleCheckbox);
 
@@ -55,12 +59,64 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       ));
     }
   }
+  bool checkMatchingOrder(List<String> recoveryWords, List<String> shuffledWords) {
+    // Create a mapping from words to their indices in recoveryWords
+    Map<String, int> indexMap = {};
+    for (int i = 0; i < recoveryWords.length; i++) {
+      indexMap[recoveryWords[i]] = i;
+    }
+
+    // Get the indices of shuffledWords based on recoveryWords
+    List<int> indices = [];
+    for (String word in shuffledWords) {
+      if (indexMap.containsKey(word)) {
+        indices.add(indexMap[word]!);
+      }
+    }
+
+    // Check if the indices are in sorted order
+    for (int i = 1; i < indices.length; i++) {
+      if (indices[i] < indices[i - 1]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  FutureOr<void> _onRecoveryVerificationContinueForMobile(
+      RecoveryVerificationContinueForMobile event, Emitter emit) {
+
+    if (checkMatchingOrder(state.recoveryWords, state.selectedWords))
+      {
+        emit(state.copyWith(
+          verificationStatus: VerificationStatus.passed,
+        ));
+      }
+    else
+      {
+        emit(state.copyWith(
+          verificationStatus: VerificationStatus.failed,
+          selectedWords: [],
+        ));
+      }
+  }
 
   FutureOr<void> _onRecoveryWordTapped(RecoveryWordTapped event, Emitter emit) {
     final newSelectedWords = [
       ...state.selectedWords,
       event.wordTapped,
     ];
+    emit(
+      state.copyWith(
+        selectedWords: newSelectedWords,
+        verificationStatus: VerificationStatus.inProgress,
+      ),
+    );
+  }
+
+  FutureOr<void> _onRecoveryWordAssign(RecoveryWordAssign event, Emitter emit) {
+    final newSelectedWords = event.recoverywords;
     emit(
       state.copyWith(
         selectedWords: newSelectedWords,

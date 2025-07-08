@@ -16,40 +16,101 @@ function(get_platform_dir_name PLATFORM_NAME)
         set(${PLATFORM_NAME} "Linux" PARENT_SCOPE)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         set(${PLATFORM_NAME} "Windows" PARENT_SCOPE)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set(${PLATFORM_NAME} "iOS" PARENT_SCOPE)
     else()
         message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+    endif()
+endfunction()
+
+# Function to get all required Android ABIs
+function(get_android_abis ABIS_VAR)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        # Check if ABIs are explicitly defined
+        if(DEFINED ANDROID_ABIS)
+            set(${ABIS_VAR} ${ANDROID_ABIS} PARENT_SCOPE)
+        elseif(DEFINED CMAKE_ANDROID_ARCH_ABI)
+            # For Flutter, this might be set
+            set(${ABIS_VAR} ${CMAKE_ANDROID_ARCH_ABI} PARENT_SCOPE)
+        else()
+            # Default to common ABIs for Flutter
+            set(${ABIS_VAR} "arm64-v8a" "armeabi-v7a" PARENT_SCOPE)
+        endif()
+    else()
+        set(${ABIS_VAR} "" PARENT_SCOPE)
+    endif()
+endfunction()
+
+# Function to check if a dependency is release-only
+function(is_release_only_dependency DEP_NAME RESULT_VAR)
+    # List of dependencies that only have Release builds
+    set(RELEASE_ONLY_DEPS
+        "zkLLVM"
+        # Add more release-only dependencies here as needed
+    )
+    
+    if(${DEP_NAME} IN_LIST RELEASE_ONLY_DEPS)
+        set(${RESULT_VAR} TRUE PARENT_SCOPE)
+    else()
+        set(${RESULT_VAR} FALSE PARENT_SCOPE)
     endif()
 endfunction()
 
 # Function to check if dependency exists
 function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
     get_platform_dir_name(PLATFORM_NAME)
-
-    # Check various possible locations
-    set(CHECK_PATHS
-        "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}"
-        "${DEP_DIR}/build/${PLATFORM_NAME}/Release"  # Fallback to Release
-        "${DEP_DIR}/${ARCH_OUTPUT_DIR}"  # Legacy path format
-    )
-
-    # Add Android ABI path if needed
-    if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-        set(CHECK_PATHS
-            "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}/${ANDROID_ABI}"
-            "${DEP_DIR}/build/${PLATFORM_NAME}/Release/${ANDROID_ABI}"
-            ${CHECK_PATHS}
-        )
+    
+    # Check if this is a release-only dependency
+    is_release_only_dependency(${DEP_NAME} IS_RELEASE_ONLY)
+    
+    # Determine which build type to check
+    if(IS_RELEASE_ONLY)
+        set(CHECK_BUILD_TYPE "Release")
+    else()
+        set(CHECK_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+        if(NOT CHECK_BUILD_TYPE)
+            set(CHECK_BUILD_TYPE "Release")
+        endif()
     endif()
 
-    foreach(CHECK_PATH ${CHECK_PATHS})
-        if(EXISTS ${CHECK_PATH})
-            set(${EXISTS_VAR} TRUE PARENT_SCOPE)
-            message(STATUS "${DEP_NAME} found at: ${CHECK_PATH}")
-            return()
-        endif()
-    endforeach()
+    # For Android, check all required ABIs
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        get_android_abis(REQUIRED_ABIS)
+        set(ALL_EXIST TRUE)
+        
+        foreach(ABI ${REQUIRED_ABIS})
+            set(CHECK_PATH "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}/${ABI}")
+            if(NOT EXISTS ${CHECK_PATH})
+                set(ALL_EXIST FALSE)
+                message(STATUS "${DEP_NAME} missing for ABI: ${ABI}")
+                break()
+            else()
+                message(STATUS "${DEP_NAME} found for ABI: ${ABI}")
+            endif()
+        endforeach()
+        
+        set(${EXISTS_VAR} ${ALL_EXIST} PARENT_SCOPE)
+    else()
+        # Non-Android logic
+        set(CHECK_PATHS
+            "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}"
+            "${DEP_DIR}/${ARCH_OUTPUT_DIR}"  # Legacy path format
+        )
 
-    set(${EXISTS_VAR} FALSE PARENT_SCOPE)
+        foreach(CHECK_PATH ${CHECK_PATHS})
+            if(EXISTS ${CHECK_PATH})
+                set(${EXISTS_VAR} TRUE PARENT_SCOPE)
+                if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+                    message(STATUS "${DEP_NAME} found at: ${CHECK_PATH} (Release-only dependency)")
+                else()
+                    message(STATUS "${DEP_NAME} found at: ${CHECK_PATH}")
+                endif()
+                return()
+            endif()
+        endforeach()
+
+        set(${EXISTS_VAR} FALSE PARENT_SCOPE)
+    endif()
 endfunction()
 
 # Function to download and extract a dependency
@@ -60,12 +121,21 @@ function(download_dependency DEP_NAME)
     if(NOT ARG_BRANCH)
         set(ARG_BRANCH "develop")
     endif()
+    
+    # Check if this is a release-only dependency
+    is_release_only_dependency(${DEP_NAME} IS_RELEASE_ONLY)
+    
     if(NOT ARG_BUILD_TYPE)
-        set(ARG_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
-        if(NOT ARG_BUILD_TYPE)
+        if(IS_RELEASE_ONLY)
             set(ARG_BUILD_TYPE "Release")
+        else()
+            set(ARG_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
+            if(NOT ARG_BUILD_TYPE)
+                set(ARG_BUILD_TYPE "Release")
+            endif()
         endif()
     endif()
+    
     if(NOT ARG_EXTRACT_TO)
         # Default to parent directory structure
         get_filename_component(PARENT_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
@@ -77,7 +147,7 @@ function(download_dependency DEP_NAME)
     if(NOT ARG_FORCE)
         check_dependency_exists(${DEP_NAME} ${ARG_EXTRACT_TO} DEP_EXISTS)
         if(DEP_EXISTS)
-            message(STATUS "${DEP_NAME} already exists, skipping download")
+            message(STATUS "${DEP_NAME} already exists for all required configurations, skipping download")
             return()
         endif()
     endif()
@@ -85,77 +155,141 @@ function(download_dependency DEP_NAME)
     # Get platform name
     get_platform_dir_name(PLATFORM_NAME)
 
-    # Construct archive name and release tag
-    if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-        set(ARCHIVE_NAME "${PLATFORM_NAME}-${ANDROID_ABI}-${ARG_BRANCH}-${ARG_BUILD_TYPE}.tar.gz")
-        set(RELEASE_TAG "${PLATFORM_NAME}-${ANDROID_ABI}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
-    else()
-        set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}.tar.gz")
-        set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
-    endif()
-
+    set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+    
     # GitHub repository information
     set(GITHUB_REPO "GeniusVentures/${DEP_NAME}")
-    set(RELEASE_URL "https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/${ARCHIVE_NAME}")
-    set(ARCHIVE_PATH "${CMAKE_BINARY_DIR}/${DEP_NAME}-${ARCHIVE_NAME}")
 
-    message(STATUS "----------------------------------------")
-    message(STATUS "Downloading ${DEP_NAME}")
-    message(STATUS "  Platform: ${PLATFORM_NAME}")
-    message(STATUS "  Branch: ${ARG_BRANCH}")
-    message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
-    message(STATUS "  URL: ${RELEASE_URL}")
-    message(STATUS "----------------------------------------")
-
-    # Download the release
-    file(DOWNLOAD
-        ${RELEASE_URL}
-        ${ARCHIVE_PATH}
-        STATUS DOWNLOAD_STATUS
-        SHOW_PROGRESS
-        TIMEOUT 300  # 5 minute timeout
-    )
-
-    list(GET DOWNLOAD_STATUS 0 DOWNLOAD_RESULT)
-    list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
-
-    if(NOT DOWNLOAD_RESULT EQUAL 0)
-        # Try with different build type as fallback
-        if(ARG_BUILD_TYPE STREQUAL "Debug")
-            message(WARNING "Failed to download Debug build, trying Release...")
-            download_dependency(${DEP_NAME}
-                BRANCH ${ARG_BRANCH}
-                BUILD_TYPE "Release"
-                EXTRACT_TO ${ARG_EXTRACT_TO}
-                FORCE ${ARG_FORCE}
+    # Handle Android multi-ABI downloads
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        get_android_abis(REQUIRED_ABIS)
+        
+        message(STATUS "----------------------------------------")
+        message(STATUS "Downloading ${DEP_NAME} for Android")
+        message(STATUS "  Required ABIs: ${REQUIRED_ABIS}")
+        message(STATUS "  Branch: ${ARG_BRANCH}")
+        message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+        if(IS_RELEASE_ONLY)
+            message(STATUS "  Note: This is a release-only dependency")
+        endif()
+        message(STATUS "----------------------------------------")
+        
+        foreach(ABI ${REQUIRED_ABIS})
+            # Check if this specific ABI already exists
+            set(ABI_PATH "${ARG_EXTRACT_TO}/build/${PLATFORM_NAME}/${ARG_BUILD_TYPE}/${ABI}")
+            if(EXISTS ${ABI_PATH} AND NOT ARG_FORCE)
+                message(STATUS "${DEP_NAME} for ${ABI} already exists, skipping")
+                continue()
+            endif()
+            
+            set(ARCHIVE_NAME "${PLATFORM_NAME}-${ABI}-${ARG_BUILD_TYPE}.tar.gz")
+            set(RELEASE_URL "https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/${ARCHIVE_NAME}")
+            set(ARCHIVE_PATH "${CMAKE_BINARY_DIR}/${DEP_NAME}-${ARCHIVE_NAME}")
+            
+            message(STATUS "Downloading ${DEP_NAME} for ABI: ${ABI}")
+            message(STATUS "  URL: ${RELEASE_URL}")
+            
+            # Download the release
+            file(DOWNLOAD
+                ${RELEASE_URL}
+                ${ARCHIVE_PATH}
+                STATUS DOWNLOAD_STATUS
+                SHOW_PROGRESS
+                TIMEOUT 300  # 5 minute timeout
             )
-            return()
+            
+            list(GET DOWNLOAD_STATUS 0 DOWNLOAD_RESULT)
+            list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
+            
+            if(NOT DOWNLOAD_RESULT EQUAL 0)
+                message(FATAL_ERROR "Failed to download ${DEP_NAME} for ${ABI}: ${ERROR_MESSAGE}")
+            endif()
+            
+            # Create extraction directory
+            file(MAKE_DIRECTORY ${ARG_EXTRACT_TO})
+            
+            # Extract the archive
+            message(STATUS "Extracting ${DEP_NAME} for ${ABI} to ${ARG_EXTRACT_TO}...")
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -E tar xzf ${ARCHIVE_PATH}
+                WORKING_DIRECTORY ${ARG_EXTRACT_TO}
+                RESULT_VARIABLE EXTRACT_RESULT
+                OUTPUT_VARIABLE EXTRACT_OUTPUT
+                ERROR_VARIABLE EXTRACT_ERROR
+            )
+            
+            if(NOT EXTRACT_RESULT EQUAL 0)
+                message(FATAL_ERROR "Failed to extract ${DEP_NAME} archive for ${ABI}: ${EXTRACT_ERROR}")
+            endif()
+            
+            # Clean up archive
+            file(REMOVE ${ARCHIVE_PATH})
+            
+            message(STATUS "${DEP_NAME} for ${ABI} successfully downloaded and extracted")
+        endforeach()
+    else()
+        # Non-Android download logic
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+            set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARCH}-${ARG_BUILD_TYPE}.tar.gz")
         else()
+            set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARG_BUILD_TYPE}.tar.gz")
+        endif()
+        
+        set(RELEASE_URL "https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/${ARCHIVE_NAME}")
+        set(ARCHIVE_PATH "${CMAKE_BINARY_DIR}/${DEP_NAME}-${ARCHIVE_NAME}")
+        
+        message(STATUS "----------------------------------------")
+        message(STATUS "Downloading ${DEP_NAME}")
+        message(STATUS "  Platform: ${PLATFORM_NAME}")
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+            message(STATUS "  Architecture: ${ARCH}")
+        endif()
+        message(STATUS "  Branch: ${ARG_BRANCH}")
+        message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+        if(IS_RELEASE_ONLY)
+            message(STATUS "  Note: This is a release-only dependency")
+        endif()
+        message(STATUS "  URL: ${RELEASE_URL}")
+        message(STATUS "----------------------------------------")
+        
+        # Download the release
+        file(DOWNLOAD
+            ${RELEASE_URL}
+            ${ARCHIVE_PATH}
+            STATUS DOWNLOAD_STATUS
+            SHOW_PROGRESS
+            TIMEOUT 300  # 5 minute timeout
+        )
+        
+        list(GET DOWNLOAD_STATUS 0 DOWNLOAD_RESULT)
+        list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
+        
+        if(NOT DOWNLOAD_RESULT EQUAL 0)
             message(FATAL_ERROR "Failed to download ${DEP_NAME}: ${ERROR_MESSAGE}")
         endif()
+        
+        # Create extraction directory
+        file(MAKE_DIRECTORY ${ARG_EXTRACT_TO})
+        
+        # Extract the archive
+        message(STATUS "Extracting ${DEP_NAME} to ${ARG_EXTRACT_TO}...")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xzf ${ARCHIVE_PATH}
+            WORKING_DIRECTORY ${ARG_EXTRACT_TO}
+            RESULT_VARIABLE EXTRACT_RESULT
+            OUTPUT_VARIABLE EXTRACT_OUTPUT
+            ERROR_VARIABLE EXTRACT_ERROR
+        )
+        
+        if(NOT EXTRACT_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to extract ${DEP_NAME} archive: ${EXTRACT_ERROR}")
+        endif()
+        
+        # Clean up archive
+        file(REMOVE ${ARCHIVE_PATH})
+        
+        message(STATUS "${DEP_NAME} successfully downloaded and extracted")
     endif()
-
-    # Create extraction directory
-    file(MAKE_DIRECTORY ${ARG_EXTRACT_TO})
-
-    # Extract the archive
-    message(STATUS "Extracting ${DEP_NAME} to ${ARG_EXTRACT_TO}...")
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E tar xzf ${ARCHIVE_PATH}
-        WORKING_DIRECTORY ${ARG_EXTRACT_TO}
-        RESULT_VARIABLE EXTRACT_RESULT
-        OUTPUT_VARIABLE EXTRACT_OUTPUT
-        ERROR_VARIABLE EXTRACT_ERROR
-    )
-
-    if(NOT EXTRACT_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to extract ${DEP_NAME} archive: ${EXTRACT_ERROR}")
-    endif()
-
-    # Clean up archive
-    file(REMOVE ${ARCHIVE_PATH})
-
-    message(STATUS "${DEP_NAME} successfully downloaded and extracted")
 endfunction()
 
 # Function to setup a dependency (check/download and set variables)
@@ -169,6 +303,9 @@ function(setup_dependency DEP_NAME)
     if(NOT ARG_VAR_PREFIX)
         string(TOUPPER ${DEP_NAME} ARG_VAR_PREFIX)
     endif()
+    
+    # Check if this is a release-only dependency
+    is_release_only_dependency(${DEP_NAME} IS_RELEASE_ONLY)
 
     # Determine dependency directory
     get_filename_component(PARENT_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
@@ -180,22 +317,21 @@ function(setup_dependency DEP_NAME)
 
     # Set the directory variable for the dependency
     get_platform_dir_name(PLATFORM_NAME)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-        set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}/${ANDROID_ABI}" CACHE PATH "${DEP_NAME} directory" FORCE)
+    
+    # For release-only dependencies, always use Release path
+    if(IS_RELEASE_ONLY)
+        set(USE_BUILD_TYPE "Release")
     else()
-        set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/${CMAKE_BUILD_TYPE}" CACHE PATH "${DEP_NAME} directory" FORCE)
+        set(USE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
     endif()
 
-    # Also check for Release as fallback
-    if(NOT EXISTS ${${ARG_VAR_PREFIX}_DIR})
-        if(CMAKE_SYSTEM_NAME STREQUAL "Android" AND ANDROID_ABI)
-            set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/Release/${ANDROID_ABI}" CACHE PATH "${DEP_NAME} directory" FORCE)
-        else()
-            set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}/build/${PLATFORM_NAME}/Release" CACHE PATH "${DEP_NAME} directory" FORCE)
-        endif()
-    endif()
+    set(${ARG_VAR_PREFIX}_DIR "${DEP_DIR}" CACHE PATH "${DEP_NAME} directory" FORCE)
 
-    message(STATUS "${DEP_NAME} directory set to: ${${ARG_VAR_PREFIX}_DIR}")
+    if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+        message(STATUS "${DEP_NAME} directory set to: ${${ARG_VAR_PREFIX}_DIR} (Release-only dependency)")
+    else()
+        message(STATUS "${DEP_NAME} directory set to: ${${ARG_VAR_PREFIX}_DIR}")
+    endif()
 endfunction()
 
 # Function to check if any dependencies need downloading
@@ -218,8 +354,8 @@ function(check_dependencies_needed DEPS RESULT_VAR)
     set(${RESULT_VAR} ${NEED_DOWNLOAD} PARENT_SCOPE)
 endfunction()
 
-# Function to detect current Git branch
-function(get_git_branch BRANCH_VAR)
+# Function to detect current Git branch and determine dependency branch
+function(get_dependency_branch BRANCH_VAR)
     find_package(Git QUIET)
     if(GIT_FOUND)
         execute_process(
@@ -231,8 +367,14 @@ function(get_git_branch BRANCH_VAR)
             RESULT_VARIABLE GIT_RESULT
         )
         if(GIT_RESULT EQUAL 0 AND GIT_BRANCH)
-            set(${BRANCH_VAR} ${GIT_BRANCH} PARENT_SCOPE)
-            message(STATUS "Detected Git branch: ${GIT_BRANCH}")
+            # If we're on main branch, use main for dependencies, otherwise use develop
+            if(GIT_BRANCH STREQUAL "main")
+                set(${BRANCH_VAR} "main" PARENT_SCOPE)
+                message(STATUS "Detected Git branch: ${GIT_BRANCH}, using 'main' for dependencies")
+            else()
+                set(${BRANCH_VAR} "develop" PARENT_SCOPE)
+                message(STATUS "Detected Git branch: ${GIT_BRANCH}, using 'develop' for dependencies")
+            endif()
         else()
             set(${BRANCH_VAR} "develop" PARENT_SCOPE)
             message(STATUS "Could not detect Git branch, defaulting to: develop")
@@ -260,8 +402,8 @@ function(download_project_dependencies)
             set(ARG_BRANCH ${GENIUS_DEPENDENCY_BRANCH})
             message(STATUS "Using dependency branch from GENIUS_DEPENDENCY_BRANCH: ${ARG_BRANCH}")
         else()
-            # Auto-detect from Git
-            get_git_branch(ARG_BRANCH)
+            # Auto-detect from Git and apply main/develop logic
+            get_dependency_branch(ARG_BRANCH)
         endif()
     endif()
 
@@ -281,6 +423,10 @@ function(download_project_dependencies)
         message(STATUS "========================================")
         message(STATUS "Downloading dependencies for ${PROJECT_NAME}")
         message(STATUS "Platform: ${PLATFORM_NAME}")
+        if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+            get_android_abis(REQUIRED_ABIS)
+            message(STATUS "Android ABIs: ${REQUIRED_ABIS}")
+        endif()
         message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
         message(STATUS "Branch: ${ARG_BRANCH}")
         message(STATUS "Dependencies: ${DEPENDENCIES}")
@@ -336,8 +482,18 @@ endfunction()
 #    include(cmake/DownloadDependencies.cmake)
 #    download_project_dependencies(thirdparty MyCustomLib AnotherRepo)
 #
+# 9. Android multi-ABI support:
+#    if(ANDROID)
+#        set(ANDROID_ABIS "arm64-v8a" "armeabi-v7a")
+#    endif()
+#    include(cmake/DownloadDependencies.cmake)
+#    download_project_dependencies(SuperGenius GeniusSDK zkLLVM thirdparty)
+#
 # Variables:
 #   GENIUS_SKIP_DEPENDENCY_DOWNLOAD - Set to ON to skip all downloads
 #   GENIUS_DEPENDENCY_BRANCH - Override the auto-detected Git branch
+#   ANDROID_ABIS - List of Android ABIs to download (defaults to arm64-v8a and armeabi-v7a)
 #
 # Note: Dependencies are downloaded from https://github.com/GeniusVentures/{DEP_NAME}/releases
+# Note: When on 'main' branch, dependencies from 'main' are used. For all other branches, 'develop' dependencies are used.
+# Note: For Android builds, the script will download dependencies for all specified ABIs automatically.
