@@ -12,13 +12,32 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
   #set(CMAKE_BUILD_TYPE "Release")
   get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
   message("CMAKE ARGS: $ENV{CMAKE_ARGUMENTS}")
-  if(DEFINED ENV{CMAKE_ARGUMENTS})
-      string(REGEX MATCH "-DCMAKE_BUILD_TYPE=([^ ]+)" _match "$ENV{CMAKE_ARGUMENTS}")
-      if(_match)
-            set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
-            set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
-      endif()
-  endif()
+# Parse CMAKE_ARGUMENTS environment variable if present
+if(DEFINED ENV{CMAKE_ARGUMENTS})
+    # Split the arguments string into a list
+    string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
+    
+    # Process each argument
+    foreach(ARG IN LISTS CMAKE_ARG_LIST)
+        # Check if it's a -D argument (variable definition)
+        if(ARG MATCHES "^-D(.+)=(.+)$")
+            set(VAR_NAME "${CMAKE_MATCH_1}")
+            set(VAR_VALUE "${CMAKE_MATCH_2}")
+            
+            # Set the variable in the cache
+            set(${VAR_NAME} "${VAR_VALUE}" CACHE STRING "From CMAKE_ARGUMENTS" FORCE)
+            
+            # Special handling for CMAKE_BUILD_TYPE
+            if(VAR_NAME STREQUAL "CMAKE_BUILD_TYPE")
+                    set(CMAKE_BUILD_TYPE "${VAR_VALUE}" CACHE STRING "Flutter build mode" FORCE)
+                    set(BUILD_TYPE_SEARCH "${VAR_VALUE}")
+            endif()
+        endif()
+    endforeach()
+    
+    # Optional: Log what was processed
+    message(STATUS "Processed CMAKE_ARGUMENTS: $ENV{CMAKE_ARGUMENTS}")
+endif()
 
   # Fallback to Debug if still not set
   if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
