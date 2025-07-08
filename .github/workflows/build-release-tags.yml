@@ -135,6 +135,26 @@ jobs:
           channel: "master"
           flutter-version: 3.32.5
 
+      - name: Configure Android keystore
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create the android directory if it doesn't exist
+          mkdir -p android/app
+          
+          # Decode and save the debug keystore
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug.keystore
+          
+          # Create or update key.properties file
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=debug.keystore
+          EOF
+          
+          echo "Android keystore configured"
+        shell: bash
+
       - name: Configure Gradle memory
         if: ${{ matrix.target == 'Android' }}
         run: |
@@ -299,8 +319,17 @@ jobs:
             BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
           
-          # Use appropriate compression format per platform
-          if [ "${{ matrix.target }}" = "Windows" ]; then
+          # Android APKs don't need compression - upload directly
+          if [ "${{ matrix.target }}" = "Android" ]; then
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              ARTIFACT_NAME=${BASE_NAME}.apk
+              cp artifacts/app-debug.apk ${ARTIFACT_NAME}
+            else
+              ARTIFACT_NAME=${BASE_NAME}.apk
+              cp artifacts/app-release.apk ${ARTIFACT_NAME}
+            fi
+          # Use appropriate compression format for other platforms
+          elif [ "${{ matrix.target }}" = "Windows" ]; then
             ARTIFACT_NAME=${BASE_NAME}.zip
             # Use PowerShell to create zip on Windows
             powershell -Command "Compress-Archive -Path 'artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
