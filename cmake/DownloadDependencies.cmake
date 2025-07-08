@@ -155,7 +155,15 @@ function(download_dependency DEP_NAME)
     # Get platform name
     get_platform_dir_name(PLATFORM_NAME)
 
-    set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+    # Determine the release tag format
+    if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
+        # For tags, use the tag name directly
+        set(RELEASE_TAG "${ARG_BRANCH}")
+        message(STATUS "Using Git tag format: ${ARG_BRANCH}")
+    else()
+        # For branches, use the platform-branch-buildtype format
+        set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+    endif()
     
     # GitHub repository information
     set(GITHUB_REPO "GeniusVentures/${DEP_NAME}")
@@ -167,8 +175,12 @@ function(download_dependency DEP_NAME)
         message(STATUS "----------------------------------------")
         message(STATUS "Downloading ${DEP_NAME} for Android")
         message(STATUS "  Required ABIs: ${REQUIRED_ABIS}")
-        message(STATUS "  Branch: ${ARG_BRANCH}")
-        message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+        if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
+            message(STATUS "  Tag: ${ARG_BRANCH}")
+        else()
+            message(STATUS "  Branch: ${ARG_BRANCH}")
+            message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+        endif()
         if(IS_RELEASE_ONLY)
             message(STATUS "  Note: This is a release-only dependency")
         endif()
@@ -244,8 +256,12 @@ function(download_dependency DEP_NAME)
         if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
             message(STATUS "  Architecture: ${ARCH}")
         endif()
-        message(STATUS "  Branch: ${ARG_BRANCH}")
-        message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+        if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
+            message(STATUS "  Tag: ${ARG_BRANCH}")
+        else()
+            message(STATUS "  Branch: ${ARG_BRANCH}")
+            message(STATUS "  Build Type: ${ARG_BUILD_TYPE}")
+        endif()
         if(IS_RELEASE_ONLY)
             message(STATUS "  Note: This is a release-only dependency")
         endif()
@@ -428,7 +444,11 @@ function(download_project_dependencies)
             message(STATUS "Android ABIs: ${REQUIRED_ABIS}")
         endif()
         message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-        message(STATUS "Branch: ${ARG_BRANCH}")
+        if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
+            message(STATUS "Tag: ${ARG_BRANCH}")
+        else()
+            message(STATUS "Branch: ${ARG_BRANCH}")
+        endif()
         message(STATUS "Dependencies: ${DEPENDENCIES}")
         message(STATUS "========================================")
 
@@ -489,11 +509,19 @@ endfunction()
 #    include(cmake/DownloadDependencies.cmake)
 #    download_project_dependencies(SuperGenius GeniusSDK zkLLVM thirdparty)
 #
+# 10. Tag-based dependencies:
+#    set(GENIUS_DEPENDENCY_BRANCH "v1.0.0")
+#    set(BRANCH_IS_TAG ON)
+#    include(cmake/DownloadDependencies.cmake)
+#    download_project_dependencies(SuperGenius GeniusSDK zkLLVM thirdparty)
+#
 # Variables:
 #   GENIUS_SKIP_DEPENDENCY_DOWNLOAD - Set to ON to skip all downloads
 #   GENIUS_DEPENDENCY_BRANCH - Override the auto-detected Git branch
+#   BRANCH_IS_TAG - Set to ON when GENIUS_DEPENDENCY_BRANCH is a tag (not a branch)
 #   ANDROID_ABIS - List of Android ABIs to download (defaults to arm64-v8a and armeabi-v7a)
 #
 # Note: Dependencies are downloaded from https://github.com/GeniusVentures/{DEP_NAME}/releases
 # Note: When on 'main' branch, dependencies from 'main' are used. For all other branches, 'develop' dependencies are used.
 # Note: For Android builds, the script will download dependencies for all specified ABIs automatically.
+# Note: When BRANCH_IS_TAG is ON, the release tag format is just the tag name (e.g., "v1.0.0") instead of "Platform-Branch-BuildType"
