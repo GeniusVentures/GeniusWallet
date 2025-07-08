@@ -33,23 +33,41 @@ if(FLUTTER_TARGET_PLATFORM_SYSROOT)
 endif()
 
 set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
-# Read CMAKE_BUILD_TYPE from environment if passed via CMAKE_ARGUMENTS
+# Parse CMAKE_ARGUMENTS environment variable if present
 if(DEFINED ENV{CMAKE_ARGUMENTS})
-    string(REGEX MATCH "-DCMAKE_BUILD_TYPE=([^ ]+)" _match "$ENV{CMAKE_ARGUMENTS}")
-    if(_match)
-        if(${CMAKE_MATCH_1} STREQUAL "RelWithDebInfo")
-            set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
-            set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
-            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
-            set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
-            set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
-            set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
-            set(BUILD_TYPE_SEARCH "RelWithDebInfo")
-        else()
-            set(CMAKE_BUILD_TYPE "${CMAKE_MATCH_1}" CACHE STRING "Flutter build mode" FORCE)
-            set(BUILD_TYPE_SEARCH "${CMAKE_MATCH_1}")
+    # Split the arguments string into a list
+    string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
+    
+    # Process each argument
+    foreach(ARG IN LISTS CMAKE_ARG_LIST)
+        # Check if it's a -D argument (variable definition)
+        if(ARG MATCHES "^-D(.+)=(.+)$")
+            set(VAR_NAME "${CMAKE_MATCH_1}")
+            set(VAR_VALUE "${CMAKE_MATCH_2}")
+            
+            # Set the variable in the cache
+            set(${VAR_NAME} "${VAR_VALUE}" CACHE STRING "From CMAKE_ARGUMENTS" FORCE)
+            
+            # Special handling for CMAKE_BUILD_TYPE
+            if(VAR_NAME STREQUAL "CMAKE_BUILD_TYPE")
+                if(VAR_VALUE STREQUAL "RelWithDebInfo")
+                    set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
+                    set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Profile flags" FORCE)
+                    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
+                    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Release flags" FORCE)
+                    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
+                    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_RELWITHDEBINFO}" CACHE STRING "Debug flags" FORCE)
+                    set(BUILD_TYPE_SEARCH "RelWithDebInfo")
+                else()
+                    set(CMAKE_BUILD_TYPE "${VAR_VALUE}" CACHE STRING "Flutter build mode" FORCE)
+                    set(BUILD_TYPE_SEARCH "${VAR_VALUE}")
+                endif()
+            endif()
         endif()
-    endif()
+    endforeach()
+    
+    # Optional: Log what was processed
+    message(STATUS "Processed CMAKE_ARGUMENTS: $ENV{CMAKE_ARGUMENTS}")
 endif()
 
 # Fallback to Debug if still not set
