@@ -25,8 +25,10 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Flutter build mode" FORCE)
     set(BUILD_TYPE_SEARCH "Debug")
   endif()
-
+  
+  if(CMAKE_BUILD_TYPE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Profile" "Release")
+  endif()
 
   # if(IS_MULTICONFIG)
   #   set(CMAKE_CONFIGURATION_TYPES "Debug;Profile;Release"
@@ -55,6 +57,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
 
 set(ARCH_BUILD_DIR /build/Windows/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
+set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
 
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)

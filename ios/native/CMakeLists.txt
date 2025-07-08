@@ -25,6 +25,7 @@ find_package(Threads REQUIRED)
 
 set(ARCH_BUILD_DIR /build/iOS/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
+set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}Release)
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

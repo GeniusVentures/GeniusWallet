@@ -6,15 +6,15 @@ on:
       - develop
       - main
     paths-ignore:
-      - '.github/**'
-      - 'README.md'
+      - ".github/**"
+      - "README.md"
   pull_request:
     branches:
       - develop
       - main
     paths-ignore:
-      - '.github/**'
-      - 'README.md'
+      - ".github/**"
+      - "README.md"
   workflow_dispatch:
 
 jobs:
@@ -65,20 +65,18 @@ jobs:
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
         run: |
-          sudo apt-get update -y
           sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
           sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
           sudo update-alternatives --set cc $(which clang)
           sudo update-alternatives --set c++ $(which clang++)
-          
-          sudo apt install ccache ninja-build libvulkan-dev libzstd-dev jq -y
-          
+
+          sudo apt install ninja-build libvulkan-dev libzstd-dev libsecret-1-dev -y
+
           # Flutter Linux desktop dependencies
           if [ "${{ matrix.target }}" = "Linux" ]; then
-            sudo apt-get update -y
-            sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev libsecret-1-dev libcurl4-openssl-dev libcurl4 curl
+            sudo apt install -y libgtk-3-dev jq
           fi
-          
+
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Configure Windows host
@@ -87,7 +85,7 @@ jobs:
           choco install ccache -A
 
       - name: Configure macOS host
-        if: ${{ runner.os == 'macOS'}}
+        if: ${{ runner.os == 'macOS' }}
         run: |
           brew install ccache ninja bash gnu-tar
           PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
@@ -95,7 +93,7 @@ jobs:
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Install the Apple certificate and provisioning profile for MacOS
-        if: ${{ matrix.host == 'macos-latest' }}
+        if: ${{ runner.os == 'macOS' }}
         env:
           DEV_DISTRIBUTION_SIGNER_CERT_BASE64: ${{ secrets.DEV_DISTRIBUTION_SIGNER_CERT_BASE_64 }}
           DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
@@ -128,7 +126,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
           security find-identity -v
-          
+
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
@@ -143,7 +141,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "master"
+          flutter-version: 3.32.5
 
       - name: Configure Gradle memory
         if: ${{ matrix.target == 'Android' }}
@@ -151,7 +150,7 @@ jobs:
           # Create gradle.properties with increased heap size
           mkdir -p ~/.gradle
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
-          
+
           # Also set it in the project if it exists
           if [ -f "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties" ]; then
             echo "" >> "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties"
@@ -179,22 +178,22 @@ jobs:
           echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Checkout Flutter Project
+      - name: Checkout GeniusWallet
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
 
       - name: Get Flutter Dependencies
         run: |
-          flutter pub get 2>&1 | tee pub_get.log > /dev/null || { cat pub_get.log; exit 1; }
+          flutter pub get
 
       - name: Setup CMake Arguments
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
-          
+
           # Add verbose output for debugging
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
-          
+
           # Windows-specific: ensure message output
           if [ "${{ matrix.target }}" = "Windows" ]; then
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
@@ -208,7 +207,7 @@ jobs:
           else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi 
-          
+
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
@@ -238,7 +237,7 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
           mkdir -p artifacts
-          
+
           case "${{ matrix.target }}" in
             "Android")
               if [ "${{ matrix.build-type }}" = "Debug" ]; then
