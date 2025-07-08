@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/public_key_impl.dart';
 
@@ -17,13 +18,13 @@ class PublicKey {
     nativehandle = pointer;
   }
 
-  PublicKey.createWithData(Pointer<Void> data, int publicKeyType) {
+  PublicKey.createWithData(Pointer<Void> data, TWPublicKeyType publicKeyType) {
     nativehandle = ffiBridgePrebuilt.wallet_lib
         .TWPublicKeyCreateWithData(data, publicKeyType)
         .cast();
   }
 
-  static bool isValid(Uint8List data, int publicKeyType) {
+  static bool isValid(Uint8List data, TWPublicKeyType publicKeyType) {
     return PublicKeyImpl.isValid(data, publicKeyType);
   }
 
@@ -47,7 +48,7 @@ class PublicKey {
     return PublicKeyImpl.unCompressed(nativehandle);
   }
 
-  int keyType() {
+  TWPublicKeyType keyType() {
     return PublicKeyImpl.keyType(nativehandle);
   }
 

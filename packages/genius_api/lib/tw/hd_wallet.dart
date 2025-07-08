@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/tw/hd_wallet_impl.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -41,31 +42,32 @@ class HDWallet {
     }
   }
 
-  String getAddressForCoin(int coinType) {
+  String getAddressForCoin(TWCoinType coinType) {
     return HDWalletImpl.getAddressForCoin(nativehandle, coinType);
   }
 
-  PrivateKey getDerivedKey(int coinType, int account, int change, int address) {
+  PrivateKey getDerivedKey(
+      TWCoinType coinType, int account, int change, int address) {
     final pointer = HDWalletImpl.getDerivedKey(
         nativehandle, coinType, account, change, address);
     return PrivateKey.pointer(pointer);
   }
 
-  PrivateKey getKeyForCoin(int coinType) {
+  PrivateKey getKeyForCoin(TWCoinType coinType) {
     final pointer = HDWalletImpl.getKeyForCoin(nativehandle, coinType);
     return PrivateKey.pointer(pointer);
   }
 
-  String getKeyForCoinHex(int coinType) {
+  String getKeyForCoinHex(TWCoinType coinType) {
     return hex.encode(getKeyForCoin(coinType).data());
   }
 
-  PrivateKey getKey(int coinType, String derivationPath) {
+  PrivateKey getKey(TWCoinType coinType, String derivationPath) {
     final pointer = HDWalletImpl.getKey(nativehandle, coinType, derivationPath);
     return PrivateKey.pointer(pointer);
   }
 
-  PrivateKey getMasterKey(int curve) {
+  PrivateKey getMasterKey(TWCurve curve) {
     final pointer = HDWalletImpl.getMasterKey(nativehandle, curve);
     return PrivateKey.pointer(pointer);
   }
@@ -82,7 +84,8 @@ class HDWallet {
     return HDWalletImpl.mnemonic(nativehandle);
   }
 
-  String getExtendedPublicKey(int purpose, int coinType, int twHdVersion) {
+  String getExtendedPublicKey(
+      TWPurpose purpose, TWCoinType coinType, TWHDVersion twHdVersion) {
     return HDWalletImpl.getExtendedPublicKey(
         nativehandle, purpose, coinType, twHdVersion);
   }

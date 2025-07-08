@@ -5,9 +5,11 @@ import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/string_util.dart';
 
+import '../ffi/trust_wallet_api_ffi.dart';
+
 class PublicKeyImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
-  static bool isValid(Uint8List data, int publicKeyType) {
+  static bool isValid(Uint8List data, TWPublicKeyType publicKeyType) {
     final twData = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(data.toPointerUint8(), data.length);
 
@@ -18,7 +20,7 @@ class PublicKeyImpl {
     return result;
   }
 
-  static Pointer<Void> createWithData(Pointer<Void> data, int publicKeyType) {
+  static Pointer<Void> createWithData(Pointer<Void> data, TWPublicKeyType publicKeyType) {
     final publickey = ffiBridgePrebuilt.wallet_lib
         .TWPublicKeyCreateWithData(data, publicKeyType);
 
@@ -65,7 +67,7 @@ class PublicKeyImpl {
         .cast();
   }
 
-  static int keyType(Pointer<Void> publicKey) {
+  static TWPublicKeyType keyType(Pointer<Void> publicKey) {
     return ffiBridgePrebuilt.wallet_lib.TWPublicKeyKeyType(publicKey.cast());
   }
 
