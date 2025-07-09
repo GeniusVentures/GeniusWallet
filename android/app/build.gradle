@@ -16,6 +16,130 @@ def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    println "DEBUG: key.properties found and loaded"
+    println "DEBUG: storeFile = ${keystoreProperties['storeFile']}"
+    println "DEBUG: keyAlias = ${keystoreProperties['keyAlias']}"
+    println "DEBUG: keystorePropertiesFile path = ${keystorePropertiesFile.absolutePath}"
+    
+    // Check if the keystore file actually exists
+    def keystoreFile = file(keystoreProperties['storeFile'])
+    println "DEBUG: keystore file path = ${keystoreFile.absolutePath}"
+    println "DEBUG: keystore file exists = ${keystoreFile.exists()}"
+} else {
+    println "DEBUG: key.properties NOT found at ${keystorePropertiesFile.absolutePath}"
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+android {
+    // compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 35
+    ndkVersion "27.1.12297006"
+
+    namespace "ai.gnus.genius_wallet"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    // x86_64 is for emulator support on windows, however wallet kit does not work on this arch
+    defaultConfig {
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
+        splits {
+            abi {
+                enable false
+            }
+        }
+
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId "ai.gnus.genius_wallet"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
+        minSdkVersion 29
+        targetSdkVersion 35
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+
+    signingConfigs {
+        debug {
+            if (keystorePropertiesFile.exists()) {
+                println "DEBUG: Configuring debug signing with custom keystore"
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            } else {
+                println "DEBUG: Using default debug signing"
+            }
+        }
+        release {
+            if (keystorePropertiesFile.exists()) {
+                println "DEBUG: Configuring release signing with custom keystore"
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            } else {
+                println "DEBUG: Using default release signing"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // Use the custom signing config if key.properties exists, otherwise fall back to debug
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            println "DEBUG: Release build using signing config: ${keystorePropertiesFile.exists() ? 'custom release' : 'debug'}"
+        }
+    }
+    
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')

@@ -242,6 +242,22 @@ jobs:
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
             fi
           fi
+          
+          # For Android builds, verify the keystore was used
+          if [ "${{ matrix.target }}" = "Android" ]; then
+            echo "Checking if keystore was used in Android build..."
+            if [ -f "android/key.properties" ]; then
+              echo "key.properties exists, checking build output for signing info..."
+              # Check if the build logs mention our keystore
+              echo "Contents of key.properties:"
+              cat android/key.properties
+              echo "Checking if keystore file exists and is readable:"
+              ls -la android/app/debug.keystore
+              file android/app/debug.keystore
+            else
+              echo "ERROR: key.properties not found during build!"
+            fi
+          fi
 
       - name: Prepare artifacts
         run: |
