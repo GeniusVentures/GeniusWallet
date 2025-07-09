@@ -143,18 +143,12 @@ jobs:
           mkdir -p android/app
           
           # Decode and save the debug keystore to android/app/ directory
-          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/debug.keystore
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
           
-          # Verify keystore was created and has content
-          ls -la android/app/debug.keystore
-          
-          # Create key.properties file in android/ directory (where build.gradle looks for it)
-          cat > android/key.properties << EOF
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=app/debug.keystore
-          EOF
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
           
           echo "Android keystore configured"
           echo "Key properties created:"
@@ -240,22 +234,6 @@ jobs:
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
             else
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
-            fi
-          fi
-          
-          # For Android builds, verify the keystore was used
-          if [ "${{ matrix.target }}" = "Android" ]; then
-            echo "Checking if keystore was used in Android build..."
-            if [ -f "android/key.properties" ]; then
-              echo "key.properties exists, checking build output for signing info..."
-              # Check if the build logs mention our keystore
-              echo "Contents of key.properties:"
-              cat android/key.properties
-              echo "Checking if keystore file exists and is readable:"
-              ls -la android/app/debug.keystore
-              file android/app/debug.keystore
-            else
-              echo "ERROR: key.properties not found during build!"
             fi
           fi
 
