@@ -15,11 +15,13 @@
 1. Download `Windows-Release.zip` from the GitHub release page.
 2. Extract the zip file.
 3. Inside the extracted folder, you will find `genius_wallet.exe`.
-4. Double-click `genius_wallet.exe` to launch Genius Wallet on Windows.
+4. Double-click `genius_wallet.exe` to launch Genius Wallet.
 
 ---
 
 ## Linux (x86\_64 and aarch64)
+
+Our Linux builds are tested on **Ubuntu 22 and newer for x86\_64**, and on **Debian Bullseye and Ubuntu 22+ for aarch64**. They should work on most modern Linux distributions with a reasonably up-to-date system.
 
 1. Download the appropriate tar.gz for your architecture:
 
@@ -37,7 +39,7 @@
    ```bash
    cd artifacts/bundle
    ```
-4. Run the app:
+4. Run the application:
 
    ```bash
    ./genius_wallet
@@ -56,10 +58,10 @@
 
 1. Download `Android-Release.apk` from the GitHub release page.
 2. Transfer the APK to your Android device.
-3. **Enable installation from unknown sources:**
+3. Enable installation from unknown sources:
 
    * Open **Settings**.
-   * Go to **Security** or **Apps & notifications** (varies by device).
+   * Go to **Security** or **Apps & notifications**.
    * Tap **Install unknown apps** or **Special app access**.
    * Select your browser or file manager.
    * Enable **Allow from this source**.
@@ -72,7 +74,7 @@
 
 ## iOS and macOS
 
-Distributed via **TestFlight**.
+Genius Wallet is distributed via **TestFlight** for iOS and macOS.
 
 Contact us to request TestFlight access, and we will send you an invitation link to join the Genius Wallet beta.
 
@@ -80,6 +82,6 @@ Contact us to request TestFlight access, and we will send you an invitation link
 
 ## Feedback and Support
 
-If you encounter issues, please open an issue on GitHub or contact us directly for support.
+If you encounter any issues, please open an issue on the GitHub repository or contact us directly for support.
 
 Thank you for using Genius Wallet!
