@@ -69,6 +69,7 @@ jobs:
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
         run: |
+          sudo apt update
           sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
           sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
           sudo update-alternatives --set cc $(which clang)
@@ -148,19 +149,6 @@ jobs:
           channel: "master"
           flutter-version: 3.32.5
 
-      - name: Configure Gradle memory
-        if: ${{ matrix.target == 'Android' }}
-        run: |
-          # Create gradle.properties with increased heap size
-          mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
-
-          # Also set it in the project if it exists
-          if [ -f "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties" ]; then
-            echo "" >> "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties"
-            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "${{github.workspace}}/android/gradle.properties"
-          fi
-        shell: bash
 
       - name: Set build directory
         run: |
@@ -172,20 +160,53 @@ jobs:
           echo "BUILD_DIRECTORY=$BUILD_DIRECTORY" >> $GITHUB_ENV
         shell: bash
 
-      - name: Set current branch
-        run: |
-          if ${{github.event_name == 'pull_request'}}; then
-              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
-          else
-              CURRENT_BRANCH=$GITHUB_REF_NAME
-          fi
-          echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
-        shell: bash
-
       - name: Checkout GeniusWallet
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
+
+
+      - name: Configure Android keystore
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create the android directory if it doesn't exist
+          mkdir -p android/app
+          
+          # Decode and save the debug keystore to android/app/ directory
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+          
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+          
+          echo "Android keystore configured"
+          echo "Key properties created:"
+          cat android/key.properties
+          
+          # Verify the keystore file was created
+          if [ -f "android/app/keystore.jks" ]; then
+            echo "Keystore file created successfully at: android/app/keystore.jks"
+            ls -la android/app/keystore.jks
+          else
+            echo "ERROR: Keystore file not found!"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Configure Gradle memory
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create gradle.properties with increased heap size
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
+
+          # Also set it in the project if it exists
+          if [ -f "android/gradle.properties" ]; then
+            echo "" >> "android/gradle.properties"
+            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "android/gradle.properties"
+          fi
+        shell: bash
 
       - name: Get Flutter Dependencies
         run: |
@@ -194,6 +215,10 @@ jobs:
       - name: Setup CMake Arguments
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${{ github.event.inputs.tag }}"
+            CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
+          fi
 
           # Add verbose output for debugging
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
@@ -265,7 +290,24 @@ jobs:
               cp -r build/linux/*/debug/bundle artifacts/ || true
               ;;
             "Windows")
-              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
+              # Windows builds to build/windows/x64/runner/Release or Debug
+              BUILD_DIR="build/windows/x64/runner/${{ matrix.build-type }}"
+              
+              echo "Looking for Windows build output in: $BUILD_DIR"
+              
+              if [ -d "$BUILD_DIR" ]; then
+                echo "Found build directory: $BUILD_DIR"
+                ls -la "$BUILD_DIR"
+                # Copy the entire directory contents
+                cp -r "$BUILD_DIR"/* artifacts/
+                echo "Copied files to artifacts:"
+                ls -la artifacts/
+              else
+                echo "Windows build directory not found at expected location: $BUILD_DIR"
+                echo "Listing actual build structure:"
+                find build/windows -type d 2>/dev/null || true
+                echo "Windows build failed - build directory not found at $BUILD_DIR" > artifacts/build_error.txt
+              fi
               ;;
           esac
         shell: bash
@@ -275,12 +317,33 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
           if [ '${{matrix.abi}}' ]; then
-            ARTIFACT_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}.tar.gz
+            BASE_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}
           else
-            ARTIFACT_NAME=${{matrix.target}}-${{matrix.build-type}}.tar.gz
+            BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
+          
+          # Android APKs don't need compression - upload directly
+          if [ "${{ matrix.target }}" = "Android" ]; then
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              ARTIFACT_NAME=${BASE_NAME}.apk
+              cp artifacts/app-debug.apk ${ARTIFACT_NAME}
+            else
+              ARTIFACT_NAME=${BASE_NAME}.apk
+              cp artifacts/app-release.apk ${ARTIFACT_NAME}
+            fi
+          # Use appropriate compression format for other platforms
+          elif [ "${{ matrix.target }}" = "Windows" ]; then
+            ARTIFACT_NAME=${BASE_NAME}.zip
+            # Use PowerShell to create zip on Windows
+            powershell -Command "Compress-Archive -Path 'artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
+          else
+            ARTIFACT_NAME=${BASE_NAME}.tar.gz
+            tar -czvf ${ARTIFACT_NAME} artifacts/
+          fi
+          
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          tar -czvf ${ARTIFACT_NAME} artifacts/
+          echo "Created artifact: ${ARTIFACT_NAME}"
+          ls -la ${ARTIFACT_NAME}
         shell: bash
 
       - name: Release Flutter App
@@ -288,10 +351,12 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         shell: bash
         run: |
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{inputs.tag}}' ]; then
-              RELEASE_TAG="${{inputs.tag}}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
+              RELEASE_TAG="${{ github.event.inputs.tag }}"
+              IS_TAG_RELEASE="true"
           else
               RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+              IS_TAG_RELEASE="false"
           fi
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
@@ -299,10 +364,11 @@ jobs:
           if ! gh release view $RELEASE_TAG; then
               echo "Release not found, creating with tag: $RELEASE_TAG"
 
-              if [ '${{ matrix.build-type }}' != 'Release' ]; then
-                  RELEASE_TYPE="--prerelease"
-              else
+              if [ "${{github.ref_name}}" = "main" ] || [ "$IS_TAG_RELEASE" = "true" ]; then
                   RELEASE_TYPE="--latest"
+              else
+                  # Everything else (develop) is prerelease
+                  RELEASE_TYPE="--prerelease"
               fi
 
               gh release create $RELEASE_TAG \
