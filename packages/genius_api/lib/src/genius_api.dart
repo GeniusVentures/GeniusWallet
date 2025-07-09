@@ -518,8 +518,13 @@ class GeniusApi {
 
   DateTime parseTimestamp(int timestamp) {
     try {
-      // Try new format (milliseconds) first - no year validation needed
-      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+      // Try new format (milliseconds) first
+      final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      // Accept reasonable dates (allow some future buffer for network time)
+      if (dt.year >= 2020 && dt.year <= 2530) {
+        return dt;
+      }
+      // If year is unreasonable, fall through to nanosecond conversions
     } catch (e) {
       // Will fall through to conversions below
     }
@@ -528,6 +533,8 @@ class GeniusApi {
     final conversions = [
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1000000), // nanoseconds (Linux)
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10),      // 100ns (Windows old)
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10000000),
+      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100000000),
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100),     // 10ns 
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1000),    // microseconds
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 1),       // already microseconds
@@ -537,13 +544,14 @@ class GeniusApi {
       try {
         final dt = convert();
         if (dt.year >= 2024 && dt.year <= 2025) {
+          debugPrint("Return timestamp fallback");
           return dt;
         }
       } catch (e) {
         continue;
       }
     }
-    
+    debugPrint("Falling Back On Timestamp");
     // Ultimate fallback, if nothing seems right we have to return something
     return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
   }
