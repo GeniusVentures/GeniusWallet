@@ -585,7 +585,7 @@ class GeniusApi {
       } else if (header.type == "transfer") {
         rawRecipients = TransferTx.fromBuffer(buffer).utxoParams.outputs;
       } else if (header.type == "escrow-release") {
-        rawRecipients = EscrowReleaseTx.fromBuffer(buffer).utxoParams.outputs;
+        // The recipients on release are not the payouts
       }
 
       if (rawRecipients != null) {
