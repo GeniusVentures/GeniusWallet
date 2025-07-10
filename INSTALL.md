@@ -6,7 +6,8 @@
 * **Linux (x86\_64)** (`Linux-x86_64-Release.tar.gz`)
 * **Linux (aarch64)** (`Linux-aarch64-Release.tar.gz`)
 * **Android** (`Android-Release.apk`)
-* **iOS and macOS** (distributed via TestFlight, contact us for access)
+* **macOS** (`Genius.Wallet.pkg`)
+* **iOS** (distributed via TestFlight, contact us for access)
 
 ---
 
@@ -72,9 +73,18 @@ Our Linux builds are tested on **Ubuntu 22 and newer for x86\_64**, and on **Deb
 
 ---
 
-## iOS and macOS
+## macOS
 
-Genius Wallet is distributed via **TestFlight** for iOS and macOS.
+1. Download `Genius.Wallet.pkg` from the GitHub release page.
+2. Double-click `Genius.Wallet.pkg` to start the installer.
+3. Follow the prompts to complete installation.
+4. Once installed, you can launch **Genius Wallet** from your Applications folder.
+
+---
+
+## iOS
+
+Genius Wallet is distributed via **TestFlight** for iOS.
 
 Contact us to request TestFlight access, and we will send you an invitation link to join the Genius Wallet beta.
 
