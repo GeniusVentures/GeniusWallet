@@ -544,14 +544,12 @@ class GeniusApi {
       try {
         final dt = convert();
         if (dt.year >= 2024 && dt.year <= 2025) {
-          debugPrint("Return timestamp fallback");
           return dt;
         }
       } catch (e) {
         continue;
       }
     }
-    debugPrint("Falling Back On Timestamp");
     // Ultimate fallback, if nothing seems right we have to return something
     return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
   }
