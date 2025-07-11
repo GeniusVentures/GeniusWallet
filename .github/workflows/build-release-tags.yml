@@ -313,6 +313,7 @@ jobs:
 
               # Create a single release for the tag
               gh release create $TAG_NAME \
+                  --draft \
                   -n "Build artifacts for tag ${TAG_NAME}" \
                   -t "${TAG_NAME} build artifacts"
           else
