@@ -149,15 +149,20 @@ jobs:
           channel: "master"
           flutter-version: 3.32.5
 
-
-      - name: Set build directory
+      - name: Set current branch
         run: |
-          if [ '${{matrix.abi}}' ]; then
-            BUILD_DIRECTORY=build/${{matrix.target}}/${{matrix.build-type}}/${{matrix.abi}}
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" ]; then
+              CURRENT_BRANCH="${{ github.event.inputs.tag }}"
+              IS_TAG=true
+          elif ${{github.event_name == 'pull_request'}}; then
+              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
+              IS_TAG=false
           else
-            BUILD_DIRECTORY=build/${{matrix.target}}/${{matrix.build-type}}
+              CURRENT_BRANCH=$GITHUB_REF_NAME
+              IS_TAG=false
           fi
-          echo "BUILD_DIRECTORY=$BUILD_DIRECTORY" >> $GITHUB_ENV
+          echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
+          echo "IS_TAG=${IS_TAG}" >>$GITHUB_ENV
         shell: bash
 
       - name: Checkout GeniusWallet
@@ -314,7 +319,7 @@ jobs:
 
       - name: Compress build artifacts
         working-directory: ${{github.workspace}}
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         run: |
           if [ '${{matrix.abi}}' ]; then
             BASE_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}
@@ -348,7 +353,7 @@ jobs:
 
       - name: Release Flutter App
         working-directory: ${{github.workspace}}
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         shell: bash
         run: |
           if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
