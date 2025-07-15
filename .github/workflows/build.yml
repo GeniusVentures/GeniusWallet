@@ -366,22 +366,35 @@ jobs:
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
 
-          if ! gh release view $RELEASE_TAG; then
-              echo "Release not found, creating with tag: $RELEASE_TAG"
+          echo "Checking if release $RELEASE_TAG exists..."
+          set +e
+          gh release view "$RELEASE_TAG"
+          releaseFound=$?
+          set -e
 
-              if [ "${{github.ref_name}}" = "main" ] || [ "$IS_TAG_RELEASE" = "true" ]; then
-                  RELEASE_TYPE="--latest"
-              else
-                  # Everything else (develop) is prerelease
-                  RELEASE_TYPE="--prerelease"
-              fi
-
-              gh release create $RELEASE_TAG \
-                  -n "${CURRENT_BRANCH} branch" \
-                  --target "${CURRENT_BRANCH}" \
-                  ${RELEASE_TYPE} \
-                  -t "${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
+           if [[ $releaseFound -eq 0 && "$IS_TAG_RELEASE" == "false" ]]; then
+              echo "Deleting existing branch-based release + tag..."
+              gh release delete "$RELEASE_TAG" --yes
+              git push origin ":refs/tags/$RELEASE_TAG" || true
           fi
+
+          # Force-create tag locally and push it
+          echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
+          git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+          git push --force origin "$RELEASE_TAG"
+
+          if [ "$IS_TAG_RELEASE" = "true" ]; then
+              RELEASE_TYPE="--latest"
+          else
+              RELEASE_TYPE="--draft"
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            --target "${{ github.sha }}" \
+            -t "${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build" \
+            -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+            ${RELEASE_TYPE}
+          
 
           echo -e "Uploading ${ARTIFACT_NAME}"
           gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
