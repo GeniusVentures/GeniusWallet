@@ -351,9 +351,40 @@ jobs:
           ls -la ${ARTIFACT_NAME}
         shell: bash
 
-      - name: Release Flutter App
+      - name: Wait for primary release creation
+        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && (matrix.target == 'Linux' && matrix.abi == 'aarch64')
         working-directory: ${{github.workspace}}
-        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
+        run: |
+          if [ "$IS_TAG" == "true" ]; then
+              RELEASE_TAG="${{ github.event.inputs.tag }}"
+          else
+              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+          fi
+          
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+          echo "Waiting for primary job to create/update release: $RELEASE_TAG"
+          
+          # Wait up to 120 minutes for the release to be created/updated
+          ATTEMPT=1
+          MAX_ATTEMPTS=720
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+              if gh release view $RELEASE_TAG >/dev/null 2>&1; then
+                  echo "Release found!"
+                  # Check if it's at the correct commit
+                  if gh release view $RELEASE_TAG | grep -q "${{ github.sha }}"; then
+                      echo "Release is at correct commit"
+                      break
+                  fi
+              fi
+              echo "Waiting for release... (attempt $ATTEMPT/$MAX_ATTEMPTS)"
+              sleep 10
+              ATTEMPT=$((ATTEMPT + 1))
+          done
+        shell: bash
+
+      - name: Create release of GeniusWallet
+        working-directory: ${{github.workspace}}
+        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && !(matrix.target == 'Linux' && matrix.abi == 'aarch64')
         shell: bash
         run: |
           if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
@@ -395,6 +426,10 @@ jobs:
             -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
             ${RELEASE_TYPE}
           
+      - name: Upload file
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
+        working-directory: ${{github.workspace}}
+        run: gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+        shell: bash
 
-          echo -e "Uploading ${ARTIFACT_NAME}"
-          gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+          
