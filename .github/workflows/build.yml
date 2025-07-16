@@ -364,7 +364,28 @@ jobs:
             echo "Signing embedded frameworks..."
             find "$output_dir/$app_name/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | while read framework; do
               echo "Signing framework: $framework"
-              # Sign frameworks with explicit options
+              
+              # Sign the actual binary inside the framework
+              framework_name=$(basename "$framework" .framework)
+              
+              # Try different possible locations for the framework binary
+              if [ -f "$framework/Versions/Current/$framework_name" ]; then
+                echo "Signing framework binary: $framework/Versions/Current/$framework_name"
+                codesign --force --sign "$cert_name" --options runtime --timestamp "$framework/Versions/Current/$framework_name"
+              elif [ -f "$framework/Versions/A/$framework_name" ]; then
+                echo "Signing framework binary: $framework/Versions/A/$framework_name"
+                codesign --force --sign "$cert_name" --options runtime --timestamp "$framework/Versions/A/$framework_name"
+              elif [ -f "$framework/$framework_name" ]; then
+                echo "Signing framework binary: $framework/$framework_name"
+                codesign --force --sign "$cert_name" --options runtime --timestamp "$framework/$framework_name"
+              else
+                echo "Could not find binary for framework: $framework"
+                echo "Contents:"
+                find "$framework" -type f -name "$framework_name"
+              fi
+              
+              # Then sign the framework bundle itself
+              echo "Signing framework bundle: $framework"
               codesign --force --sign "$cert_name" --options runtime --timestamp "$framework"
             done
             
