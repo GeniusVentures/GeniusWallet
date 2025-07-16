@@ -357,9 +357,9 @@ jobs:
             # Try different variations to find the certificate
             local identity
             if [ -n "$search_flag" ]; then
-              identity=$(security find-identity -v $search_flag | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") \(.*\)/\1/')
+              identity=$(security find-identity -v $search_flag | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") "\(.*\)"/\1/')
             else
-              identity=$(security find-identity -v | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") \(.*\)/\1/')
+              identity=$(security find-identity -v | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") "\(.*\)"/\1/')
             fi
             
             if [ -z "$identity" ]; then
