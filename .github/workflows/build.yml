@@ -21,6 +21,16 @@ on:
         description: "Release tag"
         required: false
         type: string
+      distribution_type:
+        description: "Distribution type for macOS"
+        required: false
+        type: choice
+        options:
+          - "both"
+          - "testflight"
+          - "developer-id"
+        default: "both"
+
 jobs:
   build:
     env:
@@ -97,28 +107,52 @@ jobs:
           echo "PATH=$PATH" >> $GITHUB_ENV
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
-      - name: Install the Apple certificate and provisioning profile for MacOS
+      - name: Install Apple certificates and provisioning profiles for macOS
         if: ${{ runner.os == 'macOS' }}
         env:
+          # TestFlight/App Store certificates
           DEV_DISTRIBUTION_SIGNER_CERT_BASE64: ${{ secrets.DEV_DISTRIBUTION_SIGNER_CERT_BASE_64 }}
           DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
           DEV_DISTRIBUTION_MAC_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_MAC_PROVISIONING_PROFILE_BASE_64 }}
           DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64: ${{ secrets.DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64 }}
+          
+          # Developer ID certificates for direct distribution
+          DEVELOPER_ID_APP_CERT_BASE64: ${{ secrets.DEVELOPER_ID_APP_CERT_BASE64 }}
+          DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.DEVELOPER_ID_INSTALLER_CERT_BASE64 }}
+          DEVELOPER_ID_PROVISION_BASE64: ${{ secrets.DEVELOPER_ID_PROVISION_BASE64 }}
+          
+          # Common secrets
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           DEV_DISTRIBUTION_P12_PASSWORD: ${{ secrets.DEV_DISTRIBUTION_P12_PASSWORD }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          
+          # Notarization
+          APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           # create variables
           DEV_DISTRIBUTION_SIGNER_CERT_PATH=$RUNNER_TEMP/signer_certificate.p12
           DEV_DISTRIBUTION_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.cer
+          DEVELOPER_ID_APP_CERT_PATH=$RUNNER_TEMP/developer_id_app.p12
+          DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
+          
           MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
+          APP_STORE_PP_PATH=$RUNNER_TEMP/app_store_pp.provisionprofile
+          DEVELOPER_ID_PP_PATH=$RUNNER_TEMP/developer_id_pp.provisionprofile
+          
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # import certificates and provisioning profile from secrets
+          # import certificates and provisioning profiles from secrets
           echo -n "$DEV_DISTRIBUTION_SIGNER_CERT_BASE64" | base64 --decode -o $DEV_DISTRIBUTION_SIGNER_CERT_PATH
           echo -n "$DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64" | base64 --decode -o $DEV_DISTRIBUTION_INSTALLER_CERT_PATH
           echo -n "$DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
-          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
+          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $APP_STORE_PP_PATH
+          
+          # Developer ID certificates and provisioning profile
+          echo -n "$DEVELOPER_ID_APP_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_APP_CERT_PATH
+          echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
+          echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -128,19 +162,28 @@ jobs:
           # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
           security find-identity -v
 
-          # apply provisioning profile
+          # apply provisioning profiles
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          
+          # App Store profiles
+          cp $APP_STORE_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $APP_STORE_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
           cp $MP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $MP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+          
+          # Developer ID profile
+          cp $DEVELOPER_ID_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $DEVELOPER_ID_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
 
-          echo "Finishing importing certificates"
+          echo "Finished importing certificates and provisioning profiles"
         shell: bash
 
       - name: Setup Flutter
@@ -148,7 +191,6 @@ jobs:
         with:
           channel: "master"
           flutter-version: 3.32.5
-
 
       - name: Set build directory
         run: |
@@ -164,7 +206,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
-
 
       - name: Configure Android keystore
         if: ${{ matrix.target == 'Android' }}
@@ -262,6 +303,107 @@ jobs:
             fi
           fi
 
+      - name: Sign and package macOS app
+        if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop') }}
+        env:
+          APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
+        run: |
+          cd build/macos/Build/Products/${{matrix.build-type}}
+          
+          # Determine distribution type
+          DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
+          if [ -z "$DISTRIBUTION_TYPE" ]; then
+            DISTRIBUTION_TYPE="both"
+          fi
+          
+          # Function to sign app with specific identity
+          sign_app() {
+            local identity="$1"
+            local app_name="$2"
+            local output_dir="$3"
+            
+            echo "Signing app with identity: $identity"
+            
+            # Copy app to output directory
+            mkdir -p "$output_dir"
+            cp -r "Genius Wallet.app" "$output_dir/$app_name"
+            
+            # Sign the app
+            codesign --force --deep --sign "$identity" "$output_dir/$app_name"
+            
+            # Verify signature
+            codesign --verify --deep --strict "$output_dir/$app_name"
+            spctl --assess --type execute "$output_dir/$app_name"
+            
+            echo "App signed successfully: $output_dir/$app_name"
+          }
+          
+          # Function to create and sign pkg
+          create_pkg() {
+            local app_path="$1"
+            local pkg_name="$2"
+            local installer_identity="$3"
+            
+            echo "Creating pkg: $pkg_name"
+            
+            # Create unsigned pkg
+            xcrun productbuild --component "$app_path" /Applications "${pkg_name}_unsigned.pkg"
+            
+            # Sign the pkg
+            xcrun productsign --sign "$installer_identity" "${pkg_name}_unsigned.pkg" "$pkg_name"
+            
+            # Verify pkg signature
+            pkgutil --check-signature "$pkg_name"
+            
+            echo "Package created and signed: $pkg_name"
+          }
+          
+          # Function to notarize
+          notarize() {
+            local file_path="$1"
+            
+            echo "Notarizing: $file_path"
+            
+            xcrun notarytool submit "$file_path" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$NOTARIZATION_PASSWORD" \
+              --wait
+            
+            # Staple the notarization
+            xcrun stapler staple "$file_path"
+            
+            echo "Notarization completed for: $file_path"
+          }
+          
+          # Build App Store version
+          if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
+            echo "Building App Store version..."
+            sign_app "3rd Party Mac Developer Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store"
+            create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
+          fi
+          
+          # Build Developer ID version
+          if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
+            echo "Building Developer ID version..."
+            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id"
+            
+            # Notarize the app first
+            notarize "developer_id/Genius Wallet.app"
+            
+            # Create and sign the pkg (keeping original naming)
+            create_pkg "developer_id/Genius Wallet.app" "Genius Wallet.pkg" "Developer ID Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
+            
+            # Notarize the pkg
+            notarize "Genius Wallet.pkg"
+          fi
+          
+          echo "macOS packaging completed"
+          ls -la *.pkg
+        shell: bash
+
       - name: Prepare artifacts
         if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
@@ -281,9 +423,19 @@ jobs:
               ;;
             "OSX")
               cd build/macos/Build/Products/${{matrix.build-type}}
-              xcrun productbuild --component genius_wallet.app /Applications genius_wallet_unsigned.pkg
-              xcrun productsign --sign "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)" genius_wallet_unsigned.pkg genius_wallet.pkg
-              cp -r genius_wallet.pkg ../../../../../artifacts/ || true
+              
+              # Copy the signed packages
+              cp -r *.pkg ../../../../../artifacts/ || true
+              
+              # Create a README explaining the different packages
+              cat > ../../../../../artifacts/README.txt << EOF
+          macOS Distribution Packages:
+
+          - Genius Wallet_AppStore.pkg: For App Store/TestFlight distribution
+          - Genius Wallet.pkg: For direct distribution outside App Store (notarized)
+
+          Both packages are signed and ready for distribution.
+          EOF
               ;;
             "Linux")
               cp -r build/linux/*/release/bundle artifacts/ || true
@@ -331,6 +483,10 @@ jobs:
               ARTIFACT_NAME=${BASE_NAME}.apk
               cp artifacts/app-release.apk ${ARTIFACT_NAME}
             fi
+          # macOS packages don't need compression - upload directly
+          elif [ "${{ matrix.target }}" = "OSX" ]; then
+            # For macOS, we'll upload packages directly without compression
+            echo "macOS packages will be uploaded individually without compression"
           # Use appropriate compression format for other platforms
           elif [ "${{ matrix.target }}" = "Windows" ]; then
             ARTIFACT_NAME=${BASE_NAME}.zip
@@ -342,8 +498,11 @@ jobs:
           fi
           
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          echo "Created artifact: ${ARTIFACT_NAME}"
-          ls -la ${ARTIFACT_NAME}
+          
+          if [ "${{ matrix.target }}" != "OSX" ]; then
+            echo "Created artifact: ${ARTIFACT_NAME}"
+            ls -la ${ARTIFACT_NAME}
+          fi
         shell: bash
 
       - name: Release Flutter App
@@ -378,5 +537,21 @@ jobs:
                   -t "${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
           fi
 
-          echo -e "Uploading ${ARTIFACT_NAME}"
-          gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+          # Upload artifacts
+          if [ "${{ matrix.target }}" = "OSX" ]; then
+            # Upload macOS packages individually
+            for pkg in artifacts/*.pkg; do
+              if [ -f "$pkg" ]; then
+                echo "Uploading $(basename "$pkg")"
+                gh release upload --clobber ${RELEASE_TAG} "$pkg"
+              fi
+            done
+            
+            # Upload README
+            if [ -f "artifacts/README.txt" ]; then
+              gh release upload --clobber ${RELEASE_TAG} "artifacts/README.txt"
+            fi
+          else
+            echo "Uploading ${ARTIFACT_NAME}"
+            gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+          fi
