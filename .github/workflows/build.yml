@@ -176,7 +176,15 @@ jobs:
           
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Available identities in keychain ==="
           security find-identity -v
+          
+          echo "=== Searching for specific certificate types ==="
+          security find-identity -v -p codesigning
+          
+          echo "=== All certificates in keychain ==="
+          security dump-keychain $KEYCHAIN_PATH | grep -A 5 -B 5 "Developer\|3rd Party"
 
           # apply provisioning profiles
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
@@ -327,17 +335,47 @@ jobs:
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
           
+          # First, let's see what certificates are available
+          echo "=== Available signing identities ==="
+          security find-identity -v -p codesigning
+          
           # Determine distribution type
           DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
           if [ -z "$DISTRIBUTION_TYPE" ]; then
             DISTRIBUTION_TYPE="both"
           fi
           
+          # Function to find certificate by partial name
+          find_cert_identity() {
+            local cert_type="$1"
+            local team_id="$2"
+            
+            # Try different variations to find the certificate
+            local identity=$(security find-identity -v -p codesigning | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") \(.*\)/\1/')
+            
+            if [ -z "$identity" ]; then
+              echo "ERROR: Could not find certificate matching '$cert_type' with team ID '$team_id'"
+              echo "Available certificates:"
+              security find-identity -v -p codesigning
+              return 1
+            fi
+            
+            echo "$identity"
+          }
+          
           # Function to sign app with specific identity
           sign_app() {
-            local identity="$1"
+            local cert_type="$1"
             local app_name="$2"
             local output_dir="$3"
+            
+            echo "Finding identity for: $cert_type"
+            local identity=$(find_cert_identity "$cert_type" "P7T32QQX5V")
+            
+            if [ $? -ne 0 ]; then
+              echo "Failed to find signing identity"
+              return 1
+            fi
             
             echo "Signing app with identity: $identity"
             
@@ -359,9 +397,18 @@ jobs:
           create_pkg() {
             local app_path="$1"
             local pkg_name="$2"
-            local installer_identity="$3"
+            local cert_type="$3"
             
             echo "Creating pkg: $pkg_name"
+            echo "Finding installer identity for: $cert_type"
+            local installer_identity=$(find_cert_identity "$cert_type" "P7T32QQX5V")
+            
+            if [ $? -ne 0 ]; then
+              echo "Failed to find installer identity"
+              return 1
+            fi
+            
+            echo "Using installer identity: $installer_identity"
             
             # Create unsigned pkg
             xcrun productbuild --component "$app_path" /Applications "${pkg_name}_unsigned.pkg"
@@ -396,20 +443,20 @@ jobs:
           # Build App Store version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
             echo "Building App Store version..."
-            sign_app "3rd Party Mac Developer Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store"
-            create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
+            sign_app "3rd Party Mac Developer Application" "Genius Wallet.app" "app_store"
+            create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer"
           fi
           
           # Build Developer ID version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
             echo "Building Developer ID version..."
-            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id"
+            sign_app "Developer ID Application" "Genius Wallet.app" "developer_id"
             
             # Notarize the app first
             notarize "developer_id/Genius Wallet.app"
             
             # Create and sign the pkg (keeping original naming)
-            create_pkg "developer_id/Genius Wallet.app" "Genius Wallet.pkg" "Developer ID Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
+            create_pkg "developer_id/Genius Wallet.app" "Genius Wallet.pkg" "Developer ID Installer"
             
             # Notarize the pkg
             notarize "Genius Wallet.pkg"
@@ -617,4 +664,3 @@ jobs:
             gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
           fi
         shell: bash
-
