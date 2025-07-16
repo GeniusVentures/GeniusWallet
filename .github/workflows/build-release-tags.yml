@@ -264,7 +264,7 @@ jobs:
               ;;
             "OSX")
               cd build/macos/Build/Products/${{matrix.build-type}}
-              xcrun productbuild --component genius_wallet.app /Applications genius_wallet_unsigned.pkg
+              xcrun productbuild --component "Genius Wallet.app" /Applications genius_wallet_unsigned.pkg
               xcrun productsign --sign "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)" genius_wallet_unsigned.pkg genius_wallet.pkg
               cp -r genius_wallet.pkg ../../../../../artifacts/ || true
               ;;
@@ -313,6 +313,7 @@ jobs:
 
               # Create a single release for the tag
               gh release create $TAG_NAME \
+                  --draft \
                   -n "Build artifacts for tag ${TAG_NAME}" \
                   -t "${TAG_NAME} build artifacts"
           else
