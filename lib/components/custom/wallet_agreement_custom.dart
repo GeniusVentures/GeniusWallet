@@ -6,7 +6,8 @@ class WalletAgreementCustom extends StatefulWidget {
   final bool? value;
   final void Function(bool?)? onChanged;
   final String? text;
-  WalletAgreementCustom({
+
+  const WalletAgreementCustom({
     Key? key,
     this.value,
     this.onChanged,
@@ -21,23 +22,17 @@ class WalletAgreementCustom extends StatefulWidget {
 class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Checkbox(
-          value: widget.value ?? false,
-          onChanged: widget.onChanged,
-        ),
-        Flexible(
-          child: AutoSizeText(
+    return CheckboxListTile(
+      value: widget.value ?? false,
+      onChanged: widget.onChanged,
+      title: widget.child ??
+          AutoSizeText(
             widget.text ??
                 'I’ve read and accept the Terms of Service and Privacy Policy',
-            maxLines: 2,
-            textScaleFactor: 1,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
-        ),
-      ],
+      controlAffinity: ListTileControlAffinity.leading, // Checkbox on the left
+      contentPadding: EdgeInsets.zero, // No extra padding
     );
   }
 }
