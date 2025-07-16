@@ -597,8 +597,7 @@ jobs:
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         working-directory: ${{github.workspace}}
-        run: gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
-        shell: bash
+        run: |
           # Upload artifacts
           if [ "${{ matrix.target }}" = "OSX" ]; then
             # Upload macOS packages individually
@@ -617,3 +616,5 @@ jobs:
             echo "Uploading ${ARTIFACT_NAME}"
             gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
           fi
+        shell: bash
+
