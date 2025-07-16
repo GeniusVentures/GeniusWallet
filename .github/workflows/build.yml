@@ -339,6 +339,9 @@ jobs:
           echo "=== Available signing identities ==="
           security find-identity -v -p codesigning
           
+          echo "=== All available identities (including installer) ==="
+          security find-identity -v
+          
           # Determine distribution type
           DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
           if [ -z "$DISTRIBUTION_TYPE" ]; then
@@ -349,14 +352,24 @@ jobs:
           find_cert_identity() {
             local cert_type="$1"
             local team_id="$2"
+            local search_flag="$3"  # Optional: -p codesigning or empty for all
             
             # Try different variations to find the certificate
-            local identity=$(security find-identity -v -p codesigning | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") \(.*\)/\1/')
+            local identity
+            if [ -n "$search_flag" ]; then
+              identity=$(security find-identity -v $search_flag | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") \(.*\)/\1/')
+            else
+              identity=$(security find-identity -v | grep "$cert_type" | grep "$team_id" | head -1 | sed 's/.*") \(.*\)/\1/')
+            fi
             
             if [ -z "$identity" ]; then
               echo "ERROR: Could not find certificate matching '$cert_type' with team ID '$team_id'"
               echo "Available certificates:"
-              security find-identity -v -p codesigning
+              if [ -n "$search_flag" ]; then
+                security find-identity -v $search_flag
+              else
+                security find-identity -v
+              fi
               return 1
             fi
             
@@ -370,7 +383,7 @@ jobs:
             local output_dir="$3"
             
             echo "Finding identity for: $cert_type"
-            local identity=$(find_cert_identity "$cert_type" "P7T32QQX5V")
+            local identity=$(find_cert_identity "$cert_type" "P7T32QQX5V" "-p codesigning")
             
             if [ $? -ne 0 ]; then
               echo "Failed to find signing identity"
@@ -401,7 +414,7 @@ jobs:
             
             echo "Creating pkg: $pkg_name"
             echo "Finding installer identity for: $cert_type"
-            local installer_identity=$(find_cert_identity "$cert_type" "P7T32QQX5V")
+            local installer_identity=$(find_cert_identity "$cert_type" "P7T32QQX5V" "")
             
             if [ $? -ne 0 ]; then
               echo "Failed to find installer identity"
@@ -443,8 +456,8 @@ jobs:
           # Build App Store version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
             echo "Building App Store version..."
-            sign_app "3rd Party Mac Developer Application" "Genius Wallet.app" "app_store"
-            create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer"
+            sign_app "Apple Distribution" "Genius Wallet.app" "app_store"
+            create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "Apple Distribution"
           fi
           
           # Build Developer ID version
