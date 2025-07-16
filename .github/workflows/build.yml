@@ -360,7 +360,21 @@ jobs:
             mkdir -p "$output_dir"
             cp -r "Genius Wallet.app" "$output_dir/$app_name"
             
-            # Sign the app
+            # Sign frameworks first (they need to be signed before the main app)
+            echo "Signing embedded frameworks..."
+            find "$output_dir/$app_name/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | while read framework; do
+              echo "Signing framework: $framework"
+              codesign --force --sign "$cert_name" "$framework"
+            done
+            
+            # Sign any dylibs
+            find "$output_dir/$app_name" -name "*.dylib" -type f 2>/dev/null | while read dylib; do
+              echo "Signing dylib: $dylib"
+              codesign --force --sign "$cert_name" "$dylib"
+            done
+            
+            # Sign the main app bundle
+            echo "Signing main app bundle..."
             codesign --force --deep --sign "$cert_name" "$output_dir/$app_name"
             
             # Verify signature
