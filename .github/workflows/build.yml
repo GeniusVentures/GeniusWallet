@@ -360,34 +360,43 @@ jobs:
             mkdir -p "$output_dir"
             cp -R "Genius Wallet.app" "$output_dir/$app_name"
             
-            # Check provisioning profile details
-            echo "Checking for provisioning profile and entitlements..."
-            if [ -f "$output_dir/$app_name/Contents/embedded.provisionprofile" ]; then
-              echo "Found embedded provisioning profile"
-              echo "Provisioning profile details:"
-              security cms -D -i "$output_dir/$app_name/Contents/embedded.provisionprofile" | head -20
+            # Use the project's entitlements file for Release builds
+            local entitlements_path="../../../../../macos/Runner/Release.entitlements"
+            
+            echo "Checking for project entitlements file..."
+            if [ -f "$entitlements_path" ]; then
+              echo "Found project entitlements file: $entitlements_path"
+              echo "Entitlements content:"
+              cat "$entitlements_path"
               
-              # Extract entitlements from provisioning profile
-              echo "Extracting entitlements from provisioning profile..."
-              security cms -D -i "$output_dir/$app_name/Contents/embedded.provisionprofile" | plutil -extract Entitlements xml1 -o - - > "$output_dir/pp_entitlements.plist"
+              # Copy entitlements to working directory and expand variables
+              cp "$entitlements_path" "$output_dir/entitlements.plist"
               
-              if [ -f "$output_dir/pp_entitlements.plist" ]; then
-                echo "Entitlements from provisioning profile:"
-                cat "$output_dir/pp_entitlements.plist"
-                entitlements_path="$output_dir/pp_entitlements.plist"
-              else
-                echo "Failed to extract entitlements from provisioning profile"
-                entitlements_path=""
-              fi
+              # Replace $(AppIdentifierPrefix) with the actual team ID
+              sed -i '' 's/$(AppIdentifierPrefix)/P7T32QQX5V./g' "$output_dir/entitlements.plist"
+              
+              echo "Processed entitlements:"
+              cat "$output_dir/entitlements.plist"
+              
+              entitlements_to_use="$output_dir/entitlements.plist"
             else
-              echo "No embedded provisioning profile found"
-              entitlements_path=""
+              echo "No project entitlements file found, falling back to provisioning profile entitlements"
+              
+              # Fallback to provisioning profile entitlements
+              if [ -f "$output_dir/$app_name/Contents/embedded.provisionprofile" ]; then
+                echo "Extracting entitlements from provisioning profile..."
+                security cms -D -i "$output_dir/$app_name/Contents/embedded.provisionprofile" | plutil -extract Entitlements xml1 -o - - > "$output_dir/pp_entitlements.plist"
+                entitlements_to_use="$output_dir/pp_entitlements.plist"
+              else
+                echo "No provisioning profile found either"
+                entitlements_to_use=""
+              fi
             fi
             
-            # Sign with entitlements from provisioning profile if available
-            if [ -n "$entitlements_path" ] && [ -f "$entitlements_path" ]; then
-              echo "Signing with entitlements from provisioning profile..."
-              codesign --force --deep --sign "$cert_name" --options runtime --timestamp --entitlements "$entitlements_path" "$output_dir/$app_name"
+            # Sign with the appropriate entitlements
+            if [ -n "$entitlements_to_use" ] && [ -f "$entitlements_to_use" ]; then
+              echo "Signing with entitlements: $entitlements_to_use"
+              codesign --force --deep --sign "$cert_name" --options runtime --timestamp --entitlements "$entitlements_to_use" "$output_dir/$app_name"
             else
               echo "No entitlements available, signing without..."
               codesign --force --deep --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
@@ -396,8 +405,8 @@ jobs:
             # If that fails, try without runtime option
             if [ $? -ne 0 ]; then
               echo "Signing with runtime failed, trying without runtime option..."
-              if [ -n "$entitlements_path" ] && [ -f "$entitlements_path" ]; then
-                codesign --force --deep --sign "$cert_name" --timestamp --entitlements "$entitlements_path" "$output_dir/$app_name"
+              if [ -n "$entitlements_to_use" ] && [ -f "$entitlements_to_use" ]; then
+                codesign --force --deep --sign "$cert_name" --timestamp --entitlements "$entitlements_to_use" "$output_dir/$app_name"
               else
                 codesign --force --deep --sign "$cert_name" --timestamp "$output_dir/$app_name"
               fi
