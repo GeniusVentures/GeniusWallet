@@ -358,44 +358,11 @@ jobs:
             
             # Copy app to output directory
             mkdir -p "$output_dir"
-            cp -r "Genius Wallet.app" "$output_dir/$app_name"
-            
-            # Sign frameworks first (they need to be signed before the main app)
-            echo "Signing embedded frameworks..."
-            find "$output_dir/$app_name/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | while read framework; do
-              echo "Signing framework: $framework"
-              
-              # Sign the actual binary inside the framework
-              framework_name=$(basename "$framework" .framework)
-              
-              # Try different possible locations for the framework binary
-              if [ -f "$framework/Versions/Current/$framework_name" ]; then
-                echo "Signing framework binary: $framework/Versions/Current/$framework_name"
-                codesign --force --sign "$cert_name" --options runtime --timestamp "$framework/Versions/Current/$framework_name"
-              elif [ -f "$framework/Versions/A/$framework_name" ]; then
-                echo "Signing framework binary: $framework/Versions/A/$framework_name"
-                codesign --force --sign "$cert_name" --options runtime --timestamp "$framework/Versions/A/$framework_name"
-              elif [ -f "$framework/$framework_name" ]; then
-                echo "Signing framework binary: $framework/$framework_name"
-                codesign --force --sign "$cert_name" --options runtime --timestamp "$framework/$framework_name"
-              else
-                echo "Could not find binary for framework: $framework"
-                echo "Contents:"
-                find "$framework" -type f -name "$framework_name"
-              fi
-              
-            done
-            
-            # Sign any dylibs
-            find "$output_dir/$app_name" -name "*.dylib" -type f 2>/dev/null | while read dylib; do
-              echo "Signing dylib: $dylib"
-              codesign --force --sign "$cert_name" --options runtime --timestamp "$dylib"
-            done
-            
+            cp -R "Genius Wallet.app" "$output_dir/$app_name"
+
             # Sign the main app bundle
             echo "Signing main app bundle..."
-            codesign --force --sign "$cert_name" --options runtime --timestamp --entitlements "$output_dir/$app_name/Contents/Resources/entitlements.plist" "$output_dir/$app_name" || \
-            codesign --force --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
+            codesign --deep --force --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
             
             # Verify signature
             codesign --verify --deep --strict "$output_dir/$app_name"
