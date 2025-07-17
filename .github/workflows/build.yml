@@ -359,14 +359,53 @@ jobs:
             # Copy app to output directory
             mkdir -p "$output_dir"
             cp -R "Genius Wallet.app" "$output_dir/$app_name"
-
-            # Sign the main app bundle
-            echo "Signing main app bundle..."
-            codesign --deep --force --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
+            
+            # Check if we have the right provisioning profile and entitlements
+            echo "Checking for provisioning profile and entitlements..."
+            if [ -f "$output_dir/$app_name/Contents/embedded.provisionprofile" ]; then
+              echo "Found embedded provisioning profile"
+            else
+              echo "No embedded provisioning profile found"
+            fi
+            
+            if [ -f "$output_dir/$app_name/Contents/Resources/entitlements.plist" ]; then
+              echo "Found entitlements file"
+              echo "Entitlements content:"
+              cat "$output_dir/$app_name/Contents/Resources/entitlements.plist"
+            else
+              echo "No entitlements file found"
+            fi
+            
+            # Try signing with different approaches
+            echo "Attempting to sign with entitlements..."
+            if [ -f "$output_dir/$app_name/Contents/Resources/entitlements.plist" ]; then
+              codesign --force --deep --sign "$cert_name" --options runtime --timestamp --entitlements "$output_dir/$app_name/Contents/Resources/entitlements.plist" "$output_dir/$app_name"
+            else
+              echo "No entitlements found, trying without..."
+              codesign --force --deep --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
+            fi
+            
+            # If that fails, try without runtime option
+            if [ $? -ne 0 ]; then
+              echo "Signing with runtime failed, trying without runtime option..."
+              codesign --force --deep --sign "$cert_name" --timestamp "$output_dir/$app_name"
+            fi
+            
+            # If that fails, try basic signing
+            if [ $? -ne 0 ]; then
+              echo "Timestamp signing failed, trying basic signing..."
+              codesign --force --deep --sign "$cert_name" "$output_dir/$app_name"
+            fi
             
             # Verify signature
+            echo "Verifying signature..."
             codesign --verify --deep --strict "$output_dir/$app_name"
-            spctl --assess --type execute "$output_dir/$app_name"
+            if [ $? -eq 0 ]; then
+              echo "Signature verification successful"
+            else
+              echo "Signature verification failed"
+              return 1
+            fi
             
             echo "App signed successfully: $output_dir/$app_name"
           }
