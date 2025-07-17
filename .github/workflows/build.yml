@@ -127,9 +127,9 @@ jobs:
           DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
           
           # Notarization
-          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+          NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           # create variables
           DEV_DISTRIBUTION_SIGNER_CERT_PATH=$RUNNER_TEMP/signer_certificate.p12
@@ -329,9 +329,9 @@ jobs:
       - name: Sign and package macOS app
         if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop') }}
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+          NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
           
