@@ -536,8 +536,8 @@ jobs:
               ;;
             "iOS")
               # Copy the iOS IPA if it exists
-              if [ -d "build/ios/iphoneos" ]; then
-                find build/ios/iphoneos -name "*.ipa" -exec cp {} artifacts/ \;
+              if [ -d "build/ios/ipa" ]; then
+                find build/ios/ipa -name "*.ipa" -exec cp {} artifacts/ \;
               fi
               ;;
             "OSX")
