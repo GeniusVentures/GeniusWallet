@@ -20,7 +20,7 @@ Wallet _$WalletFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Wallet {
-  int get coinType => throw _privateConstructorUsedError;
+  TWCoinType get coinType => throw _privateConstructorUsedError;
   String get walletName => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
   WalletType get walletType => throw _privateConstructorUsedError;
@@ -29,8 +29,12 @@ mixin _$Wallet {
   double get balance => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
 
+  /// Serializes this Wallet to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Wallet
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $WalletCopyWith<Wallet> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -40,7 +44,7 @@ abstract class $WalletCopyWith<$Res> {
       _$WalletCopyWithImpl<$Res, Wallet>;
   @useResult
   $Res call(
-      {int coinType,
+      {TWCoinType coinType,
       String walletName,
       String currencySymbol,
       WalletType walletType,
@@ -58,6 +62,8 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Wallet
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -72,7 +78,7 @@ class _$WalletCopyWithImpl<$Res, $Val extends Wallet>
       coinType: null == coinType
           ? _value.coinType
           : coinType // ignore: cast_nullable_to_non_nullable
-              as int,
+              as TWCoinType,
       walletName: null == walletName
           ? _value.walletName
           : walletName // ignore: cast_nullable_to_non_nullable
@@ -105,7 +111,7 @@ abstract class _$$WalletImplCopyWith<$Res> implements $WalletCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {int coinType,
+      {TWCoinType coinType,
       String walletName,
       String currencySymbol,
       WalletType walletType,
@@ -121,6 +127,8 @@ class __$$WalletImplCopyWithImpl<$Res>
       _$WalletImpl _value, $Res Function(_$WalletImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Wallet
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -135,7 +143,7 @@ class __$$WalletImplCopyWithImpl<$Res>
       coinType: null == coinType
           ? _value.coinType
           : coinType // ignore: cast_nullable_to_non_nullable
-              as int,
+              as TWCoinType,
       walletName: null == walletName
           ? _value.walletName
           : walletName // ignore: cast_nullable_to_non_nullable
@@ -175,7 +183,7 @@ class _$WalletImpl implements _Wallet {
       _$$WalletImplFromJson(json);
 
   @override
-  final int coinType;
+  final TWCoinType coinType;
   @override
   final String walletName;
   @override
@@ -211,12 +219,14 @@ class _$WalletImpl implements _Wallet {
             (identical(other.address, address) || other.address == address));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, coinType, walletName,
       currencySymbol, walletType, balance, address);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Wallet
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$WalletImplCopyWith<_$WalletImpl> get copyWith =>
@@ -232,7 +242,7 @@ class _$WalletImpl implements _Wallet {
 
 abstract class _Wallet implements Wallet {
   const factory _Wallet(
-      {required final int coinType,
+      {required final TWCoinType coinType,
       required final String walletName,
       required final String currencySymbol,
       required final WalletType walletType,
@@ -242,21 +252,24 @@ abstract class _Wallet implements Wallet {
   factory _Wallet.fromJson(Map<String, dynamic> json) = _$WalletImpl.fromJson;
 
   @override
-  int get coinType;
+  TWCoinType get coinType;
   @override
   String get walletName;
   @override
   String get currencySymbol;
   @override
   WalletType get walletType;
-  @override
 
   /// The idea for making balance an int is that we store the smallest unit (i.e. satoshis, wei, etc.). However, these can be changed
+  @override
   double get balance;
   @override
   String get address;
+
+  /// Create a copy of Wallet
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$WalletImplCopyWith<_$WalletImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
