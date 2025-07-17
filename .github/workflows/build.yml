@@ -535,8 +535,10 @@ jobs:
               fi
               ;;
             "iOS")
-              # cp -r build/ios/iphoneos/*.ipa artifacts/ || true
-              echo "Check testflight or appstore for current iOS Release" > artifacts/README.txt
+              # Copy the iOS IPA if it exists
+              if [ -d "build/ios/iphoneos" ]; then
+                find build/ios/iphoneos -name "*.ipa" -exec cp {} artifacts/ \;
+              fi
               ;;
             "OSX")
               cd build/macos/Build/Products/${{matrix.build-type}}
@@ -591,7 +593,7 @@ jobs:
             BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
           
-          # Android APKs don't need compression - upload directly
+          # Android APKs and iOS IPAs don't need compression - upload directly
           if [ "${{ matrix.target }}" = "Android" ]; then
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
               ARTIFACT_NAME=${BASE_NAME}.apk
@@ -599,6 +601,17 @@ jobs:
             else
               ARTIFACT_NAME=${BASE_NAME}.apk
               cp artifacts/app-release.apk ${ARTIFACT_NAME}
+            fi
+          elif [ "${{ matrix.target }}" = "iOS" ]; then
+            # Check if we have an IPA file
+            IPA_FILE=$(find artifacts -name "*.ipa" | head -1)
+            if [ -n "$IPA_FILE" ] && [ -f "$IPA_FILE" ]; then
+              ARTIFACT_NAME=${BASE_NAME}.ipa
+              cp "$IPA_FILE" ${ARTIFACT_NAME}
+            else
+              # No IPA found, skip artifact creation
+              echo "No iOS IPA found to upload"
+              ARTIFACT_NAME=""
             fi
           # macOS packages don't need compression - upload directly
           elif [ "${{ matrix.target }}" = "OSX" ]; then
@@ -713,6 +726,14 @@ jobs:
             # Upload README
             if [ -f "artifacts/README.txt" ]; then
               gh release upload --clobber ${RELEASE_TAG} "artifacts/README.txt"
+            fi
+          elif [ "${{ matrix.target }}" = "iOS" ]; then
+            # For iOS, only upload if we have an IPA
+            if [ -n "${ARTIFACT_NAME}" ] && [ -f "${ARTIFACT_NAME}" ]; then
+              echo "Uploading iOS IPA: ${ARTIFACT_NAME}"
+              gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+            else
+              echo "No iOS IPA to upload"
             fi
           else
             echo "Uploading ${ARTIFACT_NAME}"
