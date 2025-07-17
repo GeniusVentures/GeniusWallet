@@ -437,14 +437,37 @@ jobs:
             
             echo "Notarizing: $file_path"
             
-            xcrun notarytool submit "$file_path" \
-              --apple-id "$APPLE_ID" \
-              --team-id "$APPLE_TEAM_ID" \
-              --password "$NOTARIZATION_PASSWORD" \
-              --wait
-            
-            # Staple the notarization
-            xcrun stapler staple "$file_path"
+            # If it's an app bundle, we need to zip it first
+            if [[ "$file_path" == *.app ]]; then
+              local zip_path="${file_path}.zip"
+              echo "Creating zip archive for notarization: $zip_path"
+              
+              # Create zip archive (ditto preserves resource forks and metadata)
+              ditto -c -k --keepParent "$file_path" "$zip_path"
+              
+              # Submit the zip for notarization
+              xcrun notarytool submit "$zip_path" \
+                --apple-id "$APPLE_ID" \
+                --team-id "$APPLE_TEAM_ID" \
+                --password "$NOTARIZATION_PASSWORD" \
+                --wait
+              
+              # Clean up the zip file
+              rm "$zip_path"
+              
+              # Staple the notarization to the original app
+              xcrun stapler staple "$file_path"
+            else
+              # For pkg files, submit directly
+              xcrun notarytool submit "$file_path" \
+                --apple-id "$APPLE_ID" \
+                --team-id "$APPLE_TEAM_ID" \
+                --password "$NOTARIZATION_PASSWORD" \
+                --wait
+              
+              # Staple the notarization
+              xcrun stapler staple "$file_path"
+            fi
             
             echo "Notarization completed for: $file_path"
           }
