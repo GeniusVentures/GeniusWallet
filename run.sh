@@ -38,4 +38,4 @@ fi
 
 
 # Build for detected platform
-flutter build $PLATFORM $EXTRA_ARGS $BUILD_MODE
+flutter run $EXTRA_ARGS $BUILD_MODE
