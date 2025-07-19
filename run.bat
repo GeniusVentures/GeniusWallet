@@ -22,4 +22,4 @@ set CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DGENIUS_DEPENDENCY_BRANCH=
 call tools\generate_tokens.bat
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-flutter build windows %EXTRA_ARGS% %BUILD_MODE%
+flutter run %EXTRA_ARGS% %BUILD_MODE%
