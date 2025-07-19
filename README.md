@@ -23,7 +23,7 @@ We provide installation scripts that will automatically install Flutter in the `
 **Linux/macOS:**
 
 ```bash
-source install_flutter.sh
+./install_flutter.sh
 ```
 
 **Windows:**
@@ -36,8 +36,7 @@ The scripts will:
 
 * Check if Flutter is already installed and its version
 * Install Flutter 3.32.5+ if needed via the thirdparty Git submodule
-* Update PATH for the current session
-* Provide instructions for permanent PATH configuration
+* Provide instructions for PATH configuration
 
 #### Manual Installation
 
