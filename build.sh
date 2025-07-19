@@ -13,11 +13,24 @@ for arg in "$@"; do
             BUILD_MODE="--debug"
             ;;
         *)
-            EXTRA_ARGS="$EXTRA_ARGS $arg"
+            EXTRA_ARGS="$EXTRA_ARGS $arg -v"
             ;;
     esac
 done
 
-export CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
+# Detect host platform
+OS="$(uname -s)"
+case "$OS" in
+    Linux*)     PLATFORM="linux";;
+    Darwin*)    PLATFORM="macos";;
+    CYGWIN*|MINGW*|MSYS*) PLATFORM="windows";;
+    *)          echo "Unsupported platform: $OS"; exit 1;;
+esac
+
+export CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON"
+
+# Generate tokens
 ./tools/generate_tokens.sh
-flutter build $EXTRA_ARGS $BUILD_MODE
+
+# Build for detected platform
+flutter build $PLATFORM $EXTRA_ARGS $BUILD_MODE
