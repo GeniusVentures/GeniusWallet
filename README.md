@@ -259,6 +259,48 @@ If you see "Failed to load credentials" or "missing Xcode-Token" errors:
 
 ## Build & Run Instructions
 
+### 📝 Development with VS Code (Recommended)
+
+**Install VS Code Extensions:**
+
+1. Install [Visual Studio Code](https://code.visualstudio.com/)
+2. Install the following required extensions:
+   - **Flutter** (by Dart Code) - Provides Flutter support and debugging
+   - **Dart** (by Dart Code) - Dart language support (usually installed automatically with Flutter extension)
+
+**Running from VS Code:**
+
+1. Open the project folder in VS Code:
+   ```bash
+   code .
+   ```
+
+2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run:
+   ```
+   Flutter: Select Device
+   ```
+   Choose your target device (Windows, macOS, Linux, Android emulator, iOS simulator, etc.)
+
+3. **Using the Debug Panel (Recommended):**
+   - Press `F5` or go to the Debug panel (`Ctrl+Shift+D` / `Cmd+Shift+D`)
+   - Select one of the preconfigured launch configurations:
+     - **GeniusWallet** - Debug mode with TestNet-Phase-3.1 dependencies
+     - **GeniusWallet (profile mode)** - Profile mode for performance testing
+     - **GeniusWallet (release mode)** - Release mode for production builds
+   - Click the green play button or press `F5`
+
+4. **Using Command Palette:**
+   - `Ctrl+Shift+P` / `Cmd+Shift+P`
+   - Type: `Flutter: Run Flutter App`
+   - Select your desired launch configuration
+
+**VS Code Features:**
+- **Hot Reload**: Save files (`Ctrl+S` / `Cmd+S`) to see changes instantly
+- **Hot Restart**: `Ctrl+Shift+F5` / `Cmd+Shift+F5` to restart the app
+- **Debug Console**: View logs and debug output
+- **Breakpoints**: Click line numbers to set breakpoints for debugging
+- **Widget Inspector**: Use `Ctrl+Shift+P` → "Flutter: Open Widget Inspector"
+
 ### 🐧 Build on Linux
 
 Run the following script from the root directory:
@@ -437,6 +479,7 @@ This approach allows you to predefine the wallet key for easier debugging and te
 | --------------------- | ------------------------------------------------------------------------- |
 | **Flutter Version**   | 3.32.5 or higher required                                                 |
 | **Auto Install**      | Use `install_flutter.sh` (Linux/macOS) or `install_flutter.bat` (Windows) |
+| **VS Code Setup**     | Install Flutter and Dart extensions, use F5 to run with preconfigured launches |
 | **iOS/macOS Dev**     | Requires CocoaPods and Xcode Command Line Tools                           |
 | **Dependencies**      | Automatically downloaded via CMake based on platform/build type           |
 | **Sandbox Mode**      | Runs without third-party dependencies                                     |
