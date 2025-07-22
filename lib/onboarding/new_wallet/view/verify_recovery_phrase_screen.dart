@@ -733,10 +733,10 @@ class _VerifyRecoveryPhraseViewMobileState
             ),
           ),
           // Expanded middle section - takes remaining space
-         Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _InputAndWords(key: _inputAndWordsKey),
-            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _InputAndWords(key: _inputAndWordsKey),
+          ),
         ],
       ),
       footer: Padding(
@@ -755,4 +755,5 @@ class _VerifyRecoveryPhraseViewMobileState
         ),
       ),
     );
-  }}
+  }
+}

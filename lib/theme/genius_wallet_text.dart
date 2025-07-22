@@ -3,7 +3,8 @@ class GeniusWalletText {
   static const String titleWalletBackup = 'Wallet Backup';
   static const String titleRecovery = 'Your Recovery Phrase';
   static const String titleverifyRecovery = 'Verify Your Recovery Phrase';
-  static const String subtitleverifyRecovery = 'Tap the words to put them next to each other in the correct order';
+  static const String subtitleverifyRecovery =
+      'Tap the words to put them next to each other in the correct order';
   static const String wallets = 'Wallets';
 
   // Help Text
