@@ -223,8 +223,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       color: GeniusWalletColors.lightGreenPrimary,
       iconSize: 24,
       onPressed: onPressed,
-      hoverColor: GeniusWalletColors.deepBlueCardColor.withOpacity(0.3),
-      splashColor: GeniusWalletColors.deepBlueCardColor.withOpacity(0.5),
+      hoverColor: GeniusWalletColors.deepBlueCardColor.withAlpha(77),
+      splashColor: GeniusWalletColors.deepBlueCardColor.withAlpha(128),
     );
   }
 

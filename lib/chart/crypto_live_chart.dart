@@ -177,7 +177,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: priceColor.withOpacity(0.2),
+                    color: priceColor.withAlpha(51),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -215,7 +215,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                             show: true,
                             gradient: LinearGradient(
                               colors: [
-                                priceColor.withOpacity(0.3),
+                                priceColor.withAlpha(77),
                                 Colors.transparent,
                               ],
                               begin: Alignment.topCenter,
