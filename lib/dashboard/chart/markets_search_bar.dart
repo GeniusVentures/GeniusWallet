@@ -125,7 +125,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
           controller: _controller,
           hintText: 'Search Coins...',
           onChanged: _onSearchChanged,
-          padding: const MaterialStatePropertyAll<EdgeInsets>(
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
             EdgeInsets.symmetric(horizontal: 16),
           ),
           trailing: [

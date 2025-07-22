@@ -219,7 +219,7 @@ class TransactionSwappedItem extends StatelessWidget {
             child: Column(
               children: [
                 _buildRow("Date",
-                    "${DateFormat("MMMM d, y 'at' h:mm a").format(tx.timeStamp.toLocal())}"),
+                    DateFormat("MMMM d, y 'at' h:mm a").format(tx.timeStamp.toLocal())),
                 _buildRow(
                     "Status",
                     tx.transactionStatus.name[0].toUpperCase() +

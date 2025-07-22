@@ -136,7 +136,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
   }
 
-  maybeInitWalletKit() async {
+  Future<void> maybeInitWalletKit() async {
     final arch = Platform.version.toLowerCase();
 
     // Skip if running on x86 or x86_64 (i.e. emulators without native .so support)

@@ -11,7 +11,6 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/test/device_preview_extras.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';

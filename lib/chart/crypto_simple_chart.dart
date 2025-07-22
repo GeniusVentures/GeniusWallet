@@ -33,7 +33,7 @@ class CryptoSparkLineChart extends StatelessWidget {
   /// Converts sparkline data into FlSpot points for the chart
   List<FlSpot> getSparklineChartData() {
     if (sparkline == null || sparkline!.isEmpty) {
-      return [FlSpot(0, 0)];
+      return [const FlSpot(0, 0)];
     }
 
     return List.generate(

@@ -47,11 +47,16 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
     filteredTransactions.retainWhere((transaction) {
       if (selectedFilter == 'All') return true;
       if (selectedFilter == 'Escrow' &&
-          transaction.type == TransactionType.escrow) return true;
-      if (selectedFilter == 'Escrow' &&
-          transaction.type == TransactionType.escrowRelease) return true;
-      if (selectedFilter == 'Mint' && transaction.type == TransactionType.mint)
+          transaction.type == TransactionType.escrow) {
         return true;
+      }
+      if (selectedFilter == 'Escrow' &&
+          transaction.type == TransactionType.escrowRelease) {
+        return true;
+      }
+      if (selectedFilter == 'Mint' && transaction.type == TransactionType.mint) {
+        return true;
+      }
       if (selectedFilter == 'Received' &&
           transaction.transactionDirection == TransactionDirection.received) {
         return true;

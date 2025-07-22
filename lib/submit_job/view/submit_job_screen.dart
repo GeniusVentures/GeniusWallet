@@ -232,7 +232,7 @@ class SubmitJobScreen extends StatelessWidget {
                                       if (!isPurchaseable) ...[
                                         const SizedBox(height: 8),
                                         const Center(
-                                            child: const AutoSizeText(
+                                            child: AutoSizeText(
                                           '* You do not have enough GNUS',
                                           style: TextStyle(
                                             color: GeniusWalletColors.red,
