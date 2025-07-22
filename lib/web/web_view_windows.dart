@@ -200,7 +200,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: "Enter URL...",
-                hintStyle: TextStyle(color: Colors.white70),
+                hintStyle: const TextStyle(color: Colors.white70),
                 filled: true,
                 fillColor: GeniusWalletColors.deepBlueTertiary,
                 border: OutlineInputBorder(

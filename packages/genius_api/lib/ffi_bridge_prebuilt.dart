@@ -8,7 +8,7 @@ class FFIBridgePrebuilt {
   late NativeLibrary wallet_lib;
 
   FFIBridgePrebuilt() {
-    final DynamicLibrary? _dylib = () {
+    final DynamicLibrary? dylib = () {
       if (Platform.isAndroid) {
         return loadGeniusWalletLibrary();
       } else if (Platform.isIOS) {
@@ -19,11 +19,11 @@ class FFIBridgePrebuilt {
       return DynamicLibrary.executable();
     }();
 
-    if (_dylib == null) {
+    if (dylib == null) {
       return;
     }
 
-    wallet_lib = NativeLibrary(_dylib);
+    wallet_lib = NativeLibrary(dylib);
   }
 }
 

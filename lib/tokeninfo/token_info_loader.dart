@@ -78,7 +78,7 @@ class TokenInfoLoader {
   /// Dispose of resources
   void dispose() {
     // Only dispose if we created the client
-    if (_httpClient is http.Client && tokensUrl == _defaultTokensUrl) {
+    if (tokensUrl == _defaultTokensUrl) {
       _httpClient.close();
     }
   }

@@ -16,7 +16,7 @@ class AppScreenView extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           CustomScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
                 child: body,

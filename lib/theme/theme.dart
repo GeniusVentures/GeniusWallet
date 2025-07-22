@@ -23,35 +23,35 @@ ThemeData getThemeData() => ThemeData(
           backgroundColor: GeniusWalletColors.deepBlueCardColor),
       elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-              overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
+              overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
                   return Colors.transparent;
                 },
               ),
-              surfaceTintColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
+              surfaceTintColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
                   return Colors.transparent;
                 },
               ),
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
-              padding: const MaterialStatePropertyAll(
+              padding: const WidgetStatePropertyAll(
                   EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 20)),
-              shape: const MaterialStatePropertyAll(ContinuousRectangleBorder(
+              shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
                   side: BorderSide(color: Colors.greenAccent, width: 1),
                   borderRadius: BorderRadius.all(
                       Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
-              backgroundColor: MaterialStatePropertyAll(Colors.transparent),
-              foregroundColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.disabled)) {
+              backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+              foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.disabled)) {
                     return GeniusWalletColors
                         .gray600; // Text color for disabled state
                   }
                   return Colors.white;
                 },
               ),
-              iconSize: MaterialStatePropertyAll(20),
-              iconColor: MaterialStatePropertyAll(Colors.white))),
+              iconSize: const WidgetStatePropertyAll(20),
+              iconColor: const WidgetStatePropertyAll(Colors.white))),
       inputDecorationTheme: const InputDecorationTheme(
           contentPadding: EdgeInsets.all(20),
           focusedBorder: OutlineInputBorder(
@@ -65,48 +65,48 @@ ThemeData getThemeData() => ThemeData(
       textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
-              padding: const MaterialStatePropertyAll(
+              padding: const WidgetStatePropertyAll(
                   EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20)),
-              shape: const MaterialStatePropertyAll(ContinuousRectangleBorder(
+              shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
                   borderRadius: BorderRadius.all(
                       Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
-              backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.disabled)) {
+              backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.disabled)) {
                     return GeniusWalletColors
                         .btnFilter; // Text color for disabled state
                   }
                   return GeniusWalletColors.btnFilter; // Default text color
                 },
               ),
-              foregroundColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.disabled)) {
+              foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.disabled)) {
                     return GeniusWalletColors
                         .gray600; // Text color for disabled state
                   }
                   return Colors.white;
                 },
               ),
-              iconSize: MaterialStatePropertyAll(16),
-              iconColor: MaterialStatePropertyAll(Colors.white))),
+              iconSize: const WidgetStatePropertyAll(16),
+              iconColor: const WidgetStatePropertyAll(Colors.white))),
       searchBarTheme: const SearchBarThemeData(
           padding:
-              MaterialStatePropertyAll(EdgeInsets.only(left: 15, right: 15)),
-          textStyle: MaterialStatePropertyAll(
+              WidgetStatePropertyAll(EdgeInsets.only(left: 15, right: 15)),
+          textStyle: WidgetStatePropertyAll(
               TextStyle(fontWeight: FontWeight.normal, color: Colors.white)),
-          shape: MaterialStatePropertyAll(RoundedRectangleBorder(
+          shape: WidgetStatePropertyAll(RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(4)))),
           backgroundColor:
-              MaterialStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
+              WidgetStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
       textSelectionTheme: const TextSelectionThemeData(
           cursorColor: Colors.white,
           selectionColor: GeniusWalletColors.gray500),
       dropdownMenuTheme: DropdownMenuThemeData(
           textStyle: const TextStyle(color: Colors.white),
           menuStyle: MenuStyle(
-            backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
+            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
                 return GeniusWalletColors
                     .deepBlueTertiary; // Use the component's default.
               },
@@ -148,14 +148,14 @@ ThemeData getThemeData() => ThemeData(
           unselectedIconTheme: IconThemeData(size: 35, color: Colors.white)),
       checkboxTheme: CheckboxThemeData(
           side: const BorderSide(color: GeniusWalletColors.lightGreenPrimary),
-          checkColor: MaterialStateProperty.resolveWith((states) {
-            if (!states.contains(MaterialState.selected)) {
+          checkColor: WidgetStateProperty.resolveWith((states) {
+            if (!states.contains(WidgetState.selected)) {
               return Colors.transparent;
             }
             return GeniusWalletColors.btnText;
           }),
-          fillColor: MaterialStateProperty.resolveWith((states) {
-            if (!states.contains(MaterialState.selected)) {
+          fillColor: WidgetStateProperty.resolveWith((states) {
+            if (!states.contains(WidgetState.selected)) {
               return Colors.transparent;
             }
             return GeniusWalletColors.lightGreenPrimary;

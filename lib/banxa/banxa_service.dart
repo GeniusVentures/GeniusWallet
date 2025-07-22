@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'package:genius_wallet/banxa/handle_banxa_redirect.dart';
-import 'package:http/http.dart' as http;
 
 class BanxaService {
   /// TODO: wire up the backend call to sign the url

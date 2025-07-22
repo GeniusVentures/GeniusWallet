@@ -135,7 +135,7 @@ class GeniusApi {
         .join();
 
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-    debugPrint('Json File Path: ${jsonFilePath}');
+    debugPrint('Json File Path: $jsonFilePath');
     final retVal = ffiBridgePrebuilt.wallet_lib
         .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001);
 
@@ -219,16 +219,16 @@ class GeniusApi {
   }
 
   void mintTokens(
-      int amount, String transaction_hash, String chain_id, String token_id) {
-    final Pointer<Utf8> transhash = transaction_hash.toNativeUtf8();
-    final Pointer<Utf8> chainid = chain_id.toNativeUtf8();
+      int amount, String transactionHash, String chainId, String tokenId) {
+    final Pointer<Utf8> transhash = transactionHash.toNativeUtf8();
+    final Pointer<Utf8> chainid = chainId.toNativeUtf8();
 
     // Create GeniusTokenID from string
     final tokenIdData = calloc<GeniusTokenID>();
 
     // Parse hex string token_id and fill the data array
     String cleanTokenId =
-        token_id.startsWith('0x') ? token_id.substring(2) : token_id;
+        tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
 
     for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
       String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);

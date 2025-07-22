@@ -182,7 +182,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                   onTap: () {
                     Navigator.of(context).pop(); // Pops the current page
                   },
-                  child: Icon(Icons.cancel, size: 20),
+                  child: const Icon(Icons.cancel, size: 20),
                 );
               },
             ),
