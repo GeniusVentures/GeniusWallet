@@ -27,7 +27,8 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
 
     on<RecoveryVerificationContinue>(_onRecoveryVerificationContinue);
 
-    on<RecoveryVerificationContinueForMobile>(_onRecoveryVerificationContinueForMobile);
+    on<RecoveryVerificationContinueForMobile>(
+        _onRecoveryVerificationContinueForMobile);
 
     on<ToggleCheckbox>(_onToggleCheckbox);
 
@@ -59,7 +60,9 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       ));
     }
   }
-  bool checkMatchingOrder(List<String> recoveryWords, List<String> shuffledWords) {
+
+  bool checkMatchingOrder(
+      List<String> recoveryWords, List<String> shuffledWords) {
     // Create a mapping from words to their indices in recoveryWords
     Map<String, int> indexMap = {};
     for (int i = 0; i < recoveryWords.length; i++) {
@@ -86,20 +89,16 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
 
   FutureOr<void> _onRecoveryVerificationContinueForMobile(
       RecoveryVerificationContinueForMobile event, Emitter emit) {
-
-    if (checkMatchingOrder(state.recoveryWords, state.selectedWords))
-      {
-        emit(state.copyWith(
-          verificationStatus: VerificationStatus.passed,
-        ));
-      }
-    else
-      {
-        emit(state.copyWith(
-          verificationStatus: VerificationStatus.failed,
-          selectedWords: [],
-        ));
-      }
+    if (checkMatchingOrder(state.recoveryWords, state.selectedWords)) {
+      emit(state.copyWith(
+        verificationStatus: VerificationStatus.passed,
+      ));
+    } else {
+      emit(state.copyWith(
+        verificationStatus: VerificationStatus.failed,
+        selectedWords: [],
+      ));
+    }
   }
 
   FutureOr<void> _onRecoveryWordTapped(RecoveryWordTapped event, Emitter emit) {
