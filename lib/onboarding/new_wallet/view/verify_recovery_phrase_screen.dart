@@ -352,17 +352,17 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                           ? Colors.blue
                                           : (hasUserInput
                                               ? Colors.green
-                                              : Colors.blue.withOpacity(0.5)))
+                                              : Colors.blue.withAlpha(128)))
                                       : GeniusWalletColors.gray500,
                                   width: isHighlighted ? 2.0 : 1.0,
                                 ),
                                 color: isEmpty
                                     ? (isHighlighted
-                                        ? Colors.blue.withOpacity(0.1)
+                                        ? Colors.blue.withAlpha(26)
                                         : GeniusWalletColors.grayPrimary
-                                            .withOpacity(0.3))
+                                            .withAlpha(77))
                                     : GeniusWalletColors.grayPrimary
-                                        .withOpacity(0.3),
+                                        .withAlpha(77),
                               ),
                               child: Center(
                                 child: Text(
@@ -379,7 +379,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                             : 10,
                                     color:
                                         isEmpty && userInputWords[index].isEmpty
-                                            ? Colors.blue.withOpacity(0.7)
+                                            ? Colors.blue.withAlpha(179)
                                             : GeniusWalletColors.white,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -424,7 +424,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Colors.blue.withAlpha(51),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: Colors.blue,
@@ -497,17 +497,17 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                       ? Colors.blue
                                       : (hasUserInput
                                           ? Colors.green
-                                          : Colors.blue.withOpacity(0.5)))
+                                          : Colors.blue.withAlpha(128)))
                                   : GeniusWalletColors.gray500,
                               width: isHighlighted ? 2.0 : 1.0,
                             ),
                             color: isEmpty
                                 ? (isHighlighted
-                                    ? Colors.blue.withOpacity(0.1)
+                                    ? Colors.blue.withAlpha(26)
                                     : GeniusWalletColors.grayPrimary
-                                        .withOpacity(0.3))
+                                        .withAlpha(77))
                                 : GeniusWalletColors.grayPrimary
-                                    .withOpacity(0.3),
+                                    .withAlpha(77),
                           ),
                           child: Row(
                             children: [
@@ -516,7 +516,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 height: double.infinity,
                                 decoration: BoxDecoration(
                                   color: GeniusWalletColors.gray500
-                                      .withOpacity(0.3),
+                                      .withAlpha(77),
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(11),
                                     bottomLeft: Radius.circular(11),
@@ -545,7 +545,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                       fontSize: 14,
                                       color: isEmpty &&
                                               userInputWords[index].isEmpty
-                                          ? Colors.blue.withOpacity(0.7)
+                                          ? Colors.blue.withAlpha(179)
                                           : GeniusWalletColors.white,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -593,7 +593,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.2),
+                              color: Colors.blue.withAlpha(51),
                               borderRadius: BorderRadius.circular(25),
                               border: Border.all(
                                 color: Colors.blue,
@@ -618,7 +618,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
+                      color: Colors.green.withAlpha(51),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: Colors.green,

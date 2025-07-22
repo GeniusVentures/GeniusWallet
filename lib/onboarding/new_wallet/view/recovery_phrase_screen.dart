@@ -143,7 +143,7 @@ class _WordsGridWithCopyAndToggleState
                 color: _isVisible
                     ? GeniusWalletColors.grayPrimary
                     : GeniusWalletColors.grayPrimary
-                        .withOpacity(0.4), // darker effect
+                        .withAlpha(102), // darker effect
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: GeniusWalletColors.gray500,

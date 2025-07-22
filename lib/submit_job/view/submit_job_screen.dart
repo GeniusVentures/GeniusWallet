@@ -282,7 +282,7 @@ class SubmitJobScreen extends StatelessWidget {
           // Show a modal barrier and a loader when file picker is open
           if (isFilePickerOpen)
             ModalBarrier(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withAlpha(128),
               dismissible: false, // Prevent dismissing the overlay
             ),
           if (isFilePickerOpen)

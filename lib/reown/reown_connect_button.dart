@@ -364,25 +364,25 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       icon = Icons.link_off;
       iconColor = Colors.redAccent;
       textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withOpacity(0.1);
+      backgroundColor = Colors.redAccent.withAlpha(26);
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
       iconColor = Colors.amber;
       textColor = Colors.amber;
-      backgroundColor = Colors.amber.withOpacity(0.1);
+      backgroundColor = Colors.amber.withAlpha(26);
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
       iconColor = Colors.orange;
       textColor = Colors.orange;
-      backgroundColor = Colors.orange.withOpacity(0.1);
+      backgroundColor = Colors.orange.withAlpha(26);
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
       iconColor = Colors.redAccent;
       textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withOpacity(0.1);
+      backgroundColor = Colors.redAccent.withAlpha(26);
       text = 'Retry Connect';
     } else {
       icon = Icons.link;

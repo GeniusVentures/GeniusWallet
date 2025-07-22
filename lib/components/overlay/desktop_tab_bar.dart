@@ -81,7 +81,7 @@ class DesktopTopBar extends StatelessWidget {
                                   size: 16,
                                   color: isSelected
                                       ? Colors.greenAccent
-                                      : Colors.white.withOpacity(0.6)),
+                                      : Colors.white.withAlpha(153)),
                               child: isSelected
                                   ? destination.selectedIcon
                                   : destination.icon,
@@ -93,7 +93,7 @@ class DesktopTopBar extends StatelessWidget {
                                   fontSize: 14,
                                   color: isSelected
                                       ? Colors.greenAccent
-                                      : Colors.white.withOpacity(0.6),
+                                      : Colors.white.withAlpha(153),
                                 ),
                                 child: destination.label,
                               ),

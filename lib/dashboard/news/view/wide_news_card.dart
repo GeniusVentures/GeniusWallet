@@ -42,7 +42,7 @@ class WideNewsCard extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueTertiary.withOpacity(.7),
+                  color: GeniusWalletColors.deepBlueTertiary.withAlpha(179),
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
