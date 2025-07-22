@@ -12,7 +12,7 @@ import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/text_entry_field_widget.g.dart';

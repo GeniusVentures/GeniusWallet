@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';

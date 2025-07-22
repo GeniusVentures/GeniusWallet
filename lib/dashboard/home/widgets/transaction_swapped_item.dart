@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';

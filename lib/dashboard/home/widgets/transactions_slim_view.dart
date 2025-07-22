@@ -5,7 +5,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_item.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_purchased_item.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_swapped_item.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:intl/intl.dart';
 
 final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
