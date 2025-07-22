@@ -17,7 +17,7 @@ import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {

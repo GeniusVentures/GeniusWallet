@@ -8,7 +8,7 @@ import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/components/number_pad.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';

@@ -3,7 +3,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:intl/intl.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);

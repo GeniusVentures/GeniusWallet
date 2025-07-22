@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class SwapField extends StatelessWidget {
   final String label;

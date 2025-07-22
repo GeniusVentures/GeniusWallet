@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:webview_windows/webview_windows.dart';
 
 class WebViewWindows extends StatefulWidget {

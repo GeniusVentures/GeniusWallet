@@ -9,7 +9,7 @@ import 'package:genius_wallet/components/overlay/genius_tabbar.dart';
 import 'package:genius_wallet/components/overlay/selected_wallet_and_network.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';

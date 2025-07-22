@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 

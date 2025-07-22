@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/custom/isactive_false_custom.dart';
