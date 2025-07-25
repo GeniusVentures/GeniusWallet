@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
@@ -18,7 +19,7 @@ import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
   const ImportSecurityScreen({
     required this.walletType,
     required this.coinType,
@@ -125,7 +126,7 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final GlobalKey<FormState> formKey;
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
 
   const _ImportSecurityViewDesktop(
       {Key? key,
@@ -175,7 +176,7 @@ class _ImportSecurityViewMobile extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final GlobalKey<FormState> formKey;
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
 
   const _ImportSecurityViewMobile(
       {Key? key,
@@ -314,7 +315,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final TextEditingController walletNameController;
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
 
   const _ImportSecurityContinueButton(
       {Key? key,
