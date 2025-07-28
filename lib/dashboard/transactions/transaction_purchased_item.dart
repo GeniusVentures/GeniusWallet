@@ -18,7 +18,7 @@ class TransactionPurchasedItem extends StatelessWidget {
     final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
     final amount = isFailed
         ? currencyFormatter.format(0)
-        : "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount ?? '0') ?? 0)}";
+        : "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount) ?? 0)}";
     const arrowIcon = Icons.attach_money;
     final arrowBgColor = isFailed ? Colors.redAccent : Colors.greenAccent;
     final amountColor = isFailed ? Colors.redAccent : Colors.greenAccent;
