@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class TransactionEscrowReleaseItem extends StatelessWidget {
   final Transaction tx;
@@ -8,6 +9,11 @@ class TransactionEscrowReleaseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+
+    return Card(
+        color: GeniusWalletColors.deepBlueMenu,
+        child: ListTile(
+          title: Text("Completed job"),
+        ));
   }
 }
