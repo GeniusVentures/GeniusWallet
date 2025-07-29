@@ -165,4 +165,9 @@ ThemeData getThemeData() => ThemeData(
       scaffoldBackgroundColor: GeniusWalletColors.deepBlueTertiary,
       colorScheme: const ColorScheme
           .dark(), //TODO: replace this once we have theme generated
+      cardTheme: CardThemeData(
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(GeniusWalletConsts.borderRadiusCard)),
+      ),
     );
