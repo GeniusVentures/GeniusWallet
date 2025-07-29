@@ -1,4 +1,3 @@
-
 class WalletUtils {
   static String getAddressForDisplay(String address) {
     if (address.length >= 6) {
