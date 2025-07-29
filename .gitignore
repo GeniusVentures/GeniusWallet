@@ -54,3 +54,17 @@ app.*.map.json
 # Testnet
 *.TestNet.*
 lib/tokeninfo/*.g.dart
+ios/Runner.xcworkspace/
+
+# Generated CMake/Xcode build files - DO NOT commit
+ios/native/build/
+ios/native/build_ios/
+ios/native/CMakeFiles/
+ios/native/cmake_install.cmake
+ios/native/CMakeCache.txt
+
+macos/native/build/
+macos/native/CMakeFiles/
+macos/native/cmake_install.cmake
+macos/native/CMakeCache.txt
+macos/CMakeCache.txt
