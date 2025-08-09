@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -116,7 +119,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     WidgetsBinding.instance.removeObserver(this);
     debugPrint(
         "---------------------------------------------------------------------------------------------------");
-    widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
+    // widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
     super.dispose();
   }
 
@@ -150,8 +153,16 @@ class MyApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<TransactionsCubit>(
-            create: (_) => TransactionsCubit(), // Or with initial state
+            create: (_) => TransactionsCubit(), 
           ),
+          BlocProvider<OrdersCubit>(
+            create: (_) => OrdersCubit(),
+          ),
+           BlocProvider<MakeOrderCubit>(
+            create: (_) => MakeOrderCubit(BanxaApiService())
+          ),
+          
+          
           BlocProvider(
               create: (_) => WalletDetailsCubit(
                     geniusApi: context.read<GeniusApi>(),
