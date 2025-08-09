@@ -9,6 +9,7 @@
             "name": "GeniusWallet",
             "request": "launch",
             "type": "dart",
+              "program": "lib/main.dart",
             "env": {
                 "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
             }
