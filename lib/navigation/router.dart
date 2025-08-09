@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/banxa/buy_gnus_screen.dart';
+import 'package:genius_wallet/banaxa/banaxa_buy_screen.dart';
+import 'package:genius_wallet/banaxa/banaxa_orders_history.dart';
+import 'package:genius_wallet/banaxa/banaxa_payment.dart';
+import 'package:genius_wallet/banaxa/order_details_page.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
@@ -72,7 +75,23 @@ final geniusWalletRouter = GoRouter(
           );
         }
 
-        return BuyGnusScreen(checkoutUrl: url);
+        //return BuyGnusScreen(checkoutUrl: url);
+        //  return const BanxaBuyScreen();
+        return const OrdersPage();
+      },
+    ),
+    GoRoute(
+      path: '/createOrder',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+
+        return BanxaBuyScreen(
+          initialFiatCode: args['fiat'] as String?,
+          initialCryptoCode: args['crypto'] as String?,
+          initialPaymentMethodId: args['method'] as String?,
+          initialAmount: args['amount'] as String?,
+          initialWalletAddress: args['wallet'] as String?,
+        );
       },
     ),
     GoRoute(
@@ -81,6 +100,29 @@ final geniusWalletRouter = GoRouter(
         return const SwapScreen();
       },
     ),
+   GoRoute(
+      path: '/orderDetails',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        final orderId = args['orderId'] as String? ?? '';
+        return OrderDetailsPage(orderId: orderId);
+      },
+    ),
+
+   GoRoute(
+      path: '/checkout',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        final checkoutUrl = args['checkoutUrl'] as String? ?? '';
+        final redirectUrl = args['redirectUrl'] as String? ?? '';
+
+        return BanxaPaymentWebView(
+          checkoutUrl: checkoutUrl,
+          redirectUrl: redirectUrl,
+        );
+      },
+    ),
+
     GoRoute(
       path: '/import_existing_wallet',
       builder: (context, state) {
