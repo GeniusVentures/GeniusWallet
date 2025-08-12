@@ -52,8 +52,9 @@ class WebViewMobileState extends State<WebViewMobile> {
               _tabUrls[_currentTabIndex] = url;
               _showTabManager = false;
             });
-            await Future.delayed(const Duration(milliseconds: 300));
-            captureScreenshot();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              captureScreenshot();
+            });
           },
         ),
       )
@@ -68,13 +69,15 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   void captureScreenshot() {
-    screenshotController.capture().then(
-          (screenshot) => {
-            setState(() {
-              _tabImages[_currentTabIndex] = screenshot;
-            }),
-          },
-        );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 100));
+      final screenshot = await screenshotController.capture();
+      if (screenshot != null && mounted) {
+        setState(() {
+          _tabImages[_currentTabIndex] = screenshot;
+        });
+      }
+    });
   }
 
   void _goBack() async {

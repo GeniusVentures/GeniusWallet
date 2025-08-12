@@ -15,6 +15,7 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
     String? initialAmount,
     String? initialWalletAddress,
   }) async {
+    if (isClosed) return; 
     emit(state.copyWith(
       step: MakeOrderStep.loadingCurrencies,
       isLoadingOverlay: true,
@@ -22,31 +23,27 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       clearError: true,
       clearCheckout: true,
     ));
+
     try {
       final fiats = await _service.getFiatCurrencies();
       final cryptos = await _service.getCryptoCurrencies();
 
-      FiatCurrency? selFiat = initialFiatCode == null
+      if (isClosed) return;
+      final FiatCurrency? selFiat = initialFiatCode == null
           ? null
-          : fiats
-              .where((f) => f.code == initialFiatCode)
-              .cast<FiatCurrency?>()
-              .firstOrNull;
-      CryptoCurrency? selCrypto = initialCryptoCode == null
+          : fiats.where((f) => f.code == initialFiatCode).firstOrNull;
+
+      final CryptoCurrency? selCrypto = initialCryptoCode == null
           ? null
-          : cryptos
-              .where((c) => c.code == initialCryptoCode)
-              .cast<CryptoCurrency?>()
-              .firstOrNull;
+          : cryptos.where((c) => c.code == initialCryptoCode).firstOrNull;
 
       List<PaymentMethod> methods = selFiat?.supportedPaymentMethods ?? [];
       PaymentMethod? selMethod;
       if (initialPaymentMethodId != null && methods.isNotEmpty) {
-        selMethod = methods
-                .where((m) => m.id == initialPaymentMethodId)
-                .cast<PaymentMethod?>()
-                .firstOrNull ??
-            methods.first;
+        selMethod = methods.firstWhere(
+          (m) => m.id == initialPaymentMethodId,
+          orElse: () => methods.first,
+        );
       }
 
       emit(state.copyWith(
@@ -63,6 +60,7 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         loadingMessage: '',
       ));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
         step: MakeOrderStep.error,
         isLoadingOverlay: false,
@@ -81,6 +79,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       clearQuote: true,
       clearError: true,
       clearCheckout: true,
+      clearOrderId: true,
+      clearRedirectUrl: true,
     ));
   }
 
@@ -91,6 +91,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       clearQuote: true,
       clearError: true,
       clearCheckout: true,
+      clearOrderId: true,
+      clearRedirectUrl: true,
     ));
   }
 
@@ -101,6 +103,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       clearQuote: true,
       clearError: true,
       clearCheckout: true,
+      clearOrderId: true,
+      clearRedirectUrl: true,
     ));
   }
 
@@ -110,6 +114,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       clearQuote: true,
       clearError: true,
       clearCheckout: true,
+      clearOrderId: true,
+      clearRedirectUrl: true,
     ));
   }
 
@@ -192,23 +198,21 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         blockchain: state.selectedCrypto!.defaultBlockchain!.id,
         paymentMethodId: state.selectedPaymentMethod!.id,
         walletAddress: state.walletText.trim(),
-        redirectUrl: redirectUrl,
         cryptoAmount: state.quote!.cryptoAmount,
         fiatAmount: state.quote!.fiatAmount,
         externalCustomerId: 'your-cust-id',
-        externalOrderId: 'order_${DateTime.now().millisecondsSinceEpoch}',
         email: 'banxa@text.com',
         metadata: 'sandbox-testing',
         subPartnerId: 'macOS-app',
       );
 
       emit(state.copyWith(
-        step: MakeOrderStep.orderReady,
-        checkoutUrl: order.checkoutUrl,
-        redirectUrl: redirectUrl,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-      ));
+          step: MakeOrderStep.orderReady,
+          checkoutUrl: order.checkoutUrl,
+          redirectUrl: redirectUrl,
+          isLoadingOverlay: false,
+          loadingMessage: '',
+          orderId: order.orderId));
       return order.checkoutUrl;
     } catch (e) {
       emit(state.copyWith(
@@ -226,7 +230,11 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
   }
 
   void clearCheckout() {
-    emit(state.copyWith(clearCheckout: true));
+    emit(state.copyWith(
+      clearCheckout: true,
+      clearOrderId: true,
+      clearRedirectUrl: true,
+    ));
   }
 }
 

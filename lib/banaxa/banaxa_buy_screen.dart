@@ -1,10 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/banaxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/banxa_order/create_order_state.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
 import 'package:genius_wallet/banaxa/banaxa_model.dart';
@@ -65,11 +66,12 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
           }
           if (state.step == MakeOrderStep.orderReady &&
               state.checkoutUrl != null) {
-            await context.push('/checkout', extra: {
-              'checkoutUrl': state.checkoutUrl!,
-              'redirectUrl': state.redirectUrl ?? '',
-            });
-            context.read<MakeOrderCubit>().clearCheckout();
+            await showCheckoutOptionsSheet(
+              context,
+              checkoutUrl: state.checkoutUrl!,
+              orderId: state.orderId!,
+              redirectUrl: state.redirectUrl ?? BanxaApiService.redirectUrl,
+            );
           }
         },
         builder: (context, state) {
@@ -89,8 +91,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
           return LayoutBuilder(
             builder: (context, constraints) {
               final w = constraints.maxWidth;
-              final compact = w < 400; // phones in portrait
-              final tight = w < 320; // very small screens
+              final compact = w < 400;
+              final tight = w < 320;
               final pad = EdgeInsets.all(compact ? 12 : 16);
               final labelStyle = TextStyle(fontSize: compact ? 13 : 14);
 
@@ -311,17 +313,26 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               ),
                             ),
                             const SizedBox(height: 18),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: state.canCreateOrder
-                                    ? () async => context
-                                        .read<MakeOrderCubit>()
-                                        .createOrder()
-                                    : null,
-                                child:
-                                    Text(compact ? 'Checkout' : 'Create Order'),
-                              ),
+                            ElevatedButton(
+                              onPressed: state.canCreateOrder
+                                  ? () async {
+                                      if (state.checkoutUrl != null &&
+                                          state.orderId != null) {
+                                        await showCheckoutOptionsSheet(
+                                          context,
+                                          checkoutUrl: state.checkoutUrl!,
+                                          orderId: state.orderId!,
+                                          redirectUrl: state.redirectUrl ?? '',
+                                        );
+                                      } else {
+                                        await context
+                                            .read<MakeOrderCubit>()
+                                            .createOrder();
+                                      }
+                                    }
+                                  : null,
+                              child:
+                                  Text(compact ? 'Checkout' : 'Create Order'),
                             ),
                             if (tight) const SizedBox(height: 6),
                           ],

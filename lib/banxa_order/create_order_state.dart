@@ -28,6 +28,7 @@ class MakeOrderState {
   final String errorMessage;
   final String? checkoutUrl;
   final String? redirectUrl;
+  final String? orderId; 
 
   const MakeOrderState({
     required this.step,
@@ -45,6 +46,7 @@ class MakeOrderState {
     required this.errorMessage,
     required this.checkoutUrl,
     required this.redirectUrl,
+    this.orderId,
   });
 
   factory MakeOrderState.initial() => const MakeOrderState(
@@ -63,6 +65,7 @@ class MakeOrderState {
         errorMessage: '',
         checkoutUrl: null,
         redirectUrl: null,
+        orderId: null,
       );
 
   MakeOrderState copyWith({
@@ -87,6 +90,9 @@ class MakeOrderState {
     bool clearQuote = false,
     bool clearError = false,
     bool clearCheckout = false,
+    String? orderId,
+     bool clearOrderId = false,
+    bool clearRedirectUrl = false, 
   }) {
     return MakeOrderState(
       step: step ?? this.step,
@@ -107,14 +113,17 @@ class MakeOrderState {
       loadingMessage: loadingMessage ?? this.loadingMessage,
       errorMessage: clearError ? '' : (errorMessage ?? this.errorMessage),
       checkoutUrl: clearCheckout ? null : (checkoutUrl ?? this.checkoutUrl),
-      redirectUrl: redirectUrl ?? this.redirectUrl,
+      redirectUrl: clearRedirectUrl ? null : (redirectUrl ?? this.redirectUrl),
+      orderId: clearOrderId ? null : (orderId ?? this.orderId),
     );
   }
 
   double? get amountValue {
     final v = double.tryParse(amountText.trim());
     return (v == null || v.isNaN || v.isInfinite) ? null : v;
+    
   }
+   bool get hasOrder => (orderId != null && orderId!.isNotEmpty);
 
   num? get minAmount => selectedPaymentMethod?.minimum;
   num? get maxAmount => selectedPaymentMethod?.maximum;
@@ -143,4 +152,6 @@ class MakeOrderState {
   String get fiatCode => selectedFiat?.code ?? '';
   String get cryptoCode => selectedCrypto?.code ?? '';
   String get paymentMethodName => selectedPaymentMethod?.name ?? '';
+
+
 }

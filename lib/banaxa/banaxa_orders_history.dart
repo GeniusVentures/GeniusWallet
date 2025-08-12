@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banaxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa_order/banxa_order_state.dart';
 import 'package:go_router/go_router.dart';
@@ -62,12 +64,11 @@ class _OrdersPageState extends State<OrdersPage> {
     if (status == 'pendingpayment') {
       return ElevatedButton(
         onPressed: () async {
-          await context.push(
-            '/checkout',
-            extra: {
-              'checkoutUrl': orderStatusUrl,
-              'redirectUrl': 'your_redirect_url_here',
-            },
+          showCheckoutOptionsSheet(
+            context,
+            checkoutUrl: orderStatusUrl,
+            orderId: order['id'],
+            redirectUrl: BanxaApiService.redirectUrl,
           );
         },
         style: ElevatedButton.styleFrom(
@@ -159,7 +160,11 @@ class _OrdersPageState extends State<OrdersPage> {
                   onPressed: () {
                     context.push(
                       '/orderDetails',
-                      extra: {'orderId': order['id'] as String},
+                      extra: {
+                        'orderId': order['id'] as String,
+                        'checkoutUrl': order['orderStatusUrl'] as String,
+                        'redirectUrl': 'your_redirect_url_here'
+                      },
                     );
                   },
                   child: const Text('See Details'),

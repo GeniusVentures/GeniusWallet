@@ -3,13 +3,16 @@
 import 'dart:convert';
 
 import 'package:genius_wallet/banaxa/banaxa_model.dart';
+import 'package:genius_wallet/banaxa/order_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class BanxaApiService {
   static const String _partnerCode = 'gnus';
   static const String _apiKey = 'f4618be892ba64672e6fae3aab374c374bd53126';
   static const String _baseUrl =
       'https://api.banxa-sandbox.com/$_partnerCode/v2';
+  static const redirectUrl = 'geniuswallet://banxa/callback';
 
   static Map<String, String> get _headers => {
         'Accept': 'application/json',
@@ -92,17 +95,23 @@ class BanxaApiService {
     required String cryptoCurrency,
     required String paymentMethodId,
     required String walletAddress,
-    required String redirectUrl,
     required String blockchain,
     required String cryptoAmount,
     String? fiatAmount,
     String? externalCustomerId,
-    String? externalOrderId,
     String? email,
     String? metadata,
     String? subPartnerId,
   }) async {
     const url = '$_baseUrl/buy';
+    final extOrderId = 'order_${DateTime.now().millisecondsSinceEpoch}';
+    final redirectUrl = Uri(
+      scheme: 'geniuswallet',
+      host: 'banxa',
+      path: '/banxa/callback',
+      queryParameters: {'extOrderId': extOrderId},
+    ).toString();
+
     final bodyMap = {
       'fiat': fiatCurrency,
       'crypto': cryptoCurrency,
@@ -110,17 +119,11 @@ class BanxaApiService {
       'walletAddress': walletAddress,
       'paymentMethodId': paymentMethodId,
       'redirectUrl': redirectUrl,
-
-      // Guaranteed locked price:
       'cryptoAmount': cryptoAmount,
-
-      // Optional, for your records:
       if (fiatAmount != null) 'fiatAmount': fiatAmount,
-
-      // Extras:
       if (email != null) 'email': email,
       if (externalCustomerId != null) 'externalCustomerId': externalCustomerId,
-      if (externalOrderId != null) 'externalOrderId': externalOrderId,
+      'externalOrderId': extOrderId,
       if (metadata != null) 'metadata': metadata,
       if (subPartnerId != null) 'subPartnerId': subPartnerId,
     };
@@ -132,11 +135,16 @@ class BanxaApiService {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return OrderResponse.fromJson(json.decode(response.body));
-    } else {
-      throw Exception(
-          'Order failed (${response.statusCode}): ${response.body}');
+      final order = OrderResponse.fromJson(json.decode(response.body));
+
+      if (order.orderId.isNotEmpty) {
+        OrderLinker.instance.put(extOrderId, order.orderId);
+      }
+
+      return order;
     }
+
+    throw Exception('Order failed (${response.statusCode}): ${response.body}');
   }
 
   Future<OrderStatus> getOrderStatus(String orderId) async {
@@ -181,7 +189,6 @@ class BanxaApiService {
         'x-api-key': _apiKey,
       },
     );
-    print('Orders response: ${response.statusCode} - ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -193,6 +200,7 @@ class BanxaApiService {
       throw Exception('Failed to fetch orders: ${response.statusCode}');
     }
   }
+
   Future<OrderResponseModel> getOrderById(String orderId) async {
     final url = '$_baseUrl/orders/$orderId';
     final resp = await http.get(Uri.parse(url), headers: _headers);
@@ -200,5 +208,12 @@ class BanxaApiService {
       return OrderResponseModel.fromJson(json.decode(resp.body));
     }
     throw Exception('Failed to load order $orderId: ${resp.body}');
+  }
+
+  Future<void> openBanxaInBrowser(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }
