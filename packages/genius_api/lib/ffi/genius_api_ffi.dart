@@ -609,18 +609,19 @@ class NativeLibrary {
       ffi.Pointer<Utf8> eth_private_key,
       bool autodht,
       bool process,
-      int baseport) {
+      int baseport,
+      bool is_full_node) {
     return _GeniusSDKInit(
-        base_path, eth_private_key, autodht ? 1 : 0, process ? 1 : 0, baseport);
+        base_path, eth_private_key, autodht ? 1 : 0, process ? 1 : 0, baseport, is_full_node ? 1 : 0);
   }
 
   late final _GeniusSDKInitPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<Utf8> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-              ffi.Int32, ffi.Int32, ffi.Uint16)>>('GeniusSDKInit');
+              ffi.Int32, ffi.Int32, ffi.Uint16, ffi.Int32)>>('GeniusSDKInit');
   late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
       ffi.Pointer<Utf8> Function(
-          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int, int)>();
 
   /// Secure initialization with config string
   ffi.Pointer<ffi.Char> GeniusSDKInitSecure(
@@ -629,18 +630,19 @@ class NativeLibrary {
       ffi.Pointer<Utf8> eth_private_key,
       bool autodht,
       bool process,
-      int baseport) {
+      int baseport,
+      bool is_full_node) {
     return _GeniusSDKInitSecure(
-        base_path, dev_config, eth_private_key, autodht ? 1 : 0, process ? 1 : 0, baseport);
+        base_path, dev_config, eth_private_key, autodht ? 1 : 0, process ? 1 : 0, baseport, is_full_node ? 1 : 0);
   }
 
   late final _GeniusSDKInitSecurePtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-              ffi.Int32, ffi.Int32, ffi.Uint16)>>('GeniusSDKInitSecure');
+              ffi.Int32, ffi.Int32, ffi.Uint16, ffi.Int32)>>('GeniusSDKInitSecure');
   late final _GeniusSDKInitSecure = _GeniusSDKInitSecurePtr.asFunction<
       ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int)>();
+          ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int, int, int, int)>();
           
   /// Minimal initialization
   ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(

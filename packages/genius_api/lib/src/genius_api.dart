@@ -137,7 +137,7 @@ class GeniusApi {
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
     debugPrint('Json File Path: ${jsonFilePath}');
     final retVal = ffiBridgePrebuilt.wallet_lib
-        .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001);
+        .GeniusSDKInit(basePathPtr, privateKeyAsPtr, true, true, 41001, false);
 
     if (retVal == nullptr) {
       return;
