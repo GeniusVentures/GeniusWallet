@@ -69,14 +69,6 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/buy',
       builder: (context, state) {
-        final url = state.extra as String?;
-
-        if (url == null) {
-          return const Scaffold(
-            body: Center(child: Text("Missing checkout URL")),
-          );
-        }
-
         //return BuyGnusScreen(checkoutUrl: url);
         //  return const BanxaBuyScreen();
         return const OrdersPage();
@@ -116,13 +108,12 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
-   GoRoute(
+    GoRoute(
       path: '/banxa/callback',
       builder: (ctx, state) {
         final qp = state.uri.queryParameters;
         final status = qp['status'];
         final extOrderId = qp['extOrderId'];
-
         final orderIdFromBanxa = qp['orderId'];
 
         final effectiveOrderId = orderIdFromBanxa ??
@@ -133,14 +124,12 @@ final geniusWalletRouter = GoRouter(
             orderId: effectiveOrderId,
             initialStatus: status,
             redirectUrl: state.uri.toString(),
-            checkoutUrl: null, 
+            checkoutUrl: null,
           );
         }
         return const OrdersPage();
       },
     ),
-
-
     GoRoute(
       path: '/checkoutQR',
       builder: (context, state) {

@@ -52,7 +52,6 @@ class CheckoutOptionsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Open in system browser
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -62,18 +61,12 @@ class CheckoutOptionsSheet extends StatelessWidget {
                     Uri.parse(checkoutUrl),
                     mode: LaunchMode.externalApplication,
                   );
-                  GoRouter.of(parentContext).push('/orderDetails', extra: {
-                    'orderId': orderId,
-                    'redirectUrl': redirectUrl,
-                    'checkoutUrl': checkoutUrl,
-                  });
                 },
                 child: const Text('Open in Browser'),
               ),
             ),
             const SizedBox(height: 8),
 
-            // QR fallback
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -100,7 +93,7 @@ class CheckoutOptionsSheet extends StatelessWidget {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(parentContext).showSnackBar(
                       const SnackBar(content: Text('Checkout link copied')),
-                    );                 
+                    );
                   }
                 },
                 icon: const Icon(Icons.content_copy),

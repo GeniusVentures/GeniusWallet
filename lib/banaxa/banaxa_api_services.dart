@@ -108,7 +108,7 @@ class BanxaApiService {
     final redirectUrl = Uri(
       scheme: 'geniuswallet',
       host: 'banxa',
-      path: '/banxa/callback',
+      path: '/callback',
       queryParameters: {'extOrderId': extOrderId},
     ).toString();
 
@@ -143,6 +143,7 @@ class BanxaApiService {
 
       return order;
     }
+    print('Order response: ${response.statusCode} - ${response.body}');
 
     throw Exception('Order failed (${response.statusCode}): ${response.body}');
   }

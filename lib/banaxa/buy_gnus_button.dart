@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banaxa/banxa_service.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:go_router/go_router.dart';
 
 class BuyGnusButton extends StatelessWidget {
@@ -29,7 +28,7 @@ class BuyGnusButton extends StatelessWidget {
           overlayColor: Colors.transparent,
           shadowColor: Colors.transparent,
           backgroundColor: Colors.transparent,
-          foregroundColor: GeniusWalletColors.lightGreenPrimary,
+         
         ),
         onPressed: () async {
           final url = await BanxaService.getBanxaCheckoutUrl(

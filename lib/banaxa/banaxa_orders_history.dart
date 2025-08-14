@@ -60,15 +60,24 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget _buildActionButton(BuildContext context, Map<String, dynamic> order) {
     final status = order['status']?.toString().toLowerCase() ?? '';
     final orderStatusUrl = order['orderStatusUrl'];
+    final redirectUrl = Uri(
+      scheme: 'geniuswallet',
+      host: 'banxa',
+      path: 'callback',
+      queryParameters: {
+        'extOrderId': order['externalOrderId']
+      },
+    ).toString();
 
     if (status == 'pendingpayment') {
       return ElevatedButton(
         onPressed: () async {
+          print(redirectUrl);
           showCheckoutOptionsSheet(
             context,
             checkoutUrl: orderStatusUrl,
             orderId: order['id'],
-            redirectUrl: BanxaApiService.redirectUrl,
+            redirectUrl: redirectUrl,
           );
         },
         style: ElevatedButton.styleFrom(
@@ -163,7 +172,7 @@ class _OrdersPageState extends State<OrdersPage> {
                       extra: {
                         'orderId': order['id'] as String,
                         'checkoutUrl': order['orderStatusUrl'] as String,
-                        'redirectUrl': 'your_redirect_url_here'
+                        'redirectUrl': BanxaApiService.redirectUrl
                       },
                     );
                   },
@@ -179,8 +188,18 @@ class _OrdersPageState extends State<OrdersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canGoBack = GoRouter.of(context).canPop();
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: canGoBack,
+        leading: canGoBack
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  context.go('/dashboard');
+                },
+              ),
         title: const Text("My Orders"),
         actions: [
           IconButton(

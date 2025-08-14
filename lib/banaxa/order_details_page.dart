@@ -113,8 +113,21 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canGoBack = GoRouter.of(context).canPop();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Order Details')),
+      appBar: AppBar(
+        title: const Text('Order Details'),
+        automaticallyImplyLeading: canGoBack,
+        leading: canGoBack
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  context.go('/buy');
+                },
+              ),
+      ),
       body: FutureBuilder<OrderResponseModel>(
         future: _orderFuture,
         builder: (c, snap) {
