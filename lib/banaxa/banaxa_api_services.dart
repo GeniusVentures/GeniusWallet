@@ -204,11 +204,31 @@ class BanxaApiService {
 
   Future<OrderResponseModel> getOrderById(String orderId) async {
     final url = '$_baseUrl/orders/$orderId';
-    final resp = await http.get(Uri.parse(url), headers: _headers);
-    if (resp.statusCode == 200) {
-      return OrderResponseModel.fromJson(json.decode(resp.body));
+
+    print('🟢 Fetching order with ID: $orderId');
+    print('🔗 URL: $url');
+    print('🛡️ Headers: $_headers');
+
+    try {
+      final resp = await http.get(Uri.parse(url), headers: _headers);
+
+      print('📤 Status code: ${resp.statusCode}');
+      print('📥 Response body: ${resp.body}');
+
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        print('✅ Order fetched successfully: $data');
+        return OrderResponseModel.fromJson(data);
+      } else if (resp.statusCode == 404) {
+        throw Exception('❌ Order not found: $orderId');
+      } else {
+        throw Exception('❌ Failed to load order $orderId: ${resp.body}');
+      }
+    } catch (e, st) {
+      print('💥 Exception fetching order: $e');
+      print(st);
+      rethrow;
     }
-    throw Exception('Failed to load order $orderId: ${resp.body}');
   }
 
   Future<void> openBanxaInBrowser(String url) async {

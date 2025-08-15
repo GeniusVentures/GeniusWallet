@@ -111,6 +111,35 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/banxa/callback',
       builder: (ctx, state) {
+        print('🧭 Navigating from /banxa/callback path');
+        final qp = state.uri.queryParameters;
+        final status = qp['status'];
+        final extOrderId = qp['extOrderId'];
+        final orderIdFromBanxa = qp['orderId'];
+        print('📝 Order Id: $orderIdFromBanxa');
+
+        final effectiveOrderId = orderIdFromBanxa ?? extOrderId;
+        print('📍 effectiveOrderId: $effectiveOrderId');
+        print('⚡ Full query parameters: $qp');
+        print('📝 Current URI: ${state.uri.toString()}');
+
+        if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
+          print('✅ Navigating to OrderDetailsPage with ID: $effectiveOrderId');
+          return OrderDetailsPage(
+            orderId: effectiveOrderId,
+            initialStatus: status,
+            redirectUrl: state.uri.toString(),
+            checkoutUrl: null,
+          );
+        }
+
+        print('❌ effectiveOrderId is null or empty, returning OrdersPage');
+        return const OrdersPage();
+      },
+    ),
+    GoRoute(
+      path: 'geniuswallet://banxa/callback',
+      builder: (ctx, state) {
         final qp = state.uri.queryParameters;
         final status = qp['status'];
         final extOrderId = qp['extOrderId'];

@@ -288,7 +288,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"${SRCROOT}/native\"\nmkdir -p build\ncd build\n\n# Run CMake and build the framework, default to Debug (for flutter)\ncmake .. -G \"Ninja\" ${CMAKE_ARGUMENTS:=-DCMAKE_BUILD_TYPE=Debug}\nninja\n\nmkdir -p \"${SRCROOT}/native/build/GeniusWallet.framework\"\ncp -R \"${SRCROOT}/native/build/libGeniusWallet.dylib\" \"${SRCROOT}/native/build/GeniusWallet.framework/GeniusWallet\"\ncp -R \"${SRCROOT}/native/GeniusWallet_Info.plist\" \"${SRCROOT}/native/build/GeniusWallet.framework/Info.plist\"\ninstall_name_tool -id @rpath/GeniusWallet.framework/GeniusWallet \"${SRCROOT}/native/build/GeniusWallet.framework/GeniusWallet\"\n";
+			shellScript = "cd \"${SRCROOT}/native\"\nmkdir -p build\ncd build\n\nexport PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\nexport CMAKE_ARGUMENTS=\"-DCMAKE_BUILD_TYPE=Release \\\n    -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 \\\n    -DBRANCH_IS_TAG=ON\"\n\n# Run CMake and build the framework, default to Debug (for flutter)\ncmake .. -G \"Ninja\" \\\n    ${CMAKE_ARGUMENTS:=-DCMAKE_BUILD_TYPE=Debug}\nninja\n\nmkdir -p \"${SRCROOT}/native/build/GeniusWallet.framework\"\n";
 		};
 		D77EBEADAD710722DE2C3E2C /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

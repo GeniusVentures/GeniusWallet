@@ -27,15 +27,19 @@ class DeepLinkService {
   void _handleUri(Uri uri, GlobalKey<NavigatorState> navigatorKey) {
     debugPrint('🧭 Received deep link: $uri');
 
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = navigatorKey.currentContext;
       if (context != null) {
-        final host = uri.host;
-        final path = uri.path;
-        final query = uri.query;
+        String fullPath;
+        if (uri.host.isNotEmpty) {
+          fullPath = '/${uri.host}${uri.path}';
+        } else {
+          fullPath = uri.path.isEmpty ? '/' : uri.path;
+        }
 
-        String fullPath = '/$host$path';
-        if (query.isNotEmpty) fullPath += '?$query';
+        if (uri.query.isNotEmpty) {
+          fullPath += '?${uri.query}';
+        }
 
         debugPrint('📍 Navigating to: $fullPath');
         GoRouter.of(context).go(fullPath);

@@ -238,7 +238,6 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                       child: const Text('Get Quote'),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
                                   if (state.step == MakeOrderStep.error &&
                                       state.fiats.isEmpty)
                                     IconButton(
