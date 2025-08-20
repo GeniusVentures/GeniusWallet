@@ -34,7 +34,7 @@
     <array>
     <dict>
     <key>CFBundleURLName</key>
-    <string>com.yourcompany.yourapp</string>
+    <string>ai.gnus.genius_wallet</string>
     <key>CFBundleURLSchemes</key>
     <array>
     <string>geniuswallet</string>
