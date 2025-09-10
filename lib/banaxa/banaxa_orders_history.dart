@@ -7,8 +7,11 @@ import 'package:genius_wallet/banaxa/banaxa_model.dart';
 import 'package:genius_wallet/banaxa/banxa_components/order_filter.dart';
 import 'package:genius_wallet/banaxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banaxa/banaxa_model.dart';
+<<<<<<< HEAD
 import 'package:genius_wallet/banaxa/banxa_components/order_filter.dart';
 import 'package:genius_wallet/banaxa/banxa_helpers/banxa_helpers.dart';
+=======
+>>>>>>> c672e8dd (added some new fixes)
 import 'package:genius_wallet/banaxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa_order/banxa_order_state.dart';
@@ -117,6 +120,12 @@ class _OrdersPageState extends State<OrdersPage> {
               ),
         title: const Text("My Orders"),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.app_registration_rounded),
+            onPressed: () {
+              context.push('/kyc');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
