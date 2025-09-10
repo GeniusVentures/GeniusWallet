@@ -167,7 +167,6 @@ class BanxaApiService {
 
       return order;
     }
-    print('Order response: ${response.statusCode} - ${response.body}');
 
     throw Exception('Order failed (${response.statusCode}): ${response.body}');
   }
