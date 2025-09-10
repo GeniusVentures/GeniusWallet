@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class BanxaPaymentWebView extends StatefulWidget {
@@ -52,7 +53,7 @@ class _BanxaPaymentWebViewState extends State<BanxaPaymentWebView> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          if (_isLoading) const Center(child: Loading()),
         ],
       ),
     );

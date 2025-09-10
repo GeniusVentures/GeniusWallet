@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
 import 'package:genius_wallet/banaxa/banaxa_buy_screen.dart';
 import 'package:genius_wallet/banaxa/banaxa_orders_history.dart';
 import 'package:genius_wallet/banaxa/banaxa_payment.dart';
 import 'package:genius_wallet/banaxa/checkout_qr.dart';
 import 'package:genius_wallet/banaxa/order_details_page.dart';
-import 'package:genius_wallet/banaxa/order_service.dart';
+import 'package:genius_wallet/banaxa/banxa_helpers/order_service.dart';
+import 'package:genius_wallet/banaxa/user_kyc/kyc_registration.dart';
+import 'package:genius_wallet/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
@@ -111,42 +114,13 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/banxa/callback',
       builder: (ctx, state) {
-        print('🧭 Navigating from /banxa/callback path');
-        final qp = state.uri.queryParameters;
-        final status = qp['status'];
-        final extOrderId = qp['extOrderId'];
-        final orderIdFromBanxa = qp['orderId'];
-        print('📝 Order Id: $orderIdFromBanxa');
-
-        final effectiveOrderId = orderIdFromBanxa ?? extOrderId;
-        print('📍 effectiveOrderId: $effectiveOrderId');
-        print('⚡ Full query parameters: $qp');
-        print('📝 Current URI: ${state.uri.toString()}');
-
-        if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
-          print('✅ Navigating to OrderDetailsPage with ID: $effectiveOrderId');
-          return OrderDetailsPage(
-            orderId: effectiveOrderId,
-            initialStatus: status,
-            redirectUrl: state.uri.toString(),
-            checkoutUrl: null,
-          );
-        }
-
-        print('❌ effectiveOrderId is null or empty, returning OrdersPage');
-        return const OrdersPage();
-      },
-    ),
-    GoRoute(
-      path: 'geniuswallet://banxa/callback',
-      builder: (ctx, state) {
         final qp = state.uri.queryParameters;
         final status = qp['status'];
         final extOrderId = qp['extOrderId'];
         final orderIdFromBanxa = qp['orderId'];
 
-        final effectiveOrderId = orderIdFromBanxa ??
-            (extOrderId == null ? null : OrderLinker.instance.get(extOrderId));
+        final effectiveOrderId =
+            orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
 
         if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
           return OrderDetailsPage(
@@ -156,19 +130,23 @@ final geniusWalletRouter = GoRouter(
             checkoutUrl: null,
           );
         }
+
         return const OrdersPage();
       },
     ),
-    GoRoute(
+   GoRoute(
       path: '/checkoutQR',
       builder: (context, state) {
         String? checkoutUrl;
+        String? orderId;
 
         final extra = state.extra;
         if (extra is Map) {
           checkoutUrl = extra['checkoutUrl'] as String?;
+          orderId = extra['orderId'] as String?;
         }
         checkoutUrl ??= state.uri.queryParameters['checkoutUrl'];
+        orderId ??= state.uri.queryParameters['orderId'];
 
         if (checkoutUrl == null || checkoutUrl.isEmpty) {
           return const Scaffold(
@@ -176,9 +154,26 @@ final geniusWalletRouter = GoRouter(
           );
         }
 
-        return CheckoutQrPage(checkoutUrl: checkoutUrl);
+        final api = BanxaApiService();
+
+        return BlocProvider(
+          create: (_) =>
+              PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
+          child: CheckoutQrPage(
+            checkoutUrl: checkoutUrl,
+            orderId: orderId ?? '',
+          ),
+        );
       },
     ),
+    
+     GoRoute(
+      path: '/kyc',
+      builder: (context, state) {
+        return const BanxaKycScreen();
+      },
+    ),
+
     GoRoute(
       path: '/checkout',
       builder: (context, state) {

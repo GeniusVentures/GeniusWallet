@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
-import 'package:genius_wallet/banaxa/deep_link_service.dart';
+import 'package:genius_wallet/banaxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -52,6 +52,9 @@ void main() async {
   /// Initialize window_manager only on **desktop**
   if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
     await windowManager.ensureInitialized();
+
+    await windowManager.setPreventClose(true);
+
     windowManager.addListener(MyWindowListener(geniusApi));
   }
 
@@ -86,11 +89,40 @@ class MyWindowListener extends WindowListener {
 
   @override
   void onWindowClose() async {
-    // Trigger cleanup when the window is closed
-    geniusApi.shutdownSDK();
-    debugPrint("Window closed. GeniusApi shutdown.");
+    const double buttonWidth = 100;
 
-    exit(0);
+    // Don't repeat setPreventClose here
+    final shouldExit = await showDialog<bool>(
+      context: navigatorKey.currentContext!,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit App?'),
+        content: const Text('Are you sure you want to exit?'),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          SizedBox(
+            width: buttonWidth,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+          ),
+          SizedBox(
+            width: buttonWidth,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Exit'),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldExit == true) {
+      geniusApi.shutdownSDK();
+      await windowManager.destroy();
+      await Future.delayed(const Duration(milliseconds: 100));
+      exit(0);
+    }
   }
 }
 
@@ -187,7 +219,17 @@ class MyApp extends StatelessWidget {
           locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
           title: 'Gnus AI',
-          theme: getThemeData(),
+          theme: getThemeData().copyWith(
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+              },
+            ),
+          ),
           routerConfig: geniusWalletRouter,
         ),
       ),

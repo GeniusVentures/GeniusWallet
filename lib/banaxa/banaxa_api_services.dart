@@ -1,9 +1,10 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:genius_wallet/banaxa/banaxa_model.dart';
-import 'package:genius_wallet/banaxa/order_service.dart';
+import 'package:genius_wallet/banaxa/banxa_helpers/order_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,10 +21,32 @@ class BanxaApiService {
         'x-api-key': _apiKey,
       };
 
+  static Future<BanxaKycResponse?> submitKYC(
+      Map<String, dynamic> kycData) async {
+    final url =
+        Uri.parse('https://$_partnerCode.banxa-sandbox.com/api/identities');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: _headers,
+        body: jsonEncode(kycData),
+      );
+      if (response.statusCode == 200) {
+        return BanxaKycResponse.fromJson(jsonDecode(response.body));
+      } else {
+        print('Banxa KYC failed: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Banxa KYC error: $e');
+      return null;
+    }
+  }
+
   Future<List<FiatCurrency>> getFiatCurrencies() async {
     const url = '$_baseUrl/fiats/buy';
     final response = await http.get(Uri.parse(url), headers: _headers);
-    print('Fiat response: ${response.statusCode} - ${response.body}');
 
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
@@ -80,7 +103,6 @@ class BanxaApiService {
   Future<List<CryptoCurrency>> getCryptoCurrencies() async {
     const url = '$_baseUrl/crypto/buy';
     final response = await http.get(Uri.parse(url), headers: _headers);
-    print('Crypto response: ${response.statusCode} - ${response.body}');
 
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
@@ -111,6 +133,8 @@ class BanxaApiService {
       path: '/callback',
       queryParameters: {'extOrderId': extOrderId},
     ).toString();
+
+    print('🫩 Redirect URL: $redirectUrl');
 
     final bodyMap = {
       'fiat': fiatCurrency,
@@ -143,7 +167,6 @@ class BanxaApiService {
 
       return order;
     }
-    print('Order response: ${response.statusCode} - ${response.body}');
 
     throw Exception('Order failed (${response.statusCode}): ${response.body}');
   }
@@ -164,7 +187,48 @@ class BanxaApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchAllOrders({
+  Future<OrderStatus> pollOrderStatus(
+    String orderId, {
+    Duration interval = const Duration(seconds: 5),
+    Duration timeout = const Duration(minutes: 2),
+  }) async {
+    final completer = Completer<OrderStatus>();
+    final stopwatch = Stopwatch()..start();
+
+    Timer? timer;
+
+    Future<void> checkStatus() async {
+      try {
+        final status = await getOrderStatus(orderId);
+
+        print('Order status: ${status.status}');
+
+        if (status.status.toLowerCase() == 'completed' ||
+            status.status.toLowerCase() == 'failed' ||
+            status.status.toLowerCase() == 'cancelled' ||
+            status.status.toLowerCase() == 'inProgress' ||
+            status.status.toLowerCase() == 'expired' ||
+            status.status.toLowerCase() == 'declined') {
+          timer?.cancel();
+          completer.complete(status);
+        } else if (stopwatch.elapsed >= timeout) {
+          timer?.cancel();
+          completer.completeError(Exception("Polling timed out"));
+        }
+      } catch (e) {
+        timer?.cancel();
+        completer.completeError(e);
+      }
+    }
+
+    checkStatus();
+
+    timer = Timer.periodic(interval, (_) => checkStatus());
+
+    return completer.future;
+  }
+
+  Future<OrdersResponse> fetchAllOrders({
     required String startDateUtc,
     required String endDateUtc,
     String status = '',
@@ -193,8 +257,7 @@ class BanxaApiService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final List orders = data['orders'] ?? [];
-      return orders.cast<Map<String, dynamic>>();
+      return OrdersResponse.fromJson(data);
     } else {
       print(
           'Failed to fetch orders: ${response.statusCode} - ${response.body}');
@@ -202,7 +265,7 @@ class BanxaApiService {
     }
   }
 
-  Future<OrderResponseModel> getOrderById(String orderId) async {
+  Future<Order> getOrderById(String orderId) async {
     final url = '$_baseUrl/orders/$orderId';
 
     print('🟢 Fetching order with ID: $orderId');
@@ -218,7 +281,7 @@ class BanxaApiService {
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body);
         print('✅ Order fetched successfully: $data');
-        return OrderResponseModel.fromJson(data);
+        return Order.fromJson(data);
       } else if (resp.statusCode == 404) {
         throw Exception('❌ Order not found: $orderId');
       } else {

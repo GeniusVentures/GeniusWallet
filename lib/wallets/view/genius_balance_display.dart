@@ -88,12 +88,16 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
         if (widget.isShowSuffix ?? false) ...[
           const SizedBox(width: 4),
           AutoSizeText(
-            widget.useMinions ? "min" : "gnus",
+            widget.useMinions
+                ? ((double.tryParse(_balance) ?? 0) == 1 ? "minion" : "minions")
+                : "gnus",
             maxLines: 1,
             style: TextStyle(
-              fontSize: widget.fontSize ?? 16,
-              fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? GeniusWalletColors.gray500,
+              fontSize: (widget.fontSize ?? 16) * 0.82,
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w400,
+              color: (widget.fontColor ?? GeniusWalletColors.gray500)
+                  .withOpacity(0.9),
             ),
           )
         ]

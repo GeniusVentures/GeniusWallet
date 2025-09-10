@@ -15,7 +15,7 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
     String? initialAmount,
     String? initialWalletAddress,
   }) async {
-    if (isClosed) return; 
+    if (isClosed) return;
     emit(state.copyWith(
       step: MakeOrderStep.loadingCurrencies,
       isLoadingOverlay: true,
@@ -200,8 +200,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         walletAddress: state.walletText.trim(),
         cryptoAmount: state.quote!.cryptoAmount,
         fiatAmount: state.quote!.fiatAmount,
-        externalCustomerId: 'your-cust-id',
-        email: 'banxa@text.com',
+        externalCustomerId: 'my_id',
+        email: 'ammar@gmail.com',
         metadata: 'sandbox-testing',
         subPartnerId: 'macOS-app',
       );

@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -10,158 +9,261 @@ class MarketDataInfo extends StatelessWidget {
   final String? address;
   final String? network;
   final Widget? topSlot;
+  final String? aboutText;
 
-  const MarketDataInfo(
-      {Key? key, this.marketData, this.network, this.address, this.topSlot})
-      : super(key: key);
+  const MarketDataInfo({
+    Key? key,
+    this.marketData,
+    this.network,
+    this.address,
+    this.topSlot,
+    this.aboutText,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // **Title Outside the Table**
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: AutoSizeText(
-            "Info",
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: 18,
-              color: GeniusWalletColors.gray500,
+    // Build rows for ListView
+    final infoTiles = <Widget>[
+      // Network row (with icon)
+      if (network != null)
+        ListTile(
+          dense: true,
+          leading: const Icon(
+            Icons.bubble_chart,
+            color: GeniusWalletColors.lightGreenPrimary,
+            size: 20,
+          ),
+          title: const Text("Network",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: GeniusWalletColors.gray500)),
+          trailing: Text(
+            network ?? "",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
         ),
+      // Address row (with icon + copy)
+      if (address != null)
+        ListTile(
+          dense: true,
+          leading: const Icon(
+            Icons.link,
+            color: GeniusWalletColors.lightGreenPrimary,
+            size: 20,
+          ),
+          title: const Text("Address",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: GeniusWalletColors.gray500)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                address!.length > 12
+                    ? "${address!.substring(0, 6)}...${address!.substring(address!.length - 6)}"
+                    : address!,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _copyToClipboard(context, address!),
+                child: const Icon(
+                  Icons.copy,
+                  size: 18,
+                  color: GeniusWalletColors.lightGreenPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      // Market Cap
+      ListTile(
+        dense: true,
+        leading: Icon(Icons.pie_chart, color: Colors.amber[200], size: 20),
+        title: const Text("Market Cap",
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: GeniusWalletColors.gray500)),
+        trailing: Text(
+          _formatCompactCurrency(marketData?.marketCap),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      // Circulating Supply
+      ListTile(
+        dense: true,
+        leading: Icon(Icons.sync, color: Colors.lightBlue[200], size: 20),
+        title: const Text("Circulating Supply",
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: GeniusWalletColors.gray500)),
+        trailing: Text(
+          _formatCompactDecimal(marketData?.circulatingSupply),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      // Total Supply
+      ListTile(
+        dense: true,
+        leading: Icon(Icons.storage, color: Colors.orange[200], size: 20),
+        title: const Text("Total Supply",
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: GeniusWalletColors.gray500)),
+        trailing: Text(
+          _formatCompactDecimal(marketData?.totalSupply),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      // Volume
+      ListTile(
+        dense: true,
+        leading: Icon(Icons.bar_chart, color: Colors.red[200], size: 20),
+        title: const Text("Volume",
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: GeniusWalletColors.gray500)),
+        trailing: Text(
+          _formatCompactCurrency(marketData?.totalVolume),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ];
 
-        // **Market Data Card**
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center, // center if possible
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            "Info",
+            style: TextStyle(
+              fontSize: 18,
+              color: GeniusWalletColors.gray500,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        // Card with ListTile and info
         Card(
           color: GeniusWalletColors.deepBlueCardColor,
           margin: EdgeInsets.zero,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (topSlot != null) ...[
-                topSlot!,
-                Container(
-                  height: 2,
-                  color: GeniusWalletColors.deepBlueTertiary,
+              // Top ListTile (icon, name, symbol)
+              ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                leading: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.white,
+                  backgroundImage: marketData?.imageUrl != null
+                      ? NetworkImage(marketData!.imageUrl)
+                      : null,
+                  child: marketData?.imageUrl == null
+                      ? const Icon(Icons.token,
+                          color: GeniusWalletColors.gray500, size: 32)
+                      : null,
                 ),
-              ],
-              _buildInfoRow("Symbol", marketData?.symbol.toUpperCase()),
-              if (network != null) _buildInfoRow("Network", network),
-              if (address != null)
-                _buildCopyableRow(context, "Address", address!),
-              _buildInfoRow(
-                  "Market Cap", _formatCompactCurrency(marketData?.marketCap)),
-              _buildInfoRow("Circulating Supply",
-                  _formatCompactDecimal(marketData?.circulatingSupply)),
-              _buildInfoRow("Total Supply",
-                  _formatCompactDecimal(marketData?.totalSupply)),
-              _buildInfoRow(
-                  "Volume", _formatCompactCurrency(marketData?.totalVolume)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// **Builds a Row for Market Data with a 1px Separator**
-  Widget _buildInfoRow(String label, String? value) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                  child: AutoSizeText(
-                label,
-                maxLines: 1,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: GeniusWalletColors.gray500,
+                title: Text(
+                  marketData?.name ?? "Unknown Token",
+                  maxLines: 2,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
-              )),
-              Flexible(
-                  child: AutoSizeText(
-                value ?? "",
-                maxLines: 1,
-                minFontSize: 12,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              )),
-            ],
-          ),
-        ),
-        Container(
-          height: 2,
-          color: GeniusWalletColors.deepBlueTertiary,
-        ),
-      ],
-    );
-  }
-
-  /// **Builds a Row with a Copyable Address**
-  Widget _buildCopyableRow(BuildContext context, String label, String value) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AutoSizeText(
-                label,
-                maxLines: 1,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: GeniusWalletColors.gray500,
+                subtitle: Text(
+                  (marketData?.symbol ?? "").toUpperCase(),
+                  style: const TextStyle(
+                    color: GeniusWalletColors.gray500,
+                    fontSize: 14,
+                  ),
                 ),
               ),
-              Flexible(
-                  child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                      child: AutoSizeText(
-                    value.length > 10
-                        ? "${value.substring(0, 6)}...${value.substring(value.length - 6)}"
-                        : value,
-                    maxLines: 1,
-                    minFontSize: 12,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  )),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () => _copyToClipboard(context, value),
-                    child: const Icon(
-                      Icons.copy,
-                      size: 16,
-                      color: GeniusWalletColors.lightGreenPrimary,
-                    ),
+              // Divider
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                height: 1,
+                color: GeniusWalletColors.deepBlueTertiary,
+              ),
+              ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: infoTiles.length,
+                separatorBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.only(left: 50.0, right: 10),
+                  child: Divider(
+                    height: 1,
+                    color: GeniusWalletColors.deepBlue,
                   ),
-                ],
-              )),
+                ),
+                itemBuilder: (context, index) => infoTiles[index],
+              ),
+              if (aboutText != null && aboutText!.isNotEmpty) ...[
+                const Divider(color: GeniusWalletColors.deepBlue, height: 1),
+                ExpansionTile(
+                  title: const Text(
+                    "About",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: GeniusWalletColors.gray500,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: Text(
+                        aboutText!,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
-        ),
-        Container(
-          height: 2,
-          color: GeniusWalletColors.deepBlueTertiary,
-        ),
+        )
       ],
     );
   }
 
-  /// **Copies the Address to Clipboard**
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(

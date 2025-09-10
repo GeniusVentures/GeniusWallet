@@ -51,6 +51,9 @@ dependencies:
   app_links: ^6.4.0
   intl: ^0.19.0
 
+  image_picker: ^1.2.0
+  csc_picker_plus: ^0.0.3
+  intl_phone_field: ^3.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

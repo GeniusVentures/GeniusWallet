@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/transaction.dart';
-import 'package:genius_wallet/banaxa/buy_cancelled_drawer.dart';
-import 'package:genius_wallet/banaxa/buy_success_drawer.dart';
+import 'package:genius_wallet/banxa/buy_cancelled_drawer.dart';
+import 'package:genius_wallet/banxa/buy_success_drawer.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';

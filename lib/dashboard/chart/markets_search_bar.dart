@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -121,39 +122,64 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         // Search Input Field
-        SearchBar(
+        // Replace SearchBar with this TextField for custom style
+        TextField(
           controller: _controller,
-          hintText: 'Search Coins...',
+          style: const TextStyle(color: Colors.white), // White input text
           onChanged: _onSearchChanged,
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 16),
-          ),
-          trailing: [
-            if (_isSearching)
-              const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: SizedBox(
-                  height: 12,
-                  width: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            else if (_controller.text.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.clear, color: Colors.white),
-                onPressed: () {
-                  _controller.clear();
-                  setState(() {
-                    _searchResults = [];
-                  });
-                },
+          decoration: InputDecoration(
+            hintText: 'Search Coins...',
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            filled: true,
+            fillColor: Colors.grey[900], // Very dark background for input
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Colors.white24, // Subtle dark border
+                width: 1.4,
               ),
-          ],
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(5),
+              borderSide: const BorderSide(
+                color: Colors.white38,
+                width: 1.4,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: GeniusWalletColors.lightGreenPrimary,
+                width: 2,
+              ),
+            ),
+            suffixIcon: _isSearching
+                ? const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : (_controller.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.white),
+                        onPressed: () {
+                          _controller.clear();
+                          setState(() {
+                            _searchResults = [];
+                          });
+                        },
+                      )
+                    : const Icon(Icons.search, color: Colors.white38)),
+          ),
         ),
 
         const SizedBox(height: 8),
 
-        // Search Results List (as SlidingDrawerButtons)
         if (_searchResults.isNotEmpty)
           ListView.separated(
             shrinkWrap: true,

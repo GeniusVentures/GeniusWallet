@@ -43,12 +43,11 @@ class GeniusWalletColors {
 
   static const Color deepBlueMenu = Color(0xff0F1B2E);
 
-  static const Color lightGreenPrimary = Color.fromRGBO(0, 234, 174, 1);
+  static const Color lightGreenPrimary = Color(0xFF00FFAA);
 
   static const Color lightGreenSecondary = Color.fromRGBO(1, 204, 149, 1);
 
   static const Color grayPrimary = Color.fromRGBO(21, 30, 41, 1);
-
   static const Color btnText = Color.fromRGBO(0, 11, 24, 1);
 
   static const Color btnDisabled = Color.fromRGBO(188, 188, 188, 1);
@@ -70,4 +69,8 @@ class GeniusWalletColors {
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 
   static const Color currencyBackground = Color(0xff0050b7);
+
+  static const Color mutedGreen = Color(0xFF2EBE7B);
+
+  static const Color mutedRed = Color(0xFFE57373);
 }

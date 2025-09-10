@@ -45,25 +45,57 @@ class WalletInformationState extends State<WalletInformation> {
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Flexible(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Label
+            const Text(
+              'Total Balance',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Balance
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Flexible(
                   child: AutoSizeText(
-                widget.totalBalance ?? "0",
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 48.0,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
-                  color: Colors.white,
+                    widget.totalBalance ?? "0.00",
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 36.0, // Changed to 36sp
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
                 ),
-                textAlign: TextAlign.left,
-              )),
-            ]),
+                const SizedBox(width: 6),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if ((widget.totalBalance == null) ||
+                widget.totalBalance == "0" ||
+                widget.totalBalance == "0.00" ||
+                widget.totalBalance == "\$0.00")
+              const Text(
+                'No funds available',
+                style: TextStyle(
+                  color: GeniusWalletColors.red,
+                  fontSize: 12,
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 20),
         Row(children: [
           if (widget.walletType == WalletType.tracking) ...[
@@ -127,16 +159,19 @@ class WalletInformationState extends State<WalletInformation> {
                 );
               },
               text: 'Receive',
+              semanticLabel: "Recieve",
               icon: Icons.qr_code,
             ),
             const SizedBox(width: 8),
             const ActionButton(
               text: 'Send',
               icon: Icons.send,
+              semanticLabel: "Send",
             ),
             const SizedBox(width: 8),
             ActionButton(
                 text: 'Buy GNUS',
+                semanticLabel: "Buy Gnus cryptos",
                 icon: Icons.attach_money,
                 onPressed: () async {
                   final url = await BanxaService.getBanxaCheckoutUrl(
@@ -158,6 +193,7 @@ class WalletInformationState extends State<WalletInformation> {
             const SizedBox(width: 8),
             ActionButton(
               text: "More",
+              semanticLabel: "See more options",
               icon: Icons.more_horiz,
               onPressed: () {
                 ResponsiveDrawer.show<void>(

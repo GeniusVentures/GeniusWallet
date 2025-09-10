@@ -108,35 +108,113 @@ class OrderResponse {
 
 class OrderStatus {
   final String orderId;
+  final String? externalId;
+  final String? externalCustomerId;
+  final String? country;
+  final String? orderStatusUrl;
+  final String orderType;
   final String status;
-  final double fiatAmount;
-  final double cryptoAmount;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   final String fiatCurrency;
+  final double fiatAmount;
+
   final String cryptoCurrency;
+  final String blockchain;
+  final String? walletAddress;
+  final String? walletAddressTag;
+  final double? cryptoAmount;
+
+  final String? paymentMethodId;
+  final String? paymentMethodName;
+  final double? processingFee;
+  final double? networkFee;
+  final String? transactionHash;
+  final String? metadata;
+
   OrderStatus({
     required this.orderId,
+    this.externalId,
+    this.externalCustomerId,
+    this.country,
+    this.orderStatusUrl,
+    required this.orderType,
     required this.status,
-    required this.fiatAmount,
-    required this.cryptoAmount,
+    required this.createdAt,
+    required this.updatedAt,
     required this.fiatCurrency,
+    required this.fiatAmount,
     required this.cryptoCurrency,
+    required this.blockchain,
+    this.walletAddress,
+    this.walletAddressTag,
+    this.cryptoAmount,
+    this.paymentMethodId,
+    this.paymentMethodName,
+    this.processingFee,
+    this.networkFee,
+    this.transactionHash,
+    this.metadata,
   });
 
   factory OrderStatus.fromJson(Map<String, dynamic> json) {
     return OrderStatus(
       orderId: json['id'] ?? '',
+      externalId: json['externalId'],
+      externalCustomerId: json['externalCustomerId'],
+      country: json['country'],
+      orderStatusUrl: json['orderStatusUrl'],
+      orderType: json['orderType'] ?? '',
       status: json['status'] ?? '',
-      fiatAmount: (json['fiat_amount'] is num)
-          ? (json['fiat_amount'] as num).toDouble()
-          : 0.0,
-      cryptoAmount: (json['coin_amount'] is num)
-          ? (json['coin_amount'] as num).toDouble()
-          : 0.0,
-      fiatCurrency: json['fiat_code'] ?? '',
-      cryptoCurrency: json['coin_code'] ?? '',
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
+      fiatCurrency: json['fiat'] ?? '',
+      fiatAmount: double.tryParse(json['fiatAmount']?.toString() ?? '') ?? 0.0,
+      cryptoCurrency: json['crypto']?['id'] ?? '',
+      blockchain: json['crypto']?['blockchain'] ?? '',
+      walletAddress: json['walletAddress'],
+      walletAddressTag: json['walletAddressTag'],
+      cryptoAmount: double.tryParse(json['cryptoAmount']?.toString() ?? ''),
+      paymentMethodId: json['paymentMethodId'],
+      paymentMethodName: json['paymentMethodName'],
+      processingFee: double.tryParse(json['processingFee']?.toString() ?? ''),
+      networkFee: double.tryParse(json['networkFee']?.toString() ?? ''),
+      transactionHash: json['transactionHash'],
+      metadata: json['metadata']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': orderId,
+      'externalId': externalId,
+      'externalCustomerId': externalCustomerId,
+      'country': country,
+      'orderStatusUrl': orderStatusUrl,
+      'orderType': orderType,
+      'status': status,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'fiat': fiatCurrency,
+      'fiatAmount': fiatAmount,
+      'crypto': {
+        'id': cryptoCurrency,
+        'blockchain': blockchain,
+      },
+      'walletAddress': walletAddress,
+      'walletAddressTag': walletAddressTag,
+      'cryptoAmount': cryptoAmount,
+      'paymentMethodId': paymentMethodId,
+      'paymentMethodName': paymentMethodName,
+      'processingFee': processingFee,
+      'networkFee': networkFee,
+      'transactionHash': transactionHash,
+      'metadata': metadata,
+    };
+  }
 }
+
 
 class Blockchain {
   final String id;
@@ -205,7 +283,6 @@ class Quote {
   }
 }
 
-
 class CryptoInfo {
   final String id;
   final String blockchain;
@@ -229,16 +306,44 @@ class CryptoInfo {
   }
 }
 
-class OrderResponseModel {
-  final DateTime createdAt;
-  final DateTime updatedAt;
+class OrdersResponse {
+  final List<Order> orders;
+  final int total;
+  final int pageTotal;
+
+  OrdersResponse({
+    required this.orders,
+    required this.total,
+    required this.pageTotal,
+  });
+
+  factory OrdersResponse.fromJson(Map<String, dynamic> json) {
+    return OrdersResponse(
+      orders: (json['orders'] as List<dynamic>)
+          .map((e) => Order.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] ?? 0,
+      pageTotal: json['pageTotal'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'orders': orders.map((e) => e.toJson()).toList(),
+      'total': total,
+      'pageTotal': pageTotal,
+    };
+  }
+}
+
+class Order {
   final String id;
-  final String? externalId;
-  final String? externalCustomerId;
+  final String externalId;
+  final String externalCustomerId;
   final String? country;
   final String orderStatusUrl;
   final String orderType;
-  final CryptoInfo crypto;
+  final Crypto crypto;
   final String fiat;
   final String fiatAmount;
   final String cryptoAmount;
@@ -250,14 +355,14 @@ class OrderResponseModel {
   final String walletAddress;
   final String? walletAddressTag;
   final String status;
-  final dynamic metadata;
+  final Map<String, dynamic>? metadata;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  OrderResponseModel({
-    required this.createdAt,
-    required this.updatedAt,
+  Order({
     required this.id,
-    this.externalId,
-    this.externalCustomerId,
+    required this.externalId,
+    required this.externalCustomerId,
     this.country,
     required this.orderStatusUrl,
     required this.orderType,
@@ -274,31 +379,110 @@ class OrderResponseModel {
     this.walletAddressTag,
     required this.status,
     this.metadata,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
-  factory OrderResponseModel.fromJson(Map<String, dynamic> json) {
-    return OrderResponseModel(
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      id: json['id'] as String,
-      externalId: json['externalId'] as String?,
-      externalCustomerId: json['externalCustomerId'] as String?,
-      country: json['country'] as String?,
-      orderStatusUrl: json['orderStatusUrl'] as String,
-      orderType: json['orderType'] as String,
-      crypto: CryptoInfo.fromJson(json['crypto'] as Map<String, dynamic>),
-      fiat: json['fiat'] as String,
-      fiatAmount: json['fiatAmount'] as String,
-      cryptoAmount: json['cryptoAmount'] as String,
-      paymentMethodId: json['paymentMethodId'] as String,
-      paymentMethodName: json['paymentMethodName'] as String,
-      processingFee: json['processingFee'] as String,
-      networkFee: json['networkFee'] as String,
-      transactionHash: json['transactionHash'] as String?,
-      walletAddress: json['walletAddress'] as String,
-      walletAddressTag: json['walletAddressTag'] as String?,
-      status: json['status'] as String,
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'],
+      externalId: json['externalOrderId'], // matches API field
+      externalCustomerId: json['externalCustomerId'],
+      country: json['country'],
+      orderStatusUrl: json['orderStatusUrl'],
+      orderType: json['orderType'],
+      crypto: Crypto.fromJson(json['crypto']),
+      fiat: json['fiat'],
+      fiatAmount: json['fiatAmount'],
+      cryptoAmount: json['cryptoAmount'],
+      paymentMethodId: json['paymentMethodId'],
+      paymentMethodName: json['paymentMethodName'],
+      processingFee: json['processingFee'],
+      networkFee: json['networkFee'],
+      transactionHash: json['transactionHash'],
+      walletAddress: json['walletAddress'],
+      walletAddressTag: json['walletAddressTag'],
+      status: json['status'],
       metadata: json['metadata'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'externalOrderId': externalId,
+      'externalCustomerId': externalCustomerId,
+      'country': country,
+      'orderStatusUrl': orderStatusUrl,
+      'orderType': orderType,
+      'crypto': crypto.toJson(),
+      'fiat': fiat,
+      'fiatAmount': fiatAmount,
+      'cryptoAmount': cryptoAmount,
+      'paymentMethodId': paymentMethodId,
+      'paymentMethodName': paymentMethodName,
+      'processingFee': processingFee,
+      'networkFee': networkFee,
+      'transactionHash': transactionHash,
+      'walletAddress': walletAddress,
+      'walletAddressTag': walletAddressTag,
+      'status': status,
+      'metadata': metadata,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
+}
+
+class Crypto {
+  final String id; // e.g. "BTC" / "ETH"
+  final String blockchain; // e.g. "BTC" / "ETH"
+  final String? address; // may be null
+  final String network; // may be "" (empty) in sandbox
+
+  Crypto({
+    required this.id,
+    required this.blockchain,
+    this.address,
+    required this.network,
+  });
+
+  factory Crypto.fromJson(Map<String, dynamic> json) {
+    return Crypto(
+      id: (json['id'] ?? '') as String,
+      blockchain: (json['blockchain'] ?? '') as String,
+      address: json['address'] as String?, 
+      network: (json['network'] ?? '') as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'blockchain': blockchain,
+      'address': address,
+      'network': network,
+    };
+  }
+}
+
+class BanxaKycResponse {
+  final String accountId;
+  final String accountReference;
+
+  BanxaKycResponse({
+    required this.accountId,
+    required this.accountReference,
+  });
+
+  factory BanxaKycResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? {};
+    final account = data['account'] ?? {};
+    return BanxaKycResponse(
+      accountId: account['account_id'] ?? '',
+      accountReference: account['account_reference'] ?? '',
     );
   }
 }

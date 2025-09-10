@@ -20,6 +20,7 @@ class DeepLinkService {
       (Uri? uri) {
         if (uri != null) _handleUri(uri, navigatorKey);
       },
+      
       onError: (err) => debugPrint("DeepLink error: $err"),
     );
   }
