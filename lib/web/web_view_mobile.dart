@@ -92,7 +92,7 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   void _addNewTab(String url) {
     WebViewController? controller;
-    bool retried = false; // Track if we've retried already
+    bool retried = false; 
 
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)

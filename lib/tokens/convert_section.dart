@@ -127,38 +127,35 @@ class _ConvertSectionState extends State<ConvertSection> {
 
                 const SizedBox(height: 16),
 
-                SizedBox(
-                  height: 48,
-                  child: TextFormField(
-                    controller: _tokenAmountController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: "Token Amount",
-                      labelStyle: TextStyle(color: Colors.white70),
-                      filled: true,
-                      fillColor: GeniusWalletColors.deepBlueTertiary,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white12),
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: GeniusWalletColors.lightGreenPrimary),
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
+                TextFormField(
+                  controller: _tokenAmountController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: "Token Amount",
+                    labelStyle: TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: GeniusWalletColors.deepBlueTertiary,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
-                    style: const TextStyle(color: Colors.white),
-                    validator: (value) {
-                      final v = double.tryParse(value ?? "");
-                      if (v == null || v <= 0) return "Enter amount";
-                      return null;
-                    },
-                    onChanged: (_) => _calculateTotalValue(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white12),
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: GeniusWalletColors.lightGreenPrimary),
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
                   ),
+                  style: const TextStyle(color: Colors.white),
+                  validator: (value) {
+                    final v = double.tryParse(value ?? "");
+                    if (v == null || v <= 0) return "Enter amount";
+                    return null;
+                  },
+                  onChanged: (_) => _calculateTotalValue(),
                 ),
 
                 const SizedBox(height: 16),
@@ -177,21 +174,27 @@ class _ConvertSectionState extends State<ConvertSection> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        "Total: ${NumberFormat.currency(
-                          locale: "en_US",
-                          symbol: "\$",
-                        ).format(_totalValue)}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                      Flexible(
+                        child: Text(
+                          "Total: ${NumberFormat.currency(
+                            locale: "en_US",
+                            symbol: "\$",
+                            decimalDigits: 2,
+                          ).format(_totalValue)}",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                          maxLines: 10,
+                          overflow: TextOverflow.visible,
+                          textAlign: TextAlign.right,
                         ),
                       ),
                     ],
                   ),
-                ),
+                )
               ],
             ),
           ),
