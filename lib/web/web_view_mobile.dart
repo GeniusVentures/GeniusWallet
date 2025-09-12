@@ -23,41 +23,6 @@ class WebViewMobile extends StatefulWidget {
 }
 
 class WebViewMobileState extends State<WebViewMobile> {
-  void _injectDarkTheme(int tabIndex) {
-    const String darkCSS = '''
-    html, body { background: #181A20 !important; color: #f2f2f2 !important; }
-    * { background-color: transparent !important; color: #f2f2f2 !important; border-color: #30343a !important; }
-    a { color: #3ddc97 !important; }
-    input, textarea, select { background: #23242b !important; color: #f2f2f2 !important; border: 1px solid #30343a !important; }
-  ''';
-
-    // Hides Uniswap "Get the Wallet" banner and similar banners
-    const String hideBannerJS = '''
-    // Hide Uniswap Wallet banner
-    var walletBanner = document.querySelector('[data-testid="uni-banner"], [data-testid="get-wallet-banner"], .uni-banner, .wallet-banner, [id*="banner"], [class*="banner"]');
-    if(walletBanner) { walletBanner.style.display = "none"; }
-
-    // Hide other fixed banners/ads (generic example)
-    var allBanners = document.querySelectorAll('[class*="banner"], [id*="banner"], .adsbygoogle, .sticky-footer, .sticky-header');
-    allBanners.forEach(function(b) { b.style.display = "none"; });
-  ''';
-
-    _controllers[tabIndex].runJavaScript('''
-    (function() {
-      // Inject dark CSS
-      var darkStyle = document.getElementById("force-dark-css");
-      if (!darkStyle) {
-        darkStyle = document.createElement('style');
-        darkStyle.id = "force-dark-css";
-        darkStyle.innerHTML = `$darkCSS`;
-        document.head.appendChild(darkStyle);
-      }
-      // Hide annoying banners
-      $hideBannerJS
-    })();
-  ''');
-  }
-
   final List<WebViewController> _controllers = [];
   final List<String> _tabUrls = [];
   final List<Uint8List?> _tabImages = [];
@@ -270,7 +235,6 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   @override
   Widget build(BuildContext context) {
-    print("includeBackButton");
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
