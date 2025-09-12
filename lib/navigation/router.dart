@@ -135,7 +135,7 @@ final geniusWalletRouter = GoRouter(
         return const OrdersPage();
       },
     ),
-   GoRoute(
+    GoRoute(
       path: '/checkoutQR',
       builder: (context, state) {
         String? checkoutUrl;
