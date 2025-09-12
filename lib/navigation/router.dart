@@ -134,7 +134,7 @@ final geniusWalletRouter = GoRouter(
         return const OrdersPage();
       },
     ),
-   GoRoute(
+    GoRoute(
       path: '/checkoutQR',
       builder: (context, state) {
         String? checkoutUrl;
@@ -166,14 +166,12 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
-    
-     GoRoute(
+    GoRoute(
       path: '/kyc',
       builder: (context, state) {
         return const BanxaKycScreen();
       },
     ),
-
     GoRoute(
       path: '/checkout',
       builder: (context, state) {

@@ -69,9 +69,9 @@ class GeniusTabbar extends StatelessWidget {
               Container(
                   height: 1,
                   width: 40,
-                  color: GeniusWalletColors.lightGreenPrimary), 
+                  color: GeniusWalletColors.lightGreenPrimary),
               const SizedBox(height: 8),
-              e.selectedIcon ?? e.icon, 
+              e.selectedIcon ?? e.icon,
             ],
           ),
           label: e.label.data,

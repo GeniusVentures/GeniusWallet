@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -9,50 +10,17 @@ class WebViewMobile extends StatefulWidget {
   final String url;
   final bool? includeBackButton;
 
-  const WebViewMobile(
-      {Key? key, required this.url, this.includeBackButton = false})
-      : super(key: key);
+  const WebViewMobile({
+    Key? key,
+    required this.url,
+    this.includeBackButton = false,
+  }) : super(key: key);
 
   @override
   WebViewMobileState createState() => WebViewMobileState();
 }
 
 class WebViewMobileState extends State<WebViewMobile> {
-  void _injectDarkTheme(int tabIndex) {
-    const String darkCSS = '''
-    html, body { background: #181A20 !important; color: #f2f2f2 !important; }
-    * { background-color: transparent !important; color: #f2f2f2 !important; border-color: #30343a !important; }
-    a { color: #3ddc97 !important; }
-    input, textarea, select { background: #23242b !important; color: #f2f2f2 !important; border: 1px solid #30343a !important; }
-  ''';
-
-    // Hides Uniswap "Get the Wallet" banner and similar banners
-    const String hideBannerJS = '''
-    // Hide Uniswap Wallet banner
-    var walletBanner = document.querySelector('[data-testid="uni-banner"], [data-testid="get-wallet-banner"], .uni-banner, .wallet-banner, [id*="banner"], [class*="banner"]');
-    if(walletBanner) { walletBanner.style.display = "none"; }
-
-    // Hide other fixed banners/ads (generic example)
-    var allBanners = document.querySelectorAll('[class*="banner"], [id*="banner"], .adsbygoogle, .sticky-footer, .sticky-header');
-    allBanners.forEach(function(b) { b.style.display = "none"; });
-  ''';
-
-    _controllers[tabIndex].runJavaScript('''
-    (function() {
-      // Inject dark CSS
-      var darkStyle = document.getElementById("force-dark-css");
-      if (!darkStyle) {
-        darkStyle = document.createElement('style');
-        darkStyle.id = "force-dark-css";
-        darkStyle.innerHTML = `$darkCSS`;
-        document.head.appendChild(darkStyle);
-      }
-      // Hide annoying banners
-      $hideBannerJS
-    })();
-  ''');
-  }
-
   final List<WebViewController> _controllers = [];
   final List<String> _tabUrls = [];
   final List<Uint8List?> _tabImages = [];
@@ -69,35 +37,127 @@ class WebViewMobileState extends State<WebViewMobile> {
     _addNewTab(widget.url);
   }
 
+  void forceDarkModeAndRemoveBanner(int tabIndex) {
+    const js = '''
+      (() => {
+        try {
+          const origMM = window.matchMedia;
+          window.matchMedia = function(q) {
+            if (q === '(prefers-color-scheme: dark)') {
+              return {
+                matches: true,
+                media: q,
+                onchange: null,
+                addListener: function() {},
+                removeListener: function() {},
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() { return false; }
+              };
+            }
+            return origMM(q);
+          };
+          const evt = document.createEvent('Event');
+          evt.initEvent('change', true, true);
+          window.dispatchEvent(evt);
+        } catch (e) {}
+
+        try {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.body.classList.add('dark');
+        } catch (e) {}
+
+        function hideBanner() {
+          try {
+            var banners = Array.from(document.querySelectorAll(
+              '[data-testid*="banner"], .uni-banner, .wallet-banner, [id*="banner"], [class*="banner"]'
+            ));
+            banners = banners.filter(b =>
+              b.textContent && b.textContent.match(/Get the Uniswap Wallet App/i)
+            );
+            banners.forEach(b => b.style.display = "none");
+          } catch (e) {}
+        }
+        hideBanner();
+        setTimeout(hideBanner, 600);
+        setTimeout(hideBanner, 1800);
+        try {
+          const observer = new MutationObserver(hideBanner);
+          observer.observe(document.body, { childList: true, subtree: true });
+        } catch (e) {}
+      })();
+    ''';
+    _controllers[tabIndex].runJavaScript(js);
+  }
+
   void _addNewTab(String url) {
-    WebViewController controller = WebViewController()
+    WebViewController? controller;
+    bool retried = false; // Track if we've retried already
+
+    controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (String url) {
-            if (_currentTabIndex < _tabUrls.length) {
-              setState(() {
-                _tabUrls[_currentTabIndex] = url;
-                _urlController.text = url;
-              });
-            }
+          onPageStarted: (String loadedUrl) {
+            print('[DEBUG] onPageStarted: $loadedUrl');
           },
-          onPageFinished: (String url) async {
-            setState(() {
-              _tabUrls[_currentTabIndex] = url;
-              _showTabManager = false;
-            });
-            _injectDarkTheme(_currentTabIndex);
+          onPageFinished: (String loadedUrl) async {
+            print('[DEBUG] onPageFinished: $loadedUrl');
+            if (!Platform.isMacOS &&
+                url.contains('uniswap.org') &&
+                loadedUrl == 'about:blank') {
+              print('[DEBUG] Injecting localStorage for Uniswap (about:blank)');
+              await controller!.runJavaScript('''
+              localStorage.setItem("interface_color_theme", "\\"Dark\\"");
+              localStorage.setItem("uni-theme", "\\"dark\\"");
+              document.title = "DARK MODE SET";
+            ''');
+              await Future.delayed(const Duration(milliseconds: 80));
+              controller.loadRequest(Uri.parse(url));
+              return;
+            }
+
+            // Only retry ONCE if still not dark
+            if (!Platform.isMacOS && loadedUrl.contains('uniswap.org')) {
+              if (!retried) {
+                print(
+                    '[DEBUG] Uniswap loaded, attempting one retry for dark mode.');
+                retried = true;
+                await Future.delayed(const Duration(milliseconds: 350));
+                await controller!.runJavaScript('''
+                if (!document.body.classList.contains('dark')) {
+                  localStorage.setItem("interface_color_theme", "\\"Dark\\"");
+                  localStorage.setItem("uni-theme", "\\"dark\\"");
+                  window.dispatchEvent(new Event('storage'));
+                  setTimeout(() => { window.location.reload(); }, 100);
+                }
+              ''');
+              } else {
+                print('[DEBUG] Already retried dark mode once. Not repeating.');
+              }
+            } else {
+              print(
+                  '[DEBUG] Non-Uniswap or macOS, injecting generic dark mode.');
+              forceDarkModeAndRemoveBanner(_currentTabIndex);
+            }
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              print('[DEBUG] Capturing screenshot');
               captureScreenshot();
             });
           },
         ),
-      )
-      ..loadRequest(Uri.parse(url));
+      );
 
+    if (!Platform.isMacOS && url.contains('uniswap.org')) {
+      print(
+          '[DEBUG] Loading about:blank before Uniswap for reliable dark theme');
+      controller.loadRequest(Uri.parse('about:blank'));
+    } else {
+      controller.loadRequest(Uri.parse(url));
+    }
     setState(() {
-      _controllers.add(controller);
+      print('[DEBUG] Add controller, set tab index');
+      _controllers.add(controller!);
       _tabUrls.add(url);
       _tabImages.add(null);
       _currentTabIndex = _controllers.length - 1;
@@ -130,22 +190,15 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   void _loadUrl() {
     String input = _urlController.text.trim();
-
     if (input.isEmpty) return;
-
     final isLikelyUrl = input.contains('.') && !input.contains(' ');
-
     if (!isLikelyUrl) {
-      // Treat as a search query
       final query = Uri.encodeComponent(input);
       input = "https://www.google.com/search?q=$query";
     } else if (!input.startsWith('http://') && !input.startsWith('https://')) {
-      // Prepend https:// if missing
       input = "https://$input";
     }
-
     _controllers[_currentTabIndex].loadRequest(Uri.parse(input));
-
     setState(() {
       _tabUrls[_currentTabIndex] = input;
     });
@@ -153,7 +206,6 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   void _closeTab(int index) {
     if (_controllers.length == 1) return;
-
     setState(() {
       _controllers.removeAt(index);
       _tabUrls.removeAt(index);
@@ -180,7 +232,6 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   @override
   Widget build(BuildContext context) {
-    print("includeBackButton");
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
@@ -220,7 +271,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                 return InkWell(
                   borderRadius: BorderRadius.circular(4),
                   onTap: () {
-                    Navigator.of(context).pop(); // Pops the current page
+                    Navigator.of(context).pop();
                   },
                   child: const Icon(Icons.cancel, size: 20),
                 );
@@ -243,22 +294,6 @@ class WebViewMobileState extends State<WebViewMobile> {
               ),
               onPressed: _goBack,
             ),
-            // HIDE FORWARD BUTTON FOR MORE SPACE
-            // IconButton(
-            //   icon: FutureBuilder<bool>(
-            //     future: _controllers[_currentTabIndex].canGoForward(),
-            //     builder: (context, snapshot) {
-            //       final canGoForward = snapshot.data ?? false;
-            //       return Icon(
-            //         Icons.arrow_forward,
-            //         color: canGoForward
-            //             ? GeniusWalletColors.lightGreenPrimary
-            //             : Colors.grey,
-            //       );
-            //     },
-            //   ),
-            //   onPressed: _goForward,
-            // ),
             const SizedBox(width: 8),
           ],
           Expanded(
@@ -312,14 +347,8 @@ class WebViewMobileState extends State<WebViewMobile> {
     return Column(
       children: [
         Expanded(
-          child: GridView.builder(
+          child: ListView.builder(
             padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: .52, // Adjust to fit header and preview
-            ),
             itemCount: _controllers.length,
             itemBuilder: (context, index) {
               return GestureDetector(
@@ -328,16 +357,15 @@ class WebViewMobileState extends State<WebViewMobile> {
                   borderRadius: BorderRadius.circular(20),
                   child: Column(
                     children: [
-                      Expanded(
+                      SizedBox(
+                        height: 20,
                         child: Stack(
                           children: [
                             if (_tabImages[index] != null)
                               Positioned.fill(
                                 child: Transform(
                                   alignment: Alignment.center,
-                                  transform: Matrix4.rotationX(
-                                    pi,
-                                  ), // Flip upside-down
+                                  transform: Matrix4.rotationX(pi),
                                   child: Image.memory(
                                     _tabImages[index]!,
                                     fit: BoxFit.fill,
@@ -374,7 +402,6 @@ class WebViewMobileState extends State<WebViewMobile> {
                         padding: const EdgeInsets.only(left: 10),
                         child: Row(
                           children: [
-                            // Favicon
                             Image.network(
                               _getFaviconUrl(_tabUrls[index]),
                               width: 22,
@@ -427,6 +454,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 18),
                     ],
                   ),
                 ),
@@ -456,7 +484,6 @@ class WebViewMobileState extends State<WebViewMobile> {
     );
   }
 
-  // Function to get Favicon URL from the site's domain
   String _getFaviconUrl(String url) {
     Uri uri = Uri.parse(url);
     return "https://www.google.com/s2/favicons?domain=${uri.host}&sz=32";

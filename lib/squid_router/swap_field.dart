@@ -28,6 +28,8 @@ class SwapField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: GeniusWalletColors.deepBlueCardColor,
+      shadowColor: Colors.white.withOpacity(0.2),
+      elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(

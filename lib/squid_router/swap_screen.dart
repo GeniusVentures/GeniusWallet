@@ -295,12 +295,18 @@ class _SwapScreenState extends State<SwapScreen> {
                       _debouncedFetchRoute();
                     },
                   ),
-                  // Flip Button
-                  Transform.translate(
-                    offset: const Offset(0, -170),
-                    child: TokenFlipButton(
-                      onFlip: _flipTokens,
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      final offsetY = screenWidth < 420 ? -180.0 : -170.0;
+
+                      return Transform.translate(
+                        offset: Offset(0, offsetY),
+                        child: TokenFlipButton(
+                          onFlip: _flipTokens,
+                        ),
+                      );
+                    },
                   ),
                   if (fetchedRoute != null)
                     if (fetchedRoute != null)
@@ -320,11 +326,6 @@ class _SwapScreenState extends State<SwapScreen> {
                           child: SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.greenAccent,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                              ),
                               onPressed: swapParams == null
                                   ? null
                                   : () async {
@@ -426,11 +427,44 @@ class _SwapScreenState extends State<SwapScreen> {
                                           .addTransaction(
                                               walletAddress, transaction);
                                     },
-                              child: const Text("Swap",
-                                  style: TextStyle(
-                                      color:
-                                          GeniusWalletColors.deepBlueTertiary,
-                                      fontWeight: FontWeight.w500)),
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
+                                padding: EdgeInsets.zero,
+                                backgroundColor: Colors.transparent,
+                                foregroundColor:
+                                    GeniusWalletColors.deepBlueTertiary,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      GeniusWalletColors.lightGreenPrimary,
+                                      GeniusWalletColors.btnGradientGreen,
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  height: 48,
+                                  child: Text(
+                                    "Swap",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: swapParams == null
+                                          ? Colors.black.withOpacity(0.3)
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         );

@@ -221,19 +221,22 @@ class MarketDataInfo extends StatelessWidget {
                 height: 1,
                 color: GeniusWalletColors.deepBlueTertiary,
               ),
-              ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                itemCount: infoTiles.length,
-                separatorBuilder: (context, index) => const Padding(
-                  padding: EdgeInsets.only(left: 50.0, right: 10),
-                  child: Divider(
-                    height: 1,
-                    color: GeniusWalletColors.deepBlue,
-                  ),
-                ),
-                itemBuilder: (context, index) => infoTiles[index],
+              Column(
+                children: [
+                  for (int i = 0; i < infoTiles.length; i++) ...[
+                    if (i > 0)
+                      const Padding(
+                        padding: EdgeInsets.only(left: 50.0, right: 10),
+                        child: Divider(
+                          height: 1,
+                          color: GeniusWalletColors.deepBlue,
+                        ),
+                      ),
+                    infoTiles[i],
+                  ]
+                ],
               ),
+
               if (aboutText != null && aboutText!.isNotEmpty) ...[
                 const Divider(color: GeniusWalletColors.deepBlue, height: 1),
                 ExpansionTile(
