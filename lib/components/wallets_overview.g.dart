@@ -8,6 +8,7 @@ import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
