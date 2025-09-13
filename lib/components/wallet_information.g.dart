@@ -70,18 +70,56 @@ class WalletInformationState extends State<WalletInformation> {
               children: [
                 Flexible(
                   child: AutoSizeText(
-                widget.totalBalance ?? "0",
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 48.0,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
-                  color: Colors.white,
+                    widget.totalBalance ?? "0.00",
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 36.0, // Changed to 36sp
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
                 ),
-                textAlign: TextAlign.left,
-              )),
-            ]),
+                const SizedBox(width: 6),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if ((widget.totalBalance == null) ||
+                widget.totalBalance == "0" ||
+                widget.totalBalance == "0.00" ||
+                widget.totalBalance == "\$0.00")
+              const Text(
+                'No funds available',
+                style: TextStyle(
+                  color: GeniusWalletColors.red,
+                  fontSize: 12,
+                ),
+              ),
+            const SizedBox(height: 8),
+            const SGNUSConnectionMobileWidget(),
+            // BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+            //     builder: (context, state) {
+            //   if (state.selectedWallet != null) {
+            //     return StreamBuilder<SGNUSConnection>(
+            //         stream:
+            //             context.read<GeniusApi>().getSGNUSConnectionStream(),
+            //         builder: (context, snapshot) {
+            //           final connection = snapshot.data;
+            //           return SubmitJobDashboardButton(
+            //             walletDetailsCubit: context.read<WalletDetailsCubit>(),
+            //             walletAddress: state.selectedWallet!.address,
+            //             gnusConnectedWalletAddress:
+            //                 connection?.walletAddress ?? "",
+            //           );
+            //         });
+            //   } else {
+            //     return const SizedBox.shrink();
+            //   }
+            // }),
+          ],
+        ),
         const SizedBox(height: 20),
         Row(children: [
           if (widget.walletType == WalletType.tracking) ...[
@@ -145,6 +183,7 @@ class WalletInformationState extends State<WalletInformation> {
                 );
               },
               text: 'Receive',
+              semanticLabel: "Recieve ",
               icon: Icons.qr_code,
             ),
             const SizedBox(width: 8),
@@ -156,6 +195,7 @@ class WalletInformationState extends State<WalletInformation> {
             const SizedBox(width: 8),
             ActionButton(
                 text: 'Buy GNUS',
+                semanticLabel: "Buy Gnus cryptos for your thining fucking",
                 icon: Icons.attach_money,
                 onPressed: () async {
                   final url = await BanxaService.getBanxaCheckoutUrl(
