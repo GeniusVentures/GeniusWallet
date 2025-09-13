@@ -53,9 +53,18 @@ dependencies:
   image_picker: ^1.2.0
   csc_picker_plus: ^0.0.3
   intl_phone_field: ^3.2.0
+<<<<<<< HEAD
   webview_flutter_android: ^4.10.1
   uuid: ^4.5.1
+=======
+<<<<<<< HEAD
+  image_picker: ^1.2.0
+>>>>>>> 8a823fc1 (øadded new banxa gen-code.sh)
   app_links: ^6.4.1
+=======
+  webview_flutter_android: ^4.10.1
+  uuid: ^4.5.1
+>>>>>>> 49302df5 (added new banxa gen-code.sh)
 dev_dependencies:
   flutter_test:
     sdk: flutter
