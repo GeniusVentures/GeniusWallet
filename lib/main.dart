@@ -43,10 +43,12 @@ void main() async {
 
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
+    geniusApi.startNetworkMonitoring();
   } else {
     byPassSGNUSConnecton(geniusApi);
     byPassWalletCreation(secureStorage);
     addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
+    geniusApi.startNetworkMonitoring();
   }
 
   /// Initialize window_manager only on **desktop**
@@ -162,7 +164,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     if (state == AppLifecycleState.detached) {
       debugPrint(
           "---------------------------------------------------------------------------------------------------");
-      widget.geniusApi.shutdownSDK(); // Handle app exit
+      widget.geniusApi.shutdownSDK();
     }
   }
 

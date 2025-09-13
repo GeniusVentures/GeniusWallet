@@ -7,7 +7,9 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_service.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
+import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
+import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -94,6 +96,27 @@ class WalletInformationState extends State<WalletInformation> {
                   fontSize: 12,
                 ),
               ),
+            const SizedBox(height: 8),
+            const SGNUSConnectionMobileWidget(),
+            // BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+            //     builder: (context, state) {
+            //   if (state.selectedWallet != null) {
+            //     return StreamBuilder<SGNUSConnection>(
+            //         stream:
+            //             context.read<GeniusApi>().getSGNUSConnectionStream(),
+            //         builder: (context, snapshot) {
+            //           final connection = snapshot.data;
+            //           return SubmitJobDashboardButton(
+            //             walletDetailsCubit: context.read<WalletDetailsCubit>(),
+            //             walletAddress: state.selectedWallet!.address,
+            //             gnusConnectedWalletAddress:
+            //                 connection?.walletAddress ?? "",
+            //           );
+            //         });
+            //   } else {
+            //     return const SizedBox.shrink();
+            //   }
+            // }),
           ],
         ),
         const SizedBox(height: 20),

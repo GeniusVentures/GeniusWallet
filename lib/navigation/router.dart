@@ -8,6 +8,7 @@ import 'package:genius_wallet/banaxa/banaxa_buy_screen.dart';
 import 'package:genius_wallet/banaxa/banaxa_orders_history.dart';
 import 'package:genius_wallet/banaxa/banaxa_payment.dart';
 import 'package:genius_wallet/banaxa/checkout_qr.dart';
+import 'package:genius_wallet/banaxa/network/network_page.dart';
 import 'package:genius_wallet/banaxa/order_details_page.dart';
 import 'package:genius_wallet/banaxa/banxa_helpers/order_service.dart';
 import 'package:genius_wallet/banaxa/user_kyc/kyc_registration.dart';
@@ -297,6 +298,17 @@ final geniusWalletRouter = GoRouter(
               gnusCubit: GnusCubit(CoinService(), walletCubit),
               walletDetailsCubit: walletCubit),
           child: const SubmitJobScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/network',
+      builder: (context, state) {
+        return BlocProvider.value(
+          value: context.read<WalletDetailsCubit>(),
+          child: NetworkStatusPage(
+            geniusApi: context.read<GeniusApi>(),
+          ),
         );
       },
     ),
