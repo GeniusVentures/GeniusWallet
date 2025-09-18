@@ -407,6 +407,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
               "Wallet connection failed. Please try again.",
               backgroundColor: Colors.red,
             );
+
+          
           }
         }
       });

@@ -9,6 +9,7 @@ import 'package:genius_wallet/banxa/banxa_service.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
 import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -182,7 +183,7 @@ class WalletInformationState extends State<WalletInformation> {
                 );
               },
               text: 'Receive',
-              semanticLabel: "Recieve",
+              semanticLabel: "Recieve ",
               icon: Icons.qr_code,
             ),
             const SizedBox(width: 8),
@@ -194,7 +195,7 @@ class WalletInformationState extends State<WalletInformation> {
             const SizedBox(width: 8),
             ActionButton(
                 text: 'Buy GNUS',
-                semanticLabel: "Buy Gnus cryptos",
+                semanticLabel: "Buy Gnus cryptos for your thining fucking",
                 icon: Icons.attach_money,
                 onPressed: () async {
                   final url = await BanxaService.getBanxaCheckoutUrl(
@@ -207,10 +208,7 @@ class WalletInformationState extends State<WalletInformation> {
                   if (url != null) {
                     context.push('/buy', extra: url);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Failed to launch Banxa checkout')),
-                    );
+                    showAppSnackBar(context, 'Failed to launch Banxa checkout');
                   }
                 }),
             const SizedBox(width: 8),
@@ -242,12 +240,14 @@ class WalletInformationState extends State<WalletInformation> {
                       onPressed: () {
                         geniusApi
                             .deleteWallet(state.selectedWallet?.address ?? "");
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(
-                            'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!',
-                          ),
-                        ));
-                        context.go('/dashboard');
+                        showAppSnackBar(context,
+                            'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!');
+
+                        Navigator.of(context).pop();
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          // ignore: use_build_context_synchronously
+                          context.go('/dashboard');
+                        });
                       },
                       color: Colors.red,
                       icon: FontAwesomeIcons.trash,

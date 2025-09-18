@@ -1,6 +1,7 @@
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
@@ -219,11 +220,8 @@ class _WordsGridWithCopyAndToggleState
                   TextButton.icon(
                     onPressed: () async {
                       await FlutterClipboard.copy(words.join(' '));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content:
-                                Text("Recovery phrase copied to clipboard!")),
-                      );
+                      showAppSnackBar(
+                          context, "Recovery phrase copied to clipboard!");
                     },
                     icon: const Icon(Icons.copy),
                     label: const Text("Copy to clipboard"),
@@ -325,11 +323,7 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
             if (!mounted) {
               return;
             }
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Recovery phrase copied to clipboard!'),
-              ),
-            );
+            showAppSnackBar(context, 'Recovery phrase copied to clipboard!');
           },
           style: OutlinedButton.styleFrom(
             shape:

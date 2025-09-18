@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -61,9 +62,8 @@ class CheckoutOptionsSheet extends StatelessWidget {
                     await launchUrl(Uri.parse(checkoutUrl),
                         mode: LaunchMode.externalApplication);
                   } catch (_) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content:
-                            Text('Cannot open browser. Try QR or copy link.')));
+                    showAppSnackBar(
+                        context, 'Cannot open browser. Try QR or copy link.');
                   }
                 },
                 child: const Text('Open in Browser'),
@@ -94,9 +94,7 @@ class CheckoutOptionsSheet extends StatelessWidget {
                   await Clipboard.setData(ClipboardData(text: checkoutUrl));
                   if (parentContext.mounted) {
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(parentContext).showSnackBar(
-                      const SnackBar(content: Text('Checkout link copied')),
-                    );
+                    showAppSnackBar(context, 'Checkout link copied');
                   }
                 },
                 icon: const Icon(Icons.content_copy),

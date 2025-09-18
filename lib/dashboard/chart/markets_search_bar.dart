@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -79,9 +80,8 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       if (!mounted) return;
 
       if (marketData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Market data not found for ${coin.name}')),
-        );
+        showAppSnackBar(context, 'Market data not found for ${coin.name}');
+
         setState(() => _isSearching = false);
         return;
       }
@@ -109,10 +109,9 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       if (!mounted) return;
 
       setState(() => _isSearching = false);
+      showAppSnackBar(context, 'Error fetching data: $e');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching data: $e')),
-      );
+
     }
   }
 

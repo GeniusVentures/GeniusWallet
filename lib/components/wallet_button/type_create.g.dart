@@ -36,7 +36,7 @@ class _TypeCreate extends State<TypeCreate> {
         child: Center(
           child: FittedBox(
             fit: BoxFit
-                .scaleDown, // Ensures content scales to fit available space
+                .scaleDown, 
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: AutoSizeText(
@@ -48,9 +48,9 @@ class _TypeCreate extends State<TypeCreate> {
                   letterSpacing: 0.1375,
                   color: GeniusWalletColors.deepBlue,
                 ),
-                maxLines: 1, // Ensures text does not wrap
+                maxLines: 1,
                 overflow:
-                    TextOverflow.ellipsis, // Graceful text truncation if needed
+                    TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
             ),

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
@@ -36,8 +37,7 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
 
           context.flow<NewWalletState>().complete();
         } else if (state.verificationStatus == VerificationStatus.failed) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Verification failed. Please try again.')));
+          showAppSnackBar(context, 'Verification failed. Please try again.');
         }
       },
       child: Scaffold(
@@ -100,11 +100,8 @@ class _VerifyRecoveryPhraseViewDesktopState
 
     // Add null check and validation
     if (completeWordsList == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please complete all fields before continuing.'),
-        ),
-      );
+      showAppSnackBar(context, 'Please complete all fields before continuing.');
+
       return;
     }
 
@@ -112,11 +109,8 @@ class _VerifyRecoveryPhraseViewDesktopState
 
     // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all missing words.'),
-        ),
-      );
+      showAppSnackBar(context, 'Please fill in all missing words.');
+
       return;
     }
 
@@ -684,11 +678,8 @@ class _VerifyRecoveryPhraseViewMobileState
 
     // Add null check and validation
     if (completeWordsList == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please complete all fields before continuing.'),
-        ),
-      );
+      showAppSnackBar(context, 'Please complete all fields before continuing.');
+
       return;
     }
 
@@ -696,11 +687,8 @@ class _VerifyRecoveryPhraseViewMobileState
 
     // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all missing words.'),
-        ),
-      );
+      showAppSnackBar(context, 'Please fill in all missing words.');
+
       return;
     }
 
