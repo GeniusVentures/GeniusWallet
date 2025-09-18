@@ -7567,3 +7567,414 @@ events:
         - "/Network/Library/Frameworks"
         - "/System/Library/Frameworks"
 ...
+
+---
+events:
+  -
+    kind: "find_package-v1"
+    backtrace:
+      - "/Users/ammaryasir/development/Projects/genius/GeniusWallet/cmake/CommonBuildParameters.cmake:411 (find_package)"
+      - "CMakeLists.txt:76 (include)"
+    name: "ProofSystem"
+    configs:
+      -
+        filename: "ProofSystemConfig.cmake"
+        kind: "cmake"
+      -
+        filename: "proofsystem-config.cmake"
+        kind: "cmake"
+    version_request:
+      exact: false
+    settings:
+      required: "required_explicit"
+      quiet: false
+      global: false
+      policy_scope: true
+      bypass_provider: false
+      names:
+        - "ProofSystem"
+      path_suffixes:
+        - ""
+      paths:
+        CMAKE_FIND_USE_CMAKE_PATH: true
+        CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+        CMAKE_FIND_USE_INSTALL_PREFIX: true
+        CMAKE_FIND_USE_PACKAGE_ROOT_PATH: true
+        CMAKE_FIND_USE_CMAKE_PACKAGE_REGISTRY: true
+        CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY: true
+        CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
+    candidates:
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/../../../../SuperGenius/build/iOS/Release/SuperGenius/lib/cmake/ProofSystem/ProofSystemConfig.cmake"
+        mode: "none?"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/../../../../SuperGenius/build/iOS/Release/SuperGenius/lib/cmake/ProofSystem/proofsystem-config.cmake"
+        mode: "none?"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/CMakeFiles/pkgRedirects/ProofSystemConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/CMakeFiles/pkgRedirects/proofsystem-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/ProofSystemConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/proofsystem-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+    found:
+      path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/lib/cmake/ProofSystem/ProofSystemConfig.cmake"
+      mode: "config"
+      version: ""
+    search_context:
+      CMAKE_PREFIX_PATH:
+        - "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius"
+        - "/Users/ammaryasir/development/Projects/genius/GeniusSDK/build/iOS/Release/GeniusSDK"
+      ENV{PATH}:
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/usr/local/bin"
+        - "/Users/ammaryasir/.rvm/gems/ruby-3.2.4/bin"
+        - "/Users/ammaryasir/.rvm/gems/ruby-3.2.4@global/bin"
+        - "/Users/ammaryasir/.rvm/rubies/ruby-3.2.4/bin"
+        - "/opt/homebrew/opt/ruby/bin"
+        - "/usr/local/bin"
+        - "/usr/local/sbin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/Users/ammaryasir/.nvm/versions/node/v20.19.4/bin"
+        - "/usr/local/bin/python3"
+        - "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+        - "/opt/homebrew/bin"
+        - "/Applications/Android"
+        - "/opt/homebrew/Cellar/openjdk@17/17.0.16/libexec/openjdk.jdk/Contents/Home/bin"
+        - "/Users/ammaryasir/.pub-cache/bin"
+        - "/Users/ammaryasir/development/flutter/bin/cache/dart-sdk/bin"
+        - "/Users/ammaryasir/development/flutter/bin"
+        - "/opt/homebrew/lib/ruby/gems/3.4.0/bin"
+        - "/Library/Frameworks/Python.framework/Versions/3.12/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/Library/Apple/usr/bin"
+        - "/Users/ammaryasir/.cargo/bin"
+        - "/Users/ammaryasir/.rvm/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/usr"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+        - "/sw"
+        - "/opt/local"
+      CMAKE_SYSTEM_FRAMEWORK_PATH:
+        - "~/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Network/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/System/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks"
+        - "/Library/Frameworks"
+        - "/Network/Library/Frameworks"
+        - "/System/Library/Frameworks"
+  -
+    kind: "find_package-v1"
+    backtrace:
+      - "/Users/ammaryasir/development/Projects/genius/GeniusWallet/cmake/CommonBuildParameters.cmake:412 (find_package)"
+      - "CMakeLists.txt:76 (include)"
+    name: "SuperGenius"
+    configs:
+      -
+        filename: "SuperGeniusConfig.cmake"
+        kind: "cmake"
+      -
+        filename: "supergenius-config.cmake"
+        kind: "cmake"
+    version_request:
+      exact: false
+    settings:
+      required: "required_explicit"
+      quiet: false
+      global: false
+      policy_scope: true
+      bypass_provider: false
+      names:
+        - "SuperGenius"
+      path_suffixes:
+        - ""
+      paths:
+        CMAKE_FIND_USE_CMAKE_PATH: true
+        CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+        CMAKE_FIND_USE_INSTALL_PREFIX: true
+        CMAKE_FIND_USE_PACKAGE_ROOT_PATH: true
+        CMAKE_FIND_USE_CMAKE_PACKAGE_REGISTRY: true
+        CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY: true
+        CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
+    candidates:
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/../../../../SuperGenius/build/iOS/Release/SuperGenius/lib/cmake/SuperGenius/SuperGeniusConfig.cmake"
+        mode: "none?"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/../../../../SuperGenius/build/iOS/Release/SuperGenius/lib/cmake/SuperGenius/supergenius-config.cmake"
+        mode: "none?"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/CMakeFiles/pkgRedirects/SuperGeniusConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/CMakeFiles/pkgRedirects/supergenius-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/SuperGeniusConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/supergenius-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+    found:
+      path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/lib/cmake/SuperGenius/SuperGeniusConfig.cmake"
+      mode: "config"
+      version: "21.0.0"
+    search_context:
+      CMAKE_PREFIX_PATH:
+        - "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius"
+        - "/Users/ammaryasir/development/Projects/genius/GeniusSDK/build/iOS/Release/GeniusSDK"
+      ENV{PATH}:
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/usr/local/bin"
+        - "/Users/ammaryasir/.rvm/gems/ruby-3.2.4/bin"
+        - "/Users/ammaryasir/.rvm/gems/ruby-3.2.4@global/bin"
+        - "/Users/ammaryasir/.rvm/rubies/ruby-3.2.4/bin"
+        - "/opt/homebrew/opt/ruby/bin"
+        - "/usr/local/bin"
+        - "/usr/local/sbin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/Users/ammaryasir/.nvm/versions/node/v20.19.4/bin"
+        - "/usr/local/bin/python3"
+        - "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+        - "/opt/homebrew/bin"
+        - "/Applications/Android"
+        - "/opt/homebrew/Cellar/openjdk@17/17.0.16/libexec/openjdk.jdk/Contents/Home/bin"
+        - "/Users/ammaryasir/.pub-cache/bin"
+        - "/Users/ammaryasir/development/flutter/bin/cache/dart-sdk/bin"
+        - "/Users/ammaryasir/development/flutter/bin"
+        - "/opt/homebrew/lib/ruby/gems/3.4.0/bin"
+        - "/Library/Frameworks/Python.framework/Versions/3.12/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/Library/Apple/usr/bin"
+        - "/Users/ammaryasir/.cargo/bin"
+        - "/Users/ammaryasir/.rvm/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/usr"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+        - "/sw"
+        - "/opt/local"
+      CMAKE_SYSTEM_FRAMEWORK_PATH:
+        - "~/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Network/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/System/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks"
+        - "/Library/Frameworks"
+        - "/Network/Library/Frameworks"
+        - "/System/Library/Frameworks"
+  -
+    kind: "find_package-v1"
+    backtrace:
+      - "/Users/ammaryasir/development/Projects/genius/GeniusWallet/cmake/CommonBuildParameters.cmake:417 (find_package)"
+      - "CMakeLists.txt:76 (include)"
+    name: "GeniusSDK"
+    configs:
+      -
+        filename: "GeniusSDKConfig.cmake"
+        kind: "cmake"
+      -
+        filename: "geniussdk-config.cmake"
+        kind: "cmake"
+    version_request:
+      exact: false
+    settings:
+      required: "required_explicit"
+      quiet: false
+      global: false
+      policy_scope: true
+      bypass_provider: false
+      names:
+        - "GeniusSDK"
+      path_suffixes:
+        - ""
+      paths:
+        CMAKE_FIND_USE_CMAKE_PATH: true
+        CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+        CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+        CMAKE_FIND_USE_INSTALL_PREFIX: true
+        CMAKE_FIND_USE_PACKAGE_ROOT_PATH: true
+        CMAKE_FIND_USE_CMAKE_PACKAGE_REGISTRY: true
+        CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY: true
+        CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
+    candidates:
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/../../../../GeniusSDK/build/iOS/Release/GeniusSDK/lib/cmake/GeniusSDK/GeniusSDKConfig.cmake"
+        mode: "none?"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/../../../../GeniusSDK/build/iOS/Release/GeniusSDK/lib/cmake/GeniusSDK/geniussdk-config.cmake"
+        mode: "none?"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/CMakeFiles/pkgRedirects/GeniusSDKConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusWallet/ios/native/CMakeFiles/pkgRedirects/geniussdk-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/GeniusSDKConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius/geniussdk-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusSDK/build/iOS/Release/GeniusSDK/GeniusSDKConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/ammaryasir/development/Projects/genius/GeniusSDK/build/iOS/Release/GeniusSDK/geniussdk-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+    found:
+      path: "/Users/ammaryasir/development/Projects/genius/GeniusSDK/build/iOS/Release/GeniusSDK/lib/cmake/GeniusSDK/GeniusSDKConfig.cmake"
+      mode: "config"
+      version: "21.0.0"
+    search_context:
+      CMAKE_PREFIX_PATH:
+        - "/Users/ammaryasir/development/Projects/genius/SuperGenius/build/iOS/Release/SuperGenius"
+        - "/Users/ammaryasir/development/Projects/genius/GeniusSDK/build/iOS/Release/GeniusSDK"
+      ENV{PATH}:
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin"
+        - "/Applications/Xcode.app/Contents/Developer/usr/bin"
+        - "/Applications/Xcode.app/Contents/Developer/usr/local/bin"
+        - "/Users/ammaryasir/.rvm/gems/ruby-3.2.4/bin"
+        - "/Users/ammaryasir/.rvm/gems/ruby-3.2.4@global/bin"
+        - "/Users/ammaryasir/.rvm/rubies/ruby-3.2.4/bin"
+        - "/opt/homebrew/opt/ruby/bin"
+        - "/usr/local/bin"
+        - "/usr/local/sbin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/Users/ammaryasir/.nvm/versions/node/v20.19.4/bin"
+        - "/usr/local/bin/python3"
+        - "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+        - "/opt/homebrew/bin"
+        - "/Applications/Android"
+        - "/opt/homebrew/Cellar/openjdk@17/17.0.16/libexec/openjdk.jdk/Contents/Home/bin"
+        - "/Users/ammaryasir/.pub-cache/bin"
+        - "/Users/ammaryasir/development/flutter/bin/cache/dart-sdk/bin"
+        - "/Users/ammaryasir/development/flutter/bin"
+        - "/opt/homebrew/lib/ruby/gems/3.4.0/bin"
+        - "/Library/Frameworks/Python.framework/Versions/3.12/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/Library/Apple/usr/bin"
+        - "/Users/ammaryasir/.cargo/bin"
+        - "/Users/ammaryasir/.rvm/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/usr"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+        - "/sw"
+        - "/opt/local"
+      CMAKE_SYSTEM_FRAMEWORK_PATH:
+        - "~/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/Network/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk/System/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks"
+        - "/Library/Frameworks"
+        - "/Network/Library/Frameworks"
+        - "/System/Library/Frameworks"
+...
