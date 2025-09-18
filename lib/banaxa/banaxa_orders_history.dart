@@ -117,12 +117,6 @@ class _OrdersPageState extends State<OrdersPage> {
               ),
         title: const Text("My Orders"),
         actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.app_registration_rounded),
-          //   onPressed: () {
-          //     context.push('/kyc');
-          //   },
-          // ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
