@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
@@ -37,7 +38,10 @@ class GeniusApi {
   final SGNUSTransactionsController _sgnusTransactionsController;
   late final String address;
   late final String jsonFilePath;
+  late final StreamSubscription<List<ConnectivityResult>>
+      _connectivitySubscription;
   bool isSdkInitialized = false;
+  late String currentWalletAddress;
 
   GeniusApi({
     required LocalWalletStorage secureStorage,
@@ -112,6 +116,30 @@ class GeniusApi {
     await _initSDK(storedKey);
   }
 
+  void startNetworkMonitoring() {
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final hasConnection = results.any((r) => r != ConnectivityResult.none);
+
+      if (!hasConnection) {
+        debugPrint('[SGNUS] Lost network connection, set connection = false');
+        getSGNUSController().emptyConnection();
+      } else {
+        debugPrint('[SGNUS] Network available: $results');
+        getSGNUSController().updateConnection(SGNUSConnection(
+          sgnusAddress: address,
+          walletAddress: currentWalletAddress,
+          isConnected: true,
+        ));
+      }
+    });
+  }
+
+  void stopNetworkMonitoring() {
+    _connectivitySubscription.cancel();
+  }
+
   Future<void> _initSDK(StoredKey storedKey) async {
     if (isSdkInitialized) {
       return;
@@ -141,10 +169,16 @@ class GeniusApi {
         basePathPtr.cast(), privateKeyAsPtr.cast(), true, true, 41001);
 
     if (retVal == nullptr) {
+      getSGNUSController().emptyConnection();
+      debugPrint('[SGNUS] SDK Init failed, set connection = false');
       return;
     }
 
     address = getSGNUSAddress();
+    currentWalletAddress = storedKey
+            .wallet("")
+            ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
+        "";
 
     malloc.free(basePathPtr);
     malloc.free(privateKeyAsPtr);
@@ -152,10 +186,7 @@ class GeniusApi {
     // Update UI with SGNUS connection status
     getSGNUSController().updateConnection(SGNUSConnection(
         sgnusAddress: address,
-        walletAddress: storedKey
-                .wallet("")
-                ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
-            "",
+        walletAddress: currentWalletAddress,
         isConnected: true));
 
     isSdkInitialized = true;

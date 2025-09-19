@@ -14,6 +14,54 @@ ThemeData getThemeData() => ThemeData(
         unselectedLabelColor: GeniusWalletColors.gray500,
         indicatorColor: GeniusWalletColors.lightGreenPrimary,
       ),
+
+      datePickerTheme: DatePickerThemeData(
+        inputDecorationTheme: const InputDecorationTheme(
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: GeniusWalletColors.lightGreenPrimary,
+              width: 2,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: GeniusWalletColors.lightGreenPrimary,
+              width: 1,
+            ),
+          ),
+        ),
+        backgroundColor: GeniusWalletColors.deepBlueCardColor,
+        headerBackgroundColor: GeniusWalletColors.lightGreenPrimary,
+        headerForegroundColor: Colors.black,
+        todayBorder: const BorderSide(
+          color: GeniusWalletColors.lightGreenPrimary,
+          width: 2,
+        ),
+        todayBackgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return GeniusWalletColors.lightGreenPrimary;
+          }
+          return GeniusWalletColors.lightGreenPrimary.withOpacity(0.13);
+        }),
+        dayForegroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) return Colors.black;
+          if (states.contains(MaterialState.disabled)) return Colors.grey;
+          return Colors.white;
+        }),
+        dayBackgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return GeniusWalletColors.lightGreenPrimary;
+          }
+          if (states.contains(MaterialState.dragged)) {
+            return GeniusWalletColors.lightGreenPrimary.withOpacity(0.2);
+          }
+          return Colors.transparent;
+        }),
+        rangeSelectionBackgroundColor:
+            GeniusWalletColors.lightGreenPrimary.withOpacity(0.15),
+        rangeSelectionOverlayColor: MaterialStateProperty.all(
+            GeniusWalletColors.lightGreenPrimary.withOpacity(0.2)),
+      ),
       appBarTheme: const AppBarTheme(
           iconTheme: IconThemeData(size: 24),
           titleTextStyle: TextStyle(fontSize: 18),
@@ -163,11 +211,8 @@ ThemeData getThemeData() => ThemeData(
       buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
       primarySwatch: Colors.blue,
       scaffoldBackgroundColor: GeniusWalletColors.deepBlueTertiary,
-      colorScheme: const ColorScheme
-          .dark(), //TODO: replace this once we have theme generated
-      cardTheme: CardThemeData(
-        shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.borderRadiusCard)),
-      ),
+      colorScheme: const ColorScheme.dark(
+        primary: GeniusWalletColors.lightGreenPrimary,
+        outline: GeniusWalletColors.lightGreenPrimary,
+      ), //TODO: replace this once we have theme generated
     );

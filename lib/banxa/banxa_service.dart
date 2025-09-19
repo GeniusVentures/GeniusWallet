@@ -1,4 +1,3 @@
-
 class BanxaService {
   /// TODO: wire up the backend call to sign the url
   static Future<String?> getBanxaCheckoutUrl({
@@ -53,3 +52,5 @@ class BanxaService {
     // return null;
   }
 }
+
+/// Service to call Banxa Sandbox API (On-Ramp) via HTTP.

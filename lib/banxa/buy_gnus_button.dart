@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banxa_service.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:go_router/go_router.dart';
 
 class BuyGnusButton extends StatelessWidget {
@@ -29,7 +29,7 @@ class BuyGnusButton extends StatelessWidget {
           overlayColor: Colors.transparent,
           shadowColor: Colors.transparent,
           backgroundColor: Colors.transparent,
-          foregroundColor: GeniusWalletColors.lightGreenPrimary,
+         
         ),
         onPressed: () async {
           final url = await BanxaService.getBanxaCheckoutUrl(
@@ -42,9 +42,8 @@ class BuyGnusButton extends StatelessWidget {
           if (url != null) {
             context.push('/buy', extra: url);
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to launch Banxa checkout')),
-            );
+            showAppSnackBar(context, 'Failed to launch Banxa checkout',
+                backgroundColor: Colors.red);
           }
         });
   }

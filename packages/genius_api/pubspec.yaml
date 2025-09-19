@@ -39,3 +39,4 @@ dependencies:
   mockito: ^5.4.4
   permission_handler: ^11.3.1
   hive: ^2.2.3
+  connectivity_plus: ^6.1.3

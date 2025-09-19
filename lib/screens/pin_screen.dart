@@ -82,6 +82,7 @@ class _PinViewDesktop extends StatelessWidget {
                   controller: context.watch<PinCubit>().state.controller,
                   inputFormatters: [Formatters.allowIntegers],
                   autoDisposeControllers: false,
+                  //onCompleted: onCompleted,
                 ),
                 BlocBuilder<PinCubit, PinState>(builder: (context, state) {
                   if (state.displayIncorrectPin) {

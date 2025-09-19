@@ -11,7 +11,7 @@ class NumberPad extends StatelessWidget {
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * .35,
+        maxHeight: MediaQuery.of(context).size.height * .40,
       ),
       child: Column(
         children: [

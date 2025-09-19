@@ -4,6 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_scren.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
@@ -251,23 +252,17 @@ class MarketsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<CoinGeckoCoin>>(
+    return FutureStateWidget<List<CoinGeckoCoin>>(
       future: getDashboardMarketCoins(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-              child: CircularProgressIndicator()); // Show loading
-        } else if (snapshot.hasError) {
-          return const Center(child: Text("Failed to load market coins"));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      error: const Center(child: Text("Failed to load market coins")),
+      onData: (coins) {
+        if (coins.isEmpty) {
           return const Center(child: Text("No market data available"));
         }
-
-        // Successfully fetched coins
         return DashboardScrollContainer(
           child: DashboardMarkets(
             title: 'Markets',
-            coins: snapshot.data!, // Use the fetched coin list
+            coins: coins,
           ),
         );
       },

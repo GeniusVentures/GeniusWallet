@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
@@ -54,13 +55,9 @@ class ImportSecurityScreen extends StatelessWidget {
           BlocListener<ExistingWalletBloc, ExistingWalletState>(
             listener: (context, state) async {
               if (state.importWalletStatus == ExistingWalletStatus.error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Failed to import wallet. Check your import settings and try again.',
-                    ),
-                  ),
-                );
+                showAppSnackBar(context,   'Failed to import wallet. Check your import settings and try again.');
+
+               
               } else if (state.importWalletStatus ==
                   ExistingWalletStatus.success) {
                 context.flow<ExistingWalletState>().complete();

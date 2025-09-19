@@ -277,6 +277,7 @@ class TokenInfoScreen extends StatelessWidget {
       children: [
         ActionButton(
           text: "Receive",
+          semanticLabel: "Recieve",
           icon: Icons.qr_code,
           onPressed: () {
             ResponsiveDrawer.show<void>(
@@ -298,12 +299,18 @@ class TokenInfoScreen extends StatelessWidget {
           },
         ),
         const SizedBox(width: 8),
-        const ActionButton(text: "Send", icon: Icons.send),
+        const ActionButton(
+          text: "Send",
+          icon: Icons.send,
+          semanticLabel: "Send ",
+        ),
         const SizedBox(width: 8),
-        const ActionButton(text: "Swap", icon: Icons.swap_horiz),
+        const ActionButton(
+            text: "Swap", semanticLabel: "Swap", icon: Icons.swap_horiz),
         const SizedBox(width: 8),
         ActionButton(
           text: "More",
+          semanticLabel: "More Options",
           icon: Icons.more_horiz,
           onPressed: () {
             ResponsiveDrawer.show<void>(

@@ -25,6 +25,39 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   int currentHistoryIndex = -1;
   List<String> openTabs = [];
   int currentTabIndex = 0;
+  void _injectDarkTheme() {
+    const darkCSS = '''
+    html, body { background: #181A20 !important; color: #f2f2f2 !important; }
+    * { background-color: transparent !important; color: #f2f2f2 !important; border-color: #30343a !important; }
+    a { color: #3ddc97 !important; }
+    input, textarea, select { background: #23242b !important; color: #f2f2f2 !important; border: 1px solid #30343a !important; }
+  ''';
+
+    // Add more selectors if you want to hide other banners too!
+    const hideBannerJS = '''
+    // Hide Uniswap "Get the Wallet App" banner by attribute or class (expand as needed)
+    var uniswapBanner = document.querySelector('[data-testid="uni-banner"], [data-testid="get-wallet-banner"], .uni-banner, .wallet-banner, [id*="banner"], [class*="banner"]');
+    if (uniswapBanner) uniswapBanner.style.display = "none";
+    // Hide other common banners/ads if desired
+    var allBanners = document.querySelectorAll('.adsbygoogle, .sticky-footer, .sticky-header');
+    allBanners.forEach(function(b) { b.style.display = "none"; });
+  ''';
+
+    _controller.executeScript('''
+    (function() {
+      // Inject dark CSS
+      var darkStyle = document.getElementById("force-dark-css");
+      if (!darkStyle) {
+        darkStyle = document.createElement('style');
+        darkStyle.id = "force-dark-css";
+        darkStyle.innerHTML = `$darkCSS`;
+        document.head.appendChild(darkStyle);
+      }
+      // Hide banners/ads
+      $hideBannerJS
+    })();
+  ''');
+  }
 
   @override
   void initState() {
@@ -69,6 +102,11 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         _urlController.text = url;
         if (openTabs.isNotEmpty) {
           openTabs[currentTabIndex] = url;
+        }
+      });
+      _controller.loadingState.listen((event) {
+        if (event == LoadingState.navigationCompleted) {
+          _injectDarkTheme();
         }
       });
     });

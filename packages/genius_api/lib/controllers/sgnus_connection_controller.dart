@@ -9,6 +9,7 @@ class SGNUSConnectionController {
 
   // Expose the stream for listeners
   Stream<SGNUSConnection> get stream => _controller.stream;
+  
 
   // Add data to the stream
   void updateConnection(SGNUSConnection connection) {

@@ -56,6 +56,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
         .take(30)
         .toList(); // Always limit to top 20 after filtering
 
+    print("Tokens here are ${widget.tokens}");
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

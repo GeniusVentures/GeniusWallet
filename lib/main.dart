@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banaxa/banxa_helpers/deep_link_service.dart';
+import 'package:genius_wallet/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -39,15 +43,20 @@ void main() async {
 
   if ((await secureStorage.getWallets().first).isNotEmpty) {
     await geniusApi.initSDK();
+    geniusApi.startNetworkMonitoring();
   } else {
     byPassSGNUSConnecton(geniusApi);
     byPassWalletCreation(secureStorage);
     addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
+    geniusApi.startNetworkMonitoring();
   }
 
   /// Initialize window_manager only on **desktop**
   if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
     await windowManager.ensureInitialized();
+
+    await windowManager.setPreventClose(true);
+
     windowManager.addListener(MyWindowListener(geniusApi));
   }
 
@@ -72,6 +81,7 @@ void main() async {
           //),
         )),
   );
+  DeepLinkService().startListening(navigatorKey);
 }
 
 class MyWindowListener extends WindowListener {
@@ -81,11 +91,40 @@ class MyWindowListener extends WindowListener {
 
   @override
   void onWindowClose() async {
-    // Trigger cleanup when the window is closed
-    geniusApi.shutdownSDK();
-    debugPrint("Window closed. GeniusApi shutdown.");
+    const double buttonWidth = 100;
 
-    exit(0);
+    // Don't repeat setPreventClose here
+    final shouldExit = await showDialog<bool>(
+      context: navigatorKey.currentContext!,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit App?'),
+        content: const Text('Are you sure you want to exit?'),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          SizedBox(
+            width: buttonWidth,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+          ),
+          SizedBox(
+            width: buttonWidth,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Exit'),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldExit == true) {
+      geniusApi.shutdownSDK();
+      await windowManager.destroy();
+      await Future.delayed(const Duration(milliseconds: 100));
+      exit(0);
+    }
   }
 }
 
@@ -116,7 +155,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     WidgetsBinding.instance.removeObserver(this);
     debugPrint(
         "---------------------------------------------------------------------------------------------------");
-    widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
+    // widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
     super.dispose();
   }
 
@@ -125,7 +164,7 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     if (state == AppLifecycleState.detached) {
       debugPrint(
           "---------------------------------------------------------------------------------------------------");
-      widget.geniusApi.shutdownSDK(); // Handle app exit
+      widget.geniusApi.shutdownSDK();
     }
   }
 
@@ -150,8 +189,13 @@ class MyApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<TransactionsCubit>(
-            create: (_) => TransactionsCubit(), // Or with initial state
+            create: (_) => TransactionsCubit(),
           ),
+          BlocProvider<OrdersCubit>(
+            create: (_) => OrdersCubit(),
+          ),
+          BlocProvider<MakeOrderCubit>(
+              create: (_) => MakeOrderCubit(BanxaApiService())),
           BlocProvider(
               create: (_) => WalletDetailsCubit(
                     geniusApi: context.read<GeniusApi>(),
@@ -177,7 +221,17 @@ class MyApp extends StatelessWidget {
           locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
           title: 'Gnus AI',
-          theme: getThemeData(),
+          theme: getThemeData().copyWith(
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+              },
+            ),
+          ),
           routerConfig: geniusWalletRouter,
         ),
       ),
