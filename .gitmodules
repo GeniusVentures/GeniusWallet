@@ -1,9 +1,9 @@
 [submodule "squidrouter"]
 	path = squidrouter
-	url = ../squidrouter
+	url = https://github.com/GeniusVentures/squidrouter.git
 [submodule "banxa"]
 	path = banxa
-	url = ../banxa
+	url = https://github.com/GeniusVentures/banxa.git
 [submodule "tokeninfo"]
 	path = tokeninfo
-	url = ../tokeninfo
+	url = https://github.com/GeniusVentures/tokeninfo.git
