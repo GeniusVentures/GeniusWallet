@@ -58,4 +58,6 @@ ios/Runner.xcworkspace/
 ios/native/build/
 ios/native/
 macos/native/
+macos/build/ios/native/
+macos/native/
 macos/build/
