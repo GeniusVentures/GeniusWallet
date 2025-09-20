@@ -1,7 +1,0 @@
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/intrinsics_gen.dir
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/omp_gen.dir
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/acc_gen.dir
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/RISCVTargetParserTableGen.dir
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/GeniusWallet.dir
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/edit_cache.dir
-/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build/CMakeFiles/rebuild_cache.dir
