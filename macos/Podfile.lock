@@ -78,15 +78,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-<<<<<<< Updated upstream
   app_links: 05a6ec2341985eb05e9f97dc63f5837c39895c3f
-<<<<<<< HEAD
-=======
-  app_links: afe860c55c7ef176cea7fb630a2b7d7736de591d
->>>>>>> Stashed changes
-=======
-  app_links: afe860c55c7ef176cea7fb630a2b7d7736de591d
->>>>>>> 524006fa (Fix submodule URLs to use relative paths)
   connectivity_plus: 4adf20a405e25b42b9c9f87feff8f4b6fde18a4e
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
