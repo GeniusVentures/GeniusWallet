@@ -42,7 +42,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /opt/homebrew/bin/cmake --regenerate-during-build -S/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native -B/Users/ammaryasir/development/Projects/genius/GeniusWallet/macos/native/build
+  command = /opt/homebrew/bin/cmake --regenerate-during-build -S/Users/ammaryasir/Downloads/GeniusWallet/macos/native -B/Users/ammaryasir/Downloads/GeniusWallet/macos/native/build
   description = Re-running CMake...
   generator = 1
 
