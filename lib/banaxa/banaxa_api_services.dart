@@ -258,6 +258,7 @@ class BanxaApiService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+
       return OrdersResponse.fromJson(data);
     } else {
       print(
