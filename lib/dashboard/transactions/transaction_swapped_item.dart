@@ -24,6 +24,7 @@ class TransactionSwappedItem extends StatelessWidget {
 
     return Card(
       color: GeniusWalletColors.deepBlueMenu,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         title: Text(
           "Swapped${isFailed ? ' - Failed' : ''}",
@@ -184,6 +185,8 @@ class TransactionSwappedItem extends StatelessWidget {
         const SizedBox(height: 24),
         Card(
           color: GeniusWalletColors.deepBlueMenu,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
