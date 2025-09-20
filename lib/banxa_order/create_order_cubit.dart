@@ -200,8 +200,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         walletAddress: state.walletText.trim(),
         cryptoAmount: state.quote!.cryptoAmount,
         fiatAmount: state.quote!.fiatAmount,
-        externalCustomerId: 'my_id',
-        email: 'ammar@gmail.com',
+        externalCustomerId: 'your-cust-id',
+        email: 'ammar.test@gmail.com',
         metadata: 'sandbox-testing',
         subPartnerId: 'macOS-app',
       );

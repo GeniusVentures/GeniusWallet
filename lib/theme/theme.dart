@@ -139,8 +139,7 @@ ThemeData getThemeData() => ThemeData(
               iconSize: const WidgetStatePropertyAll(16),
               iconColor: const WidgetStatePropertyAll(Colors.white))),
       searchBarTheme: const SearchBarThemeData(
-          padding:
-              WidgetStatePropertyAll(EdgeInsets.only(left: 15, right: 15)),
+          padding: WidgetStatePropertyAll(EdgeInsets.only(left: 15, right: 15)),
           textStyle: WidgetStatePropertyAll(
               TextStyle(fontWeight: FontWeight.normal, color: Colors.white)),
           shape: WidgetStatePropertyAll(RoundedRectangleBorder(
