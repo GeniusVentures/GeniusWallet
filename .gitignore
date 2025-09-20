@@ -57,3 +57,4 @@ lib/tokeninfo/*.g.dart
 ios/Runner.xcworkspace/
 ios/native/build/
 macos/native/build/
+ios/native
