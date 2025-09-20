@@ -25,6 +25,7 @@ class TransactionPurchasedItem extends StatelessWidget {
 
     return Card(
       color: GeniusWalletColors.deepBlueMenu,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: () => _showPurchaseTransactionDetails(context, tx),
         leading: _buildIcon(arrowBgColor, arrowIcon),
@@ -160,6 +161,8 @@ class TransactionPurchasedItem extends StatelessWidget {
         const SizedBox(height: 16),
         Card(
           color: GeniusWalletColors.deepBlueMenu,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
