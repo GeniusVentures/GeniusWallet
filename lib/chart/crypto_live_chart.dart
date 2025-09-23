@@ -320,7 +320,6 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                               }).toList();
                             },
                             touchTooltipData: LineTouchTooltipData(
-                              tooltipBgColor: Colors.black87,
                               fitInsideHorizontally: true,
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
