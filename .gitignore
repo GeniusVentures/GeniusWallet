@@ -67,3 +67,4 @@ macos/native/build/
 macos/native/CMakeFiles/
 macos/native/cmake_install.cmake
 macos/native/CMakeCache.txt
+macos/CMakeCache.txt

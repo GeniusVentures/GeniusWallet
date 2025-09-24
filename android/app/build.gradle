@@ -31,7 +31,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     // compileSdkVersion flutter.compileSdkVersion
-    compileSdkVersion 36
+    compileSdkVersion 35
     ndkVersion "27.1.12297006"
 
     namespace "ai.gnus.genius_wallet"
