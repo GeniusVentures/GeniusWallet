@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to create releases for'
+        description: "Tag to create releases for"
         required: true
         type: string
       distribution_type:
@@ -101,17 +101,17 @@ jobs:
           DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
           DEV_DISTRIBUTION_MAC_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_MAC_PROVISIONING_PROFILE_BASE_64 }}
           DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64: ${{ secrets.DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64 }}
-          
+
           # Developer ID certificates for direct distribution
           DEVELOPER_ID_APP_CERT_BASE64: ${{ secrets.DEVELOPER_ID_APP_CERT_BASE64 }}
           DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.DEVELOPER_ID_INSTALLER_CERT_BASE64 }}
           DEVELOPER_ID_PROVISION_BASE64: ${{ secrets.DEVELOPER_ID_PROVISION_BASE64 }}
-          
+
           # Common secrets
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           DEV_DISTRIBUTION_P12_PASSWORD: ${{ secrets.DEV_DISTRIBUTION_P12_PASSWORD }}
           DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
-          
+
           # Notarization
           APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -122,11 +122,11 @@ jobs:
           DEV_DISTRIBUTION_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.cer
           DEVELOPER_ID_APP_CERT_PATH=$RUNNER_TEMP/developer_id_app.cer
           DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
-          
+
           MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           APP_STORE_PP_PATH=$RUNNER_TEMP/app_store_pp.provisionprofile
           DEVELOPER_ID_PP_PATH=$RUNNER_TEMP/developer_id_pp.provisionprofile
-          
+
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificates and provisioning profiles from secrets
@@ -134,7 +134,7 @@ jobs:
           echo -n "$DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64" | base64 --decode -o $DEV_DISTRIBUTION_INSTALLER_CERT_PATH
           echo -n "$DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
           echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $APP_STORE_PP_PATH
-          
+
           # Developer ID certificates and provisioning profile
           echo -n "$DEVELOPER_ID_APP_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_APP_CERT_PATH
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
@@ -148,7 +148,7 @@ jobs:
           # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          
+
           # Import Developer ID certificates - handle different formats
           if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
             # .cer file doesn't need password
@@ -157,31 +157,31 @@ jobs:
             # .p12 file needs password
             security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           fi
-          
+
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          
+
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
-          
+
           echo "=== Available identities in keychain ==="
           security find-identity -v
-          
+
           echo "=== Searching for specific certificate types ==="
           security find-identity -v -p codesigning
-          
+
           echo "=== All certificates in keychain ==="
           security dump-keychain $KEYCHAIN_PATH | grep -A 5 -B 5 "Developer\|3rd Party"
 
           # apply provisioning profiles
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
-          
+
           # App Store profiles
           cp $APP_STORE_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $APP_STORE_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
           cp $MP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $MP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
-          
+
           # Developer ID profile
           cp $DEVELOPER_ID_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $DEVELOPER_ID_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
@@ -216,19 +216,19 @@ jobs:
         run: |
           # Create the android directory if it doesn't exist
           mkdir -p android/app
-          
+
           # Decode and save the debug keystore to android/app/ directory
           echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
-          
+
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
-          
+
           echo "Android keystore configured"
           echo "Key properties created:"
           cat android/key.properties
-          
+
           # Verify the keystore file was created
           if [ -f "android/app/keystore.jks" ]; then
             echo "Keystore file created successfully at: android/app/keystore.jks"
@@ -313,20 +313,20 @@ jobs:
           NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
-          
+
           # First, let's see what certificates are available
           echo "=== Available signing identities ==="
           security find-identity -v -p codesigning
-          
+
           echo "=== All available identities (including installer) ==="
           security find-identity -v
-          
+
           # Determine distribution type
           DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
           if [ -z "$DISTRIBUTION_TYPE" ]; then
             DISTRIBUTION_TYPE="both"
           fi
-          
+
           # Function to sign app with specific identity
           sign_app() {
             local cert_name="$1"
@@ -353,6 +353,9 @@ jobs:
               
               # Replace $(AppIdentifierPrefix) with the actual team ID
               sed -i '' 's/$(AppIdentifierPrefix)/P7T32QQX5V./g' "$output_dir/entitlements.plist"
+
+              plutil -insert "com.apple.application-identifier" -string "P7T32QQX5V.ai.gnus.GeniusWallet" "$output\_dir/entitlements.plist"
+              plutil -insert "com.apple.developer.team-identifier" -string "P7T32QQX5V" "$output\_dir/entitlements.plist"
               
               echo "Processed entitlements:"
               cat "$output_dir/entitlements.plist"
@@ -411,7 +414,7 @@ jobs:
             
             echo "App signed successfully: $output_dir/$app_name"
           }
-          
+
           # Function to create and sign pkg
           create_pkg() {
             local app_path="$1"
@@ -432,7 +435,7 @@ jobs:
             
             echo "Package created and signed: $pkg_name"
           }
-          
+
           # Function to notarize
           notarize() {
             local file_path="$1"
@@ -473,14 +476,14 @@ jobs:
             
             echo "Notarization completed for: $file_path"
           }
-          
+
           # Build App Store version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
             echo "Building App Store version..."
             sign_app "Apple Distribution: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store"
             create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
           fi
-          
+
           # Build Developer ID version (this will be the main pkg for release)
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
             echo "Building Developer ID version..."
@@ -495,7 +498,7 @@ jobs:
             # Notarize the pkg
             notarize "Genius Wallet.pkg"
           fi
-          
+
           echo "macOS packaging completed"
           ls -la *.pkg
         shell: bash
@@ -584,7 +587,7 @@ jobs:
           else
             BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
-          
+
           # Android APKs and iOS IPAs don't need compression - upload directly
           if [ "${{ matrix.target }}" = "Android" ]; then
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
@@ -619,9 +622,9 @@ jobs:
             ARTIFACT_NAME=${BASE_NAME}.tar.gz
             tar -czvf ${ARTIFACT_NAME} artifacts/
           fi
-          
+
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          
+
           if [ -n "${ARTIFACT_NAME}" ]; then
             echo "Created artifact: ${ARTIFACT_NAME}"
             ls -la "${ARTIFACT_NAME}"
