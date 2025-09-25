@@ -107,6 +107,33 @@ jobs:
           echo "PATH=$PATH" >> $GITHUB_ENV
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "master"
+          flutter-version: 3.32.5
+
+      - name: Set current branch
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" ]; then
+              CURRENT_BRANCH="${{ github.event.inputs.tag }}"
+              IS_TAG=true
+          elif ${{github.event_name == 'pull_request'}}; then
+              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
+              IS_TAG=false
+          else
+              CURRENT_BRANCH=$GITHUB_REF_NAME
+              IS_TAG=false
+          fi
+          echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
+          echo "IS_TAG=${IS_TAG}" >>$GITHUB_ENV
+        shell: bash
+
+      - name: Checkout GeniusWallet
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
       - name: Install Apple certificates and provisioning profiles for macOS
         if: ${{ runner.os == 'macOS' }}
         env:
@@ -202,33 +229,6 @@ jobs:
 
           echo "Finished importing certificates and provisioning profiles"
         shell: bash
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: "master"
-          flutter-version: 3.32.5
-
-      - name: Set current branch
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" ]; then
-              CURRENT_BRANCH="${{ github.event.inputs.tag }}"
-              IS_TAG=true
-          elif ${{github.event_name == 'pull_request'}}; then
-              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
-              IS_TAG=false
-          else
-              CURRENT_BRANCH=$GITHUB_REF_NAME
-              IS_TAG=false
-          fi
-          echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
-          echo "IS_TAG=${IS_TAG}" >>$GITHUB_ENV
-        shell: bash
-
-      - name: Checkout GeniusWallet
-        uses: actions/checkout@v4
-        with:
-          submodules: "recursive"
 
       - name: Configure Android keystore
         if: ${{ matrix.target == 'Android' }}
@@ -374,6 +374,9 @@ jobs:
               
               # Replace $(AppIdentifierPrefix) with the actual team ID
               sed -i '' 's/$(AppIdentifierPrefix)/P7T32QQX5V./g' "$output_dir/entitlements.plist"
+
+              plutil -insert "com.apple.application-identifier" -string "P7T32QQX5V.ai.gnus.GeniusWallet" "$output\_dir/entitlements.plist"
+              plutil -insert "com.apple.developer.team-identifier" -string "P7T32QQX5V" "$output\_dir/entitlements.plist"
               
               echo "Processed entitlements:"
               cat "$output_dir/entitlements.plist"

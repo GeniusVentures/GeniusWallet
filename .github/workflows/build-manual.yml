@@ -157,8 +157,6 @@ jobs:
       - name: Get Flutter Dependencies
         run: |
           flutter pub get 2>&1 | tee pub_get.log > /dev/null || { cat pub_get.log; exit 1; }
-        run: flutter pub get
-
 
       - name: Setup CMake Arguments
         run: |

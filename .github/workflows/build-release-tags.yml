@@ -4,9 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to create releases for'
+        description: "Tag to create releases for"
         required: true
         type: string
+      distribution_type:
+        description: "Distribution type for macOS"
+        required: false
+        type: choice
+        options:
+          - "both"
+          - "testflight"
+          - "developer-id"
+        default: "both"
 
 jobs:
   build:
@@ -84,28 +93,52 @@ jobs:
           echo "PATH=$PATH" >> $GITHUB_ENV
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
-      - name: Install the Apple certificate and provisioning profile for MacOS
+      - name: Install Apple certificates and provisioning profiles for macOS
         if: ${{ runner.os == 'macOS' }}
         env:
+          # TestFlight/App Store certificates
           DEV_DISTRIBUTION_SIGNER_CERT_BASE64: ${{ secrets.DEV_DISTRIBUTION_SIGNER_CERT_BASE_64 }}
           DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
           DEV_DISTRIBUTION_MAC_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_MAC_PROVISIONING_PROFILE_BASE_64 }}
           DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64: ${{ secrets.DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64 }}
+
+          # Developer ID certificates for direct distribution
+          DEVELOPER_ID_APP_CERT_BASE64: ${{ secrets.DEVELOPER_ID_APP_CERT_BASE64 }}
+          DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.DEVELOPER_ID_INSTALLER_CERT_BASE64 }}
+          DEVELOPER_ID_PROVISION_BASE64: ${{ secrets.DEVELOPER_ID_PROVISION_BASE64 }}
+
+          # Common secrets
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           DEV_DISTRIBUTION_P12_PASSWORD: ${{ secrets.DEV_DISTRIBUTION_P12_PASSWORD }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+
+          # Notarization
+          APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           # create variables
           DEV_DISTRIBUTION_SIGNER_CERT_PATH=$RUNNER_TEMP/signer_certificate.p12
           DEV_DISTRIBUTION_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.cer
+          DEVELOPER_ID_APP_CERT_PATH=$RUNNER_TEMP/developer_id_app.cer
+          DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
+
           MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          PP_PATH=$RUNNER_TEMP/build_pp.provisionprofile
+          APP_STORE_PP_PATH=$RUNNER_TEMP/app_store_pp.provisionprofile
+          DEVELOPER_ID_PP_PATH=$RUNNER_TEMP/developer_id_pp.provisionprofile
+
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # import certificates and provisioning profile from secrets
+          # import certificates and provisioning profiles from secrets
           echo -n "$DEV_DISTRIBUTION_SIGNER_CERT_BASE64" | base64 --decode -o $DEV_DISTRIBUTION_SIGNER_CERT_PATH
           echo -n "$DEV_DISTRIBUTION_INSTALLER_CERT_BASE_64" | base64 --decode -o $DEV_DISTRIBUTION_INSTALLER_CERT_PATH
           echo -n "$DEV_DISTRIBUTION_IOS_PROVISION_BASE64" | base64 --decode -o $MP_PATH
-          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $PP_PATH
+          echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $APP_STORE_PP_PATH
+
+          # Developer ID certificates and provisioning profile
+          echo -n "$DEVELOPER_ID_APP_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_APP_CERT_PATH
+          echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
+          echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -115,19 +148,45 @@ jobs:
           # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+
+          # Import Developer ID certificates - handle different formats
+          if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
+            # .cer file doesn't need password
+            security import $DEVELOPER_ID_APP_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
+          else
+            # .p12 file needs password
+            security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          fi
+
+          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
+
+          echo "=== Available identities in keychain ==="
           security find-identity -v
 
-          # apply provisioning profile
+          echo "=== Searching for specific certificate types ==="
+          security find-identity -v -p codesigning
+
+          echo "=== All certificates in keychain ==="
+          security dump-keychain $KEYCHAIN_PATH | grep -A 5 -B 5 "Developer\|3rd Party"
+
+          # apply provisioning profiles
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
-          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+
+          # App Store profiles
+          cp $APP_STORE_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $APP_STORE_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
           cp $MP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $MP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
 
-          echo "Finishing importing certificates"
+          # Developer ID profile
+          cp $DEVELOPER_ID_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $DEVELOPER_ID_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+
+          echo "Finished importing certificates and provisioning profiles"
         shell: bash
 
       - name: Setup Flutter
@@ -157,19 +216,19 @@ jobs:
         run: |
           # Create the android directory if it doesn't exist
           mkdir -p android/app
-          
+
           # Decode and save the debug keystore to android/app/ directory
           echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
-          
+
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
-          
+
           echo "Android keystore configured"
           echo "Key properties created:"
           cat android/key.properties
-          
+
           # Verify the keystore file was created
           if [ -f "android/app/keystore.jks" ]; then
             echo "Keystore file created successfully at: android/app/keystore.jks"
@@ -246,6 +305,204 @@ jobs:
             fi
           fi
 
+      - name: Sign and package macOS app
+        if: ${{ matrix.target == 'OSX' }}
+        env:
+          APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
+        run: |
+          cd build/macos/Build/Products/${{matrix.build-type}}
+
+          # First, let's see what certificates are available
+          echo "=== Available signing identities ==="
+          security find-identity -v -p codesigning
+
+          echo "=== All available identities (including installer) ==="
+          security find-identity -v
+
+          # Determine distribution type
+          DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
+          if [ -z "$DISTRIBUTION_TYPE" ]; then
+            DISTRIBUTION_TYPE="both"
+          fi
+
+          # Function to sign app with specific identity
+          sign_app() {
+            local cert_name="$1"
+            local app_name="$2"
+            local output_dir="$3"
+            
+            echo "Signing app with identity: $cert_name"
+            
+            # Copy app to output directory
+            mkdir -p "$output_dir"
+            cp -R "Genius Wallet.app" "$output_dir/$app_name"
+            
+            # Use the project's entitlements file for Release builds
+            local entitlements_path="../../../../../macos/Runner/Release.entitlements"
+            
+            echo "Checking for project entitlements file..."
+            if [ -f "$entitlements_path" ]; then
+              echo "Found project entitlements file: $entitlements_path"
+              echo "Entitlements content:"
+              cat "$entitlements_path"
+              
+              # Copy entitlements to working directory and expand variables
+              cp "$entitlements_path" "$output_dir/entitlements.plist"
+              
+              # Replace $(AppIdentifierPrefix) with the actual team ID
+              sed -i '' 's/$(AppIdentifierPrefix)/P7T32QQX5V./g' "$output_dir/entitlements.plist"
+
+              plutil -insert "com.apple.application-identifier" -string "P7T32QQX5V.ai.gnus.GeniusWallet" "$output\_dir/entitlements.plist"
+              plutil -insert "com.apple.developer.team-identifier" -string "P7T32QQX5V" "$output\_dir/entitlements.plist"
+              
+              echo "Processed entitlements:"
+              cat "$output_dir/entitlements.plist"
+              
+              entitlements_to_use="$output_dir/entitlements.plist"
+            else
+              echo "No project entitlements file found, falling back to provisioning profile entitlements"
+              
+              # Fallback to provisioning profile entitlements
+              if [ -f "$output_dir/$app_name/Contents/embedded.provisionprofile" ]; then
+                echo "Extracting entitlements from provisioning profile..."
+                security cms -D -i "$output_dir/$app_name/Contents/embedded.provisionprofile" | plutil -extract Entitlements xml1 -o - - > "$output_dir/pp_entitlements.plist"
+                entitlements_to_use="$output_dir/pp_entitlements.plist"
+              else
+                echo "No provisioning profile found either"
+                entitlements_to_use=""
+              fi
+            fi
+            
+            # Sign with the appropriate entitlements
+            if [ -n "$entitlements_to_use" ] && [ -f "$entitlements_to_use" ]; then
+              echo "Signing with entitlements: $entitlements_to_use"
+              codesign --force --deep --sign "$cert_name" --options runtime --timestamp --entitlements "$entitlements_to_use" "$output_dir/$app_name"
+            else
+              echo "No entitlements available, signing without..."
+              codesign --force --deep --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
+            fi
+            
+            # If that fails, try without runtime option
+            if [ $? -ne 0 ]; then
+              echo "Signing with runtime failed, trying without runtime option..."
+              if [ -n "$entitlements_to_use" ] && [ -f "$entitlements_to_use" ]; then
+                codesign --force --deep --sign "$cert_name" --timestamp --entitlements "$entitlements_to_use" "$output_dir/$app_name"
+              else
+                codesign --force --deep --sign "$cert_name" --timestamp "$output_dir/$app_name"
+              fi
+            fi
+            
+            # If that fails, try basic signing
+            if [ $? -ne 0 ]; then
+              echo "Timestamp signing failed, trying basic signing..."
+              codesign --force --deep --sign "$cert_name" "$output_dir/$app_name"
+            fi
+            
+            # Verify signature and show entitlements
+            echo "Verifying signature..."
+            codesign --verify --deep --strict "$output_dir/$app_name"
+            if [ $? -eq 0 ]; then
+              echo "Signature verification successful"
+              echo "Signed app entitlements:"
+              codesign -d --entitlements - "$output_dir/$app_name"
+            else
+              echo "Signature verification failed"
+              return 1
+            fi
+            
+            echo "App signed successfully: $output_dir/$app_name"
+          }
+
+          # Function to create and sign pkg
+          create_pkg() {
+            local app_path="$1"
+            local pkg_name="$2"
+            local installer_cert_name="$3"
+            
+            echo "Creating pkg: $pkg_name"
+            echo "Using installer identity: $installer_cert_name"
+            
+            # Create unsigned pkg
+            xcrun productbuild --component "$app_path" /Applications "${pkg_name}_unsigned.pkg"
+            
+            # Sign the pkg
+            xcrun productsign --sign "$installer_cert_name" "${pkg_name}_unsigned.pkg" "$pkg_name"
+            
+            # Verify pkg signature
+            pkgutil --check-signature "$pkg_name"
+            
+            echo "Package created and signed: $pkg_name"
+          }
+
+          # Function to notarize
+          notarize() {
+            local file_path="$1"
+            
+            echo "Notarizing: $file_path"
+            
+            # If it's an app bundle, we need to zip it first
+            if [[ "$file_path" == *.app ]]; then
+              local zip_path="${file_path}.zip"
+              echo "Creating zip archive for notarization: $zip_path"
+              
+              # Create zip archive (ditto preserves resource forks and metadata)
+              ditto -c -k --keepParent "$file_path" "$zip_path"
+              
+              # Submit the zip for notarization
+              xcrun notarytool submit "$zip_path" \
+                --apple-id "$APPLE_ID" \
+                --team-id "$APPLE_TEAM_ID" \
+                --password "$NOTARIZATION_PASSWORD" \
+                --wait
+              
+              # Clean up the zip file
+              rm "$zip_path"
+              
+              # Staple the notarization to the original app
+              xcrun stapler staple "$file_path"
+            else
+              # For pkg files, submit directly
+              xcrun notarytool submit "$file_path" \
+                --apple-id "$APPLE_ID" \
+                --team-id "$APPLE_TEAM_ID" \
+                --password "$NOTARIZATION_PASSWORD" \
+                --wait
+              
+              # Staple the notarization
+              xcrun stapler staple "$file_path"
+            fi
+            
+            echo "Notarization completed for: $file_path"
+          }
+
+          # Build App Store version
+          if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
+            echo "Building App Store version..."
+            sign_app "Apple Distribution: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store"
+            create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
+          fi
+
+          # Build Developer ID version (this will be the main pkg for release)
+          if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
+            echo "Building Developer ID version..."
+            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id"
+            
+            # Notarize the app first
+            notarize "developer_id/Genius Wallet.app"
+            
+            # Create and sign the pkg (this will be our main release pkg)
+            create_pkg "developer_id/Genius Wallet.app" "Genius Wallet.pkg" "Developer ID Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
+            
+            # Notarize the pkg
+            notarize "Genius Wallet.pkg"
+          fi
+
+          echo "macOS packaging completed"
+          ls -la *.pkg
+        shell: bash
+
       - name: Prepare artifacts
         run: |
           mkdir -p artifacts
@@ -259,14 +516,16 @@ jobs:
               fi
               ;;
             "iOS")
-              # cp -r build/ios/iphoneos/*.ipa artifacts/ || true
-              echo "Check testflight or appstore for current iOS Release" > artifacts/README.txt
+              # Copy the iOS IPA if it exists
+              if [ -d "build/ios/ipa" ]; then
+                find build/ios/ipa -name "*.ipa" -exec cp {} artifacts/ \;
+              fi
               ;;
             "OSX")
               cd build/macos/Build/Products/${{matrix.build-type}}
-              xcrun productbuild --component "Genius Wallet.app" /Applications genius_wallet_unsigned.pkg
-              xcrun productsign --sign "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)" genius_wallet_unsigned.pkg genius_wallet.pkg
-              cp -r genius_wallet.pkg ../../../../../artifacts/ || true
+              
+              # Copy only the main signed pkg (Developer ID version for release)
+              cp Genius\ Wallet.pkg ../../../../../artifacts/ || true
               ;;
             "Linux")
               cp -r build/linux/*/release/bundle artifacts/ || true
@@ -328,8 +587,8 @@ jobs:
           else
             BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
-          
-          # Android APKs don't need compression - upload directly
+
+          # Android APKs and iOS IPAs don't need compression - upload directly
           if [ "${{ matrix.target }}" = "Android" ]; then
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
               ARTIFACT_NAME=${BASE_NAME}.apk
@@ -338,6 +597,22 @@ jobs:
               ARTIFACT_NAME=${BASE_NAME}.apk
               cp artifacts/app-release.apk ${ARTIFACT_NAME}
             fi
+          elif [ "${{ matrix.target }}" = "iOS" ]; then
+            # Check if we have an IPA file
+            IPA_FILE=$(find artifacts -name "*.ipa" | head -1)
+            if [ -n "$IPA_FILE" ] && [ -f "$IPA_FILE" ]; then
+              ARTIFACT_NAME=${BASE_NAME}.ipa
+              cp "$IPA_FILE" ${ARTIFACT_NAME}
+            else
+              # No IPA found, skip artifact creation
+              echo "No iOS IPA found to upload"
+              ARTIFACT_NAME=""
+            fi
+          # macOS packages don't need compression - upload directly
+          elif [ "${{ matrix.target }}" = "OSX" ]; then
+            # Use the signed pkg directly
+            ARTIFACT_NAME="Genius Wallet.pkg"
+            cp artifacts/"Genius Wallet.pkg" "${ARTIFACT_NAME}"
           # Use appropriate compression format for other platforms
           elif [ "${{ matrix.target }}" = "Windows" ]; then
             ARTIFACT_NAME=${BASE_NAME}.zip
@@ -347,15 +622,22 @@ jobs:
             ARTIFACT_NAME=${BASE_NAME}.tar.gz
             tar -czvf ${ARTIFACT_NAME} artifacts/
           fi
-          
+
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          echo "Created artifact: ${ARTIFACT_NAME}"
-          ls -la ${ARTIFACT_NAME}
+
+          if [ -n "${ARTIFACT_NAME}" ]; then
+            echo "Created artifact: ${ARTIFACT_NAME}"
+            ls -la "${ARTIFACT_NAME}"
+          fi
         shell: bash
 
       - name: Release Flutter App
         working-directory: ${{github.workspace}}
         shell: bash
         run: |
-          echo -e "Uploading ${ARTIFACT_NAME} to release ${TAG_NAME}"
-          gh release upload --clobber ${TAG_NAME} "${ARTIFACT_NAME}"
+          if [ -n "${ARTIFACT_NAME}" ]; then
+            echo -e "Uploading ${ARTIFACT_NAME} to release ${TAG_NAME}"
+            gh release upload --clobber ${TAG_NAME} "${ARTIFACT_NAME}"
+          else
+            echo "No artifact to upload for ${{ matrix.target }}"
+          fi
