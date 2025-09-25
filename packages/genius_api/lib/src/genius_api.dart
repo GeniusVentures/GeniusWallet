@@ -138,7 +138,7 @@ class GeniusApi {
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
     debugPrint('Json File Path: $jsonFilePath');
     final retVal = ffiBridgePrebuilt.gns_lib.GeniusSDKInit(
-        basePathPtr.cast(), privateKeyAsPtr.cast(), true, true, 41001);
+        basePathPtr.cast(), privateKeyAsPtr.cast(), true, true, 41001, false);
 
     if (retVal == nullptr) {
       return;

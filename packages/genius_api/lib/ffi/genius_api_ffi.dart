@@ -47,6 +47,7 @@ class NativeLibrary {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool, bool, int)>();
 
+
   ffi.Pointer<ffi.Char> GeniusSDKInitSecure(
     ffi.Pointer<ffi.Char> base_path,
     ffi.Pointer<ffi.Char> dev_config,
@@ -77,6 +78,7 @@ class NativeLibrary {
   late final _GeniusSDKInitSecure = _GeniusSDKInitSecurePtr.asFunction<
       ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool, bool, int)>();
+
 
   ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(
     ffi.Pointer<ffi.Char> base_path,
