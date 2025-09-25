@@ -3584,7 +3584,7 @@ class NativeLibrary {
   /// \note Should be deleted with \TWPublicKeyDelete
   /// \return Nullable pointer to the public key
   ffi.Pointer<TWPublicKey> TWPublicKeyCreateWithData(
-    ffi.Pointer<TWData1> data,
+    ffi.Pointer<TWData$1> data,
     TWPublicKeyType type,
   ) {
     return _TWPublicKeyCreateWithData(
@@ -3595,11 +3595,11 @@ class NativeLibrary {
 
   late final _TWPublicKeyCreateWithDataPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<TWPublicKey> Function(ffi.Pointer<TWData1>,
+          ffi.Pointer<TWPublicKey> Function(ffi.Pointer<TWData$1>,
               ffi.UnsignedInt)>>('TWPublicKeyCreateWithData');
   late final _TWPublicKeyCreateWithData =
       _TWPublicKeyCreateWithDataPtr.asFunction<
-          ffi.Pointer<TWPublicKey> Function(ffi.Pointer<TWData1>, int)>();
+          ffi.Pointer<TWPublicKey> Function(ffi.Pointer<TWData$1>, int)>();
 
   /// Delete the given public key
   ///
@@ -3624,7 +3624,7 @@ class NativeLibrary {
   /// \param type type of the public key
   /// \return true if the block of data is a valid public key, false otherwise
   bool TWPublicKeyIsValid(
-    ffi.Pointer<TWData1> data,
+    ffi.Pointer<TWData$1> data,
     TWPublicKeyType type,
   ) {
     return _TWPublicKeyIsValid(
@@ -3636,9 +3636,9 @@ class NativeLibrary {
   late final _TWPublicKeyIsValidPtr = _lookup<
       ffi.NativeFunction<
           ffi.Bool Function(
-              ffi.Pointer<TWData1>, ffi.UnsignedInt)>>('TWPublicKeyIsValid');
+              ffi.Pointer<TWData$1>, ffi.UnsignedInt)>>('TWPublicKeyIsValid');
   late final _TWPublicKeyIsValid = _TWPublicKeyIsValidPtr.asFunction<
-      bool Function(ffi.Pointer<TWData1>, int)>();
+      bool Function(ffi.Pointer<TWData$1>, int)>();
 
   /// Determines if the given public key is compressed or not
   ///
@@ -3700,7 +3700,7 @@ class NativeLibrary {
   ///
   /// \param pk Non-null pointer to a public key
   /// \return Non-null pointer to the raw block of data of the given public key
-  ffi.Pointer<TWData1> TWPublicKeyData(
+  ffi.Pointer<TWData$1> TWPublicKeyData(
     ffi.Pointer<TWPublicKey> pk,
   ) {
     return _TWPublicKeyData(
@@ -3710,10 +3710,10 @@ class NativeLibrary {
 
   late final _TWPublicKeyDataPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<TWData1> Function(
+          ffi.Pointer<TWData$1> Function(
               ffi.Pointer<TWPublicKey>)>>('TWPublicKeyData');
   late final _TWPublicKeyData = _TWPublicKeyDataPtr.asFunction<
-      ffi.Pointer<TWData1> Function(ffi.Pointer<TWPublicKey>)>();
+      ffi.Pointer<TWData$1> Function(ffi.Pointer<TWPublicKey>)>();
 
   /// Verify the validity of a signature and a message using the given public key
   ///
@@ -3723,8 +3723,8 @@ class NativeLibrary {
   /// \return true if the signature and the message belongs to the given public key, false otherwise
   bool TWPublicKeyVerify(
     ffi.Pointer<TWPublicKey> pk,
-    ffi.Pointer<TWData1> signature,
-    ffi.Pointer<TWData1> message,
+    ffi.Pointer<TWData$1> signature,
+    ffi.Pointer<TWData$1> message,
   ) {
     return _TWPublicKeyVerify(
       pk,
@@ -3735,11 +3735,11 @@ class NativeLibrary {
 
   late final _TWPublicKeyVerifyPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData1>,
-              ffi.Pointer<TWData1>)>>('TWPublicKeyVerify');
+          ffi.Bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData$1>,
+              ffi.Pointer<TWData$1>)>>('TWPublicKeyVerify');
   late final _TWPublicKeyVerify = _TWPublicKeyVerifyPtr.asFunction<
-      bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData1>,
-          ffi.Pointer<TWData1>)>();
+      bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData$1>,
+          ffi.Pointer<TWData$1>)>();
 
   /// Verify the validity as DER of a signature and a message using the given public key
   ///
@@ -3749,8 +3749,8 @@ class NativeLibrary {
   /// \return true if the signature and the message belongs to the given public key, false otherwise
   bool TWPublicKeyVerifyAsDER(
     ffi.Pointer<TWPublicKey> pk,
-    ffi.Pointer<TWData1> signature,
-    ffi.Pointer<TWData1> message,
+    ffi.Pointer<TWData$1> signature,
+    ffi.Pointer<TWData$1> message,
   ) {
     return _TWPublicKeyVerifyAsDER(
       pk,
@@ -3761,11 +3761,11 @@ class NativeLibrary {
 
   late final _TWPublicKeyVerifyAsDERPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData1>,
-              ffi.Pointer<TWData1>)>>('TWPublicKeyVerifyAsDER');
+          ffi.Bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData$1>,
+              ffi.Pointer<TWData$1>)>>('TWPublicKeyVerifyAsDER');
   late final _TWPublicKeyVerifyAsDER = _TWPublicKeyVerifyAsDERPtr.asFunction<
-      bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData1>,
-          ffi.Pointer<TWData1>)>();
+      bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData$1>,
+          ffi.Pointer<TWData$1>)>();
 
   /// Verify a Zilliqa schnorr signature with a signature and message.
   ///
@@ -3775,8 +3775,8 @@ class NativeLibrary {
   /// \return true if the signature and the message belongs to the given public key, false otherwise
   bool TWPublicKeyVerifyZilliqaSchnorr(
     ffi.Pointer<TWPublicKey> pk,
-    ffi.Pointer<TWData1> signature,
-    ffi.Pointer<TWData1> message,
+    ffi.Pointer<TWData$1> signature,
+    ffi.Pointer<TWData$1> message,
   ) {
     return _TWPublicKeyVerifyZilliqaSchnorr(
       pk,
@@ -3787,12 +3787,12 @@ class NativeLibrary {
 
   late final _TWPublicKeyVerifyZilliqaSchnorrPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData1>,
-              ffi.Pointer<TWData1>)>>('TWPublicKeyVerifyZilliqaSchnorr');
+          ffi.Bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData$1>,
+              ffi.Pointer<TWData$1>)>>('TWPublicKeyVerifyZilliqaSchnorr');
   late final _TWPublicKeyVerifyZilliqaSchnorr =
       _TWPublicKeyVerifyZilliqaSchnorrPtr.asFunction<
-          bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData1>,
-              ffi.Pointer<TWData1>)>();
+          bool Function(ffi.Pointer<TWPublicKey>, ffi.Pointer<TWData$1>,
+              ffi.Pointer<TWData$1>)>();
 
   /// Give the public key type (eliptic) of a given public key
   ///
@@ -3817,7 +3817,7 @@ class NativeLibrary {
   ///
   /// \param publicKey Non-null pointer to a public key
   /// \return Non-null pointer to a string representing the description of the public key
-  ffi.Pointer<TWString1> TWPublicKeyDescription(
+  ffi.Pointer<TWString$1> TWPublicKeyDescription(
     ffi.Pointer<TWPublicKey> publicKey,
   ) {
     return _TWPublicKeyDescription(
@@ -3827,10 +3827,10 @@ class NativeLibrary {
 
   late final _TWPublicKeyDescriptionPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<TWString1> Function(
+          ffi.Pointer<TWString$1> Function(
               ffi.Pointer<TWPublicKey>)>>('TWPublicKeyDescription');
   late final _TWPublicKeyDescription = _TWPublicKeyDescriptionPtr.asFunction<
-      ffi.Pointer<TWString1> Function(ffi.Pointer<TWPublicKey>)>();
+      ffi.Pointer<TWString$1> Function(ffi.Pointer<TWPublicKey>)>();
 
   /// Try to get a public key from a given signature and a message
   ///
@@ -3839,8 +3839,8 @@ class NativeLibrary {
   /// \return Null pointer if the public key can't be recover from the given signature and message,
   /// pointer to the public key otherwise
   ffi.Pointer<TWPublicKey> TWPublicKeyRecover(
-    ffi.Pointer<TWData1> signature,
-    ffi.Pointer<TWData1> message,
+    ffi.Pointer<TWData$1> signature,
+    ffi.Pointer<TWData$1> message,
   ) {
     return _TWPublicKeyRecover(
       signature,
@@ -3850,11 +3850,11 @@ class NativeLibrary {
 
   late final _TWPublicKeyRecoverPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<TWPublicKey> Function(ffi.Pointer<TWData1>,
-              ffi.Pointer<TWData1>)>>('TWPublicKeyRecover');
+          ffi.Pointer<TWPublicKey> Function(ffi.Pointer<TWData$1>,
+              ffi.Pointer<TWData$1>)>>('TWPublicKeyRecover');
   late final _TWPublicKeyRecover = _TWPublicKeyRecoverPtr.asFunction<
       ffi.Pointer<TWPublicKey> Function(
-          ffi.Pointer<TWData1>, ffi.Pointer<TWData1>)>();
+          ffi.Pointer<TWData$1>, ffi.Pointer<TWData$1>)>();
 
   /// Creates a new DerivationPath with a purpose, coin, account, change and address.
   /// Must be deleted with TWDerivationPathDelete after use.
@@ -6578,7 +6578,7 @@ enum TWBlockchain {
         44 => TWBlockchainHedera,
         45 => TWBlockchainTheOpenNetwork,
         46 => TWBlockchainSui,
-        _ => throw ArgumentError("Unknown value for TWBlockchain: $value"),
+        _ => throw ArgumentError('Unknown value for TWBlockchain: $value'),
       };
 }
 
@@ -6605,7 +6605,7 @@ enum TWCurve {
         5 => TWCurveED25519ExtendedCardano,
         6 => TWCurveStarkex,
         7 => TWCurveNone,
-        _ => throw ArgumentError("Unknown value for TWCurve: $value"),
+        _ => throw ArgumentError('Unknown value for TWCurve: $value'),
       };
 }
 
@@ -6648,7 +6648,7 @@ enum TWHDVersion {
         50177256 => TWHDVersionDPRV,
         49990397 => TWHDVersionDGUB,
         49988504 => TWHDVersionDGPV,
-        _ => throw ArgumentError("Unknown value for TWHDVersion: $value"),
+        _ => throw ArgumentError('Unknown value for TWHDVersion: $value'),
       };
 }
 
@@ -6761,7 +6761,7 @@ enum TWHRP {
         47 => TWHRPKujira,
         48 => TWHRPComdex,
         49 => TWHRPNeutron,
-        _ => throw ArgumentError("Unknown value for TWHRP: $value"),
+        _ => throw ArgumentError('Unknown value for TWHRP: $value'),
       };
 }
 
@@ -6784,7 +6784,7 @@ enum TWPurpose {
         49 => TWPurposeBIP49,
         84 => TWPurposeBIP84,
         1852 => TWPurposeBIP1852,
-        _ => throw ArgumentError("Unknown value for TWPurpose: $value"),
+        _ => throw ArgumentError('Unknown value for TWPurpose: $value'),
       };
 }
 
@@ -6824,7 +6824,7 @@ enum TWDerivation {
         4 => TWDerivationBitcoinTestnet,
         5 => TWDerivationLitecoinLegacy,
         6 => TWDerivationSolanaSolana,
-        _ => throw ArgumentError("Unknown value for TWDerivation: $value"),
+        _ => throw ArgumentError('Unknown value for TWDerivation: $value'),
       };
 }
 
@@ -6853,7 +6853,7 @@ enum TWPublicKeyType {
         6 => TWPublicKeyTypeCURVE25519,
         7 => TWPublicKeyTypeED25519Cardano,
         8 => TWPublicKeyTypeStarkex,
-        _ => throw ArgumentError("Unknown value for TWPublicKeyType: $value"),
+        _ => throw ArgumentError('Unknown value for TWPublicKeyType: $value'),
       };
 }
 
@@ -7116,7 +7116,7 @@ enum TWCoinType {
         16000118 => TWCoinTypePersistence,
         17000118 => TWCoinTypeAkash,
         18000118 => TWCoinTypeNoble,
-        _ => throw ArgumentError("Unknown value for TWCoinType: $value"),
+        _ => throw ArgumentError('Unknown value for TWCoinType: $value'),
       };
 }
 
@@ -7132,7 +7132,7 @@ enum TWFilecoinAddressType {
         0 => TWFilecoinAddressTypeDefault,
         1 => TWFilecoinAddressTypeDelegated,
         _ => throw ArgumentError(
-            "Unknown value for TWFilecoinAddressType: $value"),
+            'Unknown value for TWFilecoinAddressType: $value'),
       };
 }
 
@@ -7148,15 +7148,15 @@ final class TWCoinTypeConfiguration extends ffi.Struct {
   external int unused;
 }
 
-typedef TWString1 = ffi.Void;
-typedef DartTWString1 = void;
+typedef TWString$1 = ffi.Void;
+typedef DartTWString$1 = void;
 
 /// Defines a resizable block of data.
 ///
 /// The implementantion of these methods should be language-specific to minimize translation overhead. For instance it
 /// should be a `jbyteArray` for Java and an `NSData` for Swift.
-typedef TWData1 = ffi.Void;
-typedef DartTWData1 = void;
+typedef TWData$1 = ffi.Void;
+typedef DartTWData$1 = void;
 
 /// Mnemonic validate / lookup functions
 final class TWMnemonic extends ffi.Opaque {}
@@ -7192,7 +7192,7 @@ enum TWStoredKeyEncryptionLevel {
         2 => TWStoredKeyEncryptionLevelWeak,
         3 => TWStoredKeyEncryptionLevelStandard,
         _ => throw ArgumentError(
-            "Unknown value for TWStoredKeyEncryptionLevel: $value"),
+            'Unknown value for TWStoredKeyEncryptionLevel: $value'),
       };
 }
 
@@ -7212,7 +7212,7 @@ enum TWStoredKeyEncryption {
         2 => TWStoredKeyEncryptionAes192Ctr,
         3 => TWStoredKeyEncryptionAes256Ctr,
         _ => throw ArgumentError(
-            "Unknown value for TWStoredKeyEncryption: $value"),
+            'Unknown value for TWStoredKeyEncryption: $value'),
       };
 }
 
@@ -7221,9 +7221,9 @@ final class TWStoredKey extends ffi.Opaque {}
 
 const int __bool_true_false_are_defined = 1;
 
-const int true1 = 1;
+const int true$ = 1;
 
-const int false1 = 0;
+const int false$ = 0;
 
 const int NULL = 0;
 
