@@ -1,9 +1,3 @@
-// *********************************************************************************
-// PARABEAC-GENERATED CODE. DO NOT MODIFY.
-//
-// FOR MORE INFORMATION ON HOW TO USE PARABEAC, PLEASE VISIT docs.parabeac.com
-// *********************************************************************************
-
 import 'package:flutter/material.dart';
 
 class GeniusWalletColors {
@@ -69,7 +63,7 @@ class GeniusWalletColors {
 
   static const Color btnFilter = Color.fromARGB(255, 19, 33, 53);
 
-  static Color btnFilterSelected = lightGreenPrimary.withOpacity(0.1);
+  static Color btnFilterSelected = lightGreenPrimary.withAlpha(26);
 
   static const Color rowFilterBlue = Color.fromARGB(255, 14, 25, 40);
 

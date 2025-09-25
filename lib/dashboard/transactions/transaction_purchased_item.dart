@@ -3,7 +3,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:intl/intl.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
@@ -15,30 +15,41 @@ class TransactionPurchasedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
+    final isFailed = tx.transactionStatus == TransactionStatus.failed;
     final amount = isFailed
         ? currencyFormatter.format(0)
-        : "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount ?? '0') ?? 0)}";
+        : "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount) ?? 0)}";
     const arrowIcon = Icons.attach_money;
     final arrowBgColor = isFailed ? Colors.redAccent : Colors.greenAccent;
     final amountColor = isFailed ? Colors.redAccent : Colors.greenAccent;
 
-    return GestureDetector(
-      onTap: () => _showPurchaseTransactionDetails(context, tx),
-      child: Card(
-        color: GeniusWalletColors.deepBlueMenu,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              _buildIcon(arrowBgColor, arrowIcon),
-              const SizedBox(width: 16),
-              _buildDetails(isFailed),
-              _buildAmount(amountColor, amount, isFailed),
-            ],
-          ),
+    return Card(
+      color: GeniusWalletColors.deepBlueMenu,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        onTap: () => _showPurchaseTransactionDetails(context, tx),
+        leading: _buildIcon(arrowBgColor, arrowIcon),
+        title: Row(
+          children: [
+            Text(
+              isFailed ? "Buy - Failed" : "Buy",
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: isFailed ? Colors.redAccent : Colors.white),
+            ),
+            Text(
+              " • ${tx.coinSymbol}",
+              style: const TextStyle(
+                  fontSize: 14, color: GeniusWalletColors.gray500),
+            ),
+          ],
         ),
+        subtitle: Text(
+          timeago.format(tx.timeStamp.toLocal()),
+          style: const TextStyle(fontSize: 12, color: Colors.white60),
+        ),
+        trailing: _buildAmount(amountColor, amount, isFailed),
       ),
     );
   }
@@ -76,53 +87,20 @@ class TransactionPurchasedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildDetails(bool isFailed) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                isFailed ? "Buy - Failed" : "Buy",
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isFailed ? Colors.redAccent : Colors.white),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                "• ${tx.coinSymbol}",
-                style: const TextStyle(
-                    fontSize: 14, color: GeniusWalletColors.gray500),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            timeago.format(tx.timeStamp.toLocal()),
-            style: const TextStyle(fontSize: 12, color: Colors.white60),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAmount(Color color, String amount, bool isFailed) {
+  Widget _buildAmount(Color amountColor, String amount, bool isFailed) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Text(amount,
             style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w600, color: color)),
-        const SizedBox(height: 4),
+                fontSize: 16, fontWeight: FontWeight.w600, color: amountColor)),
         Text(
           isFailed
               ? currencyFormatter.format(0)
-              : "Spent: ${currencyFormatter.format(double.tryParse(tx.fees ?? '0') ?? 0)}",
+              : "Spent: ${currencyFormatter.format(double.tryParse(tx.fees) ?? 0)}",
           style:
               const TextStyle(fontSize: 12, color: GeniusWalletColors.gray500),
-        ),
+        )
       ],
     );
   }

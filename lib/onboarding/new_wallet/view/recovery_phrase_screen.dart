@@ -4,15 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/registration_header.g.dart';
-import 'package:flutter/services.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -81,7 +79,7 @@ class _RecoveryPhraseViewDesktopState
           children: [
             const Text(
               GeniusWalletText.titleRecovery,
-              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -111,7 +109,7 @@ class _RecoveryPhraseViewDesktopState
 }
 
 class _WordsGridWithCopyAndToggle extends StatefulWidget {
-  const _WordsGridWithCopyAndToggle({super.key});
+  const _WordsGridWithCopyAndToggle();
 
   @override
   State<_WordsGridWithCopyAndToggle> createState() =>
@@ -145,7 +143,7 @@ class _WordsGridWithCopyAndToggleState
                 color: _isVisible
                     ? GeniusWalletColors.grayPrimary
                     : GeniusWalletColors.grayPrimary
-                        .withOpacity(0.4), // darker effect
+                        .withAlpha(102), // darker effect
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: GeniusWalletColors.gray500,
@@ -323,11 +321,7 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
         TextButton.icon(
           onPressed: () async {
             await FlutterClipboard.copy(
-                context
-                    .read<NewWalletBloc>()
-                    .state
-                    .recoveryWords
-                    .join(' '));
+                context.read<NewWalletBloc>().state.recoveryWords.join(' '));
             if (!mounted) {
               return;
             }
@@ -339,7 +333,7 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
           },
           style: OutlinedButton.styleFrom(
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
             side: const BorderSide(
                 width: 1.0, color: GeniusWalletColors.btnCopyBorder),

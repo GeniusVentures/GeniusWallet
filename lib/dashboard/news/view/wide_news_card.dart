@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
 class WideNewsCard extends StatelessWidget {
@@ -42,7 +42,7 @@ class WideNewsCard extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueTertiary.withOpacity(.7),
+                  color: GeniusWalletColors.deepBlueTertiary.withAlpha(179),
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),

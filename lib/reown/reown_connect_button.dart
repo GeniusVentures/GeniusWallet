@@ -5,7 +5,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -136,7 +136,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
   }
 
-  maybeInitWalletKit() async {
+  Future<void> maybeInitWalletKit() async {
     final arch = Platform.version.toLowerCase();
 
     // Skip if running on x86 or x86_64 (i.e. emulators without native .so support)
@@ -364,25 +364,25 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       icon = Icons.link_off;
       iconColor = Colors.redAccent;
       textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withOpacity(0.1);
+      backgroundColor = Colors.redAccent.withAlpha(26);
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
       iconColor = Colors.amber;
       textColor = Colors.amber;
-      backgroundColor = Colors.amber.withOpacity(0.1);
+      backgroundColor = Colors.amber.withAlpha(26);
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
       iconColor = Colors.orange;
       textColor = Colors.orange;
-      backgroundColor = Colors.orange.withOpacity(0.1);
+      backgroundColor = Colors.orange.withAlpha(26);
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
       iconColor = Colors.redAccent;
       textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withOpacity(0.1);
+      backgroundColor = Colors.redAccent.withAlpha(26);
       text = 'Retry Connect';
     } else {
       icon = Icons.link;

@@ -1,5 +1,3 @@
-import 'package:genius_api/genius_api.dart';
-
 class WalletUtils {
   static String getAddressForDisplay(String address) {
     if (address.length >= 6) {

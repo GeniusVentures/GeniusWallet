@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class GeniusWalletGradient {
   static LinearGradient greenBlueGreenGradient = const LinearGradient(

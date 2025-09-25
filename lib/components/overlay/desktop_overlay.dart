@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/desktop_tab_bar.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class DesktopOverlay extends StatelessWidget {
   final Widget child;

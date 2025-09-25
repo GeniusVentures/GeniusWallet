@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 
@@ -88,7 +88,7 @@ class TransactionFiltersState extends State<TransactionFilters> {
 
         /// **Desktop: Horizontal Filter Buttons**
         if (!isMobile) ...[
-          SizedBox(height: 22),
+          const SizedBox(height: 22),
           Align(
             alignment: Alignment.centerRight,
             child: Row(
@@ -148,7 +148,7 @@ class HoverableFilterItemState extends State<HoverableFilterItem> {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: isHovered
-              ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.1)
+              ? GeniusWalletColors.lightGreenPrimary.withAlpha(26)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),

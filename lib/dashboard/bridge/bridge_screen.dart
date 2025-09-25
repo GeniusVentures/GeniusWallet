@@ -1,17 +1,15 @@
 import 'dart:async';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
-import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
@@ -52,7 +50,7 @@ class BridgeScreenState extends State<BridgeScreen> {
     super.dispose();
   }
 
-  _fetchBridgeNetworks() async {
+  Future<void> _fetchBridgeNetworks() async {
     final networks = await readNetworkBridgeAssets();
     setState(() {
       availableBridgeNetworks = networks;

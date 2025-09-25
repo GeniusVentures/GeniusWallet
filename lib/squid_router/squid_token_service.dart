@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_fee_cost.dart';
 import 'package:genius_wallet/squid_router/models/squid_gas_cost.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
-import 'package:http/http.dart' as http;
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 
 class SquidTokenService {

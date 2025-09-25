@@ -4,9 +4,11 @@ import 'dart:typed_data';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/tw/string_util.dart';
 
+import '../ffi/trust_wallet_api_ffi.dart';
+
 class AnyAddressImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
-  static bool isValid(String address, int coinType) {
+  static bool isValid(String address, TWCoinType coinType) {
     final twAddress = StringUtil.toTWString(address);
     final result = ffiBridgePrebuilt.wallet_lib
         .TWAnyAddressIsValid(twAddress.cast(), coinType);
@@ -14,7 +16,7 @@ class AnyAddressImpl {
     return result;
   }
 
-  static Pointer<Void> createWithString(String address, int coinType) {
+  static Pointer<Void> createWithString(String address, TWCoinType coinType) {
     final twAddress = StringUtil.toTWString(address);
     final result = ffiBridgePrebuilt.wallet_lib
         .TWAnyAddressCreateWithString(twAddress.cast(), coinType);
@@ -23,7 +25,7 @@ class AnyAddressImpl {
   }
 
   static Pointer<Void> createWithPublicKey(
-      Pointer<Void> publicKey, int coinType) {
+      Pointer<Void> publicKey, TWCoinType coinType) {
     final result = ffiBridgePrebuilt.wallet_lib
         .TWAnyAddressCreateWithPublicKey(publicKey.cast(), coinType);
     return result.cast();

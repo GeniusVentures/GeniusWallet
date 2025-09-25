@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banxa_service.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class BuyGnusButton extends StatelessWidget {

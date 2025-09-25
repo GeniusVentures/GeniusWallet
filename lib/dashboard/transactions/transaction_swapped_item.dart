@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -14,7 +14,7 @@ class TransactionSwappedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
+    final isFailed = tx.transactionStatus == TransactionStatus.failed;
     final fromSymbol = tx.fromSymbol ?? "";
     final toSymbol = tx.toSymbol ?? "";
     final fromIcon = tx.fromIconUrl; // Assuming these exist on your model
@@ -22,47 +22,26 @@ class TransactionSwappedItem extends StatelessWidget {
     final fromAmount = tx.fromAmount ?? "0";
     final toAmount = tx.toAmount ?? "0";
 
-    final amountText = isFailed
-        ? "Swap Failed"
-        : "$fromAmount $fromSymbol → $toAmount $toSymbol";
-
-    return GestureDetector(
-      onTap: () => _showSwapTransactionDetails(context, tx),
-      child: Card(
-        color: GeniusWalletColors.deepBlueMenu,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              _buildOverlappedIcons(fromIcon, toIcon, isFailed),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Swapped${isFailed ? ' - Failed' : ''}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isFailed ? Colors.redAccent : Colors.white),
-                    ),
-                    const SizedBox(height: 4),
-                    const SizedBox(height: 4),
-                    Text(
-                      timeago.format(tx.timeStamp.toLocal()),
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.white60),
-                    ),
-                  ],
-                ),
-              ),
-              _buildSwapAmounts(
-                  tx, fromAmount, fromSymbol, toAmount, toSymbol, isFailed),
-            ],
-          ),
+    return Card(
+      color: GeniusWalletColors.deepBlueMenu,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        title: Text(
+          "Swapped${isFailed ? ' - Failed' : ''}",
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: isFailed ? Colors.redAccent : Colors.white),
         ),
+        subtitle: Text(
+          timeago.format(tx.timeStamp.toLocal()),
+        ),
+        leading: _buildOverlappedIcons(fromIcon, toIcon, isFailed),
+        onTap: () {
+          _showSwapTransactionDetails(context);
+        },
+        trailing: _buildSwapAmounts(
+            fromAmount, fromSymbol, toAmount, toSymbol, isFailed),
       ),
     );
   }
@@ -108,25 +87,21 @@ class TransactionSwappedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildSwapAmounts(Transaction tx, String fromAmount, String fromSymbol,
+  Widget _buildSwapAmounts(String fromAmount, String fromSymbol,
       String toAmount, String toSymbol, bool isFailed) {
     if (isFailed) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
+      return Text(
             "0 $toSymbol",
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.redAccent,
-            ),
-          ),
-        ],
+        ),
       );
     }
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
@@ -137,19 +112,17 @@ class TransactionSwappedItem extends StatelessWidget {
             color: Colors.greenAccent,
           ),
         ),
-        const SizedBox(height: 4),
         Text(
           "- $fromAmount $fromSymbol",
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.white,
           ),
         ),
       ],
     );
   }
 
-  void _showSwapTransactionDetails(BuildContext context, Transaction tx) {
+  void _showSwapTransactionDetails(BuildContext context) {
     final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
     final fromSymbol = tx.fromSymbol ?? "";
     final toSymbol = tx.toSymbol ?? "";
@@ -218,8 +191,10 @@ class TransactionSwappedItem extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildRow("Date",
-                    "${DateFormat("MMMM d, y 'at' h:mm a").format(tx.timeStamp.toLocal())}"),
+                _buildRow(
+                    "Date",
+                    DateFormat("MMMM d, y 'at' h:mm a")
+                        .format(tx.timeStamp.toLocal())),
                 _buildRow(
                     "Status",
                     tx.transactionStatus.name[0].toUpperCase() +
@@ -227,8 +202,8 @@ class TransactionSwappedItem extends StatelessWidget {
                     valueColor: isFailed ? Colors.redAccent : Colors.white),
                 _buildRow("From", "$fromAmount $fromSymbol"),
                 _buildRow("To", "$toAmount $toSymbol"),
-                _buildRow("Transaction Fee", "${tx.fees ?? "0"} $fromSymbol"),
-                _buildRow("Tx Hash", tx.hash ?? "N/A"),
+                _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
+                _buildRow("Tx Hash", tx.hash),
               ],
             ),
           ),

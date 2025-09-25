@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:go_router/go_router.dart';
@@ -144,11 +144,11 @@ class HeaderButton extends StatelessWidget {
         child: TextButton.icon(
       onPressed: route != null ? () => context.push(route!) : null,
       style: ButtonStyle(
-        padding: const MaterialStatePropertyAll(EdgeInsets.all(20)),
-        backgroundColor: MaterialStateProperty.resolveWith((states) {
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(20)),
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
           return color;
         }),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: isAddBorder!

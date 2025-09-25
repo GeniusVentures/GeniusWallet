@@ -1,7 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
@@ -12,7 +12,6 @@ import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
@@ -20,7 +19,7 @@ import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
   const ImportSecurityScreen({
     required this.walletType,
     required this.coinType,
@@ -127,7 +126,7 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final GlobalKey<FormState> formKey;
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
 
   const _ImportSecurityViewDesktop(
       {Key? key,
@@ -177,7 +176,7 @@ class _ImportSecurityViewMobile extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final GlobalKey<FormState> formKey;
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
 
   const _ImportSecurityViewMobile(
       {Key? key,
@@ -224,7 +223,7 @@ class _ImportSecurityBody extends StatelessWidget {
       children: [
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
-          child: FittedBox(
+          child: const FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
@@ -316,7 +315,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
   final Map<String, Map<String, TextEditingController>> tabControllers;
   final TextEditingController walletNameController;
   final String walletType;
-  final int coinType;
+  final TWCoinType coinType;
 
   const _ImportSecurityContinueButton(
       {Key? key,
@@ -339,7 +338,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
               if (formKey.currentState!.validate()) {
                 /// Get currently selected tab
                 final selectedIndex =
-                    DefaultTabController.of(context)?.index ?? 0;
+                    DefaultTabController.of(context).index ?? 0;
 
                 /// Get current entry to access [TextEditingControllers]
                 final selectedEntry =

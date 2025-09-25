@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -182,7 +182,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                   onTap: () {
                     Navigator.of(context).pop(); // Pops the current page
                   },
-                  child: Icon(Icons.cancel, size: 20),
+                  child: const Icon(Icons.cancel, size: 20),
                 );
               },
             ),

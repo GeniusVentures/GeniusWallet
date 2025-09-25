@@ -9,7 +9,7 @@ import 'package:genius_wallet/components/overlay/mobile_overlay.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
-import 'package:genius_wallet/dashboard/transactions/view/transactions_screen.dart';
+import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
 
 class ResponsiveOverlay extends StatelessWidget {

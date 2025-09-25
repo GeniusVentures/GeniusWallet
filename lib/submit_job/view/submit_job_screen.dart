@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 
@@ -232,7 +232,7 @@ class SubmitJobScreen extends StatelessWidget {
                                       if (!isPurchaseable) ...[
                                         const SizedBox(height: 8),
                                         const Center(
-                                            child: const AutoSizeText(
+                                            child: AutoSizeText(
                                           '* You do not have enough GNUS',
                                           style: TextStyle(
                                             color: GeniusWalletColors.red,
@@ -282,7 +282,7 @@ class SubmitJobScreen extends StatelessWidget {
           // Show a modal barrier and a loader when file picker is open
           if (isFilePickerOpen)
             ModalBarrier(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withAlpha(128),
               dismissible: false, // Prevent dismissing the overlay
             ),
           if (isFilePickerOpen)

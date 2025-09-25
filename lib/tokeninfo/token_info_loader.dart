@@ -43,7 +43,8 @@ class TokenInfoLoader {
       // Handle both single object and array of objects
       if (json is List) {
         return json
-            .map((item) => SuperGeniusTokenInfo.fromJson(item as Map<String, dynamic>))
+            .map((item) =>
+                SuperGeniusTokenInfo.fromJson(item as Map<String, dynamic>))
             .toList();
       } else if (json is Map<String, dynamic>) {
         return [SuperGeniusTokenInfo.fromJson(json)];
@@ -77,7 +78,7 @@ class TokenInfoLoader {
   /// Dispose of resources
   void dispose() {
     // Only dispose if we created the client
-    if (_httpClient is http.Client && tokensUrl == _defaultTokensUrl) {
+    if (tokensUrl == _defaultTokensUrl) {
       _httpClient.close();
     }
   }
@@ -97,6 +98,7 @@ extension TokenInfoLoaderExtension on TokenInfoLoader {
 
   /// Load GNUS token specifically
   Future<SuperGeniusTokenInfo?> loadGNUSToken() async {
-    return loadTokenById('0000000000000000000000000000000000000000000000000000000000000000');
+    return loadTokenById(
+        '0000000000000000000000000000000000000000000000000000000000000000');
   }
 }

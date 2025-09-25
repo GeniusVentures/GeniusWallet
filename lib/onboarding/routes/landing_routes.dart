@@ -1,3 +1,4 @@
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_wallet_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
@@ -54,7 +55,7 @@ class LandingRoutes {
           path: '/import_security',
           builder: (context, state) {
             return const ImportSecurityScreen(
-              coinType: -1,
+              coinType: TWCoinType.TWCoinTypeEthereum,
               walletType: '',
             );
           },

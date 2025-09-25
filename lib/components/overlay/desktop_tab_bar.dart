@@ -9,7 +9,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -81,7 +81,7 @@ class DesktopTopBar extends StatelessWidget {
                                   size: 16,
                                   color: isSelected
                                       ? Colors.greenAccent
-                                      : Colors.white.withOpacity(0.6)),
+                                      : Colors.white.withAlpha(153)),
                               child: isSelected
                                   ? destination.selectedIcon
                                   : destination.icon,
@@ -93,7 +93,7 @@ class DesktopTopBar extends StatelessWidget {
                                   fontSize: 14,
                                   color: isSelected
                                       ? Colors.greenAccent
-                                      : Colors.white.withOpacity(0.6),
+                                      : Colors.white.withAlpha(153),
                                 ),
                                 child: destination.label,
                               ),

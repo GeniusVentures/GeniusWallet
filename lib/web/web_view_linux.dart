@@ -2,7 +2,7 @@
 
 // import 'package:flutter/material.dart';
 // import 'package:desktop_webview_window/desktop_webview_window.dart';
-// import 'package:genius_wallet/theme/genius_wallet_colors.g.dart';
+// import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 // class WebViewLinux extends StatefulWidget {
 //   final String url;
