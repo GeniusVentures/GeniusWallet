@@ -70,3 +70,6 @@ macos/native/CMakeCache.txt
 macos/CMakeCache.txt
 macos/CMakeFiles/
 macos/Pods/
+macos/thirdparty-OSX-Debug.tar.gz
+macos/native/build/GeniusWallet.framework/Versions/A/GeniusWallet
+macos/native/build/libGeniusWallet.dylib
