@@ -19,14 +19,8 @@ class TransactionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
-    String amount;
-
-    try {
-      amount =
-          "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
-    } on StateError {
-      amount = "";
-    }
+    final amount =
+        "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
 
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
     final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
