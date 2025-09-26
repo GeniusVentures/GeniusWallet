@@ -89,6 +89,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      sha256: "389da2ec2c16283c8787e0adaede82b1842102f8c8aae2f49003a766c5c6b3d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
   build:
     dependency: transitive
     description:
@@ -309,18 +317,18 @@ packages:
     dependency: transitive
     description:
       name: device_frame
-      sha256: "7b2ebb2a09d6cc0f086b51bd1412d7be83e0170056a7290349169be41164c86a"
+      sha256: a58796a9a2efc0fd8a7903cee0eed2e2d111f4a7d81fa2319ab89430b020f624
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.3.0"
   device_preview:
     dependency: "direct main"
     description:
       name: device_preview
-      sha256: "88aa1cc73ee9a8ec771b309dcbc4000cc66b5d8456b825980997640ab1195bf5"
+      sha256: a694acdd3894b4c7d600f4ee413afc4ff917f76026b97ab06575fe886429ef19
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.1"
+    version: "1.2.0"
   ed25519_edwards:
     dependency: transitive
     description:
@@ -353,6 +361,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
+  eth_sig_util:
+    dependency: transitive
+    description:
+      name: eth_sig_util
+      sha256: "20fdc5ce3864e70e5ade1c1cd03cce4ef01018db00adab107303f9055d26b01a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.9"
   event:
     dependency: transitive
     description:
@@ -545,10 +561,10 @@ packages:
     dependency: transitive
     description:
       name: freezed_annotation
-      sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
+      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "2.4.4"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1071,26 +1087,34 @@ packages:
     dependency: transitive
     description:
       name: reown_core
-      sha256: "8bb095d6e50ce5ee1a6a5bb50d3032b9fa283be75f1d002457d61d0cdb2062b9"
+      sha256: "37e8bd16263400856592b58331ec61665bcc8814d4a2a1801a7f12caf3c4673d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.1"
+    version: "1.2.0"
   reown_sign:
     dependency: transitive
     description:
       name: reown_sign
-      sha256: "008dcf02cb6cffa89b73e0296c45055ca2bf4edc84b93f73a3ba0c80dff459b8"
+      sha256: ae2e171b93ddaae2ce7db18a66647afc9680cf55f49e88d49a3c3df5d1eb2cde
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.1"
+    version: "1.2.0"
   reown_walletkit:
     dependency: "direct main"
     description:
       name: reown_walletkit
-      sha256: "1680a20b4dd2e49577861a5a63d3ef6164ef2b650d1bf2d2c72feca441701858"
+      sha256: b779e4914c9299edea80a849773fc08ddd5e44549bf53a2fd26cac4a59f5c99c
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
+    version: "1.2.0"
+  reown_yttrium:
+    dependency: transitive
+    description:
+      name: reown_yttrium
+      sha256: e59d9e8dbad8e2c420c201719da12bca528c38ecab9571364d5b6d18715ce773
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   responsive_framework:
     dependency: "direct main"
     description:
@@ -1665,5 +1689,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.8.0 <4.0.0"
-  flutter: ">=3.32.0"
+  dart: ">=3.8.0-0 <4.0.0"
+  flutter: ">=3.24.0"
