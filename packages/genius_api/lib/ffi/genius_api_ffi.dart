@@ -25,6 +25,7 @@ class NativeLibrary {
     bool autodht,
     bool process,
     int baseport,
+    bool is_full_node,
   ) {
     return _GeniusSDKInit(
       base_path,
@@ -32,6 +33,7 @@ class NativeLibrary {
       autodht,
       process,
       baseport,
+      is_full_node,
     );
   }
 
@@ -42,10 +44,11 @@ class NativeLibrary {
               ffi.Pointer<ffi.Char>,
               ffi.Bool,
               ffi.Bool,
-              ffi.Uint16)>>('GeniusSDKInit');
+              ffi.Uint16,
+              ffi.Bool)>>('GeniusSDKInit');
   late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
-      ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool, bool, int)>();
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>, bool, bool, int, bool)>();
 
   ffi.Pointer<ffi.Char> GeniusSDKInitSecure(
     ffi.Pointer<ffi.Char> base_path,
@@ -54,6 +57,7 @@ class NativeLibrary {
     bool autodht,
     bool process,
     int baseport,
+    bool is_full_node,
   ) {
     return _GeniusSDKInitSecure(
       base_path,
@@ -62,6 +66,7 @@ class NativeLibrary {
       autodht,
       process,
       baseport,
+      is_full_node,
     );
   }
 
@@ -73,10 +78,17 @@ class NativeLibrary {
               ffi.Pointer<ffi.Char>,
               ffi.Bool,
               ffi.Bool,
-              ffi.Uint16)>>('GeniusSDKInitSecure');
+              ffi.Uint16,
+              ffi.Bool)>>('GeniusSDKInitSecure');
   late final _GeniusSDKInitSecure = _GeniusSDKInitSecurePtr.asFunction<
-      ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool, bool, int)>();
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
+          bool,
+          bool,
+          int,
+          bool)>();
 
   ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(
     ffi.Pointer<ffi.Char> base_path,
@@ -159,6 +171,18 @@ class NativeLibrary {
           'GeniusSDKGetGNUSPrice');
   late final _GeniusSDKGetGNUSPrice =
       _GeniusSDKGetGNUSPricePtr.asFunction<double Function()>();
+
+  /// @brief       Retrieves the SDK version string.
+  /// @return      A pointer to a null-terminated UTF-8 string representing the SDK version.
+  ffi.Pointer<ffi.Char> GeniusSDKGetVersion() {
+    return _GeniusSDKGetVersion();
+  }
+
+  late final _GeniusSDKGetVersionPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'GeniusSDKGetVersion');
+  late final _GeniusSDKGetVersion =
+      _GeniusSDKGetVersionPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
   GeniusAddress GeniusSDKGetAddress() {
     return _GeniusSDKGetAddress();
@@ -282,15 +306,15 @@ class NativeLibrary {
       bool Function(int, ffi.Pointer<GeniusAddress>, GeniusTokenID)>();
 
   /// @brief     Transfers tokens using a **Genius Token** string representation.
-  /// @param[in] gnus Pointer to a `GeniusTokenValue` struct representing the amount in GNUS.
+  /// @param[in] amount Pointer to a `GeniusTokenValue` struct representing the amount in GNUS.
   /// @param[in] dest Pointer to a `GeniusAddress` struct representing the recipient's address.
   /// @return `true` if the transfer is successful, `false` otherwise.
   bool GeniusSDKTransferGNUS(
-    ffi.Pointer<GeniusTokenValue> gnus,
+    ffi.Pointer<GeniusTokenValue> amount,
     ffi.Pointer<GeniusAddress> dest,
   ) {
     return _GeniusSDKTransferGNUS(
-      gnus,
+      amount,
       dest,
     );
   }
@@ -370,6 +394,36 @@ class NativeLibrary {
           'GeniusSDKProcess');
   late final _GeniusSDKProcess =
       _GeniusSDKProcessPtr.asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+
+  /// @brief       Retrieves the current state of the Transaction Manager.
+  /// @return      The current state as a @ref GeniusTransactionManagerState enum value.
+  GeniusTransactionManagerState GeniusSDKGetTransactionManagerState() {
+    return GeniusTransactionManagerState.fromValue(
+        _GeniusSDKGetTransactionManagerState());
+  }
+
+  late final _GeniusSDKGetTransactionManagerStatePtr =
+      _lookup<ffi.NativeFunction<ffi.UnsignedInt Function()>>(
+          'GeniusSDKGetTransactionManagerState');
+  late final _GeniusSDKGetTransactionManagerState =
+      _GeniusSDKGetTransactionManagerStatePtr.asFunction<int Function()>();
+
+  /// @brief       Retrieves the status of a specific transaction.
+  /// @param[in]   tx_id A null-terminated string representing the transaction ID.
+  /// @return      The transaction status as a @ref GeniusTransactionStatus enum value.
+  GeniusTransactionStatus GeniusSDKGetTransactionStatus(
+    ffi.Pointer<ffi.Char> tx_id,
+  ) {
+    return GeniusTransactionStatus.fromValue(_GeniusSDKGetTransactionStatus(
+      tx_id,
+    ));
+  }
+
+  late final _GeniusSDKGetTransactionStatusPtr = _lookup<
+          ffi.NativeFunction<ffi.UnsignedInt Function(ffi.Pointer<ffi.Char>)>>(
+      'GeniusSDKGetTransactionStatus');
+  late final _GeniusSDKGetTransactionStatus = _GeniusSDKGetTransactionStatusPtr
+      .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 }
 
 typedef __u_char = ffi.UnsignedChar;
@@ -558,6 +612,70 @@ final class GeniusTokenID extends ffi.Struct {
 
 typedef PayAmount_t = ffi.Uint64;
 typedef DartPayAmount_t = int;
+
+/// @brief Transaction Manager State enumeration (maps to TransactionManager::State)
+/// Values must match TransactionManager::State enum values
+enum GeniusTransactionManagerState {
+  /// < Creating the object
+  GENIUS_TM_STATE_CREATING(0),
+
+  /// < Initializing the object
+  GENIUS_TM_STATE_INITIALIZING(1),
+
+  /// < Synching the transactions
+  GENIUS_TM_STATE_SYNCHING(2),
+
+  /// < Ready to process transactions
+  GENIUS_TM_STATE_READY(3);
+
+  final int value;
+  const GeniusTransactionManagerState(this.value);
+
+  static GeniusTransactionManagerState fromValue(int value) => switch (value) {
+        0 => GENIUS_TM_STATE_CREATING,
+        1 => GENIUS_TM_STATE_INITIALIZING,
+        2 => GENIUS_TM_STATE_SYNCHING,
+        3 => GENIUS_TM_STATE_READY,
+        _ => throw ArgumentError(
+            'Unknown value for GeniusTransactionManagerState: $value'),
+      };
+}
+
+/// @brief Transaction Status enumeration (maps to TransactionManager::TransactionStatus)
+/// Values must match TransactionManager::TransactionStatus enum values
+enum GeniusTransactionStatus {
+  /// < Transaction created but not yet sent
+  GENIUS_TX_STATUS_CREATED(0),
+
+  /// < Transaction is being sent
+  GENIUS_TX_STATUS_SENDING(1),
+
+  /// < Transaction confirmed
+  GENIUS_TX_STATUS_CONFIRMED(2),
+
+  /// < Transaction being verified
+  GENIUS_TX_STATUS_VERIFYING(3),
+
+  /// < Transaction failed
+  GENIUS_TX_STATUS_FAILED(4),
+
+  /// < Invalid transaction
+  GENIUS_TX_STATUS_INVALID(5);
+
+  final int value;
+  const GeniusTransactionStatus(this.value);
+
+  static GeniusTransactionStatus fromValue(int value) => switch (value) {
+        0 => GENIUS_TX_STATUS_CREATED,
+        1 => GENIUS_TX_STATUS_SENDING,
+        2 => GENIUS_TX_STATUS_CONFIRMED,
+        3 => GENIUS_TX_STATUS_VERIFYING,
+        4 => GENIUS_TX_STATUS_FAILED,
+        5 => GENIUS_TX_STATUS_INVALID,
+        _ => throw ArgumentError(
+            'Unknown value for GeniusTransactionStatus: $value'),
+      };
+}
 
 const int _STDINT_H = 1;
 
@@ -789,6 +907,6 @@ const int WINT_MAX = 4294967295;
 
 const int __bool_true_false_are_defined = 1;
 
-const int true1 = 1;
+const int true$ = 1;
 
-const int false1 = 0;
+const int false$ = 0;

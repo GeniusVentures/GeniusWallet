@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
-import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/chart/markets_search_bar.dart'; // 🔥 Import your search bar
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
@@ -68,17 +67,21 @@ class MarketsScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // Expanded to take the remaining space for grid view
             Expanded(
-              child: FutureStateWidget<List<CoinGeckoCoin>>(
+              child: FutureBuilder<List<CoinGeckoCoin>>(
                 future: getMarketCoins(),
-                error: const Center(
-                  child: Text(
-                    "Failed to load market coins",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                onData: (coins) {
-                  if (coins.isEmpty) {
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(
+                      child: Text(
+                        "Failed to load market coins",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
                       child: Text(
                         "No market data available",
@@ -86,18 +89,26 @@ class MarketsScreen extends StatelessWidget {
                       ),
                     );
                   }
-                  return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
+
+                  final coins = snapshot.data!;
+
+                  return FutureBuilder<Map<String, CoinGeckoMarketData?>>(
                     future: fetchCoinsMarketData(
                       coinIds: coins.map((coin) => coin.id).toList(),
                     ),
-                    error: const Center(
-                      child: Text(
-                        "Failed to load market data",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    onData: (marketData) {
-                      if (marketData.isEmpty) {
+                    builder: (context, marketSnapshot) {
+                      if (marketSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (marketSnapshot.hasError) {
+                        return const Center(
+                          child: Text(
+                            "Failed to load market data",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      } else if (!marketSnapshot.hasData ||
+                          marketSnapshot.data!.isEmpty) {
                         return const Center(
                           child: Text(
                             "No market data available",
@@ -106,7 +117,8 @@ class MarketsScreen extends StatelessWidget {
                         );
                       }
 
-                      // Grid with robust lookup
+                      final marketData = marketSnapshot.data!;
+
                       return GridView.builder(
                         padding: const EdgeInsets.only(bottom: 16),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -118,21 +130,11 @@ class MarketsScreen extends StatelessWidget {
                         itemCount: coins.length,
                         itemBuilder: (context, index) {
                           final coin = coins[index];
-                          final data = marketData[coin.id] ??
-                              marketData[coin.symbol.toLowerCase()];
+                          final data = marketData[coin.symbol.toLowerCase()];
 
                           if (data == null) {
-                            // Optional: visually debug missing data
-                            return Container(
-                              color: Colors.red,
-                              child: Center(
-                                child: Text(
-                                  '${coin.symbol}\n${coin.id}',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            );
-                            // Or just: return const SizedBox.shrink();
+                            return const SizedBox
+                                .shrink(); // Skip if data is missing
                           }
 
                           return _buildMarketChartCard(data, coin);
@@ -160,7 +162,7 @@ class MarketsScreen extends StatelessWidget {
                     "securityInfo": "Coming Soon",
                     "transactionHistory": ["Coming Soon"],
                     "marketData": data,
-                    "coin": coin,
+                    "coin": coin, // Make sure coin is passed
                   },
                 );
               },
