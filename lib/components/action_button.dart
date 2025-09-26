@@ -13,6 +13,7 @@ class ActionButton extends StatefulWidget {
   final Color iconColor;
   final Color textColor;
   final ActionButtonAnimation animation;
+  final String? semanticLabel;
 
   const ActionButton({
     Key? key,
@@ -23,6 +24,7 @@ class ActionButton extends StatefulWidget {
     this.iconColor = GeniusWalletColors.lightGreenSecondary,
     this.textColor = GeniusWalletColors.gray500,
     this.animation = ActionButtonAnimation.none,
+    this.semanticLabel,
   }) : super(key: key);
 
   @override
@@ -70,7 +72,7 @@ class _ActionButtonState extends State<ActionButton>
         builder: (context, constraints) {
           final iconWidget = Icon(
             widget.icon,
-            size: constraints.maxWidth * 0.38,
+            size: constraints.maxWidth * 0.42,
             color: widget.iconColor,
           );
 
@@ -81,37 +83,43 @@ class _ActionButtonState extends State<ActionButton>
                 )
               : iconWidget;
 
-          return ElevatedButton(
-            onPressed: widget.onPressed,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.all(0),
-              fixedSize:
-                  Size(constraints.maxWidth * 0.25, constraints.maxWidth),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  GeniusWalletConsts.borderRadiusCard,
-                ),
-              ),
-              disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
-              backgroundColor: widget.backgroundColor,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                animatedIcon,
-                Flexible(
-                  child: AutoSizeText(
-                    widget.text,
-                    style: TextStyle(
-                      color: widget.textColor,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          // 🟢 Semantics wrapper for accessibility
+          return Semantics(
+            button: true,
+            enabled: widget.onPressed != null,
+            label: widget.semanticLabel ?? widget.text,
+            child: ElevatedButton(
+              onPressed: widget.onPressed,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(0),
+                fixedSize:
+                    Size(constraints.maxWidth * 0.25, constraints.maxWidth),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.borderRadiusCard,
                   ),
                 ),
-              ],
+                disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundColor: widget.backgroundColor,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  animatedIcon,
+                  Flexible(
+                    child: AutoSizeText(
+                      widget.text,
+                      style: TextStyle(
+                        color: widget.textColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

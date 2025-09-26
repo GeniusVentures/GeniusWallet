@@ -66,4 +66,3 @@ set(GENIUSSDK_SRC_DIR "${CMAKE_BINARY_DIR}/../../../../GeniusSDK" CACHE PATH "Pa
 #set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../flutter")
 #add_subdirectory(${FLUTTER_MANAGED_DIR})
 include(../../cmake/CommonBuildParameters.cmake)
-
