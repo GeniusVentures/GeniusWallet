@@ -10,6 +10,7 @@ dev_dependencies:
   freezed: ^3.2.3
 
 dependencies:
+  connectivity_plus: ^6.1.5
   flutter:
     sdk: flutter
   freezed_annotation: ^3.1.0

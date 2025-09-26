@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
@@ -38,6 +39,9 @@ class GeniusApi {
   late final String address;
   late final String jsonFilePath;
   bool isSdkInitialized = false;
+  late final StreamSubscription<List<ConnectivityResult>>
+      _connectivitySubscription;
+  late String currentWalletAddress;
 
   GeniusApi({
     required LocalWalletStorage secureStorage,
@@ -110,6 +114,30 @@ class GeniusApi {
     }
 
     await _initSDK(storedKey);
+  }
+
+  void startNetworkMonitoring() {
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final hasConnection = results.any((r) => r != ConnectivityResult.none);
+
+      if (!hasConnection) {
+        debugPrint('[SGNUS] Lost network connection, set connection = false');
+        getSGNUSController().emptyConnection();
+      } else {
+        debugPrint('[SGNUS] Network available: $results');
+        getSGNUSController().updateConnection(SGNUSConnection(
+          sgnusAddress: address,
+          walletAddress: currentWalletAddress,
+          isConnected: true,
+        ));
+      }
+    });
+  }
+
+  void stopNetworkMonitoring() {
+    _connectivitySubscription.cancel();
   }
 
   Future<void> _initSDK(StoredKey storedKey) async {
