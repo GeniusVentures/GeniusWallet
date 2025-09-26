@@ -29,7 +29,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
 
         final connection = snapshot.data!;
         return GestureDetector(
-          onTap: () => context.push('/network'),
+          // onTap: () => context.push('/network'),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
