@@ -9,39 +9,33 @@ git clone git@github.com:GeniusVentures/GeniusWallet.git --recursive
 cd GeniusWallet
 ```
 
+## Setting up the environment
+
 ### Installing Flutter
 
-The project requires Flutter version 3.32.5 or higher.
-
-<details>
-<summary><strong>Expanded Flutter installation instructions</strong></summary>
-
-We provide installation scripts that will automatically install Flutter in the `../thirdparty/flutter` directory if needed.
+The project requires Flutter version 3.29.3 or higher. We provide installation scripts that will automatically install Flutter in the `../thirdparty/flutter` directory if needed.
 
 #### Automatic Installation (Recommended)
 
 **Linux/macOS:**
-
 ```bash
-./install_flutter.sh
+source install_flutter.sh
 ```
 
 **Windows:**
-
 ```cmd
 install_flutter.bat
 ```
 
 The scripts will:
-
-* Check if Flutter is already installed and its version
-* Install Flutter 3.32.5+ if needed via the thirdparty Git submodule
-* Provide instructions for PATH configuration
+- Check if Flutter is already installed and its version
+- Install Flutter 3.29.3+ if needed via the thirdparty Git submodule
+- Update PATH for the current session
+- Provide instructions for permanent PATH configuration
 
 #### Manual Installation
 
 If you prefer manual installation or the scripts don't work:
-
 ```bash
 pushd ..
 git clone git@github.com:GeniusVentures/thirdparty.git
@@ -58,18 +52,13 @@ popd
 
 After installation, add `thirdparty/flutter/bin` to your PATH permanently.
 
-</details>
-
 ### Building Dependencies
 
 The project uses CMake to automatically download required dependencies (SuperGenius, GeniusSDK, zkLLVM, thirdparty) when building. These are downloaded based on your platform and build type.
 
 For manual dependency management, see [Build thirdparty project](../../../thirdparty/blob/master/README.md).
 
-<details>
-<summary><strong>iOS and macOS Development Setup</strong></summary>
-
-## iOS and macOS Development Setup
+### iOS and macOS Development Setup
 
 For iOS and macOS development, you'll need to install CocoaPods:
 
@@ -138,14 +127,12 @@ which pod           # Should show: ~/.rvm/gems/ruby-3.2.4/bin/pod
 Flutter may default to macOS system Ruby. To fix this:
 
 1. **Ensure RVM is loaded in your shell:**
-
    ```bash
    # Add to ~/.bashrc or ~/.zshrc if not already there:
    source ~/.rvm/scripts/rvm
    ```
 
 2. **Check which Ruby Flutter is using:**
-
    ```bash
    # In your Flutter project directory
    which ruby        # Should show ~/.rvm/rubies/ruby-3.2.4/bin/ruby
@@ -154,7 +141,6 @@ Flutter may default to macOS system Ruby. To fix this:
    ```
 
 3. **If Flutter still uses system Ruby, create a wrapper script:**
-
    ```bash
    # Create a pod wrapper that ensures RVM Ruby is used
    sudo mkdir -p /usr/local/bin
@@ -168,16 +154,14 @@ Flutter may default to macOS system Ruby. To fix this:
    ```
 
 4. **Alternative: Set Ruby version for the project:**
-
    ```bash
    # In your Flutter project root
    echo "3.2.4" > .ruby-version
-
+   
    # This tells RVM to automatically switch to 3.2.4 when entering the directory
    ```
 
 5. **Verify the fix:**
-
    ```bash
    cd ios  # or macos
    pod --version     # Should work without Ruby warnings
@@ -202,7 +186,6 @@ pod install
 **Note:** The macOS system Ruby is outdated and missing components. Always use RVM or rbenv for development.
 
 You'll also need Xcode Command Line Tools:
-
 ```bash
 xcode-select --install
 ```
@@ -212,7 +195,6 @@ xcode-select --install
 If you see "Failed to load credentials" or "missing Xcode-Token" errors:
 
 1. **Sign out and back in to Xcode:**
-
    ```
    Xcode → Preferences → Accounts
    - Select your Apple ID (dev@geniusventures.io)
@@ -222,182 +204,86 @@ If you see "Failed to load credentials" or "missing Xcode-Token" errors:
    ```
 
 2. **If that doesn't work, clear Xcode's credentials cache:**
-
    ```bash
    # Close Xcode first
    # Delete stored credentials
    security delete-generic-password -s "Xcode-Token"
    security delete-generic-password -s "Xcode-AlternateDSID"
-
+   
    # Clear Xcode's derived data
    rm -rf ~/Library/Developer/Xcode/DerivedData
-
+   
    # Restart Xcode and sign in again
    ```
 
 3. **For CI/CD or command line builds:**
-
    ```bash
    # Sign in via command line
    xcrun altool --list-apps --username "dev@geniusventures.io" --password "@keychain:AC_PASSWORD"
-
+   
    # Or store credentials
    xcrun altool --store-password-in-keychain-item "AC_PASSWORD" -u "dev@geniusventures.io" -p "your-app-specific-password"
    ```
 
 4. **Download certificates manually:**
+   - Go to Xcode → Preferences → Accounts
+   - Select your team
+   - Click "Download Manual Profiles"
 
-   * Go to Xcode → Preferences → Accounts
-   * Select your team
-   * Click "Download Manual Profiles"
+**Note:** If using 2FA, you may need to generate an app-specific password at https://appleid.apple.com
 
-**Note:** If using 2FA, you may need to generate an app-specific password at [https://appleid.apple.com](https://appleid.apple.com)
-
----
-
-</details>
-
-## Build & Run Instructions
-
-### 📝 Development with VS Code (Recommended)
-
-**Install VS Code Extensions:**
-
-1. Install [Visual Studio Code](https://code.visualstudio.com/)
-2. Install the following required extensions:
-   - **Flutter** (by Dart Code) - Provides Flutter support and debugging
-   - **Dart** (by Dart Code) - Dart language support (usually installed automatically with Flutter extension)
-
-**Running from VS Code:**
-
-1. Open the project folder in VS Code:
-   ```bash
-   code .
-   ```
-
-2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run:
-   ```
-   Flutter: Select Device
-   ```
-   Choose your target device (Windows, macOS, Linux, Android emulator, iOS simulator, etc.)
-
-3. **Using the Debug Panel (Recommended):**
-   - Press `F5` or go to the Debug panel (`Ctrl+Shift+D` / `Cmd+Shift+D`)
-   - Select one of the preconfigured launch configurations:
-     - **GeniusWallet** - Debug mode with TestNet-Phase-3.1 dependencies
-     - **GeniusWallet (profile mode)** - Profile mode for performance testing
-     - **GeniusWallet (release mode)** - Release mode for production builds
-   - Click the green play button or press `F5`
-
-4. **Using Command Palette:**
-   - `Ctrl+Shift+P` / `Cmd+Shift+P`
-   - Type: `Flutter: Run Flutter App`
-   - Select your desired launch configuration
-
-**VS Code Features:**
-- **Hot Reload**: Save files (`Ctrl+S` / `Cmd+S`) to see changes instantly
-- **Hot Restart**: `Ctrl+Shift+F5` / `Cmd+Shift+F5` to restart the app
-- **Debug Console**: View logs and debug output
-- **Breakpoints**: Click line numbers to set breakpoints for debugging
-- **Widget Inspector**: Use `Ctrl+Shift+P` → "Flutter: Open Widget Inspector"
-
-### 🐧 Build on Linux
-
-Run the following script from the root directory:
+## Run on Linux
 
 ```bash
-./build.sh
+flutter run
 ```
 
-### ▶️ Run on Linux
+You're going to be prompted a run option. For example:
 
 ```bash
-./run.sh
+Connected devices:
+Linux (desktop) • linux  • linux-x64      • Linux Mint 21 5.15.0-41-generic
+Chrome (web)    • chrome • web-javascript • Google Chrome 114.0.5735.198
+[1]: Linux (linux)
+[2]: Chrome (chrome)
+Please choose one (or "q" to quit): 1
 ```
 
-Make sure you have granted execute permissions if needed:
+## Resources
+* [Figma File](https://www.figma.com/file/YFBxDHU58kCfKP5TiHXWsz/GNUS-Build?node-id=81%3A1121) 
 
-```bash
-chmod +x build.sh run.sh
-```
-
-### 🪟 Build on Windows
-
-```cmd
-build.bat
-```
-
-### ▶️ Run on Windows
-
-```cmd
-run.bat
-```
-
-### 🍎 Build on macOS
-
-```bash
-./build.sh
-```
-
-### ▶️ Run on macOS
-
-```bash
-./run.sh
-```
-
-Make sure you have granted execute permissions if needed:
-
-```bash
-chmod +x build.sh run.sh
-```
-
-<details>
-<summary><strong>File Upload for Submitting a SGNUS Job</strong></summary>
-
+## File Upload for Submitting a SGNUS Job
 ### Linux
+- Must have Zenity installed - `sudo apt install zenity`
 
-* Must have Zenity installed - `sudo apt install zenity`
+## Building Release/Debug/RelWithDebInfo
+### \<ostype\> = linux, chrome, ios, android, macos, windows
 
-</details>
-
-<details>
-<summary><strong>Building Release/Debug/RelWithDebInfo</strong></summary>
-
-### <ostype> = linux, chrome, ios, android, macos, windows
-
-#### Release
-
-```
+### Release
+``` 
 CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Release" flutter build <ostype> --release
 ```
 
-#### Debug (default)
-
-```
+### Debug (default)
+``` 
 flutter build <ostype>
 ```
+ - OR -
 
-* OR -
-
-```
+ ```  
 CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --debug
 ```
 
-#### Release with Debug Info
-
-```
+### Release with Debug Info
+``` 
 CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DSANITIZE_CODE=address" flutter -v build <ostype> --profile
 ```
 
-</details>
-
-<details>
-<summary><strong>Building macOS without Code Signing</strong></summary>
+### Building macOS without Code Signing
 
 For local development and testing without an Apple Developer account:
 
 **Disable signing in Xcode project:**
-
 1. Open `macos/Runner.xcodeproj` in Xcode
 2. Select the Runner project → Runner target
 3. Go to "Signing & Capabilities" tab
@@ -405,22 +291,17 @@ For local development and testing without an Apple Developer account:
 5. Set "Signing Certificate" to "Sign to Run Locally"
 
 Then build normally:
-
 ```bash
 flutter build macos
 ```
 
 **Note:** Apps built with local signing:
+- Can only run on your local machine
+- Cannot be distributed to other users
+- Cannot be notarized or uploaded to the App Store
+- May trigger Gatekeeper warnings
 
-* Can only run on your local machine
-* Cannot be distributed to other users
-* Cannot be notarized or uploaded to the App Store
-* May trigger Gatekeeper warnings
-
-</details>
-
-<details>
-<summary><strong>Controlling Dependency Downloads</strong></summary>
+### Controlling Dependency Downloads
 
 You can control how dependencies are downloaded:
 
@@ -432,14 +313,17 @@ CMAKE_ARGUMENTS="-DGENIUS_SKIP_DEPENDENCY_DOWNLOAD=ON" flutter build <ostype>
 CMAKE_ARGUMENTS="-DGENIUS_DEPENDENCY_BRANCH=master" flutter build <ostype>
 ```
 
-</details>
+<BR>
+<BR>
+<BR>
 
-<details>
-<summary><strong>🚀 Sandbox Mode</strong></summary>
+
+# 🚀 Sandbox Mode
 
 The wallet supports **Sandbox Mode**, allowing it to run **without third-party dependencies**. This is useful for testing and development without requiring external services.
 
-### 🛠️ Enabling Sandbox Mode
+
+## 🛠️ Enabling Sandbox Mode
 
 To enable **Sandbox Mode**, set `CMAKE_SKIP_THIRD_PARTY` to `ON` in the `CommonOverrideFlags.cmake` file:
 
@@ -449,18 +333,18 @@ set(CMAKE_SKIP_THIRD_PARTY ON)
 
 This ensures that third-party dependencies are skipped when building the wallet.
 
-### 🔑 Passing a Wallet Private Key
+
+## 🔑 Passing a Wallet Private Key
 
 You can provide a **wallet private key** during startup via **Flutter arguments** or a **launch file**.
 
-#### 📌 Option 1: Using Flutter Arguments
-
+### 📌 **Option 1: Using Flutter Arguments**
+Run the following command to start the wallet with an imported private key:
 ```sh
 flutter run -d windows --dart-define=WALLET_PK=yourprivatekey
 ```
 
-#### 📌 Option 2: Using a Launch File
-
+### 📌 **Option 2: Using a Launch File**
 To set the private key in a **launch file**, add the following configuration:
 
 ```json
@@ -471,19 +355,18 @@ To set the private key in a **launch file**, add the following configuration:
 
 This approach allows you to predefine the wallet key for easier debugging and testing.
 
-</details>
+---
 
 ### 🎯 Summary
 
-| Feature               | Description                                                               |
-| --------------------- | ------------------------------------------------------------------------- |
-| **Flutter Version**   | 3.32.5 or higher required                                                 |
-| **Auto Install**      | Use `install_flutter.sh` (Linux/macOS) or `install_flutter.bat` (Windows) |
-| **VS Code Setup**     | Install Flutter and Dart extensions, use F5 to run with preconfigured launches |
-| **iOS/macOS Dev**     | Requires CocoaPods and Xcode Command Line Tools                           |
-| **Dependencies**      | Automatically downloaded via CMake based on platform/build type           |
-| **Sandbox Mode**      | Runs without third-party dependencies                                     |
-| **CMake Setting**     | `set(CMAKE_SKIP_THIRD_PARTY ON)`                                          |
-| **Private Key Input** | Pass via Flutter args or a launch file                                    |
+| Feature             | Description |
+|--------------------|------------|
+| **Flutter Version** | 3.29.3 or higher required |
+| **Auto Install**   | Use `install_flutter.sh` (Linux/macOS) or `install_flutter.bat` (Windows) |
+| **iOS/macOS Dev**  | Requires CocoaPods and Xcode Command Line Tools |
+| **Dependencies**   | Automatically downloaded via CMake based on platform/build type |
+| **Sandbox Mode**   | Runs without third-party dependencies |
+| **CMake Setting**  | `set(CMAKE_SKIP_THIRD_PARTY ON)` |
+| **Private Key Input** | Pass via Flutter args or a launch file |
 
 ---

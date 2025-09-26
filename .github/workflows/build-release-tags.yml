@@ -1,7 +1,12 @@
-name: Flutter Manually Trigger Build and Release, IOS only for debugging
+name: Flutter Tag Build
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create releases for'
+        required: true
+        type: string
 
 jobs:
   build:
@@ -17,17 +22,33 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [iOS, OSX]
-
+        target: [Android, iOS, OSX, Linux, Windows]
         build-type: [Release]
         abi: [""]
         include:
-          - target: iOS
-            host: macos-latest
-            flutter-platform: ios
+          - target: Linux
+            host: ubuntu-22.04
+            flutter-platform: linux
+            abi: x86_64
+            build-type: Release
+          - target: Linux
+            host: ubuntu-24.04-arm
+            flutter-platform: linux
+            abi: aarch64
+            build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
+          - target: Windows
+            host: windows-latest
+            flutter-platform: windows
           - target: OSX
             host: macos-latest
             flutter-platform: macos
+          - target: Android
+            host: ubuntu-latest
+            flutter-platform: apk
+          - target: iOS
+            host: macos-latest
+            flutter-platform: ios
         exclude:
           - target: Linux
             abi: ""
@@ -35,20 +56,19 @@ jobs:
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
         run: |
-          sudo apt-get update -y
+          sudo apt update
           sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
           sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
           sudo update-alternatives --set cc $(which clang)
           sudo update-alternatives --set c++ $(which clang++)
-           
-          sudo apt install ccache ninja-build libvulkan-dev libzstd-dev jq -y
-          
+
+          sudo apt install ninja-build libvulkan-dev libzstd-dev libsecret-1-dev -y
+
           # Flutter Linux desktop dependencies
           if [ "${{ matrix.target }}" = "Linux" ]; then
-            sudo apt-get update -y
-            sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev libsecret-1-dev libcurl4-openssl-dev libcurl4 curl
+            sudo apt install -y libgtk-3-dev jq
           fi
-          
+
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Configure Windows host
@@ -57,7 +77,7 @@ jobs:
           choco install ccache -A
 
       - name: Configure macOS host
-        if: ${{ runner.os == 'macOS'}}
+        if: ${{ runner.os == 'macOS' }}
         run: |
           brew install ccache ninja bash gnu-tar
           PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
@@ -65,7 +85,7 @@ jobs:
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Install the Apple certificate and provisioning profile for MacOS
-        if: ${{ matrix.host == 'macos-latest' }}
+        if: ${{ runner.os == 'macOS' }}
         env:
           DEV_DISTRIBUTION_SIGNER_CERT_BASE64: ${{ secrets.DEV_DISTRIBUTION_SIGNER_CERT_BASE_64 }}
           DEV_DISTRIBUTION_IOS_PROVISION_BASE64: ${{ secrets.DEV_DISTRIBUTION_IOS_PROVISIONING_PROFILE_BASE_64 }}
@@ -98,7 +118,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
           security find-identity -v
-          
+
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
@@ -113,21 +133,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Configure Gradle memory
-        if: ${{ matrix.target == 'Android' }}
-        run: |
-          # Create gradle.properties with increased heap size
-          mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
-          
-          # Also set it in the project if it exists
-          if [ -f "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties" ]; then
-            echo "" >> "${{ env.GITHUB_WORKSPACE }}/android/gradle.properties"
-            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "${{github.workspace}}/android/gradle.properties"
-          fi
-        shell: bash
+          channel: "master"
+          flutter-version: 3.32.5
 
       - name: Set build directory
         run: |
@@ -139,34 +146,67 @@ jobs:
           echo "BUILD_DIRECTORY=$BUILD_DIRECTORY" >> $GITHUB_ENV
         shell: bash
 
-      - name: Set current branch
-        run: |
-          if ${{github.event_name == 'pull_request'}}; then
-              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
-          else
-              CURRENT_BRANCH=$GITHUB_REF_NAME
-          fi
-          echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Checkout Flutter Project
+      - name: Checkout GeniusWallet
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Configure Android keystore
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create the android directory if it doesn't exist
+          mkdir -p android/app
+          
+          # Decode and save the debug keystore to android/app/ directory
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+          
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+          
+          echo "Android keystore configured"
+          echo "Key properties created:"
+          cat android/key.properties
+          
+          # Verify the keystore file was created
+          if [ -f "android/app/keystore.jks" ]; then
+            echo "Keystore file created successfully at: android/app/keystore.jks"
+            ls -la android/app/keystore.jks
+          else
+            echo "ERROR: Keystore file not found!"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Configure Gradle memory
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Create gradle.properties with increased heap size
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > ~/.gradle/gradle.properties
+
+          # Also set it in the project if it exists
+          if [ -f "android/gradle.properties" ]; then
+            echo "" >> "android/gradle.properties"
+            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "android/gradle.properties"
+          fi
+        shell: bash
 
       - name: Get Flutter Dependencies
         run: |
-          flutter pub get 2>&1 | tee pub_get.log > /dev/null || { cat pub_get.log; exit 1; }
-        run: flutter pub get
-
+          flutter pub get
 
       - name: Setup CMake Arguments
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
-          
+          CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${{ github.event.inputs.tag }}"
+          CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
+
           # Add verbose output for debugging
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
-          
+
           # Windows-specific: ensure message output
           if [ "${{ matrix.target }}" = "Windows" ]; then
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_MESSAGE_LOG_LEVEL=STATUS"
@@ -180,7 +220,7 @@ jobs:
           else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi 
-   
+
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
@@ -207,10 +247,9 @@ jobs:
           fi
 
       - name: Prepare artifacts
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
           mkdir -p artifacts
-          
+
           case "${{ matrix.target }}" in
             "Android")
               if [ "${{ matrix.build-type }}" = "Debug" ]; then
@@ -225,7 +264,7 @@ jobs:
               ;;
             "OSX")
               cd build/macos/Build/Products/${{matrix.build-type}}
-              xcrun productbuild --component genius_wallet.app /Applications genius_wallet_unsigned.pkg
+              xcrun productbuild --component "Genius Wallet.app" /Applications genius_wallet_unsigned.pkg
               xcrun productsign --sign "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)" genius_wallet_unsigned.pkg genius_wallet.pkg
               cp -r genius_wallet.pkg ../../../../../artifacts/ || true
               ;;
@@ -234,48 +273,89 @@ jobs:
               cp -r build/linux/*/debug/bundle artifacts/ || true
               ;;
             "Windows")
-              cp -r build/windows/runner/Release/* artifacts/ || cp -r build/windows/runner/Debug/* artifacts/ || true
+              # Windows builds to build/windows/x64/runner/Release or Debug
+              BUILD_DIR="build/windows/x64/runner/${{ matrix.build-type }}"
+              
+              echo "Looking for Windows build output in: $BUILD_DIR"
+              
+              if [ -d "$BUILD_DIR" ]; then
+                echo "Found build directory: $BUILD_DIR"
+                ls -la "$BUILD_DIR"
+                # Copy the entire directory contents
+                cp -r "$BUILD_DIR"/* artifacts/
+                echo "Copied files to artifacts:"
+                ls -la artifacts/
+              else
+                echo "Windows build directory not found at expected location: $BUILD_DIR"
+                echo "Listing actual build structure:"
+                find build/windows -type d 2>/dev/null || true
+                echo "Windows build failed - build directory not found at $BUILD_DIR" > artifacts/build_error.txt
+              fi
               ;;
           esac
         shell: bash
 
+      - name: Create or check release
+        shell: bash
+        run: |
+          TAG_NAME='${{ github.event.inputs.tag }}'
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+          echo "Checking if GitHub release exists for tag: $TAG_NAME"
+
+          set +e
+          gh release view $TAG_NAME
+          releaseFound=$?
+          set -e
+
+          if [[ $releaseFound -ne 0 ]]; then
+              echo "Release not found, creating for tag: $TAG_NAME"
+
+              # Create a single release for the tag
+              gh release create $TAG_NAME \
+                  --draft \
+                  -n "Build artifacts for tag ${TAG_NAME}" \
+                  -t "${TAG_NAME} build artifacts"
+          else
+              echo "Release already exists for tag: $TAG_NAME"
+          fi
+
       - name: Compress build artifacts
         working-directory: ${{github.workspace}}
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
         run: |
           if [ '${{matrix.abi}}' ]; then
-            ARTIFACT_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}.tar.gz
+            BASE_NAME=${{matrix.target}}-${{matrix.abi}}-${{matrix.build-type}}
           else
-            ARTIFACT_NAME=${{matrix.target}}-${{matrix.build-type}}.tar.gz
+            BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
+          
+          # Android APKs don't need compression - upload directly
+          if [ "${{ matrix.target }}" = "Android" ]; then
+            if [ "${{ matrix.build-type }}" = "Debug" ]; then
+              ARTIFACT_NAME=${BASE_NAME}.apk
+              cp artifacts/app-debug.apk ${ARTIFACT_NAME}
+            else
+              ARTIFACT_NAME=${BASE_NAME}.apk
+              cp artifacts/app-release.apk ${ARTIFACT_NAME}
+            fi
+          # Use appropriate compression format for other platforms
+          elif [ "${{ matrix.target }}" = "Windows" ]; then
+            ARTIFACT_NAME=${BASE_NAME}.zip
+            # Use PowerShell to create zip on Windows
+            powershell -Command "Compress-Archive -Path 'artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
+          else
+            ARTIFACT_NAME=${BASE_NAME}.tar.gz
+            tar -czvf ${ARTIFACT_NAME} artifacts/
+          fi
+          
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-          tar -czvf ${ARTIFACT_NAME} artifacts/
+          echo "Created artifact: ${ARTIFACT_NAME}"
+          ls -la ${ARTIFACT_NAME}
         shell: bash
 
       - name: Release Flutter App
         working-directory: ${{github.workspace}}
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
         shell: bash
         run: |
-          RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
-
-          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
-
-          if ! gh release view $RELEASE_TAG; then
-              echo "Release not found, creating with tag: $RELEASE_TAG"
-
-              if [ '${{ matrix.build-type }}' != 'Release' ]; then
-                  RELEASE_TYPE="--prerelease"
-              else
-                  RELEASE_TYPE="--latest"
-              fi
-
-              gh release create $RELEASE_TAG \
-                  -n "${CURRENT_BRANCH} branch" \
-                  --target "${CURRENT_BRANCH}" \
-                  ${RELEASE_TYPE} \
-                  -t "${{ matrix.target }} ${CURRENT_BRANCH} branch ${{ matrix.build-type }} build"
-          fi
-
-          echo -e "Uploading ${ARTIFACT_NAME}"
-          gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+          echo -e "Uploading ${ARTIFACT_NAME} to release ${TAG_NAME}"
+          gh release upload --clobber ${TAG_NAME} "${ARTIFACT_NAME}"
