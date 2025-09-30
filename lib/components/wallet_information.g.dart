@@ -79,7 +79,6 @@ class WalletInformationState extends State<WalletInformation> {
                       letterSpacing: 1.0,
                       color: Colors.white,
                     ),
-                    textAlign: TextAlign.left,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -99,25 +98,7 @@ class WalletInformationState extends State<WalletInformation> {
               ),
             const SizedBox(height: 8),
             const SGNUSConnectionMobileWidget(),
-            // BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-            //     builder: (context, state) {
-            //   if (state.selectedWallet != null) {
-            //     return StreamBuilder<SGNUSConnection>(
-            //         stream:
-            //             context.read<GeniusApi>().getSGNUSConnectionStream(),
-            //         builder: (context, snapshot) {
-            //           final connection = snapshot.data;
-            //           return SubmitJobDashboardButton(
-            //             walletDetailsCubit: context.read<WalletDetailsCubit>(),
-            //             walletAddress: state.selectedWallet!.address,
-            //             gnusConnectedWalletAddress:
-            //                 connection?.walletAddress ?? "",
-            //           );
-            //         });
-            //   } else {
-            //     return const SizedBox.shrink();
-            //   }
-            // }),
+          
           ],
         ),
         const SizedBox(height: 20),
@@ -183,7 +164,7 @@ class WalletInformationState extends State<WalletInformation> {
                 );
               },
               text: 'Receive',
-              semanticLabel: "Recieve ",
+              semanticLabel: "Receive ",
               icon: Icons.qr_code,
             ),
             const SizedBox(width: 8),
@@ -195,7 +176,7 @@ class WalletInformationState extends State<WalletInformation> {
             const SizedBox(width: 8),
             ActionButton(
                 text: 'Buy GNUS',
-                semanticLabel: "Buy Gnus cryptos for your thining fucking",
+                semanticLabel: "Buy Gnus",
                 icon: Icons.attach_money,
                 onPressed: () async {
                   final url = await BanxaService.getBanxaCheckoutUrl(
