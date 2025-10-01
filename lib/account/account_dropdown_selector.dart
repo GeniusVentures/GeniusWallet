@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -235,7 +236,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             final wallets = [...state.wallets];
 
             // TODO: Can we insert this wallet in genius_api?, We would need to be mindful if the connection drops though
-            if (connection != null && connection.isConnected) {
+            if (connection != null &&
+                connection.connection ==
+                    GeniusTransactionManagerState.GENIUS_TM_STATE_READY) {
               wallets.insert(
                 0,
                 Wallet(
