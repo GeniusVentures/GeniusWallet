@@ -34,8 +34,6 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(WALLET_CORE_TREZOR_CRYPTO_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}TrezorCrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to TrezorCrypto lib")
     set(WALLET_CORE_RUST_LIBRARY ${WALLET_CORE_LIB_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}wallet_core_rs${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to WalletCore rust lib")
 
-    #message(FATAL_ERROR "${WALLET_CORE_RUST_LIBRARY}")
-    include_directories(${WALLET_CORE_INCLUDE_DIR})
     add_library(TrustWalletCore STATIC IMPORTED)
     set_target_properties(TrustWalletCore PROPERTIES IMPORTED_LOCATION ${WALLET_CORE_LIBRARY})
     add_library(wallet_core_rs STATIC IMPORTED)
@@ -61,8 +59,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         set(utf8_range_DIR "${THIRDPARTY_BUILD_DIR}/grpc/lib/cmake/utf8_range")
     endif()
 
-    # --------------------------------------------------------
-    # Set config of protobuf project
+    # protobuf project
     if(NOT DEFINED Protobuf_DIR)
         if (NOT DEFINED PROTOBUF_CONFIG_LOCATION)
             set(PROTOBUF_CONFIG_LOCATION "/grpc/lib/cmake/protobuf")
@@ -84,15 +81,12 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL crypto lib")
     set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE PATH "Path to OpenSSL ssl lib")
     find_package(OpenSSL REQUIRED)
-    include_directories(${OPENSSL_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of rocksdb
+    # rocksdb
     message(STATUS "ROCKSDB ${THIRDPARTY_BUILD_DIR}")
     set(RocksDB_DIR "${THIRDPARTY_BUILD_DIR}/rocksdb/lib/cmake/rocksdb")
     set(RocksDB_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/rocksdb/include")
     find_package(RocksDB CONFIG REQUIRED)
-    include_directories(${RocksDB_INCLUDE_DIR})
 
     #Find VUlkan
     if(APPLE)
@@ -115,67 +109,52 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
 
         find_package(Vulkan REQUIRED)
     endif()
-    # Set config of MNN
+
+    # MNN
     set(MNN_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/MNN/include")
     set(MNN_DIR "${THIRDPARTY_BUILD_DIR}/MNN/lib/cmake/MNN")
     find_package(MNN CONFIG REQUIRED)
     include_directories(${MNN_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of stb
+    # stb
     include_directories(${THIRDPARTY_BUILD_DIR}/stb/include)
 
-    # --------------------------------------------------------
-    # Set config of Microsoft.GSL
+    # Microsoft.GSL
     set(GSL_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/Microsoft.GSL/include")
-    include_directories(${GSL_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of fmt
+    # fmt
     set(fmt_DIR "${THIRDPARTY_BUILD_DIR}/fmt/lib/cmake/fmt")
     set(fmt_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/fmt/include")
     find_package(fmt CONFIG REQUIRED)
-    include_directories(${fmt_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of spdlog v1.4.2
+    # spdlog v1.4.2
     set(spdlog_DIR "${THIRDPARTY_BUILD_DIR}/spdlog/lib/cmake/spdlog")
     set(spdlog_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/spdlog/include")
     find_package(spdlog CONFIG REQUIRED)
-    include_directories(${spdlog_INCLUDE_DIR})
     add_compile_definitions("SPDLOG_FMT_EXTERNAL")
 
-    # --------------------------------------------------------
-    # Set config of soralog
+    # soralog
     set(soralog_DIR "${THIRDPARTY_BUILD_DIR}/soralog/lib/cmake/soralog")
     set(soralog_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/soralog/include")
     find_package(soralog CONFIG REQUIRED)
-    include_directories(${soralog_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of yaml-cpp
+    # yaml-cpp
     set(yaml-cpp_DIR "${THIRDPARTY_BUILD_DIR}/yaml-cpp/lib/cmake/yaml-cpp")
     set(yaml-cpp_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/yaml-cpp/include")
     find_package(yaml-cpp CONFIG REQUIRED)
-    include_directories(${yaml-cpp_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of  tsl_hat_trie
+    #  tsl_hat_trie
     set(tsl_hat_trie_DIR "${THIRDPARTY_BUILD_DIR}/tsl_hat_trie/lib/cmake/tsl_hat_trie")
     set(tsl_hat_trie_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/tsl_hat_trie/include")
     find_package(tsl_hat_trie CONFIG REQUIRED)
-    include_directories(${tsl_hat_trie_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of Boost.DI
+    # Boost.DI
     set(Boost.DI_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/Boost.DI/include")
     set(Boost.DI_DIR "${THIRDPARTY_BUILD_DIR}/Boost.DI/lib/cmake/Boost.DI")
     find_package(Boost.DI CONFIG REQUIRED)
-    include_directories(${Boost.DI_INCLUDE_DIR})
 
     # Boost should be loaded before libp2p v0.1.2
-    # --------------------------------------------------------
-    # Set config of Boost project
+    # Boost project
     set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build")
     message(STATUS "BOOST ROOT ${_BOOST_ROOT}")
     set(Boost_LIB_DIR "${_BOOST_ROOT}/lib")
@@ -217,128 +196,97 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
 
     # header only libraries must not be added here
     find_package(Boost REQUIRED COMPONENTS date_time filesystem random regex system thread log log_setup program_options unit_test_framework json)
-    include_directories(${Boost_INCLUDE_DIRS})
 
-    # --------------------------------------------------------
-    # Set config of SQLiteModernCpp project
+    # SQLiteModernCpp project
     set(SQLiteModernCpp_ROOT_DIR "${THIRDPARTY_BUILD_DIR}/SQLiteModernCpp")
     set(SQLiteModernCpp_DIR "${SQLiteModernCpp_ROOT_DIR}/lib/cmake/SQLiteModernCpp")
     set(SQLiteModernCpp_LIB_DIR "${SQLiteModernCpp_ROOT_DIR}/lib")
     set(SQLiteModernCpp_INCLUDE_DIR "${SQLiteModernCpp_ROOT_DIR}/include")
 
-    # --------------------------------------------------------
-    # Set config of SQLiteModernCpp project
+    # SQLiteModernCpp project
     set(sqlite3_ROOT_DIR "${THIRDPARTY_BUILD_DIR}/sqlite3")
     set(sqlite3_DIR "${sqlite3_ROOT_DIR}/lib/cmake/sqlite3")
     set(sqlite3_LIB_DIR "${sqlite3_ROOT_DIR}/lib")
     set(sqlite3_INCLUDE_DIR "${sqlite3_ROOT_DIR}/include")
 
-    # --------------------------------------------------------
-    # Set config of cares
+    # cares
     set(c-ares_DIR "${THIRDPARTY_BUILD_DIR}/cares/lib/cmake/c-ares" CACHE PATH "Path to c-ares install folder")
     set(c-ares_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/cares/include" CACHE PATH "Path to c-ares include folder")
 
-    # --------------------------------------------------------
-    # Set config of libp2p
+    # libp2p
     set(libp2p_DIR "${THIRDPARTY_BUILD_DIR}/libp2p/lib/cmake/libp2p")
     set(libp2p_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/libp2p/lib")
     set(libp2p_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/libp2p/include")
     find_package(libp2p CONFIG REQUIRED)
-    include_directories(${libp2p_INCLUDE_DIR})
 
-    # --------------------------------------------------------
     # Find and include cares if libp2p have not included it
     if(NOT TARGET c-ares::cares_static)
         find_package(c-ares CONFIG REQUIRED)
     endif()
 
-    include_directories(${c-ares_INCLUDE_DIR})
-
-    # --------------------------------------------------------
-    # Set config of ipfs-lite-cpp
+    # ipfs-lite-cpp
     set(ipfs-lite-cpp_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-lite-cpp/lib/cmake/ipfs-lite-cpp")
     set(ipfs-lite-cpp_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-lite-cpp/include")
     set(ipfs-lite-cpp_LIB_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-lite-cpp/lib")
     set(CBOR_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-lite-cpp/include/deps/tinycbor/src")
     find_package(ipfs-lite-cpp CONFIG REQUIRED)
-    include_directories(${ipfs-lite-cpp_INCLUDE_DIR} ${CBOR_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of ipfs-pubsub
+    # ipfs-pubsub
     set(ipfs-pubsub_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-pubsub/include")
     set(ipfs-pubsub_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-pubsub/lib/cmake/ipfs-pubsub")
     find_package(ipfs-pubsub CONFIG REQUIRED)
-    include_directories(${ipfs-pubsub_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of ipfs-bitswap-cpp
+    # ipfs-bitswap-cpp
     set(ipfs-bitswap-cpp_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-bitswap-cpp/include")
     set(ipfs-bitswap-cpp_DIR "${THIRDPARTY_BUILD_DIR}/ipfs-bitswap-cpp/lib/cmake/ipfs-bitswap-cpp")
     find_package(ipfs-bitswap-cpp CONFIG REQUIRED)
-    include_directories(${ipfs-bitswap-cpp_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of ed25519
+    # ed25519
     set(ed25519_DIR "${THIRDPARTY_BUILD_DIR}/ed25519/lib/cmake/ed25519")
     set(ed25519_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/ed25519/include")
     find_package(ed25519 CONFIG REQUIRED)
-    include_directories(${ed25519_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of sr25519-donna
+    # sr25519-donna
     set(sr25519-donna_DIR "${THIRDPARTY_BUILD_DIR}/sr25519-donna/lib/cmake/sr25519-donna")
     set(sr25519-donna_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/sr25519-donna/include")
     find_package(sr25519-donna CONFIG REQUIRED)
-    include_directories(${sr25519-donna_INCLUDE_DIR})
 
-    # --------------------------------------------------------
     # Set RapidJSON config path
     set(RapidJSON_DIR "${THIRDPARTY_BUILD_DIR}/rapidjson/lib/cmake/RapidJSON")
     set(RapidJSON_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/rapidjson/include")
     find_package(RapidJSON CONFIG REQUIRED)
-    include_directories(${RapidJSON_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of secp256k1
+    # secp256k1
     set(libsecp256k1_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/include")
     set(libsecp256k1_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/lib")
     set(libsecp256k1_DIR "${THIRDPARTY_BUILD_DIR}/libsecp256k1/lib/cmake/libsecp256k1")
     find_package(libsecp256k1 CONFIG REQUIRED)
-    include_directories(${libsecp256k1_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of xxhash
+    # xxhash
     set(xxHash_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/xxHash/include")
     set(xxHash_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/xxHash/lib")
     set(xxHash_DIR "${THIRDPARTY_BUILD_DIR}/xxhash/lib/cmake/xxHash")
     find_package(xxHash CONFIG REQUIRED)
-    include_directories(${xxHash_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of libssh2
+    # libssh2
     set(Libssh2_DIR "${THIRDPARTY_BUILD_DIR}/libssh2/lib/cmake/libssh2")
     set(Libssh2_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/libssh2/lib")
     set(Libssh2_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/libssh2/include")
     find_package(Libssh2 CONFIG REQUIRED)
-    include_directories(${LIBSSH2_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of AsyncIOManager
+    # AsyncIOManager
     set(AsyncIOManager_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/AsyncIOManager/include")
     set(AsyncIOManager_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/AsyncIOManager/lib")
     set(AsyncIOManager_DIR "${THIRDPARTY_BUILD_DIR}/AsyncIOManager/lib/cmake/AsyncIOManager")
     find_package(AsyncIOManager CONFIG REQUIRED)
 
-    # --------------------------------------------------------
-    # Set config of gnus_upnp
+    # gnus_upnp
     set(gnus_upnp_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/gnus_upnp/include")
     set(gnus_upnp_LIBRARY_DIR "${THIRDPARTY_BUILD_DIR}/gnus_upnp/lib")
     set(gnus_upnp_DIR "${THIRDPARTY_BUILD_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
     find_package(gnus_upnp CONFIG REQUIRED)
-    include_directories(${gnus_upnp_INCLUDE_DIR})
 
-    # --------------------------------------------------------
-    # Set config of crypto3
+    # crypto3
     add_library(crypto3::algebra INTERFACE IMPORTED)
     add_library(crypto3::block INTERFACE IMPORTED)
     add_library(crypto3::blueprint INTERFACE IMPORTED)
@@ -399,7 +347,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     # zkLLVM
     set(zkLLVM_INCLUDE_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/include")
 
-    # Set config of llvm
+    # llvm
     set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
     find_package(LLVM CONFIG REQUIRED)
 
@@ -410,31 +358,19 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     message(STATUS "SUPERGENIUS_BUILD_DIR DIR: ${SUPERGENIUS_BUILD_DIR}")
     find_package(ProofSystem CONFIG REQUIRED)
     find_package(SuperGenius CONFIG REQUIRED)
-    include_directories(${SuperGenius_INCLUDE_DIR})
 
     set(GENIUSSDK_BUILD_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})
     set(GeniusSDK_DIR "${GENIUSSDK_BUILD_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
     find_package(GeniusSDK CONFIG REQUIRED)
-    include_directories(${GeniusSDK_INCLUDE_DIR})
     set(CMAKE_OSX_DEPLOYMENT_TARGET 12.1)
     set(BUILD_SHARED_LIBS ON)
+    
     if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         add_library(
             GeniusWallet
             SHARED
             ${CMAKE_CURRENT_LIST_DIR}/null.cpp
         )
-        
-        #set_target_properties(GeniusWallet PROPERTIES
-        #    FRAMEWORK TRUE
-        #    MACOSX_FRAMEWORK_IDENTIFIER GeniusWallet
-        #    MACOSX_FRAMEWORK_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/GeniusWallet_Info.plist
-        #    XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "12.0"
-        #    MACHO_OUTPUT_TYPE "mh_dylib"
-        #    MACOSX_RPATH TRUE
-        #    LINKER_LANGUAGE CXX
-        #    XCODE_ATTRIBUTE_EMBEDDED_CONTENT_CONTAINS_SWIFT YES
-        #)
 
         if(SET_NAME_UNIX_FORCE)
             set_target_properties(GeniusWallet PROPERTIES SUFFIX ".so")

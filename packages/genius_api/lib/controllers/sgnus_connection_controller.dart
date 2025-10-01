@@ -5,7 +5,8 @@ import 'package:rxdart/rxdart.dart';
 class SGNUSConnectionController {
   // Private StreamController
   final _controller = BehaviorSubject<SGNUSConnection>.seeded(
-      SGNUSConnection(sgnusAddress: "", walletAddress: "", isConnected: false));
+    SGNUSConnection(sgnusAddress: "", walletAddress: "", connection: null),
+  );
 
   // Expose the stream for listeners
   Stream<SGNUSConnection> get stream => _controller.stream;
@@ -17,7 +18,8 @@ class SGNUSConnectionController {
 
   void emptyConnection() {
     _controller.add(SGNUSConnection(
-        sgnusAddress: "", walletAddress: "", isConnected: false));
+        sgnusAddress: "", walletAddress: "", connection: null),
+    );
   }
 
   // Close the controller when done
