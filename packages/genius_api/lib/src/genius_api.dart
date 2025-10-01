@@ -48,6 +48,9 @@ class GeniusApi {
 
   Future<void> requestPermissions() async {
     try {
+      if (Platform.isLinux || Platform.isWindows) {
+        return;
+      }
       if (await Permission.storage.isDenied) {
         await Permission.storage.request();
       }
