@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -26,7 +27,7 @@ void byPassSGNUSConnecton(geniusApi) {
   geniusApi.getSGNUSController().updateConnection(const SGNUSConnection(
       sgnusAddress: "0x67890-Bypass",
       walletAddress: "0x12345-Bypass",
-      isConnected: true));
+      connection: GeniusTransactionManagerState.GENIUS_TM_STATE_READY));
 }
 
 void byPassWalletCreation(localWalletStorage) {

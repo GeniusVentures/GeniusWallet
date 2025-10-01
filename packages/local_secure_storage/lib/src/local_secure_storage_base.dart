@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
