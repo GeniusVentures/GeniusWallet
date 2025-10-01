@@ -85,6 +85,10 @@ android {
         targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+
+        // Additional optimizations to reduce memory usage and exclude x86
+        multiDexEnabled false
+        resConfigs "en"  // Only include English resources to reduce APK size
     }
 
     signingConfigs {
@@ -105,6 +109,10 @@ android {
         }
         debug {
             signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+            // Reduce memory usage for debug builds
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
     }
     externalNativeBuild {
