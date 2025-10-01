@@ -6,17 +6,16 @@ part of 'token.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$TokenImpl _$$TokenImplFromJson(Map<String, dynamic> json) => _$TokenImpl(
-      address: json['address'] as String?,
-      iconPath: json['iconPath'] as String?,
-      name: json['name'] as String?,
-      coinGeckoId: json['coinGeckoId'] as String?,
-    );
+_Token _$TokenFromJson(Map<String, dynamic> json) => _Token(
+  address: json['address'] as String?,
+  iconPath: json['iconPath'] as String?,
+  name: json['name'] as String?,
+  coinGeckoId: json['coinGeckoId'] as String?,
+);
 
-Map<String, dynamic> _$$TokenImplToJson(_$TokenImpl instance) =>
-    <String, dynamic>{
-      'address': instance.address,
-      'iconPath': instance.iconPath,
-      'name': instance.name,
-      'coinGeckoId': instance.coinGeckoId,
-    };
+Map<String, dynamic> _$TokenToJson(_Token instance) => <String, dynamic>{
+  'address': instance.address,
+  'iconPath': instance.iconPath,
+  'name': instance.name,
+  'coinGeckoId': instance.coinGeckoId,
+};

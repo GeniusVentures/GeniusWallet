@@ -4,7 +4,7 @@ part 'network.freezed.dart';
 part 'network.g.dart';
 
 @freezed
-class Network with _$Network {
+sealed class Network with _$Network {
   const factory Network(
       {String? name,
       String? symbol,

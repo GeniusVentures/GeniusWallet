@@ -4,7 +4,7 @@ part 'coin.freezed.dart';
 part 'coin.g.dart';
 
 @freezed
-class Coin with _$Coin {
+sealed class Coin with _$Coin {
   const factory Coin(
       {String? name,
       String? symbol,

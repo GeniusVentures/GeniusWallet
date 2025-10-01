@@ -5,7 +5,7 @@ part 'wallet.freezed.dart';
 part 'wallet.g.dart';
 
 @freezed
-class Wallet with _$Wallet {
+abstract class Wallet with _$Wallet {
   const factory Wallet({
     required TWCoinType coinType,
     required String walletName,
