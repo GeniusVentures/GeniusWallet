@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -33,7 +34,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
   void _generateLayoutData(int itemCount) {
     _layoutData.clear();
     for (int i = 0; i < itemCount; i++) {
-      final type = _random.nextInt(3); // 0, 1, 2
+      final type = _random.nextInt(3);
       _layoutData.add(_CardLayoutData(type: type, height: 350));
     }
   }
@@ -59,83 +60,59 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
               ),
               const SizedBox(height: 24),
               Expanded(
-                  child: FutureBuilder<List<NewsArticle>>(
-                future: _newsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                child: FutureStateWidget<List<NewsArticle>>(
+                  future: _newsFuture,
+                  error: const Center(child: Text('Failed to load news.')),
+                  onData: (articles) {
+                    if (articles.isEmpty) {
+                      return const Center(child: Text('No news found.'));
+                    }
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isMobile = constraints.maxWidth <= 800;
+                        final columns =
+                            getResponsiveColumnCount(constraints.maxWidth);
 
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
+                        if (_layoutData.length != articles.length) {
+                          _generateLayoutData(articles.length);
+                        }
 
-                  final articles = snapshot.data;
+                        return MasonryGridView.count(
+                          crossAxisCount: columns,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          itemCount: articles.length,
+                          itemBuilder: (context, index) {
+                            final article = articles[index];
+                            final layout = _layoutData[index];
 
-                  if (articles == null || articles.isEmpty) {
-                    return const Center(child: Text('No news found.'));
-                  }
+                            Widget card;
 
-                  // Only pass to LayoutBuilder AFTER all null/empty checks
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isMobile = constraints.maxWidth <= 800;
-                      final columns =
-                          getResponsiveColumnCount(constraints.maxWidth);
-
-                      if (_layoutData.length != articles.length) {
-                        _generateLayoutData(articles.length);
-                      }
-
-                      return MasonryGridView.count(
-                        crossAxisCount: columns,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        itemCount: articles.length,
-                        itemBuilder: (context, index) {
-                          final article = articles[index];
-                          final layout = _layoutData[index];
-
-                          Widget card;
-
-                          if (isMobile) {
-                            // Mobile layout - always show mobile cards
-                            card = NewsCard(article: article);
-                            return card;
-                          } else {
-                            // Desktop layout with variation
-                            switch (layout.type) {
-                              case 0: // Theres also a WideNewsCard that is a full image with text..
-                                card = NewsCard(article: article);
-                                break;
-                              case 1:
-                                card = NewsCard(article: article);
-                                break;
-                              case 2:
-                                card = NewsCard(article: article);
-                                break;
-                              default:
-                                card = NewsCard(article: article);
+                            if (isMobile) {
+                              card = NewsCard(article: article);
+                              return card;
+                            } else {
+                              switch (layout.type) {
+                                case 0:
+                                case 1:
+                                case 2:
+                                  card = NewsCard(article: article);
+                                  break;
+                                default:
+                                  card = NewsCard(article: article);
+                              }
+                              return AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: card,
+                              );
                             }
-
-                            // return ConstrainedBox(
-                            //   constraints: BoxConstraints(
-                            //     minHeight: 300,
-                            //     maxHeight: layout.height,
-                            //   ),
-                            //   child: card,
-                            // );
-                            return AspectRatio(
-                              aspectRatio: 16 / 9, // or 4 / 3
-                              child: card,
-                            );
-                          }
-                        },
-                      );
-                    },
-                  );
-                },
-              )),
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
               const SizedBox(height: 16)
             ],
           ),
