@@ -189,7 +189,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             title: Row(mainAxisSize: MainAxisSize.min, children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(
-                    15), // Half of width/height for a circle
+                    15),
                 child: Image.asset(
                   'assets/images/crypto/wallet-connect.png',
                   height: 50,
@@ -258,13 +258,13 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 4),
                       backgroundColor: Colors.transparent,
-                      // keep minimum size / overlay default
+                     
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.link, // choose any icon you prefer
+                          Icons.link,
                           size: 18,
                           color: GeniusWalletColors.lightGreenPrimary,
                         ),
@@ -275,7 +275,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                               : "Enter URI Manually",
                           style: const TextStyle(
                             color: GeniusWalletColors.gray500,
-                            // underline with app primary color
+                          
                             decoration: TextDecoration.underline,
                             decorationColor:
                                 GeniusWalletColors.lightGreenPrimary,
@@ -292,9 +292,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             actions: [
               if (showManualInput)
 
-                /// --- CONNECT (primary filled button) ---
+             
                 SizedBox(
-                  width: double.infinity, // full width
+                  width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
                       final input = _uriController.text.trim();
@@ -310,7 +310,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
                       try {
                         await walletKit.pair(uri: Uri.parse(input));
-                        Navigator.of(context).pop(); // Only close if successful
+                        Navigator.of(context).pop(); 
                       } catch (e) {
                         setInnerState(() {
                           manualInputError = '❌ URI Connect Failed: $e';
@@ -365,7 +365,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius:
-                          BorderRadius.circular(12), // rounded corners
+                          BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: Colors.transparent,
@@ -391,13 +391,13 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         });
       }
 
-      // ⏱ Timeout fallback if no session is received
+     
       Future.delayed(const Duration(seconds: 15), () {
         if (_isConnecting && _session == null && mounted) {
           setState(() {
             _isConnecting = false;
             _hasError = true;
-            _timedOut = true; // 👈 Flag timeout separately
+            _timedOut = true; 
             _statusMessage = "⏱ Connection timed out. Please try again.";
           });
           debugPrint('⏱ Timeout hit – no session received.');

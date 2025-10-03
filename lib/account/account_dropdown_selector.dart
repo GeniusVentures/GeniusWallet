@@ -146,7 +146,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      hoverColor: Colors.greenAccent.withOpacity(0.08),
+      hoverColor: Colors.greenAccent.withAlpha(20),
       onTap: () => Navigator.of(context).pop(wallet),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
