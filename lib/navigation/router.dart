@@ -11,6 +11,7 @@ import 'package:genius_wallet/components/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
+import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -109,6 +110,17 @@ final geniusWalletRouter = GoRouter(
               child: Text('Something went wrong! Please reload the app.'),
             );
           },
+        );
+      },
+    ),
+    GoRoute(
+      path: '/network',
+      builder: (context, state) {
+        return BlocProvider.value(
+          value: context.read<WalletDetailsCubit>(),
+          child: NetworkStatusPage(
+            geniusApi: context.read<GeniusApi>(),
+          ),
         );
       },
     ),

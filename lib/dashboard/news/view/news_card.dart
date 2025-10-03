@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/web/web_utils.dart';
-
-
 class NewsCard extends StatefulWidget {
   final NewsArticle article;
 
