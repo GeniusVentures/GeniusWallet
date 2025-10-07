@@ -70,4 +70,7 @@ class GeniusWalletColors {
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 
   static const Color currencyBackground = Color(0xff0050b7);
+  static const Color mutedGreen = Color(0xFF2EBE7B);
+
+  static const Color mutedRed = Color(0xFFE57373);
 }

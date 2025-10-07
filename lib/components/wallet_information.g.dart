@@ -98,7 +98,6 @@ class WalletInformationState extends State<WalletInformation> {
               ),
             const SizedBox(height: 8),
             const SGNUSConnectionMobileWidget(),
-          
           ],
         ),
         const SizedBox(height: 20),
