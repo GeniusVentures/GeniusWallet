@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -99,17 +100,25 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                   final connection = snapshot.data;
                   return ListTile(
                     leading: Icon(
-                      (connection != null && connection.isConnected)
+                      (connection != null &&
+                              connection.connection ==
+                                  GeniusTransactionManagerState
+                                      .GENIUS_TM_STATE_READY)
                           ? Icons.check_circle
                           : Icons.error_outline,
-                      color: (connection != null && connection.isConnected)
+                      color: (connection != null &&
+                              connection.connection ==
+                                  GeniusTransactionManagerState
+                                      .GENIUS_TM_STATE_READY)
                           ? Colors.green
                           : Colors.red,
                     ),
                     title: const Text('SGNUS Connection'),
                     subtitle: Text(connection == null
                         ? 'No data'
-                        : connection.isConnected
+                        : connection.connection ==
+                                GeniusTransactionManagerState
+                                    .GENIUS_TM_STATE_READY
                             ? "Connected\nAddress: ${connection.sgnusAddress}\nWallet: ${connection.walletAddress}"
                             : "Disconnected"),
                   );
