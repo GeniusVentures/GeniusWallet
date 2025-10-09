@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -26,8 +27,8 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
             child: Text('No connection data available'),
           );
         }
-
         final connection = snapshot.data!;
+
         return GestureDetector(
           onTap: () => context.push('/network'),
           child: Column(
@@ -36,16 +37,20 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Flexible(
+                  Flexible(
                       child: AutoSizeText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    'SGNUS Connection ',
-                    style: TextStyle(fontSize: 14),
+                    readableConnectionState(connection.connection),
+                    style: const TextStyle(fontSize: 14),
                   )),
                   const SizedBox(width: 8),
-                  if (connection.isConnected) const CheckmarkAnimation(),
-                  if (!connection.isConnected) const XAnimation(),
+                  if (connection.connection != null &&
+                      connection.connection ==
+                          GeniusTransactionManagerState.GENIUS_TM_STATE_READY)
+                    const CheckmarkAnimation()
+                  else
+                    const XAnimation(),
                 ],
               ),
             ],
@@ -84,16 +89,20 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Flexible(
+                  Flexible(
                       child: AutoSizeText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    'SGNUS Connection ',
+                    readableConnectionState(connection.connection),
                     style: TextStyle(fontSize: 14),
                   )),
                   const SizedBox(width: 8),
-                  if (connection.isConnected) const CheckmarkAnimation(),
-                  if (!connection.isConnected) const XAnimation(),
+                  if (connection.connection != null &&
+                      connection.connection ==
+                          GeniusTransactionManagerState.GENIUS_TM_STATE_READY)
+                    const CheckmarkAnimation()
+                  else
+                    const XAnimation(),
                 ],
               ),
             ],
@@ -102,4 +111,15 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
       },
     );
   }
+}
+
+String readableConnectionState(GeniusTransactionManagerState? state) {
+  return 'SGNUS Connection: ${switch (state) {
+    null => "disconnected",
+    GeniusTransactionManagerState.GENIUS_TM_STATE_CREATING => "creating",
+    GeniusTransactionManagerState.GENIUS_TM_STATE_INITIALIZING =>
+      "initializing",
+    GeniusTransactionManagerState.GENIUS_TM_STATE_SYNCHING => "syncing",
+    GeniusTransactionManagerState.GENIUS_TM_STATE_READY => "ready",
+  }}';
 }
