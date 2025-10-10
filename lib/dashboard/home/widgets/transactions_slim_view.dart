@@ -31,7 +31,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    setState(() {}); // Trigger rebuild on text scaling changes
+    setState(() {});
   }
 
   void handleFilterSelected(String filter) {
@@ -48,11 +48,8 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
     filteredTransactions.retainWhere((transaction) {
       if (selectedFilter == 'All') return true;
       if (selectedFilter == 'Escrow' &&
-          transaction.type == TransactionType.escrow) {
-        return true;
-      }
-      if (selectedFilter == 'Escrow' &&
-          transaction.type == TransactionType.escrowRelease) {
+          (transaction.type == TransactionType.escrow ||
+              transaction.type == TransactionType.escrowRelease)) {
         return true;
       }
       if (selectedFilter == 'Mint' &&
@@ -89,8 +86,10 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           child: AutoSizeText(
             maxLines: 1,
             "Transactions: ${filteredTransactions.length}",
-            style: const TextStyle(
-                fontSize: 16, color: GeniusWalletColors.gray500),
+            style: TextStyle(
+              fontSize: 16 * textScaleFactor,
+              color: GeniusWalletColors.gray500,
+            ),
           ),
         ),
       ],
