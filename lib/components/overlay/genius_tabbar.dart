@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class GeniusTabbar extends StatelessWidget {
   static const _numTabs = 5;
@@ -17,12 +18,11 @@ class GeniusTabbar extends StatelessWidget {
       builder: (context, state) {
         final selectedScreen = state.selectedScreen;
 
-        // Get the index in the currently visible screens
         final selectedIndex = screenList.indexOf(selectedScreen);
 
         return BottomNavigationBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
+          elevation: 8,
+          backgroundColor: GeniusWalletColors.deepBlueCardColor,
           enableFeedback: false,
           currentIndex: selectedIndex >= 0 ? selectedIndex : 0,
           onTap: (int index) {
@@ -53,10 +53,7 @@ class GeniusTabbar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 4),
-              Container(
-                  height: 1,
-                  width: 40,
-                  color: Colors.transparent), // empty bar for unselected
+              Container(height: 1, width: 40, color: Colors.transparent),
               const SizedBox(height: 8),
               e.icon,
             ],
@@ -68,9 +65,9 @@ class GeniusTabbar extends StatelessWidget {
               Container(
                   height: 1,
                   width: 40,
-                  color: Colors.greenAccent), // green line
+                  color: GeniusWalletColors.lightGreenPrimary),
               const SizedBox(height: 8),
-              e.selectedIcon ?? e.icon, // use selected icon if available
+              e.selectedIcon ?? e.icon,
             ],
           ),
           label: e.label.data,
