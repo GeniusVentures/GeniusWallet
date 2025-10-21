@@ -694,16 +694,23 @@ jobs:
           releaseFound=$?
           set -e
 
-           if [[ $releaseFound -eq 0 && "$IS_TAG_RELEASE" == "false" ]]; then
-              echo "Deleting existing branch-based release + tag..."
-              gh release delete "$RELEASE_TAG" --yes
-              git push origin ":refs/tags/$RELEASE_TAG" || true
+          if [[ $releaseFound -eq 0 ]]; then
+              if [[ "$IS_TAG_RELEASE" == "false" ]]; then
+                  echo "Deleting existing branch-based release + tag..."
+                  gh release delete "$RELEASE_TAG" --yes
+                  git push origin ":refs/tags/$RELEASE_TAG" || true
+              else
+                  echo "Tag release $RELEASE_TAG already exists, skipping creation"
+                  exit 0
+              fi
           fi
 
-          # Force-create tag locally and push it
-          echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
-          git tag -f "$RELEASE_TAG" "${{ github.sha }}"
-          git push --force origin "$RELEASE_TAG"
+          # Force-create tag locally and push it (only for branch releases or new tag releases)
+          if [[ "$IS_TAG_RELEASE" == "false" ]]; then
+              echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
+              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+              git push --force origin "$RELEASE_TAG"
+          fi
 
           RELEASE_TYPE="--draft"
           gh release create "$RELEASE_TAG" \
