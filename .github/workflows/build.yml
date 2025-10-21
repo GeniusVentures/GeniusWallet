@@ -713,10 +713,19 @@ jobs:
           fi
 
           RELEASE_TYPE="--draft"
+          
+          if [[ "$IS_TAG_RELEASE" == "true" ]]; then
+              RELEASE_TITLE="${{ github.event.inputs.tag }} build artifacts"
+              RELEASE_NOTES="Tag: ${{ github.event.inputs.tag }} | SHA: ${{ github.sha }}"
+          else
+              RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
+              RELEASE_NOTES="Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}"
+          fi
+          
           gh release create "$RELEASE_TAG" \
             --target "${{ github.sha }}" \
-            -t "${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build" \
-            -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+            -t "$RELEASE_TITLE" \
+            -n "$RELEASE_NOTES" \
             ${RELEASE_TYPE}
 
       - name: Upload file
