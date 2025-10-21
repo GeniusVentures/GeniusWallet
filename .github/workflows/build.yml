@@ -643,14 +643,10 @@ jobs:
         shell: bash
 
       - name: Wait for primary release creation
-        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && (matrix.target == 'Linux' && matrix.abi == 'aarch64')
+        if: (github.ref_name == 'main' || github.ref_name == 'develop') && (matrix.target == 'Linux' && matrix.abi == 'aarch64') && env.IS_TAG != 'true'
         working-directory: ${{github.workspace}}
         run: |
-          if [ "$IS_TAG" == "true" ]; then
-              RELEASE_TAG="${{ github.event.inputs.tag }}"
-          else
-              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
-          fi
+          RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
           echo "Waiting for primary job to create/update release: $RELEASE_TAG"
@@ -705,9 +701,13 @@ jobs:
               fi
           fi
 
-          # Force-create tag locally and push it (only for branch releases or new tag releases)
+          # Create and push tag
           if [[ "$IS_TAG_RELEASE" == "false" ]]; then
               echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
+              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+              git push --force origin "$RELEASE_TAG"
+          else
+              echo "Creating tag $RELEASE_TAG for tag release"
               git tag -f "$RELEASE_TAG" "${{ github.sha }}"
               git push --force origin "$RELEASE_TAG"
           fi
