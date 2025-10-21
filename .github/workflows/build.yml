@@ -671,7 +671,7 @@ jobs:
 
       - name: Create release of GeniusWallet
         working-directory: ${{github.workspace}}
-        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && !(matrix.target == 'Linux' && matrix.abi == 'aarch64')
+        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && (env.IS_TAG == 'true' || !(matrix.target == 'Linux' && matrix.abi == 'aarch64'))
         shell: bash
         run: |
           if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
@@ -701,32 +701,32 @@ jobs:
               fi
           fi
 
-          # Create and push tag
-          if [[ "$IS_TAG_RELEASE" == "false" ]]; then
-              echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
-              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
-              git push --force origin "$RELEASE_TAG"
-          else
-              echo "Creating tag $RELEASE_TAG for tag release"
-              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
-              git push --force origin "$RELEASE_TAG"
-          fi
-
           RELEASE_TYPE="--draft"
           
           if [[ "$IS_TAG_RELEASE" == "true" ]]; then
+              # For tag releases, just create the release (tag already exists)
               RELEASE_TITLE="${{ github.event.inputs.tag }} build artifacts"
-              RELEASE_NOTES="Tag: ${{ github.event.inputs.tag }} | SHA: ${{ github.sha }}"
+              RELEASE_NOTES="Build artifacts for tag ${{ github.event.inputs.tag }}"
+              echo "Creating release for existing tag: $RELEASE_TAG"
+              gh release create "$RELEASE_TAG" \
+                --draft \
+                -t "$RELEASE_TITLE" \
+                -n "$RELEASE_NOTES"
           else
+              # For branch releases, create and push tag first
+              echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
+              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+              git push --force origin "$RELEASE_TAG"
+              
               RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
               RELEASE_NOTES="Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}"
+              echo "Creating release for branch build"
+              gh release create "$RELEASE_TAG" \
+                --target "${{ github.sha }}" \
+                -t "$RELEASE_TITLE" \
+                -n "$RELEASE_NOTES" \
+                ${RELEASE_TYPE}
           fi
-          
-          gh release create "$RELEASE_TAG" \
-            --target "${{ github.sha }}" \
-            -t "$RELEASE_TITLE" \
-            -n "$RELEASE_NOTES" \
-            ${RELEASE_TYPE}
 
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
