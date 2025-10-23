@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
+import 'package:genius_wallet/dashboard/transactions/transaction_escrow_release_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_purchased_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_swapped_item.dart';
@@ -30,7 +31,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    setState(() {}); // Trigger rebuild on text scaling changes
+    setState(() {});
   }
 
   void handleFilterSelected(String filter) {
@@ -47,14 +48,12 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
     filteredTransactions.retainWhere((transaction) {
       if (selectedFilter == 'All') return true;
       if (selectedFilter == 'Escrow' &&
-          transaction.type == TransactionType.escrow) {
+          (transaction.type == TransactionType.escrow ||
+              transaction.type == TransactionType.escrowRelease)) {
         return true;
       }
-      if (selectedFilter == 'Escrow' &&
-          transaction.type == TransactionType.escrowRelease) {
-        return true;
-      }
-      if (selectedFilter == 'Mint' && transaction.type == TransactionType.mint) {
+      if (selectedFilter == 'Mint' &&
+          transaction.type == TransactionType.mint) {
         return true;
       }
       if (selectedFilter == 'Received' &&
@@ -87,8 +86,10 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
           child: AutoSizeText(
             maxLines: 1,
             "Transactions: ${filteredTransactions.length}",
-            style: const TextStyle(
-                fontSize: 16, color: GeniusWalletColors.gray500),
+            style: TextStyle(
+              fontSize: 16 * textScaleFactor,
+              color: GeniusWalletColors.gray500,
+            ),
           ),
         ),
       ],
@@ -102,13 +103,12 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
       itemBuilder: (context, index) {
         final tx = transactions[index];
 
-        if (tx.type == TransactionType.purchase) {
-          return TransactionPurchasedItem(tx: tx);
-        } else if (tx.type == TransactionType.swap) {
-          return TransactionSwappedItem(tx: tx);
-        } else {
-          return TransactionItem(tx: tx);
-        }
+        return switch (tx.type) {
+          TransactionType.purchase => TransactionPurchasedItem(tx: tx),
+          TransactionType.escrowRelease => TransactionEscrowReleaseItem(tx: tx),
+          TransactionType.swap => TransactionSwappedItem(tx: tx),
+          _ => TransactionItem(tx: tx),
+        };
       },
     );
   }
