@@ -732,6 +732,24 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         working-directory: ${{github.workspace}}
         run: |
+          # Ensure RELEASE_TAG is set for upload step
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
+              RELEASE_TAG="${{ github.event.inputs.tag }}"
+          else
+              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+          fi
+          
+          echo "Upload step using RELEASE_TAG: $RELEASE_TAG"
+          
+          # Verify release exists before uploading
+          echo "Verifying release exists..."
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "ERROR: Release $RELEASE_TAG not found!"
+            echo "Available releases:"
+            gh release list || true
+            exit 1
+          fi
+          
           # Upload artifacts
           if [ "${{ matrix.target }}" = "OSX" ]; then
             # Upload macOS packages individually
