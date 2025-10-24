@@ -19,6 +19,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
@@ -174,23 +175,22 @@ class WalletInformationState extends State<WalletInformation> {
             ),
             const SizedBox(width: 8),
             ActionButton(
-                text: 'Buy GNUS',
-                semanticLabel: "Buy Gnus",
-                icon: Icons.attach_money,
-                onPressed: () async {
-                  final url = await BanxaService.getBanxaCheckoutUrl(
-                    walletAddress: widget.ovrAddressField,
-                    userEmail: '',
-                  );
-
-                  if (!context.mounted) return;
-
-                  if (url != null) {
-                    context.push('/buy', extra: url);
-                  } else {
-                    showAppSnackBar(context, 'Failed to launch Banxa checkout');
-                  }
-                }),
+              text: 'Buy GNUS',
+              semanticLabel: "Buy GNUS crypto",
+              icon: Icons.attach_money,
+              onPressed: () async {
+                final url = await BanxaService.getBanxaCheckoutUrl(
+                  walletAddress: widget.ovrAddressField,
+                  userEmail: '',
+                );
+                if (!context.mounted) return;
+                if (url != null) {
+                  context.push('/buy', extra: url);
+                } else {
+                  showAppSnackBar(context, 'Failed to launch Banxa checkout');
+                }
+              },
+            ),
             const SizedBox(width: 8),
             ActionButton(
               text: "More",
