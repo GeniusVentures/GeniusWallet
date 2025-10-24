@@ -30,5 +30,16 @@
 	<string>NSApplication</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
+	<key>CFBundleURLTypes</key>
+    <array>
+    <dict>
+    <key>CFBundleURLName</key>
+    <string>ai.gnus.genius_wallet</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+    <string>geniuswallet</string>
+    </array>
+    </dict>
+    </array>
 </dict>
 </plist>
