@@ -41,7 +41,8 @@ ThemeData getThemeData() => ThemeData(
           if (states.contains(MaterialState.selected)) {
             return GeniusWalletColors.lightGreenPrimary;
           }
-          return GeniusWalletColors.lightGreenPrimary.withOpacity(0.13);
+          return GeniusWalletColors.lightGreenPrimary.withAlpha(33);
+          // 33 ≈ 13% opacity
         }),
         dayForegroundColor: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) return Colors.black;
@@ -53,14 +54,18 @@ ThemeData getThemeData() => ThemeData(
             return GeniusWalletColors.lightGreenPrimary;
           }
           if (states.contains(MaterialState.dragged)) {
-            return GeniusWalletColors.lightGreenPrimary.withOpacity(0.2);
+            return GeniusWalletColors.lightGreenPrimary.withAlpha(51);
+            // 51 ≈ 20% opacity
           }
           return Colors.transparent;
         }),
         rangeSelectionBackgroundColor:
-            GeniusWalletColors.lightGreenPrimary.withOpacity(0.15),
+            GeniusWalletColors.lightGreenPrimary.withAlpha(38),
+// 38 ≈ 15% opacity
         rangeSelectionOverlayColor: MaterialStateProperty.all(
-            GeniusWalletColors.lightGreenPrimary.withOpacity(0.2)),
+          GeniusWalletColors.lightGreenPrimary.withAlpha(51),
+          // 51 ≈ 20% opacity
+        ),
       ),
       appBarTheme: const AppBarTheme(
           iconTheme: IconThemeData(size: 24),
