@@ -1,4 +1,4 @@
-import 'package:genius_wallet/banaxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banaxa_model.dart';
 
 enum PollingStatus { initial, loading, success, error }
 

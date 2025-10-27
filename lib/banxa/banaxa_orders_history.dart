@@ -2,13 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/banaxa/banaxa_model.dart';
-import 'package:genius_wallet/banaxa/banxa_components/order_filter.dart';
-import 'package:genius_wallet/banaxa/banxa_helpers/banxa_helpers.dart';
-import 'package:genius_wallet/banaxa/banxa_order/banxa_order_cubit.dart';
-import 'package:genius_wallet/banaxa/banxa_order/banxa_order_state.dart';
-import 'package:genius_wallet/banaxa/handle_banaxa_drawer.dart';
-import 'package:genius_wallet/banaxa/banxa_components/order_grid.dart';
+import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_card.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_filter.dart';
+import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
+import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:go_router/go_router.dart';
 
@@ -172,12 +172,45 @@ class _OrdersPageState extends State<OrdersPage> {
               Expanded(
                 child: orders.isEmpty
                     ? const Center(child: Text("No orders found."))
-                    : OrderGrid(
-                        orders: orders,
-                        onSeeDetails: _onSeeDetails,
-                        onCompletePayment: _onCompletePayment,
-                        onRetryOrder: _onRetryOrder,
-                      ),
+                    : LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWide = constraints.maxWidth > 900;
+                            final crossAxisCount = isWide ? 2 : 1;
+                            const spacing = 16.0;
+                            final totalSpacing = spacing * (crossAxisCount - 1);
+                            final cardWidth =
+                                (constraints.maxWidth - totalSpacing) /
+                                    crossAxisCount;
+
+                            const targetHeight = 300.0;
+                            double childAspectRatio = cardWidth / targetHeight;
+                            childAspectRatio = childAspectRatio.clamp(1.2, 2.5);
+
+                            return GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                mainAxisSpacing: spacing,
+                                crossAxisSpacing: spacing,
+                                childAspectRatio: childAspectRatio,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              itemCount: orders.length,
+                              itemBuilder: (context, index) {
+                                final order = orders[index];
+                                return OrderCard(
+                                  order: order,
+                                  onSeeDetails: () => _onSeeDetails(order),
+                                  onCompletePayment: () =>
+                                      _onCompletePayment(order),
+                                  onRetryOrder: () => _onRetryOrder(order),
+                                );
+                              },
+                            );
+                          },
+                        )
+
               ),
             ],
           );

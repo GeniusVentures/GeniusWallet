@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banaxa/banaxa_model.dart';
-import 'package:genius_wallet/banaxa/banxa_components/order_action_button.dart';
-import 'package:genius_wallet/banaxa/banxa_components/order_in_row.dart';
+import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_in_row.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:intl/intl.dart';
 
@@ -103,11 +102,29 @@ class OrderCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                OrderActionButton(
-                  status: order.status,
-                  onCompletePayment: onCompletePayment,
-                  onRetryOrder: onRetryOrder,
-                ),
+                if (order.status.toLowerCase() == 'pendingpayment')
+                  ElevatedButton(
+                    onPressed: onCompletePayment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Complete Payment'),
+                  )
+                else if (order.status.toLowerCase() == 'declined')
+                  OutlinedButton(
+                    onPressed: onRetryOrder,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Retry Order'),
+                  )
+                else
+                  const SizedBox.shrink(),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(

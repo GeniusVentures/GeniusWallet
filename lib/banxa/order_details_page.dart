@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
-import 'package:genius_wallet/banaxa/banaxa_model.dart';
-import 'package:genius_wallet/banaxa/banxa_components/order_details_card.dart';
-import 'package:genius_wallet/banaxa/banxa_helpers/banxa_helpers.dart';
-import 'package:genius_wallet/banaxa/handle_banaxa_drawer.dart';
+import 'package:genius_wallet/banxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_details_card.dart';
+import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
+import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:go_router/go_router.dart';

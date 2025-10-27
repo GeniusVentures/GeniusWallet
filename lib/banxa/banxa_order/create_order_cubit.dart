@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
-import 'package:genius_wallet/banaxa/banaxa_model.dart';
-import 'package:genius_wallet/banaxa/banxa_order/create_order_state.dart';
+import 'package:genius_wallet/banxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 
 class MakeOrderCubit extends Cubit<MakeOrderState> {
   final BanxaApiService _service;

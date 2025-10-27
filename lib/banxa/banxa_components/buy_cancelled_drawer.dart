@@ -1,18 +1,17 @@
-// buy_success_drawer.dart
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/buy_success_drawer_content.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer_content.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 
-class BuySuccessDrawer {
+class BuyCancelledDrawer {
   static void show(
     BuildContext context, {
     VoidCallback? onClose,
   }) {
     ResponsiveDrawer.show<void>(
       context: context,
-      title: "Success",
+      title: "Cancelled",
       children: const [
-        BuySuccessDrawerContent(),
+        BuyCancelledDrawerContent(),
       ],
       footer: OutlinedButton(
         onPressed: () {
@@ -24,14 +23,15 @@ class BuySuccessDrawer {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          side: const BorderSide(color: Colors.greenAccent),
+          side: const BorderSide(color: Colors.redAccent),
           minimumSize: const Size.fromHeight(48),
         ),
         child: const Text(
-          "Done",
-          style: TextStyle(color: Colors.greenAccent),
+          "Close",
+          style: TextStyle(color: Colors.redAccent),
         ),
       ),
+      onClose: onClose,
     );
   }
 }

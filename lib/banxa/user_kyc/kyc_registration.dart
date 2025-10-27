@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:csc_picker_plus/csc_picker_plus.dart';
-import 'package:genius_wallet/banaxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banxa/banaxa_api_services.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -132,7 +132,6 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
   Future<String> _uploadImage(File? file) async {
     if (file == null) throw Exception('No file selected');
     await Future.delayed(const Duration(seconds: 1));
-    // Replace this with your actual upload logic and return the image URL.
     return 'https://dummy.com/${file.path.split('/').last}';
   }
 
