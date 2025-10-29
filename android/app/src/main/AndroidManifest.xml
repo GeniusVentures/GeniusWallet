@@ -4,6 +4,7 @@ package="ai.gnus.genius_wallet">
         android:label="genius_wallet"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
