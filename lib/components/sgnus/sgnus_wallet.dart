@@ -28,7 +28,7 @@ class SGNUSWalletState extends State<SGNUSWallet> {
 
         final connection = snapshot.data!;
 
-        if (connection.isConnected) {
+        if (connection.connection != null) {
           return WalletPreview(
               walletBalance: const Flexible(
                   child: GeniusBalanceDisplay(

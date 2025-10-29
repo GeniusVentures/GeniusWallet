@@ -4,7 +4,7 @@ part 'currency.freezed.dart';
 part 'currency.g.dart';
 
 @freezed
-class Currency with _$Currency {
+sealed class Currency with _$Currency {
   const factory Currency({
     required String symbol,
     required String name,

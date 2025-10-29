@@ -4,7 +4,7 @@ part 'token.freezed.dart';
 part 'token.g.dart';
 
 @freezed
-class Token with _$Token {
+sealed class Token with _$Token {
   const factory Token(
       {String? address,
       String? iconPath,

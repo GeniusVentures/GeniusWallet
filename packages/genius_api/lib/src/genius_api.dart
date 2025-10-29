@@ -35,19 +35,22 @@ class GeniusApi {
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   final SGNUSConnectionController _sgnusConnectionController;
   final SGNUSTransactionsController _sgnusTransactionsController;
+  late final Timer _timer;
   late final String address;
   late final String jsonFilePath;
   bool isSdkInitialized = false;
 
-  GeniusApi({
-    required LocalWalletStorage secureStorage,
-  })  : _secureStorage = secureStorage,
-        ffiBridgePrebuilt = FFIBridgePrebuilt(),
-        _sgnusConnectionController = SGNUSConnectionController(),
-        _sgnusTransactionsController = SGNUSTransactionsController();
+  GeniusApi({required LocalWalletStorage secureStorage})
+    : _secureStorage = secureStorage,
+      ffiBridgePrebuilt = FFIBridgePrebuilt(),
+      _sgnusConnectionController = SGNUSConnectionController(),
+      _sgnusTransactionsController = SGNUSTransactionsController();
 
   Future<void> requestPermissions() async {
     try {
+      if (Platform.isLinux || Platform.isWindows) {
+        return;
+      }
       if (await Permission.storage.isDenied) {
         await Permission.storage.request();
       }
@@ -120,11 +123,14 @@ class GeniusApi {
     PrivateKey privateKey;
 
     if (storedKey.isMnemonic()) {
-      privateKey =
-          storedKey.wallet("")!.getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+      privateKey = storedKey
+          .wallet("")!
+          .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
     } else {
-      privateKey =
-          storedKey.privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0))!;
+      privateKey = storedKey.privateKey(
+        TWCoinType.TWCoinTypeEthereum,
+        Uint8List(0),
+      )!;
     }
 
     jsonFilePath = await copyJsonToWritableDirectory();
@@ -138,7 +144,13 @@ class GeniusApi {
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
     debugPrint('Json File Path: $jsonFilePath');
     final retVal = ffiBridgePrebuilt.gns_lib.GeniusSDKInit(
-        basePathPtr.cast(), privateKeyAsPtr.cast(), true, true, 41001, false);
+      basePathPtr.cast(),
+      privateKeyAsPtr.cast(),
+      true,
+      true,
+      41001,
+      false,
+    );
 
     if (retVal == nullptr) {
       return;
@@ -149,14 +161,19 @@ class GeniusApi {
     malloc.free(basePathPtr);
     malloc.free(privateKeyAsPtr);
 
-    // Update UI with SGNUS connection status
-    getSGNUSController().updateConnection(SGNUSConnection(
-        sgnusAddress: address,
-        walletAddress: storedKey
-                .wallet("")
-                ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
-            "",
-        isConnected: true));
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+      getSGNUSController().updateConnection(
+        SGNUSConnection(
+          sgnusAddress: address,
+          walletAddress:
+              storedKey
+                  .wallet("")
+                  ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
+              "",
+          connection: getTransactionManagerState(),
+        ),
+      );
+    });
 
     isSdkInitialized = true;
   }
@@ -168,23 +185,27 @@ class GeniusApi {
       final filePath = '${directory.path}/dev_config.json';
 
       debugPrint(
-          'Application documents directory: ${directory.path}'); // Log the directory path
+        'Application documents directory: ${directory.path}',
+      ); // Log the directory path
 
       // Load the asset file
       final jsonString = await rootBundle.loadString('assets/dev_config.json');
       debugPrint(
-          'Loaded JSON string: $jsonString'); // Log the content of the JSON
+        'Loaded JSON string: $jsonString',
+      ); // Log the content of the JSON
 
       // Write the file to the writable directory
       final file = File(filePath);
       await file.writeAsString(jsonString);
       debugPrint(
-          'File written to: $filePath'); // Log the file path after writing
+        'File written to: $filePath',
+      ); // Log the file path after writing
 
       // Verify the file was written correctly
       final writtenFileContent = await file.readAsString();
       debugPrint(
-          'Content of the written file: $writtenFileContent'); // Log the written file content
+        'Content of the written file: $writtenFileContent',
+      ); // Log the written file content
 
       // Return the directory path for use in FFI
       return '${directory.path}/';
@@ -220,7 +241,11 @@ class GeniusApi {
   }
 
   void mintTokens(
-      int amount, String transactionHash, String chainId, String tokenId) {
+    int amount,
+    String transactionHash,
+    String chainId,
+    String tokenId,
+  ) {
     final Pointer<Utf8> transhash = transactionHash.toNativeUtf8();
     final Pointer<Utf8> chainid = chainId.toNativeUtf8();
 
@@ -228,16 +253,21 @@ class GeniusApi {
     final tokenIdData = calloc<GeniusTokenID>();
 
     // Parse hex string token_id and fill the data array
-    String cleanTokenId =
-        tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+    String cleanTokenId = tokenId.startsWith('0x')
+        ? tokenId.substring(2)
+        : tokenId;
 
     for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
       String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
       tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
     }
 
-    ffiBridgePrebuilt.gns_lib.GeniusSDKMint(amount, transhash as Pointer<Char>,
-        chainid as Pointer<Char>, tokenIdData.ref);
+    ffiBridgePrebuilt.gns_lib.GeniusSDKMint(
+      amount,
+      transhash as Pointer<Char>,
+      chainid as Pointer<Char>,
+      tokenIdData.ref,
+    );
 
     calloc.free(tokenIdData);
     malloc.free(transhash);
@@ -251,16 +281,16 @@ class GeniusApi {
 
   void requestAIProcess() {
     //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
-//
+    //
     //Pointer<Char> charPointer = malloc.allocate<Char>(job_id.length + 1);
-//
+    //
     //for (int i = 0; i < job_id.length; i++) {
     //  charPointer.elementAt(i).value = job_id.codeUnitAt(i);
     //}
     //charPointer.elementAt(job_id.length).value = 0;
-//
+    //
     //ffiBridgePrebuilt.gns_lib.GeniusSDKProcess(charPointer, 100);
-//
+    //
     //malloc.free(charPointer);
   }
 
@@ -338,10 +368,15 @@ class GeniusApi {
   Future<void> saveWallet(HDWallet wallet) async {
     String mnemonic = wallet.mnemonic();
     String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
-    String walletName = wallet.name ??
+    String walletName =
+        wallet.name ??
         "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}";
     StoredKey? storedKey = StoredKey.importHDWallet(
-        mnemonic, walletName, "", TWCoinType.TWCoinTypeEthereum);
+      mnemonic,
+      walletName,
+      "",
+      TWCoinType.TWCoinTypeEthereum,
+    );
 
     if (storedKey == null) {
       return;
@@ -361,12 +396,18 @@ class GeniusApi {
   }) async {
     if (securityType == SecurityType.passphrase) {
       return await importWalletFromMnemonic(
-          securityValue, walletName, coinType);
+        securityValue,
+        walletName,
+        coinType,
+      );
     }
 
     if (securityType == SecurityType.privateKey) {
       return await importWalletFromPrivateKey(
-          securityValue, walletName, coinType);
+        securityValue,
+        walletName,
+        coinType,
+      );
     }
 
     if (securityType == SecurityType.address) {
@@ -375,14 +416,22 @@ class GeniusApi {
 
     if (securityType == SecurityType.keystore) {
       return await importWalletFromKeyStore(
-          securityValue, password, walletName, coinType);
+        securityValue,
+        password,
+        walletName,
+        coinType,
+      );
     }
 
     return false;
   }
 
-  Future<bool> importWalletFromKeyStore(String json, String? password,
-      String walletName, TWCoinType coinType) async {
+  Future<bool> importWalletFromKeyStore(
+    String json,
+    String? password,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
     StoredKey? storedKey = StoredKey.importJson(json);
 
     if (storedKey == null) {
@@ -390,11 +439,15 @@ class GeniusApi {
     }
 
     final mnemonic = storedKey.decryptMnemonic(
-        Uint8List.fromList(password?.codeUnits ?? List.empty()));
+      Uint8List.fromList(password?.codeUnits ?? List.empty()),
+    );
 
-    final pk = hex.encode(storedKey.decryptPrivateKey(
-            Uint8List.fromList(password?.codeUnits ?? List.empty())) ??
-        List.empty());
+    final pk = hex.encode(
+      storedKey.decryptPrivateKey(
+            Uint8List.fromList(password?.codeUnits ?? List.empty()),
+          ) ??
+          List.empty(),
+    );
 
     if (mnemonic == null || pk == "") {
       return false;
@@ -412,21 +465,31 @@ class GeniusApi {
       return false;
     }
 
-    await _secureStorage.saveWatchedWallet(Wallet(
+    await _secureStorage.saveWatchedWallet(
+      Wallet(
         balance: 0,
         walletName: walletName,
         currencySymbol: CoinUtil.getSymbol(coinType),
         coinType: coinType,
         walletType: WalletType.tracking,
-        address: address));
+        address: address,
+      ),
+    );
 
     return true;
   }
 
   Future<bool> importWalletFromMnemonic(
-      String mnemonic, String walletName, TWCoinType coinType) async {
-    StoredKey? storedKey =
-        StoredKey.importHDWallet(mnemonic, walletName, "", coinType);
+    String mnemonic,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
+    StoredKey? storedKey = StoredKey.importHDWallet(
+      mnemonic,
+      walletName,
+      "",
+      coinType,
+    );
 
     if (storedKey == null) {
       return false;
@@ -439,10 +502,17 @@ class GeniusApi {
   }
 
   Future<bool> importWalletFromPrivateKey(
-      String privateKey, String walletName, TWCoinType coinType) async {
+    String privateKey,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
     final privateKeyData = Uint8List.fromList(hex.decode(privateKey));
-    StoredKey? storedKey =
-        StoredKey.importPrivateKey(privateKeyData, walletName, "", coinType);
+    StoredKey? storedKey = StoredKey.importPrivateKey(
+      privateKeyData,
+      walletName,
+      "",
+      coinType,
+    );
 
     if (storedKey == null) {
       return false;
@@ -472,8 +542,9 @@ class GeniusApi {
       }
     } else {
       // Parse provided token ID
-      String cleanTokenId =
-          tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      String cleanTokenId = tokenId.startsWith('0x')
+          ? tokenId.substring(2)
+          : tokenId;
 
       for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
         String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -481,8 +552,9 @@ class GeniusApi {
       }
     }
 
-    final balance =
-        ffiBridgePrebuilt.gns_lib.GeniusSDKGetBalance(tokenIdData.ref);
+    final balance = ffiBridgePrebuilt.gns_lib.GeniusSDKGetBalance(
+      tokenIdData.ref,
+    );
     calloc.free(tokenIdData);
     return balance.toString();
   }
@@ -491,8 +563,8 @@ class GeniusApi {
     if (!isSdkInitialized) {
       return "0";
     }
-    GeniusTokenValue tokenValue =
-        ffiBridgePrebuilt.gns_lib.GeniusSDKGetBalanceGNUS();
+    GeniusTokenValue tokenValue = ffiBridgePrebuilt.gns_lib
+        .GeniusSDKGetBalanceGNUS();
     final array = tokenValue.value;
     List<int> charCodes = [];
     for (int i = 0; i < 22; i++) {
@@ -513,8 +585,10 @@ class GeniusApi {
     }
     var address = ffiBridgePrebuilt.gns_lib.GeniusSDKGetAddress();
 
-    List<int> charCodes =
-        List<int>.generate(66, (index) => address.address[index]);
+    List<int> charCodes = List<int>.generate(
+      66,
+      (index) => address.address[index],
+    );
 
     return String.fromCharCodes(charCodes);
   }
@@ -535,16 +609,20 @@ class GeniusApi {
     // Fallback: try different nanosecond-based conversions with year validation. None of these transaction should be outside of 2024/2025 so we're filtering for that
     final conversions = [
       () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 1000000), // nanoseconds (Linux)
+        timestamp ~/ 1000000,
+      ), // nanoseconds (Linux)
       () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 10), // 100ns (Windows old)
+        timestamp ~/ 10,
+      ), // 100ns (Windows old)
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10000000),
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100000000),
       () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100), // 10ns
       () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 1000), // microseconds
+        timestamp ~/ 1000,
+      ), // microseconds
       () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 1), // already microseconds
+        timestamp ~/ 1,
+      ), // already microseconds
     ];
 
     for (final convert in conversions) {
@@ -569,8 +647,9 @@ class GeniusApi {
     var transactions = ffiBridgePrebuilt.gns_lib.GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
-      var buffer =
-          transactions.ptr[i].ptr.asTypedList(transactions.ptr[i].size);
+      var buffer = transactions.ptr[i].ptr.asTypedList(
+        transactions.ptr[i].size,
+      );
       var header = DAGWrapper.fromBuffer(buffer).dagStruct;
 
       var fromAddress = String.fromCharCodes(header.sourceAddr);
@@ -582,8 +661,12 @@ class GeniusApi {
       if (header.type == "escrow") {
         rawRecipients = EscrowTx.fromBuffer(buffer).utxoParams.outputs;
       } else if (header.type == "mint") {
-        recipients.add(TransferRecipients(
-            amount: MintTx.fromBuffer(buffer).amount.toString(), toAddr: ""));
+        recipients.add(
+          TransferRecipients(
+            amount: MintTx.fromBuffer(buffer).amount.toString(),
+            toAddr: "",
+          ),
+        );
       } else if (header.type == "process") {
         // No recipients in this kind of transaction
       } else if (header.type == "transfer") {
@@ -593,26 +676,32 @@ class GeniusApi {
       }
 
       if (rawRecipients != null) {
-        recipients.addAll(rawRecipients.map((output) => TransferRecipients(
-            toAddr: output.destAddr
-                .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-                .join(),
-            amount: output.encryptedAmount.toString())));
+        recipients.addAll(
+          rawRecipients.map(
+            (output) => TransferRecipients(
+              toAddr: output.destAddr
+                  .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+                  .join(),
+              amount: output.encryptedAmount.toString(),
+            ),
+          ),
+        );
       }
 
       Transaction trans = Transaction(
-          hash: String.fromCharCodes(header.dataHash),
-          fromAddress: fromAddress,
-          recipients: recipients,
-          timeStamp: parseTimestamp(header.timestamp.toInt()),
-          transactionDirection: address == fromAddress
-              ? TransactionDirection.sent
-              : TransactionDirection.received,
-          fees: '0',
-          coinSymbol: 'minions',
-          transactionStatus: TransactionStatus.completed,
-          isSGNUS: true,
-          type: TransactionType.fromString(header.type));
+        hash: String.fromCharCodes(header.dataHash),
+        fromAddress: fromAddress,
+        recipients: recipients,
+        timeStamp: parseTimestamp(header.timestamp.toInt()),
+        transactionDirection: address == fromAddress
+            ? TransactionDirection.sent
+            : TransactionDirection.received,
+        fees: '0',
+        coinSymbol: 'minions',
+        transactionStatus: TransactionStatus.completed,
+        isSGNUS: true,
+        type: TransactionType.fromString(header.type),
+      );
 
       return trans;
     });
@@ -643,8 +732,9 @@ class GeniusApi {
       }
     } else {
       // Parse provided token ID
-      String cleanTokenId =
-          tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      String cleanTokenId = tokenId.startsWith('0x')
+          ? tokenId.substring(2)
+          : tokenId;
 
       for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
         String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -652,8 +742,11 @@ class GeniusApi {
       }
     }
 
-    final ret = ffiBridgePrebuilt.gns_lib
-        .GeniusSDKTransfer(amount, convertedAddress, tokenIdData.ref);
+    final ret = ffiBridgePrebuilt.gns_lib.GeniusSDKTransfer(
+      amount,
+      convertedAddress,
+      tokenIdData.ref,
+    );
 
     calloc.free(convertedAddress);
     calloc.free(tokenIdData);
@@ -690,8 +783,9 @@ class GeniusApi {
       }
     } else {
       // Parse provided token ID
-      String cleanTokenId =
-          tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      String cleanTokenId = tokenId.startsWith('0x')
+          ? tokenId.substring(2)
+          : tokenId;
 
       for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
         String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -699,21 +793,24 @@ class GeniusApi {
       }
     }
 
-    final result =
-        ffiBridgePrebuilt.gns_lib.GeniusSDKPayDev(amount, tokenIdData.ref);
+    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKPayDev(
+      amount,
+      tokenIdData.ref,
+    );
     calloc.free(tokenIdData);
 
     return result;
   }
 
-  Future<ApiResponse<String>> bridgeOut(
-      {required String contractAddress,
-      required String rpcUrl,
-      required String address,
-      required String amountToBurn,
-      required int sourceChainId,
-      required int destinationChainId,
-      bool shouldMintTokens = false}) async {
+  Future<ApiResponse<String>> bridgeOut({
+    required String contractAddress,
+    required String rpcUrl,
+    required String address,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+    bool shouldMintTokens = false,
+  }) async {
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
@@ -721,12 +818,13 @@ class GeniusApi {
     }
 
     final resp = await Web3(geniusApi: this).executeBridgeOutTransaction(
-        contractAddress: contractAddress,
-        rpcUrl: rpcUrl,
-        amountToBurn: amountToBurn,
-        sourceChainId: sourceChainId,
-        destinationChainId: destinationChainId,
-        wallet: wallet);
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      amountToBurn: amountToBurn,
+      sourceChainId: sourceChainId,
+      destinationChainId: destinationChainId,
+      wallet: wallet,
+    );
 
     if (shouldMintTokens && resp.isSuccess && resp.data != null) {
       final hardCodedTokenIdForNow = 0;
@@ -742,13 +840,14 @@ class GeniusApi {
     return resp;
   }
 
-  Future<ApiResponse<String>> getBrigeOutGasCost(
-      {required String contractAddress,
-      required String rpcUrl,
-      required String address,
-      required String amountToBurn,
-      required int sourceChainId,
-      required int destinationChainId}) async {
+  Future<ApiResponse<String>> getBrigeOutGasCost({
+    required String contractAddress,
+    required String rpcUrl,
+    required String address,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+  }) async {
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
@@ -757,15 +856,17 @@ class GeniusApi {
 
     final web3 = Web3(geniusApi: this);
     final gasResponse = await web3.getBrigeOutGasCost(
-        contractAddress: contractAddress,
-        rpcUrl: rpcUrl,
-        amountToBurn: amountToBurn,
-        destinationChainId: destinationChainId,
-        wallet: wallet);
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      amountToBurn: amountToBurn,
+      destinationChainId: destinationChainId,
+      wallet: wallet,
+    );
 
     if (!gasResponse.isSuccess) {
       return ApiResponse.error(
-          gasResponse.errorMessage ?? "Failed to retrieve gas costs");
+        gasResponse.errorMessage ?? "Failed to retrieve gas costs",
+      );
     }
 
     final gasPriceInGwei = web3.getGasPriceInGwei(gasResponse.data);
@@ -786,8 +887,16 @@ class GeniusApi {
     final privateKey = getDevPrivateKey() ?? web3.getPrivateKeyStr(wallet);
 
     final resp = await web3.signAndSendTransaction(
-        tx: tx, rpcUrl: rpcUrl, chainId: sourceChainId, privateKey: privateKey);
+      tx: tx,
+      rpcUrl: rpcUrl,
+      chainId: sourceChainId,
+      privateKey: privateKey,
+    );
 
     return resp;
+  }
+
+  GeniusTransactionManagerState getTransactionManagerState() {
+    return ffiBridgePrebuilt.gns_lib.GeniusSDKGetTransactionManagerState();
   }
 }

@@ -2,12 +2,13 @@ name: genius_api
 version: 2.0.0
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: "^3.8.0"
 
 dev_dependencies:
   ffigen: ^19.1.0
   build_runner: ^2.8.0
   freezed: ^3.2.3
+  json_serializable: ^6.11.1
 
 dependencies:
   flutter:
