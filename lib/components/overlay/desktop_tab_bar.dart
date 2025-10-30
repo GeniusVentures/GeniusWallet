@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
-import 'package:genius_wallet/banxa/buy_gnus_button.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_gnus_button.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
