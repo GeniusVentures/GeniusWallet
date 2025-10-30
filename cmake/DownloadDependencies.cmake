@@ -401,6 +401,27 @@ function(get_dependency_branch BRANCH_VAR)
     endif()
 endfunction()
 
+# Function to resolve dependency-specific branch override
+function(resolve_dependency_branch DEP_NAME DEFAULT_BRANCH RESULT_VAR)
+    # Convert dependency name to uppercase for variable names
+    string(TOUPPER ${DEP_NAME} DEP_NAME_UPPER)
+    
+    # Check for dependency-specific override variable
+    set(DEP_BRANCH_VAR "GENIUS_${DEP_NAME_UPPER}_BRANCH")
+    
+    if(DEFINED ${DEP_BRANCH_VAR})
+        set(${RESULT_VAR} ${${DEP_BRANCH_VAR}} PARENT_SCOPE)
+        message(STATUS "Using dependency-specific branch for ${DEP_NAME}: ${${DEP_BRANCH_VAR}} (from ${DEP_BRANCH_VAR})")
+    else()
+        set(${RESULT_VAR} ${DEFAULT_BRANCH} PARENT_SCOPE)
+        if(DEFINED GENIUS_DEPENDENCY_BRANCH)
+            message(STATUS "Using global branch for ${DEP_NAME}: ${DEFAULT_BRANCH} (from GENIUS_DEPENDENCY_BRANCH)")
+        else()
+            message(STATUS "Using default branch for ${DEP_NAME}: ${DEFAULT_BRANCH}")
+        endif()
+    endif()
+endfunction()
+
 # Main function to download project dependencies
 function(download_project_dependencies)
     # Check if downloads are disabled
@@ -453,7 +474,9 @@ function(download_project_dependencies)
         message(STATUS "========================================")
 
         foreach(DEP ${DEPENDENCIES})
-            setup_dependency(${DEP} BRANCH ${ARG_BRANCH})
+            # Resolve dependency-specific branch override
+            resolve_dependency_branch(${DEP} ${ARG_BRANCH} DEP_BRANCH)
+            setup_dependency(${DEP} BRANCH ${DEP_BRANCH})
         endforeach()
     else()
         message(STATUS "All dependencies are already present, skipping downloads")
@@ -498,18 +521,26 @@ endfunction()
 #    include(cmake/DownloadDependencies.cmake)
 #    download_project_dependencies(thirdparty zkLLVM)  # Will use master branch
 #
-# 8. Download custom/external dependencies:
+# 8. Override specific dependencies with different branches:
+#    set(GENIUS_DEPENDENCY_BRANCH "TestNet-Phase-3.1")
+#    set(GENIUS_SUPERGENIUS_BRANCH "develop")
+#    set(GENIUS_ZKLLVM_BRANCH "main")
+#    include(cmake/DownloadDependencies.cmake)
+#    download_project_dependencies(SuperGenius GeniusSDK zkLLVM thirdparty)
+#    # SuperGenius uses "develop", zkLLVM uses "main", GeniusSDK and thirdparty use "TestNet-Phase-3.1"
+#
+# 9. Download custom/external dependencies:
 #    include(cmake/DownloadDependencies.cmake)
 #    download_project_dependencies(thirdparty MyCustomLib AnotherRepo)
 #
-# 9. Android multi-ABI support:
+# 10. Android multi-ABI support:
 #    if(ANDROID)
 #        set(ANDROID_ABIS "arm64-v8a" "armeabi-v7a")
 #    endif()
 #    include(cmake/DownloadDependencies.cmake)
 #    download_project_dependencies(SuperGenius GeniusSDK zkLLVM thirdparty)
 #
-# 10. Tag-based dependencies:
+# 11. Tag-based dependencies:
 #    set(GENIUS_DEPENDENCY_BRANCH "v1.0.0")
 #    set(BRANCH_IS_TAG ON)
 #    include(cmake/DownloadDependencies.cmake)
@@ -517,7 +548,8 @@ endfunction()
 #
 # Variables:
 #   GENIUS_SKIP_DEPENDENCY_DOWNLOAD - Set to ON to skip all downloads
-#   GENIUS_DEPENDENCY_BRANCH - Override the auto-detected Git branch
+#   GENIUS_DEPENDENCY_BRANCH - Override the auto-detected Git branch for all dependencies
+#   GENIUS_<DEPENDENCY>_BRANCH - Override branch for specific dependency (e.g., GENIUS_SUPERGENIUS_BRANCH, GENIUS_GENIUSSDK_BRANCH, GENIUS_ZKLLVM_BRANCH, GENIUS_THIRDPARTY_BRANCH)
 #   BRANCH_IS_TAG - Set to ON when GENIUS_DEPENDENCY_BRANCH is a tag (not a branch)
 #   ANDROID_ABIS - List of Android ABIs to download (defaults to arm64-v8a and armeabi-v7a)
 #
@@ -525,3 +557,7 @@ endfunction()
 # Note: When on 'main' branch, dependencies from 'main' are used. For all other branches, 'develop' dependencies are used.
 # Note: For Android builds, the script will download dependencies for all specified ABIs automatically.
 # Note: When BRANCH_IS_TAG is ON, the release tag format is just the tag name (e.g., "v1.0.0") instead of "Platform-Branch-BuildType"
+# Note: Dependency-specific branch overrides take precedence over GENIUS_DEPENDENCY_BRANCH
+#
+# Example CMake command with dependency-specific overrides:
+# CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DGENIUS_SUPERGENIUS_BRANCH=develop -DGENIUS_ZKLLVM_BRANCH=main -DBRANCH_IS_TAG=ON"

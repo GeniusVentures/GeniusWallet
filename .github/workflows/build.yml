@@ -30,6 +30,22 @@ on:
           - "testflight"
           - "developer-id"
         default: "both"
+      supergenius_branch:
+        description: "SuperGenius dependency branch override"
+        required: false
+        type: string
+      geniussdk_branch:
+        description: "GeniusSDK dependency branch override"
+        required: false
+        type: string
+      zkllvm_branch:
+        description: "zkLLVM dependency branch override"
+        required: false
+        type: string
+      thirdparty_branch:
+        description: "thirdparty dependency branch override"
+        required: false
+        type: string
 
 jobs:
   build:
@@ -282,6 +298,20 @@ jobs:
           if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
             CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${{ github.event.inputs.tag }}"
             CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
+          fi
+
+          # Add dependency-specific branch overrides if provided
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.supergenius_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_SUPERGENIUS_BRANCH=${{ github.event.inputs.supergenius_branch }}"
+          fi
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.geniussdk_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_GENIUSSDK_BRANCH=${{ github.event.inputs.geniussdk_branch }}"
+          fi
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.zkllvm_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_ZKLLVM_BRANCH=${{ github.event.inputs.zkllvm_branch }}"
+          fi
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.thirdparty_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${{ github.event.inputs.thirdparty_branch }}"
           fi
 
           # Add verbose output for debugging
