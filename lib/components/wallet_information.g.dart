@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/banxa/banxa_service.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
 import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
@@ -19,6 +18,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
@@ -174,23 +174,13 @@ class WalletInformationState extends State<WalletInformation> {
             ),
             const SizedBox(width: 8),
             ActionButton(
-                text: 'Buy GNUS',
-                semanticLabel: "Buy Gnus",
-                icon: Icons.attach_money,
-                onPressed: () async {
-                  final url = await BanxaService.getBanxaCheckoutUrl(
-                    walletAddress: widget.ovrAddressField,
-                    userEmail: '',
-                  );
-
-                  if (!context.mounted) return;
-
-                  if (url != null) {
-                    context.push('/buy', extra: url);
-                  } else {
-                    showAppSnackBar(context, 'Failed to launch Banxa checkout');
-                  }
-                }),
+              text: 'Buy GNUS',
+              semanticLabel: "Buy GNUS crypto",
+              icon: Icons.attach_money,
+              onPressed: () async {
+                context.push('/buy');
+              },
+            ),
             const SizedBox(width: 8),
             ActionButton(
               text: "More",

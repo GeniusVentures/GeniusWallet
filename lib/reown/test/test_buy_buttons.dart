@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/buy_cancelled_drawer.dart';
-import 'package:genius_wallet/banxa/buy_success_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
+
 
 class TestBuyButtons extends StatelessWidget {
   const TestBuyButtons({super.key});

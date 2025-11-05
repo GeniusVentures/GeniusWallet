@@ -49,6 +49,10 @@ dependencies:
   reown_walletkit: ^1.3.2
   crypto: ^3.0.6
   intl: ^0.20.2
+  app_links: ^6.4.1
+  image_picker: ^1.2.0
+  csc_picker_plus: ^0.0.3
+  intl_phone_field: ^3.2.0
 
 dev_dependencies:
   flutter_test:
