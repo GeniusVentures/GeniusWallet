@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -44,6 +45,14 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   bool _timedOut = false;
   String _statusMessage = '';
   final TextEditingController _uriController = TextEditingController();
+
+  bool get _isDesktopOrIot {
+    try {
+      return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   void initState() {
@@ -177,7 +186,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       final wcUri = pairingInfo.uri.toString();
       debugPrint("🔗 WalletConnect URI: $wcUri");
       String? manualInputError;
-      bool showManualInput = false;
+      bool showManualInput = _isDesktopOrIot;
 
       if (!mounted) return;
 
@@ -188,8 +197,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             backgroundColor: GeniusWalletColors.deepBlueTertiary,
             title: Row(mainAxisSize: MainAxisSize.min, children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(
-                    15),
+                borderRadius: BorderRadius.circular(15),
                 child: Image.asset(
                   'assets/images/crypto/wallet-connect.png',
                   height: 50,
@@ -220,13 +228,48 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             key: ValueKey(
                                 "manual-${DateTime.now().millisecondsSinceEpoch}"),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                TextField(
-                                  controller: _uriController,
-                                  decoration: const InputDecoration(
-                                    hintText: "wc:...",
-                                    hintStyle: TextStyle(color: Colors.white38),
-                                  ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _uriController,
+                                        decoration: const InputDecoration(
+                                          hintText: "wc:...",
+                                          hintStyle:
+                                              TextStyle(color: Colors.white38),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.paste,
+                                        size: 20,
+                                        color: GeniusWalletColors
+                                            .lightGreenPrimary,
+                                      ),
+                                      tooltip: "Paste from clipboard",
+                                      onPressed: () async {
+                                        final data = await Clipboard.getData(
+                                            Clipboard.kTextPlain);
+                                        if (data?.text != null &&
+                                            data!.text!.trim().isNotEmpty) {
+                                          setInnerState(() {
+                                            _uriController.text =
+                                                data.text!.trim();
+                                            manualInputError = null;
+                                          });
+                                        } else {
+                                          setInnerState(() {
+                                            manualInputError =
+                                                "Clipboard is empty or has no text.";
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
                                 if (manualInputError != null) ...[
                                   const SizedBox(height: 8),
@@ -236,7 +279,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                         color: Colors.redAccent),
                                     textAlign: TextAlign.center,
                                   ),
-                                ]
+                                ],
                               ],
                             ))
                         : KeyedSubtree(
@@ -258,7 +301,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 4),
                       backgroundColor: Colors.transparent,
-                     
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -275,7 +317,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                               : "Enter URI Manually",
                           style: const TextStyle(
                             color: GeniusWalletColors.gray500,
-                          
                             decoration: TextDecoration.underline,
                             decorationColor:
                                 GeniusWalletColors.lightGreenPrimary,
@@ -291,8 +332,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             ),
             actions: [
               if (showManualInput)
-
-             
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -310,7 +349,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
                       try {
                         await walletKit.pair(uri: Uri.parse(input));
-                        Navigator.of(context).pop(); 
+                        Navigator.of(context).pop();
                       } catch (e) {
                         setInnerState(() {
                           manualInputError = '❌ URI Connect Failed: $e';
@@ -364,8 +403,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                       width: 1.6,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: Colors.transparent,
@@ -391,13 +429,12 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         });
       }
 
-     
       Future.delayed(const Duration(seconds: 15), () {
         if (_isConnecting && _session == null && mounted) {
           setState(() {
             _isConnecting = false;
             _hasError = true;
-            _timedOut = true; 
+            _timedOut = true;
             _statusMessage = "⏱ Connection timed out. Please try again.";
           });
           debugPrint('⏱ Timeout hit – no session received.');

@@ -83,7 +83,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                   final data = marketData[coin.symbol.toLowerCase()];
 
                   if (data == null) {
-                    return const SizedBox.shrink(); // Skip if data is missing
+                    return const SizedBox.shrink();
                   }
 
                   return Column(

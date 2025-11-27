@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 
 class SwapSettingsDrawer {
   static void show(
@@ -39,24 +40,43 @@ class SwapSettingsDrawer {
           ),
         ),
       ],
-      footer: OutlinedButton(
-        onPressed: () {
-          final parsed = double.tryParse(slippageController.text);
-          if (parsed != null) {
-            onSlippageChanged(parsed);
-            Navigator.of(context).pop();
-          }
-        },
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      footer: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () {
+            final parsed = double.tryParse(slippageController.text);
+            if (parsed != null) {
+              onSlippageChanged(parsed);
+              Navigator.of(context).pop();
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 0,
           ),
-          side: const BorderSide(color: Colors.greenAccent),
-          minimumSize: const Size.fromHeight(48),
-        ),
-        child: const Text(
-          "Apply",
-          style: TextStyle(color: Colors.greenAccent),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: GeniusWalletGradient.greenBlueGreenGradient,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Container(
+              height: 48,
+              alignment: Alignment.center,
+              child: const Text(
+                "Apply",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

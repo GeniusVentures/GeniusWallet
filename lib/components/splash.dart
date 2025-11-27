@@ -26,11 +26,24 @@ class Splash extends StatelessWidget {
           body: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Image.asset(
-                'assets/images/logo_and_title.png',
-                package: 'genius_wallet',
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo
+                Image.asset(
+                  'assets/images/logo_and_title.png',
+                  package: 'genius_wallet',
+                ),
+
+                const SizedBox(height: 24),
+
+                const CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  valueColor: AlwaysStoppedAnimation(
+                    GeniusWalletColors.lightGreenPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
