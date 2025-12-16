@@ -559,7 +559,7 @@ jobs:
         shell: bash
 
       - name: Prepare artifacts
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         run: |
           mkdir -p artifacts
 
