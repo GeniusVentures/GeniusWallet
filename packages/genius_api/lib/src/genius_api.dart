@@ -790,4 +790,8 @@ class GeniusApi {
 
     return resp;
   }
+
+  GeniusProcessingStatus getProcessingStatus() {
+    return ffiBridgePrebuilt.gns_lib.GeniusSDKGetProcessingStatus();
+  }
 }
