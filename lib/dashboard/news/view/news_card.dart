@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/web/web_utils.dart';
+
 class NewsCard extends StatefulWidget {
   final NewsArticle article;
 
@@ -59,7 +61,7 @@ class _NewsCardState extends State<NewsCard> {
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: Colors.grey[800],
-                        child: const Center(child: CircularProgressIndicator()),
+                        child: const Center(child: Loading()),
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[800],
@@ -167,8 +169,7 @@ class _NewsCardState extends State<NewsCard> {
                   width: 80,
                   height: 80,
                   color: Colors.grey[800],
-                  child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                  child: const Center(child: Loading()),
                 ),
                 errorWidget: (context, url, error) => Container(
                   width: 80,

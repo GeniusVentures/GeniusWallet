@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banaxa_api_services.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class BanxaKycScreen extends StatefulWidget {
@@ -68,8 +69,13 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          // Show loading if the page is loading
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+       
+         if (_isLoading)
+            const Center(
+              child: Loading(
+                text: "Loading Banxa KYC...",
+              ),
+            ),
         ],
       ),
     );

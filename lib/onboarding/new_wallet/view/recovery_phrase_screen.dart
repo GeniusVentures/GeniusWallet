@@ -1,6 +1,7 @@
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
@@ -125,7 +126,7 @@ class _WordsGridWithCopyAndToggleState
     return BlocBuilder<NewWalletBloc, NewWalletState>(
       builder: (context, state) {
         if (state.recoveryPhraseStatus != NewWalletStatus.loaded) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: Loading());
         }
 
         final words = state.recoveryWords;
@@ -312,7 +313,7 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
             if (state.recoveryPhraseStatus == NewWalletStatus.loaded) {
               return RecoveryWords(recoveryWords: state.recoveryWords);
             }
-            return const CircularProgressIndicator();
+            return const Loading();
           },
         ),
         const SizedBox(
