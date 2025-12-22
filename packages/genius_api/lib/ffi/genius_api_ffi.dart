@@ -424,6 +424,16 @@ class NativeLibrary {
       'GeniusSDKGetTransactionStatus');
   late final _GeniusSDKGetTransactionStatus = _GeniusSDKGetTransactionStatusPtr
       .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+
+  GeniusProcessingStatus GeniusSDKGetProcessingStatus() {
+    return GeniusProcessingStatus.fromValue(_GeniusSDKGetProcessingStatus());
+  }
+
+  late final _GeniusSDKGetProcessingStatusPtr =
+      _lookup<ffi.NativeFunction<ffi.UnsignedInt Function()>>(
+          'GeniusSDKGetProcessingStatus');
+  late final _GeniusSDKGetProcessingStatus =
+      _GeniusSDKGetProcessingStatusPtr.asFunction<int Function()>();
 }
 
 typedef __u_char = ffi.UnsignedChar;
@@ -674,6 +684,28 @@ enum GeniusTransactionStatus {
         5 => GENIUS_TX_STATUS_INVALID,
         _ => throw ArgumentError(
             'Unknown value for GeniusTransactionStatus: $value'),
+      };
+}
+
+enum GeniusProcessingStatus {
+  /// < Processing was disabled
+  GENIUS_PR_STATUS_DISABLED(0),
+
+  /// < Not processing at the moment
+  GENIUS_PR_STATUS_IDLE(1),
+
+  /// < Currently processing a job s
+  GENIUS_PR_STATUS_PROCESSING(2);
+
+  final int value;
+  const GeniusProcessingStatus(this.value);
+
+  static GeniusProcessingStatus fromValue(int value) => switch (value) {
+        0 => GENIUS_PR_STATUS_DISABLED,
+        1 => GENIUS_PR_STATUS_IDLE,
+        2 => GENIUS_PR_STATUS_PROCESSING,
+        _ => throw ArgumentError(
+            'Unknown value for GeniusProcessingStatus: $value'),
       };
 }
 
