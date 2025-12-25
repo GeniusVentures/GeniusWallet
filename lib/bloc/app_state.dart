@@ -18,6 +18,7 @@ class AppState extends Equatable {
   final Account? account;
 
   final AppStatus accountStatus;
+  final bool isProcessing;
 
   const AppState(
       {this.wallets = const [],
@@ -26,6 +27,7 @@ class AppState extends Equatable {
       this.userStatus = UserStatus.initial,
       this.ffiString,
       this.testWallet,
+      this.isProcessing = false,
       this.account,
       this.accountStatus = AppStatus.initial});
 
@@ -36,6 +38,7 @@ class AppState extends Equatable {
       UserStatus? userStatus,
       String? ffiString,
       Pointer<Void>? testWallet,
+      bool? isProcessing,
       Account? account,
       AppStatus? accountStatus}) {
     return AppState(
@@ -47,6 +50,7 @@ class AppState extends Equatable {
         ffiString: ffiString ?? this.ffiString,
         testWallet: testWallet,
         account: account ?? this.account,
+        isProcessing: isProcessing ?? this.isProcessing,
         accountStatus: accountStatus ?? this.accountStatus);
   }
 
@@ -59,7 +63,8 @@ class AppState extends Equatable {
         ffiString,
         testWallet,
         account,
-        accountStatus
+        accountStatus,
+        isProcessing
       ];
 }
 

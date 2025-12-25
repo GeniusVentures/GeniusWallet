@@ -74,6 +74,9 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final file = File(result.files.single.path!);
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
+        print(jsonData.runtimeType);
+        print(jsonData);
+
         final jobCost =
             geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
 
