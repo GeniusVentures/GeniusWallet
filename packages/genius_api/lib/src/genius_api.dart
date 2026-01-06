@@ -816,12 +816,41 @@ class GeniusApi {
     return _mapProcessingStatus(result);
   }
 
+  GeniusTransactionManagerState getTransactionManagerState() {
+    final result =
+        ffiBridgePrebuilt.gns_lib.GeniusSDKGetTransactionManagerState();
+    return _mapTransactionManagerState(result);
+  }
+
+  GeniusNodeState getNodeState() {
+    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKGetNodeState();
+    return _mapNodeState(result);
+  }
+
   GeniusProcessingStatus _mapProcessingStatus(int value) {
     try {
       return GeniusProcessingStatus.fromValue(value);
     } catch (e) {
       debugPrint("Unknown GeniusProcessingStatus: $value");
       return GeniusProcessingStatus.GENIUS_PR_STATUS_DISABLED;
+    }
+  }
+
+  GeniusTransactionManagerState _mapTransactionManagerState(int value) {
+    try {
+      return GeniusTransactionManagerState.fromValue(value);
+    } catch (e) {
+      debugPrint("Unknown GeniusTransactionManagerState: $value");
+      return GeniusTransactionManagerState.GENIUS_TM_STATE_CREATING;
+    }
+  }
+
+  GeniusNodeState _mapNodeState(int value) {
+    try {
+      return GeniusNodeState.fromValue(value);
+    } catch (e) {
+      debugPrint("Unknown GeniusNodeState: $value");
+      return GeniusNodeState.GENIUS_NODE_CREATING;
     }
   }
 }
