@@ -18,6 +18,7 @@ class SubmitJobScreen extends StatelessWidget {
     return BlocConsumer<SubmitJobCubit, SubmitJobState>(
       listenWhen: (previous, current) =>
           (previous.filePickerError != current.filePickerError) ||
+          (previous.processErrorMessage != current.processErrorMessage) ||
           (previous.txHash != current.txHash),
       listener: (context, state) {
         final submitJobCubit = context.read<SubmitJobCubit>();
@@ -29,6 +30,16 @@ class SubmitJobScreen extends StatelessWidget {
             context: context,
             title: "File Picker Error",
             message: state.filePickerError.message,
+            type: ToastType.error,
+          );
+        }
+
+        if (state.processErrorMessage.isNotEmpty) {
+          submitJobCubit.resetProcessError();
+          ToastManager().showToast(
+            context: context,
+            title: "Job Submission Error",
+            message: state.processErrorMessage,
             type: ToastType.error,
           );
         }

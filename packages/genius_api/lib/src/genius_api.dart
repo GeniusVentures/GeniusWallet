@@ -219,7 +219,7 @@ class GeniusApi {
     return ffiBridgePrebuilt.wallet_lib.TWDataCreateWithSize(size);
   }
 
-  void mintTokens(
+  GeniusNodeReturnValue mintTokens(
       int amount, String transactionHash, String chainId, String tokenId) {
     final Pointer<Utf8> transhash = transactionHash.toNativeUtf8();
     final Pointer<Utf8> chainid = chainId.toNativeUtf8();
@@ -236,17 +236,22 @@ class GeniusApi {
       tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
     }
 
-    ffiBridgePrebuilt.gns_lib.GeniusSDKMint(amount, transhash as Pointer<Char>,
-        chainid as Pointer<Char>, tokenIdData.ref);
+    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKMint(
+        amount, transhash as Pointer<Char>, chainid as Pointer<Char>,
+        tokenIdData.ref);
 
     calloc.free(tokenIdData);
     malloc.free(transhash);
     malloc.free(chainid);
+
+    return _mapNodeReturnValue(result);
   }
 
-  void shutdownSDK() {
-    ffiBridgePrebuilt.gns_lib.GeniusSDKShutdown();
-    debugPrint("Shutting Down SDK");
+  GeniusNodeReturnValue shutdownSDK() {
+    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKShutdown();
+    final mappedResult = _mapNodeReturnValue(result);
+    debugPrint("Shutting Down SDK: $mappedResult");
+    return mappedResult;
   }
 
   void requestAIProcess() {
@@ -264,9 +269,13 @@ class GeniusApi {
     //malloc.free(charPointer);
   }
 
-  void requestGeniusSDKProcess({required String jobJson}) {
-    if (jobJson.isEmpty || !isSdkInitialized) {
-      return;
+  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
+    if (!isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+
+    if (jobJson.isEmpty) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
 
     // Allocate memory for the jobJson string
@@ -274,7 +283,8 @@ class GeniusApi {
 
     try {
       // Call the native function
-      ffiBridgePrebuilt.gns_lib.GeniusSDKProcess(jsonPointer);
+      final result = ffiBridgePrebuilt.gns_lib.GeniusSDKProcess(jsonPointer);
+      return _mapNodeReturnValue(result);
     } finally {
       // Free the allocated memory to prevent memory leaks
       calloc.free(jsonPointer);
@@ -626,7 +636,8 @@ class GeniusApi {
     getSGNUSTransactionsController().addTransactions(ret);
   }
 
-  bool transferTokens(int amount, String address, {String? tokenId}) {
+  GeniusNodeReturnValue transferTokens(int amount, String address,
+      {String? tokenId}) {
     final convertedAddress = calloc<GeniusAddress>();
     final tokenIdData = calloc<GeniusTokenID>();
 
@@ -658,7 +669,7 @@ class GeniusApi {
     calloc.free(convertedAddress);
     calloc.free(tokenIdData);
 
-    return ret;
+    return _mapNodeReturnValue(ret);
   }
 
   double getGNUSPrice() {
@@ -676,9 +687,9 @@ class GeniusApi {
     return result.cast<Utf8>().toDartString();
   }
 
-  bool payDev(int amount, {String? tokenId}) {
+  GeniusNodeReturnValue payDev(int amount, {String? tokenId}) {
     if (!isSdkInitialized) {
-      return false;
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
 
     final tokenIdData = calloc<GeniusTokenID>();
@@ -703,7 +714,16 @@ class GeniusApi {
         ffiBridgePrebuilt.gns_lib.GeniusSDKPayDev(amount, tokenIdData.ref);
     calloc.free(tokenIdData);
 
-    return result;
+    return _mapNodeReturnValue(result);
+  }
+
+  GeniusNodeReturnValue _mapNodeReturnValue(int value) {
+    try {
+      return GeniusNodeReturnValue.fromValue(value);
+    } catch (e) {
+      debugPrint("Unknown GeniusNodeReturnValue: $value");
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
   }
 
   Future<ApiResponse<String>> bridgeOut(
@@ -792,6 +812,16 @@ class GeniusApi {
   }
 
   GeniusProcessingStatus getProcessingStatus() {
-    return ffiBridgePrebuilt.gns_lib.GeniusSDKGetProcessingStatus();
+    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKGetProcessingStatus();
+    return _mapProcessingStatus(result);
+  }
+
+  GeniusProcessingStatus _mapProcessingStatus(int value) {
+    try {
+      return GeniusProcessingStatus.fromValue(value);
+    } catch (e) {
+      debugPrint("Unknown GeniusProcessingStatus: $value");
+      return GeniusProcessingStatus.GENIUS_PR_STATUS_DISABLED;
+    }
   }
 }

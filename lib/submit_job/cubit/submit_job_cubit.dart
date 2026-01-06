@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -181,7 +182,14 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     }
 
     // process the job
-    geniusApi.requestGeniusSDKProcess(jobJson: jsonEncode(uploadedJson));
+    final processResult =
+        geniusApi.requestGeniusSDKProcess(jobJson: jsonEncode(uploadedJson));
+    if (processResult != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+      emit(state.copyWith(
+          isBridgingTokens: false,
+          processErrorMessage: _processErrorMessage(processResult)));
+      return;
+    }
 
     fetchGnusBalanceWithDelay();
 
@@ -202,7 +210,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         uploadedFileName: '',
         jobGasCost: '',
         txHash: '',
-        filePickerError: null));
+        filePickerError: null,
+        processErrorMessage: ''));
   }
 
   void setFilePickerError(String errorMessage) {
@@ -213,5 +222,28 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   void resetFilePickerError() {
     setFilePickerError(""); // Reset error state
+  }
+
+  void resetProcessError() {
+    emit(state.copyWith(processErrorMessage: ''));
+  }
+
+  String _processErrorMessage(GeniusNodeReturnValue result) {
+    switch (result) {
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED:
+        return "SDK not initialized. Please restart the app and try again.";
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_PROCESS_IMAGE:
+        return "Failed to process the job. Please check your input and try again.";
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_MINT:
+        return "Token minting failed.";
+      case GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT:
+        return "Invalid job data.";
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_TRANSFER:
+        return "Token transfer failed.";
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_PAY_DEV:
+        return "Payment to dev failed.";
+      case GeniusNodeReturnValue.GENIUS_NODE_RET_OK:
+        return "";
+    }
   }
 }
