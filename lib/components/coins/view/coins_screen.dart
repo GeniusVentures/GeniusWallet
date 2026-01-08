@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -133,7 +134,9 @@ class CoinsScreenState extends State<CoinsScreen> {
             return const Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: Loading(),
+              ),
             );
           }
 

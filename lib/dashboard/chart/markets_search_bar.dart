@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -155,11 +156,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             suffixIcon: _isSearching
                 ? const Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    child: Loading(),
                   )
                 : (_controller.text.isNotEmpty
                     ? IconButton(

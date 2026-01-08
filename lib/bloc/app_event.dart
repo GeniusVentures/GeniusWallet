@@ -12,3 +12,5 @@ class FFITestEvent extends AppEvent {}
 class FetchAccount extends AppEvent {}
 
 class StreamSGNUSTransactions extends AppEvent {}
+
+class ProcessingStatusTicked extends AppEvent {}
