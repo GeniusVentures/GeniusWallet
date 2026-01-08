@@ -410,8 +410,9 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(SGProcessingManager_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/SGProcessingManager/")
     message(STATUS "SUPERGENIUS_BUILD_DIR DIR: ${SUPERGENIUS_BUILD_DIR}")
     find_package(ProofSystem CONFIG REQUIRED)
-    find_package(SuperGenius CONFIG REQUIRED)
     find_package(SGProcessingManager CONFIG REQUIRED)
+    find_package(SuperGenius CONFIG REQUIRED)
+
     include_directories(${SuperGenius_INCLUDE_DIR})
 
     set(GENIUSSDK_BUILD_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})
