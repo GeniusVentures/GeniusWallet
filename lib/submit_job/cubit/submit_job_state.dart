@@ -9,6 +9,7 @@ class SubmitJobState {
   final Token gnusTokenDetails;
   final double gnusBalance;
   final FilePickerError filePickerError;
+  final String processErrorMessage;
   final bool isFilePickerOpen;
   final bool isBridgingTokens;
 
@@ -21,6 +22,7 @@ class SubmitJobState {
       this.gnusTokenDetails = const Token(),
       this.gnusBalance = 0,
       this.filePickerError = const FilePickerError(''),
+      this.processErrorMessage = '',
       this.isFilePickerOpen = false,
       this.isBridgingTokens = false});
 
@@ -33,6 +35,7 @@ class SubmitJobState {
       Token? gnusTokenDetails,
       double? gnusBalance,
       FilePickerError? filePickerError,
+      String? processErrorMessage,
       bool? isFilePickerOpen,
       bool? isBridgingTokens}) {
     return SubmitJobState(
@@ -44,6 +47,7 @@ class SubmitJobState {
         gnusTokenDetails: gnusTokenDetails ?? this.gnusTokenDetails,
         gnusBalance: gnusBalance ?? this.gnusBalance,
         filePickerError: filePickerError ?? this.filePickerError,
+        processErrorMessage: processErrorMessage ?? this.processErrorMessage,
         isFilePickerOpen: isFilePickerOpen ?? this.isFilePickerOpen,
         isBridgingTokens: isBridgingTokens ?? this.isBridgingTokens);
   }

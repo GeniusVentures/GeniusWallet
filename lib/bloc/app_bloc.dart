@@ -146,7 +146,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     FFITestEvent event,
     Emitter<AppState> emit,
   ) {
-    api.mintTokens(500, "", "", "");
+    final result = api.mintTokens(500, "", "", "");
+    print("FFI mintTokens result: $result");
   }
 
   @override

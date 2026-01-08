@@ -87,8 +87,8 @@ class MyWindowListener extends WindowListener {
   @override
   void onWindowClose() async {
     // Trigger cleanup when the window is closed
-    geniusApi.shutdownSDK();
-    debugPrint("Window closed. GeniusApi shutdown.");
+    final result = geniusApi.shutdownSDK();
+    debugPrint("Window closed. GeniusApi shutdown: $result");
 
     exit(0);
   }
@@ -121,7 +121,8 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     WidgetsBinding.instance.removeObserver(this);
     debugPrint(
         "---------------------------------------------------------------------------------------------------");
-    widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
+    final result = widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
+    debugPrint("GeniusApi shutdown on dispose: $result");
     super.dispose();
   }
 
@@ -130,7 +131,8 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
     if (state == AppLifecycleState.detached) {
       debugPrint(
           "---------------------------------------------------------------------------------------------------");
-      widget.geniusApi.shutdownSDK(); // Handle app exit
+      final result = widget.geniusApi.shutdownSDK(); // Handle app exit
+      debugPrint("GeniusApi shutdown on detach: $result");
     }
   }
 
