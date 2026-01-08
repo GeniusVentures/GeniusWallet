@@ -336,6 +336,11 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(gnus_upnp_DIR "${THIRDPARTY_BUILD_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
     find_package(gnus_upnp CONFIG REQUIRED)
     include_directories(${gnus_upnp_INCLUDE_DIR})
+    
+    # --------------------------------------------------------
+    # Set config of nlohmann_json
+    set(nlohmann_json_DIR "${THIRDPARTY_BUILD_DIR}/json/share/cmake/nlohmann_json")
+    find_package(nlohmann_json CONFIG REQUIRED)
 
     # --------------------------------------------------------
     # Set config of crypto3
