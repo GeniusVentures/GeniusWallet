@@ -114,6 +114,10 @@ class _OrdersPageState extends State<OrdersPage> {
         title: const Text("My Orders"),
         actions: [
           IconButton(
+            icon: const Icon(Icons.remove_red_eye),
+            onPressed: () => context.push('/kyc'),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<OrdersCubit>().fetchOrders('your-cust-id');
@@ -170,9 +174,9 @@ class _OrdersPageState extends State<OrdersPage> {
                 ),
               ),
               Expanded(
-                child: orders.isEmpty
-                    ? const Center(child: Text("No orders found."))
-                    : LayoutBuilder(
+                  child: orders.isEmpty
+                      ? const Center(child: Text("No orders found."))
+                      : LayoutBuilder(
                           builder: (context, constraints) {
                             final isWide = constraints.maxWidth > 900;
                             final crossAxisCount = isWide ? 2 : 1;
@@ -209,9 +213,7 @@ class _OrdersPageState extends State<OrdersPage> {
                               },
                             );
                           },
-                        )
-
-              ),
+                        )),
             ],
           );
         },

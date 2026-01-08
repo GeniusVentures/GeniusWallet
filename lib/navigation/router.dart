@@ -14,6 +14,7 @@ import 'package:genius_wallet/banxa/order_details_page.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
@@ -190,7 +191,7 @@ final geniusWalletRouter = GoRouter(
         return BlocBuilder<AppBloc, AppState>(
           builder: (context, state) {
             if (state.loadUserStatus == AppStatus.loading) {
-              return const CircularProgressIndicator();
+              return const Loading();
             } else if (state.loadUserStatus == AppStatus.loaded) {
               return MultiBlocProvider(
                 providers: [
@@ -233,7 +234,7 @@ final geniusWalletRouter = GoRouter(
           builder: (context, state) {
             /// Wait until we know if the user is new
             if (state.loadUserStatus == AppStatus.loading) {
-              return const CircularProgressIndicator();
+              return const Loading();
             } else if (state.loadUserStatus == AppStatus.loaded) {
               return MultiBlocProvider(
                 providers: [

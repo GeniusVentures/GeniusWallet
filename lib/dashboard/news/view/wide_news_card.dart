@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/web/web_utils.dart';
@@ -28,8 +29,7 @@ class WideNewsCard extends StatelessWidget {
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
                     color: Colors.grey[800],
-                    child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
+                    child: const Center(child: Loading()),
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: Colors.grey[800],

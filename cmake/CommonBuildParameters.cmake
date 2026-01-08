@@ -336,6 +336,11 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(gnus_upnp_DIR "${THIRDPARTY_BUILD_DIR}/gnus_upnp/lib/cmake/gnus_upnp")
     find_package(gnus_upnp CONFIG REQUIRED)
     include_directories(${gnus_upnp_INCLUDE_DIR})
+    
+    # --------------------------------------------------------
+    # Set config of nlohmann_json
+    set(nlohmann_json_DIR "${THIRDPARTY_BUILD_DIR}/json/share/cmake/nlohmann_json")
+    find_package(nlohmann_json CONFIG REQUIRED)
 
     # --------------------------------------------------------
     # Set config of crypto3
@@ -407,9 +412,12 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(SUPERGENIUS_BUILD_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
     set(SuperGenius_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/SuperGenius/")
     set(ProofSystem_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/ProofSystem/")
+    set(SGProcessingManager_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/SGProcessingManager/")
     message(STATUS "SUPERGENIUS_BUILD_DIR DIR: ${SUPERGENIUS_BUILD_DIR}")
     find_package(ProofSystem CONFIG REQUIRED)
+    find_package(SGProcessingManager CONFIG REQUIRED)
     find_package(SuperGenius CONFIG REQUIRED)
+
     include_directories(${SuperGenius_INCLUDE_DIR})
 
     set(GENIUSSDK_BUILD_DIR ${GENIUSSDK_SRC_DIR}${ARCH_OUTPUT_DIR})

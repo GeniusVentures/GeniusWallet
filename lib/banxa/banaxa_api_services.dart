@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:crypto/crypto.dart';
 import 'package:genius_wallet/banxa/banaxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_service.dart';
 import 'package:http/http.dart' as http;
@@ -10,16 +11,28 @@ import 'package:url_launcher/url_launcher.dart';
 
 class BanxaApiService {
   static const String _partnerCode = 'gnus';
-  static const String _apiKey = 'f4618be892ba64672e6fae3aab374c374bd53126';
+  static const String _apiKey = 'b8282030faffa2dc15fbf428142be5bdb1d4e346';
   static const String _baseUrl =
-      'https://api.banxa-sandbox.com/$_partnerCode/v2';
+      'https://api.banxa.com/$_partnerCode/v2'; // Sandbox URL
+
   static const redirectUrl = 'geniuswallet://banxa/callback';
+  static const String banxaKycUrl = 'https://$_partnerCode.banxa-sandbox.com';
 
   static Map<String, String> get _headers => {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'x-api-key': _apiKey,
       };
+      
+  static String generateHmacSignature(String message) {
+    var key = utf8.encode(_apiKey);
+    var bytes = utf8.encode(message);
+
+    var hmac = Hmac(sha256, key);
+    var digest = hmac.convert(bytes);
+
+    return digest.toString(); 
+  }
 
   static Future<BanxaKycResponse?> submitKYC(
       Map<String, dynamic> kycData) async {
@@ -236,7 +249,7 @@ class BanxaApiService {
     String? externalCustomerId,
   }) async {
     final uri = Uri.https(
-      'api.banxa-sandbox.com',
+      'api.banxa.com',
       '/$_partnerCode/v2/orders',
       {
         'start': startDateUtc,

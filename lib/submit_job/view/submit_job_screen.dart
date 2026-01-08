@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -290,15 +291,16 @@ class SubmitJobScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Show a modal barrier and a loader when file picker is open
           if (isFilePickerOpen)
             ModalBarrier(
               color: Colors.black.withAlpha(128),
-              dismissible: false, // Prevent dismissing the overlay
+              dismissible: false,
             ),
           if (isFilePickerOpen)
             const Center(
-              child: CircularProgressIndicator(),
+              child: Loading(
+                text: "Preparing AI job...",
+              ),
             ),
         ]);
       },

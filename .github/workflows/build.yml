@@ -30,6 +30,22 @@ on:
           - "testflight"
           - "developer-id"
         default: "both"
+      supergenius_branch:
+        description: "SuperGenius dependency branch override"
+        required: false
+        type: string
+      geniussdk_branch:
+        description: "GeniusSDK dependency branch override"
+        required: false
+        type: string
+      zkllvm_branch:
+        description: "zkLLVM dependency branch override"
+        required: false
+        type: string
+      thirdparty_branch:
+        description: "thirdparty dependency branch override"
+        required: false
+        type: string
 
 jobs:
   build:
@@ -284,6 +300,20 @@ jobs:
             CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
           fi
 
+          # Add dependency-specific branch overrides if provided
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.supergenius_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_SUPERGENIUS_BRANCH=${{ github.event.inputs.supergenius_branch }}"
+          fi
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.geniussdk_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_GENIUSSDK_BRANCH=${{ github.event.inputs.geniussdk_branch }}"
+          fi
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.zkllvm_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_ZKLLVM_BRANCH=${{ github.event.inputs.zkllvm_branch }}"
+          fi
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.thirdparty_branch }}' ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${{ github.event.inputs.thirdparty_branch }}"
+          fi
+
           # Add verbose output for debugging
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
 
@@ -529,7 +559,7 @@ jobs:
         shell: bash
 
       - name: Prepare artifacts
-        if: github.ref_name == 'main' || github.ref_name == 'develop'
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         run: |
           mkdir -p artifacts
 
@@ -643,14 +673,10 @@ jobs:
         shell: bash
 
       - name: Wait for primary release creation
-        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && (matrix.target == 'Linux' && matrix.abi == 'aarch64')
+        if: (github.ref_name == 'main' || github.ref_name == 'develop') && (matrix.target == 'Linux' && matrix.abi == 'aarch64') && env.IS_TAG != 'true'
         working-directory: ${{github.workspace}}
         run: |
-          if [ "$IS_TAG" == "true" ]; then
-              RELEASE_TAG="${{ github.event.inputs.tag }}"
-          else
-              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
-          fi
+          RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
           echo "Waiting for primary job to create/update release: $RELEASE_TAG"
@@ -675,7 +701,7 @@ jobs:
 
       - name: Create release of GeniusWallet
         working-directory: ${{github.workspace}}
-        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && !(matrix.target == 'Linux' && matrix.abi == 'aarch64')
+        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && (env.IS_TAG == 'true' || !(matrix.target == 'Linux' && matrix.abi == 'aarch64'))
         shell: bash
         run: |
           if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
@@ -694,32 +720,66 @@ jobs:
           releaseFound=$?
           set -e
 
-           if [[ $releaseFound -eq 0 && "$IS_TAG_RELEASE" == "false" ]]; then
-              echo "Deleting existing branch-based release + tag..."
-              gh release delete "$RELEASE_TAG" --yes
-              git push origin ":refs/tags/$RELEASE_TAG" || true
+          if [[ $releaseFound -eq 0 ]]; then
+              if [[ "$IS_TAG_RELEASE" == "false" ]]; then
+                  echo "Deleting existing branch-based release + tag..."
+                  gh release delete "$RELEASE_TAG" --yes
+                  git push origin ":refs/tags/$RELEASE_TAG" || true
+              else
+                  echo "Tag release $RELEASE_TAG already exists, skipping creation"
+                  exit 0
+              fi
           fi
 
-          # Force-create tag locally and push it
-          echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
-          git tag -f "$RELEASE_TAG" "${{ github.sha }}"
-          git push --force origin "$RELEASE_TAG"
-
-          if [ "$IS_TAG_RELEASE" = "true" ]; then
-              RELEASE_TYPE="--latest"
+          RELEASE_TYPE="--draft"
+          
+          if [[ "$IS_TAG_RELEASE" == "true" ]]; then
+              # For tag releases, just create the release (tag already exists)
+              RELEASE_TITLE="${{ github.event.inputs.tag }} build artifacts"
+              RELEASE_NOTES="Build artifacts for tag ${{ github.event.inputs.tag }}"
+              echo "Creating release for existing tag: $RELEASE_TAG"
+              gh release create "$RELEASE_TAG" \
+                --draft \
+                -t "$RELEASE_TITLE" \
+                -n "$RELEASE_NOTES"
           else
-              RELEASE_TYPE="--draft"
+              # For branch releases, create and push tag first
+              echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
+              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+              git push --force origin "$RELEASE_TAG"
+              
+              RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
+              RELEASE_NOTES="Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}"
+              echo "Creating release for branch build"
+              gh release create "$RELEASE_TAG" \
+                --target "${{ github.sha }}" \
+                -t "$RELEASE_TITLE" \
+                -n "$RELEASE_NOTES" \
+                ${RELEASE_TYPE}
           fi
-          gh release create "$RELEASE_TAG" \
-            --target "${{ github.sha }}" \
-            -t "${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build" \
-            -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
-            ${RELEASE_TYPE}
 
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         working-directory: ${{github.workspace}}
         run: |
+          # Ensure RELEASE_TAG is set for upload step
+          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
+              RELEASE_TAG="${{ github.event.inputs.tag }}"
+          else
+              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+          fi
+          
+          echo "Upload step using RELEASE_TAG: $RELEASE_TAG"
+          
+          # Verify release exists before uploading
+          echo "Verifying release exists..."
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "ERROR: Release $RELEASE_TAG not found!"
+            echo "Available releases:"
+            gh release list || true
+            exit 1
+          fi
+          
           # Upload artifacts
           if [ "${{ matrix.target }}" = "OSX" ]; then
             # Upload macOS packages individually

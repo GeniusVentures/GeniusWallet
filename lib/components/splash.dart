@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,11 +27,16 @@ class Splash extends StatelessWidget {
           body: SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Image.asset(
-                'assets/images/logo_and_title.png',
-                package: 'genius_wallet',
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/logo_and_title.png',
+                  package: 'genius_wallet',
+                ),
+                const SizedBox(height: 24),
+                const Loading(),
+              ],
             ),
           ),
         ),

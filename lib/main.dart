@@ -41,9 +41,9 @@ void main() async {
   /// Must come after hive init
   await fetchAllCoinGeckoCoins();
 
-  if ((await secureStorage.getWallets().first).isNotEmpty) {
-    await geniusApi.initSDK();
-  } else {
+  // SDK initialization moved to AppBloc to show splash screen during init
+  // Dev mode bypasses still happen here for initial setup
+  if ((await secureStorage.getWallets().first).isEmpty) {
     byPassSGNUSConnecton(geniusApi);
     byPassWalletCreation(secureStorage);
     addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
