@@ -43,7 +43,14 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   ) async {
     emit(state.copyWith(subscribeToWalletStatus: AppStatus.loading));
 
-    final wallets = await api.getWallets().first;
+    // Check if wallets exist, then initialize SDK (splash screen is now visible)
+    var wallets = await api.getWallets().first;
+    
+    if (wallets.isNotEmpty) {
+      await api.initSDK();
+      // Refresh wallets after SDK initialization
+      wallets = await api.getWallets().first;
+    }
 
     if (wallets.isEmpty) {
       emit(state.copyWith(
