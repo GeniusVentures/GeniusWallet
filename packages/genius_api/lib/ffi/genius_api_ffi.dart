@@ -441,16 +441,16 @@ class NativeLibrary {
       .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
   /// @brief       Retrieves the current processing status.
-  /// @return      The current processing status as a @ref GeniusProcessingStatus enum value.
-  int GeniusSDKGetProcessingStatus() {
+  /// @return      The current processing status info including state and progress percentage.
+  GeniusProcessingStatusInfo GeniusSDKGetProcessingStatus() {
     return _GeniusSDKGetProcessingStatus();
   }
 
   late final _GeniusSDKGetProcessingStatusPtr =
-      _lookup<ffi.NativeFunction<GeniusProcessingStatus_t Function()>>(
+      _lookup<ffi.NativeFunction<GeniusProcessingStatusInfo Function()>>(
           'GeniusSDKGetProcessingStatus');
   late final _GeniusSDKGetProcessingStatus =
-      _GeniusSDKGetProcessingStatusPtr.asFunction<int Function()>();
+      _GeniusSDKGetProcessingStatusPtr.asFunction<GeniusProcessingStatusInfo Function()>();
 }
 
 typedef int_least8_t = ffi.Int8;
@@ -692,6 +692,17 @@ final class GeniusTokenID extends ffi.Struct {
   /// < 32-byte raw token ID used internally
   @ffi.Array.multi([32])
   external ffi.Array<ffi.UnsignedChar> data;
+}
+
+/// @brief Contains processing status information including progress percentage.
+final class GeniusProcessingStatusInfo extends ffi.Struct {
+  /// < Current processing state
+  @ffi.Int32()
+  external int status;
+
+  /// < Progress percentage from 0.0 to 100.0
+  @ffi.Float()
+  external double percentage;
 }
 
 typedef PayAmount_t = ffi.Uint64;

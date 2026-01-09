@@ -811,9 +811,9 @@ class GeniusApi {
     return resp;
   }
 
-  GeniusProcessingStatus getProcessingStatus() {
+  GeniusProcessingStatusInfo getProcessingStatus() {
     final result = ffiBridgePrebuilt.gns_lib.GeniusSDKGetProcessingStatus();
-    return _mapProcessingStatus(result);
+    return result;
   }
 
   GeniusTransactionManagerState getTransactionManagerState() {
