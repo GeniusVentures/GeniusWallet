@@ -94,10 +94,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     try {
-      final status = api.getProcessingStatus();
+      final statusInfo = api.getProcessingStatus();
 
       final isProcessing =
-          status == GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING;
+          statusInfo.status == GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING;
 
       if (state.isProcessing != isProcessing) {
         emit(state.copyWith(isProcessing: isProcessing));
