@@ -13,7 +13,7 @@ class BanxaApiService {
   static const String _partnerCode = 'gnus';
   static const String _apiKey = 'b8282030faffa2dc15fbf428142be5bdb1d4e346';
   static const String _baseUrl =
-      'https://api.banxa.com/$_partnerCode/v2'; // Sandbox URL
+      'https://api.banxa.com/$_partnerCode/v2'; 
 
   static const redirectUrl = 'geniuswallet://banxa/callback';
   static const String banxaKycUrl = 'https://$_partnerCode.banxa-sandbox.com';
@@ -134,7 +134,6 @@ class BanxaApiService {
     required String cryptoAmount,
     String? fiatAmount,
     String? externalCustomerId,
-    String? email,
     String? metadata,
     String? subPartnerId,
   }) async {
@@ -158,7 +157,6 @@ class BanxaApiService {
       'redirectUrl': redirectUrl,
       'cryptoAmount': cryptoAmount,
       if (fiatAmount != null) 'fiatAmount': fiatAmount,
-      if (email != null) 'email': email,
       if (externalCustomerId != null) 'externalCustomerId': externalCustomerId,
       'externalOrderId': extOrderId,
       if (metadata != null) 'metadata': metadata,

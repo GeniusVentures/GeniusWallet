@@ -201,7 +201,6 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         cryptoAmount: state.quote!.cryptoAmount,
         fiatAmount: state.quote!.fiatAmount,
         externalCustomerId: 'my_id_${DateTime.now().millisecondsSinceEpoch}',
-        email: 'ammarajeeb567@gmail.com',
         metadata: 'real',
         subPartnerId: 'macOS-app',
       );

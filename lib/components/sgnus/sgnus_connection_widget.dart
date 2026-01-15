@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {
@@ -98,6 +100,36 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
+class SGNUSConnectionStatusWidget extends StatelessWidget {
+  const SGNUSConnectionStatusWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AppBloc, AppState>(
+      builder: (context, appState) {
+        if (!appState.isProcessing) {
+          return const SizedBox.shrink();
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+          const Loading(text: "processing",),
+            const SizedBox(width: 8),
+            Text(
+              '${appState.processingPercentage?.toStringAsFixed(2)}%',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
         );
       },
     );

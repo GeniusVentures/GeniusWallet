@@ -19,6 +19,7 @@ class AppState extends Equatable {
 
   final AppStatus accountStatus;
   final bool isProcessing;
+  final double? processingPercentage;
 
   const AppState(
       {this.wallets = const [],
@@ -29,6 +30,7 @@ class AppState extends Equatable {
       this.testWallet,
       this.isProcessing = false,
       this.account,
+      this.processingPercentage,
       this.accountStatus = AppStatus.initial});
 
   AppState copyWith(
@@ -40,6 +42,7 @@ class AppState extends Equatable {
       Pointer<Void>? testWallet,
       bool? isProcessing,
       Account? account,
+      double? processingPercentage,
       AppStatus? accountStatus}) {
     return AppState(
         wallets: wallets ?? this.wallets,
@@ -50,6 +53,8 @@ class AppState extends Equatable {
         ffiString: ffiString ?? this.ffiString,
         testWallet: testWallet,
         account: account ?? this.account,
+        processingPercentage:
+            processingPercentage ?? this.processingPercentage,
         isProcessing: isProcessing ?? this.isProcessing,
         accountStatus: accountStatus ?? this.accountStatus);
   }
@@ -64,7 +69,8 @@ class AppState extends Equatable {
         testWallet,
         account,
         accountStatus,
-        isProcessing
+        isProcessing,
+        processingPercentage
       ];
 }
 

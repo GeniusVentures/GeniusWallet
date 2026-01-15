@@ -77,37 +77,47 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       subscribeToWalletStatus: AppStatus.loaded,
     ));
   }
-
-  void _startProcessingPolling() {
+void _startProcessingPolling() {
     _processingTimer?.cancel();
 
+    int pollingInterval =
+        state.processingPercentage != null && state.processingPercentage! < 50.0
+            ? 500
+            : 1000;
+
     _processingTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      Duration(milliseconds: pollingInterval),
       (_) {
         add(ProcessingStatusTicked());
       },
     );
   }
 
+
+
   FutureOr<void> _onProcessingStatusTicked(
     ProcessingStatusTicked event,
     Emitter<AppState> emit,
-  ) {
+  ) async {
     try {
       final statusInfo = api.getProcessingStatus();
 
-      final isProcessing =
-          statusInfo.status == GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING;
+      final isProcessing = statusInfo.status ==
+          GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING;
 
       if (state.isProcessing != isProcessing) {
         emit(state.copyWith(isProcessing: isProcessing));
       }
+
+      if (isProcessing) {
+        double percentage = statusInfo.percentage;
+        emit(state.copyWith(processingPercentage: percentage));
+      }
     } catch (_) {
       _processingTimer?.cancel();
-      emit(state.copyWith(isProcessing: false));
+      emit(state.copyWith(isProcessing: false, processingPercentage: 0.0));
     }
   }
-
   Future<void> _onFetchAccount(
     FetchAccount event,
     Emitter<AppState> emit,
