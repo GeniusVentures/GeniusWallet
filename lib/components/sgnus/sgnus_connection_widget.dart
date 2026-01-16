@@ -105,7 +105,6 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
     );
   }
 }
-
 class SGNUSConnectionStatusWidget extends StatelessWidget {
   final bool? isSmallScreen;
 
@@ -122,7 +121,10 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
         final isProcessing = appState.isProcessing;
-        final percentage = appState.processingPercentage;
+
+        final statusText = isProcessing
+            ? '${appState.processingPercentage?.toStringAsFixed(2) ?? "0.00"}%'
+            : 'idle';
 
         return Align(
           alignment: alignment,
@@ -130,33 +132,23 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (isProcessing) ...[
-                const Loading(text: "PROCESSING"),
+                const Loading(text: "processing"),
                 const SizedBox(width: 8),
-                SizedBox(
-                  width: 60,
-                  child: AutoSizeText(
-                    '${percentage?.toStringAsFixed(2) ?? "0.00"}%',
-                    maxLines: 1,
-                    textAlign: TextAlign.right,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ] else ...[
-                const AutoSizeText(
-                  'IDLE',
+              ],
+              SizedBox(
+                width: 60,
+                child: AutoSizeText(
+                  statusText,
                   maxLines: 1,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white70,
+                    color: isProcessing ? Colors.white : Colors.white70,
                   ),
                 ),
-              ],
+              ),
             ],
           ),
         );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 
@@ -80,13 +81,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 void _startProcessingPolling() {
     _processingTimer?.cancel();
 
-    int pollingInterval =
-        state.processingPercentage != null && state.processingPercentage! < 50.0
-            ? 500
-            : 1000;
-
     _processingTimer = Timer.periodic(
-      Duration(milliseconds: pollingInterval),
+      const Duration(milliseconds: 1000),
       (_) {
         add(ProcessingStatusTicked());
       },
@@ -103,7 +99,7 @@ void _startProcessingPolling() {
       final statusInfo = api.getProcessingStatus();
 
       final isProcessing = statusInfo.status ==
-          GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING;
+          GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING.value;
 
       if (state.isProcessing != isProcessing) {
         emit(state.copyWith(isProcessing: isProcessing));
@@ -117,6 +113,7 @@ void _startProcessingPolling() {
       _processingTimer?.cancel();
       emit(state.copyWith(isProcessing: false, processingPercentage: 0.0));
     }
+    
   }
   Future<void> _onFetchAccount(
     FetchAccount event,
