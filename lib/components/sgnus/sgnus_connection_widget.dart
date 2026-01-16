@@ -105,31 +105,60 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
     );
   }
 }
+
 class SGNUSConnectionStatusWidget extends StatelessWidget {
-  const SGNUSConnectionStatusWidget({Key? key}) : super(key: key);
+  final bool? isSmallScreen;
+
+  const SGNUSConnectionStatusWidget({
+    Key? key,
+    this.isSmallScreen,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final alignment =
+        isSmallScreen == true ? Alignment.center : Alignment.centerRight;
+
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
-        if (!appState.isProcessing) {
-          return const SizedBox.shrink();
-        }
+        final isProcessing = appState.isProcessing;
+        final percentage = appState.processingPercentage;
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-          const Loading(text: "processing",),
-            const SizedBox(width: 8),
-            Text(
-              '${appState.processingPercentage?.toStringAsFixed(2)}%',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
+        return Align(
+          alignment: alignment,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isProcessing) ...[
+                const Loading(text: "PROCESSING"),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 60,
+                  child: AutoSizeText(
+                    '${percentage?.toStringAsFixed(2) ?? "0.00"}%',
+                    maxLines: 1,
+                    textAlign: TextAlign.right,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const AutoSizeText(
+                  'IDLE',
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ],
+          ),
         );
       },
     );
