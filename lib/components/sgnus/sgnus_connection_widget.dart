@@ -112,17 +112,17 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
-        if (!appState.isProcessing) {
-          return const SizedBox.shrink();
-        }
+        final statusText = appState.isProcessing
+            ? '${appState.processingPercentage?.toStringAsFixed(2)}%'
+            : 'idle';
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-          const Loading(text: "processing",),
-            const SizedBox(width: 8),
+            if (appState.isProcessing) const Loading(text: "processing"),
+            if (appState.isProcessing) const SizedBox(width: 8),
             Text(
-              '${appState.processingPercentage?.toStringAsFixed(2)}%',
+              statusText,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
