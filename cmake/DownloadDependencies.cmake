@@ -154,16 +154,6 @@ function(download_dependency DEP_NAME)
 
     # Get platform name
     get_platform_dir_name(PLATFORM_NAME)
-
-    # Determine the release tag format
-    if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
-        # For tags, use the tag name directly
-        set(RELEASE_TAG "${ARG_BRANCH}")
-        message(STATUS "Using Git tag format: ${ARG_BRANCH}")
-    else()
-        # For branches, use the platform-branch-buildtype format
-        set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
-    endif()
     
     # GitHub repository information
     set(GITHUB_REPO "GeniusVentures/${DEP_NAME}")
@@ -192,6 +182,15 @@ function(download_dependency DEP_NAME)
             if(EXISTS ${ABI_PATH} AND NOT ARG_FORCE)
                 message(STATUS "${DEP_NAME} for ${ABI} already exists, skipping")
                 continue()
+            endif()
+            
+            # Determine the release tag format for this ABI
+            if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
+                # For tags, use the tag name directly
+                set(RELEASE_TAG "${ARG_BRANCH}")
+            else()
+                # For branches, use the platform-ABI-branch-buildtype format
+                set(RELEASE_TAG "${PLATFORM_NAME}-${ABI}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
             endif()
             
             set(ARCHIVE_NAME "${PLATFORM_NAME}-${ABI}-${ARG_BUILD_TYPE}.tar.gz")
@@ -241,6 +240,19 @@ function(download_dependency DEP_NAME)
         endforeach()
     else()
         # Non-Android download logic
+        
+        # Determine the release tag format
+        if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
+            # For tags, use the tag name directly
+            set(RELEASE_TAG "${ARG_BRANCH}")
+        elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+            # For Linux with ARCH, include ARCH in the release tag
+            set(RELEASE_TAG "${PLATFORM_NAME}-${ARCH}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+        else()
+            # For other platforms, use the platform-branch-buildtype format
+            set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
+        endif()
+        
         if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
             set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARCH}-${ARG_BUILD_TYPE}.tar.gz")
         else()
