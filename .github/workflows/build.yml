@@ -66,10 +66,11 @@ jobs:
         abi: [""]
         include:
           - target: Linux
-            host: ubuntu-22.04
+            host: sg-ubuntu-linux
             flutter-platform: linux
             abi: x86_64
             build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Linux
             host: ubuntu-24.04-arm
             flutter-platform: linux
@@ -77,13 +78,13 @@ jobs:
             build-type: Release
             container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Windows
-            host: windows-latest
+            host: SG-WIN11
             flutter-platform: windows
           - target: OSX
-            host: macos-latest
+            host: gv-OSX-Large
             flutter-platform: macos
           - target: Android
-            host: ubuntu-latest
+            host: sg-ubuntu-linux
             flutter-platform: apk
           - target: iOS
             host: macos-latest
@@ -92,6 +93,65 @@ jobs:
           - target: Linux
             abi: ""
     steps:
+      - name: Clean workspace (self-hosted runners)
+        if: ${{ runner.environment == 'self-hosted' }}
+        run: |
+          echo "=== PRE-CLEANUP DEBUG ==="
+          echo "Current working directory: $(pwd)"
+          echo "Workspace: ${{github.workspace}}"
+
+          if [ -d "${{github.workspace}}" ]; then
+            cd "${{github.workspace}}"
+            echo "Changed to workspace directory: $(pwd)"
+            echo "Contents:"
+            ls -la
+
+            if [ -d ".git" ]; then
+              echo "Git repository detected, performing deep clean..."
+              # Remove stale lock files first
+              echo "Removing stale git lock files..."
+              find . -name "index.lock" -type f -delete 2>/dev/null || true
+              find . -name "*.lock" -path "*/.git/*" -type f -delete 2>/dev/null || true
+
+              git clean -xfd
+              git submodule foreach --recursive git clean -xfd
+              git reset --hard
+              git submodule foreach --recursive git reset --hard
+              echo "Git clean completed"
+            else
+              echo "Not a git repository, skipping git clean"
+            fi
+          else
+            echo "Workspace directory does not exist yet, skipping cleanup"
+          fi
+
+          echo "=== CLEANUP ARTIFACTS ==="
+          # Clean up artifacts from previous runs (self-hosted runners only)
+          if [ -d "thirdparty" ]; then
+            echo "Removing thirdparty directory..."
+            rm -rf thirdparty
+          fi
+          if [ -d "zkLLVM" ]; then
+            echo "Removing zkLLVM directory..."
+            rm -rf zkLLVM
+          fi
+          if [ -d "SuperGenius" ]; then
+            echo "Removing SuperGenius directory..."
+            rm -rf SuperGenius
+          fi
+          if [ -d "GeniusSDK" ]; then
+            echo "Removing GeniusSDK directory..."
+            rm -rf GeniusSDK
+          fi
+
+          echo "=== POST-CLEANUP DEBUG ==="
+          if [ -d "${{github.workspace}}" ]; then
+            cd "${{github.workspace}}"
+            echo "Final workspace contents:"
+            ls -la
+          fi
+        shell: bash
+
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
         run: |
@@ -118,9 +178,20 @@ jobs:
       - name: Configure macOS host
         if: ${{ runner.os == 'macOS' }}
         run: |
-          brew install ccache ninja bash gnu-tar
-          PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          brew install ninja bash gnu-tar
+
+          # Ensure GNU tar is first in PATH - check both possible Homebrew locations
+          if [ -d "/opt/homebrew/opt/gnu-tar/libexec/gnubin" ]; then
+            echo "PATH=/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+            echo "Using GNU tar from /opt/homebrew"
+          elif [ -d "/usr/local/opt/gnu-tar/libexec/gnubin" ]; then
+            echo "PATH=/usr/local/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+            echo "Using GNU tar from /usr/local"
+          else
+            echo "WARNING: GNU tar installation not found in expected locations"
+            echo "Available tar: $(which tar)"
+          fi
+
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Setup Flutter
@@ -693,48 +764,25 @@ jobs:
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
 
           echo "Checking if release $RELEASE_TAG exists..."
-          set +e
-          gh release view "$RELEASE_TAG"
-          releaseFound=$?
-          set -e
-
-          if [[ $releaseFound -eq 0 ]]; then
-              if [[ "$IS_TAG_RELEASE" == "false" ]]; then
-                  echo "Deleting existing branch-based release + tag..."
-                  gh release delete "$RELEASE_TAG" --yes
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+              if [ "$IS_TAG_RELEASE" == "false" ]; then
+                  echo "Deleting existing release/tag $RELEASE_TAG..."
+                  gh release delete "$RELEASE_TAG" --yes || true
                   git push origin ":refs/tags/$RELEASE_TAG" || true
-              else
-                  echo "Tag release $RELEASE_TAG already exists, skipping creation"
-                  exit 0
+                  git tag -d "$RELEASE_TAG" || true
               fi
           fi
 
-          RELEASE_TYPE="--draft"
-          
-          if [[ "$IS_TAG_RELEASE" == "true" ]]; then
-              # For tag releases, just create the release (tag already exists)
-              RELEASE_TITLE="${{ github.event.inputs.tag }} build artifacts"
-              RELEASE_NOTES="Build artifacts for tag ${{ github.event.inputs.tag }}"
-              echo "Creating release for existing tag: $RELEASE_TAG"
-              gh release create "$RELEASE_TAG" \
-                --draft \
-                -t "$RELEASE_TITLE" \
-                -n "$RELEASE_NOTES"
-          else
-              # For branch releases, create and push tag first
-              echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
-              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
-              git push --force origin "$RELEASE_TAG"
-              
-              RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
-              RELEASE_NOTES="Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}"
-              echo "Creating release for branch build"
-              gh release create "$RELEASE_TAG" \
-                --target "${{ github.sha }}" \
-                -t "$RELEASE_TITLE" \
-                -n "$RELEASE_NOTES" \
-                ${RELEASE_TYPE}
-          fi
+          echo "Creating new tag $RELEASE_TAG..."
+          git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+          git push origin "$RELEASE_TAG" --force
+
+          echo "Creating GitHub release $RELEASE_TAG..."
+          gh release create "$RELEASE_TAG" \
+          --target "${{ github.sha }}" \
+          -t "${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build" \
+          -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+          $( [ "$IS_TAG_RELEASE" = "true" ] && echo "" || echo "--prerelease" )
 
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
