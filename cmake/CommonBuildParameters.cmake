@@ -408,6 +408,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     )
     # zkLLVM
     set(zkLLVM_INCLUDE_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/include")
+    include_directories(${zkLLVM_INCLUDE_DIR})
 
     # Set config of llvm
     set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
