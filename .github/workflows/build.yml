@@ -366,28 +366,38 @@ jobs:
       - name: Setup Android SDK and NDK
         if: ${{ matrix.target == 'Android' }}
         run: |
-          # Download and setup Android SDK
+          # Setup Android SDK
           ANDROID_SDK_ROOT="$HOME/android-sdk"
-          if [ ! -d "$ANDROID_SDK_ROOT" ]; then
+          
+          # Download command-line tools if not present
+          if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
             echo "Downloading Android command-line tools..."
             mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
             wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
             unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
             mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
             rm cmdline-tools.zip
-            
-            # Install required SDK components
-            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
           else
-            echo "Android SDK already exists at $ANDROID_SDK_ROOT"
+            echo "Android command-line tools already exist"
           fi
           
+          # Always accept licenses and install/update required SDK components
+          echo "Installing/updating Android SDK components..."
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          
+          # Set environment variables
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
           echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-
+          
+          # Verify SDK installation
+          echo "=== Android SDK Setup ==="
+          echo "ANDROID_HOME: $ANDROID_SDK_ROOT"
+          echo "SDK contents:"
+          ls -la "$ANDROID_SDK_ROOT"
+          
           # Download and setup Android NDK
           NDK_VERSION="r27b"
           NDK_DIR="$HOME/android-ndk-$NDK_VERSION"
@@ -397,9 +407,14 @@ jobs:
             unzip -q ndk.zip -d $HOME
             rm ndk.zip
           else
-            echo "Android NDK already exists at $NDK_DIR, skipping download"
+            echo "Android NDK already exists at $NDK_DIR"
           fi
           echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+          
+          echo "=== Environment Summary ==="
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_HOME=$NDK_DIR"
         shell: bash
 
       - name: Setup CMake Arguments
@@ -426,6 +441,11 @@ jobs:
 
           # Add verbose output for debugging
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
+
+          # macOS universal binary: disable precompiled headers (incompatible with multi-arch)
+          if [ "${{ matrix.target }}" = "OSX" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON"
+          fi
 
           # Windows-specific: ensure message output
           if [ "${{ matrix.target }}" = "Windows" ]; then
