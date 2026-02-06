@@ -841,7 +841,7 @@ jobs:
           --target "${{ github.sha }}" \
           -t "${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build" \
           -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
-          $( [ "$IS_TAG_RELEASE" = "true" ] && echo "" || echo "--prerelease" )
+          $( [ "$IS_TAG_RELEASE" = "true" ] && echo "--draft" || echo "--prerelease" )
 
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
