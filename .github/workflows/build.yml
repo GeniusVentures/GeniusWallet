@@ -808,7 +808,7 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         shell: bash
         run: |
-            if [ -n "${RELEASE_TAG_INPUT}" ]; then
+          if [ -n "${RELEASE_TAG_INPUT}" ]; then
               RELEASE_TAG="${RELEASE_TAG_INPUT}"
               IS_TAG_RELEASE="true"
           else
