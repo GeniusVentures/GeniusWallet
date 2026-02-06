@@ -52,6 +52,7 @@ jobs:
     env:
       GRPC_BUILD_ENABLE_CCACHE: "ON"
       GH_TOKEN: ${{ secrets.GNUS_TOKEN_1 }}
+      RELEASE_TAG_INPUT: ${{ github.event.inputs.tag }}
     runs-on: ${{matrix.host}}
     container:
       image: ${{matrix.container}}
@@ -807,8 +808,8 @@ jobs:
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         shell: bash
         run: |
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
-              RELEASE_TAG="${{ github.event.inputs.tag }}"
+            if [ -n "${RELEASE_TAG_INPUT}" ]; then
+              RELEASE_TAG="${RELEASE_TAG_INPUT}"
               IS_TAG_RELEASE="true"
           else
               # Include ABI in release tag if defined
@@ -821,6 +822,7 @@ jobs:
           fi
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+          echo "IS_TAG_RELEASE=${IS_TAG_RELEASE}" >> $GITHUB_ENV
 
           echo "Checking if release $RELEASE_TAG exists..."
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
@@ -848,8 +850,8 @@ jobs:
         working-directory: ${{github.workspace}}
         run: |
           # Ensure RELEASE_TAG is set for upload step
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
-              RELEASE_TAG="${{ github.event.inputs.tag }}"
+            if [ -n "${RELEASE_TAG_INPUT}" ]; then
+              RELEASE_TAG="${RELEASE_TAG_INPUT}"
           else
               # Include ABI in release tag if defined
               if [ '${{matrix.abi}}' ]; then
