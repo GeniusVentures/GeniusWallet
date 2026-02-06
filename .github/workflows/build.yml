@@ -488,7 +488,7 @@ jobs:
           fi
 
       - name: Sign and package macOS app
-        if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop') }}
+        if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
         env:
           APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -712,7 +712,11 @@ jobs:
               cd build/macos/Build/Products/${{matrix.build-type}}
               
               # Copy the signed packages
-              cp -r *.pkg ../../../../../artifacts/ || true
+              if ls *.pkg >/dev/null 2>&1; then
+                cp -r *.pkg ../../../../../artifacts/
+              else
+                echo "No macOS .pkg files found to upload"
+              fi
               
               # Create a README explaining the different packages
               cat > ../../../../../artifacts/README.txt << EOF
