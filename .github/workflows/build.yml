@@ -82,7 +82,7 @@ jobs:
             host: SG-WIN11
             flutter-platform: windows
           - target: OSX
-            host: macos-latest
+            host: gv-OSX-Large
             flutter-platform: macos
           - target: Android
             host: sg-ubuntu-linux
@@ -307,7 +307,8 @@ jobs:
           security import "$APPLE_WWDR_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychains -d user -s $KEYCHAIN_PATH
+          # Add both temp keychain and system keychain to search list for chain validation
+          security list-keychains -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | grep -v "$KEYCHAIN_PATH" | xargs)
 
           echo "=== Available identities in keychain ==="
           security find-identity -v
