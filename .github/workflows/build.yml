@@ -82,7 +82,7 @@ jobs:
             host: SG-WIN11
             flutter-platform: windows
           - target: OSX
-            host: gv-OSX-Large
+            host: macos-latest
             flutter-platform: macos
           - target: Android
             host: sg-ubuntu-linux
