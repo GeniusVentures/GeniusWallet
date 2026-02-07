@@ -82,7 +82,7 @@ jobs:
             host: SG-WIN11
             flutter-platform: windows
           - target: OSX
-            host: macos-latest
+            host: gv-OSX-Large
             flutter-platform: macos
           - target: Android
             host: sg-ubuntu-linux
@@ -265,9 +265,18 @@ jobs:
           echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $APP_STORE_PP_PATH
 
           # Developer ID certificates and provisioning profile
+          if [ -z "$DEVELOPER_ID_APP_CERT_BASE64" ] || [ -z "$DEVELOPER_ID_INSTALLER_CERT_BASE64" ]; then
+            echo "ERROR: Developer ID certificate secrets are missing or empty"
+            exit 1
+          fi
           echo -n "$DEVELOPER_ID_APP_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_APP_CERT_PATH
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
+
+          echo "Developer ID cert files:"
+          ls -la "$DEVELOPER_ID_APP_CERT_PATH" "$DEVELOPER_ID_INSTALLER_CERT_PATH"
+          file "$DEVELOPER_ID_APP_CERT_PATH" || true
+          file "$DEVELOPER_ID_INSTALLER_CERT_PATH" || true
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -305,6 +314,11 @@ jobs:
 
           echo "=== Searching for specific certificate types ==="
           security find-identity -v -p codesigning
+
+          if ! security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
+            echo "ERROR: Developer ID Application identity not found in keychain"
+            exit 1
+          fi
 
           echo "=== All certificates in keychain ==="
           security dump-keychain $KEYCHAIN_PATH | grep -A 5 -B 5 "Developer\|3rd Party"
