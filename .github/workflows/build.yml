@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [Android, iOS, OSX, Linux, Windows]
+        target: [OSX]
         build-type: [Release]
         abi: [""]
         include:
