@@ -301,15 +301,31 @@ jobs:
           fi
 
           # Import Developer ID certificates
+          echo "=== Importing Developer ID certificates ==="
           if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
             # .cer file doesn't need password
-            security import $DEVELOPER_ID_APP_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
+            echo "Importing Developer ID Application certificate (without password)..."
+            if security import $DEVELOPER_ID_APP_CERT_PATH -A -t cert -k $KEYCHAIN_PATH; then
+              echo "✓ Developer ID Application certificate import succeeded"
+            else
+              echo "✗ Developer ID Application certificate import FAILED with exit code $?"
+            fi
           else
             # .p12 file needs password
-            security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            echo "Importing Developer ID Application p12 (with password)..."
+            if security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH; then
+              echo "✓ Developer ID Application p12 import succeeded"
+            else
+              echo "✗ Developer ID Application p12 import FAILED with exit code $?"
+            fi
           fi
 
-          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          echo "Importing Developer ID Installer certificate..."
+          if security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH; then
+            echo "✓ Developer ID Installer certificate import succeeded"
+          else
+            echo "✗ Developer ID Installer certificate import FAILED with exit code $?"
+          fi
 
           # Ensure Apple root and intermediate certificates are present in the temp keychain
           APPLE_ROOT_CA_PATH=$RUNNER_TEMP/apple_root_ca.cer
@@ -318,6 +334,9 @@ jobs:
           curl -sS -o "$APPLE_WWDR_CA_PATH" https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
           security import "$APPLE_ROOT_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
           security import "$APPLE_WWDR_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
+
+          echo "=== Certificates in temp keychain ==="
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | grep -v "$KEYCHAIN_PATH" | xargs)
