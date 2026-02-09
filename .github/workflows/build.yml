@@ -265,24 +265,10 @@ jobs:
           echo -n "$DEV_DISTRIBUTION_MAC_PROVISION_BASE64" | base64 --decode -o $APP_STORE_PP_PATH
 
           # Developer ID certificates and provisioning profile
-          if [ -z "$DEVELOPER_ID_APP_CERT_BASE64" ] || [ -z "$DEVELOPER_ID_INSTALLER_CERT_BASE64" ]; then
-            echo "ERROR: Developer ID certificate secrets are missing or empty"
-            exit 1
-          fi
           echo -n "$DEVELOPER_ID_APP_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_APP_CERT_PATH
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
-          echo "Developer ID cert files:"
-          ls -la "$DEVELOPER_ID_APP_CERT_PATH" "$DEVELOPER_ID_INSTALLER_CERT_PATH"
-          file "$DEVELOPER_ID_APP_CERT_PATH" || true
-          file "$DEVELOPER_ID_INSTALLER_CERT_PATH" || true
-
-          # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          
           # Clean up any old app-signing keychains from previous runs (self-hosted only)
           echo "=== Cleaning up old app-signing keychains ==="
           security list-keychains -d user | grep "app-signing.keychain-db" | grep -v "$KEYCHAIN_PATH" | while read old_keychain; do
@@ -293,102 +279,34 @@ jobs:
             fi
           done || true
 
-          # import certificates to keychain - let macOS auto-detect formats
-          echo "=== Importing App Store/TestFlight certificates ==="
-          
-          # DEV_DISTRIBUTION_SIGNER_CERT_PATH is .p12 (needs password)
-          echo "Importing Distribution Signer certificate (.p12)..."
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          
-          # DEV_DISTRIBUTION_INSTALLER_CERT_PATH - try with password first (auto-detect format), then without
-          echo "Importing Distribution Installer certificate..."
-          if ! security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -k $KEYCHAIN_PATH 2>/dev/null; then
-            echo "  Failed with password, trying without password..."
-            security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
-          fi
+          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
-          # Check if Developer ID certificates already exist in system keychains (self-hosted runners)
-          echo "=== Checking for existing Developer ID certificates ==="
-          if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-            echo "NOTE: Developer ID Application certificate already exists in system keychain"
-          else
-            echo "Developer ID Application certificate not found in system keychain"
-          fi
-          if security find-identity -v -p codesigning | grep -q "Developer ID Installer"; then
-            echo "NOTE: Developer ID Installer certificate already exists in system keychain"
-          else
-            echo "Developer ID Installer certificate not found in system keychain"
-          fi
-
-          # Import Developer ID certificates
-          echo "=== Importing Developer ID certificates ==="
+          # Import Developer ID certificates - handle different formats
           if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
             # .cer file doesn't need password
-            echo "Importing Developer ID Application certificate (without password)..."
-            if security import $DEVELOPER_ID_APP_CERT_PATH -A -t cert -k $KEYCHAIN_PATH; then
-              echo "✓ Developer ID Application certificate import succeeded"
-            else
-              echo "✗ Developer ID Application certificate import FAILED with exit code $?"
-            fi
+            security import $DEVELOPER_ID_APP_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
           else
             # .p12 file needs password
-            echo "Importing Developer ID Application p12 (with password)..."
-            if security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH; then
-              echo "✓ Developer ID Application p12 import succeeded"
-            else
-              echo "✗ Developer ID Application p12 import FAILED with exit code $?"
-            fi
+            security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           fi
 
-          echo "Importing Developer ID Installer certificate..."
-          if security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH; then
-            echo "✓ Developer ID Installer certificate import succeeded"
-          else
-            echo "✗ Developer ID Installer certificate import FAILED with exit code $?"
-          fi
-
-          # Ensure Apple root and intermediate certificates are present in the temp keychain
-          APPLE_ROOT_CA_PATH=$RUNNER_TEMP/apple_root_ca.cer
-          APPLE_WWDR_CA_PATH=$RUNNER_TEMP/apple_wwdr_ca.cer
-          curl -sS -o "$APPLE_ROOT_CA_PATH" https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
-          curl -sS -o "$APPLE_WWDR_CA_PATH" https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
-          security import "$APPLE_ROOT_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
-          security import "$APPLE_WWDR_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
-
-          echo "=== Certificates in temp keychain ONLY ==="
-          security find-identity -v -p codesigning $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          
-          echo "=== Keychain search list BEFORE modification ==="
-          security list-keychains -d user
-          
-          # Try using ONLY the temp keychain (no system keychain)
-          security default-keychain -s $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
-          
-          echo "=== Keychain search list AFTER modification ==="
-          security list-keychains -d user
-          
-          echo "=== macOS version ==="
-          sw_vers
 
-          echo "=== Available identities with temp keychain only ==="
+          echo "=== Available identities in keychain ==="
           security find-identity -v
 
           echo "=== Searching for specific certificate types ==="
           security find-identity -v -p codesigning
-          
-          echo "=== Checking which keychains contain each identity ==="
-          for keychain in $(security list-keychains -d user | tr -d '"'); do
-            echo "Keychain: $keychain"
-            security find-identity -v -p codesigning "$keychain" 2>/dev/null || echo "  (no codesigning identities)"
-          done
-
-          if ! security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-            echo "ERROR: Developer ID Application identity not found in keychain"
-            exit 1
-          fi
 
           echo "=== All certificates in keychain ==="
           security dump-keychain $KEYCHAIN_PATH | grep -A 5 -B 5 "Developer\|3rd Party"
