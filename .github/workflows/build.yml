@@ -277,13 +277,6 @@ jobs:
           ls -la "$DEVELOPER_ID_APP_CERT_PATH" "$DEVELOPER_ID_INSTALLER_CERT_PATH"
           file "$DEVELOPER_ID_APP_CERT_PATH" || true
           file "$DEVELOPER_ID_INSTALLER_CERT_PATH" || true
-          
-          # Check if Developer ID App cert is .cer (certificate only) vs .p12 (with private key)
-          if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
-            echo "WARNING: Developer ID Application certificate is a .cer file (certificate only, no private key)"
-            echo "This will not work for code signing. You need a .p12 file with the private key."
-            echo "Please regenerate the secret with a .p12 file exported from Keychain Access."
-          fi
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -352,7 +345,7 @@ jobs:
           security import "$APPLE_ROOT_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
           security import "$APPLE_WWDR_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
 
-          echo "=== Certificates in temp keychain ==="
+          echo "=== Certificates in temp keychain ONLY ==="
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -360,9 +353,9 @@ jobs:
           echo "=== Keychain search list BEFORE modification ==="
           security list-keychains -d user
           
-          # Only use the temp keychain (not system keychain to avoid duplicates)
-          security list-keychains -d user -s $KEYCHAIN_PATH
+          # Try using ONLY the temp keychain (no system keychain)
           security default-keychain -s $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH
           
           echo "=== Keychain search list AFTER modification ==="
           security list-keychains -d user
@@ -370,11 +363,17 @@ jobs:
           echo "=== macOS version ==="
           sw_vers
 
-          echo "=== Available identities in keychain ==="
+          echo "=== Available identities with temp keychain only ==="
           security find-identity -v
 
           echo "=== Searching for specific certificate types ==="
           security find-identity -v -p codesigning
+          
+          echo "=== Checking which keychains contain each identity ==="
+          for keychain in $(security list-keychains -d user | tr -d '"'); do
+            echo "Keychain: $keychain"
+            security find-identity -v -p codesigning "$keychain" 2>/dev/null || echo "  (no codesigning identities)"
+          done
 
           if ! security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
             echo "ERROR: Developer ID Application identity not found in keychain"
