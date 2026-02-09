@@ -269,15 +269,12 @@ jobs:
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
-          # Clean up any old app-signing keychains from previous runs (self-hosted only)
-          echo "=== Cleaning up old app-signing keychains ==="
-          security list-keychains -d user | grep "app-signing.keychain-db" | grep -v "$KEYCHAIN_PATH" | while read old_keychain; do
-            old_keychain=$(echo "$old_keychain" | tr -d '"' | xargs)
-            if [ -f "$old_keychain" ]; then
-              echo "Deleting old keychain: $old_keychain"
-              security delete-keychain "$old_keychain" 2>/dev/null || true
-            fi
-          done || true
+          # Clean up old keychain from previous run (self-hosted runners reuse $RUNNER_TEMP)
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "Cleaning up existing keychain: $KEYCHAIN_PATH"
+            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+            rm -f "$KEYCHAIN_PATH" 2>/dev/null || true
+          fi
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
