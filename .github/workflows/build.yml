@@ -339,7 +339,17 @@ jobs:
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list BEFORE modification ==="
+          security list-keychains -d user
+          
           security list-keychains -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | grep -v "$KEYCHAIN_PATH" | xargs)
+          
+          echo "=== Keychain search list AFTER modification ==="
+          security list-keychains -d user
+          
+          echo "=== macOS version ==="
+          sw_vers
 
           echo "=== Available identities in keychain ==="
           security find-identity -v
