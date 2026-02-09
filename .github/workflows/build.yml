@@ -66,30 +66,30 @@ jobs:
         build-type: [Release]
         abi: [""]
         include:
-          - target: Linux
-            host: sg-ubuntu-linux
-            flutter-platform: linux
-            abi: x86_64
-            build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
-          - target: Linux
-            host: ubuntu-24.04-arm
-            flutter-platform: linux
-            abi: aarch64
-            build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
-          - target: Windows
-            host: SG-WIN11
-            flutter-platform: windows
+          # - target: Linux
+          #   host: sg-ubuntu-linux
+          #   flutter-platform: linux
+          #   abi: x86_64
+          #   build-type: Release
+          #   container: ghcr.io/geniusventures/debian-bullseye:latest
+          # - target: Linux
+          #   host: ubuntu-24.04-arm
+          #   flutter-platform: linux
+          #   abi: aarch64
+          #   build-type: Release
+          #   container: ghcr.io/geniusventures/debian-bullseye:latest
+          # - target: Windows
+          #   host: SG-WIN11
+          #   flutter-platform: windows
           - target: OSX
             host: gv-OSX-Large
             flutter-platform: macos
-          - target: Android
-            host: sg-ubuntu-linux
-            flutter-platform: apk
-          - target: iOS
-            host: macos-latest
-            flutter-platform: ios
+          # - target: Android
+          #   host: sg-ubuntu-linux
+          #   flutter-platform: apk
+          # - target: iOS
+          #   host: macos-latest
+          #   flutter-platform: ios
         exclude:
           - target: Linux
             abi: ""
@@ -291,7 +291,7 @@ jobs:
               echo "Deleting old keychain: $old_keychain"
               security delete-keychain "$old_keychain" 2>/dev/null || true
             fi
-          done
+          done || true
 
           # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
