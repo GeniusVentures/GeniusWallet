@@ -298,6 +298,9 @@ jobs:
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list after configuration ==="
+          security list-keychains -d user
 
           echo "=== Available identities in keychain ==="
           security find-identity -v
@@ -502,6 +505,13 @@ jobs:
           NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
+          
+          # Re-ensure temp keychain is the only one in search list
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list at signing step ==="
+          security list-keychains -d user
 
           # First, let's see what certificates are available
           echo "=== Available signing identities ==="
