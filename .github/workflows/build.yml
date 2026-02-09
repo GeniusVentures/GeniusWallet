@@ -293,9 +293,16 @@ jobs:
             fi
           done || true
 
-          # import certificates to keychain
+          # import certificates to keychain - handle .cer and .p12 differently
+          echo "=== Importing App Store/TestFlight certificates ==="
+          
+          # DEV_DISTRIBUTION_SIGNER_CERT_PATH is .p12 (needs password)
+          echo "Importing Distribution Signer certificate (.p12)..."
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          
+          # DEV_DISTRIBUTION_INSTALLER_CERT_PATH is .cer (no password needed)
+          echo "Importing Distribution Installer certificate (.cer)..."
+          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
 
           # Check if Developer ID certificates already exist in system keychains (self-hosted runners)
           echo "=== Checking for existing Developer ID certificates ==="
