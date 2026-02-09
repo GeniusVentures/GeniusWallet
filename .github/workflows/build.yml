@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [OSX]
+        target: [Android, iOS, OSX, Linux, Windows]
         build-type: [Release]
         abi: [""]
         include:
@@ -100,34 +100,13 @@ jobs:
           echo "=== PRE-CLEANUP DEBUG ==="
           echo "Current working directory: $(pwd)"
           echo "Workspace: ${{github.workspace}}"
-
-          if [ -d "${{github.workspace}}" ]; then
-            cd "${{github.workspace}}"
-            echo "Changed to workspace directory: $(pwd)"
-            echo "Contents:"
-            ls -la
-
-            if [ -d ".git" ]; then
-              echo "Git repository detected, performing deep clean..."
-              # Remove stale lock files first
-              echo "Removing stale git lock files..."
-              find . -name "index.lock" -type f -delete 2>/dev/null || true
-              find . -name "*.lock" -path "*/.git/*" -type f -delete 2>/dev/null || true
-
-              git clean -xfd
-              git submodule foreach --recursive git clean -xfd
-              git reset --hard
-              git submodule foreach --recursive git reset --hard
-              echo "Git clean completed"
-            else
-              echo "Not a git repository, skipping git clean"
-            fi
-          else
-            echo "Workspace directory does not exist yet, skipping cleanup"
-          fi
-
+          
           echo "=== CLEANUP ARTIFACTS ==="
           # Clean up artifacts from previous runs (self-hosted runners only)
+          if [ -d "GeniusWallet" ]; then
+            echo "Removing GeniusWallet directory..."
+            rm -rf GeniusWallet
+          fi
           if [ -d "thirdparty" ]; then
             echo "Removing thirdparty directory..."
             rm -rf thirdparty
