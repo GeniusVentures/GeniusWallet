@@ -96,38 +96,24 @@ jobs:
     steps:
       - name: Clean workspace (self-hosted runners)
         if: ${{ runner.environment == 'self-hosted' }}
+        working-directory: ${{runner.workspace}}
         run: |
           echo "=== PRE-CLEANUP DEBUG ==="
           echo "Current working directory: $(pwd)"
-          echo "Workspace: ${{github.workspace}}"
-
-          if [ -d "${{github.workspace}}" ]; then
-            cd "${{github.workspace}}"
-            echo "Changed to workspace directory: $(pwd)"
-            echo "Contents:"
-            ls -la
-
-            if [ -d ".git" ]; then
-              echo "Git repository detected, performing deep clean..."
-              # Remove stale lock files first
-              echo "Removing stale git lock files..."
-              find . -name "index.lock" -type f -delete 2>/dev/null || true
-              find . -name "*.lock" -path "*/.git/*" -type f -delete 2>/dev/null || true
-
-              git clean -xfd
-              git submodule foreach --recursive git clean -xfd
-              git reset --hard
-              git submodule foreach --recursive git reset --hard
-              echo "Git clean completed"
-            else
-              echo "Not a git repository, skipping git clean"
-            fi
-          else
-            echo "Workspace directory does not exist yet, skipping cleanup"
-          fi
+          echo "Runner workspace: ${{runner.workspace}}"
+          echo "GitHub workspace: ${{github.workspace}}"
 
           echo "=== CLEANUP ARTIFACTS ==="
           # Clean up artifacts from previous runs (self-hosted runners only)
+          
+          # Clean contents of GeniusWallet directory but keep the directory itself
+          if [ -d "GeniusWallet" ]; then
+            echo "Cleaning GeniusWallet directory contents..."
+            rm -rf GeniusWallet/* GeniusWallet/.* 2>/dev/null || true
+            echo "GeniusWallet directory cleaned (kept the directory)"
+          fi
+          
+          # Delete sibling dependency directories completely
           if [ -d "thirdparty" ]; then
             echo "Removing thirdparty directory..."
             rm -rf thirdparty
@@ -146,10 +132,11 @@ jobs:
           fi
 
           echo "=== POST-CLEANUP DEBUG ==="
-          if [ -d "${{github.workspace}}" ]; then
-            cd "${{github.workspace}}"
-            echo "Final workspace contents:"
-            ls -la
+          echo "Runner workspace contents:"
+          ls -la
+          if [ -d "GeniusWallet" ]; then
+            echo "GeniusWallet directory exists and contains:"
+            ls -la GeniusWallet/ 2>/dev/null || echo "  (empty)"
           fi
         shell: bash
 
@@ -269,6 +256,13 @@ jobs:
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
+          # Clean up old keychain from previous run (self-hosted runners reuse $RUNNER_TEMP)
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "Cleaning up existing keychain: $KEYCHAIN_PATH"
+            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+            rm -f "$KEYCHAIN_PATH" 2>/dev/null || true
+          fi
+
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
@@ -289,16 +283,11 @@ jobs:
 
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
-          # Ensure Apple root and intermediate certificates are present in the temp keychain
-          APPLE_ROOT_CA_PATH=$RUNNER_TEMP/apple_root_ca.cer
-          APPLE_WWDR_CA_PATH=$RUNNER_TEMP/apple_wwdr_ca.cer
-          curl -sS -o "$APPLE_ROOT_CA_PATH" https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
-          curl -sS -o "$APPLE_WWDR_CA_PATH" https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
-          security import "$APPLE_ROOT_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
-          security import "$APPLE_WWDR_CA_PATH" -A -t cert -k $KEYCHAIN_PATH
-
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list after configuration ==="
+          security list-keychains -d user
 
           echo "=== Available identities in keychain ==="
           security find-identity -v
@@ -503,6 +492,13 @@ jobs:
           NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
+          
+          # Re-ensure temp keychain is the only one in search list
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list at signing step ==="
+          security list-keychains -d user
 
           # First, let's see what certificates are available
           echo "=== Available signing identities ==="
