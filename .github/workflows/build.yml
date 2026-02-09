@@ -100,14 +100,20 @@ jobs:
         run: |
           echo "=== PRE-CLEANUP DEBUG ==="
           echo "Current working directory: $(pwd)"
-          echo "Workspace: ${{github.workspace}}"
+          echo "Runner workspace: ${{runner.workspace}}"
+          echo "GitHub workspace: ${{github.workspace}}"
 
           echo "=== CLEANUP ARTIFACTS ==="
           # Clean up artifacts from previous runs (self-hosted runners only)
+          
+          # Clean contents of GeniusWallet directory but keep the directory itself
           if [ -d "GeniusWallet" ]; then
-            echo "Removing GeniusWallet directory..."
-            rm -rf GeniusWallet
+            echo "Cleaning GeniusWallet directory contents..."
+            rm -rf GeniusWallet/* GeniusWallet/.* 2>/dev/null || true
+            echo "GeniusWallet directory cleaned (kept the directory)"
           fi
+          
+          # Delete sibling dependency directories completely
           if [ -d "thirdparty" ]; then
             echo "Removing thirdparty directory..."
             rm -rf thirdparty
@@ -126,10 +132,11 @@ jobs:
           fi
 
           echo "=== POST-CLEANUP DEBUG ==="
-          if [ -d "${{github.workspace}}" ]; then
-            cd "${{github.workspace}}"
-            echo "Final workspace contents:"
-            ls -la
+          echo "Runner workspace contents:"
+          ls -la
+          if [ -d "GeniusWallet" ]; then
+            echo "GeniusWallet directory exists and contains:"
+            ls -la GeniusWallet/ 2>/dev/null || echo "  (empty)"
           fi
         shell: bash
 
