@@ -96,11 +96,12 @@ jobs:
     steps:
       - name: Clean workspace (self-hosted runners)
         if: ${{ runner.environment == 'self-hosted' }}
+        working-directory: ${{github.workspace}}
         run: |
           echo "=== PRE-CLEANUP DEBUG ==="
           echo "Current working directory: $(pwd)"
           echo "Workspace: ${{github.workspace}}"
-          
+
           echo "=== CLEANUP ARTIFACTS ==="
           # Clean up artifacts from previous runs (self-hosted runners only)
           if [ -d "GeniusWallet" ]; then
