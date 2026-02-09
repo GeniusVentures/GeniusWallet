@@ -282,6 +282,16 @@ jobs:
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          # Clean up any old app-signing keychains from previous runs (self-hosted only)
+          echo "=== Cleaning up old app-signing keychains ==="
+          security list-keychains -d user | grep "app-signing.keychain-db" | grep -v "$KEYCHAIN_PATH" | while read old_keychain; do
+            old_keychain=$(echo "$old_keychain" | tr -d '"' | xargs)
+            if [ -f "$old_keychain" ]; then
+              echo "Deleting old keychain: $old_keychain"
+              security delete-keychain "$old_keychain" 2>/dev/null || true
+            fi
+          done
 
           # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
@@ -343,7 +353,8 @@ jobs:
           echo "=== Keychain search list BEFORE modification ==="
           security list-keychains -d user
           
-          security list-keychains -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | grep -v "$KEYCHAIN_PATH" | xargs)
+          # Only add the new temp keychain and system keychain (not all the old ones)
+          security list-keychains -d user -s $KEYCHAIN_PATH "/Library/Keychains/System.keychain"
           
           echo "=== Keychain search list AFTER modification ==="
           security list-keychains -d user
