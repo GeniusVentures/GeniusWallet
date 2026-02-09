@@ -96,7 +96,7 @@ jobs:
     steps:
       - name: Clean workspace (self-hosted runners)
         if: ${{ runner.environment == 'self-hosted' }}
-        working-directory: ${{github.workspace}}
+        working-directory: ${{runner.workspace}}
         run: |
           echo "=== PRE-CLEANUP DEBUG ==="
           echo "Current working directory: $(pwd)"
