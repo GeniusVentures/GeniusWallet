@@ -6,7 +6,7 @@ import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/hive/models/historical_price_cache_entry.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 

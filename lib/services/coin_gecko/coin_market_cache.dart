@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 class CoinMarketCache {
   final Box<CoinGeckoMarketData> _marketDataBox =

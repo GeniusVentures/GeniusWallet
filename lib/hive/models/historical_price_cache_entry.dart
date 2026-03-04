@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'historical_price_cache_entry.g.dart'; // Will generate this adapter
 

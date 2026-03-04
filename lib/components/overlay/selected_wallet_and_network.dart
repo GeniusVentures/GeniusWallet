@@ -2,7 +2,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 class SelectedWalletAndNetwork {
   final Wallet wallet;
