@@ -98,6 +98,10 @@ class WalletInformationState extends State<WalletInformation> {
               ),
             const SizedBox(height: 8),
             const SGNUSConnectionMobileWidget(),
+            const SizedBox(height: 8),
+            SGNUSConnectionStatusWidget(
+              isSmallScreen: true,
+            )
           ],
         ),
         const SizedBox(height: 20),
@@ -197,7 +201,7 @@ class WalletInformationState extends State<WalletInformation> {
                         final connection = snapshot.data;
                         return SubmitJobButton(
                           onPressed: () {
-                            Navigator.of(context).pop(); // closes drawer
+                            Navigator.of(context).pop();
                           },
                           walletDetailsCubit: walletDetailsCubit,
                           walletAddress: state.selectedWallet?.address ?? "",

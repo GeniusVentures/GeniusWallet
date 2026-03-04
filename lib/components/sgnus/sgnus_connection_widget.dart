@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {
@@ -95,6 +97,57 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
                   if (connection.isConnected) const CheckmarkAnimation(),
                   if (!connection.isConnected) const XAnimation(),
                 ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+class SGNUSConnectionStatusWidget extends StatelessWidget {
+  final bool? isSmallScreen;
+
+  const SGNUSConnectionStatusWidget({
+    Key? key,
+    this.isSmallScreen,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final alignment =
+        isSmallScreen == true ? Alignment.center : Alignment.centerRight;
+
+    return BlocBuilder<AppBloc, AppState>(
+      builder: (context, appState) {
+        final isProcessing = appState.isProcessing;
+
+        final statusText = isProcessing
+            ? '${appState.processingPercentage?.toStringAsFixed(2) ?? "0.00"}%'
+            : 'idle';
+
+        return Align(
+          alignment: alignment,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isProcessing) ...[
+                const Loading(text: "processing"),
+                const SizedBox(width: 8),
+              ],
+              SizedBox(
+                width: 60,
+                child: AutoSizeText(
+                  statusText,
+                  maxLines: 1,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isProcessing ? Colors.white : Colors.white70,
+                  ),
+                ),
               ),
             ],
           ),

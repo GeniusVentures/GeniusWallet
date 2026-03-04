@@ -52,6 +52,7 @@ jobs:
     env:
       GRPC_BUILD_ENABLE_CCACHE: "ON"
       GH_TOKEN: ${{ secrets.GNUS_TOKEN_1 }}
+      RELEASE_TAG_INPUT: ${{ github.event.inputs.tag }}
     runs-on: ${{matrix.host}}
     container:
       image: ${{matrix.container}}
@@ -66,10 +67,11 @@ jobs:
         abi: [""]
         include:
           - target: Linux
-            host: ubuntu-22.04
+            host: sg-ubuntu-linux
             flutter-platform: linux
             abi: x86_64
             build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Linux
             host: ubuntu-24.04-arm
             flutter-platform: linux
@@ -77,13 +79,13 @@ jobs:
             build-type: Release
             container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Windows
-            host: windows-latest
+            host: SG-WIN11
             flutter-platform: windows
           - target: OSX
             host: macos-latest
             flutter-platform: macos
           - target: Android
-            host: ubuntu-latest
+            host: sg-ubuntu-linux
             flutter-platform: apk
           - target: iOS
             host: macos-latest
@@ -92,6 +94,52 @@ jobs:
           - target: Linux
             abi: ""
     steps:
+      - name: Clean workspace (self-hosted runners)
+        if: ${{ runner.environment == 'self-hosted' }}
+        working-directory: ${{runner.workspace}}
+        run: |
+          echo "=== PRE-CLEANUP DEBUG ==="
+          echo "Current working directory: $(pwd)"
+          echo "Runner workspace: ${{runner.workspace}}"
+          echo "GitHub workspace: ${{github.workspace}}"
+
+          echo "=== CLEANUP ARTIFACTS ==="
+          # Clean up artifacts from previous runs (self-hosted runners only)
+          
+          # Clean contents of GeniusWallet directory but keep the directory itself
+          if [ -d "GeniusWallet" ]; then
+            echo "Cleaning GeniusWallet directory contents..."
+            rm -rf GeniusWallet/* GeniusWallet/.* 2>/dev/null || true
+            echo "GeniusWallet directory cleaned (kept the directory)"
+          fi
+          
+          # Delete sibling dependency directories completely
+          if [ -d "thirdparty" ]; then
+            echo "Removing thirdparty directory..."
+            rm -rf thirdparty
+          fi
+          if [ -d "zkLLVM" ]; then
+            echo "Removing zkLLVM directory..."
+            rm -rf zkLLVM
+          fi
+          if [ -d "SuperGenius" ]; then
+            echo "Removing SuperGenius directory..."
+            rm -rf SuperGenius
+          fi
+          if [ -d "GeniusSDK" ]; then
+            echo "Removing GeniusSDK directory..."
+            rm -rf GeniusSDK
+          fi
+
+          echo "=== POST-CLEANUP DEBUG ==="
+          echo "Runner workspace contents:"
+          ls -la
+          if [ -d "GeniusWallet" ]; then
+            echo "GeniusWallet directory exists and contains:"
+            ls -la GeniusWallet/ 2>/dev/null || echo "  (empty)"
+          fi
+        shell: bash
+
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
         run: |
@@ -118,9 +166,20 @@ jobs:
       - name: Configure macOS host
         if: ${{ runner.os == 'macOS' }}
         run: |
-          brew install ccache ninja bash gnu-tar
-          PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          brew install ninja bash gnu-tar
+
+          # Ensure GNU tar is first in PATH - check both possible Homebrew locations
+          if [ -d "/opt/homebrew/opt/gnu-tar/libexec/gnubin" ]; then
+            echo "PATH=/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+            echo "Using GNU tar from /opt/homebrew"
+          elif [ -d "/usr/local/opt/gnu-tar/libexec/gnubin" ]; then
+            echo "PATH=/usr/local/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+            echo "Using GNU tar from /usr/local"
+          else
+            echo "WARNING: GNU tar installation not found in expected locations"
+            echo "Available tar: $(which tar)"
+          fi
+
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Setup Flutter
@@ -197,6 +256,13 @@ jobs:
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
+          # Clean up old keychain from previous run (self-hosted runners reuse $RUNNER_TEMP)
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "Cleaning up existing keychain: $KEYCHAIN_PATH"
+            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+            rm -f "$KEYCHAIN_PATH" 2>/dev/null || true
+          fi
+
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
@@ -219,6 +285,9 @@ jobs:
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list after configuration ==="
+          security list-keychains -d user
 
           echo "=== Available identities in keychain ==="
           security find-identity -v
@@ -292,6 +361,60 @@ jobs:
         run: |
           flutter pub get
 
+      - name: Setup Android SDK and NDK
+        if: ${{ matrix.target == 'Android' }}
+        run: |
+          # Setup Android SDK
+          ANDROID_SDK_ROOT="$HOME/android-sdk"
+          
+          # Download command-line tools if not present
+          if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
+            echo "Downloading Android command-line tools..."
+            mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+            wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+            unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+            mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+            rm cmdline-tools.zip
+          else
+            echo "Android command-line tools already exist"
+          fi
+          
+          # Always accept licenses and install/update required SDK components
+          echo "Installing/updating Android SDK components..."
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          
+          # Set environment variables
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          
+          # Verify SDK installation
+          echo "=== Android SDK Setup ==="
+          echo "ANDROID_HOME: $ANDROID_SDK_ROOT"
+          echo "SDK contents:"
+          ls -la "$ANDROID_SDK_ROOT"
+          
+          # Download and setup Android NDK
+          NDK_VERSION="r27b"
+          NDK_DIR="$HOME/android-ndk-$NDK_VERSION"
+          if [ ! -d "$NDK_DIR" ]; then
+            echo "Downloading Android NDK $NDK_VERSION..."
+            wget https://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux.zip -O ndk.zip
+            unzip -q ndk.zip -d $HOME
+            rm ndk.zip
+          else
+            echo "Android NDK already exists at $NDK_DIR"
+          fi
+          echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+          
+          echo "=== Environment Summary ==="
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_HOME=$NDK_DIR"
+        shell: bash
+
       - name: Setup CMake Arguments
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
@@ -316,6 +439,11 @@ jobs:
 
           # Add verbose output for debugging
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_VERBOSE_MAKEFILE=ON"
+
+          # macOS universal binary: disable precompiled headers (incompatible with multi-arch)
+          if [ "${{ matrix.target }}" = "OSX" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON"
+          fi
 
           # Windows-specific: ensure message output
           if [ "${{ matrix.target }}" = "Windows" ]; then
@@ -357,13 +485,20 @@ jobs:
           fi
 
       - name: Sign and package macOS app
-        if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop') }}
+        if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
         env:
           APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
+          
+          # Re-ensure temp keychain is the only one in search list
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          
+          echo "=== Keychain search list at signing step ==="
+          security list-keychains -d user
 
           # First, let's see what certificates are available
           echo "=== Available signing identities ==="
@@ -581,7 +716,11 @@ jobs:
               cd build/macos/Build/Products/${{matrix.build-type}}
               
               # Copy the signed packages
-              cp -r *.pkg ../../../../../artifacts/ || true
+              if ls *.pkg >/dev/null 2>&1; then
+                cp -r *.pkg ../../../../../artifacts/
+              else
+                echo "No macOS .pkg files found to upload"
+              fi
               
               # Create a README explaining the different packages
               cat > ../../../../../artifacts/README.txt << EOF
@@ -672,101 +811,71 @@ jobs:
           fi
         shell: bash
 
-      - name: Wait for primary release creation
-        if: (github.ref_name == 'main' || github.ref_name == 'develop') && (matrix.target == 'Linux' && matrix.abi == 'aarch64') && env.IS_TAG != 'true'
-        working-directory: ${{github.workspace}}
-        run: |
-          RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
-
-          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
-          echo "Waiting for primary job to create/update release: $RELEASE_TAG"
-
-          # Wait up to 120 minutes for the release to be created/updated
-          ATTEMPT=1
-          MAX_ATTEMPTS=720
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-              if gh release view $RELEASE_TAG >/dev/null 2>&1; then
-                  echo "Release found!"
-                  # Check if it's at the correct commit
-                  if gh release view $RELEASE_TAG | grep -q "${{ github.sha }}"; then
-                      echo "Release is at correct commit"
-                      break
-                  fi
-              fi
-              echo "Waiting for release... (attempt $ATTEMPT/$MAX_ATTEMPTS)"
-              sleep 10
-              ATTEMPT=$((ATTEMPT + 1))
-          done
-        shell: bash
-
       - name: Create release of GeniusWallet
         working-directory: ${{github.workspace}}
-        if: (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && (env.IS_TAG == 'true' || !(matrix.target == 'Linux' && matrix.abi == 'aarch64'))
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         shell: bash
         run: |
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
-              RELEASE_TAG="${{ github.event.inputs.tag }}"
+          if [ -n "${RELEASE_TAG_INPUT}" ]; then
+              RELEASE_TAG="${RELEASE_TAG_INPUT}"
               IS_TAG_RELEASE="true"
           else
-              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+              # Include ABI in release tag if defined
+              if [ '${{matrix.abi}}' ]; then
+                RELEASE_TAG='${{matrix.target}}-${{matrix.abi}}-${{github.ref_name}}-${{matrix.build-type}}'
+              else
+                RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+              fi
               IS_TAG_RELEASE="false"
           fi
 
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+          echo "IS_TAG_RELEASE=${IS_TAG_RELEASE}" >> $GITHUB_ENV
 
-          echo "Checking if release $RELEASE_TAG exists..."
-          set +e
-          gh release view "$RELEASE_TAG"
-          releaseFound=$?
-          set -e
-
-          if [[ $releaseFound -eq 0 ]]; then
-              if [[ "$IS_TAG_RELEASE" == "false" ]]; then
-                  echo "Deleting existing branch-based release + tag..."
-                  gh release delete "$RELEASE_TAG" --yes
-                  git push origin ":refs/tags/$RELEASE_TAG" || true
+            echo "Checking if release $RELEASE_TAG exists..."
+            if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+              if [ "$IS_TAG_RELEASE" == "false" ]; then
+                echo "Deleting existing release/tag $RELEASE_TAG..."
+                gh release delete "$RELEASE_TAG" --yes || true
+                git push origin ":refs/tags/$RELEASE_TAG" || true
+                git tag -d "$RELEASE_TAG" || true
               else
-                  echo "Tag release $RELEASE_TAG already exists, skipping creation"
-                  exit 0
+                echo "Release $RELEASE_TAG already exists. Skipping create."
+                exit 0
               fi
-          fi
+            fi
 
-          RELEASE_TYPE="--draft"
-          
-          if [[ "$IS_TAG_RELEASE" == "true" ]]; then
-              # For tag releases, just create the release (tag already exists)
-              RELEASE_TITLE="${{ github.event.inputs.tag }} build artifacts"
-              RELEASE_NOTES="Build artifacts for tag ${{ github.event.inputs.tag }}"
-              echo "Creating release for existing tag: $RELEASE_TAG"
-              gh release create "$RELEASE_TAG" \
-                --draft \
-                -t "$RELEASE_TITLE" \
-                -n "$RELEASE_NOTES"
-          else
-              # For branch releases, create and push tag first
-              echo "Tagging commit ${{ github.sha }} as $RELEASE_TAG"
-              git tag -f "$RELEASE_TAG" "${{ github.sha }}"
-              git push --force origin "$RELEASE_TAG"
-              
-              RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
-              RELEASE_NOTES="Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}"
-              echo "Creating release for branch build"
-              gh release create "$RELEASE_TAG" \
-                --target "${{ github.sha }}" \
-                -t "$RELEASE_TITLE" \
-                -n "$RELEASE_NOTES" \
-                ${RELEASE_TYPE}
-          fi
+            echo "Creating new tag $RELEASE_TAG..."
+            git tag -f "$RELEASE_TAG" "${{ github.sha }}"
+            git push origin "$RELEASE_TAG" --force
+
+            if [ "$IS_TAG_RELEASE" = "true" ]; then
+            RELEASE_TITLE="$RELEASE_TAG"
+            else
+            RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
+            fi
+
+            echo "Creating GitHub release $RELEASE_TAG..."
+            gh release create "$RELEASE_TAG" \
+            --target "${{ github.sha }}" \
+            -t "$RELEASE_TITLE" \
+            -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+            $( [ "$IS_TAG_RELEASE" = "true" ] && echo "--draft" || echo "--prerelease" )
 
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         working-directory: ${{github.workspace}}
         run: |
           # Ensure RELEASE_TAG is set for upload step
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
-              RELEASE_TAG="${{ github.event.inputs.tag }}"
+            if [ -n "${RELEASE_TAG_INPUT}" ]; then
+              RELEASE_TAG="${RELEASE_TAG_INPUT}"
           else
-              RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+              # Include ABI in release tag if defined
+              if [ '${{matrix.abi}}' ]; then
+                RELEASE_TAG='${{matrix.target}}-${{matrix.abi}}-${{github.ref_name}}-${{matrix.build-type}}'
+              else
+                RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+              fi
           fi
           
           echo "Upload step using RELEASE_TAG: $RELEASE_TAG"

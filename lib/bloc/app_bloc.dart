@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 
@@ -77,37 +78,43 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       subscribeToWalletStatus: AppStatus.loaded,
     ));
   }
-
-  void _startProcessingPolling() {
+void _startProcessingPolling() {
     _processingTimer?.cancel();
 
     _processingTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(milliseconds: 1000),
       (_) {
         add(ProcessingStatusTicked());
       },
     );
   }
 
+
+
   FutureOr<void> _onProcessingStatusTicked(
     ProcessingStatusTicked event,
     Emitter<AppState> emit,
-  ) {
+  ) async {
     try {
       final statusInfo = api.getProcessingStatus();
 
-      final isProcessing =
-          statusInfo.status == GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING;
+      final isProcessing = statusInfo.status ==
+          GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING.value;
 
       if (state.isProcessing != isProcessing) {
         emit(state.copyWith(isProcessing: isProcessing));
       }
+
+      if (isProcessing) {
+        double percentage = statusInfo.percentage;
+        emit(state.copyWith(processingPercentage: percentage));
+      }
     } catch (_) {
       _processingTimer?.cancel();
-      emit(state.copyWith(isProcessing: false));
+      emit(state.copyWith(isProcessing: false, processingPercentage: 0.0));
     }
+    
   }
-
   Future<void> _onFetchAccount(
     FetchAccount event,
     Emitter<AppState> emit,

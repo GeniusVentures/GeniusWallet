@@ -342,6 +342,11 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(nlohmann_json_DIR "${THIRDPARTY_BUILD_DIR}/json/share/cmake/nlohmann_json")
     find_package(nlohmann_json CONFIG REQUIRED)
 
+    if(LINUX)
+        find_package(PkgConfig)
+        pkg_check_modules(LIBSECRET REQUIRED IMPORTED_TARGET libsecret-1>=0.18.4)
+    endif()
+
     # --------------------------------------------------------
     # Set config of crypto3
     add_library(crypto3::algebra INTERFACE IMPORTED)
@@ -403,6 +408,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     )
     # zkLLVM
     set(zkLLVM_INCLUDE_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/include")
+    include_directories(${zkLLVM_INCLUDE_DIR})
 
     # Set config of llvm
     set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
