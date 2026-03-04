@@ -43,7 +43,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   bool _isConnecting = false;
   bool _hasError = false;
   bool _timedOut = false;
-  String _statusMessage = '';
   final TextEditingController _uriController = TextEditingController();
 
   bool get _isDesktopOrIot {
@@ -70,7 +69,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
         setState(() {
           _session = restored;
-          _statusMessage = "🔄 Session restored";
         });
 
         debugPrint("🔄 Session restored: ${restored.peer.metadata.name}");
@@ -88,7 +86,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
         setState(() {
           _session = event.session;
-          _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
           _isConnecting = false;
           _hasError = false;
           _timedOut = false;
@@ -106,9 +103,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
         if (!mounted) return;
 
-        setState(() {
-          _statusMessage = "🔵 Connection requested from $dappName ($dappUrl)";
-        });
+        setState(() {});
 
         debugPrint(
             "🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
@@ -178,7 +173,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       _isConnecting = true;
       _hasError = false;
       _timedOut = false;
-      _statusMessage = "🔄 Generating QR Code...";
     });
 
     try {
@@ -425,7 +419,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       if (_session == null) {
         setState(() {
           _isConnecting = false;
-          _statusMessage = "❌ Cancelled or drawer closed";
         });
       }
 
@@ -435,7 +428,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             _isConnecting = false;
             _hasError = true;
             _timedOut = true;
-            _statusMessage = "⏱ Connection timed out. Please try again.";
           });
           debugPrint('⏱ Timeout hit – no session received.');
           if (context.mounted) {
@@ -452,7 +444,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       await walletKit.pair(uri: Uri.parse(wcUri));
     } catch (e) {
       setState(() {
-        _statusMessage = '❌ Connection failed: $e';
         _isConnecting = false;
         _hasError = true;
       });
@@ -468,7 +459,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       );
       setState(() {
         _session = null;
-        _statusMessage = '🔌 Disconnected.';
         _hasError = false;
       });
     }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 
@@ -46,7 +45,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     // Check if wallets exist, then initialize SDK (splash screen is now visible)
     var wallets = await api.getWallets().first;
-    
+
     if (wallets.isNotEmpty) {
       await api.initSDK();
       // Refresh wallets after SDK initialization
@@ -78,7 +77,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       subscribeToWalletStatus: AppStatus.loaded,
     ));
   }
-void _startProcessingPolling() {
+
+  void _startProcessingPolling() {
     _processingTimer?.cancel();
 
     _processingTimer = Timer.periodic(
@@ -88,8 +88,6 @@ void _startProcessingPolling() {
       },
     );
   }
-
-
 
   FutureOr<void> _onProcessingStatusTicked(
     ProcessingStatusTicked event,
@@ -113,8 +111,8 @@ void _startProcessingPolling() {
       _processingTimer?.cancel();
       emit(state.copyWith(isProcessing: false, processingPercentage: 0.0));
     }
-    
   }
+
   Future<void> _onFetchAccount(
     FetchAccount event,
     Emitter<AppState> emit,

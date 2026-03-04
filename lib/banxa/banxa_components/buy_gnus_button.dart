@@ -27,14 +27,9 @@ class BuyGnusButton extends StatelessWidget {
           overlayColor: Colors.transparent,
           shadowColor: Colors.transparent,
           backgroundColor: Colors.transparent,
-         
         ),
         onPressed: () async {
-         
-
-        
-            context.push('/buy');
-          
+          context.push('/buy');
         });
   }
 }

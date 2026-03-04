@@ -91,11 +91,11 @@ class TransactionSwappedItem extends StatelessWidget {
       String toAmount, String toSymbol, bool isFailed) {
     if (isFailed) {
       return Text(
-            "0 $toSymbol",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.redAccent,
+        "0 $toSymbol",
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.redAccent,
         ),
       );
     }

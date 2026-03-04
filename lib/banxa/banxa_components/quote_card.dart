@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
+
 class QuoteCard extends StatelessWidget {
   final MakeOrderState state;
   final bool compact;

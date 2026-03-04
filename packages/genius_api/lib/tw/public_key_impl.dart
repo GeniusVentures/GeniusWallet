@@ -20,7 +20,8 @@ class PublicKeyImpl {
     return result;
   }
 
-  static Pointer<Void> createWithData(Pointer<Void> data, TWPublicKeyType publicKeyType) {
+  static Pointer<Void> createWithData(
+      Pointer<Void> data, TWPublicKeyType publicKeyType) {
     final publickey = ffiBridgePrebuilt.wallet_lib
         .TWPublicKeyCreateWithData(data, publicKeyType);
 

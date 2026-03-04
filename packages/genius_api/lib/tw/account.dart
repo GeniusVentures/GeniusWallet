@@ -13,8 +13,13 @@ class Account {
     nativehandle = pointer;
   }
 
-  static Account create(String address, TWCoinType coin, TWDerivation derivation,
-      String derivationPath, String publicKey, String extendedPublicKey) {
+  static Account create(
+      String address,
+      TWCoinType coin,
+      TWDerivation derivation,
+      String derivationPath,
+      String publicKey,
+      String extendedPublicKey) {
     return Account(ffiBridgePrebuilt.wallet_lib
         .TWAccountCreate(
             StringUtil.toTWString(address).cast(),

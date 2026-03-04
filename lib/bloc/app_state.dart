@@ -53,8 +53,7 @@ class AppState extends Equatable {
         ffiString: ffiString ?? this.ffiString,
         testWallet: testWallet,
         account: account ?? this.account,
-        processingPercentage:
-            processingPercentage ?? this.processingPercentage,
+        processingPercentage: processingPercentage ?? this.processingPercentage,
         isProcessing: isProcessing ?? this.isProcessing,
         accountStatus: accountStatus ?? this.accountStatus);
   }

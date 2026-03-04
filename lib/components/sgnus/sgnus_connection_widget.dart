@@ -105,6 +105,7 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
     );
   }
 }
+
 class SGNUSConnectionStatusWidget extends StatelessWidget {
   final bool? isSmallScreen;
 

@@ -167,7 +167,9 @@ class StoredKeyImpl {
       Pointer<Void> storedKey,
       String address,
       TWCoinType coin,
-      String derivationPath, String publicKey, String extendedPublicKey) {
+      String derivationPath,
+      String publicKey,
+      String extendedPublicKey) {
     final twAddress = StringUtil.toTWString(address);
     final twDerivationPath = StringUtil.toTWString(derivationPath);
     final twExtendedPublicKey = StringUtil.toTWString(extendedPublicKey);

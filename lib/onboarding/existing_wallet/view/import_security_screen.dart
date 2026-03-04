@@ -338,8 +338,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 /// Get currently selected tab
-                final selectedIndex =
-                    DefaultTabController.of(context).index ?? 0;
+                final selectedIndex = DefaultTabController.of(context).index;
 
                 /// Get current entry to access [TextEditingControllers]
                 final selectedEntry =

@@ -236,9 +236,8 @@ class GeniusApi {
       tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
     }
 
-    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKMint(
-        amount, transhash as Pointer<Char>, chainid as Pointer<Char>,
-        tokenIdData.ref);
+    final result = ffiBridgePrebuilt.gns_lib.GeniusSDKMint(amount,
+        transhash as Pointer<Char>, chainid as Pointer<Char>, tokenIdData.ref);
 
     calloc.free(tokenIdData);
     malloc.free(transhash);

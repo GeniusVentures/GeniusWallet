@@ -449,8 +449,8 @@ class NativeLibrary {
   late final _GeniusSDKGetProcessingStatusPtr =
       _lookup<ffi.NativeFunction<GeniusProcessingStatusInfo Function()>>(
           'GeniusSDKGetProcessingStatus');
-  late final _GeniusSDKGetProcessingStatus =
-      _GeniusSDKGetProcessingStatusPtr.asFunction<GeniusProcessingStatusInfo Function()>();
+  late final _GeniusSDKGetProcessingStatus = _GeniusSDKGetProcessingStatusPtr
+      .asFunction<GeniusProcessingStatusInfo Function()>();
 }
 
 typedef int_least8_t = ffi.Int8;

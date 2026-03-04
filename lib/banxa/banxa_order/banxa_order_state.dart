@@ -4,8 +4,8 @@ enum OrdersStatus { initial, loading, success, error }
 
 class OrdersState {
   final OrdersStatus status;
-  final OrdersResponse? orders; 
-  final List<Order>? filteredOrders; 
+  final OrdersResponse? orders;
+  final List<Order>? filteredOrders;
   final String error;
 
   OrdersState({

@@ -69,8 +69,7 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-       
-         if (_isLoading)
+          if (_isLoading)
             const Center(
               child: Loading(
                 text: "Loading Banxa KYC...",

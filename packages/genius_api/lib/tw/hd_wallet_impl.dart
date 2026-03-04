@@ -52,8 +52,7 @@ class HDWalletImpl {
     return StringUtil.toDartString(address.cast());
   }
 
-  static Pointer<Void> getDerivedKey(
-      Pointer<Void> wallet, TWCoinType coin,
+  static Pointer<Void> getDerivedKey(Pointer<Void> wallet, TWCoinType coin,
       int account, int change, int address) {
     final privateKey = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletGetDerivedKey(wallet.cast(), coin, account, change, address);
@@ -102,8 +101,7 @@ class HDWalletImpl {
         ffiBridgePrebuilt.wallet_lib.TWHDWalletMnemonic(wallet.cast()).cast());
   }
 
-  static String getExtendedPublicKey(
-      Pointer<Void> wallet, TWPurpose purpose,
+  static String getExtendedPublicKey(Pointer<Void> wallet, TWPurpose purpose,
       TWCoinType coinType, TWHDVersion twHdVersion) {
     final publicKey = ffiBridgePrebuilt.wallet_lib
         .TWHDWalletGetExtendedPublicKey(

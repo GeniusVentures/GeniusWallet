@@ -75,7 +75,6 @@ class NewWalletFlow extends StatelessWidget {
               ),
             ];
           case NewWalletStep.agreement:
-          default:
             return [const MaterialPage(child: BackupPhraseScreen())];
         }
       },

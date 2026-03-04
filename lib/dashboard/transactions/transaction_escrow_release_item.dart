@@ -9,8 +9,7 @@ class TransactionEscrowReleaseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    return Card(
+    return const Card(
         color: GeniusWalletColors.deepBlueMenu,
         child: ListTile(
           title: Text("Completed job"),

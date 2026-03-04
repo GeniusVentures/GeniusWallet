@@ -87,7 +87,6 @@ class ExistingWalletFlow extends StatelessWidget {
               ),
             ];
           case FlowStep.legal:
-          default:
             return [
               const MaterialPage(child: LegalScreen()),
             ];

@@ -26,7 +26,8 @@ class BanxaHelpers {
     }
     return null;
   }
-    static List<String> getOrderStatuses() => [
+
+  static List<String> getOrderStatuses() => [
         "",
         "pendingPayment",
         "completed",
@@ -52,16 +53,14 @@ class BanxaHelpers {
     }
   }
 
- static String formatDate(DateTime date) {
-    final DateFormat dateFormat =
-        DateFormat.yMMMd(); 
+  static String formatDate(DateTime date) {
+    final DateFormat dateFormat = DateFormat.yMMMd();
     return dateFormat.format(date);
   }
 
-      static Map<String, dynamic> buildOrderDetailsExtra(Order order) => {
+  static Map<String, dynamic> buildOrderDetailsExtra(Order order) => {
         'orderId': order.id,
         'checkoutUrl': order.orderStatusUrl,
         'redirectUrl': BanxaApiService.redirectUrl,
       };
-
 }

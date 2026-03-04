@@ -12,8 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 class BanxaApiService {
   static const String _partnerCode = 'gnus';
   static const String _apiKey = 'b8282030faffa2dc15fbf428142be5bdb1d4e346';
-  static const String _baseUrl =
-      'https://api.banxa.com/$_partnerCode/v2'; 
+  static const String _baseUrl = 'https://api.banxa.com/$_partnerCode/v2';
 
   static const redirectUrl = 'geniuswallet://banxa/callback';
   static const String banxaKycUrl = 'https://$_partnerCode.banxa-sandbox.com';
@@ -23,7 +22,7 @@ class BanxaApiService {
         'Content-Type': 'application/json',
         'x-api-key': _apiKey,
       };
-      
+
   static String generateHmacSignature(String message) {
     var key = utf8.encode(_apiKey);
     var bytes = utf8.encode(message);
@@ -31,7 +30,7 @@ class BanxaApiService {
     var hmac = Hmac(sha256, key);
     var digest = hmac.convert(bytes);
 
-    return digest.toString(); 
+    return digest.toString();
   }
 
   static Future<BanxaKycResponse?> submitKYC(

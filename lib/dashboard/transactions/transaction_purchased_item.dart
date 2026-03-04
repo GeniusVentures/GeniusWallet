@@ -110,7 +110,7 @@ class TransactionPurchasedItem extends StatelessWidget {
     final arrowBgColor = isFailed ? Colors.redAccent : Colors.greenAccent;
     final amountText = isFailed
         ? '\$0.00'
-        : "+ \$${double.tryParse(tx.recipients.first.amount ?? '0')?.toStringAsFixed(2) ?? '0.00'}";
+        : "+ \$${double.tryParse(tx.recipients.first.amount)?.toStringAsFixed(2) ?? '0.00'}";
 
     ResponsiveDrawer.show(
       context: context,

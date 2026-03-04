@@ -215,7 +215,6 @@ class OrderStatus {
   }
 }
 
-
 class Blockchain {
   final String id;
   final String description;
@@ -453,7 +452,7 @@ class Crypto {
     return Crypto(
       id: (json['id'] ?? '') as String,
       blockchain: (json['blockchain'] ?? '') as String,
-      address: json['address'] as String?, 
+      address: json['address'] as String?,
       network: (json['network'] ?? '') as String,
     );
   }

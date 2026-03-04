@@ -116,7 +116,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                     child: ListView(
                       children: [
                         // FIAT Dropdown
-                       // FIAT Dropdown
+                        // FIAT Dropdown
                         AppDropdown<FiatCurrency>(
                           label: 'Fiat',
                           items: state.fiats,
@@ -183,7 +183,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                         const SizedBox(height: 12),
 
                         // Payment Method Dropdown
-                      
+
                         const SizedBox(height: 12),
 
                         // Amount input
@@ -281,7 +281,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                           ),
 
                         // QUOTE CARD
-                     if (!state.hasQuote)
+                        if (!state.hasQuote)
                           const SizedBox()
                         else
                           Card(
@@ -332,78 +332,83 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                         const SizedBox(height: 18),
 
                         // Create Order Button
-                       ElevatedButton(
-  onPressed: state.canCreateOrder
-      ? () async {
-          final accepted = await showDisclaimerDialog(
-            context,
-            title: "Payment Disclaimer",
-            message:
-                "You are now leaving GeniusWallet to complete your order or payment through Banxa (https://banxa.com). "
-                "Services related to card payments, crypto purchases, and transaction processing are provided by Banxa — "
-                "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
-                "Banxa's Terms of Use and Privacy & Cookies Policy.",
-            confirmText: "Continue",
-            activeColor: Colors.blue,
-          );
+                        ElevatedButton(
+                          onPressed: state.canCreateOrder
+                              ? () async {
+                                  final accepted = await showDisclaimerDialog(
+                                    context,
+                                    title: "Payment Disclaimer",
+                                    message:
+                                        "You are now leaving GeniusWallet to complete your order or payment through Banxa (https://banxa.com). "
+                                        "Services related to card payments, crypto purchases, and transaction processing are provided by Banxa — "
+                                        "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
+                                        "Banxa's Terms of Use and Privacy & Cookies Policy.",
+                                    confirmText: "Continue",
+                                    activeColor: Colors.blue,
+                                  );
 
-          if (!accepted) {
-            showAppSnackBar(
-              context,
-              'You must agree to the disclaimer to proceed.',
-            );
-            return;
-          }
+                                  if (!accepted) {
+                                    showAppSnackBar(
+                                      context,
+                                      'You must agree to the disclaimer to proceed.',
+                                    );
+                                    return;
+                                  }
 
-          // Proceed if disclaimer is accepted
-          if (state.checkoutUrl != null && state.orderId != null) {
-            await showCheckoutOptionsSheet(
-              context,
-              checkoutUrl: state.checkoutUrl!,
-              orderId: state.orderId!,
-              redirectUrl: state.redirectUrl ?? '',
-            );
-          } else {
-            await context.read<MakeOrderCubit>().createOrder();
-          }
-        }
-      : null,
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.transparent,
-    shadowColor: Colors.transparent,
-    elevation: 0,
-    padding: EdgeInsets.zero,
-    minimumSize: const Size.fromHeight(48),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-  child: Ink(
-    decoration: BoxDecoration(
-      gradient: state.canCreateOrder
-          ? GeniusWalletGradient.greenBlueGreenGradient
-          : LinearGradient(
-              colors: [Colors.grey.shade500, Colors.grey.shade600],
-            ),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Container(
-      alignment: Alignment.center,
-      height: 48,
-      child: Text(
-        compact ? 'Checkout' : 'Create Order',
-        style: TextStyle(
-          color: state.canCreateOrder
-              ? GeniusWalletColors.deepBlue
-              : Colors.black.withAlpha(102),
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        ),
-      ),
-    ),
-  ),
-)
-,
+                                  // Proceed if disclaimer is accepted
+                                  if (state.checkoutUrl != null &&
+                                      state.orderId != null) {
+                                    await showCheckoutOptionsSheet(
+                                      context,
+                                      checkoutUrl: state.checkoutUrl!,
+                                      orderId: state.orderId!,
+                                      redirectUrl: state.redirectUrl ?? '',
+                                    );
+                                  } else {
+                                    await context
+                                        .read<MakeOrderCubit>()
+                                        .createOrder();
+                                  }
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: state.canCreateOrder
+                                  ? GeniusWalletGradient.greenBlueGreenGradient
+                                  : LinearGradient(
+                                      colors: [
+                                        Colors.grey.shade500,
+                                        Colors.grey.shade600
+                                      ],
+                                    ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 48,
+                              child: Text(
+                                compact ? 'Checkout' : 'Create Order',
+                                style: TextStyle(
+                                  color: state.canCreateOrder
+                                      ? GeniusWalletColors.deepBlue
+                                      : Colors.black.withAlpha(102),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                         if (tight) const SizedBox(height: 6),
                       ],
                     ),

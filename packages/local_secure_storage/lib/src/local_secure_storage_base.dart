@@ -28,7 +28,6 @@ class LocalWalletStorage {
 
   static Future<LocalWalletStorage> create(
       {FlutterSecureStorage? secureStorage, Web3? web3}) async {
-    
     FlutterSecureStorage storageInstance;
     if (secureStorage != null) {
       storageInstance = secureStorage;
@@ -37,12 +36,12 @@ class LocalWalletStorage {
       const androidOptions = AndroidOptions(
         encryptedSharedPreferences: true,
       );
-      
+
       storageInstance = const FlutterSecureStorage(
         aOptions: androidOptions,
       );
     }
-    
+
     final web3Instance = web3 ?? Web3();
     final localWalletStorage =
         LocalWalletStorage._create(storageInstance, web3Instance);
