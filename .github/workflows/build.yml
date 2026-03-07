@@ -227,9 +227,11 @@ jobs:
           echo "Checking Flutter toolcache at: $TOOLCACHE_ROOT"
 
           if [ -d "$TOOLCACHE_ROOT" ]; then
-            # Remove stale directories for this pinned channel/version across arch variants.
-            find "$TOOLCACHE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "master-3.32.5-*" -print -exec rm -rf {} +
+            # Clear Flutter toolcache so flutter-action can do a clean install.
+            rm -rf "$TOOLCACHE_ROOT" || sudo rm -rf "$TOOLCACHE_ROOT"
           fi
+
+          mkdir -p "$TOOLCACHE_ROOT"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -928,15 +930,6 @@ jobs:
           fi
           
           echo "Upload step using RELEASE_TAG: $RELEASE_TAG"
-          
-          # Verify release exists before uploading
-          echo "Verifying release exists..."
-          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "ERROR: Release $RELEASE_TAG not found!"
-            echo "Available releases:"
-            gh release list || true
-            exit 1
-          fi
           
           # Upload artifacts
           if [ "${{ matrix.target }}" = "OSX" ]; then
