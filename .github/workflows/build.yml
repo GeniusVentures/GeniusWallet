@@ -73,7 +73,7 @@ jobs:
             build-type: Release
             container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Linux
-            host: ubuntu-24.04-arm
+            host: sg-arm-linux
             flutter-platform: linux
             abi: aarch64
             build-type: Release
