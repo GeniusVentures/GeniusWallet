@@ -121,32 +121,38 @@ jobs:
           echo "Runner workspace: ${{runner.workspace}}"
           echo "GitHub workspace: ${{github.workspace}}"
 
+          # Use sudo on Linux to handle root-owned files left by container jobs
+          SUDO=""
+          if [ "$(uname)" = "Linux" ]; then
+            SUDO="sudo"
+          fi
+
           echo "=== CLEANUP ARTIFACTS ==="
           # Clean up artifacts from previous runs (self-hosted runners only)
           
           # Clean contents of GeniusWallet directory but keep the directory itself
           if [ -d "GeniusWallet" ]; then
             echo "Cleaning GeniusWallet directory contents..."
-            rm -rf GeniusWallet/* GeniusWallet/.* 2>/dev/null || true
+            $SUDO rm -rf GeniusWallet/* GeniusWallet/.* 2>/dev/null || true
             echo "GeniusWallet directory cleaned (kept the directory)"
           fi
           
           # Delete sibling dependency directories completely
           if [ -d "thirdparty" ]; then
             echo "Removing thirdparty directory..."
-            rm -rf thirdparty
+            $SUDO rm -rf thirdparty
           fi
           if [ -d "zkLLVM" ]; then
             echo "Removing zkLLVM directory..."
-            rm -rf zkLLVM
+            $SUDO rm -rf zkLLVM
           fi
           if [ -d "SuperGenius" ]; then
             echo "Removing SuperGenius directory..."
-            rm -rf SuperGenius
+            $SUDO rm -rf SuperGenius
           fi
           if [ -d "GeniusSDK" ]; then
             echo "Removing GeniusSDK directory..."
-            rm -rf GeniusSDK
+            $SUDO rm -rf GeniusSDK
           fi
 
           echo "=== POST-CLEANUP DEBUG ==="
@@ -213,6 +219,17 @@ jobs:
           fi
 
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Clean stale Flutter toolcache (self-hosted Linux desktop)
+        if: ${{ runner.os == 'Linux' && runner.environment == 'self-hosted' && matrix.target == 'Linux' }}
+        run: |
+          TOOLCACHE_ROOT="${RUNNER_TOOL_CACHE:-${ACTIONS_RUNNER_TOOL_CACHE:-/__w/_tool}}/flutter"
+          echo "Checking Flutter toolcache at: $TOOLCACHE_ROOT"
+
+          if [ -d "$TOOLCACHE_ROOT" ]; then
+            # Remove stale directories for this pinned channel/version across arch variants.
+            find "$TOOLCACHE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "master-3.32.5-*" -print -exec rm -rf {} +
+          fi
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
