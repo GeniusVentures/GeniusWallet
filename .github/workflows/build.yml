@@ -94,6 +94,24 @@ jobs:
           - target: Linux
             abi: ""
     steps:
+      - name: Configure Git Bash on Windows
+        if: ${{ runner.environment == 'self-hosted' && matrix.target == 'Windows' }}
+        run: |
+          $gitBinPath = "C:\Program Files\Git\bin"
+
+          if (Test-Path $gitBinPath) {
+            Add-Content -Path $env:GITHUB_PATH -Value $gitBinPath
+            $env:PATH = "$gitBinPath;$env:PATH"
+          }
+          
+          Write-Output "Git Bash configured for bash shell commands"
+          $bashLocation = (Get-Command bash.exe -ErrorAction SilentlyContinue).Source
+          if ($bashLocation) {
+            Write-Output "Bash location: $bashLocation"
+          } else {
+            Write-Output "WARNING: bash.exe not found in PATH"
+          }
+          
       - name: Clean workspace (self-hosted runners)
         if: ${{ runner.environment == 'self-hosted' }}
         working-directory: ${{runner.workspace}}
