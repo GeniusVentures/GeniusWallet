@@ -8,8 +8,8 @@ def secureStorageAarName = "securestorage-release.aar"
 def secureStorageAarDest = file("$projectDir/libs/${secureStorageAarName}")
 
 def secureStorageAarCandidates = [
-    file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/arm64-v8a/GeniusSDK/lib/${secureStorageAarName}"),
-    file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/armeabi-v7a/GeniusSDK/lib/${secureStorageAarName}"),
+    file("$rootProject.projectDir/../../../GeniusSDK/build/Android/Release/arm64-v8a/GeniusSDK/lib/${secureStorageAarName}"),
+    file("$rootProject.projectDir/../../../GeniusSDK/build/Android/Release/armeabi-v7a/GeniusSDK/lib/${secureStorageAarName}"),
 ]
 
 tasks.register("syncSecureStorageAar") {
