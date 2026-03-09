@@ -4,6 +4,34 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def secureStorageAarName = "securestorage-release.aar"
+def secureStorageAarDest = file("$projectDir/libs/${secureStorageAarName}")
+
+def secureStorageAarCandidates = [
+    file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/arm64-v8a/GeniusSDK/lib/${secureStorageAarName}"),
+    file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/armeabi-v7a/GeniusSDK/lib/${secureStorageAarName}"),
+]
+
+tasks.register("syncSecureStorageAar") {
+    doLast {
+        def sourceAar = secureStorageAarCandidates.find { it.exists() }
+
+        if (sourceAar == null) {
+            def searched = secureStorageAarCandidates.collect { "  - ${it.absolutePath}" }.join("\n")
+            throw new GradleException("Could not locate ${secureStorageAarName}. Searched:\n${searched}")
+        }
+
+        secureStorageAarDest.parentFile.mkdirs()
+        copy {
+            from sourceAar
+            into secureStorageAarDest.parentFile
+            rename { secureStorageAarName }
+        }
+
+        logger.lifecycle("Using ${secureStorageAarName} from: ${sourceAar.absolutePath}")
+    }
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -112,6 +140,12 @@ android {
             path "CMakeLists.txt"
         }
     }
+}
+
+preBuild.dependsOn("syncSecureStorageAar")
+
+dependencies {
+    implementation files("libs/${secureStorageAarName}")
 }
 
 flutter {
