@@ -142,24 +142,18 @@ android {
     }
 }
 
-def syncSecureStorageAarTask = tasks.named("syncSecureStorageAar")
-
-afterEvaluate {
-    // CMake configure/build tasks produce downloaded native dependencies.
-    tasks.matching { task ->
+tasks.named("syncSecureStorageAar") {
+    // If both are scheduled, run after CMake/native tasks that materialize SDK artifacts.
+    mustRunAfter(tasks.matching { task ->
         def name = task.name.toLowerCase()
         name.contains("cmake") || name.contains("externalnativebuild")
-    }.configureEach { task ->
-        syncSecureStorageAarTask.configure {
-            dependsOn(task)
-        }
-    }
+    })
+}
 
-    // Ensure AAR exists before Java/Kotlin compilation.
-    tasks.matching { task ->
-        task.name ==~ /compile.*JavaWithJavac/ || task.name ==~ /compile.*Kotlin/
-    }.configureEach { task ->
-        task.dependsOn(syncSecureStorageAarTask)
+tasks.configureEach { task ->
+    // Ensure AAR exists before Java/Kotlin compilation starts.
+    if (task.name ==~ /compile.*JavaWithJavac/ || task.name ==~ /compile.*Kotlin/) {
+        task.dependsOn("syncSecureStorageAar")
     }
 }
 
