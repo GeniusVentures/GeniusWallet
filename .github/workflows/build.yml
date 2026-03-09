@@ -220,8 +220,8 @@ jobs:
 
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
-      - name: Clean stale Flutter toolcache (self-hosted Linux desktop)
-        if: ${{ runner.os == 'Linux' && runner.environment == 'self-hosted' && matrix.target == 'Linux' }}
+      - name: Clean stale Flutter toolcache (self-hosted Linux)
+        if: ${{ runner.os == 'Linux' && runner.environment == 'self-hosted' }}
         run: |
           TOOLCACHE_ROOT="${RUNNER_TOOL_CACHE:-${ACTIONS_RUNNER_TOOL_CACHE:-/__w/_tool}}/flutter"
           echo "Checking Flutter toolcache at: $TOOLCACHE_ROOT"
@@ -231,7 +231,8 @@ jobs:
             rm -rf "$TOOLCACHE_ROOT" || sudo rm -rf "$TOOLCACHE_ROOT"
           fi
 
-          mkdir -p "$TOOLCACHE_ROOT"
+          mkdir -p "$TOOLCACHE_ROOT" || sudo mkdir -p "$TOOLCACHE_ROOT"
+          sudo chown -R "$(id -u):$(id -g)" "$TOOLCACHE_ROOT" || true
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

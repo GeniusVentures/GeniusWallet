@@ -414,6 +414,14 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(LLVM_DIR "${ZKLLVM_BUILD_DIR}/zkLLVM/lib/cmake/llvm")
     find_package(LLVM CONFIG REQUIRED)
 
+    if(ANDROID)
+        add_library(android::log INTERFACE IMPORTED GLOBAL)
+        set_target_properties(android::log PROPERTIES IMPORTED_LIBNAME "log")
+
+        add_library(android::android INTERFACE IMPORTED GLOBAL)
+        set_target_properties(android::android PROPERTIES IMPORTED_LIBNAME "android")
+    endif()
+
 
     set(SUPERGENIUS_BUILD_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
     set(SuperGenius_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/SuperGenius/")
