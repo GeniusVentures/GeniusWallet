@@ -145,20 +145,7 @@ android {
     }
 }
 
-tasks.named("syncSecureStorageAar") {
-    // If both are scheduled, run after CMake/native tasks that materialize SDK artifacts.
-    mustRunAfter(tasks.matching { task ->
-        def name = task.name.toLowerCase()
-        name.contains("cmake") || name.contains("externalnativebuild")
-    })
-}
-
 tasks.configureEach { task ->
-    // Ensure AAR exists before Java/Kotlin compilation starts.
-    if (task.name ==~ /compile.*JavaWithJavac/ || task.name ==~ /compile.*Kotlin/) {
-        task.dependsOn("syncSecureStorageAar")
-    }
-
     // Ensure AAR exists before native libs merge resolves runtime classpath.
     if (task.name ==~ /merge.*NativeLibs/) {
         task.dependsOn("syncSecureStorageAar")
@@ -166,7 +153,7 @@ tasks.configureEach { task ->
 }
 
 dependencies {
-    implementation secureStorageAarDependency
+    runtimeOnly secureStorageAarDependency
 }
 
 flutter {
