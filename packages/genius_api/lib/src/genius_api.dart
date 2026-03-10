@@ -26,11 +26,15 @@ import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+  show MethodChannel, PlatformException, rootBundle;
 import 'package:rxdart/rxdart.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class GeniusApi {
+  static const MethodChannel _platformChannel =
+      MethodChannel('ai.gnus.genius_wallet/platform');
+
   final LocalWalletStorage _secureStorage;
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   final SGNUSConnectionController _sgnusConnectionController;
@@ -117,6 +121,8 @@ class GeniusApi {
       return;
     }
 
+    await _initializeAndroidKeyStore();
+
     PrivateKey privateKey;
 
     if (storedKey.isMnemonic()) {
@@ -159,6 +165,19 @@ class GeniusApi {
         isConnected: true));
 
     isSdkInitialized = true;
+  }
+
+  Future<void> _initializeAndroidKeyStore() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+
+    try {
+      await _platformChannel.invokeMethod<bool>('initializeAndroidKeyStore');
+    } on PlatformException catch (e) {
+      throw StateError(
+          'Failed to initialize Android KeyStoreHelper: ${e.message}');
+    }
   }
 
   Future<String> copyJsonToWritableDirectory() async {
