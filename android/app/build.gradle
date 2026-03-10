@@ -6,6 +6,9 @@ plugins {
 
 def secureStorageAarName = "securestorage-release.aar"
 def secureStorageAarDest = file("$projectDir/libs/${secureStorageAarName}")
+def secureStorageAarDependency = files(secureStorageAarDest) {
+    builtBy("syncSecureStorageAar")
+}
 
 def secureStorageAarCandidates = [
     file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/arm64-v8a/GeniusSDK/lib/${secureStorageAarName}"),
@@ -155,10 +158,15 @@ tasks.configureEach { task ->
     if (task.name ==~ /compile.*JavaWithJavac/ || task.name ==~ /compile.*Kotlin/) {
         task.dependsOn("syncSecureStorageAar")
     }
+
+    // Ensure AAR exists before native libs merge resolves runtime classpath.
+    if (task.name ==~ /merge.*NativeLibs/) {
+        task.dependsOn("syncSecureStorageAar")
+    }
 }
 
 dependencies {
-    implementation files("libs/${secureStorageAarName}")
+    implementation secureStorageAarDependency
 }
 
 flutter {
