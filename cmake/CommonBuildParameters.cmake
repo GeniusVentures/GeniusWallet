@@ -342,7 +342,7 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(nlohmann_json_DIR "${THIRDPARTY_BUILD_DIR}/json/share/cmake/nlohmann_json")
     find_package(nlohmann_json CONFIG REQUIRED)
 
-    if(LINUX)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         find_package(PkgConfig)
         pkg_check_modules(LIBSECRET REQUIRED IMPORTED_TARGET libsecret-1>=0.18.4)
     endif()
