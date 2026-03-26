@@ -200,6 +200,7 @@ jobs:
         if: ${{ runner.os == 'Windows'}}
         run: |
           choco install ccache -A
+          git config --system core.longpaths true
 
       - name: Configure macOS host
         if: ${{ runner.os == 'macOS' }}
