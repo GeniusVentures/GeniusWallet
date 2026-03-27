@@ -166,6 +166,8 @@ jobs:
 
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
+        env:
+          TAR_OPTIONS: --no-same-owner
         run: |
           sudo apt update
           sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
