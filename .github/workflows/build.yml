@@ -510,6 +510,10 @@ jobs:
             FLUTTER_BUILD_PLATFORM="ipa"
             # extra args needed only when building with flutter build ipa or macos - we're using proper code signing now
             EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
+          elif [ "${{ matrix.flutter-platform }}" = "apk" ]; then
+            FLUTTER_BUILD_PLATFORM="apk"
+            # Force Android builds to supported ARM ABIs only.
+            EXTRA_ARGS="--target-platform android-arm,android-arm64"
           else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi 
