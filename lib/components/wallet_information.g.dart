@@ -100,7 +100,7 @@ class WalletInformationState extends State<WalletInformation> {
             Align(
               alignment: Alignment.center,
               child: SizedBox(
-                width: 180,
+                width: 220,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: const [

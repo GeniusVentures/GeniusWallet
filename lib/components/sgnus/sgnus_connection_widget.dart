@@ -105,6 +105,7 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
     );
   }
 }
+
 class SGNUSConnectionStatusWidget extends StatelessWidget {
   final bool? isSmallScreen;
 
@@ -135,11 +136,12 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
                 const Loading(text: "processing"),
                 const SizedBox(width: 8),
               ],
-              SizedBox(
-                width: 60,
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 60),
                 child: AutoSizeText(
                   statusText,
                   maxLines: 1,
+                  minFontSize: 10,
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
