@@ -46,7 +46,9 @@ class _ViewState extends State<View> {
                     children: [
                       Flexible(
                         child: AutoSizeText(
-                          geniusApi.getMinionsBalance(),
+                          useMinionIcon
+                              ? geniusApi.getMinionsBalance()
+                              : geniusApi.getSGNUSBalance(),
                           style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
