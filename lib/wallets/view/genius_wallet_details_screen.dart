@@ -1,10 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 
 class GeniusWalletDetailsScreen extends StatelessWidget {
   const GeniusWalletDetailsScreen({Key? key}) : super(key: key);
@@ -27,8 +26,6 @@ class _ViewState extends State<View> {
 
   @override
   Widget build(BuildContext context) {
-    final geniusApi = context.read<GeniusApi>();
-
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -46,16 +43,10 @@ class _ViewState extends State<View> {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Flexible(
-                        child: AutoSizeText(
-                          useMinionIcon
-                              ? geniusApi.getMinionsBalance()
-                              : geniusApi.getSGNUSBalance(),
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
+                        child: GeniusBalanceDisplay(
+                          useMinions: useMinionIcon,
+                          fontSize: 48,
+                          fontColor: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 8),
