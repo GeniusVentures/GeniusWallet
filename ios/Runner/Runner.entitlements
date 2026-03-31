@@ -6,7 +6,5 @@
 	<array>
 		<string>$(AppIdentifierPrefix)ai.gnus.GeniusWallet</string>
 	</array>
-	<key>com.apple.developer.networking.multicast</key>
-	<true/>
 </dict>
 </plist>
