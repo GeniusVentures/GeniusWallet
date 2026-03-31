@@ -97,10 +97,19 @@ class WalletInformationState extends State<WalletInformation> {
                 ),
               ),
             const SizedBox(height: 8),
-            const SGNUSConnectionMobileWidget(),
-            const SizedBox(height: 8),
-            SGNUSConnectionStatusWidget(
-              isSmallScreen: true,
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: 180,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: const [
+                    SGNUSConnectionWidget(),
+                    SizedBox(height: 8),
+                    SGNUSConnectionStatusWidget(),
+                  ],
+                ),
+              ),
             )
           ],
         ),
