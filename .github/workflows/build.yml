@@ -197,6 +197,8 @@ jobs:
           fi
 
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+          # Persist tar ownership behavior for all subsequent Linux steps.
+          echo "TAR_OPTIONS=--no-same-owner" >> $GITHUB_ENV
 
       - name: Configure Windows host
         if: ${{ runner.os == 'Windows'}}
