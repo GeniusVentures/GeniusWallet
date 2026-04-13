@@ -215,6 +215,15 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         endif()
     endif()
 
+    option(SGNS_ENABLE_RELEASE_SYMBOLS "Build Release with debug symbols for symbolication" ON)
+
+    if(SGNS_ENABLE_RELEASE_SYMBOLS AND CMAKE_CXX_COMPILER_ID MATCHES "^(AppleClang|Clang|GNU)$")
+        add_compile_options(
+            "$<$<CONFIG:Release>:-gline-tables-only>"
+            "$<$<CONFIG:RelWithDebInfo>:-g>"
+        )
+    endif()
+
     # header only libraries must not be added here
     find_package(Boost REQUIRED COMPONENTS date_time filesystem random regex system thread log log_setup program_options unit_test_framework json)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -487,6 +496,20 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
                 target_link_libraries(GeniusWallet PRIVATE
                     "-framework UIKit"
                     "-framework Security")
+            endif()
+            if(SGNS_ENABLE_RELEASE_SYMBOLS)
+                find_program(DSYMUTIL_EXECUTABLE dsymutil REQUIRED)
+                add_custom_command(TARGET GeniusWallet POST_BUILD
+                    COMMAND ${DSYMUTIL_EXECUTABLE} $<TARGET_FILE:GeniusWallet> -o $<TARGET_FILE:GeniusWallet>.dSYM
+                    COMMENT "Generating dSYM for GeniusWallet"
+                )
+                if(NOT CMAKE_INSTALL_LIBDIR)
+                    set(CMAKE_INSTALL_LIBDIR lib)
+                endif()
+                install(DIRECTORY $<TARGET_FILE:GeniusWallet>.dSYM
+                    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    OPTIONAL
+                )
             endif()
         endif()
         #Do this in 2 until osx linking is fixed for multiple.
