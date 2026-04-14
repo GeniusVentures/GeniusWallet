@@ -6,7 +6,7 @@ import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class GeniusTabbar extends StatelessWidget {
-  static const _numTabs = 5;
+  static const _numTabs = 6;
   const GeniusTabbar({super.key});
 
   @override

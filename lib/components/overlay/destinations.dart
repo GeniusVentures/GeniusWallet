@@ -48,5 +48,12 @@ class GeniusTabDestinations {
       icon: Icon(Icons.library_books, size: iconSize),
       selectedIcon: Icon(Icons.library_books, size: iconSize),
     ),
+    GeniusDestination(
+      navScreen: NavigationScreen.logs,
+      destination: '/logs',
+      label: const Text('Logs'),
+      icon: Icon(Icons.bug_report, size: 24.0),
+      selectedIcon: Icon(Icons.bug_report, size: 24.0, color: Colors.greenAccent),
+    ),
   ];
 }

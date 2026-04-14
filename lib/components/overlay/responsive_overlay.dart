@@ -11,6 +11,7 @@ import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
+import 'package:genius_wallet/logs/submit_logs_screen.dart';
 
 class ResponsiveOverlay extends StatelessWidget {
   final NavigationScreen? selectedScreen;
@@ -35,6 +36,7 @@ class ResponsiveOverlay extends StatelessWidget {
           NavigationScreen.markets: const MarketsScreen(),
           NavigationScreen.web:
               const WebViewScreen(url: "https://app.uniswap.org"),
+          NavigationScreen.logs: const SubmitLogsScreen(),
         };
 
         final selected = state.selectedScreen;

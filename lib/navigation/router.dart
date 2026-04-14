@@ -1,3 +1,4 @@
+import 'package:genius_wallet/logs/submit_logs_screen.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
