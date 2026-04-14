@@ -102,9 +102,8 @@ class _TabBarScrollBehavior extends MaterialScrollBehavior {
 
 // Helper to build the destinations list
 List<MapEntry<NavigationScreen, BottomNavigationBarItem>> _buildDestinations() {
-  return GeniusTabDestinations.destinations
+    return GeniusTabDestinations.destinations
       .where((e) => e.isVisible ?? true)
-      .take(GeniusTabbar._numTabs)
       .map((e) {
     final navScreen = e.navScreen;
     return MapEntry(
