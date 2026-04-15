@@ -35,6 +35,28 @@ add_executable(${BINARY_NAME} WIN32
     "runner.exe.manifest"
 )
 
+# Ensure native symbol files are generated for non-Debug builds.
+# /Zi writes compiler debug info to PDB, and /DEBUG on the final link
+# emits the final executable PDB for symbolication.
+if(MSVC)
+    target_compile_options(${BINARY_NAME} PRIVATE
+        $<$<CONFIG:Release>:/Zi>
+        $<$<CONFIG:Profile>:/Zi>
+    )
+
+    target_link_options(${BINARY_NAME} PRIVATE
+        $<$<CONFIG:Release>:/DEBUG:FULL>
+        $<$<CONFIG:Profile>:/DEBUG:FULL>
+    )
+
+    set_target_properties(${BINARY_NAME} PROPERTIES
+        COMPILE_PDB_NAME "${BINARY_NAME}"
+        COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>"
+        PDB_NAME "${BINARY_NAME}"
+        PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>"
+    )
+endif()
+
 include(../../cmake/CommonBuildParameters.cmake)
 
 # Apply the standard set of build settings. This can be removed for applications
