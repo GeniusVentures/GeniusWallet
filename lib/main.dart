@@ -21,9 +21,42 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
+
+Future<void> _attachSdkLogsToHint(Hint hint) async {
+  final docsDir = await getApplicationDocumentsDirectory();
+  final logFiles = [
+    File('${docsDir.path}${Platform.pathSeparator}sgnslog.log'),
+    File('${docsDir.path}${Platform.pathSeparator}sgnslog2.log'),
+  ];
+
+  final attachedFileNames = hint.attachments.map((a) => a.filename).toSet();
+
+  for (final file in logFiles) {
+    if (!await file.exists()) {
+      continue;
+    }
+
+    final fileName = file.uri.pathSegments.isNotEmpty
+        ? file.uri.pathSegments.last
+        : 'sdk-log.txt';
+    if (attachedFileNames.contains(fileName)) {
+      continue;
+    }
+
+    final bytes = await file.readAsBytes();
+    hint.attachments.add(
+      SentryAttachment.fromUint8List(
+        bytes,
+        fileName,
+        contentType: 'text/plain',
+      ),
+    );
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +66,26 @@ Future<void> main() async {
       options.dsn = 'https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944';
       options.tracesSampleRate = 1.0; // Adjust for production
       options.sendDefaultPii = true;
+      options.beforeSend = (event, hint) async {
+        final isErrorOrFatal =
+            event.throwable != null ||
+            event.level == SentryLevel.error ||
+            event.level == SentryLevel.fatal;
+        final isManualLogSubmission =
+            event.message?.formatted == 'Manual SDK log submission';
+
+        if (!isErrorOrFatal || isManualLogSubmission) {
+          return event;
+        }
+
+        try {
+          await _attachSdkLogsToHint(hint);
+        } catch (_) {
+          // Never block crash reporting if log attachment collection fails.
+        }
+
+        return event;
+      };
     },
     appRunner: () async {
       await initHive();
