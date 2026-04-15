@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -14,6 +15,23 @@ class SubmitLogsScreen extends StatefulWidget {
 class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   bool _isSubmitting = false;
   String _statusMessage = 'Ready to submit SDK logs.';
+  String? _lastEventId;
+
+  Future<void> _copyEventId() async {
+    final eventId = _lastEventId;
+    if (eventId == null || eventId.isEmpty) {
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: eventId));
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Copied Sentry event ID.')),
+    );
+  }
 
   Future<void> _submitSdkLogs() async {
     final geniusApi = context.read<GeniusApi>();
@@ -28,6 +46,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
 
     setState(() {
       _isSubmitting = true;
+      _lastEventId = null;
       _statusMessage = 'Locating log files...';
     });
 
@@ -88,6 +107,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       );
 
       setState(() {
+        _lastEventId = eventId.toString().isNotEmpty ? eventId.toString() : null;
         _statusMessage = eventId.toString().isNotEmpty
             ? 'Logs submitted successfully. Event ID: $eventId'
             : 'Logs submitted, but no Event ID was returned.';
@@ -143,6 +163,14 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                 _statusMessage,
                 textAlign: TextAlign.center,
               ),
+              if (_lastEventId != null) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _copyEventId,
+                  icon: const Icon(Icons.copy),
+                  label: const Text('Copy Event ID'),
+                ),
+              ],
             ],
           ),
         ),
