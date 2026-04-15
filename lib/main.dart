@@ -21,62 +21,73 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-import 'dart:io';
 
-void main() async {
+import 'dart:io';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await initHive();
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = 'https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944';
+      options.tracesSampleRate = 1.0; // Adjust for production
+      options.sendDefaultPii = true;
+    },
+    appRunner: () async {
+      await initHive();
 
-  final secureStorage = await LocalWalletStorage.create();
-  await secureStorage.init();
-  final geniusApi = GeniusApi(secureStorage: secureStorage);
+      final secureStorage = await LocalWalletStorage.create();
+      await secureStorage.init();
+      final geniusApi = GeniusApi(secureStorage: secureStorage);
 
-  final networkProvider = NetworkProvider();
-  await networkProvider.loadNetworks();
+      final networkProvider = NetworkProvider();
+      await networkProvider.loadNetworks();
 
-  final networkTokensProvider = NetworkTokensProvider();
-  await networkTokensProvider.loadTokensForNetworks(networkProvider.networks);
+      final networkTokensProvider = NetworkTokensProvider();
+      await networkTokensProvider.loadTokensForNetworks(networkProvider.networks);
 
-  /// Must come after hive init
-  await fetchAllCoinGeckoCoins();
+      /// Must come after hive init
+      await fetchAllCoinGeckoCoins();
 
-  // SDK initialization moved to AppBloc to show splash screen during init
-  // Dev mode bypasses still happen here for initial setup
-  if ((await secureStorage.getWallets().first).isEmpty) {
-    byPassSGNUSConnecton(geniusApi);
-    byPassWalletCreation(secureStorage);
-    addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
-  }
+      // SDK initialization moved to AppBloc to show splash screen during init
+      // Dev mode bypasses still happen here for initial setup
+      if ((await secureStorage.getWallets().first).isEmpty) {
+        byPassSGNUSConnecton(geniusApi);
+        byPassWalletCreation(secureStorage);
+        addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
+      }
 
-  /// Initialize window_manager only on **desktop**
-  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
-    await windowManager.ensureInitialized();
-    windowManager.addListener(MyWindowListener(geniusApi));
-  }
+      /// Initialize window_manager only on **desktop**
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+        await windowManager.ensureInitialized();
+        windowManager.addListener(MyWindowListener(geniusApi));
+      }
 
-  runApp(
-    MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => networkProvider),
-          ChangeNotifierProvider(create: (_) => networkTokensProvider),
-          Provider(create: (_) => geniusApi),
-        ],
-        child: AppLifecycleHandler(
-          geniusApi: geniusApi,
-          child:
-              //DevicePreview(
-              //  enabled: !kReleaseMode &&
-              // (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
-              //  builder: (context) =>
-              MyApp(
-            geniusApi: geniusApi,
-          ),
-          // tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
-          //),
-        )),
+      runApp(
+        MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => networkProvider),
+              ChangeNotifierProvider(create: (_) => networkTokensProvider),
+              Provider(create: (_) => geniusApi),
+            ],
+            child: AppLifecycleHandler(
+              geniusApi: geniusApi,
+              child:
+                  //DevicePreview(
+                  //  enabled: !kReleaseMode &&
+                  // (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
+                  //  builder: (context) =>
+                  MyApp(
+                geniusApi: geniusApi,
+              ),
+              // tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
+              //),
+            )),
+      );
+      DeepLinkService().startListening(navigatorKey);
+    },
   );
-  DeepLinkService().startListening(navigatorKey);
 }
 
 class MyWindowListener extends WindowListener {
