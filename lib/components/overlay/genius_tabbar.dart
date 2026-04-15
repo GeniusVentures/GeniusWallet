@@ -25,61 +25,117 @@ class GeniusTabbar extends StatelessWidget {
         final selectedScreen = state.selectedScreen;
         final selectedIndex = screenList.indexOf(selectedScreen);
 
-        return Container(
-          color: GeniusWalletColors.deepBlueCardColor,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: ScrollConfiguration(
-            behavior: const _TabBarScrollBehavior(),
-            child: Scrollbar(
-              thumbVisibility: true,
-              interactive: true,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const ClampingScrollPhysics(),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(destinations.length, (index) {
-                    final entry = destinations[index];
-                    final isSelected = index == selectedIndex;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          context.read<NavigationOverlayCubit>().navigationTapped(screenList[index]);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.15) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              entry.value.activeIcon ?? entry.value.icon,
-                              const SizedBox(height: 4),
-                              Text(
-                                entry.value.label ?? '',
-                                style: TextStyle(
-                                  color: isSelected ? GeniusWalletColors.lightGreenPrimary : Colors.white,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ),
-          ),
+        return _ScrollableSnapTabBar(
+          destinations: destinations,
+          screenList: screenList,
+          selectedIndex: selectedIndex,
         );
       },
+    );
+  }
+}
+
+class _ScrollableSnapTabBar extends StatefulWidget {
+  final List<MapEntry<NavigationScreen, BottomNavigationBarItem>> destinations;
+  final List<NavigationScreen> screenList;
+  final int selectedIndex;
+
+  const _ScrollableSnapTabBar({
+    required this.destinations,
+    required this.screenList,
+    required this.selectedIndex,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_ScrollableSnapTabBar> createState() => _ScrollableSnapTabBarState();
+}
+
+class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
+  late final ScrollController _scrollController;
+  double _tabWidth = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScrollEnd() {
+    if (_tabWidth == 0) return;
+    final offset = _scrollController.offset;
+    final index = (offset / _tabWidth).round();
+    final percent = (offset % _tabWidth) / _tabWidth;
+    int snapIndex = index;
+    if (percent > 0.5) {
+      snapIndex += 1;
+    }
+    // Clamp so we always have 5 icons in view
+    snapIndex = snapIndex.clamp(0, (widget.destinations.length - 5));
+    final targetOffset = snapIndex * _tabWidth;
+    _scrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: GeniusWalletColors.deepBlueCardColor,
+      height: 64,
+      alignment: Alignment.bottomCenter,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          _tabWidth = constraints.maxWidth / 5;
+          return NotificationListener<ScrollEndNotification>(
+            onNotification: (notification) {
+              _onScrollEnd();
+              return true;
+            },
+            child: ScrollConfiguration(
+              behavior: const _TabBarScrollBehavior(),
+              child: ListView.builder(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                physics: const ClampingScrollPhysics(),
+                itemCount: widget.destinations.length,
+                itemBuilder: (context, i) {
+                  final entry = widget.destinations[i];
+                  final isSelected = i == widget.selectedIndex;
+                  return SizedBox(
+                    width: _tabWidth,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        context.read<NavigationOverlayCubit>().navigationTapped(widget.screenList[i]);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.15) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: entry.value.activeIcon ?? entry.value.icon,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
