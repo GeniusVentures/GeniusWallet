@@ -47,6 +47,12 @@ if(MSVC)
     target_link_options(${BINARY_NAME} PRIVATE
         $<$<CONFIG:Release>:/DEBUG:FULL>
         $<$<CONFIG:Profile>:/DEBUG:FULL>
+        $<$<CONFIG:Release>:/INCREMENTAL:NO>
+        $<$<CONFIG:Profile>:/INCREMENTAL:NO>
+        $<$<CONFIG:Release>:/OPT:REF>
+        $<$<CONFIG:Profile>:/OPT:REF>
+        $<$<CONFIG:Release>:/OPT:ICF>
+        $<$<CONFIG:Profile>:/OPT:ICF>
     )
 
     set_target_properties(${BINARY_NAME} PROPERTIES
