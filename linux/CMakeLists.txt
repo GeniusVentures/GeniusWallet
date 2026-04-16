@@ -4,6 +4,13 @@ include(../cmake/CommonOverrideFlags.cmake)
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES C CXX)
 
+# Use a local install prefix for Linux app bundles so plugin subprojects do not
+# attempt to install into /usr/local during build/install steps.
+set(BUILD_BUNDLE_DIR "${PROJECT_BINARY_DIR}/bundle")
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+    set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "Install path prefix." FORCE)
+endif()
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "genius_wallet")
@@ -168,11 +175,6 @@ include(flutter/generated_plugins.cmake)
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build
 # directory.
-set(BUILD_BUNDLE_DIR "${PROJECT_BINARY_DIR}/bundle")
-
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
-endif()
 
 # Start with a clean build bundle directory every time.
 install(CODE "
@@ -193,6 +195,10 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     install(TARGETS GeniusWallet DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+    if(SGNS_ENABLE_RELEASE_SYMBOLS)
+        install(FILES "$<TARGET_FILE:GeniusWallet>.debug" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+            COMPONENT Runtime OPTIONAL)
+    endif()
 endif()
 
 

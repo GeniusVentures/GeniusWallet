@@ -224,6 +224,14 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
         )
     endif()
 
+    if(SGNS_ENABLE_RELEASE_SYMBOLS)
+        if(CMAKE_OBJCOPY)
+            set(SGNS_OBJCOPY_EXECUTABLE "${CMAKE_OBJCOPY}")
+        elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+            find_program(SGNS_OBJCOPY_EXECUTABLE NAMES llvm-objcopy objcopy REQUIRED)
+        endif()
+    endif()
+
     # header only libraries must not be added here
     find_package(Boost REQUIRED COMPONENTS date_time filesystem random regex system thread log log_setup program_options unit_test_framework json)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -511,6 +519,15 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
                     OPTIONAL
                 )
             endif()
+        elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android") AND SGNS_ENABLE_RELEASE_SYMBOLS)
+            add_custom_command(TARGET GeniusWallet POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E chdir $<TARGET_FILE_DIR:GeniusWallet>
+                    ${SGNS_OBJCOPY_EXECUTABLE} --only-keep-debug $<TARGET_FILE_NAME:GeniusWallet> $<TARGET_FILE_NAME:GeniusWallet>.debug
+                COMMAND ${CMAKE_COMMAND} -E chdir $<TARGET_FILE_DIR:GeniusWallet>
+                    ${SGNS_OBJCOPY_EXECUTABLE} --strip-debug --add-gnu-debuglink=$<TARGET_FILE_NAME:GeniusWallet>.debug $<TARGET_FILE_NAME:GeniusWallet>
+                COMMENT "Generating detached debug symbols for GeniusWallet"
+                VERBATIM
+            )
         endif()
         #Do this in 2 until osx linking is fixed for multiple.
         TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
