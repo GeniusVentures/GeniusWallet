@@ -55,6 +55,16 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+
+    case WM_CLOSE:
+      // Reset the Flutter controller while the message loop is still running so
+      // that plugins (e.g. webview_windows, window_manager) can cleanly
+      // unregister their textures and messenger callbacks before the engine is
+      // torn down.  Without this, FlutterDesktopViewControllerDestroy is called
+      // inside WM_DESTROY where the message pump is already unwinding, causing
+      // a use-after-free in the webview_windows background texture thread.
+      flutter_controller_.reset();
+      break;
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
