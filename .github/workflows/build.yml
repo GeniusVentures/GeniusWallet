@@ -21,6 +21,14 @@ on:
         description: "Release tag"
         required: false
         type: string
+      build_name:
+        description: "Override Flutter build-name (e.g. 3.5.2)"
+        required: false
+        type: string
+      build_number:
+        description: "Override Flutter build-number (e.g. 142)"
+        required: false
+        type: string
       distribution_type:
         description: "Distribution type for macOS"
         required: false
@@ -520,9 +528,20 @@ jobs:
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi 
 
+          FLUTTER_VERSION_ARGS=""
+          if ${{github.event_name == 'workflow_dispatch'}}; then
+            if [ '${{ github.event.inputs.build_name }}' ]; then
+              FLUTTER_VERSION_ARGS="$FLUTTER_VERSION_ARGS --build-name ${{ github.event.inputs.build_name }}"
+            fi
+            if [ '${{ github.event.inputs.build_number }}' ]; then
+              FLUTTER_VERSION_ARGS="$FLUTTER_VERSION_ARGS --build-number ${{ github.event.inputs.build_number }}"
+            fi
+          fi
+
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_ARGS=$FLUTTER_VERSION_ARGS" >> $GITHUB_ENV
         shell: bash
 
       - name: Build Flutter
@@ -532,16 +551,16 @@ jobs:
             # Windows requires a different approach for CMAKE arguments
             set CMAKE_ARGUMENTS=$env:CMAKE_ARGUMENTS
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              flutter build windows --debug 
+              flutter build windows --debug ${FLUTTER_VERSION_ARGS}
             else
-              flutter build windows --release
+              flutter build windows --release ${FLUTTER_VERSION_ARGS}
             fi
           else
             # Other platforms respect CMAKE_ARGUMENTS environment variable
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS}
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --verbose
             fi
           fi
 
