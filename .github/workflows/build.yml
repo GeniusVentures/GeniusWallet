@@ -564,6 +564,79 @@ jobs:
             fi
           fi
 
+      - name: Setup Sentry CLI
+        if: ${{ (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
+        uses: getsentry/action-setup-cli@v1
+
+      - name: Upload debug symbols to Sentry
+        if: ${{ (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          declare -a SYMBOL_PATHS=()
+
+          add_file_matches() {
+            local root="$1"
+            local pattern="$2"
+            if [ -d "$root" ]; then
+              while IFS= read -r path; do
+                SYMBOL_PATHS+=("$path")
+              done < <(find "$root" -type f -name "$pattern" 2>/dev/null)
+            fi
+          }
+
+          add_dir_matches() {
+            local root="$1"
+            local pattern="$2"
+            if [ -d "$root" ]; then
+              while IFS= read -r path; do
+                SYMBOL_PATHS+=("$path")
+              done < <(find "$root" -type d -name "$pattern" 2>/dev/null)
+            fi
+          }
+
+          case "${{ matrix.target }}" in
+            "Android")
+              add_file_matches "build/app" "*.so"
+              add_file_matches "build" "*.debug"
+              ;;
+            "iOS")
+              add_dir_matches "build/ios" "*.dSYM"
+              add_dir_matches "ios/native/build" "*.dSYM"
+              ;;
+            "OSX")
+              add_dir_matches "build/macos" "*.dSYM"
+              add_dir_matches "macos/native/build" "*.dSYM"
+              add_file_matches "build/macos" "*.debug"
+              ;;
+            "Linux")
+              add_file_matches "build/linux" "*.debug"
+              add_file_matches "build/linux" "GeniusWallet"
+              ;;
+            "Windows")
+              add_file_matches "build/windows" "*.pdb"
+              add_file_matches "build/windows" "*.dll"
+              add_file_matches "build/windows" "*.exe"
+              ;;
+          esac
+
+          if [ ${#SYMBOL_PATHS[@]} -eq 0 ]; then
+            echo "No debug symbol files found for ${{ matrix.target }}."
+            exit 0
+          fi
+
+          echo "Uploading ${#SYMBOL_PATHS[@]} symbol path(s) to Sentry for ${{ matrix.target }}..."
+          sentry-cli debug-files upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --include-sources \
+            "${SYMBOL_PATHS[@]}"
+        shell: bash
+
       - name: Sign and package macOS app
         if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
         env:
