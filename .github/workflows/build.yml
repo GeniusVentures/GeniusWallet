@@ -565,17 +565,22 @@ jobs:
           fi
 
       - name: Setup Sentry CLI
-        if: ${{ (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
+        if: ${{ github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true' }}
         uses: getsentry/action-setup-cli@v1
 
       - name: Upload debug symbols to Sentry
-        if: ${{ (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
+        if: ${{ github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true' }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           set -euo pipefail
+
+          if [ -z "${SENTRY_AUTH_TOKEN:-}" ] || [ -z "${SENTRY_ORG:-}" ] || [ -z "${SENTRY_PROJECT:-}" ]; then
+            echo "Sentry secrets are not fully configured; skipping debug symbol upload."
+            exit 0
+          fi
 
           declare -a SYMBOL_PATHS=()
 
