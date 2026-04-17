@@ -564,9 +564,30 @@ jobs:
             fi
           fi
 
-      - name: Setup Sentry CLI
-        if: ${{ github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true' }}
-        uses: getsentry/action-setup-cli@v1
+      - name: Install Sentry CLI (Linux)
+        if: ${{ runner.os == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          set -euo pipefail
+
+          curl -sL https://sentry.io/get-cli/ | sh
+
+          if [ -d "$HOME/.local/bin" ]; then
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+        shell: bash
+
+      - name: Install Sentry CLI (macOS)
+        if: ${{ runner.os == 'macOS' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          set -euo pipefail
+          brew install getsentry/tools/sentry-cli
+        shell: bash
+
+      - name: Install Sentry CLI (Windows)
+        if: ${{ runner.os == 'Windows' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          winget install --exact --id Sentry.sentry-cli --silent --accept-source-agreements --accept-package-agreements
+        shell: powershell
 
       - name: Upload debug symbols to Sentry
         if: ${{ github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true' }}
@@ -580,6 +601,20 @@ jobs:
           if [ -z "${SENTRY_AUTH_TOKEN:-}" ] || [ -z "${SENTRY_ORG:-}" ] || [ -z "${SENTRY_PROJECT:-}" ]; then
             echo "Sentry secrets are not fully configured; skipping debug symbol upload."
             exit 0
+          fi
+
+          SENTRY_CMD=""
+          if command -v sentry-cli >/dev/null 2>&1; then
+            SENTRY_CMD="sentry-cli"
+          elif command -v sentry >/dev/null 2>&1; then
+            SENTRY_CMD="sentry"
+          elif command -v sentry.exe >/dev/null 2>&1; then
+            SENTRY_CMD="sentry.exe"
+          fi
+
+          if [ -z "$SENTRY_CMD" ]; then
+            echo "Sentry CLI executable not found in PATH."
+            exit 1
           fi
 
           declare -a SYMBOL_PATHS=()
@@ -635,7 +670,7 @@ jobs:
           fi
 
           echo "Uploading ${#SYMBOL_PATHS[@]} symbol path(s) to Sentry for ${{ matrix.target }}..."
-          sentry-cli debug-files upload \
+          "$SENTRY_CMD" debug-files upload \
             --org "$SENTRY_ORG" \
             --project "$SENTRY_PROJECT" \
             --include-sources \
