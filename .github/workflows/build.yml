@@ -586,7 +586,36 @@ jobs:
       - name: Install Sentry CLI (Windows)
         if: ${{ runner.os == 'Windows' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
         run: |
+          $ErrorActionPreference = "Stop"
+
+          # winget may return a non-zero exit code when package is already installed and no update exists.
           winget install --exact --id Sentry.sentry-cli --silent --accept-source-agreements --accept-package-agreements
+          if ($LASTEXITCODE -ne 0) {
+            winget list --exact --id Sentry.sentry-cli | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to install Sentry CLI via winget."
+            }
+            Write-Output "Sentry CLI is already installed; continuing."
+          }
+
+          $sentryCommand = Get-Command sentry.exe -ErrorAction SilentlyContinue
+          if (-not $sentryCommand) {
+            $packageRoots = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Directory -Filter "Sentry.sentry-cli*" -ErrorAction SilentlyContinue
+            foreach ($root in $packageRoots) {
+              $exe = Get-ChildItem $root.FullName -Recurse -Filter "sentry.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($exe) {
+                $exeDir = Split-Path -Path $exe.FullName -Parent
+                Add-Content -Path $env:GITHUB_PATH -Value $exeDir
+                $env:PATH = "$exeDir;$env:PATH"
+                Write-Output "Added Sentry CLI path: $exeDir"
+                break
+              }
+            }
+          }
+
+          if (-not (Get-Command sentry.exe -ErrorAction SilentlyContinue)) {
+            throw "sentry.exe not found after winget install."
+          }
         shell: powershell
 
       - name: Upload debug symbols to Sentry
