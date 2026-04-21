@@ -22,6 +22,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   final WebviewController _controller = WebviewController();
   final TextEditingController _urlController = TextEditingController();
   StreamSubscription<String>? _urlSubscription;
+  Timer? _clipboardPoller;
   final List<String> history = [];
   int currentHistoryIndex = -1;
   List<String> openTabs = [];
@@ -33,7 +34,10 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
-    Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _clipboardPoller = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      if (!mounted) {
+        return;
+      }
       final clipboard = await Clipboard.getData('text/plain');
       final text = clipboard?.text ?? '';
       if (text.startsWith('wc:')) {
@@ -116,7 +120,10 @@ class _WebViewWindowsState extends State<WebViewWindows> {
 
   @override
   void dispose() {
+    _clipboardPoller?.cancel();
     _urlSubscription?.cancel();
+    _urlController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
