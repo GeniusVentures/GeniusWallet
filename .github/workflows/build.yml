@@ -569,7 +569,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl -sL https://sentry.io/get-cli/ | sh
+          if command -v sentry-cli >/dev/null 2>&1; then
+            echo "sentry-cli is already installed; skipping install."
+            sentry-cli --version || true
+          else
+            curl -sL https://sentry.io/get-cli/ | sh
+          fi
 
           if [ -d "$HOME/.local/bin" ]; then
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
