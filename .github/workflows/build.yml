@@ -564,18 +564,87 @@ jobs:
             fi
           fi
 
-      - name: Setup Sentry CLI
-        if: ${{ (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
-        uses: getsentry/action-setup-cli@v1
+      - name: Install Sentry CLI (Linux)
+        if: ${{ runner.os == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          set -euo pipefail
+
+          curl -sL https://sentry.io/get-cli/ | sh
+
+          if [ -d "$HOME/.local/bin" ]; then
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+        shell: bash
+
+      - name: Install Sentry CLI (macOS)
+        if: ${{ runner.os == 'macOS' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          set -euo pipefail
+          brew install getsentry/tools/sentry-cli
+        shell: bash
+
+      - name: Install Sentry CLI (Windows)
+        if: ${{ runner.os == 'Windows' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # winget may return a non-zero exit code when package is already installed and no update exists.
+          winget install --exact --id Sentry.sentry-cli --silent --accept-source-agreements --accept-package-agreements
+          if ($LASTEXITCODE -ne 0) {
+            winget list --exact --id Sentry.sentry-cli | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to install Sentry CLI via winget."
+            }
+            Write-Output "Sentry CLI is already installed; continuing."
+          }
+
+          $sentryCommand = Get-Command sentry.exe -ErrorAction SilentlyContinue
+          if (-not $sentryCommand) {
+            $packageRoots = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Directory -Filter "Sentry.sentry-cli*" -ErrorAction SilentlyContinue
+            foreach ($root in $packageRoots) {
+              $exe = Get-ChildItem $root.FullName -Recurse -Filter "sentry.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($exe) {
+                $exeDir = Split-Path -Path $exe.FullName -Parent
+                Add-Content -Path $env:GITHUB_PATH -Value $exeDir
+                $env:PATH = "$exeDir;$env:PATH"
+                Write-Output "Added Sentry CLI path: $exeDir"
+                break
+              }
+            }
+          }
+
+          if (-not (Get-Command sentry.exe -ErrorAction SilentlyContinue)) {
+            throw "sentry.exe not found after winget install."
+          }
+        shell: powershell
 
       - name: Upload debug symbols to Sentry
-        if: ${{ (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') && secrets.SENTRY_AUTH_TOKEN != '' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' }}
+        if: ${{ github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true' }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           set -euo pipefail
+
+          if [ -z "${SENTRY_AUTH_TOKEN:-}" ] || [ -z "${SENTRY_ORG:-}" ] || [ -z "${SENTRY_PROJECT:-}" ]; then
+            echo "Sentry secrets are not fully configured; skipping debug symbol upload."
+            exit 0
+          fi
+
+          SENTRY_CMD=""
+          if command -v sentry-cli >/dev/null 2>&1; then
+            SENTRY_CMD="sentry-cli"
+          elif command -v sentry >/dev/null 2>&1; then
+            SENTRY_CMD="sentry"
+          elif command -v sentry.exe >/dev/null 2>&1; then
+            SENTRY_CMD="sentry.exe"
+          fi
+
+          if [ -z "$SENTRY_CMD" ]; then
+            echo "Sentry CLI executable not found in PATH."
+            exit 1
+          fi
 
           declare -a SYMBOL_PATHS=()
 
@@ -630,7 +699,7 @@ jobs:
           fi
 
           echo "Uploading ${#SYMBOL_PATHS[@]} symbol path(s) to Sentry for ${{ matrix.target }}..."
-          sentry-cli debug-files upload \
+          "$SENTRY_CMD" debug-files upload \
             --org "$SENTRY_ORG" \
             --project "$SENTRY_PROJECT" \
             --include-sources \
