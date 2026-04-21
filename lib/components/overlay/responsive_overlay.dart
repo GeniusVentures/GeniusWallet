@@ -26,6 +26,7 @@ class ResponsiveOverlay extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         final platform = GeniusBreakpoints.getPlaform(context);
+        final selected = state.selectedScreen;
 
         // Map screen enum to actual widget
         final screenMap = <NavigationScreen, Widget>{
@@ -34,12 +35,12 @@ class ResponsiveOverlay extends StatelessWidget {
           NavigationScreen.swap: const SwapScreen(),
           NavigationScreen.news: const CryptoNewsScreen(),
           NavigationScreen.markets: const MarketsScreen(),
-          NavigationScreen.web:
-              const WebViewScreen(url: "https://app.uniswap.org"),
+          NavigationScreen.web: selected == NavigationScreen.web
+              ? const WebViewScreen(url: "https://app.uniswap.org")
+              : const SizedBox.shrink(),
           NavigationScreen.logs: const SubmitLogsScreen(),
         };
 
-        final selected = state.selectedScreen;
         final currentIndex = screenMap.keys.toList().indexOf(selected);
 
         final child = IndexedStack(

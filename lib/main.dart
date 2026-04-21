@@ -16,6 +16,7 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/theme.dart';
+import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
@@ -145,16 +146,38 @@ Future<void> main() async {
 
 class MyWindowListener extends WindowListener {
   final GeniusApi geniusApi;
+  bool _isClosing = false;
 
   MyWindowListener(this.geniusApi);
 
   @override
   void onWindowClose() async {
+    if (!Platform.isWindows ||
+        !WindowsWebViewShutdown.instance.hasActiveWebViews) {
+      return;
+    }
+
+    if (_isClosing) {
+      return;
+    }
+
+    _isClosing = true;
+
+    if (Platform.isWindows) {
+      try {
+        await WindowsWebViewShutdown.instance
+            .disposeAll()
+            .timeout(const Duration(seconds: 3));
+      } catch (e) {
+        debugPrint("Window close: webview dispose timed out/failed: $e");
+      }
+    }
+
     // Trigger cleanup when the window is closed
     final result = geniusApi.shutdownSDK();
     debugPrint("Window closed. GeniusApi shutdown: $result");
 
-    exit(0);
+    await windowManager.destroy();
   }
 }
 

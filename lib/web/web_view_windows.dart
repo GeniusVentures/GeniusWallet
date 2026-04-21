@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
+import 'package:window_manager/window_manager.dart';
 
 class WebViewWindows extends StatefulWidget {
   final String url;
@@ -23,6 +25,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   final TextEditingController _urlController = TextEditingController();
   StreamSubscription<String>? _urlSubscription;
   Timer? _clipboardPoller;
+  bool _resourcesDisposed = false;
   final List<String> history = [];
   int currentHistoryIndex = -1;
   List<String> openTabs = [];
@@ -31,6 +34,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   @override
   void initState() {
     super.initState();
+    WindowsWebViewShutdown.instance.register(_disposeWebViewResources);
+    unawaited(windowManager.setPreventClose(true));
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
@@ -120,11 +125,26 @@ class _WebViewWindowsState extends State<WebViewWindows> {
 
   @override
   void dispose() {
-    _clipboardPoller?.cancel();
-    _urlSubscription?.cancel();
-    _urlController.dispose();
-    _controller.dispose();
+    WindowsWebViewShutdown.instance.unregister(_disposeWebViewResources);
+    if (!WindowsWebViewShutdown.instance.hasActiveWebViews) {
+      unawaited(windowManager.setPreventClose(false));
+    }
+    unawaited(_disposeWebViewResources());
     super.dispose();
+  }
+
+  Future<void> _disposeWebViewResources() async {
+    if (_resourcesDisposed) {
+      return;
+    }
+
+    _resourcesDisposed = true;
+    _clipboardPoller?.cancel();
+    _clipboardPoller = null;
+    await _urlSubscription?.cancel();
+    _urlSubscription = null;
+    _urlController.dispose();
+    await _controller.dispose();
   }
 
   @override
