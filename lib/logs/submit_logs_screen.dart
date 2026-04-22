@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:io';
+import 'dart:typed_data';
 
 class SubmitLogsScreen extends StatefulWidget {
   const SubmitLogsScreen({Key? key}) : super(key: key);
@@ -13,9 +14,30 @@ class SubmitLogsScreen extends StatefulWidget {
 }
 
 class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
+  static const int _maxAttachmentBytes = 1024 * 1024; // 1 MiB per file.
+
   bool _isSubmitting = false;
   String _statusMessage = 'Ready to submit SDK logs.';
   String? _lastEventId;
+
+  bool _isSuccessfulSentryId(SentryId eventId) {
+    return eventId != const SentryId.empty();
+  }
+
+  Future<Uint8List> _readTailBytes(File file, int maxBytes) async {
+    final totalLength = await file.length();
+    if (totalLength <= maxBytes) {
+      return file.readAsBytes();
+    }
+
+    final handle = await file.open();
+    try {
+      await handle.setPosition(totalLength - maxBytes);
+      return await handle.read(maxBytes);
+    } finally {
+      await handle.close();
+    }
+  }
 
   Future<void> _copyEventId() async {
     final eventId = _lastEventId;
@@ -79,38 +101,69 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
 
     try {
       setState(() {
-        _statusMessage = 'Submitting ${existingLogs.length} log file(s) to Sentry...';
+        _statusMessage =
+            'Submitting ${existingLogs.length} log file(s) to Sentry...';
       });
+
+      final fileSizesByName = <String, int>{};
+      final trimmedFiles = <String, int>{};
+      final preparedAttachments = <SentryAttachment>[];
+
+      for (final file in existingLogs) {
+        final fileName = file.uri.pathSegments.isNotEmpty
+            ? file.uri.pathSegments.last
+            : 'sdk-log.txt';
+        final size = await file.length();
+        fileSizesByName[fileName] = size;
+
+        if (size <= _maxAttachmentBytes) {
+          preparedAttachments.add(
+            SentryAttachment.fromLoader(
+              loader: file.readAsBytes,
+              filename: fileName,
+              contentType: 'text/plain',
+            ),
+          );
+          continue;
+        }
+
+        final tailBytes = await _readTailBytes(file, _maxAttachmentBytes);
+        final trimmedFilename = '$fileName.tail.log';
+        preparedAttachments.add(
+          SentryAttachment.fromUint8List(
+            tailBytes,
+            trimmedFilename,
+            contentType: 'text/plain',
+          ),
+        );
+        trimmedFiles[fileName] = size;
+      }
 
       final eventId = await Sentry.captureMessage(
         'Manual SDK log submission',
         withScope: (scope) {
-          scope.level = SentryLevel.info;
+          scope.level = SentryLevel.warning;
           scope.setTag('source', 'submit_logs_screen');
+          scope.setTag('platform', Platform.operatingSystem);
           scope.setContexts('sdk_logs', {
             'base_path': normalizedBasePath,
             'files': existingLogs.map((file) => file.path).toList(),
+            'file_sizes_bytes': fileSizesByName,
+            'trimmed_files_original_size_bytes': trimmedFiles,
           });
-          for (final file in existingLogs) {
-            final fileName = file.uri.pathSegments.isNotEmpty
-                ? file.uri.pathSegments.last
-                : 'sdk-log.txt';
-            scope.addAttachment(
-              SentryAttachment.fromLoader(
-                loader: file.readAsBytes,
-                filename: fileName,
-                contentType: 'text/plain',
-              ),
-            );
+          for (final attachment in preparedAttachments) {
+            scope.addAttachment(attachment);
           }
         },
       );
 
+      final hasSuccessfulEventId = _isSuccessfulSentryId(eventId);
+
       setState(() {
-        _lastEventId = eventId.toString().isNotEmpty ? eventId.toString() : null;
-        _statusMessage = eventId.toString().isNotEmpty
+        _lastEventId = hasSuccessfulEventId ? eventId.toString() : null;
+        _statusMessage = hasSuccessfulEventId
             ? 'Logs submitted successfully. Event ID: $eventId'
-            : 'Logs submitted, but no Event ID was returned.';
+            : 'Sentry did not confirm upload (empty event ID). This usually means the event was dropped or rejected before ingestion.';
       });
     } catch (e) {
       setState(() {
@@ -156,7 +209,8 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.upload_file),
-                label: Text(_isSubmitting ? 'Submitting...' : 'Submit SDK Logs'),
+                label:
+                    Text(_isSubmitting ? 'Submitting...' : 'Submit SDK Logs'),
               ),
               const SizedBox(height: 16),
               Text(
