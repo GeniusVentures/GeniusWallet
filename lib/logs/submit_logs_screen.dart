@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:sentry_flutter/src/native/java/binding.dart'
+    as sentry_android_binding;
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -15,6 +17,7 @@ class SubmitLogsScreen extends StatefulWidget {
 
 class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   static const int _maxAttachmentBytes = 1024 * 1024; // 1 MiB per file.
+  static const Duration _androidFlushTimeout = Duration(seconds: 8);
 
   bool _isSubmitting = false;
   String _statusMessage = 'Ready to submit SDK logs.';
@@ -36,6 +39,21 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       return await handle.read(maxBytes);
     } finally {
       await handle.close();
+    }
+  }
+
+  Future<bool?> _flushAndroidNativeSentry({
+    Duration timeout = _androidFlushTimeout,
+  }) async {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+
+    try {
+      sentry_android_binding.Sentry.flush(timeout.inMilliseconds);
+      return sentry_android_binding.Sentry.isHealthy();
+    } catch (_) {
+      return false;
     }
   }
 
@@ -158,12 +176,36 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       );
 
       final hasSuccessfulEventId = _isSuccessfulSentryId(eventId);
+      bool? androidHealthyAfterFlush;
+
+      if (hasSuccessfulEventId && Platform.isAndroid) {
+        setState(() {
+          _statusMessage =
+              'Event queued with ID $eventId. Waiting for Android transport flush...';
+        });
+        androidHealthyAfterFlush = await _flushAndroidNativeSentry();
+      }
 
       setState(() {
         _lastEventId = hasSuccessfulEventId ? eventId.toString() : null;
-        _statusMessage = hasSuccessfulEventId
-            ? 'Logs submitted successfully. Event ID: $eventId'
-            : 'Sentry did not confirm upload (empty event ID). This usually means the event was dropped or rejected before ingestion.';
+        if (!hasSuccessfulEventId) {
+          _statusMessage =
+              'Sentry did not confirm upload (empty event ID). This usually means the event was dropped or rejected before ingestion.';
+          return;
+        }
+
+        if (!Platform.isAndroid) {
+          _statusMessage = 'Logs submitted successfully. Event ID: $eventId';
+          return;
+        }
+
+        final healthText = androidHealthyAfterFlush == true
+            ? 'healthy'
+            : androidHealthyAfterFlush == false
+                ? 'not healthy'
+                : 'unknown';
+        _statusMessage =
+            'Logs queued and Android flush completed. Event ID: $eventId. Native SDK health after flush: $healthText.';
       });
     } catch (e) {
       setState(() {
