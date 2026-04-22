@@ -111,7 +111,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       final trimmedFiles = <String, int>{};
       final logPreviewsByName = <String, String>{};
       final preparedAttachments = <SentryAttachment>[];
-      final useAttachments = !Platform.isAndroid;
+      const useAttachments = true;
 
       for (final file in existingLogs) {
         final fileName = file.uri.pathSegments.isNotEmpty
@@ -136,7 +136,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           logPreviewsByName[fileName] = previewText;
         }
 
-        if (!useAttachments) {
+        // Skip empty files — a zero-byte attachment produces a malformed
+        // envelope item header that Android's native SDK rejects.
+        if (payloadBytes.isEmpty) {
           continue;
         }
 
