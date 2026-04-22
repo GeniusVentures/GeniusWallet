@@ -64,18 +64,25 @@ Future<void> main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = 'https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944';
+      options.dsn =
+          'https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944';
       options.tracesSampleRate = 1.0; // Adjust for production
       options.sendDefaultPii = true;
       options.beforeSend = (event, hint) async {
-        final isErrorOrFatal =
-            event.throwable != null ||
+        final isErrorOrFatal = event.throwable != null ||
             event.level == SentryLevel.error ||
             event.level == SentryLevel.fatal;
         final isManualLogSubmission =
             event.message?.formatted == 'Manual SDK log submission';
 
         if (!isErrorOrFatal || isManualLogSubmission) {
+          return event;
+        }
+
+        // Android native envelope parsing is currently rejecting attachment
+        // item headers. Keep crash event reporting, but skip SDK log
+        // attachments on Android until this is resolved.
+        if (!kIsWeb && Platform.isAndroid) {
           return event;
         }
 
@@ -99,7 +106,8 @@ Future<void> main() async {
       await networkProvider.loadNetworks();
 
       final networkTokensProvider = NetworkTokensProvider();
-      await networkTokensProvider.loadTokensForNetworks(networkProvider.networks);
+      await networkTokensProvider
+          .loadTokensForNetworks(networkProvider.networks);
 
       /// Must come after hive init
       await fetchAllCoinGeckoCoins();
@@ -113,7 +121,8 @@ Future<void> main() async {
       }
 
       /// Initialize window_manager only on **desktop**
-      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+      if (!kIsWeb &&
+          (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
         await windowManager.ensureInitialized();
         windowManager.addListener(MyWindowListener(geniusApi));
       }

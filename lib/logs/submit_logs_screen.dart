@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:sentry_flutter/src/native/java/binding.dart'
-    as sentry_android_binding;
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -17,7 +16,7 @@ class SubmitLogsScreen extends StatefulWidget {
 
 class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   static const int _maxAttachmentBytes = 1024 * 1024; // 1 MiB per file.
-  static const Duration _androidFlushTimeout = Duration(seconds: 8);
+  static const int _maxInlineLogChars = 8000;
 
   bool _isSubmitting = false;
   String _statusMessage = 'Ready to submit SDK logs.';
@@ -39,21 +38,6 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       return await handle.read(maxBytes);
     } finally {
       await handle.close();
-    }
-  }
-
-  Future<bool?> _flushAndroidNativeSentry({
-    Duration timeout = _androidFlushTimeout,
-  }) async {
-    if (!Platform.isAndroid) {
-      return null;
-    }
-
-    try {
-      sentry_android_binding.Sentry.flush(timeout.inMilliseconds);
-      return sentry_android_binding.Sentry.isHealthy();
-    } catch (_) {
-      return false;
     }
   }
 
@@ -125,7 +109,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
 
       final fileSizesByName = <String, int>{};
       final trimmedFiles = <String, int>{};
+      final logPreviewsByName = <String, String>{};
       final preparedAttachments = <SentryAttachment>[];
+      final useAttachments = !Platform.isAndroid;
 
       for (final file in existingLogs) {
         final fileName = file.uri.pathSegments.isNotEmpty
@@ -134,27 +120,36 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         final size = await file.length();
         fileSizesByName[fileName] = size;
 
+        final Uint8List payloadBytes;
         if (size <= _maxAttachmentBytes) {
-          preparedAttachments.add(
-            SentryAttachment.fromLoader(
-              loader: file.readAsBytes,
-              filename: fileName,
-              contentType: 'text/plain',
-            ),
-          );
+          payloadBytes = await file.readAsBytes();
+        } else {
+          payloadBytes = await _readTailBytes(file, _maxAttachmentBytes);
+          trimmedFiles[fileName] = size;
+        }
+
+        final previewText = utf8.decode(payloadBytes, allowMalformed: true);
+        if (previewText.length > _maxInlineLogChars) {
+          logPreviewsByName[fileName] =
+              previewText.substring(previewText.length - _maxInlineLogChars);
+        } else {
+          logPreviewsByName[fileName] = previewText;
+        }
+
+        if (!useAttachments) {
           continue;
         }
 
-        final tailBytes = await _readTailBytes(file, _maxAttachmentBytes);
-        final trimmedFilename = '$fileName.tail.log';
+        final attachmentName =
+            size <= _maxAttachmentBytes ? fileName : '$fileName.tail.log';
         preparedAttachments.add(
           SentryAttachment.fromUint8List(
-            tailBytes,
-            trimmedFilename,
+            payloadBytes,
+            attachmentName,
             contentType: 'text/plain',
+            attachmentType: SentryAttachment.typeAttachmentDefault,
           ),
         );
-        trimmedFiles[fileName] = size;
       }
 
       final eventId = await Sentry.captureMessage(
@@ -164,10 +159,11 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           scope.setTag('source', 'submit_logs_screen');
           scope.setTag('platform', Platform.operatingSystem);
           scope.setContexts('sdk_logs', {
-            'base_path': normalizedBasePath,
-            'files': existingLogs.map((file) => file.path).toList(),
-            'file_sizes_bytes': fileSizesByName,
             'trimmed_files_original_size_bytes': trimmedFiles,
+            'file_names': fileSizesByName.keys.toList(),
+            'file_sizes_bytes': fileSizesByName,
+            'inline_log_previews': logPreviewsByName,
+            'attachments_enabled': useAttachments,
           });
           for (final attachment in preparedAttachments) {
             scope.addAttachment(attachment);
@@ -176,15 +172,6 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       );
 
       final hasSuccessfulEventId = _isSuccessfulSentryId(eventId);
-      bool? androidHealthyAfterFlush;
-
-      if (hasSuccessfulEventId && Platform.isAndroid) {
-        setState(() {
-          _statusMessage =
-              'Event queued with ID $eventId. Waiting for Android transport flush...';
-        });
-        androidHealthyAfterFlush = await _flushAndroidNativeSentry();
-      }
 
       setState(() {
         _lastEventId = hasSuccessfulEventId ? eventId.toString() : null;
@@ -194,18 +181,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           return;
         }
 
-        if (!Platform.isAndroid) {
-          _statusMessage = 'Logs submitted successfully. Event ID: $eventId';
-          return;
-        }
-
-        final healthText = androidHealthyAfterFlush == true
-            ? 'healthy'
-            : androidHealthyAfterFlush == false
-                ? 'not healthy'
-                : 'unknown';
-        _statusMessage =
-            'Logs queued and Android flush completed. Event ID: $eventId. Native SDK health after flush: $healthText.';
+        _statusMessage = 'Logs submitted successfully. Event ID: $eventId';
       });
     } catch (e) {
       setState(() {
