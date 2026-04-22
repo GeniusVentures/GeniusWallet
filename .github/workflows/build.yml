@@ -996,6 +996,23 @@ jobs:
             BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
 
+          FILTERED_ARTIFACTS_DIR="_artifacts_pkg/artifacts"
+          rm -rf "$FILTERED_ARTIFACTS_DIR"
+          mkdir -p "$FILTERED_ARTIFACTS_DIR"
+
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -a \
+              --exclude='*.pdb' \
+              --exclude='*.debug' \
+              --exclude='*.dSYM' \
+              --exclude='*.dSYM/***' \
+              artifacts/ "$FILTERED_ARTIFACTS_DIR/"
+          else
+            cp -r artifacts/. "$FILTERED_ARTIFACTS_DIR/"
+            find "$FILTERED_ARTIFACTS_DIR" -type f \( -name "*.pdb" -o -name "*.debug" \) -delete
+            find "$FILTERED_ARTIFACTS_DIR" -type d -name "*.dSYM" -prune -exec rm -rf {} +
+          fi
+
           # Android APKs and iOS IPAs don't need compression - upload directly
           if [ "${{ matrix.target }}" = "Android" ]; then
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
@@ -1024,10 +1041,10 @@ jobs:
           elif [ "${{ matrix.target }}" = "Windows" ]; then
             ARTIFACT_NAME=${BASE_NAME}.zip
             # Use PowerShell to create zip on Windows
-            powershell -Command "Compress-Archive -Path 'artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
+            powershell -Command "Compress-Archive -Path '_artifacts_pkg/artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
           else
             ARTIFACT_NAME=${BASE_NAME}.tar.gz
-            tar -czvf ${ARTIFACT_NAME} artifacts/
+            tar -czvf ${ARTIFACT_NAME} -C "_artifacts_pkg" artifacts
           fi
 
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
