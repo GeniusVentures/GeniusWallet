@@ -27,6 +27,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+// ignore: unused_element
 Future<void> _attachSdkLogsToHint(Hint hint) async {
   final docsDir = await getApplicationDocumentsDirectory();
   final logFiles = [
@@ -49,6 +50,13 @@ Future<void> _attachSdkLogsToHint(Hint hint) async {
     }
 
     final bytes = await file.readAsBytes();
+
+    // Skip empty files — a zero-byte attachment produces a malformed
+    // envelope item header that Android's native SDK rejects.
+    if (bytes.isEmpty) {
+      continue;
+    }
+
     hint.attachments.add(
       SentryAttachment.fromUint8List(
         bytes,
@@ -79,18 +87,13 @@ Future<void> main() async {
           return event;
         }
 
-        // Android native envelope parsing is currently rejecting attachment
-        // item headers. Keep crash event reporting, but skip SDK log
-        // attachments on Android until this is resolved.
-        if (!kIsWeb && Platform.isAndroid) {
-          return event;
-        }
-
-        try {
-          await _attachSdkLogsToHint(hint);
-        } catch (_) {
-          // Never block crash reporting if log attachment collection fails.
-        }
+        // _attachSdkLogsToHint is disabled until attachment support is verified.
+        // if (!kIsWeb && Platform.isAndroid) {
+        //   return event;
+        // }
+        // try {
+        //   await _attachSdkLogsToHint(hint);
+        // } catch (_) {}
 
         return event;
       };
