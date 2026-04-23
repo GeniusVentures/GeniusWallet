@@ -12,7 +12,6 @@ import 'package:flutter/gestures.dart';
 
 
 class GeniusTabbar extends StatelessWidget {
-  static const _numTabs = 6;
   const GeniusTabbar({super.key});
 
   @override
@@ -90,51 +89,55 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
   Widget build(BuildContext context) {
     return Container(
       color: GeniusWalletColors.deepBlueCardColor,
-      height: 64,
-      alignment: Alignment.bottomCenter,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          _tabWidth = constraints.maxWidth / 5;
-          return NotificationListener<ScrollEndNotification>(
-            onNotification: (notification) {
-              _onScrollEnd();
-              return true;
-            },
-            child: ScrollConfiguration(
-              behavior: const _TabBarScrollBehavior(),
-              child: ListView.builder(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                physics: const ClampingScrollPhysics(),
-                itemCount: widget.destinations.length,
-                itemBuilder: (context, i) {
-                  final entry = widget.destinations[i];
-                  final isSelected = i == widget.selectedIndex;
-                  return SizedBox(
-                    width: _tabWidth,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        context.read<NavigationOverlayCubit>().navigationTapped(widget.screenList[i]);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isSelected ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.15) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: entry.value.activeIcon ?? entry.value.icon,
-                        ),
-                      ),
-                    ),
-                  );
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 64,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              _tabWidth = constraints.maxWidth / 5;
+              return NotificationListener<ScrollEndNotification>(
+                onNotification: (notification) {
+                  _onScrollEnd();
+                  return true;
                 },
-              ),
-            ),
-          );
-        },
+                child: ScrollConfiguration(
+                  behavior: const _TabBarScrollBehavior(),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: widget.destinations.length,
+                    itemBuilder: (context, i) {
+                      final entry = widget.destinations[i];
+                      final isSelected = i == widget.selectedIndex;
+                      return SizedBox(
+                        width: _tabWidth,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            context.read<NavigationOverlayCubit>().navigationTapped(widget.screenList[i]);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.15) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: isSelected ? entry.value.activeIcon : entry.value.icon,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
