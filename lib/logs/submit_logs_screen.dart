@@ -222,7 +222,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Send feedback to the team',s
+                'Send feedback to the team',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
