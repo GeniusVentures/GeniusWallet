@@ -53,6 +53,7 @@ class _ScrollableSnapTabBar extends StatefulWidget {
 class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
   late final ScrollController _scrollController;
   double _tabWidth = 0;
+  bool _isSnapping = false;
 
   @override
   void initState() {
@@ -67,7 +68,7 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
   }
 
   void _onScrollEnd() {
-    if (_tabWidth == 0) return;
+    if (_isSnapping || !_scrollController.hasClients || _tabWidth == 0) return;
     final offset = _scrollController.offset;
     final index = (offset / _tabWidth).round();
     final percent = (offset % _tabWidth) / _tabWidth;
@@ -76,13 +77,25 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
       snapIndex += 1;
     }
     // Clamp so we always have 5 icons in view
-    snapIndex = snapIndex.clamp(0, (widget.destinations.length - 5));
+    final maxSnapIndex = (widget.destinations.length - 5).clamp(0, widget.destinations.length);
+    snapIndex = snapIndex.clamp(0, maxSnapIndex);
     final targetOffset = snapIndex * _tabWidth;
-    _scrollController.animateTo(
-      targetOffset,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
+
+    // Avoid no-op animations that can emit a new ScrollEnd and recurse.
+    if ((offset - targetOffset).abs() < 0.5) return;
+
+    _isSnapping = true;
+    _scrollController
+        .animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        )
+        .whenComplete(() {
+          if (mounted) {
+            _isSnapping = false;
+          }
+        });
   }
 
   @override
@@ -98,8 +111,11 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
               _tabWidth = constraints.maxWidth / 5;
               return NotificationListener<ScrollEndNotification>(
                 onNotification: (notification) {
+                  if (_isSnapping) {
+                    return false;
+                  }
                   _onScrollEnd();
-                  return true;
+                  return false;
                 },
                 child: ScrollConfiguration(
                   behavior: const _TabBarScrollBehavior(),
