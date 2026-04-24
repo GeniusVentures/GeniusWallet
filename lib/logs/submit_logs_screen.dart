@@ -222,7 +222,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Send feedback to the team',
+                'Send feedback to the team',s
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
@@ -238,7 +238,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                 textInputAction: TextInputAction.newline,
                 decoration: const InputDecoration(
                   labelText: 'Message',
-                  hintText: 'What happened? What were you trying to do?',
+                  hintText: 'Describe the issue or share your feedback here...',
                   border: OutlineInputBorder(),
                 ),
               ),
