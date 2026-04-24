@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -16,11 +15,17 @@ class SubmitLogsScreen extends StatefulWidget {
 
 class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   static const int _maxAttachmentBytes = 1024 * 1024; // 1 MiB per file.
-  static const int _maxInlineLogChars = 8000;
 
+  final TextEditingController _feedbackController = TextEditingController();
   bool _isSubmitting = false;
-  String _statusMessage = 'Ready to submit SDK logs.';
+  String _statusMessage = 'Ready to send feedback.';
   String? _lastEventId;
+
+  @override
+  void dispose() {
+    _feedbackController.dispose();
+    super.dispose();
+  }
 
   bool _isSuccessfulSentryId(SentryId eventId) {
     return eventId != const SentryId.empty();
@@ -57,13 +62,21 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     );
   }
 
-  Future<void> _submitSdkLogs() async {
+  Future<void> _submitFeedback() async {
     final geniusApi = context.read<GeniusApi>();
+    final feedbackMessage = _feedbackController.text.trim();
+
+    if (feedbackMessage.isEmpty) {
+      setState(() {
+        _statusMessage = 'Please type a short feedback message before sending.';
+      });
+      return;
+    }
 
     if (!geniusApi.isSdkInitialized) {
       setState(() {
         _statusMessage =
-            'SDK is not initialized yet. Start the SDK first, then submit logs.';
+            'SDK is not initialized yet. Start the SDK first, then send feedback.';
       });
       return;
     }
@@ -71,7 +84,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     setState(() {
       _isSubmitting = true;
       _lastEventId = null;
-      _statusMessage = 'Locating log files...';
+      _statusMessage = 'Preparing feedback payload...';
     });
 
     final basePath = geniusApi.jsonFilePath;
@@ -92,26 +105,17 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       }
     }
 
-    if (existingLogs.isEmpty) {
-      setState(() {
-        _isSubmitting = false;
-        _statusMessage =
-            'No SDK log files found in $normalizedBasePath (expected sgnslog.log / sgnslog2.log).';
-      });
-      return;
-    }
-
     try {
       setState(() {
-        _statusMessage =
-            'Submitting ${existingLogs.length} log file(s) to Sentry...';
+        _statusMessage = existingLogs.isEmpty
+            ? 'Sending feedback without SDK log attachments...'
+            : 'Sending feedback with ${existingLogs.length} log attachment(s)...';
       });
 
       final fileSizesByName = <String, int>{};
       final trimmedFiles = <String, int>{};
-      final logPreviewsByName = <String, String>{};
+      final skippedEmptyFiles = <String>[];
       final preparedAttachments = <SentryAttachment>[];
-      const useAttachments = true;
 
       for (final file in existingLogs) {
         final fileName = file.uri.pathSegments.isNotEmpty
@@ -120,7 +124,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         final size = await file.length();
         fileSizesByName[fileName] = size;
 
-        final Uint8List payloadBytes;
+        Uint8List payloadBytes;
         if (size <= _maxAttachmentBytes) {
           payloadBytes = await file.readAsBytes();
         } else {
@@ -128,17 +132,10 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           trimmedFiles[fileName] = size;
         }
 
-        final previewText = utf8.decode(payloadBytes, allowMalformed: true);
-        if (previewText.length > _maxInlineLogChars) {
-          logPreviewsByName[fileName] =
-              previewText.substring(previewText.length - _maxInlineLogChars);
-        } else {
-          logPreviewsByName[fileName] = previewText;
-        }
-
         // Skip empty files — a zero-byte attachment produces a malformed
         // envelope item header that Android's native SDK rejects.
         if (payloadBytes.isEmpty) {
+          skippedEmptyFiles.add(fileName);
           continue;
         }
 
@@ -154,18 +151,24 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         );
       }
 
-      final eventId = await Sentry.captureMessage(
-        'Manual SDK log submission',
+      final eventId = await Sentry.captureFeedback(
+        SentryFeedback(message: feedbackMessage),
         withScope: (scope) {
           scope.level = SentryLevel.warning;
-          scope.setTag('source', 'submit_logs_screen');
+          scope.setTag('source', 'submit_feedback_screen');
           scope.setTag('platform', Platform.operatingSystem);
+          scope.setContexts('feedback', {
+            'message_length': feedbackMessage.length,
+          });
           scope.setContexts('sdk_logs', {
+            'base_path': normalizedBasePath,
             'trimmed_files_original_size_bytes': trimmedFiles,
             'file_names': fileSizesByName.keys.toList(),
             'file_sizes_bytes': fileSizesByName,
-            'inline_log_previews': logPreviewsByName,
-            'attachments_enabled': useAttachments,
+            'attached_file_names': preparedAttachments
+                .map((attachment) => attachment.filename)
+                .toList(),
+            'skipped_empty_files': skippedEmptyFiles,
           });
           for (final attachment in preparedAttachments) {
             scope.addAttachment(attachment);
@@ -179,15 +182,19 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         _lastEventId = hasSuccessfulEventId ? eventId.toString() : null;
         if (!hasSuccessfulEventId) {
           _statusMessage =
-              'Sentry did not confirm upload (empty event ID). This usually means the event was dropped or rejected before ingestion.';
+              'Sentry did not confirm feedback upload (empty event ID). This usually means the payload was dropped or rejected before ingestion.';
           return;
         }
 
-        _statusMessage = 'Logs submitted successfully. Event ID: $eventId';
+        final skippedText = skippedEmptyFiles.isEmpty
+            ? ''
+            : ' Skipped empty logs: ${skippedEmptyFiles.join(', ')}.';
+        _statusMessage =
+            'Feedback sent successfully. Event ID: $eventId.$skippedText';
       });
     } catch (e) {
       setState(() {
-        _statusMessage = 'Failed to submit logs: $e';
+        _statusMessage = 'Failed to send feedback: $e';
       });
     } finally {
       setState(() {
@@ -200,37 +207,53 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Submit Logs'),
+        title: const Text('Send Feedback'),
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.bug_report, size: 64, color: Colors.greenAccent),
+              const Icon(
+                Icons.feedback_outlined,
+                size: 64,
+                color: Colors.greenAccent,
+              ),
               const SizedBox(height: 24),
               const Text(
-                'Submit logs from GeniusSDK',
+                'Send feedback to the team',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               const Text(
-                'Uploads sgnslog.log and sgnslog2.log from the SDK base path to Sentry.',
+                'Type your message below. SDK logs are attached automatically when available.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+              TextField(
+                controller: _feedbackController,
+                minLines: 4,
+                maxLines: 8,
+                textInputAction: TextInputAction.newline,
+                decoration: const InputDecoration(
+                  labelText: 'Message',
+                  hintText: 'What happened? What were you trying to do?',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : _submitSdkLogs,
+                onPressed: _isSubmitting ? null : _submitFeedback,
                 icon: _isSubmitting
                     ? const SizedBox(
                         height: 16,
                         width: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.upload_file),
+                    : const Icon(Icons.send),
                 label:
-                    Text(_isSubmitting ? 'Submitting...' : 'Submit SDK Logs'),
+                    Text(_isSubmitting ? 'Sending...' : 'Send Feedback'),
               ),
               const SizedBox(height: 16),
               Text(
