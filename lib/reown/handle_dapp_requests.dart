@@ -12,14 +12,14 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
-Future<void> handleDappRequests(
+void Function() handleDappRequests(
     {required ReownWalletKit walletKit,
     required GeniusApi geniusApi,
     required WalletDetailsCubit walletDetailsCubit,
-    required TransactionsCubit transactionsCubit}) async {
+    required TransactionsCubit transactionsCubit}) {
   final Set<int> pendingRequestIds = {};
 
-  walletKit.onSessionRequest.subscribe((SessionRequestEvent? event) async {
+  Future<void> onSessionRequest(SessionRequestEvent? event) async {
     if (event == null) return;
 
     final int requestId = event.id;
@@ -29,6 +29,8 @@ Future<void> handleDappRequests(
     }
 
     pendingRequestIds.add(requestId);
+
+  try {
 
     final Map<String, dynamic> tx = event.params[0];
     final String method = event.method;
@@ -108,79 +110,100 @@ Future<void> handleDappRequests(
           : null,
     );
 
-    if (shouldApprove == true) {
+      if (shouldApprove == true) {
       final chainId = walletDetailsCubit.state.selectedNetwork?.chainId;
       final rpcUrl = walletDetailsCubit.state.selectedNetwork?.rpcUrl;
       final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
 
-      if (chainId == null || rpcUrl == null || walletAddress == null) {
-        debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
-        pendingRequestIds.remove(requestId);
-        return;
-      }
+        if (chainId == null || rpcUrl == null || walletAddress == null) {
+          debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
+          pendingRequestIds.remove(requestId);
+          return;
+        }
 
-      final to = tx['to'] ?? 'Unknown';
-      final amountWei = parseHexToBigInt(tx['value']);
+        final to = tx['to'] ?? 'Unknown';
+        final amountWei = parseHexToBigInt(tx['value']);
 
-      final gasLimit = parseHexToBigInt(tx['gas']);
-      final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
+        final gasLimit = parseHexToBigInt(tx['gas']);
+        final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
 
-      final totalFeeWei = gasLimit * maxFeePerGas;
-      final amountEth = formatEth(amountWei.toString());
-      final totalFeeEth = formatEth(totalFeeWei.toString());
+        final totalFeeWei = gasLimit * maxFeePerGas;
+        final amountEth = formatEth(amountWei.toString());
+        final totalFeeEth = formatEth(totalFeeWei.toString());
 
-      // TODO: We should parse this out of the transaction data
-      const coinSymbol = "ETH";
+        // TODO: We should parse this out of the transaction data
+        const coinSymbol = "ETH";
 
-      // TODO: CONFIRM NETWORK ON SWAP MATCHES NETWORK SELECTED IN WALLET
+        // TODO: CONFIRM NETWORK ON SWAP MATCHES NETWORK SELECTED IN WALLET
 
-      final result = await geniusApi.signAndSendTransaction(
+        final result = await geniusApi.signAndSendTransaction(
           tx: tx,
           sourceChainId: chainId,
           rpcUrl: rpcUrl,
           address: walletAddress);
 
-      if (result.isSuccess) {
-        final txHash = result.data;
+        if (result.isSuccess) {
+          final txHash = result.data;
 
-        await walletKit.respondSessionRequest(
-          topic: topic,
-          response: JsonRpcResponse(
-            id: requestId,
-            jsonrpc: '2.0',
-            result: txHash,
-          ),
-        );
-        debugPrint('✅ Success on Swap!: ${result.data}');
+          await walletKit.respondSessionRequest(
+            topic: topic,
+            response: JsonRpcResponse(
+              id: requestId,
+              jsonrpc: '2.0',
+              result: txHash,
+            ),
+          );
+          debugPrint('✅ Success on Swap!: ${result.data}');
 
-        // TODO: we should show a pending transaction until it completes
-        // TODO: we should record the coin symbol instead of hard coding.
-        final txModel = model.Transaction(
-          hash: txHash ?? "",
-          fromAddress: walletAddress,
-          recipients: [TransferRecipients(toAddr: to, amount: amountEth)],
-          timeStamp: DateTime.now(),
-          transactionDirection: TransactionDirection.sent,
-          fees: totalFeeEth,
-          coinSymbol: coinSymbol,
-          transactionStatus: TransactionStatus.completed,
-          type: TransactionType.transfer,
-        );
+          // TODO: we should show a pending transaction until it completes
+          // TODO: we should record the coin symbol instead of hard coding.
+          final txModel = model.Transaction(
+            hash: txHash ?? "",
+            fromAddress: walletAddress,
+            recipients: [TransferRecipients(toAddr: to, amount: amountEth)],
+            timeStamp: DateTime.now(),
+            transactionDirection: TransactionDirection.sent,
+            fees: totalFeeEth,
+            coinSymbol: coinSymbol,
+            transactionStatus: TransactionStatus.completed,
+            type: TransactionType.transfer,
+          );
 
-        SwapResultDrawer.show(
-          context: navigatorKey.currentContext!,
-          isSuccess: true,
-          txHash: txHash ?? "",
-          coinSymbol: coinSymbol,
-        );
+          SwapResultDrawer.show(
+            context: navigatorKey.currentContext!,
+            isSuccess: true,
+            txHash: txHash ?? "",
+            coinSymbol: coinSymbol,
+          );
 
-        pendingRequestIds.remove(requestId);
+          pendingRequestIds.remove(requestId);
 
-        // stream to ui
-        transactionsCubit.addTransaction(txModel);
-        // save to hive
-        await TransactionStorageService()
-            .addTransaction(walletAddress, txModel);
+          // stream to ui
+          transactionsCubit.addTransaction(txModel);
+          // save to hive
+          await TransactionStorageService()
+              .addTransaction(walletAddress, txModel);
+        } else {
+          await walletKit.respondSessionRequest(
+            topic: topic,
+            response: JsonRpcResponse(
+              id: requestId,
+              jsonrpc: '2.0',
+              error: JsonRpcError(
+                code: Errors.USER_REJECTED.toInt(),
+                message: result.errorMessage ?? 'Signing failed',
+              ),
+            ),
+          );
+          SwapResultDrawer.show(
+            context: navigatorKey.currentContext!,
+            isSuccess: false,
+            txHash: "",
+            coinSymbol: coinSymbol,
+          );
+          pendingRequestIds.remove(requestId);
+          debugPrint('❌ Failed to Swap: ${result.errorMessage}');
+        }
       } else {
         await walletKit.respondSessionRequest(
           topic: topic,
@@ -189,33 +212,22 @@ Future<void> handleDappRequests(
             jsonrpc: '2.0',
             error: JsonRpcError(
               code: Errors.USER_REJECTED.toInt(),
-              message: result.errorMessage ?? 'Signing failed',
+              message: 'User rejected the request.',
             ),
           ),
         );
-        SwapResultDrawer.show(
-          context: navigatorKey.currentContext!,
-          isSuccess: false,
-          txHash: "",
-          coinSymbol: coinSymbol,
-        );
         pendingRequestIds.remove(requestId);
-        debugPrint('❌ Failed to Swap: ${result.errorMessage}');
+        debugPrint('❌ Request rejected.');
       }
-    } else {
-      await walletKit.respondSessionRequest(
-        topic: topic,
-        response: JsonRpcResponse(
-          id: requestId,
-          jsonrpc: '2.0',
-          error: JsonRpcError(
-            code: Errors.USER_REJECTED.toInt(),
-            message: 'User rejected the request.',
-          ),
-        ),
-      );
+    } catch (e) {
+      debugPrint('❌ Session request handling failed: $e');
       pendingRequestIds.remove(requestId);
-      debugPrint('❌ Request rejected.');
     }
-  });
+  }
+
+  walletKit.onSessionRequest.subscribe(onSessionRequest);
+
+  return () {
+    walletKit.onSessionRequest.unsubscribe(onSessionRequest);
+  };
 }

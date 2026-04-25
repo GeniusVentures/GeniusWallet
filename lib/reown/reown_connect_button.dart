@@ -45,6 +45,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   bool _timedOut = false;
   String _statusMessage = '';
   final TextEditingController _uriController = TextEditingController();
+  bool _listenersAttached = false;
+  void Function()? _sessionRequestDisposer;
+  late final dynamic _sessionConnectHandler;
+  late final dynamic _sessionProposalHandler;
 
   bool get _isDesktopOrIot {
     try {
@@ -58,6 +62,18 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   void initState() {
     super.initState();
     _initializeWalletKit();
+  }
+
+  @override
+  void dispose() {
+    if (_listenersAttached) {
+      walletKit.onSessionConnect.unsubscribe(_sessionConnectHandler);
+      walletKit.onSessionProposal.unsubscribe(_sessionProposalHandler);
+      _sessionRequestDisposer?.call();
+      _listenersAttached = false;
+    }
+    _uriController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeWalletKit() async {
@@ -76,43 +92,55 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         debugPrint("🔄 Session restored: ${restored.peer.metadata.name}");
       }
 
-      // Listen for incoming requests
-      handleDappRequests(
+      _attachWalletKitListeners();
+    } catch (e) {
+      debugPrint("❌ WalletKit initialization failed: $e");
+    }
+  }
+
+  void _attachWalletKitListeners() {
+    if (_listenersAttached) {
+      return;
+    }
+
+    // Listen for incoming requests
+    _sessionRequestDisposer = handleDappRequests(
           walletKit: walletKit,
           geniusApi: widget.geniusApi,
           walletDetailsCubit: widget.walletDetailsCubit,
           transactionsCubit: widget.transactionsCubit);
 
-      walletKit.onSessionConnect.subscribe((event) {
-        if (!mounted) return;
+    _sessionConnectHandler = (event) {
+      if (!mounted || event == null) return;
 
-        setState(() {
-          _session = event.session;
-          _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
-          _isConnecting = false;
-          _hasError = false;
-          _timedOut = false;
-        });
-        debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
+      setState(() {
+        _session = event.session;
+        _statusMessage = "✅ Connected to ${event.session.peer.metadata.name}";
+        _isConnecting = false;
+        _hasError = false;
+        _timedOut = false;
+      });
+      debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
+    };
+    walletKit.onSessionConnect.subscribe(_sessionConnectHandler);
+
+    _sessionProposalHandler = (event) async {
+      if (event == null) return;
+      final metadata = event.params.proposer.metadata;
+      final dappName = metadata.name;
+      final dappDescription = metadata.description;
+      final dappUrl = metadata.url;
+      final dappIcon = metadata.icons.isNotEmpty ? metadata.icons.first : null;
+
+      if (!mounted) return;
+
+      setState(() {
+        _statusMessage = "🔵 Connection requested from $dappName ($dappUrl)";
       });
 
-      walletKit.onSessionProposal.subscribe((event) async {
-        final metadata = event.params.proposer.metadata;
-        final dappName = metadata.name;
-        final dappDescription = metadata.description;
-        final dappUrl = metadata.url;
-        final dappIcon =
-            metadata.icons.isNotEmpty ? metadata.icons.first : null;
+      debugPrint("🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
 
-        if (!mounted) return;
-
-        setState(() {
-          _statusMessage = "🔵 Connection requested from $dappName ($dappUrl)";
-        });
-
-        debugPrint(
-            "🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
-
+      try {
         final bool? approved = await ApproveDappConnectionDrawer.show(
           context: navigatorKey.currentContext!,
           dappName: dappName,
@@ -147,10 +175,12 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             ),
           },
         );
-      });
-    } catch (e) {
-      debugPrint("❌ WalletKit initialization failed: $e");
-    }
+      } catch (e) {
+        debugPrint('❌ Session proposal handling failed: $e');
+      }
+    };
+    walletKit.onSessionProposal.subscribe(_sessionProposalHandler);
+    _listenersAttached = true;
   }
 
   Future<void> maybeInitWalletKit() async {
@@ -166,7 +196,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
 
     try {
-      await walletKit.init();
+      await WalletKitInstance().initOnce();
       debugPrint("✅ WalletKit initialized");
     } catch (e) {
       debugPrint("❌ WalletKit initialization failed: $e");
