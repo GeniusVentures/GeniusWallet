@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinState {
-  final TextEditingController controller;
+  final PinInputController pinController;
   final bool displayIncorrectPin;
 
-  /// Status taht indicates whether the user passed or failed their verification with their set pin
+  /// Status that indicates whether the user passed or failed their verification with their set pin
   final VerificationStatus verificationStatus;
 
   /// Status that indicates progress on user entering their pin
@@ -14,7 +15,7 @@ class PinState {
   final SavePinStatus savePinStatus;
 
   PinState({
-    required this.controller,
+    required this.pinController,
     this.displayIncorrectPin = false,
     this.verificationStatus = VerificationStatus.initial,
     this.pinFullness = PinFullness.initial,
@@ -22,14 +23,14 @@ class PinState {
   });
 
   PinState copyWith({
-    TextEditingController? controller,
+    PinInputController? pinController,
     bool? displayIncorrectPin,
     VerificationStatus? verificationStatus,
     PinFullness? pinFullness,
     SavePinStatus? savePinStatus,
   }) {
     return PinState(
-      controller: controller ?? this.controller,
+      pinController: pinController ?? this.pinController,
       displayIncorrectPin: displayIncorrectPin ?? this.displayIncorrectPin,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       pinFullness: pinFullness ?? this.pinFullness,

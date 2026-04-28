@@ -129,7 +129,7 @@ class SubmitJobScreen extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(
+                                    const FaIcon(
                                       FontAwesomeIcons.gasPump,
                                       color: Colors.red,
                                       size: 20,

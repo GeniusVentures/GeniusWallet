@@ -64,7 +64,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     try {
       emit(state.copyWith(filePickerError: null)); // Clear previous errors
 
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
         allowMultiple: false,

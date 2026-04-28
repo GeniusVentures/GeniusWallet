@@ -20,10 +20,10 @@ class PinScreen extends StatelessWidget {
   final String text;
   final Function(String) onCompleted;
   const PinScreen({
-    Key? key,
+    super.key,
     required this.text,
     required this.onCompleted,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,21 +67,19 @@ class _PinViewDesktop extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(text),
-                PinCodeTextField(
-                  appContext: context,
+                MaterialPinField(
                   length: GeniusWalletConsts.pinCount,
-                  pinTheme: PinTheme(
-                    activeColor: Colors.white,
-                    selectedColor: Colors.white,
-                    disabledColor: Colors.white,
-                    inactiveColor: Colors.white,
+                  theme: MaterialPinTheme(
+                    borderColor: Colors.white,
+                    focusedBorderColor: Colors.white,
+                    filledBorderColor: Colors.white,
+                    disabledBorderColor: Colors.white,
+                    cursorColor: Colors.white,
                   ),
-                  cursorColor: Colors.white,
                   obscureText: true,
                   onChanged: context.read<PinCubit>().desktopOnChanged,
-                  controller: context.watch<PinCubit>().state.controller,
+                  pinController: context.watch<PinCubit>().state.pinController,
                   inputFormatters: [Formatters.allowIntegers],
-                  autoDisposeControllers: false,
                 ),
                 BlocBuilder<PinCubit, PinState>(builder: (context, state) {
                   if (state.displayIncorrectPin) {
@@ -106,7 +104,7 @@ class _PinViewDesktop extends StatelessWidget {
                             return MaterialButton(
                               padding: const EdgeInsets.all(0),
                               onPressed: () {
-                                onCompleted(state.controller.text);
+                                onCompleted(state.pinController.text);
                               },
                               child: IsactiveTrue(constraints),
                             );
@@ -192,33 +190,36 @@ class _PinViewMobile extends StatelessWidget {
               Center(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.4,
-                  child: PinCodeTextField(
-                    appContext: context,
+                  child: MaterialPinField(
                     obscureText: true,
-                    cursorColor: Colors.transparent,
-                    enableActiveFill: true,
                     obscuringWidget: Container(
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: GeniusWalletColors.lightGreenPrimary,
                       ),
                     ),
-                    pinTheme: PinTheme(
-                        selectedColor: GeniusWalletColors.borderGrey,
-                        selectedFillColor: GeniusWalletColors.borderGrey,
-                        inactiveFillColor: GeniusWalletColors.borderGrey,
-                        inactiveColor: GeniusWalletColors.borderGrey,
-                        activeColor: GeniusWalletColors.lightGreenPrimary,
-                        activeFillColor: GeniusWalletColors.lightGreenPrimary,
-                        borderWidth: 0,
-                        fieldWidth: 16,
-                        shape: PinCodeFieldShape.circle),
+                    theme: MaterialPinTheme(
+                      shape: MaterialPinShape.circle,
+                      // Unfilled cells
+                      borderColor: GeniusWalletColors.borderGrey,
+                      fillColor: GeniusWalletColors.borderGrey,
+                      // Currently focused cell
+                      focusedBorderColor: GeniusWalletColors.borderGrey,
+                      focusedFillColor: GeniusWalletColors.borderGrey,
+                      // Already-filled cells
+                      filledBorderColor: GeniusWalletColors.lightGreenPrimary,
+                      filledFillColor: GeniusWalletColors.lightGreenPrimary,
+                      borderWidth: 0,
+                      focusedBorderWidth: 0,
+                      cellSize: const Size(16, 16),
+                      showCursor: false,
+                    ),
                     length: GeniusWalletConsts.pinCount,
                     onChanged: (passcode) {},
                     readOnly: true,
-                    controller: context.watch<PinCubit>().state.controller,
+                    pinController:
+                        context.watch<PinCubit>().state.pinController,
                     onCompleted: onCompleted,
-                    autoDisposeControllers: false,
                   ),
                 ),
               ),
