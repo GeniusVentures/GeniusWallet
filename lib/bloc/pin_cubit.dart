@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/pin_state.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinCubit extends Cubit<PinState> {
   final int pinMaxLength;
@@ -11,20 +12,23 @@ class PinCubit extends Cubit<PinState> {
   PinCubit({
     required this.pinMaxLength,
     required this.geniusApi,
-  }) : super(PinState(controller: TextEditingController()));
+  }) : super(PinState(pinController: PinInputController()));
+
+  TextEditingController get _textController =>
+      state.pinController.textController;
 
   void clearAll() {
-    state.controller.clear();
+    _textController.clear();
     emit(state.copyWith(
-      controller: state.controller,
+      pinController: state.pinController,
       pinFullness: PinFullness.inProgress,
     ));
   }
 
   void backspace() {
-    if (state.controller.text.isNotEmpty) {
-      state.controller.text =
-          state.controller.text.substring(0, state.controller.text.length - 1);
+    if (_textController.text.isNotEmpty) {
+      _textController.text =
+          _textController.text.substring(0, _textController.text.length - 1);
       emit(state.copyWith(
         pinFullness: PinFullness.completed,
       ));
@@ -33,9 +37,9 @@ class PinCubit extends Cubit<PinState> {
 
   /// Adds [value] to the current state
   void add(String value) {
-    if (state.controller.text.length < pinMaxLength) {
-      final newValue = '${state.controller.text}$value';
-      state.controller.text = newValue;
+    if (_textController.text.length < pinMaxLength) {
+      final newValue = '${_textController.text}$value';
+      _textController.text = newValue;
 
       if (newValue.length == pinMaxLength) {
         emit(state.copyWith(pinFullness: PinFullness.completed));
@@ -48,9 +52,10 @@ class PinCubit extends Cubit<PinState> {
   }
 
   void pinConfirmFailed() {
-    state.controller.clear();
+    _textController.clear();
+    state.pinController.triggerError();
     emit(state.copyWith(
-      controller: state.controller,
+      pinController: state.pinController,
       displayIncorrectPin: true,
       pinFullness: PinFullness.inProgress,
     ));
@@ -58,7 +63,7 @@ class PinCubit extends Cubit<PinState> {
 
   /// Verifies [pin] with the user-set pin
   Future<void> verifyPin() async {
-    final pin = state.controller.text;
+    final pin = _textController.text;
     final isVerified = await geniusApi.verifyUserPin(pin);
 
     if (isVerified) {
@@ -78,7 +83,7 @@ class PinCubit extends Cubit<PinState> {
 
   @override
   Future<void> close() {
-    state.controller.dispose();
+    state.pinController.dispose();
     return super.close();
   }
 }

@@ -19,9 +19,9 @@ class GeniusTabDestinations {
     GeniusDestination(
         navScreen: NavigationScreen.transactions,
         destination: '/transactions',
-        icon: Icon(FontAwesomeIcons.clock, size: iconSize),
+        icon: FaIcon(FontAwesomeIcons.clock, size: iconSize),
         label: const Text('Transactions'),
-        selectedIcon: Icon(FontAwesomeIcons.clock, size: iconSize)),
+        selectedIcon: FaIcon(FontAwesomeIcons.clock, size: iconSize)),
     GeniusDestination(
         navScreen: NavigationScreen.swap,
         destination: '/swap',
@@ -31,9 +31,9 @@ class GeniusTabDestinations {
     GeniusDestination(
         navScreen: NavigationScreen.web,
         destination: '/web',
-        icon: Icon(FontAwesomeIcons.globe, size: iconSize),
+        icon: FaIcon(FontAwesomeIcons.globe, size: iconSize),
         label: const Text('Web'),
-        selectedIcon: Icon(FontAwesomeIcons.globe, size: iconSize),
+        selectedIcon: FaIcon(FontAwesomeIcons.globe, size: iconSize),
         isVisible: !Platform.isLinux), // HIDE ON LINUX
     GeniusDestination(
         navScreen: NavigationScreen.markets,

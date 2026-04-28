@@ -50,7 +50,7 @@ class MarketsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 20),
                 IconButton(
-                  icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+                  icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
                   onPressed: () {
                     ResponsiveDrawer.show<void>(
                       context: context,

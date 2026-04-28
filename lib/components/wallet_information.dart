@@ -6,7 +6,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
-import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
@@ -18,7 +17,6 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
-import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 
 class WalletInformation extends StatefulWidget {
   final BoxConstraints constraints;
@@ -27,12 +25,11 @@ class WalletInformation extends StatefulWidget {
   final String ovrAddressField;
   final WalletType walletType;
   const WalletInformation(this.constraints,
-      {Key? key,
+      {super.key,
       this.ovrShowMoreIcon,
       this.totalBalance,
       required this.ovrAddressField,
-      this.walletType = WalletType.tracking})
-      : super(key: key);
+      this.walletType = WalletType.tracking});
   @override
   WalletInformationState createState() => WalletInformationState();
 }
@@ -224,7 +221,7 @@ class WalletInformationState extends State<WalletInformation> {
                         });
                       },
                       color: Colors.red,
-                      icon: FontAwesomeIcons.trash,
+                      icon: FontAwesomeIcons.trash.data,
                       label: "Delete Wallet",
                     ),
                   ],
