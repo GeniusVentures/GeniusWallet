@@ -19,9 +19,10 @@ class NativeLibrary {
           lookup)
       : _lookup = lookup;
 
+  /// @brief Inits the SDK with saved settings
+  /// @returns Initialization path in case of success, null on failure
   ffi.Pointer<ffi.Char> GeniusSDKInit(
     ffi.Pointer<ffi.Char> base_path,
-    ffi.Pointer<ffi.Char> eth_private_key,
     bool autodht,
     bool process,
     int baseport,
@@ -29,7 +30,6 @@ class NativeLibrary {
   ) {
     return _GeniusSDKInit(
       base_path,
-      eth_private_key,
       autodht,
       process,
       baseport,
@@ -39,18 +39,81 @@ class NativeLibrary {
 
   late final _GeniusSDKInitPtr = _lookup<
       ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, ffi.Bool,
+              ffi.Bool, ffi.Uint16, ffi.Bool)>>('GeniusSDKInit');
+  late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>, bool, bool, int, bool)>();
+
+  /// @brief Inits the SDK with an ethereum private key
+  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix
+  /// @returns Initialization path in case of success, null on failure
+  ffi.Pointer<ffi.Char> GeniusSDKInitWithKey(
+    ffi.Pointer<ffi.Char> base_path,
+    ffi.Pointer<ffi.Char> eth_private_key,
+    bool autodht,
+    bool process,
+    int baseport,
+    bool is_full_node,
+  ) {
+    return _GeniusSDKInitWithKey(
+      base_path,
+      eth_private_key,
+      autodht,
+      process,
+      baseport,
+      is_full_node,
+    );
+  }
+
+  late final _GeniusSDKInitWithKeyPtr = _lookup<
+      ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
               ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>,
               ffi.Bool,
               ffi.Bool,
               ffi.Uint16,
-              ffi.Bool)>>('GeniusSDKInit');
-  late final _GeniusSDKInit = _GeniusSDKInitPtr.asFunction<
+              ffi.Bool)>>('GeniusSDKInitWithKey');
+  late final _GeniusSDKInitWithKey = _GeniusSDKInitWithKeyPtr.asFunction<
       ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>, bool, bool, int, bool)>();
 
-  ffi.Pointer<ffi.Char> GeniusSDKInitSecure(
+  /// @brief Inits the SDK with credentials
+  /// @returns Initialization path in case of success, null on failure
+  ffi.Pointer<ffi.Char> GeniusSDKInitWithCredentials(
+    ffi.Pointer<ffi.Char> base_path,
+    ffi.Pointer<GeniusCredentials> credentials,
+    bool autodht,
+    bool process,
+    int baseport,
+    bool is_full_node,
+  ) {
+    return _GeniusSDKInitWithCredentials(
+      base_path,
+      credentials,
+      autodht,
+      process,
+      baseport,
+      is_full_node,
+    );
+  }
+
+  late final _GeniusSDKInitWithCredentialsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<GeniusCredentials>,
+              ffi.Bool,
+              ffi.Bool,
+              ffi.Uint16,
+              ffi.Bool)>>('GeniusSDKInitWithCredentials');
+  late final _GeniusSDKInitWithCredentials =
+      _GeniusSDKInitWithCredentialsPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<GeniusCredentials>, bool, bool, int, bool)>();
+
+  ffi.Pointer<ffi.Char> GeniusSDKInitWithKeyAndDevConfig(
     ffi.Pointer<ffi.Char> base_path,
     ffi.Pointer<ffi.Char> dev_config,
     ffi.Pointer<ffi.Char> eth_private_key,
@@ -59,7 +122,7 @@ class NativeLibrary {
     int baseport,
     bool is_full_node,
   ) {
-    return _GeniusSDKInitSecure(
+    return _GeniusSDKInitWithKeyAndDevConfig(
       base_path,
       dev_config,
       eth_private_key,
@@ -70,7 +133,7 @@ class NativeLibrary {
     );
   }
 
-  late final _GeniusSDKInitSecurePtr = _lookup<
+  late final _GeniusSDKInitWithKeyAndDevConfigPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
               ffi.Pointer<ffi.Char>,
@@ -79,16 +142,17 @@ class NativeLibrary {
               ffi.Bool,
               ffi.Bool,
               ffi.Uint16,
-              ffi.Bool)>>('GeniusSDKInitSecure');
-  late final _GeniusSDKInitSecure = _GeniusSDKInitSecurePtr.asFunction<
-      ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          bool,
-          bool,
-          int,
-          bool)>();
+              ffi.Bool)>>('GeniusSDKInitWithKeyAndDevConfig');
+  late final _GeniusSDKInitWithKeyAndDevConfig =
+      _GeniusSDKInitWithKeyAndDevConfigPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              bool,
+              bool,
+              int,
+              bool)>();
 
   ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(
     ffi.Pointer<ffi.Char> base_path,
@@ -119,6 +183,76 @@ class NativeLibrary {
           'GeniusSDKShutdown');
   late final _GeniusSDKShutdown =
       _GeniusSDKShutdownPtr.asFunction<int Function()>();
+
+  ffi.Pointer<ffi.Char> GetAvailableAccounts() {
+    return _GetAvailableAccounts();
+  }
+
+  late final _GetAvailableAccountsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'GetAvailableAccounts');
+  late final _GetAvailableAccounts =
+      _GetAvailableAccountsPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  int SelectGeniusAccount(
+    ffi.Pointer<ffi.Char> public_address,
+  ) {
+    return _SelectGeniusAccount(
+      public_address,
+    );
+  }
+
+  late final _SelectGeniusAccountPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('SelectGeniusAccount');
+  late final _SelectGeniusAccount =
+      _SelectGeniusAccountPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+
+  int TransferGeniusAccount(
+    ffi.Pointer<ffi.Char> public_address,
+  ) {
+    return _TransferGeniusAccount(
+      public_address,
+    );
+  }
+
+  late final _TransferGeniusAccountPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('TransferGeniusAccount');
+  late final _TransferGeniusAccount = _TransferGeniusAccountPtr.asFunction<
+      int Function(ffi.Pointer<ffi.Char>)>();
+
+  int MergeGeniusAccount(
+    ffi.Pointer<ffi.Char> public_address,
+  ) {
+    return _MergeGeniusAccount(
+      public_address,
+    );
+  }
+
+  late final _MergeGeniusAccountPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('MergeGeniusAccount');
+  late final _MergeGeniusAccount =
+      _MergeGeniusAccountPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+
+  int SetPayoutAddress(
+    ffi.Pointer<ffi.Char> public_address,
+  ) {
+    return _SetPayoutAddress(
+      public_address,
+    );
+  }
+
+  late final _SetPayoutAddressPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('SetPayoutAddress');
+  late final _SetPayoutAddress =
+      _SetPayoutAddressPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
   /// @brief Retrieves the current balance for a specific token.
   /// @param[in] token_id  Token identifier to query.
@@ -383,6 +517,9 @@ class NativeLibrary {
   late final _GeniusSDKGetCostGNUS = _GeniusSDKGetCostGNUSPtr.asFunction<
       GeniusTokenValue Function(ffi.Pointer<ffi.Char>)>();
 
+  /// @brief Submits data for processing based on the given JSON data.
+  /// @param[in] jsondata The JSON data to be processed.
+  /// @return A `GeniusNodeReturnValue_t` indicating the result of the operation.
   int GeniusSDKProcess(
     ffi.Pointer<ffi.Char> jsondata,
   ) {
@@ -397,6 +534,23 @@ class NativeLibrary {
               ffi.Pointer<ffi.Char>)>>('GeniusSDKProcess');
   late final _GeniusSDKProcess =
       _GeniusSDKProcessPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+
+  /// @brief Checks the validity of a job based on the given JSON data.
+  /// @param[in] jsondata The JSON data to be processed.
+  /// @return `true` if the job is valid, `false` otherwise.
+  bool GeniusSDKCheckJobValidity(
+    ffi.Pointer<ffi.Char> jsondata,
+  ) {
+    return _GeniusSDKCheckJobValidity(
+      jsondata,
+    );
+  }
+
+  late final _GeniusSDKCheckJobValidityPtr =
+      _lookup<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<ffi.Char>)>>(
+          'GeniusSDKCheckJobValidity');
+  late final _GeniusSDKCheckJobValidity = _GeniusSDKCheckJobValidityPtr
+      .asFunction<bool Function(ffi.Pointer<ffi.Char>)>();
 
   /// @brief       Retrieves the current state of the Transaction Manager.
   /// @return      The current state as a @ref GeniusTransactionManagerState enum value.
@@ -440,8 +594,8 @@ class NativeLibrary {
   late final _GeniusSDKGetTransactionStatus = _GeniusSDKGetTransactionStatusPtr
       .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
-  /// @brief       Retrieves the current processing status.
-  /// @return      The current processing status info including state and progress percentage.
+  /// @brief       Retrieves the current processing status with progress information.
+  /// @return      A @ref GeniusProcessingStatusInfo struct containing the processing status and percentage.
   GeniusProcessingStatusInfo GeniusSDKGetProcessingStatus() {
     return _GeniusSDKGetProcessingStatus();
   }
@@ -453,38 +607,14 @@ class NativeLibrary {
       .asFunction<GeniusProcessingStatusInfo Function()>();
 }
 
-typedef int_least8_t = ffi.Int8;
-typedef Dartint_least8_t = int;
-typedef int_least16_t = ffi.Int16;
-typedef Dartint_least16_t = int;
-typedef int_least32_t = ffi.Int32;
-typedef Dartint_least32_t = int;
-typedef int_least64_t = ffi.Int64;
-typedef Dartint_least64_t = int;
-typedef uint_least8_t = ffi.Uint8;
-typedef Dartuint_least8_t = int;
-typedef uint_least16_t = ffi.Uint16;
-typedef Dartuint_least16_t = int;
-typedef uint_least32_t = ffi.Uint32;
-typedef Dartuint_least32_t = int;
-typedef uint_least64_t = ffi.Uint64;
-typedef Dartuint_least64_t = int;
-typedef int_fast8_t = ffi.Int8;
-typedef Dartint_fast8_t = int;
-typedef int_fast16_t = ffi.Int16;
-typedef Dartint_fast16_t = int;
-typedef int_fast32_t = ffi.Int32;
-typedef Dartint_fast32_t = int;
-typedef int_fast64_t = ffi.Int64;
-typedef Dartint_fast64_t = int;
-typedef uint_fast8_t = ffi.Uint8;
-typedef Dartuint_fast8_t = int;
-typedef uint_fast16_t = ffi.Uint16;
-typedef Dartuint_fast16_t = int;
-typedef uint_fast32_t = ffi.Uint32;
-typedef Dartuint_fast32_t = int;
-typedef uint_fast64_t = ffi.Uint64;
-typedef Dartuint_fast64_t = int;
+typedef __u_char = ffi.UnsignedChar;
+typedef Dart__u_char = int;
+typedef __u_short = ffi.UnsignedShort;
+typedef Dart__u_short = int;
+typedef __u_int = ffi.UnsignedInt;
+typedef Dart__u_int = int;
+typedef __u_long = ffi.UnsignedLong;
+typedef Dart__u_long = int;
 typedef __int8_t = ffi.SignedChar;
 typedef Dart__int8_t = int;
 typedef __uint8_t = ffi.UnsignedChar;
@@ -497,164 +627,131 @@ typedef __int32_t = ffi.Int;
 typedef Dart__int32_t = int;
 typedef __uint32_t = ffi.UnsignedInt;
 typedef Dart__uint32_t = int;
-typedef __int64_t = ffi.LongLong;
+typedef __int64_t = ffi.Long;
 typedef Dart__int64_t = int;
-typedef __uint64_t = ffi.UnsignedLongLong;
+typedef __uint64_t = ffi.UnsignedLong;
 typedef Dart__uint64_t = int;
-typedef __darwin_intptr_t = ffi.Long;
-typedef Dart__darwin_intptr_t = int;
-typedef __darwin_natural_t = ffi.UnsignedInt;
-typedef Dart__darwin_natural_t = int;
-typedef __darwin_ct_rune_t = ffi.Int;
-typedef Dart__darwin_ct_rune_t = int;
+typedef __int_least8_t = __int8_t;
+typedef __uint_least8_t = __uint8_t;
+typedef __int_least16_t = __int16_t;
+typedef __uint_least16_t = __uint16_t;
+typedef __int_least32_t = __int32_t;
+typedef __uint_least32_t = __uint32_t;
+typedef __int_least64_t = __int64_t;
+typedef __uint_least64_t = __uint64_t;
+typedef __quad_t = ffi.Long;
+typedef Dart__quad_t = int;
+typedef __u_quad_t = ffi.UnsignedLong;
+typedef Dart__u_quad_t = int;
+typedef __intmax_t = ffi.Long;
+typedef Dart__intmax_t = int;
+typedef __uintmax_t = ffi.UnsignedLong;
+typedef Dart__uintmax_t = int;
+typedef __dev_t = ffi.UnsignedLong;
+typedef Dart__dev_t = int;
+typedef __uid_t = ffi.UnsignedInt;
+typedef Dart__uid_t = int;
+typedef __gid_t = ffi.UnsignedInt;
+typedef Dart__gid_t = int;
+typedef __ino_t = ffi.UnsignedLong;
+typedef Dart__ino_t = int;
+typedef __ino64_t = ffi.UnsignedLong;
+typedef Dart__ino64_t = int;
+typedef __mode_t = ffi.UnsignedInt;
+typedef Dart__mode_t = int;
+typedef __nlink_t = ffi.UnsignedLong;
+typedef Dart__nlink_t = int;
+typedef __off_t = ffi.Long;
+typedef Dart__off_t = int;
+typedef __off64_t = ffi.Long;
+typedef Dart__off64_t = int;
+typedef __pid_t = ffi.Int;
+typedef Dart__pid_t = int;
 
-final class __mbstate_t extends ffi.Union {
-  @ffi.Array.multi([128])
-  external ffi.Array<ffi.Char> __mbstate8;
-
-  @ffi.LongLong()
-  external int _mbstateL;
+final class __fsid_t extends ffi.Struct {
+  @ffi.Array.multi([2])
+  external ffi.Array<ffi.Int> __val;
 }
 
-typedef __darwin_mbstate_t = __mbstate_t;
-typedef __darwin_ptrdiff_t = ffi.Long;
-typedef Dart__darwin_ptrdiff_t = int;
-typedef __darwin_size_t = ffi.UnsignedLong;
-typedef Dart__darwin_size_t = int;
-typedef __builtin_va_list = ffi.Pointer<ffi.Char>;
-typedef __darwin_va_list = __builtin_va_list;
-typedef __darwin_wchar_t = ffi.Int;
-typedef Dart__darwin_wchar_t = int;
-typedef __darwin_rune_t = __darwin_wchar_t;
-typedef __darwin_wint_t = ffi.Int;
-typedef Dart__darwin_wint_t = int;
-typedef __darwin_clock_t = ffi.UnsignedLong;
-typedef Dart__darwin_clock_t = int;
-typedef __darwin_socklen_t = __uint32_t;
-typedef __darwin_ssize_t = ffi.Long;
-typedef Dart__darwin_ssize_t = int;
-typedef __darwin_time_t = ffi.Long;
-typedef Dart__darwin_time_t = int;
-typedef __darwin_blkcnt_t = __int64_t;
-typedef __darwin_blksize_t = __int32_t;
-typedef __darwin_dev_t = __int32_t;
-typedef __darwin_fsblkcnt_t = ffi.UnsignedInt;
-typedef Dart__darwin_fsblkcnt_t = int;
-typedef __darwin_fsfilcnt_t = ffi.UnsignedInt;
-typedef Dart__darwin_fsfilcnt_t = int;
-typedef __darwin_gid_t = __uint32_t;
-typedef __darwin_id_t = __uint32_t;
-typedef __darwin_ino64_t = __uint64_t;
-typedef __darwin_ino_t = __darwin_ino64_t;
-typedef __darwin_mach_port_name_t = __darwin_natural_t;
-typedef __darwin_mach_port_t = __darwin_mach_port_name_t;
-typedef __darwin_mode_t = __uint16_t;
-typedef __darwin_off_t = __int64_t;
-typedef __darwin_pid_t = __int32_t;
-typedef __darwin_sigset_t = __uint32_t;
-typedef __darwin_suseconds_t = __int32_t;
-typedef __darwin_uid_t = __uint32_t;
-typedef __darwin_useconds_t = __uint32_t;
-
-final class __darwin_pthread_handler_rec extends ffi.Struct {
-  external ffi
-      .Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>
-      __routine;
-
-  external ffi.Pointer<ffi.Void> __arg;
-
-  external ffi.Pointer<__darwin_pthread_handler_rec> __next;
-}
-
-final class _opaque_pthread_attr_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([56])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_cond_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([40])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_condattr_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([8])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_mutex_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([56])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_mutexattr_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([8])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_once_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([8])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_rwlock_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([192])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_rwlockattr_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  @ffi.Array.multi([16])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-final class _opaque_pthread_t extends ffi.Struct {
-  @ffi.Long()
-  external int __sig;
-
-  external ffi.Pointer<__darwin_pthread_handler_rec> __cleanup_stack;
-
-  @ffi.Array.multi([8176])
-  external ffi.Array<ffi.Char> __opaque;
-}
-
-typedef __darwin_pthread_attr_t = _opaque_pthread_attr_t;
-typedef __darwin_pthread_cond_t = _opaque_pthread_cond_t;
-typedef __darwin_pthread_condattr_t = _opaque_pthread_condattr_t;
-typedef __darwin_pthread_key_t = ffi.UnsignedLong;
-typedef Dart__darwin_pthread_key_t = int;
-typedef __darwin_pthread_mutex_t = _opaque_pthread_mutex_t;
-typedef __darwin_pthread_mutexattr_t = _opaque_pthread_mutexattr_t;
-typedef __darwin_pthread_once_t = _opaque_pthread_once_t;
-typedef __darwin_pthread_rwlock_t = _opaque_pthread_rwlock_t;
-typedef __darwin_pthread_rwlockattr_t = _opaque_pthread_rwlockattr_t;
-typedef __darwin_pthread_t = ffi.Pointer<_opaque_pthread_t>;
-typedef intmax_t = ffi.Long;
-typedef Dartintmax_t = int;
-typedef uintmax_t = ffi.UnsignedLong;
-typedef Dartuintmax_t = int;
+typedef __clock_t = ffi.Long;
+typedef Dart__clock_t = int;
+typedef __rlim_t = ffi.UnsignedLong;
+typedef Dart__rlim_t = int;
+typedef __rlim64_t = ffi.UnsignedLong;
+typedef Dart__rlim64_t = int;
+typedef __id_t = ffi.UnsignedInt;
+typedef Dart__id_t = int;
+typedef __time_t = ffi.Long;
+typedef Dart__time_t = int;
+typedef __useconds_t = ffi.UnsignedInt;
+typedef Dart__useconds_t = int;
+typedef __suseconds_t = ffi.Long;
+typedef Dart__suseconds_t = int;
+typedef __suseconds64_t = ffi.Long;
+typedef Dart__suseconds64_t = int;
+typedef __daddr_t = ffi.Int;
+typedef Dart__daddr_t = int;
+typedef __key_t = ffi.Int;
+typedef Dart__key_t = int;
+typedef __clockid_t = ffi.Int;
+typedef Dart__clockid_t = int;
+typedef __timer_t = ffi.Pointer<ffi.Void>;
+typedef __blksize_t = ffi.Long;
+typedef Dart__blksize_t = int;
+typedef __blkcnt_t = ffi.Long;
+typedef Dart__blkcnt_t = int;
+typedef __blkcnt64_t = ffi.Long;
+typedef Dart__blkcnt64_t = int;
+typedef __fsblkcnt_t = ffi.UnsignedLong;
+typedef Dart__fsblkcnt_t = int;
+typedef __fsblkcnt64_t = ffi.UnsignedLong;
+typedef Dart__fsblkcnt64_t = int;
+typedef __fsfilcnt_t = ffi.UnsignedLong;
+typedef Dart__fsfilcnt_t = int;
+typedef __fsfilcnt64_t = ffi.UnsignedLong;
+typedef Dart__fsfilcnt64_t = int;
+typedef __fsword_t = ffi.Long;
+typedef Dart__fsword_t = int;
+typedef __ssize_t = ffi.Long;
+typedef Dart__ssize_t = int;
+typedef __syscall_slong_t = ffi.Long;
+typedef Dart__syscall_slong_t = int;
+typedef __syscall_ulong_t = ffi.UnsignedLong;
+typedef Dart__syscall_ulong_t = int;
+typedef __loff_t = __off64_t;
+typedef __caddr_t = ffi.Pointer<ffi.Char>;
+typedef __intptr_t = ffi.Long;
+typedef Dart__intptr_t = int;
+typedef __socklen_t = ffi.UnsignedInt;
+typedef Dart__socklen_t = int;
+typedef __sig_atomic_t = ffi.Int;
+typedef Dart__sig_atomic_t = int;
+typedef int_least8_t = __int_least8_t;
+typedef int_least16_t = __int_least16_t;
+typedef int_least32_t = __int_least32_t;
+typedef int_least64_t = __int_least64_t;
+typedef uint_least8_t = __uint_least8_t;
+typedef uint_least16_t = __uint_least16_t;
+typedef uint_least32_t = __uint_least32_t;
+typedef uint_least64_t = __uint_least64_t;
+typedef int_fast8_t = ffi.SignedChar;
+typedef Dartint_fast8_t = int;
+typedef int_fast16_t = ffi.Long;
+typedef Dartint_fast16_t = int;
+typedef int_fast32_t = ffi.Long;
+typedef Dartint_fast32_t = int;
+typedef int_fast64_t = ffi.Long;
+typedef Dartint_fast64_t = int;
+typedef uint_fast8_t = ffi.UnsignedChar;
+typedef Dartuint_fast8_t = int;
+typedef uint_fast16_t = ffi.UnsignedLong;
+typedef Dartuint_fast16_t = int;
+typedef uint_fast32_t = ffi.UnsignedLong;
+typedef Dartuint_fast32_t = int;
+typedef uint_fast64_t = ffi.UnsignedLong;
+typedef Dartuint_fast64_t = int;
+typedef intmax_t = __intmax_t;
+typedef uintmax_t = __uintmax_t;
 
 final class GeniusArray extends ffi.Struct {
   @ffi.Uint64()
@@ -694,17 +791,6 @@ final class GeniusTokenID extends ffi.Struct {
   external ffi.Array<ffi.UnsignedChar> data;
 }
 
-/// @brief Contains processing status information including progress percentage.
-final class GeniusProcessingStatusInfo extends ffi.Struct {
-  /// < Current processing state
-  @ffi.Int32()
-  external int status;
-
-  /// < Progress percentage from 0.0 to 100.0
-  @ffi.Float()
-  external double percentage;
-}
-
 typedef PayAmount_t = ffi.Uint64;
 typedef DartPayAmount_t = int;
 typedef GeniusNodeReturnValue_t = ffi.Int32;
@@ -725,7 +811,8 @@ enum GeniusNodeReturnValue {
   GENIUS_NODE_ERROR_MINT(3),
   GENIUS_NODE_INVALID_ARGUMENT(4),
   GENIUS_NODE_ERROR_TRANSFER(5),
-  GENIUS_NODE_ERROR_PAY_DEV(6);
+  GENIUS_NODE_ERROR_PAY_DEV(6),
+  GENIUS_NODE_ERROR_CREATING(7);
 
   final int value;
   const GeniusNodeReturnValue(this.value);
@@ -738,6 +825,7 @@ enum GeniusNodeReturnValue {
         4 => GENIUS_NODE_INVALID_ARGUMENT,
         5 => GENIUS_NODE_ERROR_TRANSFER,
         6 => GENIUS_NODE_ERROR_PAY_DEV,
+        7 => GENIUS_NODE_ERROR_CREATING,
         _ => throw ArgumentError(
             'Unknown value for GeniusNodeReturnValue: $value'),
       };
@@ -855,75 +943,150 @@ enum GeniusProcessingStatus {
       };
 }
 
+/// @brief Represents the current processing status with progress information.
+final class GeniusProcessingStatusInfo extends ffi.Struct {
+  /// < Current processing state
+  @GeniusProcessingStatus_t()
+  external int status;
+
+  /// < Progress percentage from 0.0 to 100.0
+  @ffi.Float()
+  external double percentage;
+}
+
+final class GeniusCredentials extends ffi.Struct {
+  /// < Null-terminated email
+  external ffi.Pointer<ffi.Char> email;
+
+  /// < Null-terminated password
+  external ffi.Pointer<ffi.Char> password;
+}
+
+const int _STDINT_H = 1;
+
+const int _FEATURES_H = 1;
+
+const int _DEFAULT_SOURCE = 1;
+
+const int __GLIBC_USE_ISOC2X = 1;
+
+const int __USE_ISOC11 = 1;
+
+const int __USE_ISOC99 = 1;
+
+const int __USE_ISOC95 = 1;
+
+const int _POSIX_SOURCE = 1;
+
+const int _POSIX_C_SOURCE = 200809;
+
+const int __USE_POSIX = 1;
+
+const int __USE_POSIX2 = 1;
+
+const int __USE_POSIX199309 = 1;
+
+const int __USE_POSIX199506 = 1;
+
+const int __USE_XOPEN2K = 1;
+
+const int __USE_XOPEN2K8 = 1;
+
+const int _ATFILE_SOURCE = 1;
+
 const int __WORDSIZE = 64;
 
-const int __has_safe_buffers = 1;
+const int __WORDSIZE_TIME64_COMPAT32 = 1;
 
-const int __DARWIN_ONLY_64_BIT_INO_T = 1;
+const int __SYSCALL_WORDSIZE = 64;
 
-const int __DARWIN_ONLY_UNIX_CONFORMANCE = 1;
+const int __TIMESIZE = 64;
 
-const int __DARWIN_ONLY_VERS_1050 = 1;
+const int __USE_MISC = 1;
 
-const int __DARWIN_UNIX03 = 1;
+const int __USE_ATFILE = 1;
 
-const int __DARWIN_64_BIT_INO_T = 1;
+const int __USE_FORTIFY_LEVEL = 0;
 
-const int __DARWIN_VERS_1050 = 1;
+const int __GLIBC_USE_DEPRECATED_GETS = 0;
 
-const int __DARWIN_NON_CANCELABLE = 0;
+const int __GLIBC_USE_DEPRECATED_SCANF = 0;
 
-const String __DARWIN_SUF_EXTSN = '\$DARWIN_EXTSN';
+const int __GLIBC_USE_C2X_STRTOL = 1;
 
-const int __DARWIN_C_ANSI = 4096;
+const int _STDC_PREDEF_H = 1;
 
-const int __DARWIN_C_FULL = 900000;
+const int __STDC_IEC_559__ = 1;
 
-const int __DARWIN_C_LEVEL = 900000;
+const int __STDC_IEC_60559_BFP__ = 201404;
 
-const int __STDC_WANT_LIB_EXT1__ = 1;
+const int __STDC_IEC_559_COMPLEX__ = 1;
 
-const int __DARWIN_NO_LONG_LONG = 0;
+const int __STDC_IEC_60559_COMPLEX__ = 201404;
 
-const int _DARWIN_FEATURE_64_BIT_INODE = 1;
+const int __STDC_ISO_10646__ = 201706;
 
-const int _DARWIN_FEATURE_ONLY_64_BIT_INODE = 1;
+const int __GNU_LIBRARY__ = 6;
 
-const int _DARWIN_FEATURE_ONLY_VERS_1050 = 1;
+const int __GLIBC__ = 2;
 
-const int _DARWIN_FEATURE_ONLY_UNIX_CONFORMANCE = 1;
+const int __GLIBC_MINOR__ = 39;
 
-const int _DARWIN_FEATURE_UNIX_CONFORMANCE = 3;
+const int _SYS_CDEFS_H = 1;
 
-const int __has_ptrcheck = 0;
+const int __THROW = 1;
 
-const int __DARWIN_NULL = 0;
+const int __THROWNL = 1;
 
-const int __PTHREAD_SIZE__ = 8176;
+const int __glibc_c99_flexarr_available = 1;
 
-const int __PTHREAD_ATTR_SIZE__ = 56;
+const int __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI = 0;
 
-const int __PTHREAD_MUTEXATTR_SIZE__ = 8;
+const int __HAVE_GENERIC_SELECTION = 0;
 
-const int __PTHREAD_MUTEX_SIZE__ = 56;
+const int __GLIBC_USE_LIB_EXT2 = 1;
 
-const int __PTHREAD_CONDATTR_SIZE__ = 8;
+const int __GLIBC_USE_IEC_60559_BFP_EXT = 1;
 
-const int __PTHREAD_COND_SIZE__ = 40;
+const int __GLIBC_USE_IEC_60559_BFP_EXT_C2X = 1;
 
-const int __PTHREAD_ONCE_SIZE__ = 8;
+const int __GLIBC_USE_IEC_60559_EXT = 1;
 
-const int __PTHREAD_RWLOCK_SIZE__ = 192;
+const int __GLIBC_USE_IEC_60559_FUNCS_EXT = 1;
 
-const int __PTHREAD_RWLOCKATTR_SIZE__ = 16;
+const int __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X = 1;
 
-const int INT8_MAX = 127;
+const int __GLIBC_USE_IEC_60559_TYPES_EXT = 1;
 
-const int INT16_MAX = 32767;
+const int _BITS_TYPES_H = 1;
 
-const int INT32_MAX = 2147483647;
+const int _BITS_TYPESIZES_H = 1;
 
-const int INT64_MAX = 9223372036854775807;
+const int __OFF_T_MATCHES_OFF64_T = 1;
+
+const int __INO_T_MATCHES_INO64_T = 1;
+
+const int __RLIM_T_MATCHES_RLIM64_T = 1;
+
+const int __STATFS_MATCHES_STATFS64 = 1;
+
+const int __KERNEL_OLD_TIMEVAL_MATCHES_TIMEVAL64 = 1;
+
+const int __FD_SETSIZE = 1024;
+
+const int _BITS_TIME64_H = 1;
+
+const int _BITS_WCHAR_H = 1;
+
+const int __WCHAR_MAX = 2147483647;
+
+const int __WCHAR_MIN = -2147483648;
+
+const int _BITS_STDINT_INTN_H = 1;
+
+const int _BITS_STDINT_UINTN_H = 1;
+
+const int _BITS_STDINT_LEAST_H = 1;
 
 const int INT8_MIN = -128;
 
@@ -932,6 +1095,14 @@ const int INT16_MIN = -32768;
 const int INT32_MIN = -2147483648;
 
 const int INT64_MIN = -9223372036854775808;
+
+const int INT8_MAX = 127;
+
+const int INT16_MAX = 32767;
+
+const int INT32_MAX = 2147483647;
+
+const int INT64_MAX = 9223372036854775807;
 
 const int UINT8_MAX = 255;
 
@@ -967,59 +1138,57 @@ const int UINT_LEAST64_MAX = -1;
 
 const int INT_FAST8_MIN = -128;
 
-const int INT_FAST16_MIN = -32768;
+const int INT_FAST16_MIN = -9223372036854775808;
 
-const int INT_FAST32_MIN = -2147483648;
+const int INT_FAST32_MIN = -9223372036854775808;
 
 const int INT_FAST64_MIN = -9223372036854775808;
 
 const int INT_FAST8_MAX = 127;
 
-const int INT_FAST16_MAX = 32767;
+const int INT_FAST16_MAX = 9223372036854775807;
 
-const int INT_FAST32_MAX = 2147483647;
+const int INT_FAST32_MAX = 9223372036854775807;
 
 const int INT_FAST64_MAX = 9223372036854775807;
 
 const int UINT_FAST8_MAX = 255;
 
-const int UINT_FAST16_MAX = 65535;
+const int UINT_FAST16_MAX = -1;
 
-const int UINT_FAST32_MAX = 4294967295;
+const int UINT_FAST32_MAX = -1;
 
 const int UINT_FAST64_MAX = -1;
 
-const int INTPTR_MAX = 9223372036854775807;
-
 const int INTPTR_MIN = -9223372036854775808;
 
+const int INTPTR_MAX = 9223372036854775807;
+
 const int UINTPTR_MAX = -1;
+
+const int INTMAX_MIN = -9223372036854775808;
 
 const int INTMAX_MAX = 9223372036854775807;
 
 const int UINTMAX_MAX = -1;
 
-const int INTMAX_MIN = -9223372036854775808;
-
 const int PTRDIFF_MIN = -9223372036854775808;
 
 const int PTRDIFF_MAX = 9223372036854775807;
 
-const int SIZE_MAX = -1;
-
-const int RSIZE_MAX = 9223372036854775807;
-
-const int WCHAR_MAX = 2147483647;
-
-const int WCHAR_MIN = -2147483648;
-
-const int WINT_MIN = -2147483648;
-
-const int WINT_MAX = 2147483647;
-
 const int SIG_ATOMIC_MIN = -2147483648;
 
 const int SIG_ATOMIC_MAX = 2147483647;
+
+const int SIZE_MAX = -1;
+
+const int WCHAR_MIN = -2147483648;
+
+const int WCHAR_MAX = 2147483647;
+
+const int WINT_MIN = 0;
+
+const int WINT_MAX = 4294967295;
 
 const int __bool_true_false_are_defined = 1;
 

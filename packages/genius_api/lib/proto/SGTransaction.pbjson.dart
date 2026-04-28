@@ -40,7 +40,14 @@ final $typed_data.Uint8List dAGStructDescriptor = $convert.base64Decode(
 const DAGWrapper$json = {
   '1': 'DAGWrapper',
   '2': [
-    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {
+      '1': 'dag_struct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.DAGStruct',
+      '10': 'dagStruct'
+    },
   ],
 };
 
@@ -85,8 +92,22 @@ final $typed_data.Uint8List transferOutputDescriptor = $convert.base64Decode(
 const UTXOTxParams$json = {
   '1': 'UTXOTxParams',
   '2': [
-    {'1': 'inputs', '3': 1, '4': 3, '5': 11, '6': '.SGTransaction.TransferUTXOInput', '10': 'inputs'},
-    {'1': 'outputs', '3': 2, '4': 3, '5': 11, '6': '.SGTransaction.TransferOutput', '10': 'outputs'},
+    {
+      '1': 'inputs',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.SGTransaction.TransferUTXOInput',
+      '10': 'inputs'
+    },
+    {
+      '1': 'outputs',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.SGTransaction.TransferOutput',
+      '10': 'outputs'
+    },
   ],
 };
 
@@ -100,9 +121,23 @@ final $typed_data.Uint8List uTXOTxParamsDescriptor = $convert.base64Decode(
 const TransferTx$json = {
   '1': 'TransferTx',
   '2': [
-    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {
+      '1': 'dag_struct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.DAGStruct',
+      '10': 'dagStruct'
+    },
     {'1': 'token_id', '3': 2, '4': 1, '5': 12, '10': 'tokenId'},
-    {'1': 'utxo_params', '3': 3, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
+    {
+      '1': 'utxo_params',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.UTXOTxParams',
+      '10': 'utxoParams'
+    },
   ],
 };
 
@@ -116,7 +151,14 @@ final $typed_data.Uint8List transferTxDescriptor = $convert.base64Decode(
 const ProcessingTx$json = {
   '1': 'ProcessingTx',
   '2': [
-    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {
+      '1': 'dag_struct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.DAGStruct',
+      '10': 'dagStruct'
+    },
     {'1': 'mpc_magic_key', '3': 2, '4': 1, '5': 4, '10': 'mpcMagicKey'},
     {'1': 'offset', '3': 3, '4': 1, '5': 4, '10': 'offset'},
     {'1': 'job_cid', '3': 4, '4': 1, '5': 9, '10': 'jobCid'},
@@ -137,7 +179,14 @@ final $typed_data.Uint8List processingTxDescriptor = $convert.base64Decode(
 const MintTx$json = {
   '1': 'MintTx',
   '2': [
-    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {
+      '1': 'dag_struct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.DAGStruct',
+      '10': 'dagStruct'
+    },
     {'1': 'chain_id', '3': 2, '4': 1, '5': 12, '10': 'chainId'},
     {'1': 'token_id', '3': 3, '4': 1, '5': 12, '10': 'tokenId'},
     {'1': 'amount', '3': 4, '4': 1, '5': 4, '10': 'amount'},
@@ -154,8 +203,22 @@ final $typed_data.Uint8List mintTxDescriptor = $convert.base64Decode(
 const EscrowTx$json = {
   '1': 'EscrowTx',
   '2': [
-    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
-    {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
+    {
+      '1': 'dag_struct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.DAGStruct',
+      '10': 'dagStruct'
+    },
+    {
+      '1': 'utxo_params',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.UTXOTxParams',
+      '10': 'utxoParams'
+    },
     {'1': 'amount', '3': 3, '4': 1, '5': 4, '10': 'amount'},
     {'1': 'dev_addr', '3': 4, '4': 1, '5': 12, '10': 'devAddr'},
     {'1': 'peers_cut', '3': 5, '4': 1, '5': 4, '10': 'peersCut'},
@@ -173,12 +236,32 @@ final $typed_data.Uint8List escrowTxDescriptor = $convert.base64Decode(
 const EscrowReleaseTx$json = {
   '1': 'EscrowReleaseTx',
   '2': [
-    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
-    {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
+    {
+      '1': 'dag_struct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.DAGStruct',
+      '10': 'dagStruct'
+    },
+    {
+      '1': 'utxo_params',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.SGTransaction.UTXOTxParams',
+      '10': 'utxoParams'
+    },
     {'1': 'release_amount', '3': 3, '4': 1, '5': 4, '10': 'releaseAmount'},
     {'1': 'release_address', '3': 4, '4': 1, '5': 9, '10': 'releaseAddress'},
     {'1': 'escrow_source', '3': 5, '4': 1, '5': 9, '10': 'escrowSource'},
-    {'1': 'original_escrow_hash', '3': 6, '4': 1, '5': 9, '10': 'originalEscrowHash'},
+    {
+      '1': 'original_escrow_hash',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '10': 'originalEscrowHash'
+    },
   ],
 };
 
@@ -190,4 +273,3 @@ final $typed_data.Uint8List escrowReleaseTxDescriptor = $convert.base64Decode(
     'FzZUFtb3VudBInCg9yZWxlYXNlX2FkZHJlc3MYBCABKAlSDnJlbGVhc2VBZGRyZXNzEiMKDWVz'
     'Y3Jvd19zb3VyY2UYBSABKAlSDGVzY3Jvd1NvdXJjZRIwChRvcmlnaW5hbF9lc2Nyb3dfaGFzaB'
     'gGIAEoCVISb3JpZ2luYWxFc2Nyb3dIYXNo');
-
