@@ -247,6 +247,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         return "Payment to dev failed.";
       case GeniusNodeReturnValue.GENIUS_NODE_RET_OK:
         return "";
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_CREATING:
+        return "GeniusNode is still initializing.";
     }
   }
 }
