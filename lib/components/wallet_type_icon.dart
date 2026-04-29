@@ -14,7 +14,7 @@ class WalletTypeIcon extends StatelessWidget {
         return const SizedBox();
       }
       if (walletType == WalletType.mnemonic) {
-        return const Icon(
+        return const FaIcon(
           semanticLabel: 'account',
           FontAwesomeIcons.user,
           size: 20,
@@ -22,13 +22,13 @@ class WalletTypeIcon extends StatelessWidget {
       }
 
       if (walletType == WalletType.tracking) {
-        return const Icon(
+        return const FaIcon(
           semanticLabel: 'watching',
           FontAwesomeIcons.eye,
           size: 20,
         );
       }
-      return const Icon(
+      return const FaIcon(
         semanticLabel: 'wallet',
         FontAwesomeIcons.wallet,
         size: 20,

@@ -14,152 +14,138 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class DesktopTopBar extends StatelessWidget {
-  const DesktopTopBar({Key? key}) : super(key: key);
+  const DesktopTopBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     final destinations = _buildDestinations();
     final screenList = destinations.map((e) => e.key).toList();
-
-    final isHideMenuText = MediaQuery.of(context).size.width < 1300;
+    final hideLabels = MediaQuery.sizeOf(context).width < 1300;
 
     final selectedScreen =
-        context.watch<NavigationOverlayCubit>().state.selectedScreen;
+        context.select((NavigationOverlayCubit c) => c.state.selectedScreen);
+
     final selectedIndex = screenList.indexOf(selectedScreen);
+    final walletDetailsCubit = context.read<WalletDetailsCubit>();
 
-    final geniusApi = context.read<GeniusApi>();
-    final WalletDetailsCubit walletDetailsCubit =
-        context.read<WalletDetailsCubit>();
-
-    final TransactionsCubit transactionsCubit =
-        context.read<TransactionsCubit>();
-
-    return Container(
-      height: GeniusWalletConsts.appBarHeight,
+    return ColoredBox(
       color: GeniusWalletColors.deepBlueCardColor,
-      padding: const EdgeInsets.only(left: 16, right: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(children: [
-            Row(children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Image.asset(
-                  'assets/images/geniusappbarlogo.png',
-                  height: 30,
-                  package: 'genius_wallet',
-                ),
-              ),
-            ]),
-            ...destinations.asMap().entries.map((entry) {
-              final index = entry.key;
-              final screen = screenList[index];
-              final destination = entry.value.value;
-              final isSelected = index == selectedIndex;
+      child: SizedBox(
+        height: GeniusWalletConsts.appBarHeight,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16, right: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Image.asset(
+                      'assets/images/geniusappbarlogo.png',
+                      height: 30,
+                      package: 'genius_wallet',
+                    ),
+                  ),
+                  ...destinations.indexed.map((entry) {
+                    final (index, dest) = entry;
+                    final isSelected = index == selectedIndex;
+                    final color = isSelected
+                        ? Colors.greenAccent
+                        : Colors.white.withAlpha(153);
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: InkWell(
-                  onTap: () {
-                    context
-                        .read<NavigationOverlayCubit>()
-                        .navigationTapped(screen);
-                  },
-                  borderRadius: BorderRadius.circular(6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        child: Row(
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: InkWell(
+                        onTap: () => context
+                            .read<NavigationOverlayCubit>()
+                            .navigationTapped(screenList[index]),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconTheme(
-                              data: IconThemeData(
-                                  size: 16,
-                                  color: isSelected
-                                      ? Colors.greenAccent
-                                      : Colors.white.withAlpha(153)),
-                              child: isSelected
-                                  ? destination.selectedIcon
-                                  : destination.icon,
-                            ),
-                            if (!isHideMenuText) ...[
-                              const SizedBox(width: 6),
-                              DefaultTextStyle(
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isSelected
-                                      ? Colors.greenAccent
-                                      : Colors.white.withAlpha(153),
-                                ),
-                                child: destination.label,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              child: Row(
+                                children: [
+                                  IconTheme(
+                                    data: IconThemeData(size: 16, color: color),
+                                    child: isSelected
+                                        ? dest.value.selectedIcon
+                                        : dest.value.icon,
+                                  ),
+                                  if (!hideLabels) ...[
+                                    const SizedBox(width: 6),
+                                    DefaultTextStyle(
+                                      style:
+                                          TextStyle(fontSize: 14, color: color),
+                                      child: dest.value.label,
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ]
+                            ),
+                            const SizedBox(height: 2),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              height: 1,
+                              width: 60,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.greenAccent
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        height: 1,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.greenAccent
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ],
+                    );
+                  }),
+                ],
+              ),
+              Row(
+                children: [
+                  const SizedBox(width: 8),
+                  const NetworkDropdownSelector(),
+                  const SizedBox(width: 8),
+                  const SizedBox(width: 155, child: AccountDropdownSelector()),
+                  ReownConnectButton(
+                    walletAddress:
+                        walletDetailsCubit.state.selectedWallet?.address ?? '',
+                    geniusApi: context.read<GeniusApi>(),
+                    walletDetailsCubit: walletDetailsCubit,
+                    transactionsCubit: context.read<TransactionsCubit>(),
                   ),
-                ),
-              );
-            })
-          ]),
-          Row(children: [
-            const SizedBox(width: 8),
-            const NetworkDropdownSelector(),
-            const SizedBox(width: 8),
-            const SizedBox(width: 155, child: AccountDropdownSelector()),
-            ReownConnectButton(
-                walletAddress:
-                    walletDetailsCubit.state.selectedWallet?.address ?? "",
-                geniusApi: geniusApi,
-                walletDetailsCubit: walletDetailsCubit,
-                transactionsCubit: transactionsCubit),
-            const SizedBox(width: 8),
-            BuyGnusButton(
-              userEmail: '',
-              walletAddress:
-                  walletDetailsCubit.state.selectedWallet?.address ?? "",
-            ),
-            const SizedBox(width: 8),
-          ])
-        ],
+                  const SizedBox(width: 8),
+                  BuyGnusButton(
+                    userEmail: '',
+                    walletAddress:
+                        walletDetailsCubit.state.selectedWallet?.address ?? '',
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   List<MapEntry<NavigationScreen, NavigationRailDestination>>
-      _buildDestinations() {
-    return GeniusTabDestinations.destinations
-        .where((e) => e.isVisible ?? true)
-        .map(
-          (e) => MapEntry(
-            e.navScreen,
-            NavigationRailDestination(
-              icon: Tooltip(
-                message: e.label.data ?? "",
-                child: e.icon,
+      _buildDestinations() => GeniusTabDestinations.destinations
+          .where((e) => e.isVisible ?? true)
+          .map(
+            (e) => MapEntry(
+              e.navScreen,
+              NavigationRailDestination(
+                icon: Tooltip(message: e.label.data ?? "", child: e.icon),
+                label: e.label,
+                selectedIcon: e.selectedIcon,
               ),
-              label: e.label,
-              selectedIcon: e.selectedIcon,
             ),
-          ),
-        )
-        .toList();
-  }
+          )
+          .toList();
 }

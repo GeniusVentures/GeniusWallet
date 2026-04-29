@@ -10,9 +10,9 @@ import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/components/number_pad.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/components/continue_button/isactive_false.g.dart';
-import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/components/incorrect_pin.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_false.dart';
+import 'package:genius_wallet/components/continue_button/isactive_true.dart';
+import 'package:genius_wallet/components/incorrect_pin.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 

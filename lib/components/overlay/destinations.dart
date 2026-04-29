@@ -3,7 +3,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
-import 'package:genius_wallet/components/overlay/genius_destination.dart';
+
+class GeniusDestination {
+  /// Indicates what screen should be pushed when [this] is clicked.
+  final String destination;
+  final Widget icon;
+  final Widget? selectedIcon;
+  final Text label;
+  final NavigationScreen navScreen;
+  final bool? isVisible;
+  const GeniusDestination(
+      {required this.icon,
+      this.selectedIcon,
+      required this.label,
+      required this.destination,
+      this.isVisible,
+      required this.navScreen});
+}
 
 // This order must match whats in `navigation_overlay_state/NavigationScreen` enum
 double iconSize = 24.0;
