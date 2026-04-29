@@ -184,26 +184,30 @@ class GeniusApi {
     try {
       // Get the directory to store files
       final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/dev_config.json';
+      final configFiles = ['dev_config.json', 'network_config.json'];
 
       debugPrint(
           'Application documents directory: ${directory.path}'); // Log the directory path
 
+      for (final fileName in configFiles) {
+      final filePath = '${directory.path}/$fileName';
+
       // Load the asset file
-      final jsonString = await rootBundle.loadString('assets/dev_config.json');
+      final jsonString = await rootBundle.loadString('assets/$fileName');
       debugPrint(
-          'Loaded JSON string: $jsonString'); // Log the content of the JSON
+        'Loaded JSON string for $fileName: $jsonString'); // Log the content of the JSON
 
       // Write the file to the writable directory
       final file = File(filePath);
       await file.writeAsString(jsonString);
       debugPrint(
-          'File written to: $filePath'); // Log the file path after writing
+        'File written to: $filePath'); // Log the file path after writing
 
       // Verify the file was written correctly
       final writtenFileContent = await file.readAsString();
       debugPrint(
-          'Content of the written file: $writtenFileContent'); // Log the written file content
+        'Content of the written file $fileName: $writtenFileContent'); // Log the written file content
+      }
 
       // Return the directory path for use in FFI
       return '${directory.path}/';
