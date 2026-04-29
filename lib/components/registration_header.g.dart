@@ -5,7 +5,7 @@ import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:genius_wallet/components/genius_back_button.g.dart';
+import 'package:genius_wallet/components/genius_back_button.dart';
 
 class RegistrationHeader extends StatefulWidget {
   final BoxConstraints constraints;
@@ -60,7 +60,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                         fontFamily: 'Roboto',
                         fontSize: 14.0,
                         fontWeight: FontWeight.w400,
-                        letterSpacing: 0.13750000298023224,
+                        letterSpacing: 0.14,
                         color: Colors.white,
                       ),
                     )),
@@ -70,7 +70,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                 right: 74.0,
                 top: 16,
                 child: SizedBox(
-                    width: widget.constraints.maxWidth * 0.6053333333333333,
+                    width: widget.constraints.maxWidth * 0.60,
                     child: AutoSizeText(
                       widget.ovrTitle ?? GeniusWalletText.titleWalletBackup,
                       maxLines: 1,
@@ -78,7 +78,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                         fontFamily: 'Roboto',
                         fontSize: GeniusWalletFontSize.title,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.13750000298023224,
+                        letterSpacing: 0.14,
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
@@ -96,9 +96,8 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                     ovrWhiteArrowBack: SvgPicture.asset(
                       'assets/images/whitearrowback.svg',
                       package: 'genius_wallet',
-                      height:
-                          widget.constraints.maxHeight * 0.09473684210526316,
-                      width: widget.constraints.maxWidth * 0.02666666666666667,
+                      height: widget.constraints.maxHeight * 0.095,
+                      width: widget.constraints.maxWidth * 0.027,
                       fit: BoxFit.fill,
                     ),
                   );

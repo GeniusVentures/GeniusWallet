@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/toast/ticker_provider.dart';
 import 'package:genius_wallet/components/toast/toast_widget.dart';
 
+/// Manages toast notifications as overlay entries.
 class ToastManager {
-  static final ToastManager _instance = ToastManager._internal();
+  static final ToastManager instance = ToastManager._();
+  ToastManager._();
 
-  factory ToastManager() => _instance;
-
-  ToastManager._internal();
-
-  final List<_ToastEntry> _activeToasts = []; // Track all active toasts
-  final Map<OverlayEntry, double> _toastPositions = {}; // Track fixed positions
+  final List<_ActiveToast> _toasts = [];
 
   void showToast({
     required BuildContext context,
@@ -22,143 +19,141 @@ class ToastManager {
     VoidCallback? onClose,
   }) {
     final overlay = Overlay.of(context);
+    final topOffset = 100.0 + _toasts.length * 85.0;
 
-    // Create a TickerProvider
-    final tickerProvider = ToastTickerProvider();
+    late final _ActiveToast toast;
+    late final OverlayEntry entry;
 
-    // Create an AnimationController
-    final animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: tickerProvider,
+    entry = OverlayEntry(
+      builder: (_) => _AnimatedToast(
+        topOffset: topOffset,
+        title: title,
+        message: message,
+        type: type,
+        onControllerReady: (c) => toast.controller = c,
+        onDismiss: () => _dismiss(toast, onClose),
+      ),
     );
 
-    final animation = CurvedAnimation(
-      parent: animationController,
-      curve: Curves.fastOutSlowIn,
-    );
+    toast = _ActiveToast(entry: entry);
+    _toasts.add(toast);
+    overlay.insert(entry);
 
-    late OverlayEntry overlayEntry;
-
-    // Determine the position for the new toast
-    final topOffset = 100 + (_activeToasts.length * 85.0);
-
-    overlayEntry = OverlayEntry(
-      builder: (context) {
-        final isMobile = MediaQuery.of(context).size.width < 600;
-
-        return AnimatedBuilder(
-          animation: animation,
-          builder: (context, child) {
-            final fixedTopOffset = _toastPositions[overlayEntry] ?? topOffset;
-
-            return Positioned(
-              top: fixedTopOffset,
-              left: isMobile ? 0 : null,
-              right: 0,
-              child: Material(
-                color: Colors.transparent,
-                child: Align(
-                  alignment: isMobile ? Alignment.center : Alignment.topRight,
-                  child: SizedBox(
-                    width: isMobile ? double.infinity : 600,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(1, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: ToastWidget(
-                        title: title,
-                        message: message,
-                        type: type,
-                        onDismiss: () {
-                          _removeToast(overlayEntry, animationController,
-                              tickerProvider);
-                          if (onClose != null) onClose();
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-
-    // Insert the overlay entry
-    overlay.insert(overlayEntry);
-    animationController.forward();
-
-    // Track the toast and its position
-    _activeToasts.add(_ToastEntry(
-      overlayEntry: overlayEntry,
-      animationController: animationController,
-      tickerProvider: tickerProvider,
-    ));
-    _toastPositions[overlayEntry] = topOffset;
-
-    // Auto-remove the toast after the specified duration
-    Timer(duration, () {
-      _removeToast(overlayEntry, animationController, tickerProvider);
-      if (onClose != null) onClose();
-    });
+    toast.timer = Timer(duration, () => _dismiss(toast, onClose));
   }
 
-  void _removeToast(
-    OverlayEntry overlayEntry,
-    AnimationController animationController,
-    ToastTickerProvider tickerProvider,
-  ) {
-    final toastIndex = _activeToasts.indexWhere(
-      (entry) => entry.overlayEntry == overlayEntry,
-    );
+  void _dismiss(_ActiveToast toast, VoidCallback? onClose) {
+    if (toast.dismissed) return;
+    toast.dismissed = true;
+    toast.timer?.cancel();
+    _toasts.remove(toast);
 
-    if (toastIndex != -1) {
-      final toast = _activeToasts[toastIndex];
-      _activeToasts.removeAt(toastIndex);
-      _toastPositions.remove(toast.overlayEntry);
-
-      if (animationController.isAnimating || animationController.isCompleted) {
-        animationController.reverse().then((_) {
-          overlayEntry.remove();
-          tickerProvider.dispose();
-          animationController.dispose();
-        });
-      } else {
-        overlayEntry.remove();
-        tickerProvider.dispose();
-        animationController.dispose();
-      }
+    final controller = toast.controller;
+    if (controller != null &&
+        (controller.isAnimating || controller.isCompleted)) {
+      controller.reverse().then((_) => toast.entry.remove());
+    } else {
+      toast.entry.remove();
     }
+
+    onClose?.call();
   }
 
-  void dispose() {
-    for (final entry in _activeToasts) {
-      entry.animationController.reverse().then((_) {
-        entry.overlayEntry.remove();
-        entry.tickerProvider.dispose();
-        entry.animationController.dispose();
-      }).catchError((_) {
-        entry.overlayEntry.remove();
-        entry.tickerProvider.dispose();
-      });
+  void disposeAll() {
+    // Iterate a copy — _dismiss mutates the list.
+    for (final toast in [..._toasts]) {
+      _dismiss(toast, null);
     }
-    _activeToasts.clear();
-    _toastPositions.clear();
   }
 }
 
-class _ToastEntry {
-  final OverlayEntry overlayEntry;
-  final AnimationController animationController;
-  final ToastTickerProvider tickerProvider;
+class _ActiveToast {
+  final OverlayEntry entry;
+  AnimationController? controller; // set once the widget initializes
+  Timer? timer;
+  bool dismissed = false;
 
-  _ToastEntry({
-    required this.overlayEntry,
-    required this.animationController,
-    required this.tickerProvider,
+  _ActiveToast({required this.entry});
+}
+
+class _AnimatedToast extends StatefulWidget {
+  final double topOffset;
+  final String title;
+  final String message;
+  final ToastType type;
+  final ValueChanged<AnimationController> onControllerReady;
+  final VoidCallback onDismiss;
+
+  const _AnimatedToast({
+    required this.topOffset,
+    required this.title,
+    required this.message,
+    required this.type,
+    required this.onControllerReady,
+    required this.onDismiss,
   });
+
+  @override
+  State<_AnimatedToast> createState() => _AnimatedToastState();
+}
+
+class _AnimatedToastState extends State<_AnimatedToast>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _slide = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.fastOutSlowIn,
+    ));
+
+    widget.onControllerReady(_controller);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
+    return Positioned(
+      top: widget.topOffset,
+      left: isMobile ? 0 : null,
+      right: 0,
+      child: Align(
+        alignment: isMobile ? Alignment.center : Alignment.topRight,
+        child: SizedBox(
+          width: isMobile ? double.infinity : 600,
+          child: SlideTransition(
+            position: _slide,
+            child: ToastWidget(
+              title: widget.title,
+              message: widget.message,
+              type: widget.type,
+              onDismiss: widget.onDismiss,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 enum ToastType { success, error, warning }

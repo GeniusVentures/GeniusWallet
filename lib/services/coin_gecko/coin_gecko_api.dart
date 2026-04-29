@@ -181,13 +181,11 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
   if (cachedCoins != null && expiry != null) {
     final expiryDate = DateTime.tryParse(expiry);
     if (expiryDate != null && DateTime.now().isBefore(expiryDate)) {
-      //debugPrint("✅ Returning cached coin list from Hive...");
       return List<CoinGeckoCoin>.from(cachedCoins as List);
     }
   }
 
   // If cache is missing or expired, fetch new data
-  //debugPrint("🌐 Fetching new coin list from CoinGecko...");
   final url = Uri.parse(
       "https://api.coingecko.com/api/v3/coins/list?include_platform=true");
 
@@ -210,7 +208,6 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
       await box.put(
           cacheExpiryKey, DateTime.now().add(cacheDuration).toIso8601String());
 
-      //debugPrint("✅ New coin list cached in Hive");
       return coinList;
     } else {
       throw Exception("Failed to load coins from CoinGecko");

@@ -8,7 +8,7 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_true.dart';
 import 'package:flutter/services.dart';
 
 import '../../../components/app_screen_view.dart';
