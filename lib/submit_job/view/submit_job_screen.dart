@@ -27,7 +27,7 @@ class SubmitJobScreen extends StatelessWidget {
         // listen for file picker errors
         if (state.filePickerError.message.isNotEmpty) {
           submitJobCubit.resetFilePickerError();
-          ToastManager().showToast(
+          ToastManager.instance.showToast(
             context: context,
             title: "File Picker Error",
             message: state.filePickerError.message,
@@ -37,7 +37,7 @@ class SubmitJobScreen extends StatelessWidget {
 
         if (state.processErrorMessage.isNotEmpty) {
           submitJobCubit.resetProcessError();
-          ToastManager().showToast(
+          ToastManager.instance.showToast(
             context: context,
             title: "Job Submission Error",
             message: state.processErrorMessage,
@@ -47,7 +47,7 @@ class SubmitJobScreen extends StatelessWidget {
 
         if (state.txHash.isNotEmpty) {
           submitJobCubit.resetState();
-          ToastManager().showToast(
+          ToastManager.instance.showToast(
               context: context,
               title: "Job Successfully Submitted",
               message: state.txHash,

@@ -38,18 +38,14 @@ void main() async {
   final networkTokensProvider = NetworkTokensProvider();
   await networkTokensProvider.loadTokensForNetworks(networkProvider.networks);
 
-  /// Must come after hive init
   await fetchAllCoinGeckoCoins();
 
-  // SDK initialization moved to AppBloc to show splash screen during init
-  // Dev mode bypasses still happen here for initial setup
   if ((await secureStorage.getWallets().first).isEmpty) {
     byPassSGNUSConnecton(geniusApi);
     byPassWalletCreation(secureStorage);
     addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
   }
 
-  /// Initialize window_manager only on **desktop**
   if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
     await windowManager.ensureInitialized();
     windowManager.addListener(MyWindowListener(geniusApi));
@@ -65,15 +61,9 @@ void main() async {
         child: AppLifecycleHandler(
           geniusApi: geniusApi,
           child:
-              //DevicePreview(
-              //  enabled: !kReleaseMode &&
-              // (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
-              //  builder: (context) =>
               MyApp(
             geniusApi: geniusApi,
           ),
-          // tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
-          //),
         )),
   );
   DeepLinkService().startListening(navigatorKey);
@@ -185,7 +175,6 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          useInheritedMediaQuery: true,
           locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
           title: 'Gnus AI',

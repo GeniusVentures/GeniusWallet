@@ -40,7 +40,7 @@ import 'package:go_router/go_router.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-final toastManager = ToastManager();
+final toastManager = ToastManager.instance;
 
 final geniusWalletRouter = GoRouter(
   navigatorKey: navigatorKey,

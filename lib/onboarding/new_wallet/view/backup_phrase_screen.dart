@@ -7,8 +7,8 @@ import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
-import 'package:genius_wallet/components/continue_button/isactive_false.g.dart';
-import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
+import 'package:genius_wallet/components/continue_button/isactive_false.dart';
+import 'package:genius_wallet/components/continue_button/isactive_true.dart';
 import 'package:genius_wallet/components/custom/wallet_agreement_custom.dart';
 import 'package:genius_wallet/components/registration_header.g.dart';
 

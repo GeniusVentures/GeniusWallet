@@ -14,7 +14,6 @@ ThemeData getThemeData() => ThemeData(
         unselectedLabelColor: GeniusWalletColors.gray500,
         indicatorColor: GeniusWalletColors.lightGreenPrimary,
       ),
-
       datePickerTheme: DatePickerThemeData(
         inputDecorationTheme: const InputDecorationTheme(
           focusedBorder: OutlineInputBorder(
@@ -37,34 +36,30 @@ ThemeData getThemeData() => ThemeData(
           color: GeniusWalletColors.lightGreenPrimary,
           width: 2,
         ),
-        todayBackgroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return GeniusWalletColors.lightGreenPrimary;
           }
           return GeniusWalletColors.lightGreenPrimary.withAlpha(33);
-          // 33 ≈ 13% opacity
         }),
-        dayForegroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) return Colors.black;
-          if (states.contains(MaterialState.disabled)) return Colors.grey;
+        dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return Colors.black;
+          if (states.contains(WidgetState.disabled)) return Colors.grey;
           return Colors.white;
         }),
-        dayBackgroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return GeniusWalletColors.lightGreenPrimary;
           }
-          if (states.contains(MaterialState.dragged)) {
+          if (states.contains(WidgetState.dragged)) {
             return GeniusWalletColors.lightGreenPrimary.withAlpha(51);
-            // 51 ≈ 20% opacity
           }
           return Colors.transparent;
         }),
         rangeSelectionBackgroundColor:
             GeniusWalletColors.lightGreenPrimary.withAlpha(38),
-// 38 ≈ 15% opacity
-        rangeSelectionOverlayColor: MaterialStateProperty.all(
+        rangeSelectionOverlayColor: WidgetStateProperty.all(
           GeniusWalletColors.lightGreenPrimary.withAlpha(51),
-          // 51 ≈ 20% opacity
         ),
       ),
       appBarTheme: const AppBarTheme(
@@ -76,16 +71,9 @@ ThemeData getThemeData() => ThemeData(
           backgroundColor: GeniusWalletColors.deepBlueCardColor),
       elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-              overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-                  return Colors.transparent;
-                },
-              ),
-              surfaceTintColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-                  return Colors.transparent;
-                },
-              ),
+              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+              surfaceTintColor:
+                  const WidgetStatePropertyAll(Colors.transparent),
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
               padding: const WidgetStatePropertyAll(
                   EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 20)),
@@ -95,10 +83,9 @@ ThemeData getThemeData() => ThemeData(
                       Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
               backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
               foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
+                (Set states) {
                   if (states.contains(WidgetState.disabled)) {
-                    return GeniusWalletColors
-                        .gray600; // Text color for disabled state
+                    return GeniusWalletColors.gray600;
                   }
                   return Colors.white;
                 },
@@ -123,20 +110,12 @@ ThemeData getThemeData() => ThemeData(
               shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
                   borderRadius: BorderRadius.all(
                       Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
-              backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-                  if (states.contains(WidgetState.disabled)) {
-                    return GeniusWalletColors
-                        .btnFilter; // Text color for disabled state
-                  }
-                  return GeniusWalletColors.btnFilter; // Default text color
-                },
-              ),
+              backgroundColor:
+                  const WidgetStatePropertyAll(GeniusWalletColors.btnFilter),
               foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
+                (Set states) {
                   if (states.contains(WidgetState.disabled)) {
-                    return GeniusWalletColors
-                        .gray600; // Text color for disabled state
+                    return GeniusWalletColors.gray600;
                   }
                   return Colors.white;
                 },
@@ -157,12 +136,8 @@ ThemeData getThemeData() => ThemeData(
       dropdownMenuTheme: DropdownMenuThemeData(
           textStyle: const TextStyle(color: Colors.white),
           menuStyle: MenuStyle(
-            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                return GeniusWalletColors
-                    .deepBlueTertiary; // Use the component's default.
-              },
-            ),
+            backgroundColor: const WidgetStatePropertyAll(
+                GeniusWalletColors.deepBlueTertiary),
           ),
           inputDecorationTheme: const InputDecorationTheme(
               focusedBorder: OutlineInputBorder(
@@ -218,5 +193,5 @@ ThemeData getThemeData() => ThemeData(
       colorScheme: const ColorScheme.dark(
         primary: GeniusWalletColors.lightGreenPrimary,
         outline: GeniusWalletColors.lightGreenPrimary,
-      ), //TODO: replace this once we have theme generated
+      ),
     );
