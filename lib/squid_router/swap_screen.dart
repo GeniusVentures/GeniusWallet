@@ -381,44 +381,6 @@ class _SwapScreenState extends State<SwapScreen> {
                                           chain: walletNetwork, onClose: () {
                                         Navigator.of(context).pop();
                                       });
-                                      // if fail
-                                      // SwapFailDrawer.show(
-                                      //   context,
-                                      //   fromAmount: fromAmount,
-                                      //   toAmount: toAmount,
-                                      //   fromIconUrl: fromToken?.logoURI ?? '',
-                                      //   toIconUrl: toToken?.logoURI ?? '',
-                                      //   fromSymbol: fromToken?.symbol ?? '',
-                                      //   toSymbol: toToken?.symbol ?? '',
-                                      //   chain: walletNetwork,
-                                      //   onClose: () {
-                                      //Navigator.of(context).pop();
-                                      // );
-
-                                      //  final transaction = Transaction(
-                                      //     hash: "",
-                                      //     fromAddress: walletAddress!,
-                                      //     recipients: [
-                                      //       TransferRecipients(
-                                      //         toAddr: walletAddress,
-                                      //         amount: toAmount,
-                                      //       )
-                                      //     ],
-                                      //     timeStamp: DateTime.now(),
-                                      //     transactionDirection:
-                                      //         TransactionDirection.received,
-                                      //     fees: fromAmount,
-                                      //     coinSymbol: walletNetwork!,
-                                      //     transactionStatus:
-                                      //         TransactionStatus.failed,
-                                      //     type: TransactionType.swap,
-                                      //     toAmount: toAmount,
-                                      //     toIconUrl: toToken?.logoURI,
-                                      //     fromSymbol: fromToken?.symbol,
-                                      //     toSymbol: toToken?.symbol,
-                                      //     fromAmount: fromAmount,
-                                      //     fromIconUrl: fromToken?.logoURI);
-
                                       transactionsCubit
                                           .addTransaction(transaction);
 
