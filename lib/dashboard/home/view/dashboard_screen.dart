@@ -23,7 +23,7 @@ import 'package:genius_wallet/components/wallets_overview.g.dart';
 double gridSpacing = 8;
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => DashboardScreenState();

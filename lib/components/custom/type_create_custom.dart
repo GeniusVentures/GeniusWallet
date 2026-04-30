@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 class TypeCreateCustom extends StatefulWidget {
   final Widget? child;
   const TypeCreateCustom({
-    Key? key,
+    super.key,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
-  _TypeCreateCustomState createState() => _TypeCreateCustomState();
+  State<TypeCreateCustom> createState() => _TypeCreateCustomState();
 }
 
 class _TypeCreateCustomState extends State<TypeCreateCustom> {

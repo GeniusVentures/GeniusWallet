@@ -16,7 +16,7 @@ class ActionButton extends StatefulWidget {
   final String? semanticLabel;
 
   const ActionButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.text,
     this.onPressed,
@@ -25,7 +25,7 @@ class ActionButton extends StatefulWidget {
     this.textColor = GeniusWalletColors.gray500,
     this.animation = ActionButtonAnimation.none,
     this.semanticLabel,
-  }) : super(key: key);
+  });
 
   @override
   State<ActionButton> createState() => _ActionButtonState();

@@ -8,8 +8,7 @@ final filters = ['All', 'Sent', 'Received', 'Escrow', 'Mint'];
 
 class TransactionFilters extends StatefulWidget {
   final Function(String) onFilterSelected;
-  const TransactionFilters({Key? key, required this.onFilterSelected})
-      : super(key: key);
+  const TransactionFilters({super.key, required this.onFilterSelected});
 
   @override
   TransactionFiltersState createState() => TransactionFiltersState();
@@ -125,11 +124,11 @@ class HoverableFilterItem extends StatefulWidget {
   final VoidCallback onTap;
 
   const HoverableFilterItem({
-    Key? key,
+    super.key,
     required this.filter,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   HoverableFilterItemState createState() => HoverableFilterItemState();
@@ -179,11 +178,11 @@ class FilterButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const FilterButton({
-    Key? key,
+    super.key,
     required this.filter,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

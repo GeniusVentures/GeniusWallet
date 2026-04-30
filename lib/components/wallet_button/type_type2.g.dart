@@ -17,7 +17,7 @@ class TypeType2 extends StatefulWidget {
     this.ovrIalreadyhaveawallet,
   }) : super(key: key);
   @override
-  _TypeType2 createState() => _TypeType2();
+  State<TypeType2> createState() => _TypeType2();
 }
 
 class _TypeType2 extends State<TypeType2> {

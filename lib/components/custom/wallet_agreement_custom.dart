@@ -8,15 +8,15 @@ class WalletAgreementCustom extends StatefulWidget {
   final String? text;
 
   const WalletAgreementCustom({
-    Key? key,
+    super.key,
     this.value,
     this.onChanged,
     this.child,
     this.text,
-  }) : super(key: key);
+  });
 
   @override
-  _WalletAgreementCustomState createState() => _WalletAgreementCustomState();
+  State<WalletAgreementCustom> createState() => _WalletAgreementCustomState();
 }
 
 class _WalletAgreementCustomState extends State<WalletAgreementCustom> {

@@ -18,7 +18,7 @@ class RegistrationHeader extends StatefulWidget {
     this.ovrTitle,
   }) : super(key: key);
   @override
-  _RegistrationHeader createState() => _RegistrationHeader();
+  State<RegistrationHeader> createState() => _RegistrationHeader();
 }
 
 class _RegistrationHeader extends State<RegistrationHeader> {

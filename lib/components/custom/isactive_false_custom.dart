@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 class IsactiveFalseCustom extends StatefulWidget {
   final Widget? child;
   const IsactiveFalseCustom({
-    Key? key,
+    super.key,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
-  _IsactiveFalseCustomState createState() => _IsactiveFalseCustomState();
+  State<IsactiveFalseCustom> createState() => _IsactiveFalseCustomState();
 }
 
 class _IsactiveFalseCustomState extends State<IsactiveFalseCustom> {

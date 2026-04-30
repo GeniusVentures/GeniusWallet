@@ -8,12 +8,12 @@ class ToastWidget extends StatelessWidget {
   final VoidCallback onDismiss;
 
   const ToastWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     required this.type,
     required this.onDismiss,
-  }) : super(key: key);
+  });
 
   Color _getBackgroundColor() {
     switch (type) {

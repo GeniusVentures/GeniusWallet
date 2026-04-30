@@ -6,11 +6,11 @@ class IncorrectPin extends StatefulWidget {
   final String? ovrIncorrectPinLabel;
   const IncorrectPin(
     this.constraints, {
-    Key? key,
+    super.key,
     this.ovrIncorrectPinLabel,
-  }) : super(key: key);
+  });
   @override
-  _IncorrectPin createState() => _IncorrectPin();
+  State<IncorrectPin> createState() => _IncorrectPin();
 }
 
 class _IncorrectPin extends State<IncorrectPin> {
@@ -46,7 +46,7 @@ class _IncorrectPin extends State<IncorrectPin> {
                 right: 35.0,
                 top: 7.0,
                 bottom: 8.0,
-                child: Container(
+                child: SizedBox(
                     height: widget.constraints.maxHeight * 0.5588235294117647,
                     width: widget.constraints.maxWidth * 0.56875,
                     child: AutoSizeText(

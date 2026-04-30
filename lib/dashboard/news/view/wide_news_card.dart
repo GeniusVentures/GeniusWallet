@@ -8,7 +8,7 @@ import 'package:genius_wallet/web/web_utils.dart';
 class WideNewsCard extends StatelessWidget {
   final NewsArticle article;
 
-  const WideNewsCard({Key? key, required this.article}) : super(key: key);
+  const WideNewsCard({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {

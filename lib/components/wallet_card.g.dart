@@ -17,7 +17,7 @@ class WalletCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _WalletCardState createState() => _WalletCardState();
+  State<WalletCard> createState() => _WalletCardState();
 }
 
 class _WalletCardState extends State<WalletCard> {

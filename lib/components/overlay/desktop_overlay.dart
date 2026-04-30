@@ -7,7 +7,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class DesktopOverlay extends StatelessWidget {
   final Widget child;
-  const DesktopOverlay({Key? key, required this.child}) : super(key: key);
+  const DesktopOverlay({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

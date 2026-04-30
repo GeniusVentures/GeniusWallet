@@ -8,12 +8,12 @@ class StringButton extends StatelessWidget {
   final Color? color;
   final double? minWidth;
   const StringButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.value,
     this.color,
     this.minWidth,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

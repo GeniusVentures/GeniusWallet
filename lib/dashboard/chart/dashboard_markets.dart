@@ -13,8 +13,7 @@ class DashboardMarkets extends StatefulWidget {
   final List<CoinGeckoCoin> coins;
   final String? title;
 
-  const DashboardMarkets({Key? key, required this.coins, this.title})
-      : super(key: key);
+  const DashboardMarkets({super.key, required this.coins, this.title});
 
   @override
   State<DashboardMarkets> createState() => _DashboardMarketsState();

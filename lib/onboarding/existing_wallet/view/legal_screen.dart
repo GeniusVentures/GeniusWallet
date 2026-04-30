@@ -15,7 +15,7 @@ class LegalScreen extends StatelessWidget {
   static const title = 'Legal';
   static const subtitle =
       'Please review the Privacy Policy and Terms of Service of the GNUS wallet before proceeding';
-  const LegalScreen({Key? key}) : super(key: key);
+  const LegalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,10 +42,9 @@ class _LegalViewMobile extends StatelessWidget {
   final String title;
   final String subtitle;
   const _LegalViewMobile({
-    Key? key,
     required this.title,
     required this.subtitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +69,9 @@ class _LegalViewDesktop extends StatelessWidget {
   final String title;
   final String subtitle;
   const _LegalViewDesktop({
-    Key? key,
     required this.title,
     required this.subtitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +98,7 @@ class _LegalViewDesktop extends StatelessWidget {
 }
 
 class _ToSButtons extends StatelessWidget {
-  const _ToSButtons({Key? key}) : super(key: key);
+  const _ToSButtons();
 
   @override
   Widget build(BuildContext context) {
@@ -141,9 +139,7 @@ class _ToSButtons extends StatelessWidget {
 }
 
 class _Agreement extends StatelessWidget {
-  const _Agreement({
-    Key? key,
-  }) : super(key: key);
+  const _Agreement();
 
   @override
   Widget build(BuildContext context) {

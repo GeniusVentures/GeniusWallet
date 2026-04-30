@@ -12,7 +12,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:go_router/go_router.dart';
 
 class MarketsScreen extends StatelessWidget {
-  const MarketsScreen({Key? key}) : super(key: key);
+  const MarketsScreen({super.key});
 
   int getCrossAxisCount(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;

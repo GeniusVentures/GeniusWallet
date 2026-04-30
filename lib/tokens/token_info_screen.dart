@@ -24,13 +24,13 @@ class TokenInfoScreen extends StatelessWidget {
   final WalletDetailsCubit? walletDetailsCubit; // Optional cubit
 
   const TokenInfoScreen({
-    Key? key,
+    super.key,
     required this.securityInfo,
     required this.transactionHistory,
     this.marketData,
     this.isGnusWalletConnected,
     this.walletDetailsCubit, // Allow null
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

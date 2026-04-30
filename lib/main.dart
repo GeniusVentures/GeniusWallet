@@ -88,10 +88,10 @@ class AppLifecycleHandler extends StatefulWidget {
   final GeniusApi geniusApi;
 
   const AppLifecycleHandler({
-    Key? key,
+    super.key,
     required this.child,
     required this.geniusApi,
-  }) : super(key: key);
+  });
 
   @override
   State<AppLifecycleHandler> createState() => _AppLifecycleHandlerState();

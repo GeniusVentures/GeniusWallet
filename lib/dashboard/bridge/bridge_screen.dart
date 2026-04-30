@@ -16,7 +16,7 @@ import 'package:go_router/go_router.dart';
 
 class BridgeScreen extends StatefulWidget {
   final Coin? fromToken;
-  const BridgeScreen({Key? key, this.fromToken}) : super(key: key);
+  const BridgeScreen({super.key, this.fromToken});
 
   @override
   BridgeScreenState createState() => BridgeScreenState();

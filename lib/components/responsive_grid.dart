@@ -3,7 +3,7 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 
 class ResponsiveGrid extends StatelessWidget {
   final List<Widget> children;
-  const ResponsiveGrid({Key? key, this.children = const []}) : super(key: key);
+  const ResponsiveGrid({super.key, this.children = const []});
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ import 'package:genius_wallet/onboarding/widgets/supported_existing_wallets.dart
 class ImportWalletScreen extends StatelessWidget {
   static const title = 'Import Wallet';
   static const subtitle = 'Select the wallet that you would like to import';
-  const ImportWalletScreen({Key? key}) : super(key: key);
+  const ImportWalletScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +28,9 @@ class _ImportWalletViewDesktop extends StatelessWidget {
   final String title;
   final String subtitle;
   const _ImportWalletViewDesktop({
-    Key? key,
     required this.title,
     required this.subtitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +54,7 @@ class _ImportWalletViewMobile extends StatelessWidget {
   const _ImportWalletViewMobile({
     required this.title,
     required this.subtitle,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

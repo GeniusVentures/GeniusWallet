@@ -11,7 +11,7 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {
-  const SGNUSConnectionWidget({Key? key}) : super(key: key);
+  const SGNUSConnectionWidget({super.key});
 
   @override
   SGNUSConnectionState createState() => SGNUSConnectionState();
@@ -59,7 +59,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
 }
 
 class SGNUSConnectionMobileWidget extends StatefulWidget {
-  const SGNUSConnectionMobileWidget({Key? key}) : super(key: key);
+  const SGNUSConnectionMobileWidget({super.key});
 
   @override
   SGNUSConnectionMobileState createState() => SGNUSConnectionMobileState();
@@ -110,9 +110,9 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
   final bool? isSmallScreen;
 
   const SGNUSConnectionStatusWidget({
-    Key? key,
+    super.key,
     this.isSmallScreen,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

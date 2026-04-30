@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 class TypeExistingCustom extends StatefulWidget {
   final Widget? child;
   const TypeExistingCustom({
-    Key? key,
+    super.key,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
-  _TypeExistingCustomState createState() => _TypeExistingCustomState();
+  State<TypeExistingCustom> createState() => _TypeExistingCustomState();
 }
 
 class _TypeExistingCustomState extends State<TypeExistingCustom> {

@@ -10,12 +10,12 @@ class SubmitJobDashboardButton extends StatelessWidget {
   final Function()? onPressed;
 
   const SubmitJobDashboardButton({
-    Key? key,
+    super.key,
     required this.walletAddress,
     required this.gnusConnectedWalletAddress,
     required this.walletDetailsCubit,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

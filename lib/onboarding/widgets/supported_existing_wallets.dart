@@ -6,7 +6,7 @@ import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bl
 import 'package:genius_wallet/components/wallet_card.g.dart';
 
 class SupportedExistingWallets extends StatelessWidget {
-  const SupportedExistingWallets({Key? key}) : super(key: key);
+  const SupportedExistingWallets({super.key});
 
   @override
   Widget build(BuildContext context) {

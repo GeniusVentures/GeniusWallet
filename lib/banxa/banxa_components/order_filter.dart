@@ -16,8 +16,8 @@ class OrderFilterPanel extends StatelessWidget {
     required this.endDate,
     required this.onStatusChanged,
     required this.onDateRangePressed,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class OrderFilterPanel extends StatelessWidget {
           SizedBox(
             height: 56,
             child: DropdownButtonFormField<String>(
-              value: selectedStatus,
+              initialValue: selectedStatus,
               decoration: const InputDecoration(
                 labelText: "Status",
                 border: OutlineInputBorder(),

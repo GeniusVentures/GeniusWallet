@@ -7,7 +7,7 @@ import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.da
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class TransactionsScreen extends StatelessWidget {
-  const TransactionsScreen({Key? key}) : super(key: key);
+  const TransactionsScreen({super.key});
 
   @override
   @override

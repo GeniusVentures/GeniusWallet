@@ -9,7 +9,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'news_card.dart';
 
 class CryptoNewsScreen extends StatefulWidget {
-  const CryptoNewsScreen({Key? key}) : super(key: key);
+  const CryptoNewsScreen({super.key});
 
   @override
   State<CryptoNewsScreen> createState() => _CryptoNewsScreenState();

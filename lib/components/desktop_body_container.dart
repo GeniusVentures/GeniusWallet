@@ -7,13 +7,12 @@ class DesktopBodyContainer extends StatelessWidget {
   final String? title;
   final String? subText;
   const DesktopBodyContainer(
-      {Key? key,
+      {super.key,
       this.child = const SizedBox(),
       this.width = 600,
       this.height,
       this.subText,
-      this.title})
-      : super(key: key);
+      this.title});
 
   @override
   Widget build(BuildContext context) {

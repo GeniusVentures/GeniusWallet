@@ -8,8 +8,7 @@ class WebViewScreen extends StatelessWidget {
   final String? url;
   final bool? includeBackButton;
 
-  const WebViewScreen({Key? key, this.url, this.includeBackButton})
-      : super(key: key);
+  const WebViewScreen({super.key, this.url, this.includeBackButton});
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import 'package:genius_api/types/wallet_type.dart';
 class WalletTypeIcon extends StatelessWidget {
   final WalletType? walletType;
 
-  const WalletTypeIcon({Key? key, this.walletType}) : super(key: key);
+  const WalletTypeIcon({super.key, this.walletType});
 
   @override
   Widget build(BuildContext context) {

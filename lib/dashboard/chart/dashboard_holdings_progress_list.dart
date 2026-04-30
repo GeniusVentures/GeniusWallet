@@ -5,8 +5,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 class DashboardHoldingsProgressList extends StatelessWidget {
   final Map<String, double> holdings;
 
-  const DashboardHoldingsProgressList({Key? key, required this.holdings})
-      : super(key: key);
+  const DashboardHoldingsProgressList({super.key, required this.holdings});
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +60,10 @@ class HoldingProgressItem extends StatelessWidget {
   final double percentage;
 
   const HoldingProgressItem({
-    Key? key,
+    super.key,
     required this.label,
     required this.percentage,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

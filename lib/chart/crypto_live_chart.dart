@@ -16,13 +16,13 @@ class CryptoLiveChart extends StatefulWidget {
   final double? priceHeight;
 
   const CryptoLiveChart({
-    Key? key,
+    super.key,
     required this.coinGeckoCoinId,
     required this.tokenSymbol,
     this.chartHeight,
     this.priceHeight,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   CryptoLiveChartState createState() => CryptoLiveChartState();

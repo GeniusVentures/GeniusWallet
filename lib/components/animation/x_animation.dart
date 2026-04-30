@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class XAnimation extends StatefulWidget {
-  const XAnimation({Key? key}) : super(key: key);
+  const XAnimation({super.key});
 
   @override
   XAnimationState createState() => XAnimationState();

@@ -12,7 +12,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 
 class SubmitJobScreen extends StatelessWidget {
-  const SubmitJobScreen({Key? key}) : super(key: key);
+  const SubmitJobScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -4,8 +4,7 @@ import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 class QuoteCard extends StatelessWidget {
   final MakeOrderState state;
   final bool compact;
-  const QuoteCard({required this.state, required this.compact, Key? key})
-      : super(key: key);
+  const QuoteCard({required this.state, required this.compact, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -8,12 +8,12 @@ class AppScreenWithHeaderDesktop extends StatelessWidget {
   final Widget footer;
 
   const AppScreenWithHeaderDesktop({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     this.body = const SizedBox(),
     this.footer = const SizedBox(),
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

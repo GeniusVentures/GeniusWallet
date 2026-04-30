@@ -14,7 +14,7 @@ class TypeCreate extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TypeCreate createState() => _TypeCreate();
+  State<TypeCreate> createState() => _TypeCreate();
 }
 
 class _TypeCreate extends State<TypeCreate> {

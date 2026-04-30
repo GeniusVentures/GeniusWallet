@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CheckmarkAnimation extends StatefulWidget {
-  const CheckmarkAnimation({Key? key}) : super(key: key);
+  const CheckmarkAnimation({super.key});
 
   @override
   CheckmarkAnimationState createState() => CheckmarkAnimationState();

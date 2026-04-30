@@ -24,8 +24,8 @@ class ImportSecurityScreen extends StatelessWidget {
   const ImportSecurityScreen({
     required this.walletType,
     required this.coinType,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -130,15 +130,13 @@ class _ImportSecurityViewDesktop extends StatelessWidget {
   final TWCoinType coinType;
 
   const _ImportSecurityViewDesktop(
-      {Key? key,
-      required this.title,
+      {required this.title,
       required this.subtitle,
       required this.walletNameController,
       required this.tabControllers,
       required this.formKey,
       required this.walletType,
-      required this.coinType})
-      : super(key: key);
+      required this.coinType});
 
   @override
   Widget build(BuildContext context) {
@@ -180,15 +178,13 @@ class _ImportSecurityViewMobile extends StatelessWidget {
   final TWCoinType coinType;
 
   const _ImportSecurityViewMobile(
-      {Key? key,
-      required this.title,
+      {required this.title,
       required this.subtitle,
       required this.walletNameController,
       required this.tabControllers,
       required this.formKey,
       required this.walletType,
-      required this.coinType})
-      : super(key: key);
+      required this.coinType});
 
   @override
   Widget build(BuildContext context) {
@@ -213,10 +209,9 @@ class _ImportSecurityBody extends StatelessWidget {
   final TextEditingController walletNameController;
   final Map<String, Map<String, TextEditingController>> tabControllers;
   const _ImportSecurityBody({
-    Key? key,
     required this.walletNameController,
     required this.tabControllers,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -319,13 +314,11 @@ class _ImportSecurityContinueButton extends StatelessWidget {
   final TWCoinType coinType;
 
   const _ImportSecurityContinueButton(
-      {Key? key,
-      required this.formKey,
+      {required this.formKey,
       required this.tabControllers,
       required this.walletNameController,
       required this.walletType,
-      required this.coinType})
-      : super(key: key);
+      required this.coinType});
 
   @override
   Widget build(BuildContext context) {

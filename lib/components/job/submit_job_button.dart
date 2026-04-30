@@ -10,12 +10,11 @@ class SubmitJobButton extends StatefulWidget {
   final Function()? onPressed;
 
   const SubmitJobButton(
-      {Key? key,
+      {super.key,
       required this.walletAddress,
       required this.gnusConnectedWalletAddress,
       required this.walletDetailsCubit,
-      this.onPressed})
-      : super(key: key);
+      this.onPressed});
 
   @override
   SubmitJobButtonState createState() => SubmitJobButtonState();

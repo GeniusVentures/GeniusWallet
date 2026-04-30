@@ -29,9 +29,7 @@ class BackupPhraseScreen extends StatelessWidget {
 }
 
 class _BackupPhraseViewMobile extends StatelessWidget {
-  const _BackupPhraseViewMobile({
-    Key? key,
-  }) : super(key: key);
+  const _BackupPhraseViewMobile();
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +98,7 @@ class _BackupPhraseViewMobile extends StatelessWidget {
 }
 
 class _BackupPhraseViewDesktop extends StatelessWidget {
-  const _BackupPhraseViewDesktop({Key? key}) : super(key: key);
+  const _BackupPhraseViewDesktop();
 
   @override
   Widget build(BuildContext context) {

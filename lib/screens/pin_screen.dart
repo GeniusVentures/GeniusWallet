@@ -46,10 +46,9 @@ class PinScreen extends StatelessWidget {
 
 class _PinViewDesktop extends StatelessWidget {
   const _PinViewDesktop({
-    Key? key,
     required this.onCompleted,
     required this.text,
-  }) : super(key: key);
+  });
 
   final String text;
   final Function(String p1) onCompleted;
@@ -126,10 +125,9 @@ class _PinViewDesktop extends StatelessWidget {
 
 class _PinViewMobile extends StatelessWidget {
   const _PinViewMobile({
-    Key? key,
     required this.text,
     required this.onCompleted,
-  }) : super(key: key);
+  });
 
   final String text;
   final Function(String p1) onCompleted;

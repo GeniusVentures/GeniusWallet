@@ -11,7 +11,7 @@ import 'package:genius_wallet/onboarding/view/create_pin_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class NewWalletFlow extends StatelessWidget {
-  const NewWalletFlow({Key? key}) : super(key: key);
+  const NewWalletFlow({super.key});
 
   @override
   Widget build(BuildContext context) {

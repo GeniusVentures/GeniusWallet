@@ -12,11 +12,11 @@ class DesktopContainer extends StatelessWidget {
   final bool? isIncludeBackButton;
 
   const DesktopContainer({
-    Key? key,
+    super.key,
     this.child = const SizedBox(),
     this.title,
     this.isIncludeBackButton = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +128,7 @@ class HeaderButton extends StatelessWidget {
   final String? route;
 
   const HeaderButton({
-    Key? key,
+    super.key,
     this.child = const SizedBox(),
     this.text,
     this.textColor,
@@ -136,7 +136,7 @@ class HeaderButton extends StatelessWidget {
     this.isAddBorder = false,
     this.route,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

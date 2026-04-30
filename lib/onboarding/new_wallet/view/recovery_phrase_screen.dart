@@ -40,7 +40,7 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
 }
 
 class _RecoveryPhraseViewDesktop extends StatefulWidget {
-  const _RecoveryPhraseViewDesktop({Key? key}) : super(key: key);
+  const _RecoveryPhraseViewDesktop();
 
   @override
   State<_RecoveryPhraseViewDesktop> createState() =>
@@ -251,7 +251,7 @@ class _WordsGridWithCopyAndToggleState
 }
 
 class _RecoveryPhraseViewMobile extends StatelessWidget {
-  const _RecoveryPhraseViewMobile({Key? key}) : super(key: key);
+  const _RecoveryPhraseViewMobile();
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +297,7 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
 }
 
 class _WordsAndCopy extends StatefulWidget {
-  const _WordsAndCopy({Key? key}) : super(key: key);
+  const _WordsAndCopy();
 
   @override
   State<_WordsAndCopy> createState() => _WordsAndCopyState();

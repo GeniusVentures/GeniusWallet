@@ -39,7 +39,7 @@ class DevicePreviewExtras extends StatelessWidget {
                     Switch(
                       value: isVisible,
                       onChanged: (value) => showDevTools.value = value,
-                      activeColor: Colors.greenAccent,
+                      activeThumbColor: Colors.greenAccent,
                     ),
                   ],
                 ),

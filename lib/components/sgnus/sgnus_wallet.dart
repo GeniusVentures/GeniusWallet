@@ -9,7 +9,7 @@ import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/components/wallet_preview.g.dart';
 
 class SGNUSWallet extends StatefulWidget {
-  const SGNUSWallet({Key? key}) : super(key: key);
+  const SGNUSWallet({super.key});
 
   @override
   SGNUSWalletState createState() => SGNUSWalletState();

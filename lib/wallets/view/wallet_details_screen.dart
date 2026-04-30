@@ -9,7 +9,7 @@ import 'package:genius_wallet/components/wallet_information.dart';
 import 'package:intl/intl.dart';
 
 class WalletDetailsScreen extends StatefulWidget {
-  const WalletDetailsScreen({Key? key}) : super(key: key);
+  const WalletDetailsScreen({super.key});
 
   @override
   WalletDetailsScreenState createState() => WalletDetailsScreenState();

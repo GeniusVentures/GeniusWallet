@@ -17,7 +17,7 @@ class TextEntryField extends StatefulWidget {
     this.ovrTextEntryHinthinttext,
   }) : super(key: key);
   @override
-  _TextEntryField createState() => _TextEntryField();
+  State<TextEntryField> createState() => _TextEntryField();
 }
 
 class _TextEntryField extends State<TextEntryField> {

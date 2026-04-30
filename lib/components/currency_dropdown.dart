@@ -8,11 +8,11 @@ class CurrencyDropdown extends StatelessWidget {
   final void Function(Currency) onChanged;
   final Currency? value;
   const CurrencyDropdown({
-    Key? key,
+    super.key,
     required this.currencies,
     required this.onChanged,
     required this.value,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

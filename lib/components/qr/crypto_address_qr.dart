@@ -11,8 +11,7 @@ class CryptoAddressQR extends StatelessWidget {
   final String? iconPath;
 
   const CryptoAddressQR(
-      {Key? key, required this.address, required this.network, this.iconPath})
-      : super(key: key);
+      {super.key, required this.address, required this.network, this.iconPath});
 
   @override
   Widget build(BuildContext context) {

@@ -12,13 +12,13 @@ class PasteField extends StatelessWidget {
   final TextEditingController controller;
   final double height;
   const PasteField({
-    Key? key,
+    super.key,
     this.additionalWidget,
     this.subtitle = '',
     this.hintText = '',
     this.height = 200,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

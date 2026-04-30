@@ -15,14 +15,14 @@ class CoinCardRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CoinCardRow({
-    Key? key,
+    super.key,
     required this.iconPath,
     required this.name,
     this.balance,
     required this.symbol,
     this.marketData,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

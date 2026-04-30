@@ -17,7 +17,7 @@ class WalletAgreement extends StatefulWidget {
     this.ovrIvereadandaccepttheTermsofServiceandPrivacyPolicy,
   }) : super(key: key);
   @override
-  _WalletAgreement createState() => _WalletAgreement();
+  State<WalletAgreement> createState() => _WalletAgreement();
 }
 
 class _WalletAgreement extends State<WalletAgreement> {

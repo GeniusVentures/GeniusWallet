@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class TextEntryFieldLogic extends TextFormFieldLogic {
-  TextEntryFieldLogic(BuildContext context) : super(context);
+  TextEntryFieldLogic(super.context);
 
   /// TODO: Override any logic method here. See example below
   /// See [TextFormFieldLogic] for overridable methods.

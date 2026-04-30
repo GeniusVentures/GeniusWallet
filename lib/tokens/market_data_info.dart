@@ -13,13 +13,13 @@ class MarketDataInfo extends StatelessWidget {
   final String? aboutText;
 
   const MarketDataInfo({
-    Key? key,
+    super.key,
     this.marketData,
     this.network,
     this.address,
     this.topSlot,
     this.aboutText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

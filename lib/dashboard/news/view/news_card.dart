@@ -8,10 +8,10 @@ import 'package:genius_wallet/web/web_utils.dart';
 class NewsCard extends StatefulWidget {
   final NewsArticle article;
 
-  const NewsCard({Key? key, required this.article}) : super(key: key);
+  const NewsCard({super.key, required this.article});
 
   @override
-  _NewsCardState createState() => _NewsCardState();
+  State<NewsCard> createState() => _NewsCardState();
 }
 
 class _NewsCardState extends State<NewsCard> {

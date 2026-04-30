@@ -7,7 +7,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class Splash extends StatelessWidget {
-  const Splash({Key? key}) : super(key: key);
+  const Splash({super.key});
 
   @override
   Widget build(BuildContext context) {

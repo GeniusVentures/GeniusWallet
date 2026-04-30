@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SGNUSConnectedDropdown extends StatefulWidget {
-  const SGNUSConnectedDropdown({Key? key}) : super(key: key);
+  const SGNUSConnectedDropdown({super.key});
 
   @override
   SGNUSConnectedDropdownState createState() => SGNUSConnectedDropdownState();

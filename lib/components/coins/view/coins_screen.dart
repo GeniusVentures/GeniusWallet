@@ -20,12 +20,11 @@ class CoinsScreen extends StatefulWidget {
   final bool? isGnusWalletConnected;
 
   const CoinsScreen(
-      {Key? key,
+      {super.key,
       this.onCoinSelected,
       this.filterCoins,
       this.isGnusWalletConnected,
-      this.isUseDivider})
-      : super(key: key);
+      this.isUseDivider});
 
   @override
   CoinsScreenState createState() => CoinsScreenState();

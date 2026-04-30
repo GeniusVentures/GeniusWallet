@@ -9,11 +9,11 @@ class CopyButton extends StatefulWidget {
   final double? width;
 
   const CopyButton({
-    Key? key,
+    super.key,
     required this.textToCopy,
     this.buttonText = "Copy",
     this.width, // Default button text
-  }) : super(key: key);
+  });
 
   @override
   CopyButtonState createState() => CopyButtonState();

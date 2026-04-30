@@ -12,10 +12,10 @@ class VerifyPinScreen extends StatelessWidget {
   final void Function()? onFail;
 
   const VerifyPinScreen({
-    Key? key,
+    super.key,
     required this.onPass,
     this.onFail,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +36,10 @@ class VerifyPinView extends StatelessWidget {
   final void Function() onPass;
   final void Function()? onFail;
   const VerifyPinView({
-    Key? key,
+    super.key,
     required this.onPass,
     this.onFail,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

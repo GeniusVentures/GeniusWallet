@@ -14,8 +14,8 @@ class OrderCard extends StatelessWidget {
     this.onSeeDetails,
     this.onCompletePayment,
     this.onRetryOrder,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   String get fiat => "${order.fiatAmount} ${order.fiat}";
   String get crypto => "${order.cryptoAmount} ${order.crypto.id}";

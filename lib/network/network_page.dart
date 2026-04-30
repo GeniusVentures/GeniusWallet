@@ -8,8 +8,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class NetworkStatusPage extends StatefulWidget {
   final GeniusApi geniusApi;
-  const NetworkStatusPage({Key? key, required this.geniusApi})
-      : super(key: key);
+  const NetworkStatusPage({super.key, required this.geniusApi});
 
   @override
   State<NetworkStatusPage> createState() => _NetworkStatusPageState();

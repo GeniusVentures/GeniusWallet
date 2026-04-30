@@ -15,7 +15,7 @@ class TypeExisting extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TypeExisting createState() => _TypeExisting();
+  State<TypeExisting> createState() => _TypeExisting();
 }
 
 class _TypeExisting extends State<TypeExisting> {

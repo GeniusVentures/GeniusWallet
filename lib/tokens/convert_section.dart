@@ -6,9 +6,9 @@ class ConvertSection extends StatefulWidget {
   final double tokenPrice;
 
   const ConvertSection({
-    Key? key,
+    super.key,
     required this.tokenPrice,
-  }) : super(key: key);
+  });
 
   @override
   State<ConvertSection> createState() => _ConvertSectionState();

@@ -5,8 +5,8 @@ import 'package:genius_wallet/components/string_button.dart';
 
 class NumberPad extends StatelessWidget {
   const NumberPad({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(

@@ -13,7 +13,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class MobileOverlay extends StatelessWidget {
   final Widget child;
-  const MobileOverlay({Key? key, required this.child}) : super(key: key);
+  const MobileOverlay({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

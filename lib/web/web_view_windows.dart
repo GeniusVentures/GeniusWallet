@@ -11,11 +11,10 @@ class WebViewWindows extends StatefulWidget {
   final bool? includeBackButton;
 
   const WebViewWindows(
-      {Key? key, required this.url, this.includeBackButton = false})
-      : super(key: key);
+      {super.key, required this.url, this.includeBackButton = false});
 
   @override
-  _WebViewWindowsState createState() => _WebViewWindowsState();
+  State<WebViewWindows> createState() => _WebViewWindowsState();
 }
 
 class _WebViewWindowsState extends State<WebViewWindows> {

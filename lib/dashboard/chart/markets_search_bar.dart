@@ -11,7 +11,7 @@ import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 class MarketSearchBar extends StatefulWidget {
   final VoidCallback? onCoinPressed;
 
-  const MarketSearchBar({Key? key, this.onCoinPressed}) : super(key: key);
+  const MarketSearchBar({super.key, this.onCoinPressed});
 
   @override
   State<MarketSearchBar> createState() => _MarketSearchBarState();

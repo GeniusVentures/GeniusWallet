@@ -11,14 +11,14 @@ class CryptoMinimalChart extends StatelessWidget {
   final double height;
 
   const CryptoMinimalChart({
-    Key? key,
+    super.key,
     required this.high24h,
     required this.low24h,
     required this.currentPrice,
     required this.priceChangePercent,
     this.width = 100, // Default width
     this.height = 50, // Default height
-  }) : super(key: key);
+  });
 
   Color get priceColor =>
       priceChangePercent >= 0 ? Colors.greenAccent : Colors.redAccent;

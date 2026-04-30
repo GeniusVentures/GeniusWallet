@@ -21,8 +21,8 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
       'Tap the words to put them next to each other in the correct order';
 
   const VerifyRecoveryPhraseScreen({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +67,7 @@ class _VerifyRecoveryPhraseViewDesktop extends StatefulWidget {
   const _VerifyRecoveryPhraseViewDesktop({
     required this.title,
     required this.subtitle,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   State<_VerifyRecoveryPhraseViewDesktop> createState() =>
@@ -178,7 +177,7 @@ class _VerifyRecoveryPhraseViewDesktopState
 }
 
 class _InputAndWords extends StatefulWidget {
-  const _InputAndWords({Key? key}) : super(key: key);
+  const _InputAndWords({super.key});
 
   @override
   State<_InputAndWords> createState() => _InputAndWordsState();
@@ -650,8 +649,7 @@ class _VerifyRecoveryPhraseViewMobile extends StatefulWidget {
   const _VerifyRecoveryPhraseViewMobile({
     required this.title,
     required this.subtitle,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   State<_VerifyRecoveryPhraseViewMobile> createState() =>

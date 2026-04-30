@@ -6,7 +6,7 @@ import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class GeniusWalletDetailsScreen extends StatelessWidget {
-  const GeniusWalletDetailsScreen({Key? key}) : super(key: key);
+  const GeniusWalletDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class GeniusWalletDetailsScreen extends StatelessWidget {
 }
 
 class View extends StatefulWidget {
-  const View({Key? key}) : super(key: key);
+  const View({super.key});
 
   @override
   State<View> createState() => _ViewState();

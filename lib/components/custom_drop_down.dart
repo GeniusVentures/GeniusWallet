@@ -13,7 +13,7 @@ class AppDropdown<T> extends StatelessWidget {
   final EdgeInsets? padding;
 
   const AppDropdown({
-    Key? key,
+    super.key,
     required this.label,
     required this.items,
     required this.selected,
@@ -24,7 +24,7 @@ class AppDropdown<T> extends StatelessWidget {
     this.errorText,
     this.prefixIcon,
     this.padding,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class AppDropdown<T> extends StatelessWidget {
       padding: padding ?? EdgeInsets.zero,
       child: DropdownButtonFormField<T>(
         isExpanded: true,
-        value: selected,
+        initialValue: selected,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: labelStyle,

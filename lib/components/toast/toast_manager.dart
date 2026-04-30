@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/toast/ticker_provider.dart';
 import 'package:genius_wallet/components/toast/toast_widget.dart';
 
 /// Manages toast notifications as overlay entries.

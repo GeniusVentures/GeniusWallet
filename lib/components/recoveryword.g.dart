@@ -10,7 +10,7 @@ class Recoveryword extends StatefulWidget {
       {Key? key, this.ovrWord, this.isEnabled = true})
       : super(key: key);
   @override
-  _Recoveryword createState() => _Recoveryword();
+  State<Recoveryword> createState() => _Recoveryword();
 }
 
 class _Recoveryword extends State<Recoveryword> {

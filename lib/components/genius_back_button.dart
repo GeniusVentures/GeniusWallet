@@ -7,11 +7,11 @@ class GeniusBackButton extends StatefulWidget {
   final Widget? ovrWhiteArrowBack;
   const GeniusBackButton(
     this.constraints, {
-    Key? key,
+    super.key,
     this.ovrWhiteArrowBack,
-  }) : super(key: key);
+  });
   @override
-  _GeniusBackButton createState() => _GeniusBackButton();
+  State<GeniusBackButton> createState() => _GeniusBackButton();
 }
 
 class _GeniusBackButton extends State<GeniusBackButton> {

@@ -10,12 +10,12 @@ class DashboardChart extends StatelessWidget {
   final String? title;
 
   const DashboardChart({
-    Key? key,
+    super.key,
     required this.coinGeckoCoinId,
     required this.tokenDecimals,
     required this.tokenSymbol,
     this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

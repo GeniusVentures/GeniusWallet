@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 class GeniusBackButtonCustom extends StatefulWidget {
   final Widget? child;
   const GeniusBackButtonCustom({
-    Key? key,
+    super.key,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
-  _GeniusBackButtonCustomState createState() => _GeniusBackButtonCustomState();
+  State<GeniusBackButtonCustom> createState() => _GeniusBackButtonCustomState();
 }
 
 class _GeniusBackButtonCustomState extends State<GeniusBackButtonCustom> {

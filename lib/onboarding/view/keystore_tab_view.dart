@@ -7,10 +7,10 @@ class KeystoreTabView extends StatelessWidget {
   final TextEditingController pasteFieldController;
   final TextEditingController passwordController;
   const KeystoreTabView({
-    Key? key,
+    super.key,
     required this.pasteFieldController,
     required this.passwordController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
