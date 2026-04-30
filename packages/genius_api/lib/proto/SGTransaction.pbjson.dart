@@ -40,14 +40,7 @@ final $typed_data.Uint8List dAGStructDescriptor = $convert.base64Decode(
 const DAGWrapper$json = {
   '1': 'DAGWrapper',
   '2': [
-    {
-      '1': 'dag_struct',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.DAGStruct',
-      '10': 'dagStruct'
-    },
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
   ],
 };
 
@@ -92,22 +85,8 @@ final $typed_data.Uint8List transferOutputDescriptor = $convert.base64Decode(
 const UTXOTxParams$json = {
   '1': 'UTXOTxParams',
   '2': [
-    {
-      '1': 'inputs',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.SGTransaction.TransferUTXOInput',
-      '10': 'inputs'
-    },
-    {
-      '1': 'outputs',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.SGTransaction.TransferOutput',
-      '10': 'outputs'
-    },
+    {'1': 'inputs', '3': 1, '4': 3, '5': 11, '6': '.SGTransaction.TransferUTXOInput', '10': 'inputs'},
+    {'1': 'outputs', '3': 2, '4': 3, '5': 11, '6': '.SGTransaction.TransferOutput', '10': 'outputs'},
   ],
 };
 
@@ -117,27 +96,41 @@ final $typed_data.Uint8List uTXOTxParamsDescriptor = $convert.base64Decode(
     'VUWE9JbnB1dFIGaW5wdXRzEjcKB291dHB1dHMYAiADKAsyHS5TR1RyYW5zYWN0aW9uLlRyYW5z'
     'ZmVyT3V0cHV0UgdvdXRwdXRz');
 
+@$core.Deprecated('Use uTXODescriptor instead')
+const UTXO$json = {
+  '1': 'UTXO',
+  '2': [
+    {'1': 'output_idx', '3': 1, '4': 1, '5': 13, '10': 'outputIdx'},
+    {'1': 'amount', '3': 2, '4': 1, '5': 4, '10': 'amount'},
+    {'1': 'hash', '3': 3, '4': 1, '5': 12, '10': 'hash'},
+    {'1': 'token', '3': 4, '4': 1, '5': 12, '10': 'token'},
+  ],
+};
+
+/// Descriptor for `UTXO`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List uTXODescriptor = $convert.base64Decode(
+    'CgRVVFhPEh0KCm91dHB1dF9pZHgYASABKA1SCW91dHB1dElkeBIWCgZhbW91bnQYAiABKARSBm'
+    'Ftb3VudBISCgRoYXNoGAMgASgMUgRoYXNoEhQKBXRva2VuGAQgASgMUgV0b2tlbg==');
+
+@$core.Deprecated('Use uTXOListDescriptor instead')
+const UTXOList$json = {
+  '1': 'UTXOList',
+  '2': [
+    {'1': 'utxos', '3': 1, '4': 3, '5': 11, '6': '.SGTransaction.UTXO', '10': 'utxos'},
+  ],
+};
+
+/// Descriptor for `UTXOList`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List uTXOListDescriptor = $convert.base64Decode(
+    'CghVVFhPTGlzdBIpCgV1dHhvcxgBIAMoCzITLlNHVHJhbnNhY3Rpb24uVVRYT1IFdXR4b3M=');
+
 @$core.Deprecated('Use transferTxDescriptor instead')
 const TransferTx$json = {
   '1': 'TransferTx',
   '2': [
-    {
-      '1': 'dag_struct',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.DAGStruct',
-      '10': 'dagStruct'
-    },
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
     {'1': 'token_id', '3': 2, '4': 1, '5': 12, '10': 'tokenId'},
-    {
-      '1': 'utxo_params',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.UTXOTxParams',
-      '10': 'utxoParams'
-    },
+    {'1': 'utxo_params', '3': 3, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
   ],
 };
 
@@ -151,14 +144,7 @@ final $typed_data.Uint8List transferTxDescriptor = $convert.base64Decode(
 const ProcessingTx$json = {
   '1': 'ProcessingTx',
   '2': [
-    {
-      '1': 'dag_struct',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.DAGStruct',
-      '10': 'dagStruct'
-    },
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
     {'1': 'mpc_magic_key', '3': 2, '4': 1, '5': 4, '10': 'mpcMagicKey'},
     {'1': 'offset', '3': 3, '4': 1, '5': 4, '10': 'offset'},
     {'1': 'job_cid', '3': 4, '4': 1, '5': 9, '10': 'jobCid'},
@@ -179,14 +165,7 @@ final $typed_data.Uint8List processingTxDescriptor = $convert.base64Decode(
 const MintTx$json = {
   '1': 'MintTx',
   '2': [
-    {
-      '1': 'dag_struct',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.DAGStruct',
-      '10': 'dagStruct'
-    },
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
     {'1': 'chain_id', '3': 2, '4': 1, '5': 12, '10': 'chainId'},
     {'1': 'token_id', '3': 3, '4': 1, '5': 12, '10': 'tokenId'},
     {'1': 'amount', '3': 4, '4': 1, '5': 4, '10': 'amount'},
@@ -199,26 +178,31 @@ final $typed_data.Uint8List mintTxDescriptor = $convert.base64Decode(
     'lkYWdTdHJ1Y3QSGQoIY2hhaW5faWQYAiABKAxSB2NoYWluSWQSGQoIdG9rZW5faWQYAyABKAxS'
     'B3Rva2VuSWQSFgoGYW1vdW50GAQgASgEUgZhbW91bnQ=');
 
+@$core.Deprecated('Use mintTxV2Descriptor instead')
+const MintTxV2$json = {
+  '1': 'MintTxV2',
+  '2': [
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {'1': 'chain_id', '3': 2, '4': 1, '5': 12, '10': 'chainId'},
+    {'1': 'token_id', '3': 3, '4': 1, '5': 12, '10': 'tokenId'},
+    {'1': 'amount', '3': 4, '4': 1, '5': 4, '10': 'amount'},
+    {'1': 'utxo_params', '3': 5, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
+  ],
+};
+
+/// Descriptor for `MintTxV2`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List mintTxV2Descriptor = $convert.base64Decode(
+    'CghNaW50VHhWMhI3CgpkYWdfc3RydWN0GAEgASgLMhguU0dUcmFuc2FjdGlvbi5EQUdTdHJ1Y3'
+    'RSCWRhZ1N0cnVjdBIZCghjaGFpbl9pZBgCIAEoDFIHY2hhaW5JZBIZCgh0b2tlbl9pZBgDIAEo'
+    'DFIHdG9rZW5JZBIWCgZhbW91bnQYBCABKARSBmFtb3VudBI8Cgt1dHhvX3BhcmFtcxgFIAEoCz'
+    'IbLlNHVHJhbnNhY3Rpb24uVVRYT1R4UGFyYW1zUgp1dHhvUGFyYW1z');
+
 @$core.Deprecated('Use escrowTxDescriptor instead')
 const EscrowTx$json = {
   '1': 'EscrowTx',
   '2': [
-    {
-      '1': 'dag_struct',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.DAGStruct',
-      '10': 'dagStruct'
-    },
-    {
-      '1': 'utxo_params',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.UTXOTxParams',
-      '10': 'utxoParams'
-    },
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
     {'1': 'amount', '3': 3, '4': 1, '5': 4, '10': 'amount'},
     {'1': 'dev_addr', '3': 4, '4': 1, '5': 12, '10': 'devAddr'},
     {'1': 'peers_cut', '3': 5, '4': 1, '5': 4, '10': 'peersCut'},
@@ -236,32 +220,12 @@ final $typed_data.Uint8List escrowTxDescriptor = $convert.base64Decode(
 const EscrowReleaseTx$json = {
   '1': 'EscrowReleaseTx',
   '2': [
-    {
-      '1': 'dag_struct',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.DAGStruct',
-      '10': 'dagStruct'
-    },
-    {
-      '1': 'utxo_params',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.SGTransaction.UTXOTxParams',
-      '10': 'utxoParams'
-    },
+    {'1': 'dag_struct', '3': 1, '4': 1, '5': 11, '6': '.SGTransaction.DAGStruct', '10': 'dagStruct'},
+    {'1': 'utxo_params', '3': 2, '4': 1, '5': 11, '6': '.SGTransaction.UTXOTxParams', '10': 'utxoParams'},
     {'1': 'release_amount', '3': 3, '4': 1, '5': 4, '10': 'releaseAmount'},
     {'1': 'release_address', '3': 4, '4': 1, '5': 9, '10': 'releaseAddress'},
     {'1': 'escrow_source', '3': 5, '4': 1, '5': 9, '10': 'escrowSource'},
-    {
-      '1': 'original_escrow_hash',
-      '3': 6,
-      '4': 1,
-      '5': 9,
-      '10': 'originalEscrowHash'
-    },
+    {'1': 'original_escrow_hash', '3': 6, '4': 1, '5': 9, '10': 'originalEscrowHash'},
   ],
 };
 
@@ -273,3 +237,4 @@ final $typed_data.Uint8List escrowReleaseTxDescriptor = $convert.base64Decode(
     'FzZUFtb3VudBInCg9yZWxlYXNlX2FkZHJlc3MYBCABKAlSDnJlbGVhc2VBZGRyZXNzEiMKDWVz'
     'Y3Jvd19zb3VyY2UYBSABKAlSDGVzY3Jvd1NvdXJjZRIwChRvcmlnaW5hbF9lc2Nyb3dfaGFzaB'
     'gGIAEoCVISb3JpZ2luYWxFc2Nyb3dIYXNo');
+
