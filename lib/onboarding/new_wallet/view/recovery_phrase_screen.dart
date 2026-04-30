@@ -260,7 +260,7 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           SizedBox(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.sizeOf(context).width,
             height: 280,
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -275,13 +275,13 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.only(top: 0),
             margin: const EdgeInsets.only(bottom: 20),
-            width: MediaQuery.of(context).size.width * 0.8,
+            width: MediaQuery.sizeOf(context).width * 0.8,
             child: const _WordsAndCopy(),
           ),
         ],
       ),
       footer: SizedBox(
-        width: MediaQuery.of(context).size.width * .8,
+        width: MediaQuery.sizeOf(context).width * .8,
         height: 50,
         child: MaterialButton(
           onPressed: () {

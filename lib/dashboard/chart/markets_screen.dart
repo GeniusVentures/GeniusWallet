@@ -15,7 +15,7 @@ class MarketsScreen extends StatelessWidget {
   const MarketsScreen({Key? key}) : super(key: key);
 
   int getCrossAxisCount(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+    double width = MediaQuery.sizeOf(context).width;
     if (width >= 1300) return 4; // Desktop: 4 per row
     if (width >= 1050) return 3; // Tablet: 3 per row
     if (width >= 550) return 2; // Small Tablet: 2 per row
@@ -23,7 +23,7 @@ class MarketsScreen extends StatelessWidget {
   }
 
   double getChildAspectRatio(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    double screenWidth = MediaQuery.sizeOf(context).width;
     int columns = getCrossAxisCount(context);
     double cardWidth = screenWidth / columns - 8; // Account for padding
     return cardWidth / 80; // Ensures 100px height

@@ -21,7 +21,7 @@ class SupportedExistingWallets extends StatelessWidget {
       // SupportedWallet(name: 'Tron', image: 'assets/images/tron_icon.png', coinType: TWCoinType.TWCoinTypeTron)
     ];
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.25,
+      width: MediaQuery.sizeOf(context).width * 0.25,
       height: GeniusBreakpoints.useDesktopLayout(context)
           ? (70 * supportedNetworks.length).toDouble()
           : null,

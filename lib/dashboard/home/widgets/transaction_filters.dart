@@ -20,7 +20,7 @@ class TransactionFiltersState extends State<TransactionFilters> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     final isFilterApplied = _selectedFilter != 'All';
 
     return Column(

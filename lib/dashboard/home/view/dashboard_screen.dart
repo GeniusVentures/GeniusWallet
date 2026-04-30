@@ -50,7 +50,7 @@ class DashboardScreenState extends State<DashboardScreen> {
     return SafeArea(
         child: Stack(fit: StackFit.expand, children: [
       BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-        double width = MediaQuery.of(context).size.width;
+        double width = MediaQuery.sizeOf(context).width;
         bool is3Column = width > 1500;
         bool is2Column = width > 1150;
 
@@ -84,7 +84,7 @@ class ThreeColumnDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final availableHeight = MediaQuery.of(context).size.height -
+    final availableHeight = MediaQuery.sizeOf(context).height -
         GeniusWalletConsts.appBarHeight -
         18;
     final topRowHeight = availableHeight * .45;
@@ -194,7 +194,7 @@ class OneColumnDashBoardView extends StatelessWidget {
       if (selectedWallet != null) {
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
-              height: MediaQuery.of(context).size.height - 175,
+              height: MediaQuery.sizeOf(context).height - 175,
               child: isSgnusWallet
                   ? const GeniusWalletDetailsScreen()
                   : const WalletDetailsScreen()),

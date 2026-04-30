@@ -260,7 +260,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxHeight: widget.chartHeight ??
-                            MediaQuery.of(context).size.height * 0.25,
+                            MediaQuery.sizeOf(context).height * 0.25,
                         minHeight: 120,
                       ),
                       child: LineChart(
@@ -368,11 +368,11 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                 )
               : SizedBox(
                   height: widget.chartHeight ??
-                      MediaQuery.of(context).size.height * 0.25,
+                      MediaQuery.sizeOf(context).height * 0.25,
                   child: Center(
                     child: PulsingSkeleton(
                       height: widget.chartHeight ??
-                          MediaQuery.of(context).size.height * 0.25,
+                          MediaQuery.sizeOf(context).height * 0.25,
                       width: double.infinity,
                     ),
                   ),

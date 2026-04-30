@@ -141,8 +141,8 @@ class _PinViewMobile extends StatelessWidget {
       body: AppScreenView(
         body: ConstrainedBox(
           constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width * 0.8,
-            maxWidth: MediaQuery.of(context).size.width * 0.8,
+            minWidth: MediaQuery.sizeOf(context).width * 0.8,
+            maxWidth: MediaQuery.sizeOf(context).width * 0.8,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,7 +175,7 @@ class _PinViewMobile extends StatelessWidget {
                 },
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.2,
+                height: MediaQuery.sizeOf(context).height * 0.2,
               ),
               Center(
                 child: Text(
@@ -189,7 +189,7 @@ class _PinViewMobile extends StatelessWidget {
               const SizedBox(height: 28),
               Center(
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.4,
+                  width: MediaQuery.sizeOf(context).width * 0.4,
                   child: MaterialPinField(
                     obscureText: true,
                     obscuringWidget: Container(
@@ -227,7 +227,7 @@ class _PinViewMobile extends StatelessWidget {
               Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.8,
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.8,
                   ),
                   child: const NumberPad(),
                 ),

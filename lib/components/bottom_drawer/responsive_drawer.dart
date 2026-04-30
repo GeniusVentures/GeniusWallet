@@ -12,7 +12,7 @@ class ResponsiveDrawer {
     Widget? footer,
     VoidCallback? onClose,
   }) {
-    final isDesktop = MediaQuery.of(context).size.width >= _desktopBreakpoint;
+    final isDesktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
 
     final Future<T?> future = isDesktop
         ? showDialog<T>(

@@ -39,7 +39,7 @@ class _BackupPhraseViewMobile extends StatelessWidget {
       body: Column(
         children: [
           SizedBox(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.sizeOf(context).width,
             height: 190,
             child: LayoutBuilder(builder: (context, constraints) {
               return RegistrationHeader(
@@ -49,11 +49,11 @@ class _BackupPhraseViewMobile extends StatelessWidget {
             }),
           ),
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.47,
+            height: MediaQuery.sizeOf(context).height * 0.47,
           ),
           SizedBox(
             height: 100,
-            width: MediaQuery.of(context).size.width * 0.86,
+            width: MediaQuery.sizeOf(context).width * 0.86,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return WalletAgreementCustom(
@@ -69,7 +69,7 @@ class _BackupPhraseViewMobile extends StatelessWidget {
         ],
       ),
       footer: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.8,
+        width: MediaQuery.sizeOf(context).width * 0.8,
         height: 46,
         child: LayoutBuilder(
           builder: (context, constraints) {

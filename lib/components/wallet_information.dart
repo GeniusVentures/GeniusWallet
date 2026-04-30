@@ -152,7 +152,7 @@ class WalletInformationState extends State<WalletInformation> {
                   children: [
                     Container(
                       margin: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * .15),
+                          top: MediaQuery.sizeOf(context).height * .15),
                       alignment: Alignment.center,
                       child: CryptoAddressQR(
                         iconPath: state.selectedNetwork?.iconPath,

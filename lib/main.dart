@@ -60,8 +60,7 @@ void main() async {
         ],
         child: AppLifecycleHandler(
           geniusApi: geniusApi,
-          child:
-              MyApp(
+          child: MyApp(
             geniusApi: geniusApi,
           ),
         )),

@@ -16,7 +16,7 @@ class LandingScreen extends StatelessWidget {
       body: AppScreenView(
         body: Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
-          height: MediaQuery.of(context).size.height - 80,
+          height: MediaQuery.sizeOf(context).height - 80,
           child: Stack(
             children: [
               Align(

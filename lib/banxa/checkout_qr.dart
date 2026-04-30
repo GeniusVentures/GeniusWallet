@@ -21,8 +21,8 @@ class CheckoutQrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qrSize = math.max(
-        160.0, math.min(320.0, MediaQuery.of(context).size.width - 64));
+    final qrSize =
+        math.max(160.0, math.min(320.0, MediaQuery.sizeOf(context).width - 64));
 
     return BlocBuilder<PollingCubit, PollingState>(
       builder: (context, state) {

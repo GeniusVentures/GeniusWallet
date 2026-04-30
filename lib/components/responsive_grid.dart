@@ -7,7 +7,7 @@ class ResponsiveGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    double screenWidth = MediaQuery.sizeOf(context).width;
     int axisCount = screenWidth < 750 || GeniusBreakpoints.isNativeApp(context)
         ? 1
         : screenWidth < 1000

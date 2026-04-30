@@ -14,7 +14,7 @@ import 'package:genius_wallet/web/web_view_screen.dart';
 
 class ResponsiveOverlay extends StatelessWidget {
   final NavigationScreen? selectedScreen;
-  const ResponsiveOverlay({Key? key, this.selectedScreen}) : super(key: key);
+  const ResponsiveOverlay({super.key, this.selectedScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +24,6 @@ class ResponsiveOverlay extends StatelessWidget {
 
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
-        final platform = GeniusBreakpoints.getPlaform(context);
-
         // Map screen enum to actual widget
         final screenMap = <NavigationScreen, Widget>{
           NavigationScreen.dashboard: const DashboardScreen(),
@@ -46,7 +44,7 @@ class ResponsiveOverlay extends StatelessWidget {
         );
 
         if (!GeniusBreakpoints.useDesktopOverlay(context) ||
-            platform == Platforms.mobile) {
+            GeniusBreakpoints.isMobileApp()) {
           return MobileOverlay(child: child);
         } else {
           return DesktopOverlay(child: child);

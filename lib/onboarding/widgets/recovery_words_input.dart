@@ -17,7 +17,7 @@ class RecoveryWordsInput extends StatelessWidget {
           color: GeniusWalletColors.grayPrimary),
       padding: const EdgeInsets.all(16),
       height: 180,
-      width: MediaQuery.of(context).size.width,
+      width: MediaQuery.sizeOf(context).width,
       child: Text(selectedWords.join(' ')),
     );
   }

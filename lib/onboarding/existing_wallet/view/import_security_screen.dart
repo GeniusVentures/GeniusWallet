@@ -223,7 +223,7 @@ class _ImportSecurityBody extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.sizeOf(context).width * 0.9,
           child: const FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
@@ -239,7 +239,7 @@ class _ImportSecurityBody extends StatelessWidget {
         const SizedBox(height: 10),
         SizedBox(
           height: 70,
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.sizeOf(context).width * 0.9,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               return TextEntryFieldWidget(
@@ -273,7 +273,7 @@ class _ImportSecurityBody extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.sizeOf(context).width * 0.9,
           height: 400,
           child: TabBarView(
             children: [
@@ -331,7 +331,7 @@ class _ImportSecurityContinueButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 50,
-      width: MediaQuery.of(context).size.width * 0.8,
+      width: MediaQuery.sizeOf(context).width * 0.8,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           return MaterialButton(

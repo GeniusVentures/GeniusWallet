@@ -38,7 +38,7 @@ class PasteField extends StatelessWidget {
             borderRadius:
                 BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
           ),
-          width: MediaQuery.of(context).size.width * 0.9,
+          width: MediaQuery.sizeOf(context).width * 0.9,
           height: height,
           child: Stack(
             children: [
@@ -85,7 +85,7 @@ class PasteField extends StatelessWidget {
         ...addon,
         const SizedBox(height: 20),
         SizedBox(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.sizeOf(context).width,
             child: Text(
               subtitle,
               textAlign: TextAlign.left,

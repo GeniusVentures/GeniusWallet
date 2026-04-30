@@ -55,9 +55,9 @@ class _LegalViewMobile extends StatelessWidget {
       body: ConstrainedBox(
         constraints: BoxConstraints(
           minHeight: 50,
-          minWidth: MediaQuery.of(context).size.width * 0.8,
-          maxHeight: MediaQuery.of(context).size.width * 0.8,
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
+          minWidth: MediaQuery.sizeOf(context).width * 0.8,
+          maxHeight: MediaQuery.sizeOf(context).width * 0.8,
+          maxWidth: MediaQuery.sizeOf(context).width * 0.8,
         ),
         child: const _ToSButtons(),
       ),
@@ -110,7 +110,7 @@ class _ToSButtons extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
+              width: MediaQuery.sizeOf(context).width * 0.8,
               height: 50,
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -123,7 +123,7 @@ class _ToSButtons extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
+              width: MediaQuery.sizeOf(context).width * 0.8,
               height: 50,
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -152,7 +152,7 @@ class _Agreement extends StatelessWidget {
       children: [
         SizedBox(
           height: 100,
-          width: MediaQuery.of(context).size.width * 0.8,
+          width: MediaQuery.sizeOf(context).width * 0.8,
           child: LayoutBuilder(
             builder: (context, constraints) {
               return WalletAgreementCustom(
@@ -165,7 +165,7 @@ class _Agreement extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
+          width: MediaQuery.sizeOf(context).width * 0.8,
           height: 50,
           child: LayoutBuilder(
             builder: (context, constraints) {

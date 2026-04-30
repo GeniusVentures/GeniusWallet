@@ -19,7 +19,7 @@ class _NewsCardState extends State<NewsCard> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width <= 800;
+    final isMobile = MediaQuery.sizeOf(context).width <= 800;
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),

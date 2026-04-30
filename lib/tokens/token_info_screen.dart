@@ -285,7 +285,7 @@ class TokenInfoScreen extends StatelessWidget {
               children: [
                 Container(
                   margin: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * .15),
+                      top: MediaQuery.sizeOf(context).height * .15),
                   alignment: Alignment.center,
                   child: CryptoAddressQR(
                     iconPath: selectedCoin?.iconPath,

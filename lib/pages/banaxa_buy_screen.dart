@@ -91,7 +91,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             );
           }
 
-          final w = MediaQuery.of(context).size.width;
+          final w = MediaQuery.sizeOf(context).width;
           final compact = w < 400;
           final tight = w < 320;
           final pad = EdgeInsets.all(compact ? 12 : 16);

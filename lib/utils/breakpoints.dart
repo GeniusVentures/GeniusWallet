@@ -16,28 +16,15 @@ abstract class GeniusBreakpoints {
   static const double large = 1920;
 
   static bool useDesktopLayout(BuildContext context) {
-    return MediaQuery.of(context).size.width > small && !isMobileApp();
+    return MediaQuery.sizeOf(context).width > small && !isMobileApp();
   }
 
   static bool useDesktopOverlay(BuildContext context) {
-    return MediaQuery.of(context).size.width > tablet && !isMobileApp();
+    return MediaQuery.sizeOf(context).width > tablet && !isMobileApp();
   }
 
-  static bool isNativeApp(BuildContext context) {
-    return getPlaform(context) == Platforms.mobile;
-  }
-
-  static Platforms getPlaform(BuildContext context) {
-    if (kIsWeb) {
-      return MediaQuery.of(context).size.width >= small
-          ? Platforms.desktop
-          : Platforms.mobile;
-    } else {
-      return isMobileApp() ? Platforms.mobile : Platforms.desktop;
-    }
-  }
-
-  static bool isMobileApp() => Platform.isAndroid || Platform.isIOS;
+  static bool isMobileApp() =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 }
 
 enum Platforms {

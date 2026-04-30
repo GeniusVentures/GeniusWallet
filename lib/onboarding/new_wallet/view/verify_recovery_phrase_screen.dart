@@ -148,7 +148,7 @@ class _VerifyRecoveryPhraseViewDesktopState
             subText: widget.subtitle,
             width: 700,
             child: SizedBox(
-              width: MediaQuery.of(context).size.width,
+              width: MediaQuery.sizeOf(context).width,
               height: 700,
               child: Column(
                 children: [
@@ -455,7 +455,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                 // Recovery phrase grid
                 Container(
                   constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.9,
                   ),
                   decoration: BoxDecoration(
                     color: GeniusWalletColors.grayPrimary,
@@ -577,7 +577,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                   const SizedBox(height: 20),
                   Container(
                     constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.9,
+                      maxWidth: MediaQuery.sizeOf(context).width * 0.9,
                     ),
                     child: Wrap(
                       spacing: 12,
@@ -716,7 +716,7 @@ class _VerifyRecoveryPhraseViewMobileState
         children: [
           // Fixed header - works well on mobile
           SizedBox(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.sizeOf(context).width,
             height: 180,
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -738,7 +738,7 @@ class _VerifyRecoveryPhraseViewMobileState
       footer: Padding(
         padding: const EdgeInsets.only(bottom: 20.0),
         child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
+          width: MediaQuery.sizeOf(context).width * 0.8,
           height: 50,
           child: MaterialButton(
             onPressed: _triggerContinue,

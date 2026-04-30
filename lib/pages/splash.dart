@@ -25,8 +25,8 @@ class Splash extends StatelessWidget {
         backgroundColor: GeniusWalletColors.deepBlue,
         body: AppScreenView(
           body: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.sizeOf(context).width,
+            height: MediaQuery.sizeOf(context).height,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
