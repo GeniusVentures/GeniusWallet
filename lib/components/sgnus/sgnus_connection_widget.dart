@@ -7,7 +7,7 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {

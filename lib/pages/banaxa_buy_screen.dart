@@ -10,7 +10,7 @@ import 'package:genius_wallet/banxa/banaxa_model.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/components/custom_drop_down.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';

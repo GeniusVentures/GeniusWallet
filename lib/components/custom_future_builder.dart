@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 
 class FutureStateWidget<T> extends StatelessWidget {
