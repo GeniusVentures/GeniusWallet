@@ -14,7 +14,7 @@ import 'package:genius_wallet/pages/order_details_page.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/pages/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
