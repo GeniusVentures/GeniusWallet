@@ -1215,26 +1215,26 @@ packages:
     dependency: transitive
     description:
       name: reown_core
-      sha256: "8bb095d6e50ce5ee1a6a5bb50d3032b9fa283be75f1d002457d61d0cdb2062b9"
+      sha256: "41295f6bc7a656af3b7bf20f69c0e41a4ee83a1d10803269e46f2213184e136b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.1"
+    version: "1.3.8"
   reown_sign:
     dependency: transitive
     description:
       name: reown_sign
-      sha256: "008dcf02cb6cffa89b73e0296c45055ca2bf4edc84b93f73a3ba0c80dff459b8"
+      sha256: "28457489a9473bb68968df0a71f46b16b1e9d4636515c523018e801abe4bee2b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.1"
+    version: "1.3.8"
   reown_walletkit:
     dependency: "direct main"
     description:
       name: reown_walletkit
-      sha256: "1680a20b4dd2e49577861a5a63d3ef6164ef2b650d1bf2d2c72feca441701858"
+      sha256: c15985ef4227e714d5b6be694e867cd6e55468da517663eb037331185f77f533
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
+    version: "1.3.8"
   responsive_framework:
     dependency: "direct main"
     description:

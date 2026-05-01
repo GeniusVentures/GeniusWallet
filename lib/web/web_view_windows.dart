@@ -25,6 +25,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   final TextEditingController _urlController = TextEditingController();
   StreamSubscription<String>? _urlSubscription;
   Timer? _clipboardPoller;
+  bool _isClipboardPairing = false;
+  String? _lastHandledWalletConnectUri;
   bool _resourcesDisposed = false;
   final List<String> history = [];
   int currentHistoryIndex = -1;
@@ -46,12 +48,32 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       final clipboard = await Clipboard.getData('text/plain');
       final text = clipboard?.text ?? '';
       if (text.startsWith('wc:')) {
-        debugPrint('📋 WalletConnect URI from clipboard: $text');
-        WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
-        // Clear the clipboard after processing to avoid repeated connections
-        await Clipboard.setData(const ClipboardData(text: ''));
+        await _pairWalletConnectFromClipboard(text);
       }
     });
+  }
+
+  Future<void> _pairWalletConnectFromClipboard(String text) async {
+    if (_isClipboardPairing || _resourcesDisposed) {
+      return;
+    }
+    if (_lastHandledWalletConnectUri == text) {
+      return;
+    }
+
+    _isClipboardPairing = true;
+    try {
+      await WalletKitInstance().initOnce();
+      debugPrint('📋 WalletConnect URI from clipboard: $text');
+      await WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
+      _lastHandledWalletConnectUri = text;
+      // Clear the clipboard after processing to avoid repeated connections.
+      await Clipboard.setData(const ClipboardData(text: ''));
+    } catch (e) {
+      debugPrint('❌ Clipboard WalletConnect pair failed: $e');
+    } finally {
+      _isClipboardPairing = false;
+    }
   }
 
   Future<void> _initializeWebView() async {

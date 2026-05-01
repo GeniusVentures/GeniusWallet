@@ -41,6 +41,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   ReownWalletKit get walletKit => WalletKitInstance().walletKit;
   SessionData? _session;
   bool _isConnecting = false;
+  bool _isDisconnecting = false;
+  bool _didManualPair = false;
   bool _hasError = false;
   bool _timedOut = false;
   String _statusMessage = '';
@@ -204,10 +206,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   }
 
   Future<void> _connect() async {
+    if (_isDisconnecting) {
+      return;
+    }
+
     setState(() {
       _isConnecting = true;
       _hasError = false;
       _timedOut = false;
+      _didManualPair = false;
       _statusMessage = "🔄 Generating QR Code...";
     });
 
@@ -378,7 +385,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                       }
 
                       try {
-                        await walletKit.pair(uri: Uri.parse(input));
+                        final paired = await _tryPair(Uri.parse(input));
+                        if (!paired) {
+                          setInnerState(() {
+                            manualInputError =
+                                '❌ Failed to start WalletConnect session.';
+                          });
+                          return;
+                        }
+                        _didManualPair = true;
                         Navigator.of(context).pop();
                       } catch (e) {
                         setInnerState(() {
@@ -479,7 +494,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       });
 
       // Call pairing to start the process
-      await walletKit.pair(uri: Uri.parse(wcUri));
+      if (!_didManualPair) {
+        await _tryPair(Uri.parse(wcUri));
+      }
     } catch (e) {
       setState(() {
         _statusMessage = '❌ Connection failed: $e';
@@ -490,17 +507,46 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
   }
 
+  Future<bool> _tryPair(Uri uri) async {
+    try {
+      await walletKit.pair(uri: uri);
+      return true;
+    } catch (e) {
+      debugPrint('❌ WalletKit pair failed: $e');
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _hasError = true;
+          _statusMessage = '❌ Connection failed: $e';
+        });
+      }
+      return false;
+    }
+  }
+
   Future<void> _disconnect() async {
-    if (_session != null) {
+    if (_session == null || _isDisconnecting) {
+      return;
+    }
+
+    _isDisconnecting = true;
+    try {
       await walletKit.disconnectSession(
         topic: _session!.topic,
         reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
       );
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _session = null;
         _statusMessage = '🔌 Disconnected.';
         _hasError = false;
       });
+    } catch (e) {
+      debugPrint('❌ Disconnect failed: $e');
+    } finally {
+      _isDisconnecting = false;
     }
   }
 
@@ -559,7 +605,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             ),
           ),
           onPressed: () {
-            if (_isConnecting) return;
+            if (_isConnecting || _isDisconnecting) return;
             if (isConnected) {
               _disconnect();
             } else {
