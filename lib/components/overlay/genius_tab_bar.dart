@@ -66,7 +66,8 @@ final List<TabDestination> _allDestinations = [
   ),
 ];
 
-List<TabDestination> get _visibleDestinations => _allDestinations.where((d) => d.visible).toList();
+List<TabDestination> get _visibleDestinations =>
+    _allDestinations.where((d) => d.visible).toList();
 
 int _currentIndex(BuildContext context) {
   final location = GoRouterState.of(context).uri.path;
@@ -133,7 +134,9 @@ class DesktopTopBar extends StatelessWidget {
                   ...destinations.indexed.map((entry) {
                     final (index, dest) = entry;
                     final isSelected = index == selected;
-                    final color = isSelected ? Colors.greenAccent : Colors.white.withAlpha(153);
+                    final color = isSelected
+                        ? Colors.greenAccent
+                        : Colors.white.withAlpha(153);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -148,7 +151,8 @@ class DesktopTopBar extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
                                 child: Row(
                                   children: [
                                     Icon(
@@ -160,7 +164,8 @@ class DesktopTopBar extends StatelessWidget {
                                       const SizedBox(width: 6),
                                       Text(
                                         dest.label,
-                                        style: TextStyle(fontSize: 14, color: color),
+                                        style: TextStyle(
+                                            fontSize: 14, color: color),
                                       ),
                                     ],
                                   ],
@@ -172,7 +177,9 @@ class DesktopTopBar extends StatelessWidget {
                                 height: 1,
                                 width: 60,
                                 decoration: BoxDecoration(
-                                  color: isSelected ? Colors.greenAccent : Colors.transparent,
+                                  color: isSelected
+                                      ? Colors.greenAccent
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -191,7 +198,8 @@ class DesktopTopBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   const SizedBox(width: 155, child: AccountDropdownSelector()),
                   ReownConnectButton(
-                    walletAddress: walletDetailsCubit.state.selectedWallet?.address ?? '',
+                    walletAddress:
+                        walletDetailsCubit.state.selectedWallet?.address ?? '',
                     geniusApi: context.read<GeniusApi>(),
                     walletDetailsCubit: walletDetailsCubit,
                     transactionsCubit: context.read<TransactionsCubit>(),
@@ -199,7 +207,8 @@ class DesktopTopBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   BuyGnusButton(
                     userEmail: '',
-                    walletAddress: walletDetailsCubit.state.selectedWallet?.address ?? '',
+                    walletAddress:
+                        walletDetailsCubit.state.selectedWallet?.address ?? '',
                   ),
                   const SizedBox(width: 8),
                 ],

@@ -117,7 +117,8 @@ final geniusWalletRouter = GoRouter(
         final extOrderId = qp['extOrderId'];
         final orderIdFromBanxa = qp['orderId'];
 
-        final effectiveOrderId = orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
+        final effectiveOrderId =
+            orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
 
         if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
           return OrderDetailsPage(
@@ -154,7 +155,8 @@ final geniusWalletRouter = GoRouter(
         final api = BanxaApiService();
 
         return BlocProvider(
-          create: (_) => PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
+          create: (_) =>
+              PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
           child: CheckoutQrPage(
             checkoutUrl: checkoutUrl,
             orderId: orderId ?? '',
@@ -258,7 +260,8 @@ final geniusWalletRouter = GoRouter(
     ),
     ShellRoute(
       builder: (context, state, child) {
-        if (!GeniusBreakpoints.useDesktopOverlay(context) || GeniusBreakpoints.isMobileApp()) {
+        if (!GeniusBreakpoints.useDesktopOverlay(context) ||
+            GeniusBreakpoints.isMobileApp()) {
           return MobileOverlay(child: child);
         } else {
           return DesktopOverlay(child: child);
@@ -281,9 +284,11 @@ final geniusWalletRouter = GoRouter(
           GoRoute(
             path: '/web',
             builder: ((context, state) {
-              final WebViewExtras extras =
-                  state.extra != null ? state.extra as WebViewExtras : WebViewExtras();
-              return WebViewScreen(url: extras.url, includeBackButton: extras.includeBackButton);
+              final WebViewExtras extras = state.extra != null
+                  ? state.extra as WebViewExtras
+                  : WebViewExtras();
+              return WebViewScreen(
+                  url: extras.url, includeBackButton: extras.includeBackButton);
             }),
           ),
         GoRoute(
@@ -299,8 +304,9 @@ final geniusWalletRouter = GoRouter(
     GoRoute(
       path: '/token-info',
       builder: (context, state) {
-        final extra =
-            state.extra != null ? state.extra as Map<String, dynamic> : <String, dynamic>{};
+        final extra = state.extra != null
+            ? state.extra as Map<String, dynamic>
+            : <String, dynamic>{};
         return TokenInfoScreen(
             walletDetailsCubit: context.read<WalletDetailsCubit>(),
             securityInfo: extra["securityInfo"],

@@ -18,33 +18,22 @@ class AppScreenWithHeaderDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 120,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return RegistrationHeader(
-                    constraints,
-                    ovrTitle: title,
-                    ovrSubtitle: subtitle,
-                  );
-                },
-              ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 120,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return RegistrationHeader(
+                  constraints,
+                  ovrTitle: title,
+                  ovrSubtitle: subtitle,
+                );
+              },
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: body,
-          ),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Container(
-              alignment: Alignment.bottomCenter,
-              child: footer,
-            ),
-          ),
+          Expanded(child: body),
+          footer,
         ],
       ),
     );
