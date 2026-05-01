@@ -4,38 +4,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banxa/banaxa_api_services.dart';
-import 'package:genius_wallet/pages/banaxa_buy_screen.dart';
 import 'package:genius_wallet/banxa/banaxa_orders_history.dart';
 import 'package:genius_wallet/banxa/banaxa_payment.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
-import 'package:genius_wallet/pages/order_details_page.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
-import 'package:genius_wallet/pages/splash.dart';
-import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
+import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
+import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
+import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
+import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
-import 'package:genius_wallet/squid_router/swap_screen.dart';
-import 'package:genius_wallet/tokens/token_info_screen.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
+import 'package:genius_wallet/pages/banaxa_buy_screen.dart';
+import 'package:genius_wallet/pages/order_details_page.dart';
+import 'package:genius_wallet/pages/splash.dart';
 import 'package:genius_wallet/services/coins_service.dart';
+import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/tokens/token_info_screen.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
-import 'package:genius_wallet/components/toast/toast_manager.dart';
-import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
 import 'package:go_router/go_router.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -113,8 +117,7 @@ final geniusWalletRouter = GoRouter(
         final extOrderId = qp['extOrderId'];
         final orderIdFromBanxa = qp['orderId'];
 
-        final effectiveOrderId =
-            orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
+        final effectiveOrderId = orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
 
         if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
           return OrderDetailsPage(
@@ -151,8 +154,7 @@ final geniusWalletRouter = GoRouter(
         final api = BanxaApiService();
 
         return BlocProvider(
-          create: (_) =>
-              PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
+          create: (_) => PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
           child: CheckoutQrPage(
             checkoutUrl: checkoutUrl,
             orderId: orderId ?? '',
@@ -177,12 +179,6 @@ final geniusWalletRouter = GoRouter(
           checkoutUrl: checkoutUrl,
           redirectUrl: redirectUrl,
         );
-      },
-    ),
-    GoRoute(
-      path: '/swap',
-      builder: (context, state) {
-        return const SwapScreen();
       },
     ),
     GoRoute(
@@ -260,18 +256,51 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
-    GoRoute(
-      path: '/dashboard',
-      builder: ((context, state) {
-        return const ResponsiveOverlay();
-      }),
+    ShellRoute(
+      builder: (context, state, child) {
+        if (!GeniusBreakpoints.useDesktopOverlay(context) || GeniusBreakpoints.isMobileApp()) {
+          return MobileOverlay(child: child);
+        } else {
+          return DesktopOverlay(child: child);
+        }
+      },
+      routes: [
+        GoRoute(
+          path: '/dashboard',
+          builder: (_, __) => const DashboardScreen(),
+        ),
+        GoRoute(
+          path: '/transactions',
+          builder: (_, __) => const TransactionsScreen(),
+        ),
+        GoRoute(
+          path: '/swap',
+          builder: (_, __) => const SwapScreen(),
+        ),
+        if (!Platform.isLinux)
+          GoRoute(
+            path: '/web',
+            builder: ((context, state) {
+              final WebViewExtras extras =
+                  state.extra != null ? state.extra as WebViewExtras : WebViewExtras();
+              return WebViewScreen(url: extras.url, includeBackButton: extras.includeBackButton);
+            }),
+          ),
+        GoRoute(
+          path: '/markets',
+          builder: (_, __) => const MarketsScreen(),
+        ),
+        GoRoute(
+          path: '/news',
+          builder: (_, __) => const CryptoNewsScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/token-info',
       builder: (context, state) {
-        final extra = state.extra != null
-            ? state.extra as Map<String, dynamic>
-            : <String, dynamic>{};
+        final extra =
+            state.extra != null ? state.extra as Map<String, dynamic> : <String, dynamic>{};
         return TokenInfoScreen(
             walletDetailsCubit: context.read<WalletDetailsCubit>(),
             securityInfo: extra["securityInfo"],
@@ -279,14 +308,6 @@ final geniusWalletRouter = GoRouter(
             isGnusWalletConnected: extra["isGnusWalletConnected"],
             marketData: extra["marketData"]);
       },
-    ),
-    GoRoute(
-      path: '/transactions',
-      builder: ((context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.transactions,
-        );
-      }),
     ),
     GoRoute(
       path: '/bridge',
@@ -311,33 +332,6 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
-    GoRoute(
-      path: '/markets',
-      builder: (context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.markets,
-        );
-      },
-    ),
-    GoRoute(
-      path: '/news',
-      builder: (context, state) {
-        return const ResponsiveOverlay(
-          selectedScreen: NavigationScreen.news,
-        );
-      },
-    ),
-    if (!Platform.isLinux)
-      GoRoute(
-        path: '/web',
-        builder: ((context, state) {
-          final WebViewExtras extras = state.extra != null
-              ? state.extra as WebViewExtras
-              : WebViewExtras();
-          return WebViewScreen(
-              url: extras.url, includeBackButton: extras.includeBackButton);
-        }),
-      ),
     ...LandingRoutes().landingRoutes,
   ],
 );

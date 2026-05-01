@@ -1,7 +1,8 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/components/recoveryword.g.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class RecoveryWords extends StatefulWidget {
   final List<String> recoveryWords;
@@ -86,7 +87,7 @@ class _RecoveryWordButton extends State<RecoveryWordButton> {
             }
           : null,
       child: LayoutBuilder(builder: (context, constraints) {
-        return Recoveryword(
+        return RecoveryWord(
           isEnabled: isEnabled,
           constraints,
           ovrWord: widget.isIncludeIndex
@@ -95,5 +96,56 @@ class _RecoveryWordButton extends State<RecoveryWordButton> {
         );
       }),
     );
+  }
+}
+
+class RecoveryWord extends StatefulWidget {
+  final BoxConstraints constraints;
+  final String? ovrWord;
+  final bool isEnabled;
+  const RecoveryWord(this.constraints,
+      {super.key, this.ovrWord, this.isEnabled = true});
+  @override
+  State<RecoveryWord> createState() => _Recoveryword();
+}
+
+class _Recoveryword extends State<RecoveryWord> {
+  _Recoveryword();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        decoration: const BoxDecoration(),
+        child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(48)),
+              border: widget.isEnabled
+                  ? Border.all(
+                      color: GeniusWalletColors.lightGreenSecondary,
+                      width: 1.0,
+                    )
+                  : Border.all(
+                      color: GeniusWalletColors.borderGrey,
+                      width: 1.0,
+                    ),
+            ),
+            child: AutoSizeText(
+              widget.ovrWord ?? '1 limb',
+              style: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 0.0,
+                  color: widget.isEnabled
+                      ? Colors.white
+                      : GeniusWalletColors.btnTextDisabled),
+              textAlign: TextAlign.center,
+            )));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

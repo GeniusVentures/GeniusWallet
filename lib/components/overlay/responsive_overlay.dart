@@ -1,55 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
-import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
-import 'package:genius_wallet/squid_router/swap_screen.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/overlay/desktop_overlay.dart';
-import 'package:genius_wallet/components/overlay/mobile_overlay.dart';
-import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
-import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
-import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
-import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
-import 'package:genius_wallet/web/web_view_screen.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/account/account_dropdown_selector.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/overlay/genius_tab_bar.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/network/network_dropdown_selector.dart';
+import 'package:genius_wallet/reown/reown_connect_button.dart';
+import 'package:genius_wallet/test/dev_tools_widget.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-class ResponsiveOverlay extends StatelessWidget {
-  final NavigationScreen? selectedScreen;
-  const ResponsiveOverlay({super.key, this.selectedScreen});
+class MobileOverlay extends StatelessWidget {
+  final Widget child;
+  const MobileOverlay({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    if (selectedScreen != null) {
-      context.read<NavigationOverlayCubit>().navigationTapped(selectedScreen!);
-    }
+    final walletCubit = context.read<WalletDetailsCubit>();
 
-    return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
-      builder: (context, state) {
-        // Map screen enum to actual widget
-        final screenMap = <NavigationScreen, Widget>{
-          NavigationScreen.dashboard: const DashboardScreen(),
-          NavigationScreen.transactions: const TransactionsScreen(),
-          NavigationScreen.swap: const SwapScreen(),
-          NavigationScreen.news: const CryptoNewsScreen(),
-          NavigationScreen.markets: const MarketsScreen(),
-          NavigationScreen.web:
-              const WebViewScreen(url: "https://app.uniswap.org"),
-        };
+    return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
+      return Scaffold(
+        extendBody: true,
+        backgroundColor: GeniusWalletColors.deepBlueTertiary,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const DevToolsWidget(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const NetworkDropdownSelector(),
+                    const Expanded(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: AccountDropdownSelector(),
+                      ),
+                    ),
+                    ReownConnectButton(
+                        walletAddress:
+                            walletCubit.state.selectedWallet?.address ??
+                                '0x0000000000000000000000000000000000000000',
+                        geniusApi: context.read<GeniusApi>(),
+                        walletDetailsCubit: walletCubit,
+                        transactionsCubit: context.read<TransactionsCubit>()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+        bottomNavigationBar: const MobileTabBar(),
+      );
+    });
+  }
+}
 
-        final selected = state.selectedScreen;
-        final currentIndex = screenMap.keys.toList().indexOf(selected);
+class DesktopOverlay extends StatelessWidget {
+  final Widget child;
+  const DesktopOverlay({super.key, required this.child});
 
-        final child = IndexedStack(
-          index: currentIndex,
-          children: screenMap.values.toList(),
-        );
-
-        if (!GeniusBreakpoints.useDesktopOverlay(context) ||
-            GeniusBreakpoints.isMobileApp()) {
-          return MobileOverlay(child: child);
-        } else {
-          return DesktopOverlay(child: child);
-        }
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      body: SafeArea(
+        child: BlocBuilder<AppBloc, AppState>(
+          builder: (context, state) {
+            return Column(
+              children: [
+                const DevToolsWidget(),
+                const DesktopTopBar(),
+                Expanded(child: child),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }

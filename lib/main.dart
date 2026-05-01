@@ -7,7 +7,6 @@ import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
@@ -108,8 +107,6 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    debugPrint(
-        "---------------------------------------------------------------------------------------------------");
     final result = widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
     debugPrint("GeniusApi shutdown on dispose: $result");
     super.dispose();
@@ -118,8 +115,6 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
-      debugPrint(
-          "---------------------------------------------------------------------------------------------------");
       final result = widget.geniusApi.shutdownSDK(); // Handle app exit
       debugPrint("GeniusApi shutdown on detach: $result");
     }
@@ -168,9 +163,6 @@ class MyApp extends StatelessWidget {
                   Provider.of<NetworkProvider>(context, listen: false),
             ),
           ),
-          BlocProvider(
-            create: (context) => NavigationOverlayCubit(),
-          )
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
