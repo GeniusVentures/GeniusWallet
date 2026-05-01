@@ -9,7 +9,7 @@ import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/utilities.dart';
 import 'package:http/http.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:wallet/wallet.dart' hide PrivateKey;
 import 'package:web3dart/web3dart.dart';
 import 'package:flutter/material.dart';
 
@@ -481,18 +481,22 @@ class Web3 {
     }
   }
 
-  String getPrivateKeyStr(wallet) {
-    PrivateKey privateKey;
+  String getPrivateKeyStr(StoredKeyWallet? wallet) {
     if (wallet == null) {
       return '';
     }
+    PrivateKey privateKey;
     if (wallet.storedKey.isMnemonic()) {
       privateKey = wallet.storedKey
           .wallet("")!
           .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
     } else {
-      privateKey = wallet.storedKey
+      final maybePK = wallet.storedKey
           .privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0));
+      if (maybePK == null) {
+        return '';
+      }
+      privateKey = maybePK;
     }
     return privateKey
         .data()
