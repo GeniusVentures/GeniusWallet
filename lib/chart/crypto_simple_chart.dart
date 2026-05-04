@@ -13,7 +13,7 @@ class CryptoSparkLineChart extends StatelessWidget {
   final double currentPrice;
   final double priceChangePercent;
   final List<double>? sparkline;
-  final double? iconSize;
+  final double iconSize;
 
   const CryptoSparkLineChart({
     super.key,
@@ -23,7 +23,7 @@ class CryptoSparkLineChart extends StatelessWidget {
     required this.currentPrice,
     required this.priceChangePercent,
     this.sparkline,
-    this.iconSize,
+    this.iconSize = 28,
     this.iconPath,
   });
 
@@ -53,15 +53,13 @@ class CryptoSparkLineChart extends StatelessWidget {
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
-            locale: "en_US",
             symbol: "\$",
             decimalDigits: tokenDecimalsToDisplay)
         .format(currentPrice);
 
     return ListTile(
-      minVerticalPadding: 0,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-      leading: buildTokenIcon(iconPath: iconPath ?? "", size: iconSize ?? 28),
+      leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
       title: AutoSizeText(
         title,
         style: const TextStyle(
@@ -77,12 +75,13 @@ class CryptoSparkLineChart extends StatelessWidget {
           color: currentPrice == 0 ? Colors.grey[600] : Colors.white,
         ),
       ),
+      titleAlignment: ListTileTitleAlignment.center,
       trailing: SizedBox(
-        height: 44, // Fix for overflow, ensures everything fits
+        height: 44,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 5.0,
           children: [
             Text(
               "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
@@ -92,9 +91,8 @@ class CryptoSparkLineChart extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 5),
             SizedBox(
-              width: 70,
+              width: 80,
               height: 15,
               child: LineChart(
                 LineChartData(

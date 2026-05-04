@@ -22,13 +22,6 @@ class MarketsScreen extends StatelessWidget {
     return 1; // Mobile: 1 per row
   }
 
-  double getChildAspectRatio(BuildContext context) {
-    double screenWidth = MediaQuery.sizeOf(context).width;
-    int columns = getCrossAxisCount(context);
-    double cardWidth = screenWidth / columns - 8; // Account for padding
-    return cardWidth / 80; // Ensures 100px height
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +106,7 @@ class MarketsScreen extends StatelessWidget {
                           crossAxisCount: getCrossAxisCount(context),
                           crossAxisSpacing: 8,
                           mainAxisSpacing: 8,
-                          childAspectRatio: getChildAspectRatio(context),
+                          mainAxisExtent: 80,
                         ),
                         itemCount: coins.length,
                         itemBuilder: (context, index) {
@@ -166,13 +159,11 @@ class MarketsScreen extends StatelessWidget {
               },
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                height: 100,
                 decoration: BoxDecoration(
                   color: GeniusWalletColors.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Center(
                   child: CryptoSparkLineChart(
                     title: coin.name,

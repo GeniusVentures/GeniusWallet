@@ -57,14 +57,54 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
           );
         }
 
-        return SizedBox(
-          height: double.infinity,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.title != null) ...[
+        final visibleCoins = widget.coins.where((coin) {
+          return marketData[coin.symbol.toLowerCase()] != null;
+        }).toList();
+
+        return ListView.separated(
+          padding: EdgeInsets.zero,
+          itemCount: visibleCoins.length,
+          separatorBuilder: (context, index) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 3,
+                color: GeniusWalletColors.deepBlueTertiary,
+              )
+            ],
+          ),
+          itemBuilder: (context, index) {
+            final coin = visibleCoins[index];
+            final data = marketData[coin.symbol.toLowerCase()]!;
+
+            final item = InkWell(
+              onTap: () {
+                context.push(
+                  '/token-info',
+                  extra: {
+                    "isGnusWalletConnected": false,
+                    "securityInfo": "Coming Soon",
+                    "transactionHistory": ["Coming Soon"],
+                    "marketData": data,
+                  },
+                );
+              },
+              child: CryptoSparkLineChart(
+                title: coin.name,
+                iconPath: data.imageUrl,
+                currentPrice: data.currentPrice,
+                high24h: data.high24h,
+                low24h: data.low24h,
+                priceChangePercent: data.priceChangePercentage24h,
+                sparkline: data.sparkline,
+              ),
+            );
+
+            if (index == 0 && widget.title != null) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Center(
                     child: AutoSizeText(
                       widget.title!,
@@ -76,54 +116,13 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  item,
                 ],
-                ...widget.coins.map((coin) {
-                  final data = marketData[coin.symbol.toLowerCase()];
+              );
+            }
 
-                  if (data == null) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Column(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          context.push(
-                            '/token-info',
-                            extra: {
-                              "isGnusWalletConnected": false,
-                              "securityInfo": "Coming Soon",
-                              "transactionHistory": ["Coming Soon"],
-                              "marketData": data
-                            },
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: CryptoSparkLineChart(
-                            title: coin.name,
-                            iconPath: data.imageUrl,
-                            currentPrice: data.currentPrice,
-                            high24h: data.high24h,
-                            low24h: data.low24h,
-                            priceChangePercent: data.priceChangePercentage24h,
-                            sparkline: data.sparkline,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        height: 2,
-                        color: GeniusWalletColors.deepBlueTertiary,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  );
-                }),
-              ],
-            ),
-          ),
+            return item;
+          },
         );
       },
     );
