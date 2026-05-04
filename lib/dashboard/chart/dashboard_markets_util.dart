@@ -1,44 +1,35 @@
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 
-final List<String> dashboardCoinIds = [
+final List<String> topCoinsByCapitalization = [
   "genius-ai",
   "bitcoin",
   "ethereum",
-  "solana",
-  "matic-network",
   "ripple",
-  "cardano"
-];
-
-final List<String> marketsScreenCoinIds = [
-  "genius-ai",
-  "bitcoin",
-  "ethereum",
-  "solana",
-  "matic-network",
-  "ripple",
-  "cardano",
-  "tether",
   "binancecoin",
-  "usd-coin",
-  "dogecoin",
-  "staked-ether",
+  "solana",
   "tron",
-  "pi-network",
-  "wrapped-bitcoin",
-  "chainlink",
-  "hedera-hashgraph",
-  "wrapped-steth",
+  "dogecoin",
+  "whitebit",
+  "hyperliquid",
   "leo-token",
+  "cardano",
+  "bitcoin-cash",
+  "monero",
+  "chainlink",
+  "zcash",
+  "canton",
   "stellar",
-  "avalanche-2",
-  "sui"
+  "dai",
+  "litecoin",
+  "avalanche",
+  "hedera",
+  "toncoin",
 ];
 
 // We need to make sure we request all the market data so that we can cache it for other screens and reduce API calls.
 List<String> getAllMarketDataCoinIds() {
-  return {...dashboardCoinIds, ...marketsScreenCoinIds}.toList();
+  return topCoinsByCapitalization;
 }
 
 // This will only return a subset of coins for now.
@@ -51,7 +42,8 @@ Future<List<CoinGeckoCoin>> getDashboardMarketCoins() async {
   };
 
   // Retrieve only the requested IDs
-  return dashboardCoinIds
+  return topCoinsByCapitalization
+      .take(8)
       .map((id) => coinMap[id])
       .whereType<CoinGeckoCoin>()
       .toList();
@@ -66,7 +58,7 @@ Future<List<CoinGeckoCoin>> getMarketCoins() async {
   };
 
   // Retrieve only the requested IDs
-  return marketsScreenCoinIds
+  return topCoinsByCapitalization
       .map((id) => coinMap[id])
       .whereType<CoinGeckoCoin>()
       .toList();

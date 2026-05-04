@@ -26,8 +26,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
   if (cacheEntry != null) {
     final cacheAge = now - cacheEntry.timestamp;
 
-    if (cacheAge <= 60) {
-      //debugPrint('✅ Returning cached data for $coinId (Age: $cacheAge sec)');
+    if (cacheAge <= cacheDuration.inSeconds) {
       return cacheEntry.toIntMap();
     }
   }
@@ -43,38 +42,31 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       final Map<String, dynamic> data = jsonDecode(response.body);
       final List<dynamic> prices = data['prices'];
 
-      // Convert API response into a map of { timestamp (sec) : price }
       final Map<int, double> historicalPrices = {
         for (var entry in prices)
           (entry[0] ~/ 1000): (entry[1] as num).toDouble(),
       };
 
-      // ✅ Save the new cache entry
       final newCacheEntry =
           HistoricalPriceCacheEntry.fromIntMap(historicalPrices, now);
       await box.put(coinId, newCacheEntry);
 
-      // debugPrint(
-      //     '🆕 Historical - Fetched and cached new data for $coinId from API');
       return historicalPrices;
     } else {
       debugPrint(
-          '❌ Historical - API error (${response.statusCode}): ${response.body}');
+          'Historical - API error (${response.statusCode}): ${response.body}');
 
       if (cacheEntry != null) {
-        // debugPrint(
-        //     '‼️Returning old cached data for $coinId due to API failure');
         return cacheEntry.toIntMap();
       }
 
       return {}; // No cache available
     }
   } catch (e) {
-    debugPrint('‼️ Network error while fetching $coinId prices: $e');
+    debugPrint('Network error while fetching $coinId prices: $e');
 
     if (cacheEntry != null) {
-      debugPrint(
-          '‼️Returning old cached data for $coinId due to network error');
+      debugPrint('Returning old cached data for $coinId due to network error');
       return cacheEntry.toIntMap();
     }
 
@@ -92,6 +84,9 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   final allCoinIds = {...coinIds, ...marketCoins}.toList();
 
   final Map<String, CoinGeckoMarketData> cachedData = {};
+  // Keep stale entries for fallback instead of deleting them
+  final Map<String, CoinGeckoMarketData> staleData = {};
+  final List<String> staleCoinIds = [];
 
   final Box<CoinGeckoMarketData> marketBox =
       Hive.box<CoinGeckoMarketData>(marketDataBox);
@@ -109,14 +104,13 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
           DateTime.now().difference(cacheTime) < cacheDuration) {
         cachedData[cachedCoin.symbol.toLowerCase()] = cachedCoin;
       } else {
-        // ❌ Remove expired entries
-        await marketBox.delete(coinId);
-        await timestampsBox.delete(coinId);
+        staleData[cachedCoin.symbol.toLowerCase()] = cachedCoin;
+        staleCoinIds.add(coinId);
       }
     }
   }
 
-  // 🔹 Determine which coins need fetching
+  // Determine which coins need fetching
   final List<String> missingCoinIds = allCoinIds.where((id) {
     final String? timestampStr = timestampsBox.get(id);
     final DateTime? cacheTime =
@@ -126,12 +120,8 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   }).toList();
 
   if (missingCoinIds.isEmpty) {
-    //debugPrint("✅ Returning all market data from Hive cache.");
     return cachedData;
   }
-
-  // debugPrint(
-  //     "🆕 Fetching missing market data from API: ${missingCoinIds.join(',')}");
 
   final String marketApi =
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}&sparkline=true';
@@ -155,20 +145,29 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
         newMarketData[marketData.symbol.toLowerCase()] = marketData;
       }
 
+      // Clean up stale entries from Hive only after a successful fetch
+      for (var coinId in staleCoinIds) {
+        if (!newMarketData.values.any((m) => m.id == coinId)) {
+          // Stale coin wasn't in the response — remove from Hive
+          await marketBox.delete(coinId);
+          await timestampsBox.delete(coinId);
+        }
+      }
+
       return {
         ...cachedData,
         ...newMarketData,
       };
     } else {
-      debugPrint('❌ Failed to fetch market data: ${response.body}');
+      debugPrint('Failed to fetch market data: ${response.body}');
     }
   } catch (e) {
-    debugPrint('‼️ Error fetching market data: $e');
+    debugPrint('Error fetching market data: $e');
   }
 
-  // 🔹 Return cached only (fallback)
-  debugPrint("‼️ Returning cached market data due to API failure.");
-  return cachedData;
+  // Merge stale data into fallback so expired cache is still usable
+  debugPrint("Returning cached market data due to API failure.");
+  return {...staleData, ...cachedData};
 }
 
 Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
@@ -213,11 +212,11 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
       throw Exception("Failed to load coins from CoinGecko");
     }
   } catch (e) {
-    debugPrint("❌ Error fetching coin list: $e");
+    debugPrint("Error fetching coin list: $e");
 
     // Return cached data even if expired as fallback
     if (cachedCoins != null) {
-      debugPrint("‼️ Returning expired cached data...");
+      debugPrint("Returning expired cached data...");
       return List<CoinGeckoCoin>.from(cachedCoins as List);
     }
 
@@ -257,7 +256,6 @@ class CoinBalance {
   CoinBalance({required this.coinId, required this.balance});
 }
 
-/// 💰 **Fetches Coin Prices & Calculates Total Balance in USD**
 Future<String?> fetchCoinPricesSum(
     {required List<String> coinIds,
     required List<CoinBalance> coinBalances,

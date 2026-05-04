@@ -15,6 +15,7 @@ import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
 import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
@@ -51,8 +52,8 @@ class DashboardScreenState extends State<DashboardScreen> {
         child: Stack(fit: StackFit.expand, children: [
       BlocBuilder<AppBloc, AppState>(builder: (context, state) {
         double width = MediaQuery.sizeOf(context).width;
-        bool is3Column = width > 1500;
-        bool is2Column = width > 1150;
+        bool is3Column = width > GeniusBreakpoints.medium;
+        bool is2Column = width > GeniusBreakpoints.tablet;
 
         if (state.subscribeToWalletStatus == AppStatus.loaded &&
             state.accountStatus == AppStatus.loaded) {
@@ -87,9 +88,9 @@ class ThreeColumnDashboardView extends StatelessWidget {
     final availableHeight = MediaQuery.sizeOf(context).height -
         GeniusWalletConsts.appBarHeight -
         18;
-    final topRowHeight = availableHeight * .45;
+    final topRowHeight = availableHeight * 0.45;
     const topRowMinHeight = 300.0;
-    final bottomRowHeight = availableHeight * .55;
+    final bottomRowHeight = availableHeight * 0.55;
     const bottomRowMinHeight = 380.0;
     const secondRowMinHeight = topRowMinHeight + bottomRowMinHeight;
 
