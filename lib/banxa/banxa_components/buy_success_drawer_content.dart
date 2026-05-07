@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class BuySuccessDrawerContent extends StatelessWidget {
   const BuySuccessDrawerContent({super.key});
@@ -7,7 +8,8 @@ class BuySuccessDrawerContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       children: [
-        Icon(Icons.check_circle, size: 72, color: Colors.greenAccent),
+        Icon(Icons.check_circle,
+            size: 72, color: GeniusWalletColors.brandGreen),
         SizedBox(height: 16),
         Text(
           "Purchase Successful!",
