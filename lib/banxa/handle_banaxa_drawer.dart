@@ -4,6 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,16 +45,15 @@ class CheckoutOptionsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(GeniusWalletConsts.space8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Continue to checkout',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: GeniusWalletTypography.titleMd,
             ),
-            const SizedBox(height: 12),
-
+            const SizedBox(height: GeniusWalletConsts.space6),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -69,8 +70,7 @@ class CheckoutOptionsSheet extends StatelessWidget {
                 child: const Text('Open in Browser'),
               ),
             ),
-            const SizedBox(height: 8),
-
+            const SizedBox(height: GeniusWalletConsts.space4),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -84,9 +84,7 @@ class CheckoutOptionsSheet extends StatelessWidget {
                 child: const Text('Show QR (use another device)'),
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Copy link
+            const SizedBox(height: GeniusWalletConsts.space4),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

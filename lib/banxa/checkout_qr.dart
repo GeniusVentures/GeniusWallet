@@ -5,6 +5,9 @@ import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_state.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/services.dart';
@@ -56,19 +59,24 @@ class CheckoutQrPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(title: const Text('Scan to Continue')),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   'Scan this QR on another device to complete checkout.',
                   textAlign: TextAlign.center,
+                  style: GeniusWalletTypography.bodyLg,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: GeniusWalletConsts.space8),
                 Center(
                   child: Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: GeniusWalletColors.textPrimary,
+                      borderRadius: BorderRadius.circular(
+                          GeniusWalletConsts.radiusMd),
+                    ),
+                    padding: const EdgeInsets.all(GeniusWalletConsts.space4),
                     child: QrImageView(
                       data: checkoutUrl,
                       version: QrVersions.auto,
@@ -76,14 +84,16 @@ class CheckoutQrPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: GeniusWalletConsts.space8),
                 SelectableText(
                   checkoutUrl.length > 50
-                      ? '${checkoutUrl.substring(0, 50)}...'
+                      ? '${checkoutUrl.substring(0, 50)}…'
                       : checkoutUrl,
                   textAlign: TextAlign.center,
+                  style: GeniusWalletTypography.numericBody
+                      .copyWith(color: GeniusWalletColors.textSecondary),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: GeniusWalletConsts.space6),
                 Row(
                   children: [
                     Expanded(
@@ -101,19 +111,19 @@ class CheckoutQrPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: GeniusWalletConsts.space12),
                 Center(
                   child: Column(
                     children: [
                       if (state.status == PollingStatus.loading)
                         const Loading(),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: GeniusWalletConsts.space6),
                       Text(
                         state.message.isNotEmpty
                             ? state.message
-                            : 'Waiting for payment...',
+                            : 'Waiting for payment…',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16),
+                        style: GeniusWalletTypography.bodyLg,
                       ),
                     ],
                   ),
