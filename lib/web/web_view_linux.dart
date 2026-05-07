@@ -75,7 +75,7 @@
 //             child: Center(
 //               child: Text(
 //                 "Browser Launched in Separate Window...",
-//                 style: TextStyle(fontSize: 16, color: Colors.white70),
+//                 style: TextStyle(fontSize: 16, color: GeniusWalletColors.textPrimary70),
 //               ),
 //             ),
 //           ),
@@ -113,10 +113,10 @@
 //               child: TextField(
 //                 controller: _urlController,
 //                 style:
-//                     const TextStyle(color: Colors.white), // White text in input
+//                     const TextStyle(color: GeniusWalletColors.textPrimary), // White text in input
 //                 decoration: InputDecoration(
 //                   hintText: "Enter URL...",
-//                   hintStyle: const TextStyle(color: Colors.white70),
+//                   hintStyle: const TextStyle(color: GeniusWalletColors.textPrimary70),
 //                   filled: true,
 //                   fillColor: GeniusWalletColors
 //                       .deepBlueTertiary, // Darker blue input background

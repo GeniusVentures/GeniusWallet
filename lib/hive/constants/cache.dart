@@ -17,3 +17,9 @@ const String selectedWalletKey = 'selected_wallet_address';
 const String networkBoxName = 'network';
 const String selectedNetworkKeyChainId = 'selected_network_chain_id';
 const String selectedNetworkKeyRpcUrl = 'selected_network_rpc_url';
+
+// browser
+const String browserBoxName = 'browser';
+const String browserRecentKey = 'recent';
+const String browserFavoritesKey = 'favorites';
+const int browserRecentLimit = 5;

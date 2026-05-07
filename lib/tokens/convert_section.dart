@@ -68,14 +68,14 @@ class _ConvertSectionState extends State<ConvertSection> {
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Token Price",
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                        color: Colors.white12), // Bottom border color
+                        color: GeniusWalletColors.textPrimary12), // Bottom border color
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
@@ -83,7 +83,7 @@ class _ConvertSectionState extends State<ConvertSection> {
                             .lightGreenPrimary), // Highlighted border
                   ),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: GeniusWalletColors.textPrimary),
                 onChanged: (_) => _calculateTotalValue(),
               ),
               const SizedBox(height: 20),
@@ -93,14 +93,14 @@ class _ConvertSectionState extends State<ConvertSection> {
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Token Amount",
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                        color: Colors.white12), // Bottom border color
+                        color: GeniusWalletColors.textPrimary12), // Bottom border color
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
@@ -108,7 +108,7 @@ class _ConvertSectionState extends State<ConvertSection> {
                             .lightGreenPrimary), // Highlighted border
                   ),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: GeniusWalletColors.textPrimary),
                 onChanged: (_) => _calculateTotalValue(),
               ),
               const SizedBox(height: 16),
@@ -120,7 +120,7 @@ class _ConvertSectionState extends State<ConvertSection> {
                       symbol: "\$",
                     ).format(_totalValue)}",
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: GeniusWalletColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),

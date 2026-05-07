@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flow_builder/flow_builder.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -108,7 +109,7 @@ class _VerifyRecoveryPhraseViewDesktopState
       return;
     }
 
-    print("test $completeWordsList");
+    if (kDebugMode) debugPrint("test $completeWordsList");
 
     // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
@@ -332,7 +333,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                   GeniusBreakpoints.useDesktopLayout(context)
                                       ? 16
                                       : 10,
-                              color: GeniusWalletColors.white,
+                              color: GeniusWalletColors.textPrimary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -380,7 +381,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                     color:
                                         isEmpty && userInputWords[index].isEmpty
                                             ? Colors.blue.withAlpha(179)
-                                            : GeniusWalletColors.white,
+                                            : GeniusWalletColors.textPrimary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -404,7 +405,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                   style: TextStyle(
                     fontSize:
                         GeniusBreakpoints.useDesktopLayout(context) ? 16 : 10,
-                    color: GeniusWalletColors.white,
+                    color: GeniusWalletColors.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -435,7 +436,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             word,
                             style: const TextStyle(
                               fontSize: 14,
-                              color: GeniusWalletColors.white,
+                              color: GeniusWalletColors.textPrimary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -527,7 +528,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                     '${index + 1}',
                                     style: const TextStyle(
                                       fontSize: 12,
-                                      color: GeniusWalletColors.white,
+                                      color: GeniusWalletColors.textPrimary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -546,7 +547,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                       color: isEmpty &&
                                               userInputWords[index].isEmpty
                                           ? Colors.blue.withAlpha(179)
-                                          : GeniusWalletColors.white,
+                                          : GeniusWalletColors.textPrimary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                     overflow: TextOverflow.ellipsis,
@@ -570,7 +571,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                     'Tap a word to fill the highlighted box:',
                     style: TextStyle(
                       fontSize: 16,
-                      color: GeniusWalletColors.white,
+                      color: GeniusWalletColors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
@@ -604,7 +605,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                               word,
                               style: const TextStyle(
                                 fontSize: 16,
-                                color: GeniusWalletColors.white,
+                                color: GeniusWalletColors.textPrimary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -692,7 +693,7 @@ class _VerifyRecoveryPhraseViewMobileState
       return;
     }
 
-    print("test $completeWordsList");
+    if (kDebugMode) debugPrint("test $completeWordsList");
 
     // Check if all empty fields are filled
     if (completeWordsList.any((word) => word.trim().isEmpty)) {

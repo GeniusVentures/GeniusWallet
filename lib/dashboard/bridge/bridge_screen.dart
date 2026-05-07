@@ -6,12 +6,14 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
+import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
 class BridgeScreen extends StatefulWidget {
@@ -76,8 +78,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                 ),
               ),
               padding: const EdgeInsetsDirectional.symmetric(
-                vertical: 128,
-                horizontal: 24,
+                vertical: GeniusWalletConsts.space16,
+                horizontal: GeniusWalletConsts.space12,
               ),
               child: Center(
                 child: ConstrainedBox(
@@ -532,9 +534,9 @@ class BridgeScreenState extends State<BridgeScreen> {
         ? Image.asset(iconPath, width: 28, height: 28,
             errorBuilder: (_, __, ___) {
             return const Icon(Icons.currency_bitcoin,
-                color: Colors.white70, size: 28);
+                color: GeniusWalletColors.textPrimary70, size: 28);
           })
-        : const Icon(Icons.currency_bitcoin, color: Colors.white70, size: 28);
+        : const Icon(Icons.currency_bitcoin, color: GeniusWalletColors.textPrimary70, size: 28);
   }
 
   Widget _buildDropdown<T>({
@@ -548,11 +550,11 @@ class BridgeScreenState extends State<BridgeScreen> {
     Function(String)? onAmountChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       decoration: const BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
+        color: GeniusWalletColors.surfaceElevated,
         borderRadius: BorderRadius.all(
-          Radius.circular(GeniusWalletConsts.borderRadiusCard),
+          Radius.circular(GeniusWalletConsts.radius2xl),
         ),
       ),
       child: Column(
@@ -560,90 +562,65 @@ class BridgeScreenState extends State<BridgeScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
+            style: GeniusWalletTypography.labelMd.copyWith(
+              color: GeniusWalletColors.textSecondary,
               letterSpacing: 0.5,
-              color: GeniusWalletColors.gray500,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: GeniusWalletConsts.space6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Dropdown for item selection
               Flexible(
-                flex: 3, // Adjust flex values for proportional sizing
+                flex: 3,
                 child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: 300), // Set max width
-                  child: DropdownButton<T>(
-                    isExpanded:
-                        true, // Stretches dropdown to match parent width
-                    underline: const SizedBox(), // Remove underline
-                    value: selectedItem, // Currently selected item
-                    hint: const Text(
-                      'Select',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    dropdownColor: GeniusWalletColors.deepBlueCardColor,
-                    icon:
-                        const Icon(Icons.arrow_drop_down, color: Colors.white),
-                    items: availableItems.map((T item) {
-                      return DropdownMenuItem<T>(
-                        value: item,
-                        child: Row(
-                          children: [
-                            displayIcon(item), // Icon for the item
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                displayText(item),
-                                overflow:
-                                    TextOverflow.ellipsis, // Truncate long text
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (T? newItem) {
-                      if (newItem != null) {
-                        onItemChanged(newItem); // Notify parent widget
-                      }
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: GWSelect<T>(
+                    value: selectedItem,
+                    hint: 'Select',
+                    items: availableItems
+                        .map((item) => GWSelectItem<T>(
+                              value: item,
+                              label: displayText(item),
+                              leading: displayIcon(item),
+                            ))
+                        .toList(),
+                    onChanged: (newItem) {
+                      if (newItem != null) onItemChanged(newItem);
                     },
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
-              // TextField for numerical input
+              const SizedBox(width: GeniusWalletConsts.space8),
               Flexible(
-                flex: 2, // Adjust flex values for proportional sizing
+                flex: 2,
                 child: SizedBox(
-                  height: 48, // Consistent height for inputs
+                  height: 48,
                   child: TextField(
-                    controller: controller, // Persistent controller
-                    style: const TextStyle(fontSize: 16),
+                    controller: controller,
+                    style: GeniusWalletTypography.bodyLg,
+                    cursorColor: GeniusWalletColors.brandPrimary,
                     textAlign: TextAlign.right,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      DecimalTextInputFormatter(),
-                    ],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [DecimalTextInputFormatter()],
                     onChanged: onAmountChanged,
-                    readOnly: onAmountChanged == null, // Disable for read-only
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                      hintStyle: TextStyle(color: GeniusWalletColors.gray500),
-                      border: OutlineInputBorder(
+                    readOnly: onAmountChanged == null,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: GeniusWalletConsts.space4,
+                      ),
+                      hintStyle: GeniusWalletTypography.bodyLg.copyWith(
+                        color: GeniusWalletColors.textSecondary,
+                      ),
+                      border: const OutlineInputBorder(
                         borderSide: BorderSide.none,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: GeniusWalletColors.gray500),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: GeniusWalletColors.brandPrimary,
+                        ),
                       ),
                       hintText: '0',
                     ),
@@ -652,16 +629,16 @@ class BridgeScreenState extends State<BridgeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: GeniusWalletConsts.space4),
           if (selectedItem != null && selectedItem is Coin)
             Padding(
-              padding: const EdgeInsets.only(left: 12),
+              padding: const EdgeInsets.only(left: GeniusWalletConsts.space6),
               child: Text(
                 "${selectedItem.balance == 0 ? 0 : selectedItem.balance.toString()} ${selectedItem.symbol}",
-                style: const TextStyle(
-                    fontSize: 14,
-                    letterSpacing: 0.5,
-                    color: GeniusWalletColors.gray500),
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: GeniusWalletColors.textSecondary,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
         ],

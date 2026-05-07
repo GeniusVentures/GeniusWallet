@@ -14,7 +14,7 @@ class SwapResultDrawer {
   }) async {
     final message = isSuccess ? "Swap Success" : "Swap Failed";
     final icon = isSuccess ? Icons.check_circle : Icons.error;
-    final iconColor = isSuccess ? Colors.greenAccent : Colors.redAccent;
+    final iconColor = isSuccess ? GeniusWalletColors.brandGreen : Colors.redAccent;
     final explorerUrl =
         (txHash.isNotEmpty) ? getExplorerUrl(coinSymbol, txHash) : '';
 
@@ -43,10 +43,10 @@ class SwapResultDrawer {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Transaction Hash:",
-                    style: TextStyle(color: Colors.white70)),
+                    style: TextStyle(color: GeniusWalletColors.textPrimary70)),
                 const SizedBox(height: 4),
                 SelectableText(txHash,
-                    style: const TextStyle(color: Colors.white)),
+                    style: const TextStyle(color: GeniusWalletColors.textPrimary)),
               ],
             ),
           ),
@@ -56,7 +56,7 @@ class SwapResultDrawer {
           ElevatedButton(
             onPressed: () => context.push("/transactions"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent,
+              backgroundColor: GeniusWalletColors.brandGreen,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
               minimumSize: const Size.fromHeight(48),
@@ -73,11 +73,11 @@ class SwapResultDrawer {
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
-                side: const BorderSide(color: Colors.greenAccent),
+                side: const BorderSide(color: GeniusWalletColors.brandGreen),
                 minimumSize: const Size.fromHeight(48),
               ),
               child: const Text("View on Explorer",
-                  style: TextStyle(color: Colors.greenAccent)),
+                  style: TextStyle(color: GeniusWalletColors.brandGreen)),
             ),
         ],
       ),

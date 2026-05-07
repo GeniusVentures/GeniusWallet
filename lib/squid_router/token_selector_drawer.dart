@@ -61,11 +61,11 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
       children: [
         TextField(
           onChanged: (val) => setState(() => _query = val),
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: GeniusWalletColors.textPrimary),
           decoration: InputDecoration(
             hintText: "Search Tokens...",
-            hintStyle: const TextStyle(color: Colors.white54),
-            prefixIcon: const Icon(Icons.search, color: Colors.white54),
+            hintStyle: const TextStyle(color: GeniusWalletColors.textPrimary54),
+            prefixIcon: const Icon(Icons.search, color: GeniusWalletColors.textPrimary54),
             filled: true,
             fillColor: Colors.black54,
             border: OutlineInputBorder(
@@ -102,13 +102,13 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                         color: Colors.grey[700],
                         alignment: Alignment.center,
                         child: const Icon(Icons.broken_image,
-                            color: Colors.white70, size: 16),
+                            color: GeniusWalletColors.textPrimary70, size: 16),
                       );
                     },
                   ),
                 ),
                 title: Text(token.name,
-                    style: const TextStyle(color: Colors.white)),
+                    style: const TextStyle(color: GeniusWalletColors.textPrimary)),
                 subtitle: Row(children: [
                   if (token.balance != null)
                     Text('${token.balance!.formattedBalance} ',

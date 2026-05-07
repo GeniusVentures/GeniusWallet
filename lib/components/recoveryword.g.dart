@@ -37,8 +37,7 @@ class _Recoveryword extends State<Recoveryword> {
             child: AutoSizeText(
               widget.ovrWord ?? '1 limb',
               style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 16.0,
+fontSize: 16.0,
                   fontWeight: FontWeight.w300,
                   letterSpacing: 0.0,
                   color: widget.isEnabled

@@ -98,7 +98,7 @@ class DesktopContainer extends StatelessWidget {
                             HeaderButton(
                               color: GeniusWalletColors.gray900,
                               text: 'Genius 1',
-                              textColor: Colors.white,
+                              textColor: GeniusWalletColors.textPrimary,
                               icon: Icons.person,
                             ),
                           ],

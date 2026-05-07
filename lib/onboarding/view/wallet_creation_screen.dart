@@ -1,122 +1,147 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/components/wallet_button/type_create.g.dart';
-import 'package:genius_wallet/components/wallet_button/type_existing.g.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
+import 'package:genius_wallet/dev/mock_mode.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:go_router/go_router.dart';
 
 class LandingScreen extends StatelessWidget {
   final bool isIncludeBackButton;
   const LandingScreen({super.key, required this.isIncludeBackButton});
+
+  static const double _maxButtonWidth = 450;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlue,
-      body: AppScreenView(
-        body: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          height: MediaQuery.of(context).size.height - 80,
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/images/logo_and_title.png',
-                  package: 'genius_wallet',
-                ),
-              ),
-              Align(
+      backgroundColor: Colors.transparent,
+      body: GWMeshBackground(
+        intensity: 0.7,
+        child: AppScreenView(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space20,
+          ),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - 80,
+            child: Stack(
+              children: [
+                Align(
                   alignment: Alignment.center,
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SizedBox(
-                          height: 50,
-                          width: 450,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) =>
-                                TypeExisting(constraints),
-                          ),
+                  child: Image.asset(
+                    'assets/images/logo_and_title.png',
+                    package: 'genius_wallet',
+                  ),
+                ),
+                if (kDebugMode)
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          right: GeniusWalletConsts.space2,
+                          top: GeniusWalletConsts.space2,
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        SizedBox(
-                          height: 50,
-                          width: 450,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) =>
-                                TypeCreate(constraints),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        if (isIncludeBackButton)
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: const ButtonStyle(
-                                backgroundColor:
-                                    WidgetStatePropertyAll(Colors.transparent)),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white, // Adjust color as needed
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GWButton.icon(
+                              icon: const Icon(Icons.palette_outlined),
+                              tooltip: 'Design gallery (debug)',
+                              onPressed: () =>
+                                  context.push('/design_gallery'),
+                            ),
+                            const SizedBox(width: GeniusWalletConsts.space2),
+                            GWButton(
+                              label: 'Mock',
+                              variant: GWButtonVariant.tertiary,
+                              size: GWButtonSize.sm,
+                              leading: const Icon(Icons.bolt_outlined),
+                              tooltip:
+                                  'Skip into the dashboard with mock data',
+                              onPressed: () => MockMode.enableAndNavigate(
+                                context,
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: GeniusWalletConsts.space12,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: _maxButtonWidth,
                           ),
-
-                        /***  Below is the test code to test native c/c++ code ***/
-
-                        //SizedBox(
-                        //  width: 450,
-                        //  height: 50,
-                        // child: Container(
-                        //    decoration: BoxDecoration(
-                        //    borderRadius: BorderRadius.circular(68),
-                        //    border: Border.all(
-                        //        width: 1.0, color: GeniusWalletColors.lightGreenPrimary)),
-                        //   margin: const EdgeInsets.only(top: 10.0),
-                        //   child: ElevatedButton(
-                        //      style: ButtonStyle(
-                        //        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent), // Set the background color to transparent
-                        //        foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Set the text color to white
-                        //        padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0)), // Add some padding
-                        //        textStyle: MaterialStateProperty.all<TextStyle>(
-                        //          TextStyle(
-                        //            fontSize: 8.0, // Set the font size
-                        //          ),
-                        //        ),
-                        //        shadowColor: MaterialStateProperty.all<Color>(Colors.transparent), // Remove the shadow
-                        //      ),
-                        //     onPressed: () {
-                        //       context.read<AppBloc>().add(FFITestEvent());
-                        //     },
-                        //     child:
-                        //      const Text("Test Process MNN",
-                        //      style: TextStyle(
-                        //        color: Colors.white, // Set the text color to white
-                        //        fontSize: 13.0, // Set the font size
-                        //      ), )
-                        //   ),
-                        // ),
-                        //),
-
+                          child: GWButton(
+                            label: 'I already have a wallet',
+                            variant: GWButtonVariant.secondary,
+                            size: GWButtonSize.lg,
+                            expand: true,
+                            onPressed: () =>
+                                context.push('/import_existing_wallet'),
+                          ),
+                        ),
+                        const SizedBox(height: GeniusWalletConsts.space6),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: _maxButtonWidth,
+                          ),
+                          child: GWButton(
+                            label: 'Create a new wallet',
+                            variant: GWButtonVariant.gradient,
+                            size: GWButtonSize.lg,
+                            expand: true,
+                            onPressed: () => context.push('/create_wallet'),
+                          ),
+                        ),
+                        if (isIncludeBackButton) ...[
+                          const SizedBox(height: GeniusWalletConsts.space4),
+                          GWButton(
+                            label: 'Cancel',
+                            variant: GWButtonVariant.ghost,
+                            size: GWButtonSize.md,
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
                         BlocBuilder<AppBloc, AppState>(
                           builder: (context, state) {
                             if (state.ffiString != null) {
-                              return Text(' ${state.ffiString}');
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  top: GeniusWalletConsts.space4,
+                                ),
+                                child: Text(
+                                  ' ${state.ffiString}',
+                                  style: GeniusWalletTypography.bodySm,
+                                ),
+                              );
                             }
                             return const SizedBox();
                           },
                         ),
-                      ]))
-            ],
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -34,7 +34,7 @@ class BottomDrawer extends StatelessWidget {
                       title ?? '',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: GeniusWalletColors.textPrimary,
                         fontWeight: FontWeight.w500,
                         fontSize: 16,
                       ),
@@ -47,14 +47,14 @@ class BottomDrawer extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: const Icon(Icons.close, color: GeniusWalletColors.textPrimary),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: Colors.white12),
+            const Divider(height: 1, color: GeniusWalletColors.textPrimary12),
             const SizedBox(height: 4),
             // Scrollable content
             Expanded(

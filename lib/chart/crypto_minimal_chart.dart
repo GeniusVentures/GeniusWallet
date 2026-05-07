@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class CryptoMinimalChart extends StatelessWidget {
   final double high24h;
@@ -21,7 +22,7 @@ class CryptoMinimalChart extends StatelessWidget {
   }) : super(key: key);
 
   Color get priceColor =>
-      priceChangePercent >= 0 ? Colors.greenAccent : Colors.redAccent;
+      priceChangePercent >= 0 ? GeniusWalletColors.brandGreen : Colors.redAccent;
 
   List<FlSpot> getGeneratedChartData() {
     Random random = Random();

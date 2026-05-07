@@ -44,7 +44,7 @@ class MarketDataInfo extends StatelessWidget {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
             ),
           ),
         ),
@@ -72,7 +72,7 @@ class MarketDataInfo extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: GeniusWalletColors.textPrimary,
                 ),
               ),
               const SizedBox(width: 8),
@@ -101,7 +101,7 @@ class MarketDataInfo extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: GeniusWalletColors.textPrimary,
           ),
         ),
       ),
@@ -119,7 +119,7 @@ class MarketDataInfo extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: GeniusWalletColors.textPrimary,
           ),
         ),
       ),
@@ -137,14 +137,15 @@ class MarketDataInfo extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: GeniusWalletColors.textPrimary,
           ),
         ),
       ),
       // Volume
       ListTile(
         dense: true,
-        leading: Icon(Icons.bar_chart, color: Colors.red[200], size: 20),
+        leading: const Icon(Icons.bar_chart,
+            color: GeniusWalletColors.mutedRed, size: 20),
         title: const Text("Volume",
             style: TextStyle(
                 fontSize: 14,
@@ -155,7 +156,7 @@ class MarketDataInfo extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: GeniusWalletColors.textPrimary,
           ),
         ),
       ),
@@ -190,7 +191,7 @@ class MarketDataInfo extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 leading: CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.white,
+                  backgroundColor: GeniusWalletColors.textPrimary,
                   backgroundImage: marketData?.imageUrl != null
                       ? NetworkImage(marketData!.imageUrl)
                       : null,
@@ -203,7 +204,7 @@ class MarketDataInfo extends StatelessWidget {
                   marketData?.name ?? "Unknown Token",
                   maxLines: 2,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: GeniusWalletColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
@@ -255,7 +256,7 @@ class MarketDataInfo extends StatelessWidget {
                       child: Text(
                         aboutText!,
                         style: const TextStyle(
-                            color: Colors.white70, fontSize: 14),
+                            color: GeniusWalletColors.textPrimary70, fontSize: 14),
                       ),
                     ),
                   ],

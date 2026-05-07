@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
-import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
-import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class KeystoreTabView extends StatelessWidget {
   final TextEditingController pasteFieldController;
@@ -17,18 +16,10 @@ class KeystoreTabView extends StatelessWidget {
     return PasteField(
       controller: pasteFieldController,
       hintText: 'Wallet Keystore JSON',
-      additionalWidget: SizedBox(
-        height: 60,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return TextEntryFieldWidget(
-            logic: TextFormFieldLogic(
-              context,
-              controller: passwordController,
-              obscureText: true,
-              hintText: 'Password',
-            ),
-          );
-        }),
+      additionalWidget: GWTextField(
+        controller: passwordController,
+        obscureText: true,
+        hint: 'Password',
       ),
       subtitle:
           'Several lines of text beginning with “{...}” plus the password you used to encrypt it',

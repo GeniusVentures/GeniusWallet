@@ -74,16 +74,14 @@ class CryptoSparkLineChart extends StatelessWidget {
         formattedPrice,
         style: TextStyle(
           fontSize: 14,
-          color: currentPrice == 0 ? Colors.grey[600] : Colors.white,
+          color: currentPrice == 0 ? Colors.grey[600] : GeniusWalletColors.textPrimary,
         ),
       ),
-      trailing: SizedBox(
-        height: 44, // Fix for overflow, ensures everything fits
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
             Text(
               "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
               style: TextStyle(
@@ -125,7 +123,6 @@ class CryptoSparkLineChart extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

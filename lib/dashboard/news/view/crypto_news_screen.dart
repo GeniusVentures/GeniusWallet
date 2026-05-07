@@ -53,7 +53,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
               const Text(
                 'Crypto News',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: GeniusWalletColors.textPrimary,
                   fontSize: 32,
                   fontWeight: FontWeight.w500,
                 ),

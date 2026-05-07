@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/components/wallet_card.g.dart';
+import 'package:genius_wallet/components/cards/gw_wallet_card.dart';
 
 class SupportedExistingWallets extends StatelessWidget {
   const SupportedExistingWallets({Key? key}) : super(key: key);
@@ -34,7 +34,7 @@ class SupportedExistingWallets extends StatelessWidget {
         itemBuilder: (context, index) {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: WalletCard(
+            child: GWWalletCard(
               walletIcon: supportedNetworks[index].image,
               walletName: supportedNetworks[index].name,
               onTap: () {

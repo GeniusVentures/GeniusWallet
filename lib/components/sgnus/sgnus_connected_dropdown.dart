@@ -1,41 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/inputs/gw_select.dart';
 
 class SGNUSConnectedDropdown extends StatefulWidget {
-  const SGNUSConnectedDropdown({Key? key}) : super(key: key);
+  const SGNUSConnectedDropdown({super.key});
 
   @override
   SGNUSConnectedDropdownState createState() => SGNUSConnectedDropdownState();
 }
 
 class SGNUSConnectedDropdownState extends State<SGNUSConnectedDropdown> {
-  // List of items for the dropdown
-  final List<String> items = [
+  static const List<String> _items = [
     'Apple',
     'Banana',
     'Cherry',
     'Date',
-    'Elderberry'
+    'Elderberry',
   ];
 
-  // Variable to hold the selected value
   String? selectedItem = 'Apple';
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      hint: const Text('Select an item'),
+    return GWSelect<String>(
       value: selectedItem,
-      onChanged: (String? newValue) {
-        setState(() {
-          selectedItem = newValue;
-        });
-      },
-      items: items.map((String item) {
-        return DropdownMenuItem<String>(
-          value: item,
-          child: Text(item),
-        );
-      }).toList(),
+      hint: 'Select an item',
+      items: _items
+          .map((item) => GWSelectItem<String>(value: item, label: item))
+          .toList(),
+      onChanged: (value) => setState(() => selectedItem = value),
     );
   }
 }

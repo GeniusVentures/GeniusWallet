@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class CheckmarkAnimation extends StatefulWidget {
   const CheckmarkAnimation({Key? key}) : super(key: key);
@@ -47,7 +48,7 @@ class CheckmarkPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.greenAccent
+      ..color = GeniusWalletColors.brandGreen
       ..strokeWidth = 4.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.square;

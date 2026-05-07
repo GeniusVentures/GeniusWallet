@@ -20,7 +20,7 @@ class _RecoveryWords extends State<RecoveryWords> {
   Widget build(BuildContext context) {
     return Container(
         alignment: Alignment.topCenter,
-        width: 450,
+        constraints: const BoxConstraints(maxWidth: 450),
         child: Wrap(
             alignment: WrapAlignment.center,
             runSpacing: 4,

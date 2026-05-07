@@ -30,6 +30,8 @@ Future<void> initHive() async {
 
   await Hive.openBox(networkBoxName);
 
+  await Hive.openBox(browserBoxName);
+
   // Transactions
   Hive
     ..registerAdapter(TransactionDirectionAdapter())

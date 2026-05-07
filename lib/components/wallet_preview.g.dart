@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/wallet_type_icon.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
@@ -39,7 +40,7 @@ class WalletPreviewState extends State<WalletPreview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: const BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
+        color: GeniusWalletColors.surfaceElevated,
         borderRadius: BorderRadius.all(
           Radius.circular(GeniusWalletConsts.borderRadiusCard),
         ),
@@ -72,10 +73,7 @@ class WalletPreviewState extends State<WalletPreview> {
                         Flexible(
                           child: AutoSizeText(
                             widget.walletName ?? "",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            ),
+                            style: GeniusWalletTypography.titleMd,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -83,12 +81,14 @@ class WalletPreviewState extends State<WalletPreview> {
                         if (widget.isConnected ?? false)
                           const SizedBox(width: 8),
                         if (widget.isConnected ?? false)
-                          const Tooltip(
+                          Tooltip(
                             message:
                                 'This wallet is connected to the SGNUS network',
                             textStyle:
-                                TextStyle(fontSize: 16, color: Colors.black),
-                            child: CheckmarkAnimation(),
+                                GeniusWalletTypography.bodyLg.copyWith(
+                              color: GeniusWalletColors.textOnBrand,
+                            ),
+                            child: const CheckmarkAnimation(),
                           ),
                       ],
                     ),
@@ -96,7 +96,7 @@ class WalletPreviewState extends State<WalletPreview> {
                     AutoSizeText(
                       WalletUtils.getAddressForDisplay(
                           widget.walletAddress ?? ""),
-                      style: const TextStyle(color: GeniusWalletColors.gray500),
+                      style: GeniusWalletTypography.bodySm,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -125,9 +125,8 @@ class WalletPreviewState extends State<WalletPreview> {
                             child: AutoSizeText(
                               (" ${widget.ovrCoinSymbol}"),
                               maxLines: 1,
-                              style: const TextStyle(
-                                color: GeniusWalletColors.gray500,
-                                fontSize: 14,
+                              style: GeniusWalletTypography.bodyMd.copyWith(
+                                color: GeniusWalletColors.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),

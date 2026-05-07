@@ -35,7 +35,7 @@ class _TokenFlipButtonState extends State<TokenFlipButton> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(40),
         ),
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: GeniusWalletColors.brandGreen,
         child: const Icon(
           Icons.swap_vert,
           color: GeniusWalletColors.deepBlueTertiary,

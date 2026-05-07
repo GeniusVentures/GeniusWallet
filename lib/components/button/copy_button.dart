@@ -57,7 +57,7 @@ class CopyButtonState extends State<CopyButton> {
             Icon(
               _copied ? Icons.check : Icons.content_copy, // Change icon on copy
               size: 20,
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
             ),
             const SizedBox(width: 8), // Space between icon & text
             Flexible(
@@ -66,7 +66,7 @@ class CopyButtonState extends State<CopyButton> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: GeniusWalletColors.textPrimary,
               ),
             )),
           ],

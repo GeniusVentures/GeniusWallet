@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class ApproveTransactionDrawer {
@@ -76,8 +77,8 @@ class ApproveTransactionDrawer {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                side: const BorderSide(color: Colors.greenAccent),
+                backgroundColor: GeniusWalletColors.brandGreen,
+                side: const BorderSide(color: GeniusWalletColors.brandGreen),
               ),
               child:
                   const Text("Approve", style: TextStyle(color: Colors.black)),

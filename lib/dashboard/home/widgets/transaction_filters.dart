@@ -37,7 +37,7 @@ class TransactionFiltersState extends State<TransactionFilters> {
               style: TextStyle(
                   fontSize: GeniusWalletFontSize.sectionHeader,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white),
+                  color: GeniusWalletColors.textPrimary),
             )),
             if (isMobile)
               Stack(
@@ -66,7 +66,7 @@ class TransactionFiltersState extends State<TransactionFilters> {
                     icon: const Icon(Icons.filter_list, size: 30),
                     color: isFilterApplied
                         ? GeniusWalletColors.lightGreenPrimary
-                        : GeniusWalletColors.white,
+                        : GeniusWalletColors.textPrimary,
                   ),
                   if (isFilterApplied)
                     Positioned(
@@ -158,7 +158,7 @@ class HoverableFilterItemState extends State<HoverableFilterItem> {
             widget.filter,
             style: const TextStyle(
               fontSize: 16,
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
             ),
           ),
           trailing: widget.isSelected
@@ -208,7 +208,7 @@ class FilterButton extends StatelessWidget {
         style: TextStyle(
           fontSize: 14,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: Colors.white,
+          color: GeniusWalletColors.textPrimary,
         ),
       ),
     );

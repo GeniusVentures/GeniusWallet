@@ -26,7 +26,7 @@ class CryptoAddressQR extends StatelessWidget {
           version: QrVersions.auto,
           size: 280,
           gapless: false,
-          backgroundColor: GeniusWalletColors.white.withAlpha(153),
+          backgroundColor: GeniusWalletColors.textPrimary60,
           embeddedImage: AssetImage(iconPath ?? ""),
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(60, 60)),
         ),

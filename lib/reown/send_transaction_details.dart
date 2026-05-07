@@ -38,7 +38,7 @@ class SendTransactionDetails extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: GeniusWalletColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -98,7 +98,7 @@ class SendTransactionDetails extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: GeniusWalletColors.textPrimary),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -111,8 +111,8 @@ class SendTransactionDetails extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: const TextStyle(color: Colors.white70, fontSize: 14)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14)),
+            style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14)),
+        Text(value, style: const TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14)),
       ],
     );
   }

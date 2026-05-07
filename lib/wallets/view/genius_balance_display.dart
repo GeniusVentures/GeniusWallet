@@ -80,7 +80,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
             style: TextStyle(
               fontSize: widget.fontSize ?? 48,
               fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? Colors.white,
+              color: widget.fontColor ?? GeniusWalletColors.textPrimary,
             ),
             maxLines: 1,
           ),

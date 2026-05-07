@@ -37,18 +37,18 @@ class SwapField extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14)),
             const SizedBox(height: 8),
             Row(
               children: [
                 Flexible(
                   child: TextField(
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: GeniusWalletColors.textPrimary),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
                       hintText: "0.0",
-                      hintStyle: TextStyle(color: Colors.white30),
+                      hintStyle: TextStyle(color: GeniusWalletColors.textPrimary30),
                       border: InputBorder.none,
                     ),
                     controller: controller,
@@ -92,7 +92,7 @@ class SwapField extends StatelessWidget {
                                       color: Colors.grey[700],
                                       alignment: Alignment.center,
                                       child: const Icon(Icons.broken_image,
-                                          color: Colors.white70, size: 16),
+                                          color: GeniusWalletColors.textPrimary70, size: 16),
                                     );
                                   },
                                 ),
@@ -101,13 +101,13 @@ class SwapField extends StatelessWidget {
                             Text(
                               selectedToken?.symbol ?? "Select",
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: GeniusWalletColors.textPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(width: 8),
                             const Icon(Icons.keyboard_arrow_down,
-                                color: Colors.white, size: 14),
+                                color: GeniusWalletColors.textPrimary, size: 14),
                           ],
                         ),
                       ),
@@ -119,7 +119,7 @@ class SwapField extends StatelessWidget {
                             ? "${selectedToken!.balance!.formattedBalance} ${selectedToken!.balance!.symbol}"
                             : "",
                         style: const TextStyle(
-                            color: Colors.white54, fontSize: 12),
+                            color: GeniusWalletColors.textPrimary54, fontSize: 12),
                       ),
                     ),
                   ],

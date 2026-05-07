@@ -44,11 +44,11 @@ class SubmitJobDashboardButton extends StatelessWidget {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.create, size: 16, color: Colors.greenAccent),
+            Icon(Icons.create, size: 16, color: GeniusWalletColors.brandGreen),
             SizedBox(width: 6),
             Text(
               'Create Processing Job',
-              style: TextStyle(fontSize: 13, color: Colors.white),
+              style: TextStyle(fontSize: 13, color: GeniusWalletColors.textPrimary),
             ),
           ],
         ),

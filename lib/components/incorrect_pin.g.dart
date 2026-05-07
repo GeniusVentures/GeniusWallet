@@ -6,6 +6,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class IncorrectPin extends StatefulWidget {
   final BoxConstraints constraints;
@@ -41,8 +43,8 @@ class _IncorrectPin extends State<IncorrectPin> {
                 child: Container(
                   height: widget.constraints.maxHeight * 1.0,
                   width: widget.constraints.maxWidth * 1.0,
-                  decoration: BoxDecoration(
-                    color: Color(0xfff40000),
+                  decoration: const BoxDecoration(
+                    color: GeniusWalletColors.statusError,
                     borderRadius: BorderRadius.all(Radius.circular(100.0)),
                   ),
                 ),
@@ -52,18 +54,12 @@ class _IncorrectPin extends State<IncorrectPin> {
                 right: 35.0,
                 top: 7.0,
                 bottom: 8.0,
-                child: Container(
+                child: SizedBox(
                     height: widget.constraints.maxHeight * 0.5588235294117647,
                     width: widget.constraints.maxWidth * 0.56875,
                     child: AutoSizeText(
                       widget.ovrIncorrectPinLabel ?? 'Incorrect Pin',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 0.0,
-                        color: Colors.white,
-                      ),
+                      style: GeniusWalletTypography.titleMd,
                       textAlign: TextAlign.center,
                     )),
               ),

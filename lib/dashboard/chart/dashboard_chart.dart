@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class DashboardChart extends StatelessWidget {
   final String coinGeckoCoinId;
@@ -38,7 +39,7 @@ class DashboardChart extends StatelessWidget {
             style: const TextStyle(
               fontSize: GeniusWalletFontSize.sectionHeader,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
             ),
           )),
           const SizedBox(height: 16),

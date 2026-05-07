@@ -31,7 +31,7 @@ class TransactionSwappedItem extends StatelessWidget {
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: isFailed ? Colors.redAccent : Colors.white),
+              color: isFailed ? Colors.redAccent : GeniusWalletColors.textPrimary),
         ),
         subtitle: Text(
           timeago.format(tx.timeStamp.toLocal()),
@@ -109,7 +109,7 @@ class TransactionSwappedItem extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.greenAccent,
+            color: GeniusWalletColors.brandGreen,
           ),
         ),
         Text(
@@ -177,7 +177,7 @@ class TransactionSwappedItem extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: isFailed ? Colors.redAccent : Colors.white,
+              color: isFailed ? Colors.redAccent : GeniusWalletColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -199,7 +199,7 @@ class TransactionSwappedItem extends StatelessWidget {
                     "Status",
                     tx.transactionStatus.name[0].toUpperCase() +
                         tx.transactionStatus.name.substring(1),
-                    valueColor: isFailed ? Colors.redAccent : Colors.white),
+                    valueColor: isFailed ? Colors.redAccent : GeniusWalletColors.textPrimary),
                 _buildRow("From", "$fromAmount $fromSymbol"),
                 _buildRow("To", "$toAmount $toSymbol"),
                 _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
@@ -213,13 +213,13 @@ class TransactionSwappedItem extends StatelessWidget {
   }
 
   Widget _buildRow(String label, String value,
-      {Color valueColor = Colors.white}) {
+      {Color valueColor = GeniusWalletColors.textPrimary}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
+          Text(label, style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
           Flexible(
             child: Text(
               value,

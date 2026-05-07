@@ -23,7 +23,7 @@ class TransactionItem extends StatelessWidget {
         "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
 
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
-    final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+    final arrowBgColor = isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
 
     return Card(
         color: GeniusWalletColors.deepBlueMenu,
@@ -103,13 +103,13 @@ class TransactionItem extends StatelessWidget {
   }
 
   Widget _buildRow(String label, String value,
-      {Color valueColor = Colors.white}) {
+      {Color valueColor = GeniusWalletColors.textPrimary}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
+          Text(label, style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
           Text(value, style: TextStyle(color: valueColor)),
         ],
       ),
@@ -120,7 +120,7 @@ class TransactionItem extends StatelessWidget {
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
-    final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+    final arrowBgColor = isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
     final amountText =
         "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
     final address = isSent ? tx.recipients.first.toAddr : tx.fromAddress;
@@ -164,7 +164,7 @@ class TransactionItem extends StatelessWidget {
           child: Text(
             amountText,
             style: const TextStyle(
-                fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                fontSize: 28, fontWeight: FontWeight.bold, color: GeniusWalletColors.textPrimary),
           ),
         ),
         const SizedBox(height: 16),

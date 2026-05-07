@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class RecoveryWordsInput extends StatelessWidget {
   final List<String> selectedWords;
@@ -12,13 +14,17 @@ class RecoveryWordsInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          border: Border.all(color: GeniusWalletColors.gray500),
-          borderRadius: const BorderRadius.all(Radius.circular(15)),
-          color: GeniusWalletColors.grayPrimary),
-      padding: const EdgeInsets.all(16),
+        border: Border.all(color: GeniusWalletColors.borderSubtle),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+        color: GeniusWalletColors.surfaceMenu,
+      ),
+      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       height: 180,
       width: MediaQuery.of(context).size.width,
-      child: Text(selectedWords.join(' ')),
+      child: Text(
+        selectedWords.join(' '),
+        style: GeniusWalletTypography.bodyLg,
+      ),
     );
   }
 }

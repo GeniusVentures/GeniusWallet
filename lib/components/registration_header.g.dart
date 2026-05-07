@@ -57,11 +57,10 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                       widget.ovrSubtitle ??
                           'In the next step you will see 12 words that allows you to recover a wallet.',
                       style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 14.0,
+fontSize: 14.0,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
-                        color: Colors.white,
+                        color: GeniusWalletColors.textPrimary,
                       ),
                     )),
               ),
@@ -75,11 +74,10 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                       widget.ovrTitle ?? GeniusWalletText.titleWalletBackup,
                       maxLines: 1,
                       style: const TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: GeniusWalletFontSize.title,
+fontSize: GeniusWalletFontSize.title,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.13750000298023224,
-                        color: Colors.white,
+                        color: GeniusWalletColors.textPrimary,
                       ),
                       textAlign: TextAlign.center,
                     )),

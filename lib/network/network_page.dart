@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -52,7 +53,7 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('[DEBUG] NetworkStatusPage build called');
+    if (kDebugMode) debugPrint('[DEBUG] NetworkStatusPage build called');
     return Scaffold(
       appBar: AppBar(title: const Text('Connectivity')),
       body: Padding(
@@ -65,8 +66,10 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                 stream: connectivityStream,
                 initialData: lastKnownConnectivity,
                 builder: (context, snapshot) {
-                  print(
-                      '[DEBUG] Network StreamBuilder snapshot: ${snapshot.connectionState}, data: ${snapshot.data}');
+                  if (kDebugMode) {
+                    debugPrint(
+                        '[DEBUG] Network StreamBuilder snapshot: ${snapshot.connectionState}, data: ${snapshot.data}');
+                  }
                   ConnectivityResult? statusValue =
                       snapshot.data ?? lastKnownConnectivity;
                   String status = "Checking...";

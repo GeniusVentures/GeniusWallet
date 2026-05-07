@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/pulsing_skeleton.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:intl/intl.dart';
 
 class CryptoLiveChart extends StatefulWidget {
@@ -199,7 +200,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     ).format(_displayPrice);
 
     bool isUptrend = _latestPrice >= _previousPrice;
-    Color fillColor = isUptrend ? Colors.greenAccent : Colors.redAccent;
+    Color fillColor = isUptrend ? GeniusWalletColors.brandGreen : Colors.redAccent;
 
     return MouseRegion(
       onExit: _onHoverExit,
@@ -212,7 +213,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
             style: TextStyle(
               fontSize: widget.priceHeight ?? 48,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -275,7 +276,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                               spots: _priceData,
                               isCurved: true,
                               curveSmoothness: 0.22,
-                              color: Colors.white,
+                              color: GeniusWalletColors.textPrimary,
                               barWidth: 2.5,
                               belowBarData: BarAreaData(
                                 show: true,
@@ -326,7 +327,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                                   return LineTooltipItem(
                                     '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
                                     const TextStyle(
-                                        color: Colors.white,
+                                        color: GeniusWalletColors.textPrimary,
                                         fontWeight: FontWeight.bold),
                                   );
                                 }).toList();
@@ -341,24 +342,24 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.zoom_in, color: Colors.white),
+                          icon: const Icon(Icons.zoom_in, color: GeniusWalletColors.textPrimary),
                           onPressed: _zoomIn,
                           tooltip: "Zoom In",
                         ),
                         IconButton(
-                          icon: const Icon(Icons.zoom_out, color: Colors.white),
+                          icon: const Icon(Icons.zoom_out, color: GeniusWalletColors.textPrimary),
                           onPressed: _zoomOut,
                           tooltip: "Zoom Out",
                         ),
                         IconButton(
                           icon: const Icon(Icons.arrow_back_ios,
-                              color: Colors.white, size: 18),
+                              color: GeniusWalletColors.textPrimary, size: 18),
                           onPressed: _panLeft,
                           tooltip: "Pan Left",
                         ),
                         IconButton(
                           icon: const Icon(Icons.arrow_forward_ios,
-                              color: Colors.white, size: 18),
+                              color: GeniusWalletColors.textPrimary, size: 18),
                           onPressed: _panRight,
                           tooltip: "Pan Right",
                         ),

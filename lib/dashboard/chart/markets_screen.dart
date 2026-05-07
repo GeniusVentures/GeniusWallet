@@ -45,7 +45,7 @@ class MarketsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    color: GeniusWalletColors.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -74,7 +74,7 @@ class MarketsScreen extends StatelessWidget {
                 error: const Center(
                   child: Text(
                     "Failed to load market coins",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: GeniusWalletColors.textPrimary),
                   ),
                 ),
                 onData: (coins) {
@@ -82,7 +82,7 @@ class MarketsScreen extends StatelessWidget {
                     return const Center(
                       child: Text(
                         "No market data available",
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: GeniusWalletColors.textPrimary),
                       ),
                     );
                   }
@@ -93,7 +93,7 @@ class MarketsScreen extends StatelessWidget {
                     error: const Center(
                       child: Text(
                         "Failed to load market data",
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: GeniusWalletColors.textPrimary),
                       ),
                     ),
                     onData: (marketData) {
@@ -101,7 +101,7 @@ class MarketsScreen extends StatelessWidget {
                         return const Center(
                           child: Text(
                             "No market data available",
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: GeniusWalletColors.textPrimary),
                           ),
                         );
                       }
@@ -122,13 +122,16 @@ class MarketsScreen extends StatelessWidget {
                               marketData[coin.symbol.toLowerCase()];
 
                           if (data == null) {
-                            // Optional: visually debug missing data
+                            // Missing-data placeholder (debug aid, tinted to
+                            // stand out without looking like a system error).
                             return Container(
-                              color: Colors.red,
+                              color: GeniusWalletColors.statusError
+                                  .withAlpha(100),
                               child: Center(
                                 child: Text(
                                   '${coin.symbol}\n${coin.id}',
-                                  style: const TextStyle(color: Colors.white),
+                                  style: const TextStyle(
+                                      color: GeniusWalletColors.textPrimary),
                                 ),
                               ),
                             );

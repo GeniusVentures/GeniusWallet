@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
@@ -9,7 +11,7 @@ import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bl
 import 'package:genius_wallet/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/custom/wallet_agreement_custom.dart';
-import 'package:genius_wallet/components/wallet_button/type_existing.g.dart';
+import 'package:go_router/go_router.dart';
 
 class LegalScreen extends StatelessWidget {
   static const title = 'Legal';
@@ -104,39 +106,37 @@ class _ToSButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width * 0.8;
     return SizedBox(
-        width: 300,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 50,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return TypeExisting(
-                    constraints,
-                    ovrIalreadyhaveawallet: 'Privacy Policy',
-                  );
-                },
-              ),
+      width: 300,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: width,
+            child: GWButton(
+              label: 'Privacy Policy',
+              variant: GWButtonVariant.secondary,
+              size: GWButtonSize.lg,
+              expand: true,
+              onPressed: () => context.push('/import_existing_wallet'),
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 50,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return TypeExisting(
-                    constraints,
-                    ovrIalreadyhaveawallet: 'Terms of Service',
-                  );
-                },
-              ),
+          ),
+          const SizedBox(height: GeniusWalletConsts.space10),
+          SizedBox(
+            width: width,
+            child: GWButton(
+              label: 'Terms of Service',
+              variant: GWButtonVariant.secondary,
+              size: GWButtonSize.lg,
+              expand: true,
+              onPressed: () => context.push('/import_existing_wallet'),
             ),
-            const SizedBox(height: 10),
-          ],
-        ));
+          ),
+          const SizedBox(height: GeniusWalletConsts.space4),
+        ],
+      ),
+    );
   }
 }
 

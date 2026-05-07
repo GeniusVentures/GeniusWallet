@@ -11,6 +11,8 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -61,7 +63,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         context,
       ));
       if (i < wallets.length - 1) {
-        walletRows.add(const Divider(height: 1, color: Colors.white12));
+        walletRows.add(const Divider(height: 1, color: GeniusWalletColors.textPrimary12));
       }
     }
 
@@ -73,7 +75,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             "Add more wallets to manage your assets",
             style: TextStyle(
                 fontSize: 15,
-                color: Colors.white54,
+                color: GeniusWalletColors.textPrimary54,
                 fontStyle: FontStyle.italic),
             textAlign: TextAlign.center,
           ),
@@ -137,23 +139,23 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
   Widget _buildDrawerRow(Wallet wallet, bool isSelected, BuildContext context) {
     final isWatched = wallet.walletType == WalletType.tracking;
     final textColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
+        isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textPrimary;
     final subColor =
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
     final trailingIconColor = isWatched
-        ? (isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white)
+        ? (isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textPrimary)
         : null;
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      hoverColor: Colors.greenAccent.withAlpha(20),
+      hoverColor: GeniusWalletColors.brandGreen.withAlpha(20),
       onTap: () => Navigator.of(context).pop(wallet),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.greenAccent
-              : GeniusWalletColors.deepBlueCardColor,
+              ? GeniusWalletColors.brandPrimary.withAlpha(38)
+              : GeniusWalletColors.surfaceElevated,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -229,7 +231,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.copy,
-                          color: GeniusWalletColors.white, size: 20),
+                          color: GeniusWalletColors.textPrimary, size: 20),
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: wallet.address));
                         HapticFeedback.lightImpact();
@@ -263,7 +265,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       child: Container(
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.greenAccent,
+          color: GeniusWalletColors.brandGreen,
         ),
         child: Center(
           child: isWatched
@@ -316,7 +318,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             if (wallets.isEmpty) {
               return const Center(
                 child: Text("You have no wallets!",
-                    style: TextStyle(fontSize: 16, color: Colors.white70)),
+                    style: TextStyle(fontSize: 16, color: GeniusWalletColors.textPrimary70)),
               );
             }
             selectedWallet ??= wallets.firstWhere(

@@ -70,7 +70,7 @@ class CoinCardRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: GeniusWalletColors.textPrimary,
                     ),
                   ),
                   // Balance & Symbol or Placeholder
@@ -111,7 +111,7 @@ class CoinCardRow extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Colors.white,
+                    color: GeniusWalletColors.textPrimary,
                   ),
                 ),
                 // 24h Gain/Loss

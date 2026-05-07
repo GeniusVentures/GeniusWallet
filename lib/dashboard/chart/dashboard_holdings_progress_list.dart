@@ -105,7 +105,7 @@ class HoldingProgressItem extends StatelessWidget {
           child: Text(
             '${percentage.toStringAsFixed(0)}%',
             style: const TextStyle(
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w400,
             ),
@@ -119,7 +119,7 @@ class HoldingProgressItem extends StatelessWidget {
                   label,
                   maxLines: 1,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: GeniusWalletColors.textPrimary,
                     fontSize: 14,
                   ),
                 ))),

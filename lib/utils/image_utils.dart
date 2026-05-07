@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 Widget buildTokenIcon({required String iconPath, required double size}) {
   bool isNetworkImage =
@@ -36,6 +37,6 @@ Widget _defaultIcon(size) {
       shape: BoxShape.circle,
       color: Colors.grey, // Background color for default icon
     ),
-    child: const Icon(Icons.image_not_supported, color: Colors.white),
+    child: const Icon(Icons.image_not_supported, color: GeniusWalletColors.textPrimary),
   );
 }

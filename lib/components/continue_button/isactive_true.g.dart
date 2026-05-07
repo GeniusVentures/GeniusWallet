@@ -56,8 +56,7 @@ class _IsactiveTrue extends State<IsactiveTrue> {
                   child: AutoSizeText(
                     widget.ovrContinue ?? GeniusWalletText.btnContinue,
                     style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: GeniusWalletFontSize.medium,
+fontSize: GeniusWalletFontSize.medium,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.138,
                       color: GeniusWalletColors.btnText,

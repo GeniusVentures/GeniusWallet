@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class ApproveDappConnectionDrawer {
@@ -40,7 +41,7 @@ class ApproveDappConnectionDrawer {
                   Flexible(
                     child: Text(
                       dappName,
-                      style: const TextStyle(color: Colors.white, fontSize: 20),
+                      style: const TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 20),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -60,7 +61,7 @@ class ApproveDappConnectionDrawer {
         if (dappDescription != null && dappDescription.isNotEmpty) ...[
           Text(
             dappDescription,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
+            style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
@@ -69,7 +70,7 @@ class ApproveDappConnectionDrawer {
       footer: Column(children: [
         Text(
           "Allow $dappName to connect to your wallet?",
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 16),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
@@ -89,8 +90,8 @@ class ApproveDappConnectionDrawer {
               child: OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.greenAccent,
-                  side: const BorderSide(color: Colors.greenAccent),
+                  backgroundColor: GeniusWalletColors.brandGreen,
+                  side: const BorderSide(color: GeniusWalletColors.brandGreen),
                 ),
                 child:
                     const Text("Allow", style: TextStyle(color: Colors.black)),

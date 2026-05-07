@@ -16,8 +16,8 @@ bool isWalletPKBypass() {
   return walletPK.isNotEmpty;
 }
 
-void byPassSGNUSConnecton(geniusApi) {
-  if (!isWalletPKBypass()) {
+void byPassSGNUSConnecton(geniusApi, {bool force = false}) {
+  if (!force && !isWalletPKBypass()) {
     return;
   }
 
@@ -29,8 +29,8 @@ void byPassSGNUSConnecton(geniusApi) {
       isConnected: true));
 }
 
-void byPassWalletCreation(localWalletStorage) {
-  if (!isWalletPKBypass()) {
+void byPassWalletCreation(localWalletStorage, {bool force = false}) {
+  if (!force && !isWalletPKBypass()) {
     return;
   }
 
@@ -46,8 +46,11 @@ void byPassWalletCreation(localWalletStorage) {
   ));
 }
 
-void addFakeSGNUSTransactions(SGNUSTransactionsController txController) {
-  if (!isWalletPKBypass()) {
+void addFakeSGNUSTransactions(
+  SGNUSTransactionsController txController, {
+  bool force = false,
+}) {
+  if (!force && !isWalletPKBypass()) {
     return;
   }
 
