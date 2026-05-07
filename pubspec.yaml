@@ -53,6 +53,8 @@ dependencies:
   image_picker: ^1.2.0
   csc_picker_plus: ^0.0.3
   intl_phone_field: ^3.2.0
+  shimmer: ^3.0.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

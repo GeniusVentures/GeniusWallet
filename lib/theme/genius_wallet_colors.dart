@@ -1,7 +1,85 @@
 import 'package:flutter/material.dart';
 
 class GeniusWalletColors {
-  static const Color blue500 = Color(0xff0068ef);
+  // ---------------------------------------------------------------------------
+  // GNUS brand palette — aligned with the marketing site (gnus.ai).
+  // Primary: cyan. Secondary: mint. Tertiary: purple. Use these tokens for
+  // new code; legacy names below are remapped onto the new palette.
+  // ---------------------------------------------------------------------------
+
+  // Brand — primary (cyan/blue)
+  static const Color brandPrimary = Color(0xFF18AEF0);
+  static const Color brandPrimaryStrong = Color(0xFF0C91CC);
+  static Color brandPrimaryMuted = const Color(0xFF18AEF0).withAlpha(61); // ~24%
+  static Color brandPrimarySubtle = const Color(0xFF18AEF0).withAlpha(31); // ~12%
+
+  // Brand — secondary (mint/green)
+  static const Color brandSecondary = Color(0xFF3BCDA1);
+  static const Color brandSecondaryStrong = Color(0xFF06AA78);
+  static const Color brandSecondaryBright = Color(0xFF36EDB5);
+  static Color brandSecondaryMuted = const Color(0xFF3BCDA1).withAlpha(61);
+  static Color brandSecondarySubtle = const Color(0xFF3BCDA1).withAlpha(31);
+
+  // Brand — tertiary (purple accent)
+  static const Color brandTertiary = Color(0xFFA66CFF);
+  static Color brandTertiaryMuted = const Color(0xFFA66CFF).withAlpha(61);
+  static Color brandTertiarySubtle = const Color(0xFFA66CFF).withAlpha(31);
+
+  // Signature gradient stops (blue → green CTA from gnus.ai)
+  static const Color gradientBlue = Color(0xFF0C91CC);
+  static const Color gradientGreen = Color(0xFF06AA78);
+
+  // Surface — teal-blue canvas with darker contained cards (gnus.ai layered look)
+  static const Color surfaceBase = Color(0xFF1D3844); // page background (teal)
+  static const Color surfaceElevated = Color(0xFF0C0E14); // card / contained
+  static const Color surfaceMenu = Color(0xFF14283A); // sheet / menu
+  static const Color surfaceSunken = Color(0xFF06080C); // deepest layer
+  static Color surfaceOverlay = const Color(0xFF000000).withAlpha(153); // 60%
+
+  // Text
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textPrimary70 = Color(0xB3FFFFFF);
+  static const Color textPrimary60 = Color(0x99FFFFFF);
+  static const Color textPrimary54 = Color(0x8AFFFFFF);
+  static const Color textPrimary38 = Color(0x62FFFFFF);
+  static const Color textPrimary30 = Color(0x4DFFFFFF);
+  static const Color textPrimary24 = Color(0x3DFFFFFF);
+  static const Color textPrimary12 = Color(0x1FFFFFFF);
+  static const Color textPrimary10 = Color(0x1AFFFFFF);
+  static const Color textSecondary = Color(0xFF8A8F9D); // gnus.ai --muted-foreground
+  static const Color textTertiary = Color.fromARGB(255, 53, 54, 61);
+  static const Color textDisabled = Color(0xFF2A2B31);
+  static const Color textOnBrand = Color(0xFF000B18);
+
+  // Border
+  static Color borderSubtle = const Color.fromRGBO(255, 255, 255, 0.12);
+  static Color borderStrong = const Color.fromRGBO(255, 255, 255, 0.24);
+  static const Color borderBrand = brandPrimary;
+
+  // Status
+  static const Color statusSuccess = Color(0xFF06AA78); // mint-green from gradient
+  static const Color statusError = Color(0xFFDC2626); // gnus.ai --destructive
+  static const Color statusWarning = Color(0xFFFFB020);
+  static const Color statusInfo = brandPrimary;
+
+  // ---------------------------------------------------------------------------
+  // Backwards-compatibility aliases — these now point to the new GNUS palette,
+  // so existing widgets adopt the refreshed look without immediate refactors.
+  // Prefer the semantic tokens above for new code.
+  // ---------------------------------------------------------------------------
+
+  // brandGreen → mint secondary (was Color.fromRGBO(0, 234, 174, 1))
+  static const Color brandGreen = brandSecondary;
+  static const Color brandGreenStrong = brandSecondaryStrong;
+  static Color brandGreenMuted = brandSecondaryMuted;
+  static Color brandGreenSubtle = brandSecondarySubtle;
+
+  // ---------------------------------------------------------------------------
+  // Legacy constants (do not use in new code — prefer semantic tokens above).
+  // Values updated to align with the GNUS palette.
+  // ---------------------------------------------------------------------------
+
+  static const Color blue500 = brandPrimary;
 
   static const Color foundationWhite = Color(0xffffffff);
 
@@ -9,17 +87,17 @@ class GeniusWalletColors {
 
   static const Color gray900 = Color(0xff18191d);
 
-  static const Color gray500 = Color(0xff73788c);
+  static const Color gray500 = textSecondary;
 
   static const Color darkGreen = Color(0xff7ac231);
 
-  static const Color containerGray = Color(0xff1e2025);
+  static const Color containerGray = surfaceMenu;
 
   static const Color gray600 = Color.fromARGB(255, 53, 54, 61);
 
   static const Color gray800 = Color(0xff2a2b31);
 
-  static const Color red = Color(0xfff40000);
+  static const Color red = statusError;
 
   static const Color cancelled = Color(0xff4A121C);
 
@@ -29,41 +107,42 @@ class GeniusWalletColors {
 
   static const Color white = Color(0xffffffff);
 
-  static const Color darkBlue500 = Color(0xff0068ef);
+  static const Color darkBlue500 = brandPrimaryStrong;
 
-  static const Color successGreen = Color(0xff00bf13);
+  static const Color successGreen = statusSuccess;
 
-  static const Color deepBlue = Color.fromRGBO(18, 33, 54, 1);
+  static const Color deepBlue = surfaceBase;
 
-  static const Color deepBlueSecondary = Color.fromRGBO(11, 20, 32, 1);
+  static const Color deepBlueSecondary = surfaceMenu;
 
-  static const Color deepBlueTertiary = Color(0xff05090F);
+  static const Color deepBlueTertiary = surfaceSunken;
 
-  static const Color deepBlueCardColor = Color(0xff0A121F);
+  static const Color deepBlueCardColor = surfaceElevated;
 
-  static const Color deepBlueMenu = Color(0xff0F1B2E);
+  static const Color deepBlueMenu = surfaceMenu;
 
-  static const Color lightGreenPrimary = Color.fromRGBO(0, 234, 174, 1);
+  static const Color lightGreenPrimary = brandSecondary;
 
-  static const Color lightGreenSecondary = Color.fromRGBO(1, 204, 149, 1);
+  static const Color lightGreenSecondary = brandSecondaryStrong;
 
   static const Color grayPrimary = Color.fromRGBO(21, 30, 41, 1);
 
-  static const Color btnText = Color.fromRGBO(0, 11, 24, 1);
+  static const Color btnText = textOnBrand;
 
   static const Color btnDisabled = Color.fromRGBO(188, 188, 188, 1);
 
   static const Color btnTextDisabled = Color.fromRGBO(101, 101, 101, 1);
 
-  static const Color btnGradientBlue = Color.fromRGBO(0, 104, 239, 1);
+  // Signature CTA gradient stops
+  static const Color btnGradientBlue = gradientBlue;
 
-  static const Color btnGradientGreen = Color.fromRGBO(1, 221, 166, 1);
+  static const Color btnGradientGreen = gradientGreen;
 
   static const Color btnCopyBorder = Color.fromRGBO(255, 255, 255, 0.30);
 
   static const Color btnFilter = Color.fromARGB(255, 19, 33, 53);
 
-  static Color btnFilterSelected = lightGreenPrimary.withAlpha(26);
+  static Color btnFilterSelected = brandPrimary.withAlpha(26);
 
   static const Color rowFilterBlue = Color.fromARGB(255, 14, 25, 40);
 
