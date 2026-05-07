@@ -45,7 +45,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
       future: _future,
       error: const Text(
         "Failed to load market data",
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: GeniusWalletColors.textPrimary),
       ),
       onRetry: _retry,
       onData: (marketData) {
@@ -53,7 +53,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
           return const Center(
             child: Text(
               "No market data available",
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: GeniusWalletColors.textPrimary),
             ),
           );
         }
@@ -73,7 +73,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                       style: const TextStyle(
                         fontSize: GeniusWalletFontSize.sectionHeader,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: GeniusWalletColors.textPrimary,
                       ),
                     ),
                   ),

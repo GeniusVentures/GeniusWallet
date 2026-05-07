@@ -80,8 +80,8 @@ class DesktopTopBar extends StatelessWidget {
                               data: IconThemeData(
                                   size: 16,
                                   color: isSelected
-                                      ? Colors.greenAccent
-                                      : Colors.white.withAlpha(153)),
+                                      ? GeniusWalletColors.brandGreen
+                                      : GeniusWalletColors.textPrimary60),
                               child: isSelected
                                   ? destination.selectedIcon
                                   : destination.icon,
@@ -92,8 +92,8 @@ class DesktopTopBar extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: isSelected
-                                      ? Colors.greenAccent
-                                      : Colors.white.withAlpha(153),
+                                      ? GeniusWalletColors.brandGreen
+                                      : GeniusWalletColors.textPrimary60,
                                 ),
                                 child: destination.label,
                               ),
@@ -108,7 +108,7 @@ class DesktopTopBar extends StatelessWidget {
                         width: 60,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.greenAccent
+                              ? GeniusWalletColors.brandGreen
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(4),
                         ),

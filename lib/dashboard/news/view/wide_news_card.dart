@@ -33,7 +33,8 @@ class WideNewsCard extends StatelessWidget {
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: Colors.grey[800],
-                    child: const Icon(Icons.error, color: Colors.red),
+                    child: const Icon(Icons.error,
+                        color: GeniusWalletColors.statusError),
                   ),
                 ),
               ),
@@ -55,14 +56,15 @@ class WideNewsCard extends StatelessWidget {
                 children: [
                   Text(
                     article.pubDate,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: const TextStyle(
+                        color: GeniusWalletColors.textPrimary70, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   Expanded(
                     child: Text(
                       article.title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: GeniusWalletColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),

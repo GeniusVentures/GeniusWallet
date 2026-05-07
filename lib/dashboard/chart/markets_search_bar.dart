@@ -123,26 +123,26 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
         // Replace SearchBar with this TextField for custom style
         TextField(
           controller: _controller,
-          style: const TextStyle(color: Colors.white), // White input text
+          style: const TextStyle(color: GeniusWalletColors.textPrimary),
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Search Coins...',
             hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
-            fillColor: Colors.grey[900], // Very dark background for input
+            fillColor: Colors.grey[900],
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Colors.white24, // Subtle dark border
+                color: GeniusWalletColors.textPrimary24,
                 width: 1.4,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(5),
               borderSide: const BorderSide(
-                color: Colors.white38,
+                color: GeniusWalletColors.textPrimary38,
                 width: 1.4,
               ),
             ),
@@ -160,7 +160,8 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                   )
                 : (_controller.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white),
+                        icon: const Icon(Icons.clear,
+                            color: GeniusWalletColors.textPrimary),
                         onPressed: () {
                           _controller.clear();
                           setState(() {
@@ -168,7 +169,8 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                           });
                         },
                       )
-                    : const Icon(Icons.search, color: Colors.white38)),
+                    : const Icon(Icons.search,
+                        color: GeniusWalletColors.textPrimary38)),
           ),
         ),
 

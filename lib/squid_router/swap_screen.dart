@@ -218,7 +218,7 @@ class _SwapScreenState extends State<SwapScreen> {
                             child: Text(
                               "Swap",
                               style: TextStyle(
-                                color: Colors.white,
+                                color: GeniusWalletColors.textPrimary,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -228,7 +228,7 @@ class _SwapScreenState extends State<SwapScreen> {
                         IconButton(
                           icon: const Icon(
                             Icons.tune,
-                            color: Colors.white,
+                            color: GeniusWalletColors.textPrimary,
                             size: 24,
                           ),
                           onPressed: () {
@@ -322,7 +322,7 @@ class _SwapScreenState extends State<SwapScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.greenAccent,
+                                backgroundColor: GeniusWalletColors.brandGreen,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                               ),

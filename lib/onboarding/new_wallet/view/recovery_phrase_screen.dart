@@ -177,7 +177,7 @@ class _WordsGridWithCopyAndToggleState
                             '${index + 1}. ',
                             style: const TextStyle(
                               fontSize: 16,
-                              color: GeniusWalletColors.white,
+                              color: GeniusWalletColors.textPrimary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -197,7 +197,7 @@ class _WordsGridWithCopyAndToggleState
                                 _isVisible ? words[index] : '••••••',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: GeniusWalletColors.white,
+                                  color: GeniusWalletColors.textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
@@ -340,11 +340,13 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
                 width: 1.0, color: GeniusWalletColors.btnCopyBorder),
           ),
           icon: const Icon(Icons.content_copy,
-              color: Colors.white, size: GeniusWalletFontSize.base),
+              color: GeniusWalletColors.textPrimary,
+              size: GeniusWalletFontSize.base),
           label: const Text(
             ' ${GeniusWalletText.btnCopy}',
             style: TextStyle(
-                fontSize: GeniusWalletFontSize.medium, color: Colors.white),
+                fontSize: GeniusWalletFontSize.medium,
+                color: GeniusWalletColors.textPrimary),
           ),
         ),
       ],

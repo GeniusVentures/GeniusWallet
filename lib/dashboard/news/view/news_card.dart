@@ -65,7 +65,7 @@ class _NewsCardState extends State<NewsCard> {
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[800],
-                        child: const Icon(Icons.error, color: Colors.red),
+                        child: const Icon(Icons.error, color: GeniusWalletColors.statusError),
                       ),
                     ),
                     if (_isHovered)
@@ -80,7 +80,7 @@ class _NewsCardState extends State<NewsCard> {
                                 child: Text(
                                   widget.article.pubDate,
                                   style: const TextStyle(
-                                    color: Colors.white60,
+                                    color: GeniusWalletColors.textPrimary60,
                                     fontSize: 12,
                                   ),
                                   maxLines: 1,
@@ -90,7 +90,7 @@ class _NewsCardState extends State<NewsCard> {
                               Text(
                                 widget.article.title.trim(),
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: GeniusWalletColors.textPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -137,7 +137,7 @@ class _NewsCardState extends State<NewsCard> {
                     child: Text(
                       widget.article.title.trim(),
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: GeniusWalletColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -150,7 +150,7 @@ class _NewsCardState extends State<NewsCard> {
                   Text(
                     widget.article.pubDate,
                     style: const TextStyle(
-                      color: Colors.white60,
+                      color: GeniusWalletColors.textPrimary60,
                       fontSize: 12,
                     ),
                   ),
@@ -175,7 +175,7 @@ class _NewsCardState extends State<NewsCard> {
                   width: 80,
                   height: 80,
                   color: Colors.grey[800],
-                  child: const Icon(Icons.error, color: Colors.red),
+                  child: const Icon(Icons.error, color: GeniusWalletColors.statusError),
                 ),
               ),
             ),

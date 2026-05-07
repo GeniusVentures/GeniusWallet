@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class Loading extends StatelessWidget {
@@ -10,17 +12,17 @@ class Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-        spacing: 16,
+        spacing: GeniusWalletConsts.space8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           LoadingAnimationWidget.flickr(
-            leftDotColor: GeniusWalletColors.lightGreenPrimary,
-            rightDotColor: GeniusWalletColors.blue500,
+            leftDotColor: GeniusWalletColors.brandGreen,
+            rightDotColor: GeniusWalletColors.statusInfo,
             size: 50,
           ),
           AutoSizeText(
             text ?? "",
-            style: const TextStyle(fontSize: 14),
+            style: GeniusWalletTypography.headlineLg,
           )
         ]);
   }

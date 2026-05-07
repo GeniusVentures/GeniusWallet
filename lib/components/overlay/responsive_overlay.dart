@@ -6,11 +6,11 @@ import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/overlay/desktop_overlay.dart';
 import 'package:genius_wallet/components/overlay/mobile_overlay.dart';
+import 'package:genius_wallet/dashboard/browser/view/browser_screen.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
-import 'package:genius_wallet/web/web_view_screen.dart';
 import 'package:genius_wallet/logs/submit_logs_screen.dart';
 
 class ResponsiveOverlay extends StatelessWidget {
@@ -35,9 +35,7 @@ class ResponsiveOverlay extends StatelessWidget {
           NavigationScreen.swap: const SwapScreen(),
           NavigationScreen.news: const CryptoNewsScreen(),
           NavigationScreen.markets: const MarketsScreen(),
-          NavigationScreen.web: selected == NavigationScreen.web
-              ? const WebViewScreen(url: "https://app.uniswap.org")
-              : const SizedBox.shrink(),
+          NavigationScreen.web: const BrowserScreen(),
           NavigationScreen.logs: const SubmitLogsScreen(),
         };
 
