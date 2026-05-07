@@ -13,6 +13,7 @@ import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/components/action_button.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
@@ -52,12 +53,10 @@ class WalletInformationState extends State<WalletInformation> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Label
-            const Text(
+            Text(
               'Total Balance',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-                fontWeight: FontWeight.w400,
+              style: GeniusWalletTypography.bodyLg.copyWith(
+                color: GeniusWalletColors.textPrimary70,
                 letterSpacing: 0.5,
               ),
             ),
@@ -72,12 +71,8 @@ class WalletInformationState extends State<WalletInformation> {
                   child: AutoSizeText(
                     widget.totalBalance ?? "0.00",
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 36.0, // Changed to 36sp
-                      fontWeight: FontWeight.w700,
+                    style: GeniusWalletTypography.numericDisplay.copyWith(
                       letterSpacing: 1.0,
-                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -89,11 +84,10 @@ class WalletInformationState extends State<WalletInformation> {
                 widget.totalBalance == "0" ||
                 widget.totalBalance == "0.00" ||
                 widget.totalBalance == "\$0.00")
-              const Text(
+              Text(
                 'No funds available',
-                style: TextStyle(
-                  color: GeniusWalletColors.red,
-                  fontSize: 12,
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  color: GeniusWalletColors.statusError,
                 ),
               ),
             const SizedBox(height: 8),
@@ -125,10 +119,10 @@ class WalletInformationState extends State<WalletInformation> {
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(
                             GeniusWalletConsts.borderRadiusCard),
-                        color: GeniusWalletColors.deepBlueCardColor),
-                    child: const Text(
+                        color: GeniusWalletColors.surfaceElevated),
+                    child: Text(
                       "You are watching this account",
-                      style: TextStyle(fontSize: 20),
+                      style: GeniusWalletTypography.headlineMd,
                     )),
                 const SizedBox(height: 24),
                 WalletAddressCustom(
@@ -141,12 +135,8 @@ class WalletInformationState extends State<WalletInformation> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         widget.ovrAddressField,
-                        style: const TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w400,
+                        style: GeniusWalletTypography.bodyLg.copyWith(
                           letterSpacing: 0.4,
-                          color: Colors.white,
                         ),
                       )),
                       const SizedBox(width: 12),
@@ -232,7 +222,7 @@ class WalletInformationState extends State<WalletInformation> {
                           context.go('/dashboard');
                         });
                       },
-                      color: Colors.red,
+                      color: GeniusWalletColors.statusError,
                       icon: FontAwesomeIcons.trash,
                       label: "Delete Wallet",
                     ),
