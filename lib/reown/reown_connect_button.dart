@@ -274,8 +274,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                         controller: _uriController,
                                         decoration: const InputDecoration(
                                           hintText: "wc:...",
-                                          hintStyle:
-                                              TextStyle(color: Colors.white38),
+                                          hintStyle: TextStyle(
+                                              color: GeniusWalletColors
+                                                  .textPrimary38),
                                         ),
                                       ),
                                     ),
@@ -323,7 +324,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             key: ValueKey(
                                 "qr-${DateTime.now().millisecondsSinceEpoch}"),
                             child: QrImageView(
-                              backgroundColor: Colors.white,
+                              backgroundColor: GeniusWalletColors.textPrimary,
                               data: wcUri,
                               version: QrVersions.auto,
                             ),
@@ -563,42 +564,42 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     String text;
 
     if (isConnected) {
-      icon = Icons.link_off;
-      iconColor = Colors.redAccent;
-      textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withAlpha(26);
+      icon = Icons.link_off_rounded;
+      iconColor = GeniusWalletColors.statusError;
+      textColor = GeniusWalletColors.statusError;
+      backgroundColor = GeniusWalletColors.statusError.withAlpha(38);
       text = 'Disconnect';
     } else if (_isConnecting) {
-      icon = Icons.sync;
-      iconColor = Colors.amber;
-      textColor = Colors.amber;
-      backgroundColor = Colors.amber.withAlpha(26);
+      icon = Icons.sync_rounded;
+      iconColor = GeniusWalletColors.statusWarning;
+      textColor = GeniusWalletColors.statusWarning;
+      backgroundColor = GeniusWalletColors.statusWarning.withAlpha(38);
       text = 'Connecting';
     } else if (_timedOut) {
-      icon = Icons.timer_off;
-      iconColor = Colors.orange;
-      textColor = Colors.orange;
-      backgroundColor = Colors.orange.withAlpha(26);
+      icon = Icons.timer_off_rounded;
+      iconColor = GeniusWalletColors.statusWarning;
+      textColor = GeniusWalletColors.statusWarning;
+      backgroundColor = GeniusWalletColors.statusWarning.withAlpha(38);
       text = 'Timed Out';
     } else if (_hasError) {
-      icon = Icons.error_outline;
-      iconColor = Colors.redAccent;
-      textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withAlpha(26);
-      text = 'Retry Connect';
+      icon = Icons.error_outline_rounded;
+      iconColor = GeniusWalletColors.statusError;
+      textColor = GeniusWalletColors.statusError;
+      backgroundColor = GeniusWalletColors.statusError.withAlpha(38);
+      text = 'Retry';
     } else {
-      icon = Icons.link;
-      iconColor = Colors.greenAccent;
-      textColor = Colors.white;
-      backgroundColor = GeniusWalletColors.deepBlueCardColor;
+      icon = Icons.link_rounded;
+      iconColor = GeniusWalletColors.brandPrimary;
+      textColor = GeniusWalletColors.textPrimary;
+      backgroundColor = GeniusWalletColors.surfaceElevated;
       text = 'Connect';
     }
 
     return SizedBox(
-        width: isMobile ? 60 : 130,
+        width: isMobile ? 44 : 130,
         child: TextButton(
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             backgroundColor: backgroundColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(40),
