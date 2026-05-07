@@ -20,6 +20,7 @@ import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/splash.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/dev/design_gallery_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
@@ -339,6 +340,10 @@ final geniusWalletRouter = GoRouter(
               url: extras.url, includeBackButton: extras.includeBackButton);
         }),
       ),
+    GoRoute(
+      path: '/design_gallery',
+      builder: (context, state) => const DesignGalleryScreen(),
+    ),
     ...LandingRoutes().landingRoutes,
   ],
 );
