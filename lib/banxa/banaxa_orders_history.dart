@@ -9,7 +9,11 @@ import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
 class OrdersPage extends StatefulWidget {
@@ -146,9 +150,11 @@ class _OrdersPageState extends State<OrdersPage> {
             return const Center(child: Loading());
           }
           if (state.status == OrdersStatus.error) {
-            return Center(
-              child: Text("❌ ${state.error}",
-                  style: const TextStyle(color: Colors.red)),
+            return GWErrorState(
+              title: 'Could not load orders',
+              message: state.error,
+              onRetry: () =>
+                  context.read<OrdersCubit>().fetchOrders('your-cust-id'),
             );
           }
           final orders = state.filteredOrders ?? [];
@@ -164,23 +170,27 @@ class _OrdersPageState extends State<OrdersPage> {
                 onDateRangePressed: () => _pickDateRange(context),
               ),
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(GeniusWalletConsts.space6),
                 child: Text(
                   "Total Orders: ${orders.length}",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: GeniusWalletTypography.titleMd,
                 ),
               ),
               Expanded(
                   child: orders.isEmpty
-                      ? const Center(child: Text("No orders found."))
+                      ? GWEmptyState(
+                          icon: Icons.receipt_long_rounded,
+                          title: 'No orders yet',
+                          message:
+                              "You haven't created any Banxa orders. Start a buy to see it here.",
+                          actionLabel: 'New Order',
+                          onAction: () => context.push('/createOrder'),
+                        )
                       : LayoutBuilder(
                           builder: (context, constraints) {
                             final isWide = constraints.maxWidth > 900;
                             final crossAxisCount = isWide ? 2 : 1;
-                            const spacing = 16.0;
+                            const spacing = GeniusWalletConsts.space8;
                             final totalSpacing = spacing * (crossAxisCount - 1);
                             final cardWidth =
                                 (constraints.maxWidth - totalSpacing) /
@@ -199,7 +209,8 @@ class _OrdersPageState extends State<OrdersPage> {
                                 childAspectRatio: childAspectRatio,
                               ),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
+                                  horizontal: GeniusWalletConsts.space8,
+                                  vertical: GeniusWalletConsts.space4),
                               itemCount: orders.length,
                               itemBuilder: (context, index) {
                                 final order = orders[index];

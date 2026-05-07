@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -211,26 +215,28 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(GeniusWalletConsts.space12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
                 Icons.feedback_outlined,
                 size: 64,
-                color: Colors.greenAccent,
+                color: GeniusWalletColors.brandPrimary,
               ),
-              const SizedBox(height: 24),
-              const Text(
+              const SizedBox(height: GeniusWalletConsts.space12),
+              Text(
                 'Send feedback to the team',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: GeniusWalletTypography.headlineMd,
               ),
-              const SizedBox(height: 12),
-              const Text(
+              const SizedBox(height: GeniusWalletConsts.space6),
+              Text(
                 'Type your message below. SDK logs are attached automatically when available.',
                 textAlign: TextAlign.center,
+                style: GeniusWalletTypography.bodyMd
+                    .copyWith(color: GeniusWalletColors.textSecondary),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: GeniusWalletConsts.space12),
               TextField(
                 controller: _feedbackController,
                 minLines: 4,
@@ -238,34 +244,33 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                 textInputAction: TextInputAction.newline,
                 decoration: const InputDecoration(
                   labelText: 'Message',
-                  hintText: 'Describe the issue or share your feedback here...',
+                  hintText:
+                      'Describe the issue or share your feedback here…',
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
+              const SizedBox(height: GeniusWalletConsts.space8),
+              GWButton(
                 onPressed: _isSubmitting ? null : _submitFeedback,
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send),
-                label:
-                    Text(_isSubmitting ? 'Sending...' : 'Send Feedback'),
+                isLoading: _isSubmitting,
+                leading: const Icon(Icons.send_rounded, size: 18),
+                label: _isSubmitting ? 'Sending…' : 'Send Feedback',
+                expand: true,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: GeniusWalletConsts.space8),
               Text(
                 _statusMessage,
                 textAlign: TextAlign.center,
+                style: GeniusWalletTypography.bodySm
+                    .copyWith(color: GeniusWalletColors.textSecondary),
               ),
               if (_lastEventId != null) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
+                const SizedBox(height: GeniusWalletConsts.space6),
+                GWButton(
                   onPressed: _copyEventId,
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy Event ID'),
+                  variant: GWButtonVariant.secondary,
+                  leading: const Icon(Icons.copy_rounded, size: 18),
+                  label: 'Copy Event ID',
                 ),
               ],
             ],

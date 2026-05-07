@@ -8,13 +8,16 @@ import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 
 import 'package:genius_wallet/banxa/banaxa_api_services.dart';
 import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_components/quote_card.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/components/custom_drop_down.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class BanxaBuyScreen extends StatefulWidget {
   final String? initialFiatCode;
@@ -64,7 +67,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
         listener: (context, state) async {
           if (state.errorMessage.isNotEmpty) {
             showAppSnackBar(context, state.errorMessage,
-                backgroundColor: Colors.red);
+                backgroundColor: GeniusWalletColors.statusError);
 
             context.read<MakeOrderCubit>().clearError();
           }
@@ -95,8 +98,11 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
           final w = MediaQuery.of(context).size.width;
           final compact = w < 400;
           final tight = w < 320;
-          final pad = EdgeInsets.all(compact ? 12 : 16);
-          final labelStyle = TextStyle(fontSize: compact ? 13 : 14);
+          final pad = EdgeInsets.all(
+              compact ? GeniusWalletConsts.space6 : GeniusWalletConsts.space8);
+          final labelStyle = compact
+              ? GeniusWalletTypography.bodySm
+              : GeniusWalletTypography.bodyMd;
 
           final isBootLoading = state.step == MakeOrderStep.loadingCurrencies &&
               state.fiats.isEmpty &&
@@ -136,7 +142,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                           labelStyle: labelStyle,
                           compact: compact,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: GeniusWalletConsts.space6),
 
 // Crypto Dropdown
                         AppDropdown<CryptoCurrency>(
@@ -158,7 +164,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                           labelStyle: labelStyle,
                           compact: compact,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: GeniusWalletConsts.space6),
 
 // Payment Method Dropdown
                         AppDropdown<PaymentMethod>(
@@ -180,11 +186,11 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                           labelStyle: labelStyle,
                           compact: compact,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: GeniusWalletConsts.space6),
 
                         // Payment Method Dropdown
                       
-                        const SizedBox(height: 12),
+                        const SizedBox(height: GeniusWalletConsts.space6),
 
                         // Amount input
                         TextField(
@@ -193,19 +199,23 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               decimal: true),
                           onChanged: (v) =>
                               context.read<MakeOrderCubit>().setAmountText(v),
-                          style: TextStyle(fontSize: compact ? 14 : 16),
+                          style: compact
+                              ? GeniusWalletTypography.bodyMd
+                              : GeniusWalletTypography.bodyLg,
                           decoration: InputDecoration(
                             labelText: _amountLabel(state, compact),
                             labelStyle: labelStyle,
                             border: const OutlineInputBorder(),
                             isDense: compact,
                             contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: compact ? 10 : 14,
+                              horizontal: GeniusWalletConsts.space6,
+                              vertical: compact
+                                  ? GeniusWalletConsts.space4
+                                  : GeniusWalletConsts.space8,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: GeniusWalletConsts.space6),
 
                         // Get Quote & Retry Buttons
                         if (compact)
@@ -280,56 +290,32 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                             ],
                           ),
 
-                        // QUOTE CARD
-                     if (!state.hasQuote)
-                          const SizedBox()
-                        else
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    compact
-                                        ? 'Receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}'
-                                        : 'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}',
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 12,
-                                    runSpacing: 4,
-                                    children: [
-                                      Text(
-                                          'Gateway: ${state.quote!.processingFee} ${state.fiatCode}'),
-                                      Text(
-                                          'Network: ${state.quote!.networkFee} ${state.fiatCode}'),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 12),
+                        // Quote card
+                        QuoteCard(state: state, compact: compact),
+                        const SizedBox(height: GeniusWalletConsts.space6),
 
                         // Wallet address input
                         TextField(
                           controller: _walletController,
                           onChanged: (v) =>
                               context.read<MakeOrderCubit>().setWalletText(v),
-                          style: TextStyle(fontSize: compact ? 14 : 16),
+                          style: compact
+                              ? GeniusWalletTypography.bodyMd
+                              : GeniusWalletTypography.bodyLg,
                           decoration: InputDecoration(
                             labelText: compact ? 'Wallet' : 'Wallet Address',
                             labelStyle: labelStyle,
                             border: const OutlineInputBorder(),
                             isDense: compact,
                             contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: compact ? 10 : 14,
+                              horizontal: GeniusWalletConsts.space6,
+                              vertical: compact
+                                  ? GeniusWalletConsts.space4
+                                  : GeniusWalletConsts.space8,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: GeniusWalletConsts.space8),
 
                         // Create Order Button
                        ElevatedButton(
@@ -344,7 +330,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                 "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
                 "Banxa's Terms of Use and Privacy & Cookies Policy.",
             confirmText: "Continue",
-            activeColor: Colors.blue,
+            activeColor: GeniusWalletColors.brandPrimary,
           );
 
           if (!accepted) {
@@ -375,42 +361,47 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
     padding: EdgeInsets.zero,
     minimumSize: const Size.fromHeight(48),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius:
+          BorderRadius.circular(GeniusWalletConsts.radiusMd),
     ),
   ),
   child: Ink(
     decoration: BoxDecoration(
       gradient: state.canCreateOrder
-          ? GeniusWalletGradient.greenBlueGreenGradient
-          : LinearGradient(
-              colors: [Colors.grey.shade500, Colors.grey.shade600],
+          ? GeniusWalletGradient.brandCta
+          : const LinearGradient(
+              colors: [
+                GeniusWalletColors.textSecondary,
+                GeniusWalletColors.textDisabled,
+              ],
             ),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius:
+          BorderRadius.circular(GeniusWalletConsts.radiusMd),
     ),
     child: Container(
       alignment: Alignment.center,
       height: 48,
       child: Text(
         compact ? 'Checkout' : 'Create Order',
-        style: TextStyle(
+        style: GeniusWalletTypography.titleMd.copyWith(
           color: state.canCreateOrder
-              ? GeniusWalletColors.deepBlue
-              : Colors.black.withAlpha(102),
+              ? GeniusWalletColors.textOnBrand
+              : GeniusWalletColors.textOnBrand.withAlpha(102),
           fontWeight: FontWeight.w600,
-          fontSize: 16,
         ),
       ),
     ),
   ),
 )
 ,
-                        if (tight) const SizedBox(height: 6),
+                        if (tight)
+                          const SizedBox(height: GeniusWalletConsts.space2),
                       ],
                     ),
                   ),
                 if (state.showOverlay || isBootLoading)
                   Container(
-                    color: Colors.black45,
+                    color: GeniusWalletColors.surfaceOverlay,
                     child: Center(
                       child: Loading(
                         text: state.loadingMessage,
