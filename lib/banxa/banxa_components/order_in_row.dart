@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+
 class OrderInfoRow extends StatelessWidget {
   final String label;
   final String value;
@@ -10,8 +13,10 @@ class OrderInfoRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[700])),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(label,
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.textSecondary)),
+        Text(value, style: GeniusWalletTypography.numericBody),
       ],
     );
   }

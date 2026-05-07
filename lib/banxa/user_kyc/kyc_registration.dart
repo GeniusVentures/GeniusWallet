@@ -18,7 +18,7 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
   void initState() {
     super.initState();
     // Initialize WebView
-    print("Initializing WebView...");
+    debugPrint("Initializing WebView...");
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted) // Enable JS
       ..setNavigationDelegate(
@@ -27,25 +27,25 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
             setState(() {
               _isLoading = true; // Show loading indicator
             });
-            print("Page started loading: $url");
+            debugPrint("Page started loading: $url");
           },
           onPageFinished: (url) {
             setState(() {
               _isLoading = false; // Hide loading indicator
             });
-            print("Page finished loading: $url");
+            debugPrint("Page finished loading: $url");
           },
           onNavigationRequest: (request) {
-            print("Navigating to: ${request.url}");
+            debugPrint("Navigating to: ${request.url}");
             // Check if the current URL is the KYC redirect URL
             if (request.url.contains(BanxaApiService.banxaKycUrl)) {
-              print("KYC URL detected, continuing...");
+              debugPrint("KYC URL detected, continuing...");
               return NavigationDecision.navigate; // Allow WebView to continue
             }
 
             // Handle redirect URL after KYC completion
             if (request.url.contains('your.redirect.url')) {
-              print("Redirect URL detected, popping the screen...");
+              debugPrint("Redirect URL detected, popping the screen...");
               Navigator.pop(context,
                   true); // Pop if the redirect URL is detected (KYC completed)
               return NavigationDecision.prevent; // Prevent further navigation
@@ -59,7 +59,7 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
       )
       ..loadRequest(
           Uri.parse(BanxaApiService.banxaKycUrl)); // Use the banxaKycUrl
-    print("WebView initialized and loading KYC URL...");
+    debugPrint("WebView initialized and loading KYC URL...");
   }
 
   @override
