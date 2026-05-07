@@ -8,6 +8,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
@@ -102,7 +103,14 @@ Future<void> main() async {
       await initHive();
 
       final secureStorage = await LocalWalletStorage.create();
-      await secureStorage.init();
+      try {
+        await secureStorage.init();
+      } catch (e) {
+        // macOS ad-hoc / unsigned preview builds can't access the keychain
+        // (errSecMissingEntitlement -34018). Swallow so the UI still renders —
+        // wallet operations will fail later, but the app is navigable for QA.
+        debugPrint('secureStorage.init() failed, continuing without it: $e');
+      }
       final geniusApi = GeniusApi(secureStorage: secureStorage);
 
       final networkProvider = NetworkProvider();
@@ -113,21 +121,33 @@ Future<void> main() async {
           .loadTokensForNetworks(networkProvider.networks);
 
       /// Must come after hive init
-      await fetchAllCoinGeckoCoins();
+      try {
+        await fetchAllCoinGeckoCoins().timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint('fetchAllCoinGeckoCoins failed: $e');
+      }
 
       // SDK initialization moved to AppBloc to show splash screen during init
       // Dev mode bypasses still happen here for initial setup
-      if ((await secureStorage.getWallets().first).isEmpty) {
-        byPassSGNUSConnecton(geniusApi);
-        byPassWalletCreation(secureStorage);
-        addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
+      try {
+        if ((await secureStorage.getWallets().first).isEmpty) {
+          byPassSGNUSConnecton(geniusApi);
+          byPassWalletCreation(secureStorage);
+          addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
+        }
+      } catch (e) {
+        debugPrint('Bypass init failed: $e');
       }
 
       /// Initialize window_manager only on **desktop**
       if (!kIsWeb &&
           (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
-        await windowManager.ensureInitialized();
-        windowManager.addListener(MyWindowListener(geniusApi));
+        try {
+          await windowManager.ensureInitialized();
+          windowManager.addListener(MyWindowListener(geniusApi));
+        } catch (e) {
+          debugPrint('windowManager init failed: $e');
+        }
       }
 
       runApp(
@@ -135,20 +155,19 @@ Future<void> main() async {
             providers: [
               ChangeNotifierProvider(create: (_) => networkProvider),
               ChangeNotifierProvider(create: (_) => networkTokensProvider),
+              ChangeNotifierProvider(create: (_) => BrowserStorage()),
               Provider(create: (_) => geniusApi),
+              Provider<LocalWalletStorage>(create: (_) => secureStorage),
             ],
             child: AppLifecycleHandler(
               geniusApi: geniusApi,
-              child:
-                  //DevicePreview(
-                  //  enabled: !kReleaseMode &&
-                  // (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
-                  //  builder: (context) =>
-                  MyApp(
-                geniusApi: geniusApi,
+              child: DevicePreview(
+                // Temporarily disabled for macOS debug — was rendering a fully
+                // black window.
+                enabled: false,
+                defaultDevice: Devices.ios.iPhone13,
+                builder: (context) => MyApp(geniusApi: geniusApi),
               ),
-              // tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
-              //),
             )),
       );
       DeepLinkService().startListening(navigatorKey);
@@ -286,6 +305,9 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           useInheritedMediaQuery: true,
           locale: DevicePreview.locale(context),
+          // Mesh background is intentionally NOT applied app-wide — the
+          // brand mesh stays on auth / Landing surfaces; interior screens
+          // use a solid dark canvas (cleaner, calmer).
           builder: DevicePreview.appBuilder,
           title: 'Gnus AI',
           theme: getThemeData(),
