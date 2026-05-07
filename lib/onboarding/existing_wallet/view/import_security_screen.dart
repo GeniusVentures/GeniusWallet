@@ -15,8 +15,7 @@ import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
-import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
-import 'package:genius_wallet/components/text_form_field_logic.g.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
@@ -240,21 +239,14 @@ class _ImportSecurityBody extends StatelessWidget {
         SizedBox(
           height: 70,
           width: MediaQuery.of(context).size.width * 0.9,
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return TextEntryFieldWidget(
-                logic: TextFormFieldLogic(
-                  hintText: 'Enter wallet name',
-                  context,
-                  controller: walletNameController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a wallet name';
-                    }
-                    return null;
-                  },
-                ),
-              );
+          child: GWTextField(
+            hint: 'Enter wallet name',
+            controller: walletNameController,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a wallet name';
+              }
+              return null;
             },
           ),
         ),

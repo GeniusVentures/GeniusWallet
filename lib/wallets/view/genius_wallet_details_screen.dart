@@ -46,7 +46,7 @@ class _ViewState extends State<View> {
                         child: GeniusBalanceDisplay(
                           useMinions: useMinionIcon,
                           fontSize: 48,
-                          fontColor: Colors.white,
+                          fontColor: GeniusWalletColors.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -95,10 +95,10 @@ class _ViewState extends State<View> {
         });
       },
       borderRadius: BorderRadius.circular(12),
-      borderColor: Colors.white24,
-      selectedBorderColor: Colors.white,
-      fillColor: Colors.white10,
-      selectedColor: Colors.white,
+      borderColor: GeniusWalletColors.textPrimary24,
+      selectedBorderColor: GeniusWalletColors.textPrimary,
+      fillColor: GeniusWalletColors.textPrimary10,
+      selectedColor: GeniusWalletColors.textPrimary,
       constraints: const BoxConstraints(minHeight: 40, minWidth: 110),
       children: [
         Row(

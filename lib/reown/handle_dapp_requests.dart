@@ -81,7 +81,7 @@ void Function() handleDappRequests(
                         color: GeniusWalletColors.gray500, fontSize: 12)),
               ),
             Text("Method: $method",
-                style: const TextStyle(color: Colors.white)),
+                style: const TextStyle(color: GeniusWalletColors.textPrimary)),
             const SizedBox(height: 12),
             const Text("Params:",
                 style: TextStyle(color: GeniusWalletColors.gray500)),
@@ -93,7 +93,8 @@ void Function() handleDappRequests(
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(event.params.toString(),
-                  style: const TextStyle(color: Colors.white70)),
+                  style: const TextStyle(
+                      color: GeniusWalletColors.textPrimary70)),
             ),
           ],
         ),

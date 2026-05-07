@@ -188,7 +188,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                       GestureDetector(
                         onTap: () => Navigator.of(context).pop(),
                         child: const Icon(Icons.cancel,
-                            size: 20, color: Colors.white),
+                            size: 20, color: GeniusWalletColors.textPrimary),
                       ),
                     Flexible(child: _buildSearchBar()),
                   ],
@@ -245,10 +245,11 @@ class _WebViewWindowsState extends State<WebViewWindows> {
           Expanded(
             child: TextField(
               controller: _urlController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: GeniusWalletColors.textPrimary),
               decoration: InputDecoration(
                 hintText: "Enter URL...",
-                hintStyle: const TextStyle(color: Colors.white70),
+                hintStyle:
+                    const TextStyle(color: GeniusWalletColors.textPrimary70),
                 filled: true,
                 fillColor: GeniusWalletColors.deepBlueTertiary,
                 border: OutlineInputBorder(
@@ -296,10 +297,11 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                   padding: EdgeInsets.all(16),
                   child: Text(
                     "History",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    style: TextStyle(
+                        color: GeniusWalletColors.textPrimary, fontSize: 18),
                   ),
                 ),
-                const Divider(color: Colors.white54),
+                const Divider(color: GeniusWalletColors.textPrimary54),
                 Expanded(
                   child: ListView.builder(
                     itemCount: history.length,
@@ -313,7 +315,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                           style: TextStyle(
                             color: index == currentTabIndex
                                 ? GeniusWalletColors.lightGreenPrimary
-                                : Colors.white,
+                                : GeniusWalletColors.textPrimary,
                           ),
                         ),
                         onTap: () {

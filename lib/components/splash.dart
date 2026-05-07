@@ -6,8 +6,25 @@ import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
 
-class Splash extends StatelessWidget {
+class Splash extends StatefulWidget {
   const Splash({Key? key}) : super(key: key);
+
+  @override
+  State<Splash> createState() => _SplashState();
+}
+
+class _SplashState extends State<Splash> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      final state = context.read<AppBloc>().state;
+      if (state.subscribeToWalletStatus != AppStatus.loaded) {
+        context.go('/landing_screen');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

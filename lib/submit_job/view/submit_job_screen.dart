@@ -131,7 +131,7 @@ class SubmitJobScreen extends StatelessWidget {
                                   children: [
                                     const Icon(
                                       FontAwesomeIcons.gasPump,
-                                      color: Colors.red,
+                                      color: GeniusWalletColors.statusError,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -200,7 +200,8 @@ class SubmitJobScreen extends StatelessWidget {
                                                 "$jobCost GNUS",
                                                 style: const TextStyle(
                                                   fontSize: 16,
-                                                  color: Colors.red,
+                                                  color: GeniusWalletColors
+                                                      .statusError,
                                                 ),
                                               ),
                                             ],
@@ -247,7 +248,8 @@ class SubmitJobScreen extends StatelessWidget {
                                             child: AutoSizeText(
                                           '* You do not have enough GNUS',
                                           style: TextStyle(
-                                            color: GeniusWalletColors.red,
+                                            color:
+                                                GeniusWalletColors.statusError,
                                             fontSize: 14,
                                           ),
                                         )),
@@ -275,7 +277,7 @@ class SubmitJobScreen extends StatelessWidget {
                                         style: const TextStyle(
                                           fontFamily: 'monospace',
                                           fontSize: 14,
-                                          color: Colors.white,
+                                          color: GeniusWalletColors.textPrimary,
                                         ),
                                       ),
                                     ),
