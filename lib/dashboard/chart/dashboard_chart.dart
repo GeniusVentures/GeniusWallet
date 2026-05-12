@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class DashboardChart extends StatelessWidget {
   final String coinGeckoCoinId;
@@ -21,7 +22,7 @@ class DashboardChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final bool is3Column = screenWidth > 1150; // Adjust breakpoint if needed
+    final bool is3Column = screenWidth > GeniusBreakpoints.tablet;
 
     final double chartHeight = is3Column
         ? screenHeight * 0.20 // desktop height
