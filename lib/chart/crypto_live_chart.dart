@@ -13,14 +13,14 @@ class CryptoLiveChart extends StatefulWidget {
   final String tokenSymbol;
   final Widget? child;
   final double? chartHeight;
-  final double? priceHeight;
+  final double priceHeight;
 
   const CryptoLiveChart({
     super.key,
     required this.coinGeckoCoinId,
     required this.tokenSymbol,
     this.chartHeight,
-    this.priceHeight,
+    this.priceHeight = 48,
     this.child,
   });
 
@@ -31,7 +31,7 @@ class CryptoLiveChart extends StatefulWidget {
 class CryptoLiveChartState extends State<CryptoLiveChart> {
   List<FlSpot> _priceData = [];
   double _latestPrice = 0.0;
-  double _previousPrice = 0.0;
+  double _oldestPrice = 0.0;
   double? _hoveredPrice;
   bool _isHovering = false;
   Timer? _timer;
@@ -68,7 +68,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       setState(() {
         _priceData = historicalData;
         _latestPrice = _priceData.last.y;
-        _previousPrice = _priceData.first.y;
+        _oldestPrice = _priceData.first.y;
 
         // Set initial zoom window (show last 30 points)
         final totalPoints = _priceData.length;
@@ -95,7 +95,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   void _addNewPricePoint(double newPrice) {
     setState(() {
-      final newTime = _priceData.isEmpty ? 0 : _priceData.last.x + 60;
+      final newTime = DateTime.now().millisecondsSinceEpoch / 1000.0;
       _priceData.add(FlSpot(newTime.toDouble(), newPrice));
       _latestPrice = newPrice;
 
@@ -115,10 +115,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   double get _displayPrice =>
       _isHovering && _hoveredPrice != null ? _hoveredPrice! : _latestPrice;
 
-  double get priceChange => _displayPrice - _previousPrice;
+  double get priceChange => _displayPrice - _oldestPrice;
 
   double get priceChangePercent =>
-      _previousPrice > 0 ? (priceChange / _previousPrice) * 100 : 0;
+      _oldestPrice > 0 ? (priceChange / _oldestPrice) * 100 : 0;
 
   String _formatTime(int timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
@@ -191,32 +191,33 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   @override
   Widget build(BuildContext context) {
+    final chartHeight =
+        widget.chartHeight ?? MediaQuery.sizeOf(context).height * 0.25;
     final tokenDecimals = _displayPrice >= 1 ? 2 : 6;
     final formattedPrice = NumberFormat.currency(
-      locale: "en_US",
       symbol: "\$",
       decimalDigits: tokenDecimals,
     ).format(_displayPrice);
 
-    bool isUptrend = _latestPrice >= _previousPrice;
+    bool isUptrend = _latestPrice >= _oldestPrice;
     Color fillColor = isUptrend ? Colors.greenAccent : Colors.redAccent;
 
     return MouseRegion(
       onExit: _onHoverExit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 6.0,
         children: [
           AutoSizeText(
             _hasData ? formattedPrice : 'Loading...',
             maxLines: 1,
             style: TextStyle(
-              fontSize: widget.priceHeight ?? 48,
+              fontSize: widget.priceHeight,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
           if (_hasData)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -248,135 +249,123 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                 ),
               ],
             ),
-          if (widget.child != null) ...[
-            const SizedBox(height: 24),
-            widget.child!,
-            const SizedBox(height: 24),
-          ],
-          const SizedBox(height: 24),
-          _hasData
-              ? Column(
-                  children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: widget.chartHeight ??
-                            MediaQuery.sizeOf(context).height * 0.25,
-                        minHeight: 120,
-                      ),
-                      child: LineChart(
-                        LineChartData(
-                          minX: _viewMinX ?? 0,
-                          maxX: _viewMaxX ??
-                              (_priceData.isNotEmpty ? _priceData.last.x : 1),
-                          minY: _priceData.map((e) => e.y).reduce(min) * 0.99,
-                          maxY: _priceData.map((e) => e.y).reduce(max) * 1.01,
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: _priceData,
-                              isCurved: true,
-                              curveSmoothness: 0.22,
-                              color: Colors.white,
-                              barWidth: 2.5,
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    fillColor.withValues(alpha: 0.2),
-                                    Colors.transparent,
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                              dotData: const FlDotData(show: false),
-                            ),
+          if (widget.child != null) widget.child!,
+          if (_hasData) ...[
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: chartHeight,
+                minHeight: 120,
+              ),
+              child: LineChart(
+                LineChartData(
+                  clipData: const FlClipData.all(),
+                  minX: _viewMinX ?? 0,
+                  maxX: _viewMaxX ??
+                      (_priceData.isNotEmpty ? _priceData.last.x : 1),
+                  minY: _priceData.map((e) => e.y).reduce(min) * 0.999,
+                  maxY: _priceData.map((e) => e.y).reduce(max) * 1.001,
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: _priceData,
+                      isCurved: false,
+                      color: Colors.white,
+                      barWidth: 2.5,
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            fillColor.withValues(alpha: 0.2),
+                            Colors.transparent,
                           ],
-                          gridData: const FlGridData(show: false),
-                          borderData: FlBorderData(show: false),
-                          titlesData: const FlTitlesData(
-                            leftTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                          ),
-                          lineTouchData: LineTouchData(
-                            enabled: true,
-                            handleBuiltInTouches: true,
-                            touchCallback: _onHover,
-                            getTouchedSpotIndicator: (barData, spotIndexes) {
-                              return spotIndexes.map((index) {
-                                return TouchedSpotIndicatorData(
-                                  FlLine(
-                                    color: Colors.grey[400]!,
-                                    strokeWidth: 1.2,
-                                    dashArray: [8, 4],
-                                  ),
-                                  const FlDotData(show: false),
-                                );
-                              }).toList();
-                            },
-                            touchTooltipData: LineTouchTooltipData(
-                              fitInsideHorizontally: true,
-                              getTooltipItems: (touchedSpots) {
-                                return touchedSpots.map((spot) {
-                                  return LineTooltipItem(
-                                    '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
-                                    const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  );
-                                }).toList();
-                              },
-                            ),
-                          ),
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
                       ),
-                    ),
-                    // --- ZOOM/PAN BUTTONS ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.zoom_in, color: Colors.white),
-                          onPressed: _zoomIn,
-                          tooltip: "Zoom In",
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.zoom_out, color: Colors.white),
-                          onPressed: _zoomOut,
-                          tooltip: "Zoom Out",
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios,
-                              color: Colors.white, size: 18),
-                          onPressed: _panLeft,
-                          tooltip: "Pan Left",
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.arrow_forward_ios,
-                              color: Colors.white, size: 18),
-                          onPressed: _panRight,
-                          tooltip: "Pan Right",
-                        ),
-                      ],
+                      dotData: const FlDotData(show: false),
                     ),
                   ],
-                )
-              : SizedBox(
-                  height: widget.chartHeight ??
-                      MediaQuery.sizeOf(context).height * 0.25,
-                  child: Center(
-                    child: PulsingSkeleton(
-                      height: widget.chartHeight ??
-                          MediaQuery.sizeOf(context).height * 0.25,
-                      width: double.infinity,
+                  gridData: const FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  titlesData: const FlTitlesData(
+                    leftTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  lineTouchData: LineTouchData(
+                    enabled: true,
+                    handleBuiltInTouches: true,
+                    touchCallback: _onHover,
+                    getTouchedSpotIndicator: (barData, spotIndexes) {
+                      return spotIndexes.map((index) {
+                        return TouchedSpotIndicatorData(
+                          FlLine(
+                            color: Colors.grey[400]!,
+                            strokeWidth: 1.2,
+                            dashArray: [8, 4],
+                          ),
+                          const FlDotData(show: false),
+                        );
+                      }).toList();
+                    },
+                    touchTooltipData: LineTouchTooltipData(
+                      fitInsideHorizontally: true,
+                      getTooltipItems: (touchedSpots) {
+                        return touchedSpots.map((spot) {
+                          return LineTooltipItem(
+                            '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
+                            const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          );
+                        }).toList();
+                      },
                     ),
                   ),
                 ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.zoom_in, color: Colors.white),
+                  onPressed: _zoomIn,
+                  tooltip: "Zoom In",
+                ),
+                IconButton(
+                  icon: const Icon(Icons.zoom_out, color: Colors.white),
+                  onPressed: _zoomOut,
+                  tooltip: "Zoom Out",
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios,
+                      color: Colors.white, size: 18),
+                  onPressed: _panLeft,
+                  tooltip: "Pan Left",
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward_ios,
+                      color: Colors.white, size: 18),
+                  onPressed: _panRight,
+                  tooltip: "Pan Right",
+                ),
+              ],
+            ),
+          ] else
+            SizedBox(
+              height: chartHeight,
+              child: Center(
+                child: PulsingSkeleton(
+                  height: chartHeight,
+                  width: double.infinity,
+                ),
+              ),
+            ),
         ],
       ),
     );

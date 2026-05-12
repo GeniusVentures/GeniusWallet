@@ -1,20 +1,22 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_scren.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
-import 'package:genius_wallet/dashboard/chart/dashboard_chart.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
@@ -293,25 +295,48 @@ class ChartDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bool is3Column = screenWidth > GeniusBreakpoints.tablet;
+
+    final double chartHeight = is3Column
+        ? screenHeight * 0.20 // desktop height
+        : screenHeight * 0.14; // mobile height
+
     return Padding(
-        padding: EdgeInsets.all(gridSpacing),
-        child: Container(
-            decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
-            child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(children: [
-                  Row(children: [
-                    Flexible(
-                        child: DashboardChart(
-                            title: "Bitcoin Chart",
-                            coinGeckoCoinId: 'bitcoin',
-                            tokenSymbol: 'btc',
-                            tokenDecimals: '8'))
-                  ])
-                ]))));
+      padding: EdgeInsets.all(gridSpacing),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: GeniusWalletColors.deepBlueCardColor,
+          borderRadius: BorderRadius.all(
+            Radius.circular(GeniusWalletConsts.borderRadiusCard),
+          ),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Center(
+              child: AutoSizeText(
+                "Bitcoin Chart",
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: GeniusWalletFontSize.sectionHeader,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            CryptoLiveChart(
+              coinGeckoCoinId: 'bitcoin',
+              tokenSymbol: 'btc',
+              chartHeight: chartHeight,
+              priceHeight: 28,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
