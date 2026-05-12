@@ -70,10 +70,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
         _latestPrice = _priceData.last.y;
         _oldestPrice = _priceData.first.y;
 
-        // Set initial zoom window (show last 30 points)
+        // Set initial zoom window (show last 50 points)
         final totalPoints = _priceData.length;
-        _viewMinX = totalPoints > 30
-            ? _priceData[totalPoints - 30].x
+        _viewMinX = totalPoints > 50
+            ? _priceData[totalPoints - 50].x
             : _priceData.first.x;
         _viewMaxX = _priceData.last.x;
       });
@@ -103,10 +103,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       if (_priceData.length > 50) {
         _priceData.removeAt(0);
       }
-      // Move view window with new points (keep last 30 in view)
+      // Move view window with new points (keep last 50 in view)
       final totalPoints = _priceData.length;
-      _viewMinX = totalPoints > 30
-          ? _priceData[totalPoints - 30].x
+      _viewMinX = totalPoints > 50
+          ? _priceData[totalPoints - 50].x
           : _priceData.first.x;
       _viewMaxX = _priceData.last.x;
     });
@@ -150,7 +150,6 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     });
   }
 
-  // --- ZOOM/PAN ---
   void _zoomIn() {
     if (!_hasData) return;
     final range = (_viewMaxX! - _viewMinX!) * 0.8;
