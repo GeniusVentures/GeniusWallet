@@ -300,7 +300,7 @@ class ChartDashboardView extends StatelessWidget {
     final bool is3Column = screenWidth > GeniusBreakpoints.tablet;
 
     final double chartHeight = is3Column
-        ? screenHeight * 0.20 // desktop height
+        ? screenHeight * 0.28 // desktop height
         : screenHeight * 0.14; // mobile height
 
     return Padding(
