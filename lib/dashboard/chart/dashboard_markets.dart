@@ -70,6 +70,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
               Container(
                 height: 3,
                 color: GeniusWalletColors.deepBlueTertiary,
+                margin: EdgeInsets.symmetric(vertical: 2.0),
               )
             ],
           ),

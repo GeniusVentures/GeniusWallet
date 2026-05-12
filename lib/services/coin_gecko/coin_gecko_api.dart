@@ -12,10 +12,9 @@ import 'package:intl/intl.dart';
 
 const Duration cacheDuration = Duration(minutes: 3);
 
-/// **Fetches historical prices for a coin from CoinGecko API**
+/// Fetches historical prices for a coin from CoinGecko API
 Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
-  final now =
-      DateTime.now().millisecondsSinceEpoch ~/ 1000; // Current time in seconds
+  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
   final Box<HistoricalPriceCacheEntry> box =
       Hive.box<HistoricalPriceCacheEntry>(historicalPricesBox);

@@ -187,26 +187,6 @@ class TransactionPurchasedItem extends StatelessWidget {
           ),
         ),
       ],
-      // TODO maybe show a banxa confirmation button to launch web with orderId..
-      // footer: ElevatedButton(
-      //   onPressed: () {
-      //     final url = getExplorerUrl(tx.coinSymbol, tx.hash);
-      //     final uri = Uri.tryParse(url);
-      //     if (uri?.scheme.startsWith('http') ?? false) {
-      //       launchWebSite(context, uri.toString());
-      //     }
-      //   },
-      //   style: ElevatedButton.styleFrom(
-      //     backgroundColor: Colors.lightBlueAccent,
-      //     shape:
-      //         RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      //     minimumSize: const Size.fromHeight(48),
-      //   ),
-      //   child: const Text(
-      //     "View on Explorer",
-      //     style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
-      //   ),
-      //),
     );
   }
 

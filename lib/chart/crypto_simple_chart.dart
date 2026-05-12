@@ -53,8 +53,7 @@ class CryptoSparkLineChart extends StatelessWidget {
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
-            symbol: "\$",
-            decimalDigits: tokenDecimalsToDisplay)
+            symbol: "\$", decimalDigits: tokenDecimalsToDisplay)
         .format(currentPrice);
 
     return ListTile(
