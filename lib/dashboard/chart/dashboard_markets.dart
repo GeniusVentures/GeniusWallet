@@ -62,42 +62,41 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
         }).toList();
 
         return ListView.separated(
-          padding: EdgeInsets.zero,
           itemCount: visibleCoins.length,
-          separatorBuilder: (context, index) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 3,
-                color: GeniusWalletColors.deepBlueTertiary,
-                margin: EdgeInsets.symmetric(vertical: 2.0),
-              )
-            ],
-          ),
+          separatorBuilder: (context, index) => Divider(),
           itemBuilder: (context, index) {
             final coin = visibleCoins[index];
             final data = marketData[coin.symbol.toLowerCase()]!;
 
-            final item = InkWell(
-              onTap: () {
-                context.push(
-                  '/token-info',
-                  extra: {
-                    "isGnusWalletConnected": false,
-                    "securityInfo": "Coming Soon",
-                    "transactionHistory": ["Coming Soon"],
-                    "marketData": data,
-                  },
-                );
-              },
-              child: CryptoSparkLineChart(
-                title: coin.name,
-                iconPath: data.imageUrl,
-                currentPrice: data.currentPrice,
-                high24h: data.high24h,
-                low24h: data.low24h,
-                priceChangePercent: data.priceChangePercentage24h,
-                sparkline: data.sparkline,
+            final item = Material(
+              child: InkWell(
+                onTap: () {
+                  context.push(
+                    '/token-info',
+                    extra: {
+                      "isGnusWalletConnected": false,
+                      "securityInfo": "Coming Soon",
+                      "transactionHistory": ["Coming Soon"],
+                      "marketData": data,
+                    },
+                  );
+                },
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: GeniusWalletColors.deepBlueCardColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.only(bottom: 1.0),
+                  child: CryptoSparkLineChart(
+                    title: coin.name,
+                    iconPath: data.imageUrl,
+                    currentPrice: data.currentPrice,
+                    high24h: data.high24h,
+                    low24h: data.low24h,
+                    priceChangePercent: data.priceChangePercentage24h,
+                    sparkline: data.sparkline,
+                  ),
+                ),
               ),
             );
 

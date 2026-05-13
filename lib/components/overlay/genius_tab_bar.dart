@@ -145,45 +145,48 @@ class DesktopTopBar extends StatelessWidget {
                         child: InkWell(
                           onTap: () => context.go(dest.path),
                           borderRadius: BorderRadius.circular(6),
-                          hoverColor: Colors.white.withAlpha(25),
                           mouseCursor: SystemMouseCursors.click,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      isSelected ? dest.activeIcon : dest.icon,
-                                      size: _kIconSize,
-                                      color: color,
-                                    ),
-                                    if (!hideLabels) ...[
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        dest.label,
-                                        style: TextStyle(
-                                            fontSize: 14, color: color),
+                          child: Ink(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        isSelected
+                                            ? dest.activeIcon
+                                            : dest.icon,
+                                        size: _kIconSize,
+                                        color: color,
                                       ),
+                                      if (!hideLabels) ...[
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          dest.label,
+                                          style: TextStyle(
+                                              fontSize: 14, color: color),
+                                        ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                height: 1,
-                                width: 60,
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.greenAccent
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(4),
+                                const SizedBox(height: 2),
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  height: 1,
+                                  width: 60,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.greenAccent
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
