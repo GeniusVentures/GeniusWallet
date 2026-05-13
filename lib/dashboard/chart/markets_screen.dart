@@ -142,41 +142,48 @@ class MarketsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMarketChartCard(CoinGeckoMarketData data, CoinGeckoCoin coin) {
+  Widget _buildMarketChartCard(
+    CoinGeckoMarketData data,
+    CoinGeckoCoin coin,
+  ) {
     return Builder(
-        builder: (context) => InkWell(
-              onTap: () {
-                context.push(
-                  '/token-info',
-                  extra: {
-                    "isGnusWalletConnected": false,
-                    "securityInfo": "Coming Soon",
-                    "transactionHistory": ["Coming Soon"],
-                    "marketData": data,
-                    "coin": coin,
-                  },
-                );
+      builder: (context) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            context.push(
+              '/token-info',
+              extra: {
+                "isGnusWalletConnected": false,
+                "securityInfo": "Coming Soon",
+                "transactionHistory": ["Coming Soon"],
+                "marketData": data,
+                "coin": coin,
               },
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: GeniusWalletColors.deepBlueCardColor,
               borderRadius: BorderRadius.circular(12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Center(
-                  child: CryptoSparkLineChart(
-                    title: coin.name,
-                    iconPath: data.imageUrl,
-                    currentPrice: data.currentPrice,
-                    high24h: data.high24h,
-                    low24h: data.low24h,
-                    priceChangePercent: data.priceChangePercentage24h,
-                    iconSize: 32,
-                    sparkline: data.sparkline,
-                  ),
-                ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Center(
+              child: CryptoSparkLineChart(
+                title: coin.name,
+                iconPath: data.imageUrl,
+                currentPrice: data.currentPrice,
+                high24h: data.high24h,
+                low24h: data.low24h,
+                priceChangePercent: data.priceChangePercentage24h,
+                iconSize: 32,
+                sparkline: data.sparkline,
               ),
-            ));
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
