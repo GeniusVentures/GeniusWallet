@@ -8,7 +8,7 @@ part of 'news_article.dart';
 
 class NewsArticleAdapter extends TypeAdapter<NewsArticle> {
   @override
-  final int typeId = 3;
+  final typeId = 3;
 
   @override
   NewsArticle read(BinaryReader reader) {
