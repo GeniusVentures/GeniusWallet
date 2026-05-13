@@ -3,22 +3,15 @@ import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer_conten
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 
 class BuyCancelledDrawer {
-  static void show(
-    BuildContext context, {
-    VoidCallback? onClose,
-  }) {
+  static void show(BuildContext context) {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Cancelled",
-      children: const [
+      child: ListView(children: const [
         BuyCancelledDrawerContent(),
-      ],
+      ]),
       footer: OutlinedButton(
-        onPressed: () {
-          if (onClose != null) {
-            onClose();
-          }
-        },
+        onPressed: () {},
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -31,7 +24,6 @@ class BuyCancelledDrawer {
           style: TextStyle(color: Colors.redAccent),
         ),
       ),
-      onClose: onClose,
     );
   }
 }

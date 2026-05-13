@@ -48,11 +48,11 @@ class MarketsScreen extends StatelessWidget {
                     ResponsiveDrawer.show<void>(
                       context: context,
                       title: "Search Coins",
-                      children: [
+                      child: ListView(children: [
                         MarketSearchBar(
                           onCoinPressed: () => Navigator.of(context).pop(),
                         ),
-                      ],
+                      ]),
                     );
                   },
                 ),

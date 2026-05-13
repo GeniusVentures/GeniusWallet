@@ -25,13 +25,13 @@ class TokenSelectorDrawer extends StatefulWidget {
     ResponsiveDrawer.show<void>(
       context: context,
       title: title,
-      children: [
+      child: ListView(children: [
         TokenSelectorDrawer(
           tokens: tokens,
           onTokenSelected: onTokenSelected,
           title: title,
         ),
-      ],
+      ]),
     );
   }
 

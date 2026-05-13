@@ -3,15 +3,9 @@ import 'package:flutter/material.dart';
 class GeniusWalletColors {
   static const Color blue500 = Color(0xff0068ef);
 
-  static const Color foundationWhite = Color(0xffffffff);
-
-  static const Color foundationBlack = Color(0xff000000);
-
   static const Color gray900 = Color(0xff18191d);
 
   static const Color gray500 = Color(0xff73788c);
-
-  static const Color darkGreen = Color(0xff7ac231);
 
   static const Color containerGray = Color(0xff1e2025);
 
@@ -21,17 +15,9 @@ class GeniusWalletColors {
 
   static const Color red = Color(0xfff40000);
 
-  static const Color cancelled = Color(0xff4A121C);
-
-  static const Color completed = Color(0xff085D51);
-
   static const Color foundationError = Color(0xff920000);
 
   static const Color white = Color(0xffffffff);
-
-  static const Color darkBlue500 = Color(0xff0068ef);
-
-  static const Color successGreen = Color(0xff00bf13);
 
   static const Color deepBlue = Color.fromRGBO(18, 33, 54, 1);
 
@@ -65,11 +51,8 @@ class GeniusWalletColors {
 
   static Color btnFilterSelected = lightGreenPrimary.withAlpha(26);
 
-  static const Color rowFilterBlue = Color.fromARGB(255, 14, 25, 40);
-
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 
-  static const Color currencyBackground = Color(0xff0050b7);
   static const Color mutedGreen = Color(0xFF2EBE7B);
 
   static const Color mutedRed = Color(0xFFE57373);

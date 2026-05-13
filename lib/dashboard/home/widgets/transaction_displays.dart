@@ -165,7 +165,7 @@ class TransactionItem extends StatelessWidget {
     ResponsiveDrawer.show(
       context: context,
       title: label,
-      children: [
+      child: ListView(children: [
         const SizedBox(height: 16),
         Center(
           child: _buildCoinIconWithBadge(tx.coinSymbol, arrowBgColor, arrowIcon,
@@ -189,7 +189,7 @@ class TransactionItem extends StatelessWidget {
           _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
           _buildRow("Hash", WalletUtils.getAddressForDisplay(tx.hash)),
         ]),
-      ],
+      ]),
       footer: ElevatedButton.icon(
         onPressed: () {
           final url = getExplorerUrl(tx.coinSymbol, tx.hash);
@@ -286,38 +286,39 @@ class TransactionPurchasedItem extends StatelessWidget {
         : "+ \$${double.tryParse(tx.recipients.first.amount)?.toStringAsFixed(2) ?? '0.00'}";
 
     ResponsiveDrawer.show(
-      context: context,
-      title: isFailed ? "Buy - Failed" : "Buy",
-      children: [
-        const SizedBox(height: 16),
-        Center(
-          child: _buildCoinIconWithBadge(
-              tx.coinSymbol, arrowBgColor, Icons.attach_money,
-              size: 50, badgeSize: 20),
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: Text(
-            amountText,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: isFailed ? Colors.redAccent : Colors.white,
+        context: context,
+        title: isFailed ? "Buy - Failed" : "Buy",
+        child: ListView(
+          children: [
+            const SizedBox(height: 16),
+            Center(
+              child: _buildCoinIconWithBadge(
+                  tx.coinSymbol, arrowBgColor, Icons.attach_money,
+                  size: 50, badgeSize: 20),
             ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildDetailsCard([
-          _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
-          _buildRow("Status", _capitalizeStatus(tx.transactionStatus),
-              valueColor: isFailed ? Colors.redAccent : Colors.white),
-          _buildRow("To",
-              WalletUtils.getAddressForDisplay(tx.recipients.first.toAddr)),
-          _buildRow("Network", tx.coinSymbol),
-          _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
-        ]),
-      ],
-    );
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                amountText,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isFailed ? Colors.redAccent : Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildDetailsCard([
+              _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
+              _buildRow("Status", _capitalizeStatus(tx.transactionStatus),
+                  valueColor: isFailed ? Colors.redAccent : Colors.white),
+              _buildRow("To",
+                  WalletUtils.getAddressForDisplay(tx.recipients.first.toAddr)),
+              _buildRow("Network", tx.coinSymbol),
+              _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
+            ]),
+          ],
+        ));
   }
 }
 
@@ -439,67 +440,68 @@ class TransactionSwappedItem extends StatelessWidget {
     final toAmount = tx.toAmount ?? "0";
 
     ResponsiveDrawer.show(
-      context: context,
-      title: isFailed ? "Swap - Failed" : "Swap",
-      children: [
-        const SizedBox(height: 16),
-        Center(
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              if (fromIcon != null)
-                CircleAvatar(
-                  radius: 30,
-                  backgroundImage: NetworkImage(fromIcon),
-                  backgroundColor: GeniusWalletColors.deepBlueCardColor,
-                ),
-              if (toIcon != null)
-                Positioned(
-                  left: 38,
-                  top: 18,
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage(toIcon),
-                    backgroundColor: GeniusWalletColors.deepBlueCardColor,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: GeniusWalletColors.deepBlueCardColor,
-                          width: 2,
+        context: context,
+        title: isFailed ? "Swap - Failed" : "Swap",
+        child: ListView(
+          children: [
+            const SizedBox(height: 16),
+            Center(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  if (fromIcon != null)
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundImage: NetworkImage(fromIcon),
+                      backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                    ),
+                  if (toIcon != null)
+                    Positioned(
+                      left: 38,
+                      top: 18,
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundImage: NetworkImage(toIcon),
+                        backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: GeniusWalletColors.deepBlueCardColor,
+                              width: 2,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-        Center(
-          child: Text(
-            isFailed
-                ? "Swap Failed"
-                : "$fromAmount $fromSymbol → $toAmount $toSymbol",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isFailed ? Colors.redAccent : Colors.white,
+                ],
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(height: 24),
-        _buildDetailsCard([
-          _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
-          _buildRow("Status", _capitalizeStatus(tx.transactionStatus),
-              valueColor: isFailed ? Colors.redAccent : Colors.white),
-          _buildRow("From", "$fromAmount $fromSymbol"),
-          _buildRow("To", "$toAmount $toSymbol"),
-          _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
-          _buildRow("Tx Hash", tx.hash),
-        ]),
-      ],
-    );
+            const SizedBox(height: 30),
+            Center(
+              child: Text(
+                isFailed
+                    ? "Swap Failed"
+                    : "$fromAmount $fromSymbol → $toAmount $toSymbol",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isFailed ? Colors.redAccent : Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildDetailsCard([
+              _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
+              _buildRow("Status", _capitalizeStatus(tx.transactionStatus),
+                  valueColor: isFailed ? Colors.redAccent : Colors.white),
+              _buildRow("From", "$fromAmount $fromSymbol"),
+              _buildRow("To", "$toAmount $toSymbol"),
+              _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
+              _buildRow("Tx Hash", tx.hash),
+            ]),
+          ],
+        ));
   }
 }

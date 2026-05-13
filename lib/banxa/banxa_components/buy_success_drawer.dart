@@ -11,9 +11,9 @@ class BuySuccessDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Success",
-      children: const [
+      child: ListView(children: const [
         BuySuccessDrawerContent(),
-      ],
+      ]),
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) {

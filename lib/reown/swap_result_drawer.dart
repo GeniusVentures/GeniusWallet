@@ -21,7 +21,7 @@ class SwapResultDrawer {
     await ResponsiveDrawer.show(
       context: context,
       title: message,
-      children: [
+      child: ListView(children: [
         const SizedBox(height: 24),
         Icon(icon, size: 64, color: iconColor),
         const SizedBox(height: 16),
@@ -50,7 +50,7 @@ class SwapResultDrawer {
               ],
             ),
           ),
-      ],
+      ]),
       footer: Column(
         children: [
           ElevatedButton(

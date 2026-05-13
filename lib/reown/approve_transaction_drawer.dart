@@ -13,7 +13,7 @@ class ApproveTransactionDrawer {
     return ResponsiveDrawer.show<bool>(
       context: context,
       title: "Transaction Request",
-      children: [
+      child: ListView(children: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -59,7 +59,7 @@ class ApproveTransactionDrawer {
             ],
           ),
         )
-      ],
+      ]),
       footer: Row(
         children: [
           Expanded(

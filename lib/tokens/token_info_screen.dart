@@ -282,7 +282,7 @@ class TokenInfoScreen extends StatelessWidget {
             ResponsiveDrawer.show<void>(
               context: context,
               title: "Receive ${selectedCoin?.name}",
-              children: [
+              child: ListView(children: [
                 Container(
                   margin: EdgeInsets.only(
                       top: MediaQuery.sizeOf(context).height * .15),
@@ -293,7 +293,7 @@ class TokenInfoScreen extends StatelessWidget {
                     network: selectedNetwork?.name ?? "",
                   ),
                 ),
-              ],
+              ]),
             );
           },
         ),
@@ -309,7 +309,7 @@ class TokenInfoScreen extends StatelessWidget {
             ResponsiveDrawer.show<void>(
               context: context,
               title: "More Options",
-              children: [
+              child: ListView(children: [
                 if (isGnusBridgeEnabled)
                   SlidingDrawerButton(
                     onPressed: selectedCoin?.balance == 0
@@ -323,7 +323,7 @@ class TokenInfoScreen extends StatelessWidget {
                           },
                     label: "Bridge Tokens",
                   ),
-              ],
+              ]),
             );
           },
         ),
