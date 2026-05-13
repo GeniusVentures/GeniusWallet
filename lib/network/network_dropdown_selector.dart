@@ -39,8 +39,6 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final chainId = box.get(selectedNetworkKeyChainId) as int?;
     final rpcUrl = box.get(selectedNetworkKeyRpcUrl) as String?;
 
-    //print("Saved chainId: $chainId, rpcUrl: $rpcUrl");
-
     if (!mounted) return;
     setState(() {
       savedChainId = chainId;
@@ -53,10 +51,11 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final selected = await ResponsiveDrawer.show<Network>(
       context: context,
       title: "Select Network",
-      children: networks.map((network) {
+      child: ListView(
+          children: networks.map((network) {
         final isSelected = network.chainId == selectedNetwork?.chainId;
         return _buildDrawerRow(network, isSelected);
-      }).toList(),
+      }).toList()),
     );
 
     if (selected != null && selected != selectedNetwork) {

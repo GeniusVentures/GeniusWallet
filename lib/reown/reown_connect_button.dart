@@ -184,237 +184,244 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
       if (!mounted) return;
 
-      await ResponsiveDrawer.show<
-          void>(context: context, title: "Wallet Connect", children: [
-        StatefulBuilder(
-          builder: (context, setInnerState) => AlertDialog(
-            backgroundColor: GeniusWalletColors.deepBlueTertiary,
-            title: Row(mainAxisSize: MainAxisSize.min, children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: Image.asset(
-                  'assets/images/crypto/wallet-connect.png',
-                  height: 50,
-                  width: 50,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                "Wallet Connect",
-                style: TextStyle(fontSize: 18),
-              ),
-            ]),
-            content: SizedBox(
-              width: 300,
-              height: 320,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 12),
-                  Expanded(
-                      child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeIn,
-                    switchOutCurve: Curves.easeOut,
-                    child: showManualInput
-                        ? KeyedSubtree(
-                            key: ValueKey(
-                                "manual-${DateTime.now().millisecondsSinceEpoch}"),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
+      await ResponsiveDrawer.show<void>(
+          context: context,
+          title: "Wallet Connect",
+          child: ListView(children: [
+            StatefulBuilder(
+              builder: (context, setInnerState) => AlertDialog(
+                backgroundColor: GeniusWalletColors.deepBlueTertiary,
+                title: Row(mainAxisSize: MainAxisSize.min, children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.asset(
+                      'assets/images/crypto/wallet-connect.png',
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "Wallet Connect",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ]),
+                content: SizedBox(
+                  width: 300,
+                  height: 320,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 12),
+                      Expanded(
+                          child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        switchInCurve: Curves.easeIn,
+                        switchOutCurve: Curves.easeOut,
+                        child: showManualInput
+                            ? KeyedSubtree(
+                                key: ValueKey(
+                                    "manual-${DateTime.now().millisecondsSinceEpoch}"),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _uriController,
-                                        decoration: const InputDecoration(
-                                          hintText: "wc:...",
-                                          hintStyle:
-                                              TextStyle(color: Colors.white38),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextField(
+                                            controller: _uriController,
+                                            decoration: const InputDecoration(
+                                              hintText: "wc:...",
+                                              hintStyle: TextStyle(
+                                                  color: Colors.white38),
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.paste,
+                                            size: 20,
+                                            color: GeniusWalletColors
+                                                .lightGreenPrimary,
+                                          ),
+                                          tooltip: "Paste from clipboard",
+                                          onPressed: () async {
+                                            final data =
+                                                await Clipboard.getData(
+                                                    Clipboard.kTextPlain);
+                                            if (data?.text != null &&
+                                                data!.text!.trim().isNotEmpty) {
+                                              setInnerState(() {
+                                                _uriController.text =
+                                                    data.text!.trim();
+                                                manualInputError = null;
+                                              });
+                                            } else {
+                                              setInnerState(() {
+                                                manualInputError =
+                                                    "Clipboard is empty or has no text.";
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.paste,
-                                        size: 20,
-                                        color: GeniusWalletColors
-                                            .lightGreenPrimary,
+                                    if (manualInputError != null) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        manualInputError!,
+                                        style: const TextStyle(
+                                            color: Colors.redAccent),
+                                        textAlign: TextAlign.center,
                                       ),
-                                      tooltip: "Paste from clipboard",
-                                      onPressed: () async {
-                                        final data = await Clipboard.getData(
-                                            Clipboard.kTextPlain);
-                                        if (data?.text != null &&
-                                            data!.text!.trim().isNotEmpty) {
-                                          setInnerState(() {
-                                            _uriController.text =
-                                                data.text!.trim();
-                                            manualInputError = null;
-                                          });
-                                        } else {
-                                          setInnerState(() {
-                                            manualInputError =
-                                                "Clipboard is empty or has no text.";
-                                          });
-                                        }
-                                      },
-                                    ),
+                                    ],
                                   ],
+                                ))
+                            : KeyedSubtree(
+                                key: ValueKey(
+                                    "qr-${DateTime.now().millisecondsSinceEpoch}"),
+                                child: QrImageView(
+                                  backgroundColor: Colors.white,
+                                  data: wcUri,
+                                  version: QrVersions.auto,
                                 ),
-                                if (manualInputError != null) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    manualInputError!,
-                                    style: const TextStyle(
-                                        color: Colors.redAccent),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ],
-                            ))
-                        : KeyedSubtree(
-                            key: ValueKey(
-                                "qr-${DateTime.now().millisecondsSinceEpoch}"),
-                            child: QrImageView(
-                              backgroundColor: Colors.white,
-                              data: wcUri,
-                              version: QrVersions.auto,
+                              ),
+                      )),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () {
+                          setInnerState(
+                              () => showManualInput = !showManualInput);
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          backgroundColor: Colors.transparent,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.link,
+                              size: 18,
+                              color: GeniusWalletColors.lightGreenPrimary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              showManualInput
+                                  ? "Show QR Code"
+                                  : "Enter URI Manually",
+                              style: const TextStyle(
+                                color: GeniusWalletColors.gray500,
+                                decoration: TextDecoration.underline,
+                                decorationColor:
+                                    GeniusWalletColors.lightGreenPrimary,
+                                decorationThickness: 2.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  if (showManualInput)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final input = _uriController.text.trim();
+
+                          if (!input.startsWith('wc:') ||
+                              !input.contains('@')) {
+                            setInnerState(() {
+                              manualInputError =
+                                  '❌ Invalid WalletConnect URI format.';
+                            });
+                            debugPrint('❌ Invalid format: $input');
+                            return;
+                          }
+
+                          try {
+                            await walletKit.pair(uri: Uri.parse(input));
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            setInnerState(() {
+                              manualInputError = '❌ URI Connect Failed: $e';
+                            });
+                            debugPrint('❌ WalletKit pair failed: $e');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          elevation: 0,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient:
+                                GeniusWalletGradient.greenBlueGreenGradient,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              "Connect",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
-                  )),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      setInnerState(() => showManualInput = !showManualInput);
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      backgroundColor: Colors.transparent,
+                        ),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.link,
-                          size: 18,
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() => _isConnecting = false);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
                           color: GeniusWalletColors.lightGreenPrimary,
+                          width: 1.6,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          showManualInput
-                              ? "Show QR Code"
-                              : "Enter URI Manually",
-                          style: const TextStyle(
-                            color: GeniusWalletColors.gray500,
-                            decoration: TextDecoration.underline,
-                            decorationColor:
-                                GeniusWalletColors.lightGreenPrimary,
-                            decorationThickness: 2.0,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ],
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.transparent,
+                      ),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: GeniusWalletColors.lightGreenPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-            actions: [
-              if (showManualInput)
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final input = _uriController.text.trim();
-
-                      if (!input.startsWith('wc:') || !input.contains('@')) {
-                        setInnerState(() {
-                          manualInputError =
-                              '❌ Invalid WalletConnect URI format.';
-                        });
-                        debugPrint('❌ Invalid format: $input');
-                        return;
-                      }
-
-                      try {
-                        await walletKit.pair(uri: Uri.parse(input));
-                        Navigator.of(context).pop();
-                      } catch (e) {
-                        setInnerState(() {
-                          manualInputError = '❌ URI Connect Failed: $e';
-                        });
-                        debugPrint('❌ WalletKit pair failed: $e');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      elevation: 0,
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        gradient: GeniusWalletGradient.greenBlueGreenGradient,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Container(
-                        height: 48,
-                        alignment: Alignment.center,
-                        child: const Text(
-                          "Connect",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(
-                height: 8,
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() => _isConnecting = false);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: GeniusWalletColors.lightGreenPrimary,
-                      width: 1.6,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Colors.transparent,
-                  ),
-                  child: const Text(
-                    "Cancel",
-                    style: TextStyle(
-                      color: GeniusWalletColors.lightGreenPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        )
-      ]);
+            )
+          ]));
 
       if (_session == null) {
         setState(() {

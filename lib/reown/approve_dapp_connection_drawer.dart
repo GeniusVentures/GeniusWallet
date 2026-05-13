@@ -13,7 +13,7 @@ class ApproveDappConnectionDrawer {
     return ResponsiveDrawer.show<bool>(
       context: context,
       title: "Connection Request",
-      children: [
+      child: ListView(children: [
         Center(
           child: Container(
             padding: const EdgeInsets.all(8),
@@ -65,7 +65,7 @@ class ApproveDappConnectionDrawer {
           ),
           const SizedBox(height: 12),
         ],
-      ],
+      ]),
       footer: Column(children: [
         Text(
           "Allow $dappName to connect to your wallet?",

@@ -17,7 +17,7 @@ class SwapSuccessDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Success",
-      children: [
+      child: ListView(children: [
         SwapDrawerContent(
           fromAmount: fromAmount,
           toAmount: toAmount,
@@ -27,7 +27,7 @@ class SwapSuccessDrawer {
           toSymbol: toSymbol,
           chain: chain,
         ),
-      ],
+      ]),
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) {

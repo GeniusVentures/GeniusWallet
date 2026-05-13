@@ -14,7 +14,7 @@ class SwapSettingsDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Settings",
-      children: [
+      child: ListView(children: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -39,7 +39,7 @@ class SwapSettingsDrawer {
             ],
           ),
         ),
-      ],
+      ]),
       footer: SizedBox(
         width: double.infinity,
         child: ElevatedButton(

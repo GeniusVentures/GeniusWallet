@@ -179,7 +179,7 @@ class _MobileFilters extends StatelessWidget {
           onPressed: () => ResponsiveDrawer.show<void>(
             context: context,
             title: "Filters",
-            children: [
+            child: ListView(children: [
               for (final filter in Filters.values)
                 _HoverableFilterItem(
                   filter: filter,
@@ -189,7 +189,7 @@ class _MobileFilters extends StatelessWidget {
                     Navigator.pop(context);
                   },
                 ),
-            ],
+            ]),
           ),
         ),
         if (applied)

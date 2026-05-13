@@ -149,7 +149,7 @@ class WalletInformationState extends State<WalletInformation> {
                 ResponsiveDrawer.show<void>(
                   context: context,
                   title: "Your ${state.selectedNetwork?.name} address",
-                  children: [
+                  child: ListView(children: [
                     Container(
                       margin: EdgeInsets.only(
                           top: MediaQuery.sizeOf(context).height * .15),
@@ -160,7 +160,7 @@ class WalletInformationState extends State<WalletInformation> {
                         network: state.selectedNetwork?.name ?? "",
                       ),
                     ),
-                  ],
+                  ]),
                 );
               },
               text: 'Receive',
@@ -189,43 +189,46 @@ class WalletInformationState extends State<WalletInformation> {
               icon: Icons.more_horiz,
               onPressed: () {
                 ResponsiveDrawer.show<void>(
-                  context: context,
-                  title: "More Options",
-                  children: [
-                    StreamBuilder<SGNUSConnection>(
-                      stream: geniusApi.getSGNUSConnectionStream(),
-                      builder: (context, snapshot) {
-                        final connection = snapshot.data;
-                        return SubmitJobButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
+                    context: context,
+                    title: "More Options",
+                    child: ListView(
+                      children: [
+                        StreamBuilder<SGNUSConnection>(
+                          stream: geniusApi.getSGNUSConnectionStream(),
+                          builder: (context, snapshot) {
+                            final connection = snapshot.data;
+                            return SubmitJobButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              walletDetailsCubit: walletDetailsCubit,
+                              walletAddress:
+                                  state.selectedWallet?.address ?? "",
+                              gnusConnectedWalletAddress:
+                                  connection?.walletAddress ?? "",
+                            );
                           },
-                          walletDetailsCubit: walletDetailsCubit,
-                          walletAddress: state.selectedWallet?.address ?? "",
-                          gnusConnectedWalletAddress:
-                              connection?.walletAddress ?? "",
-                        );
-                      },
-                    ),
-                    SlidingDrawerButton(
-                      onPressed: () {
-                        geniusApi
-                            .deleteWallet(state.selectedWallet?.address ?? "");
-                        showAppSnackBar(context,
-                            'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!');
+                        ),
+                        SlidingDrawerButton(
+                          onPressed: () {
+                            geniusApi.deleteWallet(
+                                state.selectedWallet?.address ?? "");
+                            showAppSnackBar(context,
+                                'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!');
 
-                        Navigator.of(context).pop();
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          // ignore: use_build_context_synchronously
-                          context.go('/dashboard');
-                        });
-                      },
-                      color: Colors.red,
-                      icon: FontAwesomeIcons.trash.data,
-                      label: "Delete Wallet",
-                    ),
-                  ],
-                );
+                            Navigator.of(context).pop();
+                            Future.delayed(const Duration(milliseconds: 100),
+                                () {
+                              // ignore: use_build_context_synchronously
+                              context.go('/dashboard');
+                            });
+                          },
+                          color: Colors.red,
+                          icon: FontAwesomeIcons.trash.data,
+                          label: "Delete Wallet",
+                        ),
+                      ],
+                    ));
               },
             ),
           ]
