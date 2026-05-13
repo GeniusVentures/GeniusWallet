@@ -41,7 +41,7 @@ class MarketsScreen extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 15),
                 IconButton(
                   icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
                   onPressed: () {
@@ -115,7 +115,6 @@ class MarketsScreen extends StatelessWidget {
                               marketData[coin.symbol.toLowerCase()];
 
                           if (data == null) {
-                            // Optional: visually debug missing data
                             return Container(
                               color: Colors.red,
                               child: Center(
@@ -125,7 +124,6 @@ class MarketsScreen extends StatelessWidget {
                                 ),
                               ),
                             );
-                            // Or just: return const SizedBox.shrink();
                           }
 
                           return _buildMarketChartCard(data, coin);
@@ -162,6 +160,7 @@ class MarketsScreen extends StatelessWidget {
               },
             );
           },
+          mouseCursor: SystemMouseCursors.click,
           borderRadius: BorderRadius.circular(12),
           child: Ink(
             decoration: BoxDecoration(

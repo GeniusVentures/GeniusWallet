@@ -1,8 +1,14 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'coin_gecko_coin.dart';
+
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
 
 class CoinGeckoCoinAdapter extends TypeAdapter<CoinGeckoCoin> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   CoinGeckoCoin read(BinaryReader reader) {
