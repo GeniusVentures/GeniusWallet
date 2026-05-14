@@ -49,7 +49,7 @@ class GeniusWalletColors {
 
   static const Color btnFilter = Color.fromARGB(255, 19, 33, 53);
 
-  static Color btnFilterSelected = lightGreenPrimary.withAlpha(26);
+  static Color btnFilterSelected = lightGreenPrimary.withValues(alpha: 0.1);
 
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 

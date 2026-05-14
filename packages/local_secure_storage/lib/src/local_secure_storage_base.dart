@@ -131,7 +131,7 @@ class LocalWalletStorage {
         key: getAccountKey(), value: jsonEncode(account.toJson()));
   }
 
-  updateAccountFetchDate() async {
+  Future<void> updateAccountFetchDate() async {
     final account = await loadAccount();
     if (account == null) {
       return;

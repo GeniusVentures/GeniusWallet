@@ -245,20 +245,13 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               (w) => w.address == savedWalletAddress,
               orElse: () => widget.initialSelected ?? wallets.first,
             );
-            return Material(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14.0),
-                onTap: () => _showAccountDrawer(wallets),
-                child: Ink(
-                  decoration: BoxDecoration(
-                      color: GeniusWalletColors.deepBlueSecondary),
-                  padding: const EdgeInsets.all(10.0),
+            return TextButton(
+              onPressed: () => _showAccountDrawer(wallets),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 8.0,
                     children: [
-                      _buildAvatar(selectedWallet!,
-                          isSelected: false, size: 25),
+                  _buildAvatar(selectedWallet!, isSelected: false, size: 25),
                       Flexible(
                         child: Text(
                           selectedWallet!.walletType == WalletType.sgnus
@@ -271,8 +264,6 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       ),
                       const Icon(Icons.arrow_drop_down),
                     ],
-                  ),
-                ),
               ),
             );
           },

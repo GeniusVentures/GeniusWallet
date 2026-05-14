@@ -357,7 +357,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 ),
                                 color: isEmpty
                                     ? (isHighlighted
-                                        ? Colors.blue.withAlpha(26)
+                                        ? Colors.blue.withValues(alpha: 0.1)
                                         : GeniusWalletColors.grayPrimary
                                             .withAlpha(77))
                                     : GeniusWalletColors.grayPrimary
@@ -502,7 +502,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             ),
                             color: isEmpty
                                 ? (isHighlighted
-                                    ? Colors.blue.withAlpha(26)
+                                    ? Colors.blue.withValues(alpha: 0.1)
                                     : GeniusWalletColors.grayPrimary
                                         .withAlpha(77))
                                 : GeniusWalletColors.grayPrimary.withAlpha(77),
