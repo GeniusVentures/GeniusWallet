@@ -195,11 +195,10 @@ class DesktopTopBar extends StatelessWidget {
                 ],
               ),
               Row(
+                spacing: 8.0,
                 children: [
-                  const SizedBox(width: 8),
                   const NetworkDropdownSelector(),
-                  const SizedBox(width: 8),
-                  const SizedBox(width: 155, child: AccountDropdownSelector()),
+                  AccountDropdownSelector(),
                   ReownConnectButton(
                     walletAddress:
                         walletDetailsCubit.state.selectedWallet?.address ?? '',
@@ -207,13 +206,11 @@ class DesktopTopBar extends StatelessWidget {
                     walletDetailsCubit: walletDetailsCubit,
                     transactionsCubit: context.read<TransactionsCubit>(),
                   ),
-                  const SizedBox(width: 8),
                   BuyGnusButton(
                     userEmail: '',
                     walletAddress:
                         walletDetailsCubit.state.selectedWallet?.address ?? '',
                   ),
-                  const SizedBox(width: 8),
                 ],
               ),
             ],

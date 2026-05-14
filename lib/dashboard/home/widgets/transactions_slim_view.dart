@@ -231,7 +231,7 @@ class _HoverableFilterItemState extends State<_HoverableFilterItem> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           color: hovered
-              ? GeniusWalletColors.lightGreenPrimary.withAlpha(26)
+              ? GeniusWalletColors.lightGreenPrimary.withValues(alpha: 0.1)
               : Colors.transparent,
         ),
         child: ListTile(

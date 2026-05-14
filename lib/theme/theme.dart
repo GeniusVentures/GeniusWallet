@@ -9,7 +9,7 @@ ThemeData getThemeData() => ThemeData(
         unselectedLabelStyle: TextStyle(fontSize: 16),
         indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: TextStyle(fontSize: 16),
-        labelColor: Colors.white,
+        labelColor: GeniusWalletColors.lightGreenPrimary,
         dividerColor: Colors.transparent,
         unselectedLabelColor: GeniusWalletColors.gray500,
         indicatorColor: GeniusWalletColors.lightGreenPrimary,
@@ -64,28 +64,35 @@ ThemeData getThemeData() => ThemeData(
       ),
       appBarTheme: const AppBarTheme(
           iconTheme: IconThemeData(size: 24),
-          titleTextStyle: TextStyle(fontSize: 18),
+          titleTextStyle: TextStyle(fontSize: 18, color: Colors.white),
           titleSpacing: 10,
           centerTitle: true,
           surfaceTintColor: GeniusWalletColors.deepBlueCardColor,
           backgroundColor: GeniusWalletColors.deepBlueCardColor),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+              padding: const WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)))),
       elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-              overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-              surfaceTintColor:
-                  const WidgetStatePropertyAll(Colors.transparent),
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
-              padding: const WidgetStatePropertyAll(
-                  EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 20)),
-              shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
-                  side: BorderSide(color: Colors.greenAccent, width: 1),
+              shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
+                  side: BorderSide(
+                      color: GeniusWalletColors.lightGreenPrimary, width: 1),
                   borderRadius: BorderRadius.all(
-                      Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
-              backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
-              foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+                      Radius.circular(GeniusWalletConsts.borderRadiusButton)))),
+              backgroundColor: WidgetStateProperty.resolveWith<Color?>(
                 (Set states) {
                   if (states.contains(WidgetState.disabled)) {
                     return GeniusWalletColors.gray600;
+                  }
+                  return GeniusWalletColors.deepBlueCardColor;
+                },
+              ),
+              foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return GeniusWalletColors.gray500;
                   }
                   return Colors.white;
                 },
@@ -94,6 +101,10 @@ ThemeData getThemeData() => ThemeData(
               iconColor: const WidgetStatePropertyAll(Colors.white))),
       inputDecorationTheme: const InputDecorationTheme(
           contentPadding: EdgeInsets.all(20),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(
+                  Radius.circular(GeniusWalletConsts.borderRadiusCard)),
+              borderSide: BorderSide(color: GeniusWalletColors.gray500)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.all(
                   Radius.circular(GeniusWalletConsts.borderRadiusCard)),
@@ -106,16 +117,14 @@ ThemeData getThemeData() => ThemeData(
           style: ButtonStyle(
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
               padding: const WidgetStatePropertyAll(
-                  EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20)),
-              shape: const WidgetStatePropertyAll(ContinuousRectangleBorder(
+                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)),
+              shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(
-                      Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
-              backgroundColor:
-                  const WidgetStatePropertyAll(GeniusWalletColors.btnFilter),
+                      Radius.circular(GeniusWalletConsts.borderRadiusButton)))),
               foregroundColor: WidgetStateProperty.resolveWith<Color?>(
                 (Set states) {
                   if (states.contains(WidgetState.disabled)) {
-                    return GeniusWalletColors.gray600;
+                    return GeniusWalletColors.gray500;
                   }
                   return Colors.white;
                 },
@@ -127,7 +136,8 @@ ThemeData getThemeData() => ThemeData(
           textStyle: WidgetStatePropertyAll(
               TextStyle(fontWeight: FontWeight.normal, color: Colors.white)),
           shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4)))),
+              borderRadius: BorderRadius.all(
+                  Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
           backgroundColor:
               WidgetStatePropertyAll(GeniusWalletColors.deepBlueCardColor)),
       textSelectionTheme: const TextSelectionThemeData(
@@ -145,7 +155,8 @@ ThemeData getThemeData() => ThemeData(
                       Radius.circular(GeniusWalletConsts.borderRadiusButton)),
                   borderSide: BorderSide(
                       color: GeniusWalletColors.lightGreenSecondary)),
-              contentPadding: EdgeInsets.only(left: 20),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(
                       GeniusWalletConsts.borderRadiusButton))))),
@@ -155,7 +166,6 @@ ThemeData getThemeData() => ThemeData(
           selectedLabelTextStyle:
               TextStyle(color: GeniusWalletColors.lightGreenSecondary),
           labelType: NavigationRailLabelType.none,
-          useIndicator: false,
           selectedIconTheme: IconThemeData(
             color: GeniusWalletColors.lightGreenSecondary,
             size: 30,
@@ -171,8 +181,8 @@ ThemeData getThemeData() => ThemeData(
           type: BottomNavigationBarType.fixed,
           selectedItemColor: GeniusWalletColors.lightGreenSecondary,
           selectedIconTheme: IconThemeData(
-              size: 35, color: GeniusWalletColors.lightGreenSecondary),
-          unselectedIconTheme: IconThemeData(size: 35, color: Colors.white)),
+              size: 30, color: GeniusWalletColors.lightGreenSecondary),
+          unselectedIconTheme: IconThemeData(size: 30, color: Colors.white)),
       checkboxTheme: CheckboxThemeData(
           side: const BorderSide(color: GeniusWalletColors.lightGreenPrimary),
           checkColor: WidgetStateProperty.resolveWith((states) {
@@ -187,11 +197,16 @@ ThemeData getThemeData() => ThemeData(
             }
             return GeniusWalletColors.lightGreenPrimary;
           })),
-      buttonTheme: const ButtonThemeData(padding: EdgeInsets.all(0)),
-      primarySwatch: Colors.blue,
       scaffoldBackgroundColor: GeniusWalletColors.deepBlueTertiary,
       colorScheme: const ColorScheme.dark(
         primary: GeniusWalletColors.lightGreenPrimary,
+        onPrimary: GeniusWalletColors.btnText,
+        secondary: GeniusWalletColors.lightGreenSecondary,
+        onSecondary: GeniusWalletColors.btnText,
+        surface: GeniusWalletColors.deepBlueCardColor,
+        onSurface: Colors.white,
         outline: GeniusWalletColors.lightGreenPrimary,
+        error: GeniusWalletColors.red,
+        onError: Colors.white,
       ),
     );

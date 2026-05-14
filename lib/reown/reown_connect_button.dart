@@ -487,25 +487,25 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       icon = Icons.link_off;
       iconColor = Colors.redAccent;
       textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withAlpha(26);
+      backgroundColor = Colors.redAccent.withValues(alpha: 0.1);
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
       iconColor = Colors.amber;
       textColor = Colors.amber;
-      backgroundColor = Colors.amber.withAlpha(26);
+      backgroundColor = Colors.amber.withValues(alpha: 0.1);
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
       iconColor = Colors.orange;
       textColor = Colors.orange;
-      backgroundColor = Colors.orange.withAlpha(26);
+      backgroundColor = Colors.orange.withValues(alpha: 0.1);
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
       iconColor = Colors.redAccent;
       textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withAlpha(26);
+      backgroundColor = Colors.redAccent.withValues(alpha: 0.1);
       text = 'Retry Connect';
     } else {
       icon = Icons.link;
@@ -515,42 +515,38 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       text = 'Connect';
     }
 
-    return SizedBox(
-        width: isMobile ? 60 : 130,
-        child: TextButton(
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            backgroundColor: backgroundColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(40),
+    return TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor: backgroundColor,
+        minimumSize: Size(isMobile ? 60 : 40, 40),
+      ),
+      onPressed: () {
+        if (_isConnecting) return;
+
+        if (isConnected) {
+          _disconnect();
+        } else {
+          _connect();
+        }
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 8.0,
+        children: [
+          AnimatedRotation(
+            duration: const Duration(milliseconds: 600),
+            turns: _isConnecting ? 1 : 0,
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          if (!isMobile) ...[
+            Text(
+              text,
+              style: TextStyle(fontSize: 14, color: textColor),
             ),
-          ),
-          onPressed: () {
-            if (_isConnecting) return;
-            if (isConnected) {
-              _disconnect();
-            } else {
-              _connect();
-            }
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AnimatedRotation(
-                duration: const Duration(milliseconds: 600),
-                turns: _isConnecting ? 1 : 0,
-                child: Icon(icon, color: iconColor, size: 20),
-              ),
-              if (!isMobile) ...[
-                const SizedBox(width: 6),
-                Text(
-                  text,
-                  style: TextStyle(fontSize: 14, color: textColor),
-                ),
-              ]
-            ],
-          ),
-        ));
+          ]
+        ],
+      ),
+    );
   }
 }

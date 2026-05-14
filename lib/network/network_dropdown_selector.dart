@@ -142,31 +142,24 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       orElse: () => widget.initialSelected ?? networks.first,
     );
 
-    return GestureDetector(
-      onTap: () => _showNetworkDrawer(networks),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: GeniusWalletColors.deepBlueCardColor,
-          borderRadius: BorderRadius.circular(40),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              selectedNetwork?.iconPath ?? "",
-              width: 20,
-              height: 20,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox(width: 20, height: 20),
-            ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              size: 16,
-            ),
-          ],
-        ),
+    return TextButton(
+      onPressed: () => _showNetworkDrawer(networks),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 8.0,
+        children: [
+          Image.asset(
+            selectedNetwork?.iconPath ?? "",
+            width: 20,
+            height: 20,
+            errorBuilder: (context, error, stackTrace) =>
+                const SizedBox(width: 20, height: 20),
+          ),
+          const Icon(
+            Icons.arrow_drop_down,
+            size: 16,
+          ),
+        ],
       ),
     );
   }
