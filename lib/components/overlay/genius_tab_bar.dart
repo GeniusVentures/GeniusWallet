@@ -136,7 +136,7 @@ class DesktopTopBar extends StatelessWidget {
                     final isSelected = index == selected;
                     final color = isSelected
                         ? Colors.greenAccent
-                        : Colors.white.withAlpha(153);
+                        : Colors.white.withValues(alpha: 0.6);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),

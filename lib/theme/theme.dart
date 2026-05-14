@@ -3,6 +3,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 ThemeData getThemeData() => ThemeData(
+      brightness: Brightness.dark,
       progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: GeniusWalletColors.lightGreenPrimary),
       tabBarTheme: const TabBarThemeData(
@@ -40,7 +41,7 @@ ThemeData getThemeData() => ThemeData(
           if (states.contains(WidgetState.selected)) {
             return GeniusWalletColors.lightGreenPrimary;
           }
-          return GeniusWalletColors.lightGreenPrimary.withAlpha(33);
+          return GeniusWalletColors.lightGreenPrimary.withValues(alpha: 0.15);
         }),
         dayForegroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return Colors.black;
@@ -52,14 +53,14 @@ ThemeData getThemeData() => ThemeData(
             return GeniusWalletColors.lightGreenPrimary;
           }
           if (states.contains(WidgetState.dragged)) {
-            return GeniusWalletColors.lightGreenPrimary.withAlpha(51);
+            return GeniusWalletColors.lightGreenPrimary.withValues(alpha: 0.2);
           }
           return Colors.transparent;
         }),
         rangeSelectionBackgroundColor:
-            GeniusWalletColors.lightGreenPrimary.withAlpha(38),
+            GeniusWalletColors.lightGreenPrimary.withValues(alpha: 0.15),
         rangeSelectionOverlayColor: WidgetStateProperty.all(
-          GeniusWalletColors.lightGreenPrimary.withAlpha(51),
+          GeniusWalletColors.lightGreenPrimary.withValues(alpha: 0.2),
         ),
       ),
       appBarTheme: const AppBarTheme(

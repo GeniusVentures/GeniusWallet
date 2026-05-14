@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class GeniusWalletColors {
   static const Color blue500 = Color(0xff0068ef);
 
-  static const Color gray900 = Color(0xff18191d);
+  static const Color gray900 = Color(0xFF18191D);
 
   static const Color gray500 = Color(0xff73788c);
 
@@ -29,9 +29,9 @@ class GeniusWalletColors {
 
   static const Color deepBlueMenu = Color(0xff0F1B2E);
 
-  static const Color lightGreenPrimary = Color.fromRGBO(0, 234, 174, 1);
+  static const Color lightGreenPrimary = Colors.greenAccent;
 
-  static const Color lightGreenSecondary = Color.fromRGBO(1, 204, 149, 1);
+  static const Color lightGreenSecondary = Color(0xFF54C48E);
 
   static const Color grayPrimary = Color.fromRGBO(21, 30, 41, 1);
 

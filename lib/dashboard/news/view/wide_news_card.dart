@@ -42,7 +42,8 @@ class WideNewsCard extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueTertiary.withAlpha(179),
+                  color: GeniusWalletColors.deepBlueTertiary
+                      .withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),

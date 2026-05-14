@@ -54,10 +54,11 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final selected = await ResponsiveDrawer.show<Wallet>(
       context: context,
       title: "Your Accounts",
-      child: ListView.builder(
+      child: ListView.separated(
         itemBuilder: (context, i) => _buildDrawerRow(
             wallets[i], wallets[i].walletName == selectedWallet?.walletName),
         itemCount: wallets.length,
+        separatorBuilder: (context, index) => SizedBox(height: 8.0),
       ),
       footer: _AddWalletButton(
         onPressed: () => context.push('/landing_screen', extra: true),
@@ -84,12 +85,10 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final subColor =
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
 
-    return Card(
-      child: ListTile(
+    return ListTile(
         selected: isSelected,
         selectedTileColor: Colors.greenAccent,
         tileColor: GeniusWalletColors.deepBlueCardColor,
-        hoverColor: Colors.greenAccent.withAlpha(20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -190,7 +189,6 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   );
                 },
               ),
-      ),
     );
   }
 
@@ -245,7 +243,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               (w) => w.address == savedWalletAddress,
               orElse: () => widget.initialSelected ?? wallets.first,
             );
-            return TextButton(
+            return Tooltip(
+              message: "Select wallet",
+              child: TextButton(
               onPressed: () => _showAccountDrawer(wallets),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -264,6 +264,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       ),
                       const Icon(Icons.arrow_drop_down),
                     ],
+                ),
               ),
             );
           },

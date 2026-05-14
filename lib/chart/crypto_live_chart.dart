@@ -234,7 +234,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: fillColor.withAlpha(51),
+                    color: fillColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
