@@ -293,7 +293,7 @@ class SubmitJobScreen extends StatelessWidget {
           ),
           if (isFilePickerOpen)
             ModalBarrier(
-              color: Colors.black.withAlpha(128),
+              color: Colors.black.withValues(alpha: 0.5),
               dismissible: false,
             ),
           if (isFilePickerOpen)

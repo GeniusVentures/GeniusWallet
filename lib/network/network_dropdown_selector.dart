@@ -74,53 +74,36 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
   }
 
   Widget _buildDrawerRow(Network network, bool isSelected) {
-    final color =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
-    final subColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.greenAccent
-              : GeniusWalletColors.deepBlueCardColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          leading: SizedBox(
-            width: 36,
-            height: 36,
-            child: Image.asset(
-              network.iconPath ?? "",
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox(width: 36, height: 36),
-            ),
-          ),
-          minLeadingWidth: 0,
-          title: Text(
-            network.name ?? "Unnamed",
-            style: TextStyle(
-              fontSize: 16,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            network.symbol ?? "",
-            style: TextStyle(
-              fontSize: 12,
-              color: subColor,
-            ),
-          ),
-          onTap: () => Navigator.of(context).pop(network),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+      selected: isSelected,
+      style: ListTileStyle.drawer,
+      leading: SizedBox(
+        width: 36,
+        height: 36,
+        child: Image.asset(
+          network.iconPath ?? "",
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) =>
+              const SizedBox(width: 36, height: 36),
         ),
       ),
+      title: Text(
+        network.name ?? "Unnamed",
+        style: TextStyle(
+          fontSize: 16,
+          // color: color,
+          fontWeight: FontWeight.w500,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        network.symbol ?? "",
+        style: TextStyle(
+          fontSize: 12,
+        ),
+      ),
+      onTap: () => Navigator.of(context).pop(network),
     );
   }
 
@@ -142,24 +125,27 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       orElse: () => widget.initialSelected ?? networks.first,
     );
 
-    return TextButton(
-      onPressed: () => _showNetworkDrawer(networks),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 8.0,
-        children: [
-          Image.asset(
-            selectedNetwork?.iconPath ?? "",
-            width: 20,
-            height: 20,
-            errorBuilder: (context, error, stackTrace) =>
-                const SizedBox(width: 20, height: 20),
-          ),
-          const Icon(
-            Icons.arrow_drop_down,
-            size: 16,
-          ),
-        ],
+    return Tooltip(
+      message: "Select network",
+      child: TextButton(
+        onPressed: () => _showNetworkDrawer(networks),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8.0,
+          children: [
+            Image.asset(
+              selectedNetwork?.iconPath ?? "",
+              width: 20,
+              height: 20,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox(width: 20, height: 20),
+            ),
+            const Icon(
+              Icons.arrow_drop_down,
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }

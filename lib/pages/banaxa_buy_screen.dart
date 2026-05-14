@@ -400,7 +400,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                 style: TextStyle(
                                   color: state.canCreateOrder
                                       ? GeniusWalletColors.deepBlue
-                                      : Colors.black.withAlpha(102),
+                                      : Colors.black.withValues(alpha: 0.4),
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),
