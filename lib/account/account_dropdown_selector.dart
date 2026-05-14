@@ -55,8 +55,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       context: context,
       title: "Your Accounts",
       child: ListView.builder(
-        itemBuilder: (context, i) => _buildDrawerRow(wallets[i],
-            isSelected: wallets[i].walletName == selectedWallet?.walletName),
+        itemBuilder: (context, i) => _buildDrawerRow(
+            wallets[i], wallets[i].walletName == selectedWallet?.walletName),
         itemCount: wallets.length,
       ),
       footer: _AddWalletButton(
@@ -73,9 +73,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
   }
 
   Widget _buildDrawerRow(
-    Wallet wallet, {
-    required bool isSelected,
-  }) {
+    Wallet wallet,
+    bool isSelected,
+  ) {
     final isWatched = wallet.walletType == WalletType.tracking;
 
     final textColor =
@@ -84,66 +84,51 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final subColor =
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
 
-    return ListTile(
-      selected: isSelected,
-      selectedTileColor: Colors.greenAccent,
-      tileColor: GeniusWalletColors.deepBlueCardColor,
-      hoverColor: Colors.greenAccent.withAlpha(20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 5,
-      ),
-      onTap: () => Navigator.of(context).pop(wallet),
-      leading: _buildAvatar(
-        wallet,
-        isSelected: isSelected,
-        size: 36,
-      ),
-      title: Row(
-        children: [
-          Flexible(
-            child: Text(
-              wallet.walletName,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16,
-                color: textColor,
-                fontWeight: FontWeight.w500,
+    return Card(
+      child: ListTile(
+        selected: isSelected,
+        selectedTileColor: Colors.greenAccent,
+        tileColor: GeniusWalletColors.deepBlueCardColor,
+        hoverColor: Colors.greenAccent.withAlpha(20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        onTap: () => Navigator.of(context).pop(wallet),
+        leading: _buildAvatar(
+          wallet,
+          isSelected: isSelected,
+          size: 36,
+        ),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                wallet.walletName,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          if (isWatched)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Icon(
-                Icons.remove_red_eye_outlined,
-                size: 16,
-                color: textColor,
+            if (isWatched)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 16,
+                  color: textColor,
+                ),
               ),
-            ),
-        ],
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(
+          ],
+        ),
+        subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 3.0,
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    WalletUtils.getAddressForDisplay(wallet.address),
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: subColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 if (wallet.walletType == WalletType.sgnus)
                   GeniusBalanceDisplay(
                     useMinions: true,
@@ -163,47 +148,48 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               ],
             ),
             if (wallet.address.isNotEmpty) ...[
-              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
                     child: SelectableText(
                       wallet.address,
-                      style: const TextStyle(
-                        color: GeniusWalletColors.gray500,
+                      style: TextStyle(
+                        fontFamily: 'JetBrainsMono',
+                        color: subColor,
                         fontSize: 13,
-                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: 'Copy address',
-                    icon: const Icon(
-                      Icons.copy,
-                      size: 20,
-                      color: GeniusWalletColors.white,
-                    ),
-                    onPressed: () {
-                      Clipboard.setData(
-                        ClipboardData(text: wallet.address),
-                      );
-
-                      HapticFeedback.lightImpact();
-
-                      Navigator.of(context).pop();
-
-                      showAppSnackBar(
-                        context,
-                        'Address copied to clipboard',
-                        duration: const Duration(seconds: 1),
-                      );
-                    },
-                  ),
+                  )
                 ],
               ),
             ],
           ],
         ),
+        trailing: wallet.address.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Copy address',
+                icon: const Icon(
+                  Icons.copy,
+                  size: 18,
+                  color: GeniusWalletColors.white,
+                ),
+                onPressed: () {
+                  Clipboard.setData(
+                    ClipboardData(text: wallet.address),
+                  );
+
+                  HapticFeedback.lightImpact();
+
+                  Navigator.of(context).pop();
+
+                  showAppSnackBar(
+                    context,
+                    'Address copied to clipboard',
+                    duration: const Duration(seconds: 1),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -212,27 +198,16 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       {required bool isSelected, required double size}) {
     final isWatched = wallet.walletType == WalletType.tracking;
     return CircleAvatar(
-      radius: size / 2,
-      backgroundColor:
-          isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.transparent,
-      child: CircleAvatar(
-        radius: size / 2 - 2,
-        backgroundColor: Colors.greenAccent,
-        child: isWatched
-            ? const Icon(Icons.remove_red_eye_outlined,
-                size: 20, color: GeniusWalletColors.deepBlueTertiary)
-            : Text(
-                wallet.walletName.isNotEmpty
-                    ? wallet.walletName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                  height: 1.0,
-                ),
-              ),
-      ),
+      radius: size / 2 - 2,
+      backgroundColor: Colors.greenAccent,
+      child: isWatched
+          ? const Icon(Icons.remove_red_eye_outlined,
+              size: 20, color: GeniusWalletColors.deepBlueTertiary)
+          : Image.asset(
+              'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
     );
   }
 
