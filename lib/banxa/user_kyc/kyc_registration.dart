@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
