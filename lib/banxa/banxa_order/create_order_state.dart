@@ -1,4 +1,4 @@
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 
 enum MakeOrderStep {
   initial,

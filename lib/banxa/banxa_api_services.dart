@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:crypto/crypto.dart';
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';

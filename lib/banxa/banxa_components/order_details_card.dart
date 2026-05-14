@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetailCard extends StatefulWidget {

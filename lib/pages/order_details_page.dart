@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/banaxa_api_services.dart';
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_details_card.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';

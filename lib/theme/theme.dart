@@ -99,7 +99,9 @@ ThemeData getThemeData() => ThemeData(
                 },
               ),
               iconSize: const WidgetStatePropertyAll(20),
-              iconColor: const WidgetStatePropertyAll(Colors.white))),
+              iconColor: const WidgetStatePropertyAll(Colors.white),
+              padding: const WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)))),
       inputDecorationTheme: const InputDecorationTheme(
           contentPadding: EdgeInsets.all(20),
           enabledBorder: OutlineInputBorder(
