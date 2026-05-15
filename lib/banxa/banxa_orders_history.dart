@@ -1,16 +1,14 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_card.dart';
-import 'package:genius_wallet/banxa/banxa_components/order_filter.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -22,7 +20,7 @@ class OrdersPage extends StatefulWidget {
 class _OrdersPageState extends State<OrdersPage> {
   final statuses = BanxaHelpers.getOrderStatuses();
 
-  String? selectedStatus = "";
+  String selectedStatus = "";
   DateTime? startDate;
   DateTime? endDate;
 
@@ -151,70 +149,72 @@ class _OrdersPageState extends State<OrdersPage> {
                   style: const TextStyle(color: Colors.red)),
             );
           }
-          final orders = state.filteredOrders ?? [];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          final orders = fakeOrders;
+          return Center(
+            child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 16.0,
             children: [
-              OrderFilterPanel(
-                statuses: statuses,
-                selectedStatus: selectedStatus,
-                startDate: startDate,
-                endDate: endDate,
-                onStatusChanged: _onStatusChanged,
-                onDateRangePressed: () => _pickDateRange(context),
-              ),
               Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
+                padding: const EdgeInsets.only(top: 15.0),
+                child: DropdownMenu<String>(
+                  label: const Text("Status"),
+                  width: 300.0,
+                  onSelected: _onStatusChanged,
+                  initialSelection: selectedStatus,
+                  dropdownMenuEntries: statuses.map((status) {
+                    return DropdownMenuEntry(
+                      value: status,
+                      label: status.isEmpty
+                          ? "All"
+                          : BanxaHelpers.getOrderStatusLabel(status),
+                    );
+                  }).toList(),
+                  requestFocusOnTap: false,
+              ),
+              ),
+                ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: 300.0),
+                  child: OutlinedButton(
+                  onPressed: () => _pickDateRange(context),
+                  child: const Text("Pick Date Range")),
+                ),
+              if (startDate != null && endDate != null)
+                  Text(
+                    "Selected: ${DateFormat('yyyy-MM-dd').format(startDate!)} → ${DateFormat('yyyy-MM-dd').format(endDate!)}",
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+              Text(
                   "Total Orders: ${orders.length}",
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
               Expanded(
                   child: orders.isEmpty
-                      ? const Center(child: Text("No orders found."))
-                      : LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isWide = constraints.maxWidth > 900;
-                            final crossAxisCount = isWide ? 2 : 1;
-                            const spacing = 16.0;
-                            final totalSpacing = spacing * (crossAxisCount - 1);
-                            final cardWidth =
-                                (constraints.maxWidth - totalSpacing) /
-                                    crossAxisCount;
-
-                            const targetHeight = 300.0;
-                            double childAspectRatio = cardWidth / targetHeight;
-                            childAspectRatio = childAspectRatio.clamp(1.2, 2.5);
-
-                            return GridView.builder(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                mainAxisSpacing: spacing,
-                                crossAxisSpacing: spacing,
-                                childAspectRatio: childAspectRatio,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              itemCount: orders.length,
-                              itemBuilder: (context, index) {
-                                final order = orders[index];
-                                return OrderCard(
+                      ? Text("No orders found.")
+                      : SingleChildScrollView(
+                          child: Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          alignment: WrapAlignment.center,
+                          children: orders.map((order) {
+                            return SizedBox(
+                              width: 350,
+                              child: OrderCard(
                                   order: order,
                                   onSeeDetails: () => _onSeeDetails(order),
                                   onCompletePayment: () =>
                                       _onCompletePayment(order),
                                   onRetryOrder: () => _onRetryOrder(order),
+                              ),
                                 );
-                              },
-                            );
-                          },
+                          }).toList(),
                         )),
+              ),
             ],
+            ),
           );
         },
       ),

@@ -15,7 +15,7 @@ class ResponsiveDrawer {
     bool enableDrag = true,
   }) {
     final isDesktop =
-        MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small;
+        MediaQuery.sizeOf(context).width >= GeniusBreakpoints.medium;
 
     final content = _ReponsiveDrawerScaffold(
       title: title,

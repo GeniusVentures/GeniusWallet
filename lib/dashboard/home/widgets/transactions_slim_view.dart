@@ -115,7 +115,8 @@ class TransactionFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
+    final isMobile =
+        MediaQuery.sizeOf(context).width < GeniusBreakpoints.medium;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
