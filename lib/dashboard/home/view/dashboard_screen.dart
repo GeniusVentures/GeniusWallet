@@ -54,8 +54,8 @@ class DashboardScreenState extends State<DashboardScreen> {
         child: Stack(fit: StackFit.expand, children: [
       BlocBuilder<AppBloc, AppState>(builder: (context, state) {
         double width = MediaQuery.sizeOf(context).width;
-        bool is3Column = width > GeniusBreakpoints.medium;
-        bool is2Column = width > GeniusBreakpoints.tablet;
+        bool is3Column = width > GeniusBreakpoints.xl;
+        bool is2Column = width > GeniusBreakpoints.large;
 
         if (state.subscribeToWalletStatus == AppStatus.loaded &&
             state.accountStatus == AppStatus.loaded) {
@@ -297,7 +297,7 @@ class ChartDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final bool is3Column = screenWidth > GeniusBreakpoints.tablet;
+    final bool is3Column = screenWidth > GeniusBreakpoints.large;
 
     final double chartHeight = is3Column
         ? screenHeight * 0.28 // desktop height

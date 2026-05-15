@@ -149,9 +149,9 @@ ThemeData getThemeData() => ThemeData(
       dropdownMenuTheme: DropdownMenuThemeData(
           textStyle: const TextStyle(color: Colors.white),
           menuStyle: MenuStyle(
-            backgroundColor: const WidgetStatePropertyAll(
-                GeniusWalletColors.deepBlueTertiary),
-          ),
+              backgroundColor: const WidgetStatePropertyAll(
+                  GeniusWalletColors.deepBlueTertiary),
+              padding: WidgetStatePropertyAll(EdgeInsets.all(16.0))),
           inputDecorationTheme: const InputDecorationTheme(
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(

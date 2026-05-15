@@ -4,23 +4,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 abstract class GeniusBreakpoints {
-  /// Max width for a small layout.
-  static const double small = 768;
+  static const double small = 640;
 
-  static const double tablet = 1024;
+  static const double medium = 768;
 
-  /// Max width for a medium layout.
-  static const double medium = 1536;
+  static const double large = 1024;
 
-  /// Max width for a large layout.
-  static const double large = 1792;
+  static const double xl = 1280;
+
+  static const double xxl = 1536;
 
   static bool useDesktopLayout(BuildContext context) {
-    return MediaQuery.sizeOf(context).width > small && !isMobileApp();
+    return MediaQuery.sizeOf(context).width > medium && !isMobileApp();
   }
 
   static bool useDesktopOverlay(BuildContext context) {
-    return MediaQuery.sizeOf(context).width > tablet && !isMobileApp();
+    return MediaQuery.sizeOf(context).width > large && !isMobileApp();
   }
 
   static bool isMobileApp() =>

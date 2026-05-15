@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
-import 'package:genius_wallet/banxa/banxa_components/order_in_row.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:intl/intl.dart';
 
@@ -52,9 +51,7 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(order.status);
     return Card(
-      elevation: 3,
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      color: GeniusWalletColors.deepBlueCardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: const BorderSide(
@@ -63,7 +60,8 @@ class OrderCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: 2.0,
           children: [
             // Top Row
             Row(
@@ -78,7 +76,7 @@ class OrderCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -128,8 +126,6 @@ class OrderCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    fixedSize: const Size(120, 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     textStyle: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w500),
                   ),
@@ -141,6 +137,23 @@ class OrderCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class OrderInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const OrderInfoRow({required this.label, required this.value, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: Colors.grey[700])),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ],
     );
   }
 }
