@@ -191,3 +191,4 @@ flutter:
     - packages/genius_wallet/assets/images/arrowleft.png
     - assets/dev_config.json
     - assets/network_config.json
+    - assets/crdt_config.json

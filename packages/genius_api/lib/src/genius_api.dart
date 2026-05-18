@@ -184,7 +184,7 @@ class GeniusApi {
     try {
       // Get the directory to store files
       final directory = await getApplicationDocumentsDirectory();
-      final configFiles = ['dev_config.json', 'network_config.json'];
+      final configFiles = ['dev_config.json', 'network_config.json', 'crdt_config.json'];
 
       debugPrint(
           'Application documents directory: ${directory.path}'); // Log the directory path
