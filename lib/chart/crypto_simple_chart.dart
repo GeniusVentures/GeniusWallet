@@ -57,7 +57,6 @@ class CryptoSparkLineChart extends StatelessWidget {
         .format(currentPrice);
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
       leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
       title: AutoSizeText(
         title,

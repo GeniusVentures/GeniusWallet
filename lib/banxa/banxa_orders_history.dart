@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
@@ -7,6 +9,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -151,13 +154,12 @@ class _OrdersPageState extends State<OrdersPage> {
           }
           final orders = fakeOrders;
           return Center(
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 16.0,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0),
-                child: DropdownMenu<String>(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
+                child: Column(spacing: 16.0, children: [
+                  DropdownMenu<String>(
                   label: const Text("Status"),
                   width: 300.0,
                   onSelected: _onStatusChanged,
@@ -171,7 +173,6 @@ class _OrdersPageState extends State<OrdersPage> {
                     );
                   }).toList(),
                   requestFocusOnTap: false,
-              ),
               ),
                 ConstrainedBox(
                   constraints: BoxConstraints(minWidth: 300.0),
@@ -191,29 +192,36 @@ class _OrdersPageState extends State<OrdersPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              Expanded(
-                  child: orders.isEmpty
+                  orders.isEmpty
                       ? Text("No orders found.")
-                      : SingleChildScrollView(
-                          child: Wrap(
-                          spacing: 16,
-                          runSpacing: 16,
-                          alignment: WrapAlignment.center,
-                          children: orders.map((order) {
-                            return SizedBox(
-                              width: 350,
-                              child: OrderCard(
+                      : Expanded(
+                          child: LayoutBuilder(builder: (context, constraints) {
+                          final crossAxisCount =
+                              max((constraints.maxWidth / (294.0)).floor(), 1);
+                          const spacing = 16.0;
+
+                          return GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    mainAxisSpacing: spacing,
+                                    crossAxisSpacing: spacing,
+                                    mainAxisExtent: 300.0),
+                            itemCount: orders.length,
+                            itemBuilder: (context, index) {
+                              final order = orders[index];
+                              return OrderCard(
                                   order: order,
                                   onSeeDetails: () => _onSeeDetails(order),
                                   onCompletePayment: () =>
                                       _onCompletePayment(order),
                                   onRetryOrder: () => _onRetryOrder(order),
-                              ),
                                 );
-                          }).toList(),
-                        )),
+                            },
+                          );
+                        }))
+                ]),
               ),
-            ],
             ),
           );
         },

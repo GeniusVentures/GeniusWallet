@@ -66,39 +66,44 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
     final txs = filteredTransactions;
     final textScale = MediaQuery.textScalerOf(context).scale;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TransactionFilters(
-          selected: selectedFilter,
-          onChanged: (f) => setState(() => selectedFilter = f),
-        ),
-        const SizedBox(height: 20),
-        Expanded(
-          child: ListView.builder(
-            itemCount: txs.length,
-            itemBuilder: (_, i) => switch (txs[i].type) {
-              TransactionType.purchase => TransactionPurchasedItem(tx: txs[i]),
-              TransactionType.escrowRelease =>
-                TransactionEscrowReleaseItem(tx: txs[i]),
-              TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
-              _ => TransactionItem(tx: txs[i]),
-            },
-          ),
-        ),
-        const SizedBox(height: 20),
-        Align(
-          alignment: Alignment.centerRight,
-          child: AutoSizeText(
-            "Transactions: ${txs.length}",
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: textScale(16),
-              color: GeniusWalletColors.gray500,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16.0,
+          children: [
+            TransactionFilters(
+              selected: selectedFilter,
+              onChanged: (f) => setState(() => selectedFilter = f),
             ),
-          ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: txs.length,
+                itemBuilder: (_, i) => switch (txs[i].type) {
+                  TransactionType.purchase =>
+                    TransactionPurchasedItem(tx: txs[i]),
+                  TransactionType.escrowRelease =>
+                    TransactionEscrowReleaseItem(tx: txs[i]),
+                  TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
+                  _ => TransactionItem(tx: txs[i]),
+                },
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: AutoSizeText(
+                "Transactions: ${txs.length}",
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: textScale(16),
+                  color: GeniusWalletColors.gray500,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -120,6 +125,7 @@ class TransactionFilters extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 16.0,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -136,8 +142,7 @@ class TransactionFilters extends StatelessWidget {
             if (isMobile) _MobileFilters(selected, onChanged),
           ],
         ),
-        if (!isMobile) ...[
-          const SizedBox(height: 22),
+        if (!isMobile)
           Align(
             alignment: Alignment.centerRight,
             child: Wrap(
@@ -154,7 +159,6 @@ class TransactionFilters extends StatelessWidget {
               ],
             ),
           ),
-        ],
       ],
     );
   }
