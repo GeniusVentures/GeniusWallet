@@ -203,9 +203,18 @@ endif()
 
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
-    install(FILES "${bundled_library}"
-        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-        COMPONENT Runtime)
+    # Some plugins (including sentry_flutter) pass generator expressions such as
+    # $<TARGET_FILE:crashpad_handler>, so match on the full entry string.
+    if("${bundled_library}" MATCHES "(^|/|:)crashpad_handler($|[^A-Za-z0-9_])")
+        # Sentry's crashpad_handler must be executable in the final Linux bundle.
+        install(PROGRAMS "${bundled_library}"
+            DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+            COMPONENT Runtime)
+    else()
+        install(FILES "${bundled_library}"
+            DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+            COMPONENT Runtime)
+    endif()
 endforeach(bundled_library)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
