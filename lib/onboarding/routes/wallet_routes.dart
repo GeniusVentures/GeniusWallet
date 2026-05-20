@@ -8,15 +8,15 @@ import 'package:genius_wallet/onboarding/new_wallet/view/verify_recovery_phrase_
 import 'package:genius_wallet/onboarding/view/wallet_creation_screen.dart';
 import 'package:go_router/go_router.dart';
 
-class LandingRoutes {
+class WalletRoutes {
   List<GoRoute> get landingRoutes => <GoRoute>[
         GoRoute(
           path: '/landing_screen',
           builder: (context, state) {
             final isIncludeBackButton =
                 state.extra; // Retrieve the extra parameter
-            return LandingScreen(
-                isIncludeBackButton: isIncludeBackButton == null
+            return WalletCreationScreen(
+                includeBackButton: isIncludeBackButton == null
                     ? false
                     : isIncludeBackButton as bool);
           },

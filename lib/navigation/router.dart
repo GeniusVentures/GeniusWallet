@@ -28,7 +28,7 @@ import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bl
 import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
-import 'package:genius_wallet/onboarding/routes/landing_routes.dart';
+import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
 import 'package:genius_wallet/pages/banaxa_buy_screen.dart';
 import 'package:genius_wallet/pages/order_details_page.dart';
 import 'package:genius_wallet/pages/splash.dart';
@@ -338,6 +338,6 @@ final geniusWalletRouter = GoRouter(
         );
       },
     ),
-    ...LandingRoutes().landingRoutes,
+    ...WalletRoutes().landingRoutes,
   ],
 );

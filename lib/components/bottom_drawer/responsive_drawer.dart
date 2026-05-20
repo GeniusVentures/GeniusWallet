@@ -112,10 +112,7 @@ class _ReponsiveDrawerScaffold extends StatelessWidget {
       bottomNavigationBar: footer != null
           ? SafeArea(
               top: false,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: footer,
-              ),
+              child: footer!,
             )
           : null,
     );
