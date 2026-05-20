@@ -60,8 +60,18 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         itemCount: wallets.length,
         separatorBuilder: (context, index) => SizedBox(height: 8.0),
       ),
-      footer: _AddWalletButton(
+      footer: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: FilledButton.icon(
+          style: FilledButton.styleFrom(
+              textStyle:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              iconSize: 28,
+              padding: EdgeInsets.all(16.0)),
         onPressed: () => context.push('/landing_screen', extra: true),
+          icon: const Icon(Icons.add),
+          label: const Text("Add Wallet"),
+        ),
       ),
     );
 
@@ -270,50 +280,6 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
           },
         );
       },
-    );
-  }
-}
-
-class _AddWalletButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AddWalletButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          padding: EdgeInsets.zero,
-          backgroundColor: Colors.transparent,
-          foregroundColor: GeniusWalletColors.deepBlueTertiary,
-          shadowColor: Colors.transparent,
-        ),
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: GeniusWalletGradient.greenBlueGreenGradient,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const SizedBox.expand(
-            child: Center(
-              child: Text(
-                "Add Wallet",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

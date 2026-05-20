@@ -71,37 +71,47 @@ ThemeData getThemeData() => ThemeData(
           surfaceTintColor: GeniusWalletColors.deepBlueCardColor,
           backgroundColor: GeniusWalletColors.deepBlueCardColor),
       outlinedButtonTheme: OutlinedButtonThemeData(
-          style: ButtonStyle(
-              padding: const WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)))),
+        style: OutlinedButton.styleFrom(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            textStyle: const TextStyle(fontSize: 16),
+            foregroundColor: Colors.white),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            textStyle: const TextStyle(fontSize: 16)),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ButtonStyle(
-              textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
-              shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
-                  side: BorderSide(
-                      color: GeniusWalletColors.lightGreenPrimary, width: 1),
-                  borderRadius: BorderRadius.all(
-                      Radius.circular(GeniusWalletConsts.borderRadiusButton)))),
-              backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set states) {
-                  if (states.contains(WidgetState.disabled)) {
-                    return GeniusWalletColors.gray600;
-                  }
-                  return GeniusWalletColors.deepBlueCardColor;
-                },
-              ),
-              foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set states) {
-                  if (states.contains(WidgetState.disabled)) {
-                    return GeniusWalletColors.gray500;
-                  }
-                  return Colors.white;
-                },
-              ),
-              iconSize: const WidgetStatePropertyAll(20),
-              iconColor: const WidgetStatePropertyAll(Colors.white),
-              padding: const WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)))),
+        style: ButtonStyle(
+            textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
+            shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
+                side: BorderSide(
+                    color: GeniusWalletColors.lightGreenPrimary, width: 1),
+                borderRadius: BorderRadius.all(
+                    Radius.circular(GeniusWalletConsts.borderRadiusButton)))),
+            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return GeniusWalletColors.gray600;
+                }
+                return GeniusWalletColors.deepBlueCardColor;
+              },
+            ),
+            foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return GeniusWalletColors.gray500;
+                }
+                return Colors.white;
+              },
+            ),
+            iconSize: const WidgetStatePropertyAll(20),
+            iconColor: const WidgetStatePropertyAll(Colors.white),
+            padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0))),
+      ),
       inputDecorationTheme: const InputDecorationTheme(
           contentPadding: EdgeInsets.all(20),
           enabledBorder: OutlineInputBorder(
