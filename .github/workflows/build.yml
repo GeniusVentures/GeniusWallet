@@ -46,7 +46,9 @@ on:
         description: "thirdparty dependency branch override"
         required: false
         type: string
-
+permissions:
+  contents: write
+  packages: read
 jobs:
   build:
     env:
@@ -100,7 +102,7 @@ jobs:
         run: |
           echo "=== PRE-CLEANUP DEBUG ==="
           echo "Current working directory: $(pwd)"
-          echo "Runner workspace: ${{runner.workspace}}"
+          echo "Runner workspace: ${RUNNER_WORKSPACE}"
           echo "GitHub workspace: ${{github.workspace}}"
 
           echo "=== CLEANUP ARTIFACTS ==="
@@ -139,6 +141,8 @@ jobs:
             ls -la GeniusWallet/ 2>/dev/null || echo "  (empty)"
           fi
         shell: bash
+        env:
+          RUNNER_WORKSPACE: ${{runner.workspace}}
 
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
@@ -183,18 +187,22 @@ jobs:
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
-          channel: "master"
-          flutter-version: 3.32.5
+          channel: stable
+          flutter-version: 3.32.x
 
       - name: Set current branch
+        shell: bash
+        env:
+          GITHUB_EVENT_INPUTS_TAG: ${{ github.event.inputs.tag }}
+          GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" ]; then
-              CURRENT_BRANCH="${{ github.event.inputs.tag }}"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${GITHUB_EVENT_INPUTS_TAG}" ]; then
+              CURRENT_BRANCH="${GITHUB_EVENT_INPUTS_TAG}"
               IS_TAG=true
           elif ${{github.event_name == 'pull_request'}}; then
-              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
+              CURRENT_BRANCH=${GITHUB_EVENT_PULL_REQUEST_HEAD_REF}
               IS_TAG=false
           else
               CURRENT_BRANCH=$GITHUB_REF_NAME
@@ -202,12 +210,12 @@ jobs:
           fi
           echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
           echo "IS_TAG=${IS_TAG}" >>$GITHUB_ENV
-        shell: bash
 
       - name: Checkout GeniusWallet
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: "recursive"
+          persist-credentials: true
 
       - name: Install Apple certificates and provisioning profiles for macOS
         if: ${{ runner.os == 'macOS' }}
@@ -317,6 +325,7 @@ jobs:
 
       - name: Configure Android keystore
         if: ${{ matrix.target == 'Android' }}
+        shell: bash
         run: |
           # Create the android directory if it doesn't exist
           mkdir -p android/app
@@ -341,10 +350,10 @@ jobs:
             echo "ERROR: Keystore file not found!"
             exit 1
           fi
-        shell: bash
 
       - name: Configure Gradle memory
         if: ${{ matrix.target == 'Android' }}
+        shell: bash
         run: |
           # Create gradle.properties with increased heap size
           mkdir -p ~/.gradle
@@ -355,7 +364,6 @@ jobs:
             echo "" >> "android/gradle.properties"
             echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "android/gradle.properties"
           fi
-        shell: bash
 
       - name: Get Flutter Dependencies
         run: |
@@ -363,6 +371,7 @@ jobs:
 
       - name: Setup Android SDK and NDK
         if: ${{ matrix.target == 'Android' }}
+        shell: bash
         run: |
           # Setup Android SDK
           ANDROID_SDK_ROOT="$HOME/android-sdk"
@@ -413,28 +422,34 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           echo "ANDROID_NDK_HOME=$NDK_DIR"
-        shell: bash
 
       - name: Setup CMake Arguments
+        shell: bash
+        env:
+          GITHUB_EVENT_INPUTS_TAG: ${{ github.event.inputs.tag }}
+          GITHUB_EVENT_INPUTS_SUPERGENIUS_BRANCH: ${{ github.event.inputs.supergenius_branch }}
+          GITHUB_EVENT_INPUTS_GENIUSSDK_BRANCH: ${{ github.event.inputs.geniussdk_branch }}
+          GITHUB_EVENT_INPUTS_ZKLLVM_BRANCH: ${{ github.event.inputs.zkllvm_branch }}
+          GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH: ${{ github.event.inputs.thirdparty_branch }}
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${{ github.event.inputs.tag }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_TAG}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${GITHUB_EVENT_INPUTS_TAG}"
             CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
           fi
 
           # Add dependency-specific branch overrides if provided
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.supergenius_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_SUPERGENIUS_BRANCH=${{ github.event.inputs.supergenius_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_SUPERGENIUS_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_SUPERGENIUS_BRANCH=${GITHUB_EVENT_INPUTS_SUPERGENIUS_BRANCH}"
           fi
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.geniussdk_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_GENIUSSDK_BRANCH=${{ github.event.inputs.geniussdk_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_GENIUSSDK_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_GENIUSSDK_BRANCH=${GITHUB_EVENT_INPUTS_GENIUSSDK_BRANCH}"
           fi
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.zkllvm_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_ZKLLVM_BRANCH=${{ github.event.inputs.zkllvm_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_ZKLLVM_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_ZKLLVM_BRANCH=${GITHUB_EVENT_INPUTS_ZKLLVM_BRANCH}"
           fi
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.thirdparty_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${{ github.event.inputs.thirdparty_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH}"
           fi
 
           # Add verbose output for debugging
@@ -462,7 +477,6 @@ jobs:
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
-        shell: bash
 
       - name: Build Flutter
         shell: bash
@@ -490,6 +504,7 @@ jobs:
           APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
+          GITHUB_EVENT_INPUTS_DISTRIBUTION_TYPE: ${{ github.event.inputs.distribution_type }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
           
@@ -508,7 +523,7 @@ jobs:
           security find-identity -v
 
           # Determine distribution type
-          DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
+          DISTRIBUTION_TYPE="${GITHUB_EVENT_INPUTS_DISTRIBUTION_TYPE}"
           if [ -z "$DISTRIBUTION_TYPE" ]; then
             DISTRIBUTION_TYPE="both"
           fi
@@ -822,9 +837,9 @@ jobs:
           else
               # Include ABI in release tag if defined
               if [ '${{matrix.abi}}' ]; then
-                RELEASE_TAG='${{matrix.target}}-${{matrix.abi}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${{matrix.abi}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               else
-                RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               fi
               IS_TAG_RELEASE="false"
           fi
@@ -852,14 +867,14 @@ jobs:
             if [ "$IS_TAG_RELEASE" = "true" ]; then
             RELEASE_TITLE="$RELEASE_TAG"
             else
-            RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
+            RELEASE_TITLE="${{ matrix.target }} ${GITHUB_REF_NAME} ${{ matrix.build-type }} build"
             fi
 
             echo "Creating GitHub release $RELEASE_TAG..."
             gh release create "$RELEASE_TAG" \
             --target "${{ github.sha }}" \
             -t "$RELEASE_TITLE" \
-            -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+            -n "Branch: ${GITHUB_REF_NAME} | SHA: ${{ github.sha }}" \
             $( [ "$IS_TAG_RELEASE" = "true" ] && echo "--draft" || echo "--prerelease" )
 
       - name: Upload file
@@ -872,9 +887,9 @@ jobs:
           else
               # Include ABI in release tag if defined
               if [ '${{matrix.abi}}' ]; then
-                RELEASE_TAG='${{matrix.target}}-${{matrix.abi}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${{matrix.abi}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               else
-                RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               fi
           fi
           
