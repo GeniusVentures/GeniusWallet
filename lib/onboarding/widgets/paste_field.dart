@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:clipboard/clipboard.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
@@ -59,7 +59,9 @@ class PasteField extends StatelessWidget {
                 right: 10,
                 child: TextButton.icon(
                   onPressed: () async {
-                    final textValue = await FlutterClipboard.paste();
+                    final textValue =
+                        (await Clipboard.getData(Clipboard.kTextPlain))?.text ??
+                            "";
                     controller.text = textValue;
                   },
                   style: OutlinedButton.styleFrom(

@@ -152,7 +152,7 @@ class _OrdersPageState extends State<OrdersPage> {
                   style: const TextStyle(color: Colors.red)),
             );
           }
-          final orders = fakeOrders;
+          final orders = state.filteredOrders ?? [];
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

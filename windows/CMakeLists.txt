@@ -1,5 +1,3 @@
-include(../cmake/CommonOverrideFlags.cmake)
-
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded" CACHE STRING "Use /MT for static runtime" FORCE)

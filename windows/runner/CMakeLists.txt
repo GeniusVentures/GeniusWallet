@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES CXX)
-include(../../cmake/CommonOverrideFlags.cmake)
-include(../../cmake/Utilities.cmake)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
