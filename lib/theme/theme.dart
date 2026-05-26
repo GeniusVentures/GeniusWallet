@@ -211,6 +211,12 @@ ThemeData getThemeData() => ThemeData(
             return GeniusWalletColors.lightGreenPrimary;
           })),
       scaffoldBackgroundColor: GeniusWalletColors.deepBlueTertiary,
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          fontSize: 40,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       colorScheme: const ColorScheme.dark(
         primary: GeniusWalletColors.lightGreenPrimary,
         onPrimary: GeniusWalletColors.btnText,

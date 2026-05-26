@@ -1,76 +1,88 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
-import 'package:genius_wallet/onboarding/widgets/supported_existing_wallets.dart';
 
 class ImportWalletScreen extends StatelessWidget {
-  static const title = 'Import Wallet';
-  static const subtitle = 'Select the wallet that you would like to import';
   const ImportWalletScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: LayoutBuilder(builder: (context, constraints) {
-        if (GeniusBreakpoints.useDesktopLayout(context)) {
-          return const _ImportWalletViewDesktop(
-              title: title, subtitle: subtitle);
-        }
-        return const _ImportWalletViewMobile(title: title, subtitle: subtitle);
-      }),
-    );
-  }
-}
+    /// TODO: Support for other networks - fetch these dynamically?
+    final List<SupportedWallet> supportedNetworks = [
+      SupportedWallet(
+          name: 'Ethereum',
+          image: 'assets/images/ethereum_icon.png',
+          coinType: TWCoinType.TWCoinTypeEthereum),
+      // SupportedWallet(name: 'XRP', image: 'assets/images/xrp_icon.png', coinType: TWCoinType.TWCoinTypeXRP)
+      // SupportedWallet(name: 'Stellar', image: 'assets/images/stellar_icon.png', coinType: TWCoinType.TWCoinTypeStellar)
+      // SupportedWallet(name: 'Tron', image: 'assets/images/tron_icon.png', coinType: TWCoinType.TWCoinTypeTron)
+    ];
 
-class _ImportWalletViewDesktop extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  const _ImportWalletViewDesktop({
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenWithHeaderDesktop(
-      title: '',
-      subtitle: '',
-      body: Center(
-        child: DesktopBodyContainer(
-          title: title,
-          subText: subtitle,
-          child: const SupportedExistingWallets(),
+    return Center(
+      child: SizedBox(
+        width: GeniusBreakpoints.small * 2 / 3,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 20.0,
+          children: [
+            Text(
+              "Import Wallet",
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            Text('Select the wallet that you would like to import'),
+            ListView.separated(
+              itemCount: supportedNetworks.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final network = supportedNetworks[index];
+                return Card(
+                  clipBehavior: Clip.hardEdge,
+                  child: ListTile(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                    leading: Image.asset(
+                      network.image,
+                      package: 'genius_wallet',
+                      height: 30.0,
+                      width: 30.0,
+                      fit: BoxFit.contain,
+                    ),
+                    title: Text(network.name),
+                    trailing: Icon(Icons.chevron_right),
+                    onTap: () {
+                      context.read<ExistingWalletBloc>().add(
+                            ImportWalletSelected(
+                                walletName: supportedNetworks[index].name,
+                                coinType: supportedNetworks[index].coinType),
+                          );
+                    },
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ImportWalletViewMobile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  const _ImportWalletViewMobile({
-    required this.title,
-    required this.subtitle,
-  });
+class SupportedWallet {
+  final String name;
+  final String image;
+  final TWCoinType coinType;
 
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenWithHeaderMobile(
-      title: title,
-      subtitle: subtitle,
-      body: Container(
-        padding: const EdgeInsets.only(top: 40),
-        constraints: BoxConstraints(
-          minHeight: 100,
-          maxHeight: MediaQuery.sizeOf(context).height * 0.6,
-          minWidth: MediaQuery.sizeOf(context).width * 0.8,
-          maxWidth: MediaQuery.sizeOf(context).width * 0.8,
-        ),
-        child: const SupportedExistingWallets(),
-      ),
-    );
-  }
+  SupportedWallet(
+      {required this.name, required this.image, required this.coinType});
 }

@@ -1,191 +1,68 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
-import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/components/continue_button/isactive_false.dart';
-import 'package:genius_wallet/components/continue_button/isactive_true.dart';
-import 'package:genius_wallet/components/custom/wallet_agreement_custom.dart';
-import 'package:genius_wallet/components/wallet_button/type_existing.g.dart';
 
 class LegalScreen extends StatelessWidget {
-  static const title = 'Legal';
-  static const subtitle =
-      'Please review the Privacy Policy and Terms of Service of the GNUS wallet before proceeding';
   const LegalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          if (GeniusBreakpoints.useDesktopLayout(context)) {
-            return const _LegalViewDesktop(
-              title: title,
-              subtitle: subtitle,
+    return Center(
+      child: SizedBox(
+        width: GeniusBreakpoints.small * 2 / 3,
+        child: Column(mainAxisSize: MainAxisSize.min, spacing: 20.0, children: [
+          Text(
+            "Legal",
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          Text(
+              'Please review the privacy policy and terms of service before proceeding.'),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {},
+              child: Text('Privacy Policy'),
+            ),
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {},
+              child: Text('Terms of Service'),
+            ),
+          ),
+          CheckboxListTile(
+            value: context.watch<ExistingWalletBloc>().state.acceptedLegal,
+            onChanged: (value) =>
+                context.read<ExistingWalletBloc>().add(ToggleLegal()),
+            title: AutoSizeText(
+              'I’ve read and accept the Terms of Service and Privacy Policy',
+            ),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
+              builder: (context, state) {
+            return SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                  onPressed: state.acceptedLegal
+                      ? () {
+                          final userExists =
+                              context.read<AppBloc>().state.userStatus ==
+                                  UserStatus.exists;
+                          context
+                              .read<ExistingWalletBloc>()
+                              .add(LegalAccepted(userExists: userExists));
+                        }
+                      : null,
+                  child: Text("Continue")),
             );
-          }
-          return const _LegalViewMobile(
-            title: title,
-            subtitle: subtitle,
-          );
-        },
+          })
+        ]),
       ),
-    );
-  }
-}
-
-class _LegalViewMobile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  const _LegalViewMobile({
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenWithHeaderMobile(
-      title: title,
-      subtitle: subtitle,
-      body: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: 50,
-          minWidth: MediaQuery.sizeOf(context).width * 0.8,
-          maxHeight: MediaQuery.sizeOf(context).width * 0.8,
-          maxWidth: MediaQuery.sizeOf(context).width * 0.8,
-        ),
-        child: const _ToSButtons(),
-      ),
-      footer: const _Agreement(),
-    );
-  }
-}
-
-class _LegalViewDesktop extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  const _LegalViewDesktop({
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenWithHeaderDesktop(
-      title: '',
-      subtitle: '',
-      body: Center(
-        child: DesktopBodyContainer(
-          title: title,
-          subText: subtitle,
-          height: 500,
-          width: 420,
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _ToSButtons(),
-              _Agreement(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ToSButtons extends StatelessWidget {
-  const _ToSButtons();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        width: 300,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: MediaQuery.sizeOf(context).width * 0.8,
-              height: 50,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return TypeExisting(
-                    constraints,
-                    ovrIalreadyhaveawallet: 'Privacy Policy',
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: MediaQuery.sizeOf(context).width * 0.8,
-              height: 50,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return TypeExisting(
-                    constraints,
-                    ovrIalreadyhaveawallet: 'Terms of Service',
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-        ));
-  }
-}
-
-class _Agreement extends StatelessWidget {
-  const _Agreement();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 100,
-          width: MediaQuery.sizeOf(context).width * 0.8,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return WalletAgreementCustom(
-                value: context.watch<ExistingWalletBloc>().state.acceptedLegal,
-                onChanged: (value) =>
-                    context.read<ExistingWalletBloc>().add(ToggleLegal()),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: MediaQuery.sizeOf(context).width * 0.8,
-          height: 50,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
-                  builder: (context, state) {
-                if (state.acceptedLegal) {
-                  return MaterialButton(
-                    onPressed: () {
-                      final userExists =
-                          context.read<AppBloc>().state.userStatus ==
-                              UserStatus.exists;
-                      context
-                          .read<ExistingWalletBloc>()
-                          .add(LegalAccepted(userExists: userExists));
-                    },
-                    child: IsactiveTrue(constraints),
-                  );
-                }
-                return IsactiveFalse(constraints);
-              });
-            },
-          ),
-        ),
-      ],
     );
   }
 }
