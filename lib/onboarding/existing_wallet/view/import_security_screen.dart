@@ -1,4 +1,3 @@
-import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
@@ -62,9 +61,6 @@ class ImportSecurityScreen extends StatelessWidget {
                     ),
                   ),
                 );
-              } else if (state.importWalletStatus ==
-                  ExistingWalletStatus.success) {
-                context.flow<ExistingWalletState>().complete();
               }
             },
             child: DefaultTabController(

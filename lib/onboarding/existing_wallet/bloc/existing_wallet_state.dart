@@ -3,7 +3,7 @@ part of 'existing_wallet_bloc.dart';
 class ExistingWalletState {
   final bool acceptedLegal;
 
-  final FlowStep currentStep;
+  final ImportWalletStep currentStep;
 
   final String selectedWallet;
 
@@ -13,7 +13,7 @@ class ExistingWalletState {
 
   const ExistingWalletState({
     this.acceptedLegal = false,
-    this.currentStep = FlowStep.legal,
+    this.currentStep = ImportWalletStep.legal,
     this.selectedWallet = '',
     this.selectedCoinType = TWCoinType.TWCoinTypeEthereum,
     this.importWalletStatus = ExistingWalletStatus.initial,
@@ -21,7 +21,7 @@ class ExistingWalletState {
 
   ExistingWalletState copyWith({
     bool? acceptedLegal,
-    FlowStep? currentStep,
+    ImportWalletStep? currentStep,
     String? selectedWallet,
     TWCoinType? selectedCoinType,
     ExistingWalletStatus? importWalletStatus,
@@ -36,7 +36,7 @@ class ExistingWalletState {
   }
 }
 
-enum FlowStep {
+enum ImportWalletStep {
   legal,
   importWallet,
   importWalletSecurity,

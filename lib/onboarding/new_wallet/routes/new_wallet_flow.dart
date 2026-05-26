@@ -1,4 +1,3 @@
-import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -17,73 +16,50 @@ class NewWalletFlow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final newPinCubit = context.read<NewPinCubit>();
-    return FlowBuilder(
-      onGeneratePages: (state, pages) {
-        switch (state.currentStep) {
-          case NewWalletStep.verifyRecoveryPhrase:
-            return [
-              const MaterialPage(child: BackupPhraseScreen()),
-              const MaterialPage(child: RecoveryPhraseScreen()),
-              const MaterialPage(child: VerifyRecoveryPhraseScreen()),
-            ];
-          case NewWalletStep.copyPhrase:
-            return [
-              const MaterialPage(child: BackupPhraseScreen()),
-              const MaterialPage(child: RecoveryPhraseScreen()),
-            ];
-          case NewWalletStep.confirmPin:
-            return [
-              const MaterialPage(child: BackupPhraseScreen()),
-              MaterialPage(
-                child: BlocProvider.value(
-                  value: newPinCubit,
-                  child: CreatePinScreen(
-                    onCompleted: (value) {
-                      newPinCubit.pinEntered(value);
-                      context.read<NewWalletBloc>().add(PinCreated());
-                    },
-                  ),
-                ),
-              ),
-              MaterialPage(
-                child: BlocProvider.value(
-                  value: newPinCubit,
-                  child: ConfirmAndSavePinScreen(
-                    onFailed: () {
-                      context.read<NewWalletBloc>().add(PinConfirmFailed());
-                    },
-                    onPassed: () {
-                      context.read<NewWalletBloc>().add(PinConfirmPassed());
-                    },
-                  ),
-                ),
-              ),
-            ];
-          case NewWalletStep.createPin:
-            return [
-              const MaterialPage(child: BackupPhraseScreen()),
-              MaterialPage(
-                child: BlocProvider.value(
-                  value: newPinCubit,
-                  child: CreatePinScreen(
-                    onCompleted: (value) {
-                      newPinCubit.pinEntered(value);
-
-                      context.read<NewWalletBloc>().add(PinCreated());
-                    },
-                  ),
-                ),
-              ),
-            ];
-          case NewWalletStep.agreement:
-            return [const MaterialPage(child: BackupPhraseScreen())];
-        }
-      },
-      state: context.watch<NewWalletBloc>().state,
-      onComplete: (value) {
+    return BlocListener<NewWalletBloc, NewWalletState>(
+      listenWhen: (prev, curr) =>
+          prev.verificationStatus != VerificationStatus.passed &&
+          curr.verificationStatus == VerificationStatus.passed,
+      listener: (context, state) {
+        final newWalletBloc = context.read<NewWalletBloc>();
+        newWalletBloc.add(AddWallet(wallet: newWalletBloc.wallet));
         context.read<AppBloc>().add(SubscribeToWallets());
         context.go('/dashboard');
       },
+      child: BlocBuilder<NewWalletBloc, NewWalletState>(
+        builder: (context, state) {
+          switch (state.currentStep) {
+            case NewWalletStep.verifyRecoveryPhrase:
+              return const VerifyRecoveryPhraseScreen();
+            case NewWalletStep.copyPhrase:
+              return const RecoveryPhraseScreen();
+            case NewWalletStep.confirmPin:
+              return BlocProvider.value(
+                value: newPinCubit,
+                child: ConfirmAndSavePinScreen(
+                  onFailed: () {
+                    context.read<NewWalletBloc>().add(PinConfirmFailed());
+                  },
+                  onPassed: () {
+                    context.read<NewWalletBloc>().add(PinConfirmPassed());
+                  },
+                ),
+              );
+            case NewWalletStep.createPin:
+              return BlocProvider.value(
+                value: newPinCubit,
+                child: CreatePinScreen(
+                  onCompleted: (value) {
+                    newPinCubit.pinEntered(value);
+                    context.read<NewWalletBloc>().add(PinCreated());
+                  },
+                ),
+              );
+            case NewWalletStep.agreement:
+              return const BackupPhraseScreen();
+          }
+        },
+      ),
     );
   }
 }
