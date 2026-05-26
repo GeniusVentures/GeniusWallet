@@ -1,6 +1,6 @@
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/view/import_wallet_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/select_wallet_type_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/backup_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/recovery_phrase_screen.dart';
@@ -48,7 +48,7 @@ class WalletRoutes {
         GoRoute(
           path: '/import_wallet',
           builder: (context, state) {
-            return const ImportWalletScreen();
+            return const SelectWalletTypeScreen();
           },
         ),
         GoRoute(

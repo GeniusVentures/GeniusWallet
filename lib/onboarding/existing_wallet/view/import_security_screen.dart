@@ -5,12 +5,7 @@ import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
-import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/components/continue_button/isactive_true.dart';
 import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
 import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
@@ -184,61 +179,6 @@ class ImportSecurityScreen extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-}
-
-class _ImportSecurityContinueButton extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
-  final Map<String, Map<String, TextEditingController>> tabControllers;
-  final TextEditingController walletNameController;
-  final String walletType;
-  final TWCoinType coinType;
-
-  const _ImportSecurityContinueButton(
-      {required this.formKey,
-      required this.tabControllers,
-      required this.walletNameController,
-      required this.walletType,
-      required this.coinType});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      width: MediaQuery.sizeOf(context).width * 0.8,
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          return MaterialButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                /// Get currently selected tab
-                final selectedIndex = DefaultTabController.of(context).index;
-
-                /// Get current entry to access [TextEditingControllers]
-                final selectedEntry =
-                    tabControllers.entries.toList()[selectedIndex];
-
-                /// Send event with currently selected tab information
-                context.read<ExistingWalletBloc>().add(
-                      WalletSecurityEntered(
-                        coinType: coinType,
-                        walletName: walletNameController.text,
-                        walletType: walletType,
-                        securityType: getSecurityTypeFromTab(selectedEntry.key),
-                        pasteFieldText: selectedEntry.value['pasteField']!.text,
-                        password: selectedEntry.value['passwordField']?.text,
-                      ),
-                    );
-              }
-            },
-            child: IsactiveTrue(
-              constraints,
-              ovrContinue: 'Import',
-            ),
-          );
-        },
-      ),
     );
   }
 }
