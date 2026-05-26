@@ -7,7 +7,6 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
