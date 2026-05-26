@@ -515,8 +515,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 width: 28,
                                 height: double.infinity,
                                 decoration: BoxDecoration(
-                                  color:
-                                      GeniusWalletColors.gray500
+                                  color: GeniusWalletColors.gray500
                                       .withValues(alpha: 0.3),
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(11),

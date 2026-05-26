@@ -68,7 +68,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               iconSize: 28,
               padding: EdgeInsets.all(16.0)),
-        onPressed: () => context.push('/landing_screen', extra: true),
+          onPressed: () => context.push('/landing_screen', extra: true),
           icon: const Icon(Icons.add),
           label: const Text("Add Wallet"),
         ),
@@ -96,109 +96,109 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
 
     return ListTile(
-        selected: isSelected,
-        selectedTileColor: Colors.greenAccent,
-        tileColor: GeniusWalletColors.deepBlueCardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        onTap: () => Navigator.of(context).pop(wallet),
-        leading: _buildAvatar(
-          wallet,
-          isSelected: isSelected,
-          size: 36,
-        ),
-        title: Row(
-          children: [
-            Flexible(
-              child: Text(
-                wallet.walletName,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: textColor,
-                  fontWeight: FontWeight.w500,
-                ),
+      selected: isSelected,
+      selectedTileColor: Colors.greenAccent,
+      tileColor: GeniusWalletColors.deepBlueCardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      onTap: () => Navigator.of(context).pop(wallet),
+      leading: _buildAvatar(
+        wallet,
+        isSelected: isSelected,
+        size: 36,
+      ),
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(
+              wallet.walletName,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 16,
+                color: textColor,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            if (isWatched)
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Icon(
-                  Icons.remove_red_eye_outlined,
-                  size: 16,
-                  color: textColor,
-                ),
+          ),
+          if (isWatched)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(
+                Icons.remove_red_eye_outlined,
+                size: 16,
+                color: textColor,
               ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 3.0,
-          children: [
+            ),
+        ],
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 3.0,
+        children: [
+          Row(
+            children: [
+              if (wallet.walletType == WalletType.sgnus)
+                GeniusBalanceDisplay(
+                  useMinions: true,
+                  fontSize: 12,
+                  isShowSuffix: true,
+                  fontColor: subColor,
+                )
+              else
+                Text(
+                  '${wallet.balance} ${wallet.balance == 1 ? "minion" : "minions"}',
+                  style: TextStyle(
+                    color: subColor,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+            ],
+          ),
+          if (wallet.address.isNotEmpty) ...[
             Row(
               children: [
-                if (wallet.walletType == WalletType.sgnus)
-                  GeniusBalanceDisplay(
-                    useMinions: true,
-                    fontSize: 12,
-                    isShowSuffix: true,
-                    fontColor: subColor,
-                  )
-                else
-                  Text(
-                    '${wallet.balance} ${wallet.balance == 1 ? "minion" : "minions"}',
+                Expanded(
+                  child: SelectableText(
+                    wallet.address,
                     style: TextStyle(
+                      fontFamily: 'JetBrainsMono',
                       color: subColor,
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
+                      fontSize: 13,
                     ),
                   ),
+                )
               ],
             ),
-            if (wallet.address.isNotEmpty) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: SelectableText(
-                      wallet.address,
-                      style: TextStyle(
-                        fontFamily: 'JetBrainsMono',
-                        color: subColor,
-                        fontSize: 13,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ],
           ],
-        ),
-        trailing: wallet.address.isEmpty
-            ? null
-            : IconButton(
-                tooltip: 'Copy address',
-                icon: const Icon(
-                  Icons.copy,
-                  size: 18,
-                  color: GeniusWalletColors.white,
-                ),
-                onPressed: () {
-                  Clipboard.setData(
-                    ClipboardData(text: wallet.address),
-                  );
-
-                  HapticFeedback.lightImpact();
-
-                  Navigator.of(context).pop();
-
-                  showAppSnackBar(
-                    context,
-                    'Address copied to clipboard',
-                    duration: const Duration(seconds: 1),
-                  );
-                },
+        ],
+      ),
+      trailing: wallet.address.isEmpty
+          ? null
+          : IconButton(
+              tooltip: 'Copy address',
+              icon: const Icon(
+                Icons.copy,
+                size: 18,
+                color: GeniusWalletColors.white,
               ),
+              onPressed: () {
+                Clipboard.setData(
+                  ClipboardData(text: wallet.address),
+                );
+
+                HapticFeedback.lightImpact();
+
+                Navigator.of(context).pop();
+
+                showAppSnackBar(
+                  context,
+                  'Address copied to clipboard',
+                  duration: const Duration(seconds: 1),
+                );
+              },
+            ),
     );
   }
 
@@ -256,24 +256,24 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             return Tooltip(
               message: "Select wallet",
               child: TextButton(
-              onPressed: () => _showAccountDrawer(wallets),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8.0,
-                    children: [
-                  _buildAvatar(selectedWallet!, isSelected: false, size: 25),
-                      Flexible(
-                        child: Text(
-                          selectedWallet!.walletType == WalletType.sgnus
-                              ? 'Super Genius'
-                              : WalletUtils.getAddressForDisplay(
-                                  selectedWallet!.address),
-                          style: const TextStyle(fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                onPressed: () => _showAccountDrawer(wallets),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8.0,
+                  children: [
+                    _buildAvatar(selectedWallet!, isSelected: false, size: 25),
+                    Flexible(
+                      child: Text(
+                        selectedWallet!.walletType == WalletType.sgnus
+                            ? 'Super Genius'
+                            : WalletUtils.getAddressForDisplay(
+                                selectedWallet!.address),
+                        style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
+                    ),
+                    const Icon(Icons.arrow_drop_down),
+                  ],
                 ),
               ),
             );

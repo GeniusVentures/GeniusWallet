@@ -17,68 +17,68 @@ class SubmitJobScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SubmitJobCubit, SubmitJobState>(
-      listenWhen: (previous, current) =>
-          (previous.filePickerError != current.filePickerError) ||
-          (previous.processErrorMessage != current.processErrorMessage) ||
-          (previous.txHash != current.txHash),
-      listener: (context, state) {
-        final submitJobCubit = context.read<SubmitJobCubit>();
+        listenWhen: (previous, current) =>
+            (previous.filePickerError != current.filePickerError) ||
+            (previous.processErrorMessage != current.processErrorMessage) ||
+            (previous.txHash != current.txHash),
+        listener: (context, state) {
+          final submitJobCubit = context.read<SubmitJobCubit>();
 
-        // listen for file picker errors
-        if (state.filePickerError.message.isNotEmpty) {
-          submitJobCubit.resetFilePickerError();
-          ToastManager.instance.showToast(
-            context: context,
-            title: "File Picker Error",
-            message: state.filePickerError.message,
-            type: ToastType.error,
-          );
-        }
-
-        if (state.processErrorMessage.isNotEmpty) {
-          submitJobCubit.resetProcessError();
-          ToastManager.instance.showToast(
-            context: context,
-            title: "Job Submission Error",
-            message: state.processErrorMessage,
-            type: ToastType.error,
-          );
-        }
-
-        if (state.txHash.isNotEmpty) {
-          submitJobCubit.resetState();
-          ToastManager.instance.showToast(
+          // listen for file picker errors
+          if (state.filePickerError.message.isNotEmpty) {
+            submitJobCubit.resetFilePickerError();
+            ToastManager.instance.showToast(
               context: context,
-              title: "Job Successfully Submitted",
-              message: state.txHash,
-              type: ToastType.success);
-        }
-      },
-      builder: (context, state) {
-        final submitJobCubit = context.read<SubmitJobCubit>();
-        final uploadedFileName = state.uploadedFileName;
-        final uploadedJson = state.uploadedJson;
-        final jobCost = state.jobCost;
-        final gnusBalance = state.gnusBalance;
-        final isBridgingTokens = state.isBridgingTokens;
-        final isPurchaseable = jobCost != 0 && jobCost < gnusBalance;
-        final isFilePickerOpen = state.isFilePickerOpen;
+              title: "File Picker Error",
+              message: state.filePickerError.message,
+              type: ToastType.error,
+            );
+          }
+
+          if (state.processErrorMessage.isNotEmpty) {
+            submitJobCubit.resetProcessError();
+            ToastManager.instance.showToast(
+              context: context,
+              title: "Job Submission Error",
+              message: state.processErrorMessage,
+              type: ToastType.error,
+            );
+          }
+
+          if (state.txHash.isNotEmpty) {
+            submitJobCubit.resetState();
+            ToastManager.instance.showToast(
+                context: context,
+                title: "Job Successfully Submitted",
+                message: state.txHash,
+                type: ToastType.success);
+          }
+        },
+        builder: (context, state) {
+          final submitJobCubit = context.read<SubmitJobCubit>();
+          final uploadedFileName = state.uploadedFileName;
+          final uploadedJson = state.uploadedJson;
+          final jobCost = state.jobCost;
+          final gnusBalance = state.gnusBalance;
+          final isBridgingTokens = state.isBridgingTokens;
+          final isPurchaseable = jobCost != 0 && jobCost < gnusBalance;
+          final isFilePickerOpen = state.isFilePickerOpen;
 
           return Scaffold(
-            appBar: AppBar(
-              centerTitle: false,
-              title: const AutoSizeText(
-                "Submit a New Job",
-                maxLines: 1,
-              ),
-              actions: [
-                TextButton.icon(
-                  onPressed: submitJobCubit.openFilePicker,
-                  icon: const Icon(Icons.upload, size: 22),
-                  label: const AutoSizeText('Upload'),
+              appBar: AppBar(
+                centerTitle: false,
+                title: const AutoSizeText(
+                  "Submit a New Job",
+                  maxLines: 1,
                 ),
-              ],
-            ),
+                actions: [
+                  TextButton.icon(
+                    onPressed: submitJobCubit.openFilePicker,
+                    icon: const Icon(Icons.upload, size: 22),
+                    label: const AutoSizeText('Upload'),
+                  ),
+                ],
+              ),
               body: Align(
                   alignment: AlignmentGeometry.topCenter,
                   child: Padding(
@@ -86,118 +86,118 @@ class SubmitJobScreen extends StatelessWidget {
                     child: SingleChildScrollView(
                         child: Column(
                             spacing: 12.0,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                          Row(
                             spacing: 8.0,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Image.asset(
-                                      'assets/images/crypto/gnus.png',
-                                      height: 25,
-                                      width: 25,
-                                    ),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset(
+                                'assets/images/crypto/gnus.png',
+                                height: 25,
+                                width: 25,
+                              ),
                               Text(
-                                        '$gnusBalance',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                '$gnusBalance',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               SizedBox(width: 10.0),
-                                    const FaIcon(
-                                      FontAwesomeIcons.gasPump,
-                                      color: Colors.red,
-                                      size: 20,
-                                    ),
+                              const FaIcon(
+                                FontAwesomeIcons.gasPump,
+                                color: Colors.red,
+                                size: 20,
+                              ),
                               AutoSizeText(
-                                        maxLines: 1,
-                                        state.jobGasCost,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                  ],
+                                maxLines: 1,
+                                state.jobGasCost,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                           if (uploadedFileName.isNotEmpty) ...[
                             Row(
                               mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const AutoSizeText(
-                                                'Uploaded File: ',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                              AutoSizeText(
-                                                uploadedFileName,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
+                              children: [
+                                const AutoSizeText(
+                                  'Uploaded File: ',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                AutoSizeText(
+                                  uploadedFileName,
+                                  style: const TextStyle(
+                                      fontSize: 16,
                                       color:
                                           GeniusWalletColors.lightGreenPrimary,
                                       fontFamily: "JetBrainsMono"),
-                                              ),
-                                            ],
-                                          ),
+                                ),
+                              ],
+                            ),
                             Row(
                               mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const AutoSizeText(
-                                                'Cost: ',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                              AutoSizeText(
-                                                "$jobCost GNUS",
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.red,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (uploadedJson.isNotEmpty)
+                              children: [
+                                const AutoSizeText(
+                                  'Cost: ',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                AutoSizeText(
+                                  "$jobCost GNUS",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (uploadedJson.isNotEmpty)
                               FilledButton.icon(
                                 onPressed: !isPurchaseable || isBridgingTokens
-                                                  ? null
-                                                  : () {
+                                    ? null
+                                    : () {
                                         submitJobCubit.bridgeTokens();
-                                                    },
-                                              label: const Text('Purchase'),
-                                      ),
+                                      },
+                                label: const Text('Purchase'),
+                              ),
                             if (!isPurchaseable)
                               AutoSizeText(
-                                          '* You do not have enough GNUS',
-                                          style: TextStyle(
-                                            color: GeniusWalletColors.red,
-                                            fontSize: 14,
-                                          ),
+                                '* You do not have enough GNUS',
+                                style: TextStyle(
+                                  color: GeniusWalletColors.red,
+                                  fontSize: 14,
+                                ),
                               ),
-                                    ],
-                                if (uploadedJson.isNotEmpty)
+                          ],
+                          if (uploadedJson.isNotEmpty)
                             Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                      child: SelectableText(
+                                child: SelectableText(
                                   const JsonEncoder.withIndent('    ')
-                                            .convert(uploadedJson),
-                                        style: const TextStyle(
+                                      .convert(uploadedJson),
+                                  style: const TextStyle(
                                     fontFamily: 'JetBrainsMono',
-                                        ),
-              ),
-            ),
-          ),
-          if (isFilePickerOpen)
-            ModalBarrier(
-              color: Colors.black.withValues(alpha: 0.5),
-              dismissible: false,
-            ),
-          if (isFilePickerOpen)
-            const Center(
-              child: Loading(
-                text: "Preparing AI job...",
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (isFilePickerOpen)
+                            ModalBarrier(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              dismissible: false,
+                            ),
+                          if (isFilePickerOpen)
+                            const Center(
+                                child: Loading(
+                              text: "Preparing AI job...",
                             ))
                         ])),
                   )));
