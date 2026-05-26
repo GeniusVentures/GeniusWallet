@@ -1,6 +1,7 @@
 import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
@@ -94,6 +95,7 @@ class ExistingWalletFlow extends StatelessWidget {
       },
       state: context.watch<ExistingWalletBloc>().state,
       onComplete: (state) {
+        context.read<AppBloc>().add(SubscribeToWallets());
         context.go('/dashboard');
       },
     );

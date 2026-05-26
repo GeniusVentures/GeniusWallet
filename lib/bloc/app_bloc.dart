@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 
@@ -43,12 +44,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   ) async {
     emit(state.copyWith(subscribeToWalletStatus: AppStatus.loading));
 
-    // Check if wallets exist, then initialize SDK (splash screen is now visible)
     var wallets = await api.getWallets().first;
 
     if (wallets.isNotEmpty) {
       await api.initSDK();
-      // Refresh wallets after SDK initialization
       wallets = await api.getWallets().first;
     }
 
@@ -159,7 +158,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     final result = api.mintTokens(500, "", "", "");
-    print("FFI mintTokens result: $result");
+    debugPrint("FFI mintTokens result: $result");
   }
 
   @override
