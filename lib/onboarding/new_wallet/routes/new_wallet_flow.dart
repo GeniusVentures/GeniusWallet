@@ -38,17 +38,18 @@ class NewWalletFlow extends StatelessWidget {
               }
             },
             child: Scaffold(
-              appBar: state.currentStep != _firstStep
-                  ? AppBar(
-                      leading: IconButton(
-                        icon: const Icon(Icons.chevron_left, size: 20),
-                        onPressed: () =>
-                            context.read<NewWalletBloc>().add(GoBack()),
-                      ),
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                    )
-                  : null,
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.chevron_left, size: 20),
+                  onPressed: () {
+                    if (state.currentStep == _firstStep) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.read<NewWalletBloc>().add(GoBack());
+                    }
+                  },
+                ),
+              ),
               body: _buildStep(context, newPinCubit, state),
             ),
           );
@@ -60,6 +61,8 @@ class NewWalletFlow extends StatelessWidget {
   Widget _buildStep(
       BuildContext context, NewPinCubit newPinCubit, NewWalletState state) {
     switch (state.currentStep) {
+      case NewWalletStep.agreement:
+        return const BackupPhraseScreen();
       case NewWalletStep.verifyRecoveryPhrase:
         return const VerifyRecoveryPhraseScreen();
       case NewWalletStep.copyPhrase:
@@ -84,8 +87,6 @@ class NewWalletFlow extends StatelessWidget {
             },
           ),
         );
-      case NewWalletStep.agreement:
-        return const BackupPhraseScreen();
     }
   }
 }

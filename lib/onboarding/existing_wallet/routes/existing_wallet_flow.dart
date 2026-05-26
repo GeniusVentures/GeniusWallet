@@ -4,7 +4,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_screen.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/view/import_wallet_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/select_wallet_type_screen.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
 import 'package:genius_wallet/onboarding/view/confirm_and_save_pin_screen.dart';
 import 'package:genius_wallet/onboarding/view/create_pin_screen.dart';
@@ -40,8 +40,13 @@ class ExistingWalletFlow extends StatelessWidget {
                 leading: IconButton(
                   icon: const Icon(Icons.chevron_left),
                   tooltip: "Go back",
-                  onPressed: () =>
-                      context.read<ExistingWalletBloc>().add(GoBack()),
+                  onPressed: () {
+                    if (state.currentStep == _firstStep) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.read<ExistingWalletBloc>().add(GoBack());
+                    }
+                  },
                 ),
               ),
               body: _buildStep(context, newPinCubit, state),
@@ -61,7 +66,7 @@ class ExistingWalletFlow extends StatelessWidget {
           coinType: state.selectedCoinType,
         );
       case ImportWalletStep.importWallet:
-        return const ImportWalletScreen();
+        return const SelectWalletTypeScreen();
       case ImportWalletStep.confirmPin:
         return BlocProvider.value(
           value: newPinCubit,
