@@ -153,7 +153,6 @@ find_package(Boost.DI CONFIG REQUIRED)
 
 # Boost
 set(_BOOST_ROOT "${THIRDPARTY_BUILD_DIR}/boost/build")
-message(STATUS "BOOST ROOT ${_BOOST_ROOT}")
 set(Boost_LIB_DIR "${_BOOST_ROOT}/lib")
 set(Boost_INCLUDE_DIR "${_BOOST_ROOT}/include/boost-${BOOST_VERSION_2U}")
 set(Boost_DIR "${Boost_LIB_DIR}/cmake/Boost-${BOOST_VERSION}")
@@ -271,7 +270,9 @@ find_package(xxHash CONFIG REQUIRED)
 include_directories(${xxHash_INCLUDE_DIR})
 
 # zlib
-set(ZLIB_ROOT "${_THIRDPARTY_BUILD_DIR}/zlib")
+set(ZLIB_ROOT "${THIRDPARTY_BUILD_DIR}/zlib")
+set(ZLIB_DIR "${THIRDPARTY_BUILD_DIR}/zlib/lib/cmake/zlib")
+find_package(ZLIB CONFIG REQUIRED)
 
 # libssh2
 set(Libssh2_DIR "${THIRDPARTY_BUILD_DIR}/libssh2/lib/cmake/libssh2")
@@ -371,7 +372,7 @@ find_package(LLVM CONFIG REQUIRED)
 
 # SuperGenius
 set(SUPERGENIUS_BUILD_DIR ${SUPERGENIUS_SRC_DIR}${ARCH_OUTPUT_DIR})
-message(STATUS "SUPERGENIUS_BUILD_DIR DIR: ${SUPERGENIUS_BUILD_DIR}")
+message(DEBUG "SUPERGENIUS_BUILD_DIR: ${SUPERGENIUS_BUILD_DIR}")
 
 set(ProofSystem_DIR "${SUPERGENIUS_BUILD_DIR}/SuperGenius/lib/cmake/ProofSystem/")
 find_package(ProofSystem CONFIG REQUIRED)
