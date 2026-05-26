@@ -1,18 +1,11 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
-import 'package:genius_wallet/components/desktop_body_container.dart';
 
-class ImportWalletScreen extends StatelessWidget {
-  const ImportWalletScreen({super.key});
+class SelectWalletTypeScreen extends StatelessWidget {
+  const SelectWalletTypeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
