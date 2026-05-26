@@ -12,7 +12,6 @@ dependencies:
   go_router: ^17.2.2
   flutter_bloc: ^9.1.1
   pin_code_fields: ^9.3.0
-  flow_builder: ^0.1.0
   clipboard: ^3.0.14
   genius_api:
     path: packages/genius_api

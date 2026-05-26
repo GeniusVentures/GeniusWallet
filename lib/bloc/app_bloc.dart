@@ -36,6 +36,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<StreamSGNUSTransactions>(_onStreamSGNUSTransactions);
     on<FFITestEvent>(_onFFITestEvent);
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
+    on<DeleteWallet>(_onDeleteWallet);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -151,6 +152,16 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter emit,
   ) async {
     api.streamSGNUSTransactions();
+  }
+
+  FutureOr<void> _onDeleteWallet(
+    DeleteWallet event,
+    Emitter<AppState> emit,
+  ) async {
+    await api.deleteWallet(event.address);
+    final updatedWallets =
+        state.wallets.where((w) => w.address != event.address).toList();
+    emit(state.copyWith(wallets: updatedWallets));
   }
 
   FutureOr<void> _onFFITestEvent(

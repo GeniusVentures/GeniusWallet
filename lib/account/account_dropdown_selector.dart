@@ -47,6 +47,61 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     setState(() => savedWalletAddress = address);
   }
 
+  Future<void> _confirmDeleteWallet(BuildContext context, Wallet wallet) async {
+    // Close the drawer first so the dialog appears on the correct navigator.
+    Navigator.of(context).pop();
+
+    final appBloc = context.read<AppBloc>();
+
+    // Guard: require at least one wallet to remain.
+    if (appBloc.state.wallets.length <= 1) {
+      showAppSnackBar(
+        context,
+        'You must keep at least one wallet.',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Wallet'),
+        content: Text(
+          'Are you sure you want to delete "${wallet.walletName}"?\n\n'
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      appBloc.add(DeleteWallet(wallet.address));
+
+      // If the deleted wallet was the selected one, select another.
+      if (wallet.address == selectedWallet?.address) {
+        final remainingWallets = appBloc.state.wallets
+            .where((w) => w.address != wallet.address)
+            .toList();
+        setState(() {
+          selectedWallet = remainingWallets.isNotEmpty
+              ? remainingWallets.first
+              : null;
+        });
+      }
+    }
+  }
+
   Future<void> _showAccountDrawer(List<Wallet> wallets) async {
     final walletCubit = context.read<WalletDetailsCubit>();
 
@@ -175,28 +230,48 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       ),
       trailing: wallet.address.isEmpty
           ? null
-          : IconButton(
-              tooltip: 'Copy address',
+          : PopupMenuButton<_WalletAction>(
               icon: const Icon(
-                Icons.copy,
-                size: 18,
-                color: GeniusWalletColors.white,
+                Icons.more_vert,
+                size: 20,
+                color: Colors.white70,
               ),
-              onPressed: () {
-                Clipboard.setData(
-                  ClipboardData(text: wallet.address),
-                );
-
-                HapticFeedback.lightImpact();
-
-                Navigator.of(context).pop();
-
-                showAppSnackBar(
-                  context,
-                  'Address copied to clipboard',
-                  duration: const Duration(seconds: 1),
-                );
+              onSelected: (action) {
+                switch (action) {
+                  case _WalletAction.copy:
+                    Clipboard.setData(
+                      ClipboardData(text: wallet.address),
+                    );
+                    HapticFeedback.lightImpact();
+                    Navigator.of(context).pop();
+                    showAppSnackBar(
+                      context,
+                      'Address copied to clipboard',
+                      duration: const Duration(seconds: 1),
+                    );
+                  case _WalletAction.delete:
+                    _confirmDeleteWallet(context, wallet);
+                }
               },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: _WalletAction.copy,
+                  child: ListTile(
+                    leading: Icon(Icons.copy, size: 20),
+                    title: Text('Copy address'),
+                  ),
+                ),
+                if (wallet.walletType != WalletType.sgnus)
+                  const PopupMenuItem(
+                    value: _WalletAction.delete,
+                    child: ListTile(
+                      leading: Icon(Icons.delete_outline,
+                          size: 20, color: Colors.redAccent),
+                      title: Text('Delete wallet',
+                          style: TextStyle(color: Colors.redAccent)),
+                    ),
+                  ),
+              ],
             ),
     );
   }
@@ -282,3 +357,5 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     );
   }
 }
+
+enum _WalletAction { copy, delete }

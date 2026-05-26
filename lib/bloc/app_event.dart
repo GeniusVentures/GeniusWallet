@@ -14,3 +14,9 @@ class FetchAccount extends AppEvent {}
 class StreamSGNUSTransactions extends AppEvent {}
 
 class ProcessingStatusTicked extends AppEvent {}
+
+class DeleteWallet extends AppEvent {
+  final String address;
+
+  DeleteWallet(this.address);
+}
