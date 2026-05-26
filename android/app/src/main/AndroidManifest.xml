@@ -37,6 +37,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Walking Skeleton: Genius background processing foreground service -->
+        <service
+            android:name="ai.gnus.sdk.GeniusForegroundService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -48,4 +54,10 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- Required for API 34+ foreground service type declaration -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+    <!-- Required for API 33+ notification posting -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>
