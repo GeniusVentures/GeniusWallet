@@ -113,19 +113,22 @@ ThemeData getThemeData() => ThemeData(
                 EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0))),
       ),
       inputDecorationTheme: const InputDecorationTheme(
-          contentPadding: EdgeInsets.all(20),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(
-                  Radius.circular(GeniusWalletConsts.borderRadiusCard)),
-              borderSide: BorderSide(color: GeniusWalletColors.gray500)),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(
-                  Radius.circular(GeniusWalletConsts.borderRadiusCard)),
-              borderSide:
-                  BorderSide(color: GeniusWalletColors.lightGreenSecondary)),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(
-                  Radius.circular(GeniusWalletConsts.borderRadiusCard)))),
+        contentPadding: EdgeInsets.all(20),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(GeniusWalletConsts.borderRadiusCard)),
+            borderSide: BorderSide(color: GeniusWalletColors.gray500)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(GeniusWalletConsts.borderRadiusCard)),
+            borderSide:
+                BorderSide(color: GeniusWalletColors.lightGreenSecondary)),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(GeniusWalletConsts.borderRadiusCard))),
+        hintStyle: TextStyle(color: Colors.grey),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+      ),
       textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),

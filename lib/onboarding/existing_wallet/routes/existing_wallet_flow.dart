@@ -38,7 +38,7 @@ class ExistingWalletFlow extends StatelessWidget {
             child: Scaffold(
               appBar: AppBar(
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.chevron_left),
                   tooltip: "Go back",
                   onPressed: () =>
                       context.read<ExistingWalletBloc>().add(GoBack()),
