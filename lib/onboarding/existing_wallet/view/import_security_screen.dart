@@ -48,8 +48,7 @@ class ImportSecurityScreen extends StatelessWidget {
 
     final formKey = GlobalKey<FormState>();
 
-    return Scaffold(
-      body: Stack(
+    return Stack(
         children: [
           BlocListener<ExistingWalletBloc, ExistingWalletState>(
             listener: (context, state) async {
@@ -111,7 +110,6 @@ class ImportSecurityScreen extends StatelessWidget {
             },
           ),
         ],
-      ),
     );
   }
 }

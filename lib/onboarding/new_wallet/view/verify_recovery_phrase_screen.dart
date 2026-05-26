@@ -32,21 +32,19 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
               content: Text('Verification failed. Please try again.')));
         }
       },
-      child: Scaffold(
-        body: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            if (GeniusBreakpoints.useDesktopLayout(context)) {
-              return const _VerifyRecoveryPhraseViewDesktop(
-                title: title,
-                subtitle: subtitle,
-              );
-            }
-            return const _VerifyRecoveryPhraseViewMobile(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (GeniusBreakpoints.useDesktopLayout(context)) {
+            return const _VerifyRecoveryPhraseViewDesktop(
               title: title,
               subtitle: subtitle,
             );
-          },
-        ),
+          }
+          return const _VerifyRecoveryPhraseViewMobile(
+            title: title,
+            subtitle: subtitle,
+          );
+        },
       ),
     );
   }

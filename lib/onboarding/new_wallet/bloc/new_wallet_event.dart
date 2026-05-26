@@ -45,3 +45,5 @@ class PinCreated extends NewWalletEvent {}
 class PinConfirmPassed extends NewWalletEvent {}
 
 class PinConfirmFailed extends NewWalletEvent {}
+
+class GoBack extends NewWalletEvent {}

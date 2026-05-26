@@ -13,7 +13,6 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/continue_button/isactive_false.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.dart';
 import 'package:genius_wallet/components/incorrect_pin.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinScreen extends StatelessWidget {
@@ -55,67 +54,65 @@ class _PinViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppScreenWithHeaderDesktop(
-        title: text,
-        subtitle: '',
-        body: Center(
-          child: DesktopBodyContainer(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(text),
-                MaterialPinField(
-                  length: GeniusWalletConsts.pinCount,
-                  theme: MaterialPinTheme(
-                    borderColor: Colors.white,
-                    focusedBorderColor: Colors.white,
-                    filledBorderColor: Colors.white,
-                    disabledBorderColor: Colors.white,
-                    cursorColor: Colors.white,
-                  ),
-                  obscureText: true,
-                  onChanged: context.read<PinCubit>().desktopOnChanged,
-                  pinController: context.watch<PinCubit>().state.pinController,
-                  inputFormatters: [Formatters.allowIntegers],
+    return AppScreenWithHeaderDesktop(
+      title: text,
+      subtitle: '',
+      body: Center(
+        child: DesktopBodyContainer(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(text),
+              MaterialPinField(
+                length: GeniusWalletConsts.pinCount,
+                theme: MaterialPinTheme(
+                  borderColor: Colors.white,
+                  focusedBorderColor: Colors.white,
+                  filledBorderColor: Colors.white,
+                  disabledBorderColor: Colors.white,
+                  cursorColor: Colors.white,
                 ),
-                BlocBuilder<PinCubit, PinState>(builder: (context, state) {
-                  if (state.displayIncorrectPin) {
-                    return const Text(
-                      'Incorrect PIN',
-                      style: TextStyle(
-                        color: GeniusWalletColors.foundationError,
-                      ),
+                obscureText: true,
+                onChanged: context.read<PinCubit>().desktopOnChanged,
+                pinController: context.watch<PinCubit>().state.pinController,
+                inputFormatters: [Formatters.allowIntegers],
+              ),
+              BlocBuilder<PinCubit, PinState>(builder: (context, state) {
+                if (state.displayIncorrectPin) {
+                  return const Text(
+                    'Incorrect PIN',
+                    style: TextStyle(
+                      color: GeniusWalletColors.foundationError,
+                    ),
+                  );
+                }
+                return const SizedBox();
+              }),
+              const SizedBox(height: 50),
+              SizedBox(
+                height: 50,
+                child: LayoutBuilder(
+                  builder:
+                      (BuildContext context, BoxConstraints constraints) {
+                    return BlocBuilder<PinCubit, PinState>(
+                      builder: (context, state) {
+                        if (state.pinFullness == PinFullness.completed) {
+                          return MaterialButton(
+                            padding: const EdgeInsets.all(0),
+                            onPressed: () {
+                              onCompleted(state.pinController.text);
+                            },
+                            child: IsactiveTrue(constraints),
+                          );
+                        }
+                        return IsactiveFalse(constraints);
+                      },
                     );
-                  }
-                  return const SizedBox();
-                }),
-                const SizedBox(height: 50),
-                SizedBox(
-                  height: 50,
-                  child: LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return BlocBuilder<PinCubit, PinState>(
-                        builder: (context, state) {
-                          if (state.pinFullness == PinFullness.completed) {
-                            return MaterialButton(
-                              padding: const EdgeInsets.all(0),
-                              onPressed: () {
-                                onCompleted(state.pinController.text);
-                              },
-                              child: IsactiveTrue(constraints),
-                            );
-                          }
-                          return IsactiveFalse(constraints);
-                        },
-                      );
-                    },
-                  ),
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -134,9 +131,9 @@ class _PinViewMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueSecondary,
-      body: AppScreenView(
+    return Container(
+      color: GeniusWalletColors.deepBlueSecondary,
+      child: AppScreenView(
         body: ConstrainedBox(
           constraints: BoxConstraints(
             minWidth: MediaQuery.sizeOf(context).width * 0.8,
@@ -145,14 +142,6 @@ class _PinViewMobile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 20, left: 20),
-                child: IconButton(
-                  alignment: Alignment.center,
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close, size: 32),
-                ),
-              ),
               BlocBuilder<PinCubit, PinState>(
                 builder: (context, state) {
                   if (state.displayIncorrectPin) {

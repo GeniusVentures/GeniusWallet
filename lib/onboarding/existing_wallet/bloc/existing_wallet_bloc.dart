@@ -34,6 +34,8 @@ class ExistingWalletBloc extends Bloc<ExistingWalletEvent, ExistingWalletState> 
     });
 
     on<LegalAccepted>(_onLegalAccepted);
+
+    on<GoBack>(_onGoBack);
   }
 
   void _onImportWalletSelected(ImportWalletSelected event, Emitter<ExistingWalletState> emit) => emit(
@@ -72,6 +74,21 @@ class ExistingWalletBloc extends Bloc<ExistingWalletEvent, ExistingWalletState> 
       emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
     } else {
       emit(state.copyWith(currentStep: ImportWalletStep.createPin));
+    }
+  }
+
+  void _onGoBack(GoBack event, Emitter<ExistingWalletState> emit) {
+    switch (state.currentStep) {
+      case ImportWalletStep.legal:
+        break; // First step — PopScope handles route pop
+      case ImportWalletStep.createPin:
+        emit(state.copyWith(currentStep: ImportWalletStep.legal));
+      case ImportWalletStep.confirmPin:
+        emit(state.copyWith(currentStep: ImportWalletStep.createPin));
+      case ImportWalletStep.importWallet:
+        emit(state.copyWith(currentStep: ImportWalletStep.legal));
+      case ImportWalletStep.importWalletSecurity:
+        emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
     }
   }
 }

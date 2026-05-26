@@ -26,15 +26,13 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
   @override
   Widget build(BuildContext context) {
     context.read<NewWalletBloc>().add(LoadRecoveryPhrase());
-    return Scaffold(
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          if (GeniusBreakpoints.useDesktopLayout(context)) {
-            return const _RecoveryPhraseViewDesktop();
-          }
-          return const _RecoveryPhraseViewMobile();
-        },
-      ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (GeniusBreakpoints.useDesktopLayout(context)) {
+          return const _RecoveryPhraseViewDesktop();
+        }
+        return const _RecoveryPhraseViewMobile();
+      },
     );
   }
 }

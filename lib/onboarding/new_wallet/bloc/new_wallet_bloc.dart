@@ -50,6 +50,8 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     on<PinConfirmFailed>((event, emit) {
       emit(state.copyWith(currentStep: NewWalletStep.createPin));
     });
+
+    on<GoBack>(_onGoBack);
   }
 
   FutureOr<void> _onRecoveryVerificationContinue(RecoveryVerificationContinue event, Emitter emit) {
@@ -153,6 +155,21 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
     } else {
       emit(state.copyWith(currentStep: NewWalletStep.createPin));
+    }
+  }
+
+  void _onGoBack(GoBack event, Emitter<NewWalletState> emit) {
+    switch (state.currentStep) {
+      case NewWalletStep.agreement:
+        break; // First step — PopScope handles route pop
+      case NewWalletStep.createPin:
+        emit(state.copyWith(currentStep: NewWalletStep.agreement));
+      case NewWalletStep.confirmPin:
+        emit(state.copyWith(currentStep: NewWalletStep.createPin));
+      case NewWalletStep.copyPhrase:
+        emit(state.copyWith(currentStep: NewWalletStep.agreement));
+      case NewWalletStep.verifyRecoveryPhrase:
+        emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
     }
   }
 }
