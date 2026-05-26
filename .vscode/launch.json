@@ -10,7 +10,7 @@
             "request": "launch",
             "type": "dart",
             "env": {
-                "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
+                "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Debug -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
             }
         },
         {
@@ -31,51 +31,5 @@
                 "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
             }
         },
-        {
-            "name": "squidrouter",
-            "cwd": "squidrouter",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "genius_api",
-            "cwd": "packages\\genius_api",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "genius_api (profile mode)",
-            "cwd": "packages\\genius_api",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "genius_api (release mode)",
-            "cwd": "packages\\genius_api",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        },
-        {
-            "name": "local_secure_storage",
-            "cwd": "packages\\local_secure_storage",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "local_secure_storage (profile mode)",
-            "cwd": "packages\\local_secure_storage",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "local_secure_storage (release mode)",
-            "cwd": "packages\\local_secure_storage",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
     ]
 }
