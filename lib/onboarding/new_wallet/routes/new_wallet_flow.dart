@@ -13,6 +13,8 @@ import 'package:go_router/go_router.dart';
 class NewWalletFlow extends StatelessWidget {
   const NewWalletFlow({super.key});
 
+  static const _firstStep = NewWalletStep.agreement;
+
   @override
   Widget build(BuildContext context) {
     final newPinCubit = context.read<NewPinCubit>();
@@ -28,38 +30,62 @@ class NewWalletFlow extends StatelessWidget {
       },
       child: BlocBuilder<NewWalletBloc, NewWalletState>(
         builder: (context, state) {
-          switch (state.currentStep) {
-            case NewWalletStep.verifyRecoveryPhrase:
-              return const VerifyRecoveryPhraseScreen();
-            case NewWalletStep.copyPhrase:
-              return const RecoveryPhraseScreen();
-            case NewWalletStep.confirmPin:
-              return BlocProvider.value(
-                value: newPinCubit,
-                child: ConfirmAndSavePinScreen(
-                  onFailed: () {
-                    context.read<NewWalletBloc>().add(PinConfirmFailed());
-                  },
-                  onPassed: () {
-                    context.read<NewWalletBloc>().add(PinConfirmPassed());
-                  },
-                ),
-              );
-            case NewWalletStep.createPin:
-              return BlocProvider.value(
-                value: newPinCubit,
-                child: CreatePinScreen(
-                  onCompleted: (value) {
-                    newPinCubit.pinEntered(value);
-                    context.read<NewWalletBloc>().add(PinCreated());
-                  },
-                ),
-              );
-            case NewWalletStep.agreement:
-              return const BackupPhraseScreen();
-          }
+          return PopScope(
+            canPop: state.currentStep == _firstStep,
+            onPopInvokedWithResult: (didPop, result) {
+              if (!didPop) {
+                context.read<NewWalletBloc>().add(GoBack());
+              }
+            },
+            child: Scaffold(
+              appBar: state.currentStep != _firstStep
+                  ? AppBar(
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 20),
+                        onPressed: () =>
+                            context.read<NewWalletBloc>().add(GoBack()),
+                      ),
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                    )
+                  : null,
+              body: _buildStep(context, newPinCubit, state),
+            ),
+          );
         },
       ),
     );
+  }
+
+  Widget _buildStep(
+      BuildContext context, NewPinCubit newPinCubit, NewWalletState state) {
+    switch (state.currentStep) {
+      case NewWalletStep.verifyRecoveryPhrase:
+        return const VerifyRecoveryPhraseScreen();
+      case NewWalletStep.copyPhrase:
+        return const RecoveryPhraseScreen();
+      case NewWalletStep.confirmPin:
+        return BlocProvider.value(
+          value: newPinCubit,
+          child: ConfirmAndSavePinScreen(
+            onFailed: () =>
+                context.read<NewWalletBloc>().add(PinConfirmFailed()),
+            onPassed: () =>
+                context.read<NewWalletBloc>().add(PinConfirmPassed()),
+          ),
+        );
+      case NewWalletStep.createPin:
+        return BlocProvider.value(
+          value: newPinCubit,
+          child: CreatePinScreen(
+            onCompleted: (value) {
+              newPinCubit.pinEntered(value);
+              context.read<NewWalletBloc>().add(PinCreated());
+            },
+          ),
+        );
+      case NewWalletStep.agreement:
+        return const BackupPhraseScreen();
+    }
   }
 }

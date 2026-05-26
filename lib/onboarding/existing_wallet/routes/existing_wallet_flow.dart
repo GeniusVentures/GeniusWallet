@@ -13,6 +13,8 @@ import 'package:go_router/go_router.dart';
 class ExistingWalletFlow extends StatelessWidget {
   const ExistingWalletFlow({super.key});
 
+  static const _firstStep = ImportWalletStep.legal;
+
   @override
   Widget build(BuildContext context) {
     final newPinCubit = context.read<NewPinCubit>();
@@ -26,47 +28,62 @@ class ExistingWalletFlow extends StatelessWidget {
       },
       child: BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
         builder: (context, state) {
-          switch (state.currentStep) {
-            case ImportWalletStep.importWalletSecurity:
-              return ImportSecurityScreen(
-                walletType: state.selectedWallet,
-                coinType: state.selectedCoinType,
-              );
-            case ImportWalletStep.importWallet:
-              return const ImportWalletScreen();
-            case ImportWalletStep.confirmPin:
-              return BlocProvider.value(
-                value: newPinCubit,
-                child: ConfirmAndSavePinScreen(
-                  onFailed: () {
-                    context
-                        .read<ExistingWalletBloc>()
-                        .add(PinConfirmFailed());
-                  },
-                  onPassed: () {
-                    context
-                        .read<ExistingWalletBloc>()
-                        .add(PinConfirmPassed());
-                  },
+          return PopScope(
+            canPop: state.currentStep == _firstStep,
+            onPopInvokedWithResult: (didPop, result) {
+              if (!didPop) {
+                context.read<ExistingWalletBloc>().add(GoBack());
+              }
+            },
+            child: Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: "Go back",
+                  onPressed: () =>
+                      context.read<ExistingWalletBloc>().add(GoBack()),
                 ),
-              );
-            case ImportWalletStep.createPin:
-              return BlocProvider.value(
-                value: newPinCubit,
-                child: CreatePinScreen(
-                  onCompleted: (value) {
-                    newPinCubit.pinEntered(value);
-                    context
-                        .read<ExistingWalletBloc>()
-                        .add(PinCreated(pin: value));
-                  },
-                ),
-              );
-            case ImportWalletStep.legal:
-              return const LegalScreen();
-          }
+              ),
+              body: _buildStep(context, newPinCubit, state),
+            ),
+          );
         },
       ),
     );
+  }
+
+  Widget _buildStep(BuildContext context, NewPinCubit newPinCubit,
+      ExistingWalletState state) {
+    switch (state.currentStep) {
+      case ImportWalletStep.importWalletSecurity:
+        return ImportSecurityScreen(
+          walletType: state.selectedWallet,
+          coinType: state.selectedCoinType,
+        );
+      case ImportWalletStep.importWallet:
+        return const ImportWalletScreen();
+      case ImportWalletStep.confirmPin:
+        return BlocProvider.value(
+          value: newPinCubit,
+          child: ConfirmAndSavePinScreen(
+            onFailed: () =>
+                context.read<ExistingWalletBloc>().add(PinConfirmFailed()),
+            onPassed: () =>
+                context.read<ExistingWalletBloc>().add(PinConfirmPassed()),
+          ),
+        );
+      case ImportWalletStep.createPin:
+        return BlocProvider.value(
+          value: newPinCubit,
+          child: CreatePinScreen(
+            onCompleted: (value) {
+              newPinCubit.pinEntered(value);
+              context.read<ExistingWalletBloc>().add(PinCreated(pin: value));
+            },
+          ),
+        );
+      case ImportWalletStep.legal:
+        return const LegalScreen();
+    }
   }
 }

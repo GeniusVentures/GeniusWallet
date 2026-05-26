@@ -17,14 +17,12 @@ class BackupPhraseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: LayoutBuilder(builder: (context, constraints) {
-        if (GeniusBreakpoints.useDesktopLayout(context)) {
-          return const _BackupPhraseViewDesktop();
-        }
-        return const _BackupPhraseViewMobile();
-      }),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      if (GeniusBreakpoints.useDesktopLayout(context)) {
+        return const _BackupPhraseViewDesktop();
+      }
+      return const _BackupPhraseViewMobile();
+    });
   }
 }
 
