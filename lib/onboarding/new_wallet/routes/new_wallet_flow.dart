@@ -41,7 +41,7 @@ class NewWalletFlow extends StatelessWidget {
               appBar: state.currentStep != _firstStep
                   ? AppBar(
                       leading: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios, size: 20),
+                        icon: const Icon(Icons.chevron_left, size: 20),
                         onPressed: () =>
                             context.read<NewWalletBloc>().add(GoBack()),
                       ),

@@ -3,15 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
-import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
-import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
-import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.dart';
 import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
@@ -49,251 +46,142 @@ class ImportSecurityScreen extends StatelessWidget {
     final formKey = GlobalKey<FormState>();
 
     return Stack(
-        children: [
-          BlocListener<ExistingWalletBloc, ExistingWalletState>(
-            listener: (context, state) async {
-              if (state.importWalletStatus == ExistingWalletStatus.error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Failed to import wallet. Check your import settings and try again.',
-                    ),
+      children: [
+        BlocListener<ExistingWalletBloc, ExistingWalletState>(
+          listener: (context, state) async {
+            if (state.importWalletStatus == ExistingWalletStatus.error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Failed to import wallet. Check your import settings and try again.',
                   ),
-                );
-              }
-            },
-            child: DefaultTabController(
-              length: tabControllers.length,
-              child: Form(
-                key: formKey,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  final title = 'Import $walletType Wallet';
-                  const subtitle = '';
-                  if (GeniusBreakpoints.useDesktopLayout(context)) {
-                    return _ImportSecurityViewDesktop(
-                        title: title,
-                        subtitle: subtitle,
-                        walletNameController: walletNameController,
-                        tabControllers: tabControllers,
-                        formKey: formKey,
-                        walletType: walletType,
-                        coinType: coinType);
-                  }
-                  return _ImportSecurityViewMobile(
-                      title: title,
-                      subtitle: subtitle,
-                      walletNameController: walletNameController,
-                      tabControllers: tabControllers,
-                      formKey: formKey,
-                      walletType: walletType,
-                      coinType: coinType);
-                }),
-              ),
-            ),
-          ),
-          BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
-            builder: (context, state) {
-              if (state.importWalletStatus == ExistingWalletStatus.loading) {
-                return const Center(
-                  child: AlertDialog(
-                    content: Column(
+                ),
+              );
+            }
+          },
+          child: DefaultTabController(
+            length: tabControllers.length,
+            child: Form(
+              key: formKey,
+              child: LayoutBuilder(builder: (context, constraints) {
+                return Center(
+                  child: SizedBox(
+                    width: GeniusBreakpoints.small,
+                    child: Column(
+                      spacing: 20.0,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Loading(),
-                        Text('Importing wallet'),
+                        Text('Import $walletType Wallet',
+                            style: Theme.of(context).textTheme.headlineLarge),
+                        TextFormField(
+                          decoration: InputDecoration(
+                              hintText: "Enter wallet name",
+                              label: Text("Name")),
+                          controller: walletNameController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a wallet name';
+                            }
+                            return null;
+                          },
+                        ),
+                        TabBar(
+                          tabAlignment: TabAlignment.center,
+                          isScrollable: true,
+                          tabs: [
+                            Tab(text: 'Phrase'),
+                            Tab(text: 'Private Key'),
+                            Tab(text: 'Keystore'),
+                            Tab(text: 'Address'),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 250,
+                          child: TabBarView(
+                            children: [
+                              PasteField(
+                                hintText: 'Wallet Mnemonic Phrase',
+                                subtitle:
+                                    'Typically 12 (sometimes 24) words separated by single spaces.',
+                                controller:
+                                    tabControllers['phrase']!['pasteField']!,
+                              ),
+                              PasteField(
+                                hintText: "Wallet Private Key",
+                                controller: tabControllers['privatekey']![
+                                    'pasteField']!,
+                                subtitle:
+                                    'Typically 64 alphanumeric characters.',
+                              ),
+                              KeystoreTabView(
+                                passwordController: tabControllers['keystore']![
+                                    'passwordField']!,
+                                pasteFieldController:
+                                    tabControllers['keystore']!['pasteField']!,
+                              ),
+                              PasteField(
+                                height: 150,
+                                hintText: 'Wallet Address',
+                                controller:
+                                    tabControllers['address']!['pasteField']!,
+                                subtitle:
+                                    'You can “watch” any public address without divulging your private key. This let’s you view balances and transactions, but not send transactions.',
+                              ),
+                            ],
+                          ),
+                        ),
+                        FilledButton(
+                            onPressed: () {
+                              if (!formKey.currentState!.validate()) {
+                                return;
+                              }
+
+                              final selectedIndex =
+                                  DefaultTabController.of(context).index;
+
+                              final selectedEntry = tabControllers.entries
+                                  .toList()[selectedIndex];
+
+                              context.read<ExistingWalletBloc>().add(
+                                    WalletSecurityEntered(
+                                      coinType: coinType,
+                                      walletName: walletNameController.text,
+                                      walletType: walletType,
+                                      securityType: getSecurityTypeFromTab(
+                                          selectedEntry.key),
+                                      pasteFieldText: selectedEntry
+                                          .value['pasteField']!.text,
+                                      password: selectedEntry
+                                          .value['passwordField']?.text,
+                                    ),
+                                  );
+                            },
+                            child: Text("Import"))
                       ],
                     ),
                   ),
                 );
-              }
-              return Container();
-            },
-          ),
-        ],
-    );
-  }
-}
-
-class _ImportSecurityViewDesktop extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final TextEditingController walletNameController;
-  final Map<String, Map<String, TextEditingController>> tabControllers;
-  final GlobalKey<FormState> formKey;
-  final String walletType;
-  final TWCoinType coinType;
-
-  const _ImportSecurityViewDesktop(
-      {required this.title,
-      required this.subtitle,
-      required this.walletNameController,
-      required this.tabControllers,
-      required this.formKey,
-      required this.walletType,
-      required this.coinType});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenWithHeaderDesktop(
-      title: '',
-      subtitle: '',
-      body: Center(
-        child: DesktopBodyContainer(
-          width: 600,
-          title: title,
-          subText: subtitle,
-          child: Column(
-            children: [
-              _ImportSecurityBody(
-                walletNameController: walletNameController,
-                tabControllers: tabControllers,
-              ),
-              _ImportSecurityContinueButton(
-                  formKey: formKey,
-                  tabControllers: tabControllers,
-                  walletNameController: walletNameController,
-                  walletType: walletType,
-                  coinType: coinType)
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ImportSecurityViewMobile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final TextEditingController walletNameController;
-  final Map<String, Map<String, TextEditingController>> tabControllers;
-  final GlobalKey<FormState> formKey;
-  final String walletType;
-  final TWCoinType coinType;
-
-  const _ImportSecurityViewMobile(
-      {required this.title,
-      required this.subtitle,
-      required this.walletNameController,
-      required this.tabControllers,
-      required this.formKey,
-      required this.walletType,
-      required this.coinType});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenWithHeaderMobile(
-      title: title,
-      subtitle: subtitle,
-      body: _ImportSecurityBody(
-        walletNameController: walletNameController,
-        tabControllers: tabControllers,
-      ),
-      footer: _ImportSecurityContinueButton(
-          formKey: formKey,
-          tabControllers: tabControllers,
-          walletNameController: walletNameController,
-          walletType: walletType,
-          coinType: coinType),
-    );
-  }
-}
-
-class _ImportSecurityBody extends StatelessWidget {
-  final TextEditingController walletNameController;
-  final Map<String, Map<String, TextEditingController>> tabControllers;
-  const _ImportSecurityBody({
-    required this.walletNameController,
-    required this.tabControllers,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          width: MediaQuery.sizeOf(context).width * 0.9,
-          child: const FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Name',
-              style: TextStyle(
-                fontSize: GeniusWalletFontSize.medium,
-                fontWeight: FontWeight.bold,
-              ),
+              }),
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 70,
-          width: MediaQuery.sizeOf(context).width * 0.9,
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return TextEntryFieldWidget(
-                logic: TextFormFieldLogic(
-                  hintText: 'Enter wallet name',
-                  context,
-                  controller: walletNameController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a wallet name';
-                    }
-                    return null;
-                  },
+        BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
+          builder: (context, state) {
+            if (state.importWalletStatus == ExistingWalletStatus.loading) {
+              return const Center(
+                child: AlertDialog(
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Loading(),
+                      Text('Importing wallet'),
+                    ],
+                  ),
                 ),
               );
-            },
-          ),
-        ),
-        const SizedBox(height: 20),
-        const SizedBox(
-          child: TabBar(
-            tabAlignment: TabAlignment.center,
-            isScrollable: true,
-            tabs: [
-              Tab(text: 'Phrase'),
-              Tab(text: 'Private Key'),
-              Tab(text: 'Keystore'),
-              Tab(text: 'Address'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: MediaQuery.sizeOf(context).width * 0.9,
-          height: 400,
-          child: TabBarView(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: PhraseTabView(
-                  controller: tabControllers['phrase']!['pasteField']!,
-                ),
-              ),
-              Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: PrivateKeyTabView(
-                    controller: tabControllers['privatekey']!['pasteField']!,
-                  )),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: KeystoreTabView(
-                  passwordController:
-                      tabControllers['keystore']!['passwordField']!,
-                  pasteFieldController:
-                      tabControllers['keystore']!['pasteField']!,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: AddressTabView(
-                  controller: tabControllers['address']!['pasteField']!,
-                ),
-              ),
-            ],
-          ),
+            }
+            return Container();
+          },
         ),
       ],
     );
@@ -351,6 +239,39 @@ class _ImportSecurityContinueButton extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class KeystoreTabView extends StatelessWidget {
+  final TextEditingController pasteFieldController;
+  final TextEditingController passwordController;
+  const KeystoreTabView({
+    super.key,
+    required this.pasteFieldController,
+    required this.passwordController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PasteField(
+      controller: pasteFieldController,
+      hintText: 'Wallet Keystore JSON',
+      additionalWidget: SizedBox(
+        height: 60,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return TextEntryFieldWidget(
+            logic: TextFormFieldLogic(
+              context,
+              controller: passwordController,
+              obscureText: true,
+              hintText: 'Password',
+            ),
+          );
+        }),
+      ),
+      subtitle:
+          'Several lines of text beginning with “{...}” plus the password you used to encrypt it',
     );
   }
 }
