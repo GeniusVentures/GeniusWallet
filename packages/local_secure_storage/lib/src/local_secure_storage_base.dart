@@ -43,7 +43,7 @@ class LocalWalletStorage {
     final web3Instance = web3 ?? Web3();
     final localWalletStorage =
         LocalWalletStorage._create(storageInstance, web3Instance);
-    // await localWalletStorage.deleteAllWallets();
+
     return localWalletStorage;
   }
 
@@ -60,14 +60,12 @@ class LocalWalletStorage {
             debugPrint("Deleted storedkey ${entry.key}");
             await deleteKey(entry.key);
           }
-
         } else if (isAWatchedWallet(entry.key)) {
           // Validate watched wallet JSON is parseable
-          Wallet.fromJson(
-              Map<String, dynamic>.from(jsonDecode(entry.value)));
+          Wallet.fromJson(Map<String, dynamic>.from(jsonDecode(entry.value)));
         }
       } catch (e) {
-        debugPrint('** Issue with loading wallets ');
+        debugPrint('Issue with loading wallets');
         debugPrint(e.toString());
       }
     }
@@ -98,17 +96,16 @@ class LocalWalletStorage {
           Account.fromJson(Map<String, dynamic>.from(jsonDecode(accountData)));
       return account;
     } catch (e) {
-      // What to do if the account doesn't load? Is deleting / creating a new one appropriate? We don't want to brick the app
-      debugPrint('** Issue with loading acount');
+      debugPrint('Issue with loading acount');
       debugPrint(e.toString());
       _secureStorage.delete(key: _accountKeyPrefix);
-      return await createNewAccount();
+      return null;
     }
   }
 
   Future<void> saveAccount(Account account) async {
     await _secureStorage.write(
-        key: getAccountKey(), value: jsonEncode(account.toJson()));
+        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
   }
 
   Future<void> saveAccountBalance(double balance) async {
@@ -122,7 +119,7 @@ class LocalWalletStorage {
     account.lastBalanceRetrievalDate = DateTime.now();
 
     await _secureStorage.write(
-        key: getAccountKey(), value: jsonEncode(account.toJson()));
+        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
   }
 
   Future<void> updateAccountFetchDate() async {
@@ -135,7 +132,7 @@ class LocalWalletStorage {
     account.lastBalanceRetrievalDate = DateTime.now();
 
     await _secureStorage.write(
-        key: getAccountKey(), value: jsonEncode(account.toJson()));
+        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
   }
 
   Future<void> deleteAccount() async {
@@ -169,8 +166,7 @@ class LocalWalletStorage {
           isKeyMatchesAddress(entry.key, walletAddress)) {
         if (isAWatchedWallet(entry.key)) {
           // For watched wallets, parse the JSON, update the name, and save.
-          final walletJson =
-              Map<String, dynamic>.from(jsonDecode(entry.value));
+          final walletJson = Map<String, dynamic>.from(jsonDecode(entry.value));
           walletJson['walletName'] = newName;
           await _secureStorage.write(
               key: entry.key, value: jsonEncode(walletJson));
@@ -270,10 +266,6 @@ class LocalWalletStorage {
 
   String createWatchedWalletKey(String address) {
     return '$_watchesKeyPrefix${address.toLowerCase()}';
-  }
-
-  String getAccountKey() {
-    return _accountKeyPrefix;
   }
 
   bool isAAccount(String key) {
