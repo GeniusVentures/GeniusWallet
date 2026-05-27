@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Notification channel for Genius background processing -->
-    <string name="genius_notification_channel_name">Processing Status</string>
-    <string name="genius_notification_channel_description">Shows SuperGenius background processing progress</string>
-</resources>
