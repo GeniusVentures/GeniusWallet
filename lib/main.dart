@@ -39,9 +39,11 @@ void main() async {
 
   await fetchAllCoinGeckoCoins();
 
-  if ((await secureStorage.getWallets().first).isEmpty) {
+  await geniusApi.refreshWallets();
+
+  if ((await geniusApi.getWallets().first).isEmpty) {
     byPassSGNUSConnecton(geniusApi);
-    byPassWalletCreation(secureStorage);
+    byPassWalletCreation(geniusApi);
     addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
   }
 
