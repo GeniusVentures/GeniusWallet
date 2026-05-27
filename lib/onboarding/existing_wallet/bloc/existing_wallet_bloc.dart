@@ -38,7 +38,8 @@ class ExistingWalletBloc extends Bloc<ExistingWalletEvent, ExistingWalletState> 
     on<GoBack>(_onGoBack);
   }
 
-  void _onImportWalletSelected(ImportWalletSelected event, Emitter<ExistingWalletState> emit) => emit(
+  void _onImportWalletSelected(ImportWalletSelected event, Emitter<ExistingWalletState> emit) =>
+      emit(
         state.copyWith(
           currentStep: ImportWalletStep.importWalletSecurity,
           selectedCoinType: event.coinType,

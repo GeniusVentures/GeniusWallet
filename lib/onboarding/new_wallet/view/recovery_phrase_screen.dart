@@ -89,10 +89,7 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                       alignment: Alignment.center,
                       child: Text(
                         '${(index + 1).toString().padLeft(2, '0')}. ${_isVisible ? words[index].padRight(8) : '••••••'}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: "JetBrainsMono"
-                        ),
+                        style: const TextStyle(fontSize: 16, fontFamily: "JetBrainsMono"),
                       ),
                     );
                   }),
@@ -105,6 +102,7 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                 TextButton.icon(
                   onPressed: () async {
                     await FlutterClipboard.copy(words.join(' '));
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Recovery phrase copied to clipboard!")),
                     );
