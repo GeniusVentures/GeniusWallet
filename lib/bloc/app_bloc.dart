@@ -5,9 +5,13 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/overlay/selected_wallet_and_network.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -23,6 +27,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final NetworkProvider networkProvider;
 
   Timer? _processingTimer;
+  StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
+  List<Wallet> _baseWallets = [];
 
   AppBloc({
     required this.api,
@@ -38,6 +44,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<DeleteWallet>(_onDeleteWallet);
     on<RenameWallet>(_onRenameWallet);
+    on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -53,15 +60,19 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       wallets = await api.getWallets().first;
     }
 
-    if (wallets.isEmpty) {
+    _baseWallets = wallets;
+    _startSgnusConnectionListener();
+
+    if (_baseWallets.isEmpty) {
       emit(state.copyWith(
-        wallets: wallets,
+        wallets: _mergeSgnusWallet(),
         subscribeToWalletStatus: AppStatus.loaded,
       ));
       return;
     }
 
-    final result = getSelectedWalletAndNetwork(networkProvider, wallets);
+    final mergedWallets = _mergeSgnusWallet();
+    final result = getSelectedWalletAndNetwork(networkProvider, mergedWallets);
     final selectedWallet = result.wallet;
     final selectedNetwork = result.network;
 
@@ -74,7 +85,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _startProcessingPolling();
 
     emit(state.copyWith(
-      wallets: wallets,
+      wallets: mergedWallets,
       subscribeToWalletStatus: AppStatus.loaded,
     ));
   }
@@ -160,9 +171,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     await api.deleteWallet(event.address);
-    final updatedWallets =
-        state.wallets.where((w) => w.address != event.address).toList();
-    emit(state.copyWith(wallets: updatedWallets));
+    _baseWallets =
+        _baseWallets.where((w) => w.address != event.address).toList();
+    emit(state.copyWith(wallets: _mergeSgnusWallet()));
   }
 
   FutureOr<void> _onRenameWallet(
@@ -170,13 +181,61 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     await api.renameWallet(event.address, event.newName);
-    final updatedWallets = state.wallets.map((w) {
+    _baseWallets = _baseWallets.map((w) {
       if (w.address.toLowerCase() == event.address.toLowerCase()) {
         return w.copyWith(walletName: event.newName);
       }
       return w;
     }).toList();
-    emit(state.copyWith(wallets: updatedWallets));
+    emit(state.copyWith(wallets: _mergeSgnusWallet()));
+  }
+
+  void _startSgnusConnectionListener() {
+    if (_sgnusConnectionSubscription != null) return;
+    _sgnusConnectionSubscription =
+        api.getSGNUSConnectionStream().listen((connection) {
+      add(SgnusConnectionChanged(connection));
+    });
+  }
+
+  void _onSgnusConnectionChanged(
+    SgnusConnectionChanged event,
+    Emitter<AppState> emit,
+  ) {
+    emit(state.copyWith(wallets: _mergeSgnusWallet()));
+  }
+
+  /// Returns the current SGNUS connection value directly from the
+  /// BehaviorSubject, bypassing any cached field timing issues.
+  SGNUSConnection _getSgnusConnection() {
+    final stream = api.getSGNUSConnectionStream();
+    if (stream is ValueStream<SGNUSConnection>) {
+      return stream.value;
+    }
+    return const SGNUSConnection(
+        sgnusAddress: '', walletAddress: '', isConnected: false);
+  }
+
+  List<Wallet> _mergeSgnusWallet() {
+    final connection = _getSgnusConnection();
+    debugPrint(
+        '[AppBloc] _mergeSgnusWallet: isConnected=${connection.isConnected}, '
+        'sgnusAddress=${connection.sgnusAddress}, '
+        'baseWalletCount=${_baseWallets.length}');
+    if (!connection.isConnected) {
+      return _baseWallets;
+    }
+    return [
+      Wallet(
+        walletName: 'Super Genius Wallet',
+        walletType: WalletType.sgnus,
+        address: connection.sgnusAddress,
+        currencySymbol: 'minions',
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        balance: 0,
+      ),
+      ..._baseWallets,
+    ];
   }
 
   FutureOr<void> _onFFITestEvent(
@@ -190,6 +249,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   @override
   Future<void> close() {
     _processingTimer?.cancel();
+    _sgnusConnectionSubscription?.cancel();
     return super.close();
   }
 }
