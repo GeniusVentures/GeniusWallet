@@ -13,6 +13,23 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
+import org.json.JSONObject
+
+/**
+ * Data class mirroring BackgroundConfig from C++ (background_config.h).
+ *
+ * Populated from nativeGetConfigJson() after nativeInit.
+ * Default values match background_config.h brace-initialized defaults:
+ *   mode = "on_demand", interval = 15, network = true,
+ *   battery_not_low = true, idle_only = false
+ */
+data class BackgroundConfigData(
+    val mode: String = "on_demand",
+    val wakeupIntervalMinutes: Long = 15,
+    val networkRequired: Boolean = true,
+    val batteryNotLow: Boolean = true,
+    val idleOnly: Boolean = false
+)
 
 /**
  * Singleton manager for Android background processing.
@@ -25,6 +42,7 @@ import java.util.concurrent.TimeUnit
  *
  * Per D-09: notification channel uses IMPORTANCE_LOW (no sound — status display only).
  * Per D-08: enqueueUniquePeriodicWork with KEEP policy uses configured interval.
+ * Per ANDN-02: constraints and interval are config-driven via background_config.json.
  */
 object BackgroundServiceManager {
 
@@ -36,8 +54,17 @@ object BackgroundServiceManager {
     private var initialized = false
     private val lock = Any()
 
+    // Config values loaded from native layer after nativeInit
+    private var backgroundConfig: BackgroundConfigData = BackgroundConfigData()
+
+    // Application context stored for foreground service lifecycle
+    private var appContext: Context? = null
+
     // JNI native initialization — called after notification channel setup
     private external fun nativeInit(context: Context)
+
+    // JNI native config retrieval — returns JSON string from C++ layer
+    private external fun nativeGetConfigJson(): String
 
     /**
      * Initialize the background service manager.
@@ -58,16 +85,51 @@ object BackgroundServiceManager {
 
             val appContext = context.applicationContext
 
+            // Store app context for foreground service lifecycle (called from JNI upcalls)
+            this.appContext = appContext
+
             // Create notification channel BEFORE any foreground service starts
             // Mitigation T-01-05: channel created at startup AND defensively in
             // GeniusForegroundService.onCreate() per RESEARCH.md Pitfall 4
             createNotificationChannel(appContext)
 
-            // Enqueue WorkManager periodic work
-            enqueuePeriodicWork(appContext, 15)
-
-            // Initialize native side (JNI class caching)
+            // Initialize native side (JNI class caching + config loading)
             nativeInit(appContext)
+
+            // Retrieve parsed config from native layer
+            // nativeGetConfigJson returns a JSON string serialized from
+            // the BackgroundConfig struct loaded by LoadBackgroundConfig()
+            try {
+                val configJson = nativeGetConfigJson()
+                if (configJson != null && configJson.isNotEmpty()) {
+                    val json = JSONObject(configJson)
+                    backgroundConfig = BackgroundConfigData(
+                        mode = json.optString("mode", "on_demand"),
+                        wakeupIntervalMinutes = json.optLong("wakeupIntervalMinutes", 15),
+                        networkRequired = json.optBoolean("networkRequired", true),
+                        batteryNotLow = json.optBoolean("batteryNotLow", true),
+                        idleOnly = json.optBoolean("idleOnly", false)
+                    )
+                    Log.i(TAG, "Config loaded from native: mode=${backgroundConfig.mode}, " +
+                            "interval=${backgroundConfig.wakeupIntervalMinutes}min, " +
+                            "network=${backgroundConfig.networkRequired}, " +
+                            "batteryNotLow=${backgroundConfig.batteryNotLow}, " +
+                            "idleOnly=${backgroundConfig.idleOnly}")
+                } else {
+                    Log.w(TAG, "nativeGetConfigJson returned null/empty — using defaults")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to parse native config JSON — using defaults", e)
+            }
+
+            // Enqueue WorkManager periodic work with config-driven constraints
+            // Mode "disabled" → skip enqueue entirely
+            if (backgroundConfig.mode == "disabled") {
+                Log.w(TAG, "Background processing disabled by config — " +
+                        "WorkManager periodic work NOT enqueued")
+            } else {
+                enqueuePeriodicWork(appContext, backgroundConfig)
+            }
 
             initialized = true
             Log.i(TAG, "BackgroundServiceManager initialized successfully")
@@ -105,17 +167,47 @@ object BackgroundServiceManager {
     /**
      * Enqueue a WorkManager periodic task for Genius background sync.
      *
-     * Per D-08: config-driven interval. Default 15 minutes (WorkManager minimum).
-     * Per ANDN-01: constraints include network connected and battery not low.
+     * Config-driven: constraints (network, battery, idle) and interval
+     * are read from BackgroundConfigData, which was populated from
+     * background_config.json via the native layer.
      *
-     * @param context         Application context
-     * @param intervalMinutes Periodic work interval (minimum 15 minutes)
+     * Per RESEARCH.md Pitfall 3 (Correct Constraint Semantics):
+     *   - setRequiresBatteryNotLow(true) → defers when battery IS low (CORRECT)
+     *   - setRequiredNetworkType(CONNECTED) → requires network (correct for CRDT sync)
+     *   - Do NOT use setRequiresDeviceIdle(true) unless task can wait hours
+     *
+     * Per ANDN-02: work executes when constraints are met.
+     *
+     * @param context Application context
+     * @param config  BackgroundConfigData with constraint and interval values
      */
-    fun enqueuePeriodicWork(context: Context, intervalMinutes: Long) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
-            .build()
+    fun enqueuePeriodicWork(context: Context, config: BackgroundConfigData) {
+        // Build constraints from config values
+        val constraintsBuilder = Constraints.Builder()
+
+        if (config.networkRequired) {
+            constraintsBuilder.setRequiredNetworkType(NetworkType.CONNECTED)
+        }
+        if (config.batteryNotLow) {
+            // Correct semantics: defers when battery IS low
+            constraintsBuilder.setRequiresBatteryNotLow(true)
+        }
+        if (config.idleOnly) {
+            // Only for truly opportunistic tasks; default is false
+            // per RESEARCH.md Pitfall 3 guidance
+            constraintsBuilder.setRequiresDeviceIdle(true)
+        }
+
+        val constraints = constraintsBuilder.build()
+
+        // Enforce WorkManager minimum interval (15 minutes)
+        val intervalMinutes = if (config.wakeupIntervalMinutes < 15) {
+            Log.w(TAG, "Configured interval ${config.wakeupIntervalMinutes}min < 15min " +
+                    "minimum — clamping to 15min")
+            15L
+        } else {
+            config.wakeupIntervalMinutes
+        }
 
         val request = PeriodicWorkRequestBuilder<GeniusBackgroundWorker>(
             intervalMinutes, TimeUnit.MINUTES
@@ -131,7 +223,8 @@ object BackgroundServiceManager {
         )
 
         Log.i(TAG, "Periodic work enqueued: interval=$intervalMinutes min, " +
-                "constraints=[network=CONNECTED, batteryNotLow=true]")
+                "constraints=[network=${config.networkRequired}, " +
+                "batteryNotLow=${config.batteryNotLow}, idleOnly=${config.idleOnly}]")
     }
 
     /**
@@ -173,14 +266,22 @@ object BackgroundServiceManager {
      * Called by AndroidRequestForegroundService() in GeniusSDKAndroid.cpp.
      * Posts to main looper since JNI calls may come from C++ IO threads.
      *
+     * Stores title/text for GeniusForegroundService to use in notification,
+     * then starts the foreground service via startForegroundService().
+     *
      * @param title Notification title
      * @param text  Notification content text
      * @return true if the service start was dispatched
      */
     @JvmStatic
     fun requestForegroundService(title: String, text: String): Boolean {
-        // TODO: Store title/text for GeniusForegroundService to use
+        val ctx = appContext
+        if (ctx == null) {
+            Log.e(TAG, "requestForegroundService: appContext is null — not initialized")
+            return false
+        }
         Log.i(TAG, "Foreground service requested from C++: title='$title', text='$text'")
+        startForegroundService(ctx)
         return true
     }
 
@@ -191,6 +292,12 @@ object BackgroundServiceManager {
      */
     @JvmStatic
     fun requestStopForegroundService() {
+        val ctx = appContext
+        if (ctx == null) {
+            Log.e(TAG, "requestStopForegroundService: appContext is null — not initialized")
+            return
+        }
         Log.i(TAG, "Foreground service stop requested from C++")
+        stopForegroundService(ctx)
     }
 }
