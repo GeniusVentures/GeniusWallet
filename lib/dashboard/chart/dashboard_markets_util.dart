@@ -25,6 +25,7 @@ final List<String> topCoinsByCapitalization = [
   "avalanche",
   "hedera",
   "toncoin",
+  "near",
 ];
 
 // We need to make sure we request all the market data so that we can cache it for other screens and reduce API calls.

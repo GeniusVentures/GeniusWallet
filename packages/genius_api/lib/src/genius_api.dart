@@ -35,6 +35,7 @@ class GeniusApi {
   final FFIBridgePrebuilt ffiBridgePrebuilt;
   final SGNUSConnectionController _sgnusConnectionController;
   final SGNUSTransactionsController _sgnusTransactionsController;
+  final _walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
   late final String address;
   late final String jsonFilePath;
   bool isSdkInitialized = false;
@@ -61,11 +62,13 @@ class GeniusApi {
 
   /// Returns a [Stream] of the wallets that the device has saved.
   Stream<List<Wallet>> getWallets() {
-    return getWalletsController().asBroadcastStream();
+    return _walletsController.stream;
   }
 
-  BehaviorSubject<List<Wallet>> getWalletsController() {
-    return _secureStorage.walletsController;
+  /// Refreshes the wallet list from secure storage and updates the stream.
+  Future<void> refreshWallets() async {
+    final wallets = await _secureStorage.getAllWallets();
+    _walletsController.add(wallets);
   }
 
   SGNUSTransactionsController getSGNUSTransactionsController() {
@@ -246,10 +249,17 @@ class GeniusApi {
     return _mapNodeReturnValue(result);
   }
 
+  void dispose() {
+    _walletsController.close();
+    _sgnusConnectionController.dispose();
+    _sgnusTransactionsController.dispose();
+  }
+
   GeniusNodeReturnValue shutdownSDK() {
     final result = ffiBridgePrebuilt.gns_lib.GeniusSDKShutdown();
     final mappedResult = _mapNodeReturnValue(result);
     debugPrint("Shutting Down SDK: $mappedResult");
+    dispose();
     return mappedResult;
   }
 
@@ -358,6 +368,7 @@ class GeniusApi {
 
     await _secureStorage.saveStoredKey(storedKey);
     await _initSDK(storedKey);
+    await refreshWallets();
   }
 
   Future<bool> validateWalletImport({
@@ -411,6 +422,7 @@ class GeniusApi {
 
     await _secureStorage.saveStoredKey(storedKey);
     await _initSDK(storedKey);
+    await refreshWallets();
 
     return true;
   }
@@ -429,6 +441,8 @@ class GeniusApi {
         walletType: WalletType.tracking,
         address: address));
 
+    await refreshWallets();
+
     return true;
   }
 
@@ -443,6 +457,7 @@ class GeniusApi {
 
     await _secureStorage.saveStoredKey(storedKey);
     await _initSDK(storedKey);
+    await refreshWallets();
 
     return true;
   }
@@ -459,16 +474,19 @@ class GeniusApi {
 
     await _secureStorage.saveStoredKey(storedKey);
     await _initSDK(storedKey);
+    await refreshWallets();
 
     return true;
   }
 
   Future<void> renameWallet(String address, String newName) async {
     await _secureStorage.renameWallet(address, newName);
+    await refreshWallets();
   }
 
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);
+    await refreshWallets();
   }
 
   String getMinionsBalance([String? tokenId]) {

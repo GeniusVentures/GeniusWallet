@@ -5,7 +5,6 @@ import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 
@@ -29,21 +28,18 @@ void byPassSGNUSConnecton(geniusApi) {
       isConnected: true));
 }
 
-void byPassWalletCreation(localWalletStorage) {
+void byPassWalletCreation(geniusApi) {
   if (!isWalletPKBypass()) {
     return;
   }
 
   debugPrint('\x1B[37m** Manually importing wallet from variable\x1B[0m');
 
-  localWalletStorage.addWalletToController(const Wallet(
-    walletName: 'Bypass Wallet',
-    currencySymbol: 'eth',
-    coinType: TWCoinType.TWCoinTypeEthereum,
-    balance: 0,
-    address: '0x6084a30B8CFe3fd27b0672b8fE740B9a8541403e',
-    walletType: WalletType.privateKey,
-  ));
+  geniusApi.importWalletFromPrivateKey(
+    walletPK,
+    'Bypass Wallet',
+    TWCoinType.TWCoinTypeEthereum,
+  );
 }
 
 void addFakeSGNUSTransactions(SGNUSTransactionsController txController) {
