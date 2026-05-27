@@ -172,6 +172,45 @@ class LocalWalletStorage {
         value: jsonEncode(wallet.toJson()));
   }
 
+  Future<void> renameWallet(String walletAddress, String newName) async {
+    Map<String, String> keys = await _secureStorage.readAll();
+
+    for (var entry in keys.entries) {
+      if ((isAWallet(entry.key) || isAWatchedWallet(entry.key)) &&
+          isKeyMatchesAddress(entry.key, walletAddress)) {
+        if (isAWatchedWallet(entry.key)) {
+          // For watched wallets, parse the JSON, update the name, and save.
+          final walletJson =
+              Map<String, dynamic>.from(jsonDecode(entry.value));
+          walletJson['walletName'] = newName;
+          await _secureStorage.write(
+              key: entry.key, value: jsonEncode(walletJson));
+        } else {
+          // For stored-key wallets, parse the JSON, update the name, and save.
+          final storedKeyJson =
+              Map<String, dynamic>.from(jsonDecode(entry.value));
+          storedKeyJson['name'] = newName;
+          await _secureStorage.write(
+              key: entry.key, value: jsonEncode(storedKeyJson));
+        }
+        renameWalletInController(walletAddress, newName);
+        return;
+      }
+    }
+  }
+
+  void renameWalletInController(String walletAddress, String newName) {
+    final currentWallets = [...walletsController.value];
+    final index = currentWallets.indexWhere(
+        (w) => w.address.toLowerCase() == walletAddress.toLowerCase());
+    if (index != -1) {
+      currentWallets[index] = currentWallets[index].copyWith(
+        walletName: newName,
+      );
+      walletsController.add(currentWallets);
+    }
+  }
+
   Future<void> deleteWallet(String walletAddress) async {
     Map<String, String> keys = await _secureStorage.readAll();
 

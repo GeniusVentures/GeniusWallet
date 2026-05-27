@@ -20,3 +20,10 @@ class DeleteWallet extends AppEvent {
 
   DeleteWallet(this.address);
 }
+
+class RenameWallet extends AppEvent {
+  final String address;
+  final String newName;
+
+  RenameWallet(this.address, this.newName);
+}

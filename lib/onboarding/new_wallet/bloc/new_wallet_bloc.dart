@@ -37,7 +37,13 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     on<AgreementAccepted>(_onAgreementAccepted);
 
     on<AddWallet>((event, emit) async {
-      await api.saveWallet(event.wallet);
+      emit(state.copyWith(walletSaveStatus: NewWalletStatus.loading));
+      try {
+        await api.saveWallet(event.wallet);
+        emit(state.copyWith(walletSaveStatus: NewWalletStatus.loaded));
+      } catch (e) {
+        emit(state.copyWith(walletSaveStatus: NewWalletStatus.error));
+      }
     });
 
     on<PinCreated>((event, emit) {
@@ -61,6 +67,7 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.passed,
       ));
+      add(AddWallet(wallet: wallet));
     } else {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.failed,
@@ -101,6 +108,7 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.passed,
       ));
+      add(AddWallet(wallet: wallet));
     } else {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.failed,
