@@ -17,8 +17,10 @@ class BackupPhraseScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 20.0,
           children: [
-            Text("Wallet Backup", style: Theme.of(context).textTheme.headlineLarge),
-            Text('In the next step you will see 12 words that allow you to recover a wallet.'),
+            Text("Wallet Backup",
+                style: Theme.of(context).textTheme.headlineLarge),
+            Text(
+                'In the next step you will see 12 words that allow you to recover a wallet.'),
             CheckboxListTile(
               value: context.watch<NewWalletBloc>().state.acceptedWarning,
               onChanged: (value) {
@@ -27,7 +29,8 @@ class BackupPhraseScreen extends StatelessWidget {
               title: Text(GeniusWalletText.helpRecoveryWords),
               controlAffinity: ListTileControlAffinity.leading,
             ),
-            BlocBuilder<NewWalletBloc, NewWalletState>(builder: (context, state) {
+            BlocBuilder<NewWalletBloc, NewWalletState>(
+                builder: (context, state) {
               return SizedBox(
                 width: 250,
                 child: FilledButton(
@@ -35,8 +38,11 @@ class BackupPhraseScreen extends StatelessWidget {
                       ? () {
                           context.read<NewWalletBloc>().add(
                                 AgreementAccepted(
-                                  userExists:
-                                      context.read<AppBloc>().state.userStatus == UserStatus.exists,
+                                  userExists: context
+                                          .read<AppBloc>()
+                                          .state
+                                          .userStatus ==
+                                      UserStatus.exists,
                                 ),
                               );
                         }

@@ -3,15 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/app_screen_view.dart';
-import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
-import 'package:genius_wallet/components/continue_button/isactive_true.dart';
-import 'package:genius_wallet/components/registration_header.g.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -35,7 +28,8 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
           mainAxisSize: MainAxisSize.min,
           spacing: 16.0,
           children: [
-            Text("Your Recovery Phrase", style: Theme.of(context).textTheme.headlineLarge),
+            Text("Your Recovery Phrase",
+                style: Theme.of(context).textTheme.headlineLarge),
             Text(
                 "Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access."),
             _buildWordsGridWithCopyAndToggle(),
@@ -89,7 +83,8 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                       alignment: Alignment.center,
                       child: Text(
                         '${(index + 1).toString().padLeft(2, '0')}. ${_isVisible ? words[index].padRight(8) : '••••••'}',
-                        style: const TextStyle(fontSize: 16, fontFamily: "JetBrainsMono"),
+                        style: const TextStyle(
+                            fontSize: 16, fontFamily: "JetBrainsMono"),
                       ),
                     );
                   }),
@@ -104,7 +99,9 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                     await FlutterClipboard.copy(words.join(' '));
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Recovery phrase copied to clipboard!")),
+                      const SnackBar(
+                          content:
+                              Text("Recovery phrase copied to clipboard!")),
                     );
                   },
                   icon: const Icon(Icons.copy),
@@ -116,8 +113,10 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                       _isVisible = !_isVisible;
                     });
                   },
-                  icon: Icon(_isVisible ? Icons.visibility_off : Icons.visibility),
-                  label: Text(_isVisible ? "Hide seed phrase" : "Show seed phrase"),
+                  icon: Icon(
+                      _isVisible ? Icons.visibility_off : Icons.visibility),
+                  label: Text(
+                      _isVisible ? "Hide seed phrase" : "Show seed phrase"),
                 ),
               ],
             ),

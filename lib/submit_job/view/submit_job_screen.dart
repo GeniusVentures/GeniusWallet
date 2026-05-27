@@ -8,7 +8,6 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 
 class SubmitJobScreen extends StatelessWidget {

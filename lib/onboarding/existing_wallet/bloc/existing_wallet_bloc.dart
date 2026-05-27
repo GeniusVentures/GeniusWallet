@@ -8,13 +8,15 @@ import 'package:genius_api/types/security_type.dart';
 part 'existing_wallet_event.dart';
 part 'existing_wallet_state.dart';
 
-class ExistingWalletBloc extends Bloc<ExistingWalletEvent, ExistingWalletState> {
+class ExistingWalletBloc
+    extends Bloc<ExistingWalletEvent, ExistingWalletState> {
   final GeniusApi geniusApi;
   ExistingWalletBloc({
     ExistingWalletState initialState = const ExistingWalletState(),
     required this.geniusApi,
   }) : super(initialState) {
-    on<ToggleLegal>((event, emit) => emit(state.copyWith(acceptedLegal: !state.acceptedLegal)));
+    on<ToggleLegal>((event, emit) =>
+        emit(state.copyWith(acceptedLegal: !state.acceptedLegal)));
 
     on<ImportWalletSelected>(_onImportWalletSelected);
 
@@ -38,7 +40,8 @@ class ExistingWalletBloc extends Bloc<ExistingWalletEvent, ExistingWalletState> 
     on<GoBack>(_onGoBack);
   }
 
-  void _onImportWalletSelected(ImportWalletSelected event, Emitter<ExistingWalletState> emit) =>
+  void _onImportWalletSelected(
+          ImportWalletSelected event, Emitter<ExistingWalletState> emit) =>
       emit(
         state.copyWith(
           currentStep: ImportWalletStep.importWalletSecurity,
@@ -70,7 +73,8 @@ class ExistingWalletBloc extends Bloc<ExistingWalletEvent, ExistingWalletState> 
     }
   }
 
-  void _onLegalAccepted(LegalAccepted event, Emitter<ExistingWalletState> emit) {
+  void _onLegalAccepted(
+      LegalAccepted event, Emitter<ExistingWalletState> emit) {
     if (event.userExists) {
       emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
     } else {

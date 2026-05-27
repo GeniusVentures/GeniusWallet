@@ -27,7 +27,8 @@ class AccountDropdownSelector extends StatefulWidget {
   });
 
   @override
-  State<AccountDropdownSelector> createState() => _AccountDropdownSelectorState();
+  State<AccountDropdownSelector> createState() =>
+      _AccountDropdownSelectorState();
 }
 
 class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
@@ -89,10 +90,12 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
       // If the deleted wallet was the selected one, select another.
       if (wallet.address == selectedWallet?.address) {
-        final remainingWallets =
-            appBloc.state.wallets.where((w) => w.address != wallet.address).toList();
+        final remainingWallets = appBloc.state.wallets
+            .where((w) => w.address != wallet.address)
+            .toList();
         setState(() {
-          selectedWallet = remainingWallets.isNotEmpty ? remainingWallets.first : null;
+          selectedWallet =
+              remainingWallets.isNotEmpty ? remainingWallets.first : null;
         });
       }
     }
@@ -105,8 +108,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       context: context,
       title: "Your Accounts",
       child: ListView.separated(
-        itemBuilder: (context, i) =>
-            _buildDrawerRow(wallets[i], wallets[i].walletName == selectedWallet?.walletName),
+        itemBuilder: (context, i) => _buildDrawerRow(
+            wallets[i], wallets[i].walletName == selectedWallet?.walletName),
         itemCount: wallets.length,
         separatorBuilder: (context, index) => SizedBox(height: 8.0),
       ),
@@ -114,7 +117,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         padding: const EdgeInsets.all(16.0),
         child: FilledButton.icon(
           style: FilledButton.styleFrom(
-              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              textStyle:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               iconSize: 28,
               padding: EdgeInsets.all(16.0)),
           onPressed: () => context.push('/landing_screen', extra: true),
@@ -138,9 +142,11 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
   ) {
     final isWatched = wallet.walletType == WalletType.tracking;
 
-    final textColor = isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
+    final textColor =
+        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
 
-    final subColor = isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
+    final subColor =
+        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
 
     return ListTile(
       selected: isSelected,
@@ -257,17 +263,19 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 ),
                 if (wallet.walletType != WalletType.sgnus)
                   MenuItemButton(
-                    leadingIcon:
-                        const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+                    leadingIcon: const Icon(Icons.delete_outline,
+                        size: 20, color: Colors.redAccent),
                     onPressed: () => _confirmDeleteWallet(context, wallet),
-                    child: const Text('Delete wallet', style: TextStyle(color: Colors.redAccent)),
+                    child: const Text('Delete wallet',
+                        style: TextStyle(color: Colors.redAccent)),
                   ),
               ],
             ),
     );
   }
 
-  Widget _buildAvatar(Wallet wallet, {required bool isSelected, required double size}) {
+  Widget _buildAvatar(Wallet wallet,
+      {required bool isSelected, required double size}) {
     final isWatched = wallet.walletType == WalletType.tracking;
     return CircleAvatar(
       radius: size / 2 - 2,
@@ -330,7 +338,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       child: Text(
                         selectedWallet!.walletType == WalletType.sgnus
                             ? 'Super Genius'
-                            : WalletUtils.getAddressForDisplay(selectedWallet!.address),
+                            : WalletUtils.getAddressForDisplay(
+                                selectedWallet!.address),
                         style: const TextStyle(fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),

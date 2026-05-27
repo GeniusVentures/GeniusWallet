@@ -14,7 +14,6 @@ import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -220,14 +219,9 @@ class DashboardScrollContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.all(gridSpacing),
-        child: Container(
-            decoration: const BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.all(
-                    Radius.circular(GeniusWalletConsts.borderRadiusCard))),
-            child: Padding(padding: const EdgeInsets.all(16), child: child)));
+    return Card(
+      child: Padding(padding: EdgeInsets.all(gridSpacing), child: child),
+    );
   }
 }
 
@@ -295,24 +289,9 @@ class ChartDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final bool is3Column = screenWidth > GeniusBreakpoints.large;
-
-    final double chartHeight = is3Column
-        ? screenHeight * 0.28 // desktop height
-        : screenHeight * 0.14; // mobile height
-
-    return Padding(
-      padding: EdgeInsets.all(gridSpacing),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: GeniusWalletColors.deepBlueCardColor,
-          borderRadius: BorderRadius.all(
-            Radius.circular(GeniusWalletConsts.borderRadiusCard),
-          ),
-        ),
-        padding: const EdgeInsets.all(16),
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(gridSpacing),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -327,11 +306,12 @@ class ChartDashboardView extends StatelessWidget {
                 ),
               ),
             ),
-            CryptoLiveChart(
-              coinGeckoCoinId: 'bitcoin',
-              tokenSymbol: 'btc',
-              chartHeight: chartHeight,
-              priceHeight: 28,
+            const Expanded(
+              child: CryptoLiveChart(
+                coinGeckoCoinId: 'bitcoin',
+                tokenSymbol: 'btc',
+                priceHeight: 28,
+              ),
             ),
           ],
         ),

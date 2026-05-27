@@ -12,14 +12,12 @@ class CryptoLiveChart extends StatefulWidget {
   final String coinGeckoCoinId;
   final String tokenSymbol;
   final Widget? child;
-  final double? chartHeight;
   final double priceHeight;
 
   const CryptoLiveChart({
     super.key,
     required this.coinGeckoCoinId,
     required this.tokenSymbol,
-    this.chartHeight,
     this.priceHeight = 48,
     this.child,
   });
@@ -190,8 +188,6 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   @override
   Widget build(BuildContext context) {
-    final chartHeight =
-        widget.chartHeight ?? MediaQuery.sizeOf(context).height * 0.25;
     final tokenDecimals = _displayPrice >= 1 ? 2 : 6;
     final formattedPrice = NumberFormat.currency(
       symbol: "\$",
@@ -203,169 +199,189 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
     return MouseRegion(
       onExit: _onHoverExit,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        spacing: 6.0,
-        children: [
-          AutoSizeText(
-            _hasData ? formattedPrice : 'Loading...',
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: widget.priceHeight,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          if (_hasData)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "${priceChange >= 0 ? "+" : ""}\$${priceChange.toStringAsFixed(tokenDecimals)}",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: fillColor,
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isHeightBounded = constraints.maxHeight != double.infinity;
+
+          final chartContent = Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 6.0,
+            children: [
+              AutoSizeText(
+                _hasData ? formattedPrice : 'Loading...',
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: widget.priceHeight,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: fillColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: fillColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          if (widget.child != null) widget.child!,
-          if (_hasData) ...[
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: chartHeight,
-                minHeight: 120,
+                textAlign: TextAlign.center,
               ),
-              child: LineChart(
-                LineChartData(
-                  clipData: const FlClipData.all(),
-                  minX: _viewMinX ?? 0,
-                  maxX: _viewMaxX ??
-                      (_priceData.isNotEmpty ? _priceData.last.x : 1),
-                  minY: _priceData.map((e) => e.y).reduce(min) * 0.999,
-                  maxY: _priceData.map((e) => e.y).reduce(max) * 1.001,
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: _priceData,
-                      isCurved: false,
-                      color: Colors.white,
-                      barWidth: 2.5,
-                      belowBarData: BarAreaData(
-                        show: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            fillColor.withValues(alpha: 0.2),
-                            Colors.transparent,
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+              if (_hasData)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 6,
+                  children: [
+                    Text(
+                      "${priceChange >= 0 ? "+" : ""}\$${priceChange.toStringAsFixed(tokenDecimals)}",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: fillColor,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: fillColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: fillColor,
                         ),
                       ),
-                      dotData: const FlDotData(show: false),
                     ),
                   ],
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  titlesData: const FlTitlesData(
-                    leftTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  lineTouchData: LineTouchData(
-                    enabled: true,
-                    handleBuiltInTouches: true,
-                    touchCallback: _onHover,
-                    getTouchedSpotIndicator: (barData, spotIndexes) {
-                      return spotIndexes.map((index) {
-                        return TouchedSpotIndicatorData(
-                          FlLine(
-                            color: Colors.grey[400]!,
-                            strokeWidth: 1.2,
-                            dashArray: [8, 4],
-                          ),
-                          const FlDotData(show: false),
-                        );
-                      }).toList();
-                    },
-                    touchTooltipData: LineTouchTooltipData(
-                      fitInsideHorizontally: true,
-                      getTooltipItems: (touchedSpots) {
-                        return touchedSpots.map((spot) {
-                          return LineTooltipItem(
-                            '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
-                            const TextStyle(
+                ),
+              if (widget.child != null) widget.child!,
+              if (_hasData)
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: LineChart(
+                          LineChartData(
+                            clipData: const FlClipData.all(),
+                            minX: _viewMinX ?? 0,
+                            maxX: _viewMaxX ??
+                                (_priceData.isNotEmpty ? _priceData.last.x : 1),
+                            minY:
+                                _priceData.map((e) => e.y).reduce(min) * 0.999,
+                            maxY:
+                                _priceData.map((e) => e.y).reduce(max) * 1.001,
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: _priceData,
+                                isCurved: false,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          );
-                        }).toList();
-                      },
-                    ),
+                                barWidth: 2.5,
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      fillColor.withValues(alpha: 0.2),
+                                      Colors.transparent,
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                                dotData: const FlDotData(show: false),
+                              ),
+                            ],
+                            gridData: const FlGridData(show: false),
+                            borderData: FlBorderData(show: false),
+                            titlesData: const FlTitlesData(
+                              leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                              topTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                              bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false)),
+                            ),
+                            lineTouchData: LineTouchData(
+                              enabled: true,
+                              handleBuiltInTouches: true,
+                              touchCallback: _onHover,
+                              getTouchedSpotIndicator: (barData, spotIndexes) {
+                                return spotIndexes.map((index) {
+                                  return TouchedSpotIndicatorData(
+                                    FlLine(
+                                      color: Colors.grey[400]!,
+                                      strokeWidth: 1.2,
+                                      dashArray: [8, 4],
+                                    ),
+                                    const FlDotData(show: false),
+                                  );
+                                }).toList();
+                              },
+                              touchTooltipData: LineTouchTooltipData(
+                                fitInsideHorizontally: true,
+                                getTooltipItems: (touchedSpots) {
+                                  return touchedSpots.map((spot) {
+                                    return LineTooltipItem(
+                                      '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
+                                      const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    );
+                                  }).toList();
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon:
+                                const Icon(Icons.zoom_in, color: Colors.white),
+                            onPressed: _zoomIn,
+                            tooltip: "Zoom In",
+                          ),
+                          IconButton(
+                            icon:
+                                const Icon(Icons.zoom_out, color: Colors.white),
+                            onPressed: _zoomOut,
+                            tooltip: "Zoom Out",
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios,
+                                color: Colors.white, size: 18),
+                            onPressed: _panLeft,
+                            tooltip: "Pan Left",
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios,
+                                color: Colors.white, size: 18),
+                            onPressed: _panRight,
+                            tooltip: "Pan Right",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              else
+                const Expanded(
+                  child: Center(
+                    child: PulsingSkeleton(width: double.infinity),
                   ),
                 ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.zoom_in, color: Colors.white),
-                  onPressed: _zoomIn,
-                  tooltip: "Zoom In",
-                ),
-                IconButton(
-                  icon: const Icon(Icons.zoom_out, color: Colors.white),
-                  onPressed: _zoomOut,
-                  tooltip: "Zoom Out",
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios,
-                      color: Colors.white, size: 18),
-                  onPressed: _panLeft,
-                  tooltip: "Pan Left",
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios,
-                      color: Colors.white, size: 18),
-                  onPressed: _panRight,
-                  tooltip: "Pan Right",
-                ),
-              ],
-            ),
-          ] else
-            SizedBox(
-              height: chartHeight,
-              child: Center(
-                child: PulsingSkeleton(
-                  height: chartHeight,
-                  width: double.infinity,
-                ),
-              ),
-            ),
-        ],
+            ],
+          );
+
+          // When height is unbounded (e.g. inside a ListView), use a
+          // sensible default height so the chart has room to render.
+          if (!isHeightBounded) {
+            return SizedBox(
+              height: constraints.maxWidth * 0.6,
+              child: chartContent,
+            );
+          }
+
+          return chartContent;
+        },
       ),
     );
   }
