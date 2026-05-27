@@ -10,8 +10,11 @@ import androidx.core.content.ContextCompat
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.BackoffPolicy
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import java.util.concurrent.TimeUnit
 import org.json.JSONObject
 
@@ -213,6 +216,14 @@ object BackgroundServiceManager {
             intervalMinutes, TimeUnit.MINUTES
         )
             .setConstraints(constraints)
+            // ANDN-03: exponential backoff starting at ~10 seconds
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            // ANDN-04: prioritize in Doze maintenance windows
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setInitialDelay(0, TimeUnit.MINUTES)
             .build()
 
@@ -224,7 +235,8 @@ object BackgroundServiceManager {
 
         Log.i(TAG, "Periodic work enqueued: interval=$intervalMinutes min, " +
                 "constraints=[network=${config.networkRequired}, " +
-                "batteryNotLow=${config.batteryNotLow}, idleOnly=${config.idleOnly}]")
+                "batteryNotLow=${config.batteryNotLow}, idleOnly=${config.idleOnly}], " +
+                "backoff=EXPONENTIAL, expedited=true")
     }
 
     /**
