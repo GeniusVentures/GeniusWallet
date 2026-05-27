@@ -27,3 +27,9 @@ class RenameWallet extends AppEvent {
 
   RenameWallet(this.address, this.newName);
 }
+
+class SgnusConnectionChanged extends AppEvent {
+  final SGNUSConnection connection;
+
+  SgnusConnectionChanged(this.connection);
+}

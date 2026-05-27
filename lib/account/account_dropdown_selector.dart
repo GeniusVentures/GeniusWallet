@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
@@ -150,42 +148,23 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final selected = await ResponsiveDrawer.show<Wallet>(
       context: context,
       title: "Your Accounts",
-      child: StreamBuilder<SGNUSConnection>(
-        stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-        builder: (context, snapshot) {
-          return BlocBuilder<AppBloc, AppState>(
-            builder: (context, appState) {
-              final wallets = [...appState.wallets];
-              final connection = snapshot.data;
-              if (connection?.isConnected == true) {
-                wallets.insert(
-                  0,
-                  Wallet(
-                    walletName: 'Super Genius Wallet',
-                    walletType: WalletType.sgnus,
-                    address: connection!.sgnusAddress,
-                    currencySymbol: 'minions',
-                    coinType: TWCoinType.TWCoinTypeEthereum,
-                    balance: 0,
-                  ),
-                );
-              }
-              if (wallets.isEmpty) {
-                return const Center(
-                  child: Text(
-                    "You have no wallets!",
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
-                  ),
-                );
-              }
-              return ListView.separated(
-                itemBuilder: (context, i) => _buildDrawerRow(wallets[i],
-                    wallets[i].walletName == selectedWallet?.walletName),
-                itemCount: wallets.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 8.0),
-              );
-            },
+      child: BlocBuilder<AppBloc, AppState>(
+        builder: (context, appState) {
+          final wallets = appState.wallets;
+          if (wallets.isEmpty) {
+            return const Center(
+              child: Text(
+                "You have no wallets!",
+                style: TextStyle(fontSize: 16, color: Colors.white70),
+              ),
+            );
+          }
+          return ListView.separated(
+            itemBuilder: (context, i) => _buildDrawerRow(wallets[i],
+                wallets[i].walletName == selectedWallet?.walletName),
+            itemCount: wallets.length,
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: 8.0),
           );
         },
       ),
@@ -374,63 +353,44 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<SGNUSConnection>(
-      stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-      builder: (context, snapshot) {
-        return BlocBuilder<AppBloc, AppState>(
-          builder: (context, state) {
-            final wallets = [...state.wallets];
-            final connection = snapshot.data;
-            if (connection?.isConnected == true) {
-              wallets.insert(
-                0,
-                Wallet(
-                  walletName: 'Super Genius Wallet',
-                  walletType: WalletType.sgnus,
-                  address: connection!.sgnusAddress,
-                  currencySymbol: 'minions',
-                  coinType: TWCoinType.TWCoinTypeEthereum,
-                  balance: 0,
+    return BlocBuilder<AppBloc, AppState>(
+      builder: (context, state) {
+        final wallets = state.wallets;
+        if (wallets.isEmpty) {
+          return const Center(
+            child: Text(
+              "You have no wallets!",
+              style: TextStyle(fontSize: 16, color: Colors.white70),
+            ),
+          );
+        }
+        selectedWallet ??= wallets.firstWhere(
+          (w) => w.address == savedWalletAddress,
+          orElse: () => widget.initialSelected ?? wallets.first,
+        );
+        return Tooltip(
+          message: "Select wallet",
+          child: TextButton(
+            onPressed: () => _showAccountDrawer(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8.0,
+              children: [
+                _buildAvatar(selectedWallet!, isSelected: false, size: 25),
+                Flexible(
+                  child: Text(
+                    selectedWallet!.walletType == WalletType.sgnus
+                        ? 'Super Genius'
+                        : WalletUtils.getAddressForDisplay(
+                            selectedWallet!.address),
+                    style: const TextStyle(fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              );
-            }
-            if (wallets.isEmpty) {
-              return const Center(
-                child: Text(
-                  "You have no wallets!",
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
-                ),
-              );
-            }
-            selectedWallet ??= wallets.firstWhere(
-              (w) => w.address == savedWalletAddress,
-              orElse: () => widget.initialSelected ?? wallets.first,
-            );
-            return Tooltip(
-              message: "Select wallet",
-              child: TextButton(
-                onPressed: () => _showAccountDrawer(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8.0,
-                  children: [
-                    _buildAvatar(selectedWallet!, isSelected: false, size: 25),
-                    Flexible(
-                      child: Text(
-                        selectedWallet!.walletType == WalletType.sgnus
-                            ? 'Super Genius'
-                            : WalletUtils.getAddressForDisplay(
-                                selectedWallet!.address),
-                        style: const TextStyle(fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(Icons.arrow_drop_down),
-                  ],
-                ),
-              ),
-            );
-          },
+                const Icon(Icons.arrow_drop_down),
+              ],
+            ),
+          ),
         );
       },
     );
