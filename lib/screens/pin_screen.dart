@@ -149,7 +149,8 @@ class _PinViewMobile extends StatelessWidget {
                         width: 200,
                         height: 40,
                         child: LayoutBuilder(
-                          builder: (BuildContext context, BoxConstraints constraints) {
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
                             return IncorrectPin(constraints);
                           },
                         ),
@@ -202,7 +203,8 @@ class _PinViewMobile extends StatelessWidget {
                     length: GeniusWalletConsts.pinCount,
                     onChanged: (passcode) {},
                     readOnly: true,
-                    pinController: context.watch<PinCubit>().state.pinController,
+                    pinController:
+                        context.watch<PinCubit>().state.pinController,
                     onCompleted: onCompleted,
                   ),
                 ),
