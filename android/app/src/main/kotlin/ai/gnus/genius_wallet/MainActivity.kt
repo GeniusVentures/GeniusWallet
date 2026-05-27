@@ -1,6 +1,5 @@
 package ai.gnus.genius_wallet
 
-import ai.gnus.sdk.BackgroundServiceManager
 import android.util.Log
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.android.FlutterActivity
@@ -16,15 +15,6 @@ class MainActivity: FlutterActivity() {
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
-
-		// Walking Skeleton: initialize background processing on app startup.
-		// Creates notification channel and enqueues WorkManager periodic work.
-		try {
-			BackgroundServiceManager.initialize(this)
-			Log.i(TAG, "BackgroundServiceManager initialized")
-		} catch (e: Exception) {
-			Log.e(TAG, "Failed to initialize BackgroundServiceManager", e)
-		}
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
 			.setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->

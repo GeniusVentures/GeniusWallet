@@ -159,10 +159,6 @@ tasks.configureEach { task ->
 
 dependencies {
     runtimeOnly secureStorageAarDependency
-
-    // Android background processing — Walking Skeleton (Phase 01, Plan 01)
-    implementation "androidx.work:work-runtime-ktx:2.9.1"
-    implementation "androidx.core:core-ktx:1.13.1"
 }
 
 flutter {
