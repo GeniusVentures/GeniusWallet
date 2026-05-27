@@ -20,11 +20,9 @@ class NewWalletFlow extends StatelessWidget {
     final newPinCubit = context.read<NewPinCubit>();
     return BlocListener<NewWalletBloc, NewWalletState>(
       listenWhen: (prev, curr) =>
-          prev.verificationStatus != VerificationStatus.passed &&
-          curr.verificationStatus == VerificationStatus.passed,
+          prev.walletSaveStatus != NewWalletStatus.loaded &&
+          curr.walletSaveStatus == NewWalletStatus.loaded,
       listener: (context, state) {
-        final newWalletBloc = context.read<NewWalletBloc>();
-        newWalletBloc.add(AddWallet(wallet: newWalletBloc.wallet));
         context.read<AppBloc>().add(SubscribeToWallets());
         context.go('/dashboard');
       },

@@ -37,6 +37,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<FFITestEvent>(_onFFITestEvent);
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<DeleteWallet>(_onDeleteWallet);
+    on<RenameWallet>(_onRenameWallet);
   }
 
   Future<void> _onSubscribeToWallets(
@@ -161,6 +162,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     await api.deleteWallet(event.address);
     final updatedWallets =
         state.wallets.where((w) => w.address != event.address).toList();
+    emit(state.copyWith(wallets: updatedWallets));
+  }
+
+  FutureOr<void> _onRenameWallet(
+    RenameWallet event,
+    Emitter<AppState> emit,
+  ) async {
+    await api.renameWallet(event.address, event.newName);
+    final updatedWallets = state.wallets.map((w) {
+      if (w.address.toLowerCase() == event.address.toLowerCase()) {
+        return w.copyWith(walletName: event.newName);
+      }
+      return w;
+    }).toList();
     emit(state.copyWith(wallets: updatedWallets));
   }
 

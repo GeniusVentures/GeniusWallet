@@ -47,6 +47,49 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     setState(() => savedWalletAddress = address);
   }
 
+  Future<void> _confirmRenameWallet(BuildContext context, Wallet wallet) async {
+    // Close the drawer first so the dialog appears on the correct navigator.
+    Navigator.of(context).pop();
+
+    final controller = TextEditingController(text: wallet.walletName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename Wallet'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Wallet name',
+          ),
+          onSubmitted: (value) => Navigator.of(ctx).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+            child: const Text('Rename'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null &&
+        newName.isNotEmpty &&
+        newName != wallet.walletName &&
+        mounted) {
+      context.read<AppBloc>().add(RenameWallet(wallet.address, newName));
+      if (wallet.address == selectedWallet?.address) {
+        setState(() {
+          selectedWallet = selectedWallet!.copyWith(walletName: newName);
+        });
+      }
+    }
+  }
+
   Future<void> _confirmDeleteWallet(BuildContext context, Wallet wallet) async {
     // Close the drawer first so the dialog appears on the correct navigator.
     Navigator.of(context).pop();
@@ -66,7 +109,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Wallet'),
+        title: const Text('Delete wallet'),
         content: Text(
           'Are you sure you want to delete "${wallet.walletName}"?\n\n'
           'This action cannot be undone.',
@@ -101,17 +144,50 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     }
   }
 
-  Future<void> _showAccountDrawer(List<Wallet> wallets) async {
+  Future<void> _showAccountDrawer() async {
     final walletCubit = context.read<WalletDetailsCubit>();
 
     final selected = await ResponsiveDrawer.show<Wallet>(
       context: context,
       title: "Your Accounts",
-      child: ListView.separated(
-        itemBuilder: (context, i) => _buildDrawerRow(
-            wallets[i], wallets[i].walletName == selectedWallet?.walletName),
-        itemCount: wallets.length,
-        separatorBuilder: (context, index) => SizedBox(height: 8.0),
+      child: StreamBuilder<SGNUSConnection>(
+        stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+        builder: (context, snapshot) {
+          return BlocBuilder<AppBloc, AppState>(
+            builder: (context, appState) {
+              final wallets = [...appState.wallets];
+              final connection = snapshot.data;
+              if (connection?.isConnected == true) {
+                wallets.insert(
+                  0,
+                  Wallet(
+                    walletName: 'Super Genius Wallet',
+                    walletType: WalletType.sgnus,
+                    address: connection!.sgnusAddress,
+                    currencySymbol: 'minions',
+                    coinType: TWCoinType.TWCoinTypeEthereum,
+                    balance: 0,
+                  ),
+                );
+              }
+              if (wallets.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "You have no wallets!",
+                    style: TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                );
+              }
+              return ListView.separated(
+                itemBuilder: (context, i) => _buildDrawerRow(wallets[i],
+                    wallets[i].walletName == selectedWallet?.walletName),
+                itemCount: wallets.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 8.0),
+              );
+            },
+          );
+        },
       ),
       footer: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -119,8 +195,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
           style: FilledButton.styleFrom(
               textStyle:
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              iconSize: 28,
-              padding: EdgeInsets.all(16.0)),
+              iconSize: 28),
           onPressed: () => context.push('/landing_screen', extra: true),
           icon: const Icon(Icons.add),
           label: const Text("Add Wallet"),
@@ -263,10 +338,16 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 ),
                 if (wallet.walletType != WalletType.sgnus)
                   MenuItemButton(
+                    leadingIcon: const Icon(Icons.edit_outlined, size: 20),
+                    onPressed: () => _confirmRenameWallet(context, wallet),
+                    child: const Text('Rename'),
+                  ),
+                if (wallet.walletType != WalletType.sgnus)
+                  MenuItemButton(
                     leadingIcon: const Icon(Icons.delete_outline,
                         size: 20, color: Colors.redAccent),
                     onPressed: () => _confirmDeleteWallet(context, wallet),
-                    child: const Text('Delete wallet',
+                    child: const Text('Delete',
                         style: TextStyle(color: Colors.redAccent)),
                   ),
               ],
@@ -328,7 +409,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             return Tooltip(
               message: "Select wallet",
               child: TextButton(
-                onPressed: () => _showAccountDrawer(wallets),
+                onPressed: () => _showAccountDrawer(),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   spacing: 8.0,

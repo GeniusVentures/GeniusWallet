@@ -7,3 +7,6 @@ analyzer:
     - banxa
     - squidrouter
     - packages/genius_api/lib/proto
+
+formatter:
+  page_width: 80

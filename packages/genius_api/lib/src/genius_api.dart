@@ -463,6 +463,10 @@ class GeniusApi {
     return true;
   }
 
+  Future<void> renameWallet(String address, String newName) async {
+    await _secureStorage.renameWallet(address, newName);
+  }
+
   Future<void> deleteWallet(String address) async {
     await _secureStorage.deleteWallet(address);
   }
