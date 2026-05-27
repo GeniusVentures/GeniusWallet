@@ -4,17 +4,16 @@ import 'dart:typed_data';
 import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
-import 'package:genius_api/tw/private_key_impl.dart';
 import 'package:genius_api/tw/public_key.dart';
 
 class PrivateKey {
-  static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
+  static final FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
   static const int privateKeySize = 32;
 
   late Pointer<Void> nativehandle;
 
   static bool isValid(Uint8List data, TWCurve curve) {
-    return PrivateKeyImpl.isValid(
+    return ffiBridgePrebuilt.wallet_lib.TWPrivateKeyIsValid(
         ffiBridgePrebuilt.wallet_lib
             .TWDataCreateWithBytes(data.toPointerUint8(), data.length),
         curve);
@@ -25,28 +24,33 @@ class PrivateKey {
   }
 
   PrivateKey() {
-    nativehandle = PrivateKeyImpl.create();
+    nativehandle = ffiBridgePrebuilt.wallet_lib.TWPrivateKeyCreate().cast();
     if (nativehandle.hashCode == 0) {
       throw Exception(["PrivateKey nativehandle is null"]);
     }
   }
 
   PrivateKey.createWithData(Uint8List bytes) {
-    nativehandle = PrivateKeyImpl.createWithData(bytes);
+    final data = ffiBridgePrebuilt.wallet_lib
+        .TWDataCreateWithBytes(bytes.toPointerUint8(), bytes.length);
+    nativehandle =
+        ffiBridgePrebuilt.wallet_lib.TWPrivateKeyCreateWithData(data).cast();
     if (nativehandle.hashCode == 0) {
       throw Exception(["PrivateKey nativehandle is null"]);
     }
   }
 
   PrivateKey.createCopy(Pointer<Void> key) {
-    nativehandle = PrivateKeyImpl.createCopy(key);
+    nativehandle =
+        ffiBridgePrebuilt.wallet_lib.TWPrivateKeyCreateCopy(key.cast()).cast();
     if (nativehandle.hashCode == 0) {
       throw Exception(["PrivateKey nativehandle is null"]);
     }
   }
 
   Uint8List data() {
-    final data = PrivateKeyImpl.data(nativehandle);
+    final data =
+        ffiBridgePrebuilt.wallet_lib.TWPrivateKeyData(nativehandle.cast());
     return ffiBridgePrebuilt.wallet_lib
         .TWDataBytes(data)
         .asTypedList(ffiBridgePrebuilt.wallet_lib.TWDataSize(data));
@@ -108,15 +112,16 @@ class PrivateKey {
   }
 
   PublicKey getShareKey(PublicKey twPublicKey, TWCurve curve) {
-    final data =
-        PrivateKeyImpl.getShareKey(nativehandle, twPublicKey.pointer, curve);
+    final data = ffiBridgePrebuilt.wallet_lib.TWPrivateKeyGetSharedKey(
+        nativehandle.cast(), twPublicKey.pointer.cast(), curve);
     return PublicKey(data);
   }
 
   Uint8List sign(Uint8List digest, TWCurve curve) {
     final digestPoint = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(digest.toPointerUint8(), digest.length);
-    final data = PrivateKeyImpl.sign(nativehandle, digestPoint, curve);
+    final data = ffiBridgePrebuilt.wallet_lib
+        .TWPrivateKeySign(nativehandle.cast(), digestPoint, curve);
     final res = ffiBridgePrebuilt.wallet_lib
         .TWDataBytes(data)
         .asTypedList(ffiBridgePrebuilt.wallet_lib.TWDataSize(data));
@@ -124,10 +129,11 @@ class PrivateKey {
     return res;
   }
 
-  Uint8List signAsDER(Uint8List digest, TWCurve curve) {
+  Uint8List signAsDER(Uint8List digest) {
     final digestPoint = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(digest.toPointerUint8(), digest.length);
-    final data = PrivateKeyImpl.signAsDER(nativehandle, digestPoint);
+    final data = ffiBridgePrebuilt.wallet_lib
+        .TWPrivateKeySignAsDER(nativehandle.cast(), digestPoint);
     final res = ffiBridgePrebuilt.wallet_lib
         .TWDataBytes(data)
         .asTypedList(ffiBridgePrebuilt.wallet_lib.TWDataSize(data));
@@ -138,7 +144,8 @@ class PrivateKey {
   Uint8List signZilliqaSchnorr(Uint8List digest) {
     final digestPoint = ffiBridgePrebuilt.wallet_lib
         .TWDataCreateWithBytes(digest.toPointerUint8(), digest.length);
-    final data = PrivateKeyImpl.signZilliqaSchnorr(nativehandle, digestPoint);
+    final data = ffiBridgePrebuilt.wallet_lib
+        .TWPrivateKeySignZilliqaSchnorr(nativehandle.cast(), digestPoint);
     final res = ffiBridgePrebuilt.wallet_lib
         .TWDataBytes(data)
         .asTypedList(ffiBridgePrebuilt.wallet_lib.TWDataSize(data));
@@ -147,7 +154,7 @@ class PrivateKey {
   }
 
   void delete() {
-    PrivateKeyImpl.delete(nativehandle);
+    ffiBridgePrebuilt.wallet_lib.TWPrivateKeyDelete(nativehandle.cast());
     nativehandle = nullptr;
   }
 }

@@ -5,7 +5,6 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart' as tw;
 import 'package:flutter/material.dart';
 
 class FFIBridgePrebuilt {
-  static const String _libName = 'GeniusWallet';
   late tw.NativeLibrary wallet_lib;
   late gns.NativeLibrary gns_lib;
 
