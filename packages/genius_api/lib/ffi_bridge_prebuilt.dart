@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class FFIBridgePrebuilt {
   late tw.NativeLibrary tw_lib;
-  late gns.NativeLibrary gns_lib;
+  late gns.NativeLibrary sgns_lib;
 
   FFIBridgePrebuilt() {
     final DynamicLibrary? dylib = () {
@@ -25,7 +25,7 @@ class FFIBridgePrebuilt {
     }
 
     tw_lib = tw.NativeLibrary(dylib);
-    gns_lib = gns.NativeLibrary(dylib);
+    sgns_lib = gns.NativeLibrary(dylib);
   }
 }
 

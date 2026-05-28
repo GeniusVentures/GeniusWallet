@@ -47,7 +47,7 @@ void main() async {
     addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
   }
 
-  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+  if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
     await windowManager.ensureInitialized();
     windowManager.addListener(MyWindowListener(geniusApi));
   }
@@ -109,8 +109,6 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    final result = widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
-    debugPrint("GeniusApi shutdown on dispose: $result");
     super.dispose();
   }
 
@@ -170,7 +168,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
-          title: 'Gnus AI',
+          title: 'Genius Wallet',
           theme: getThemeData(),
           routerConfig: geniusWalletRouter,
         ),

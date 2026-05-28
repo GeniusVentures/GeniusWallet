@@ -37,7 +37,7 @@ class GeniusApi {
   final _sgnusTransactionsController = SGNUSTransactionsController();
   final _walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
   late final String _address;
-  late final String _jsonFilePath;
+  late final String _basePath;
   bool _isSdkInitialized = false;
 
   GeniusApi({
@@ -101,9 +101,13 @@ class GeniusApi {
   }
 
   Future<void> initSDK() async {
-    requestPermissions();
-    final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
+    if (_isSdkInitialized) {
+      return;
+    }
 
+    requestPermissions();
+
+    final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
     if (storedKey == null) {
       debugPrint("No suitable wallet found");
       return;
@@ -127,29 +131,30 @@ class GeniusApi {
           storedKey.privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0))!;
     }
 
-    _jsonFilePath = await copyJsonToWritableDirectory();
-    final basePathPtr = _jsonFilePath.toNativeUtf8();
+    _basePath = '${(await copyJsonToWritableDirectory()).path}/';
+    final basePathPtr = _basePath.toNativeUtf8();
 
     final privateKeyAsStr = privateKey
         .data()
         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
         .join();
-
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-    debugPrint('Json File Path: $_jsonFilePath');
-    final retVal = _ffiBridgePrebuilt.gns_lib.GeniusSDKInitWithKey(
+    final retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithKey(
         basePathPtr.cast(), privateKeyAsPtr.cast(), true, true, 41001, false);
 
+    malloc.free(privateKeyAsPtr);
+    malloc.free(basePathPtr);
+
     if (retVal == nullptr) {
+      debugPrint("Error: failed to init SDK");
       return;
     }
 
-    _address = getSGNUSAddress();
+    var rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
+    List<int> charCodes =
+        List<int>.generate(2 + 128, (index) => rawAddress.address[index]);
+    _address = String.fromCharCodes(charCodes);
 
-    malloc.free(basePathPtr);
-    malloc.free(privateKeyAsPtr);
-
-    // Update UI with SGNUS connection status
     getSGNUSController().updateConnection(SGNUSConnection(
         sgnusAddress: _address,
         walletAddress: storedKey
@@ -161,35 +166,24 @@ class GeniusApi {
     _isSdkInitialized = true;
   }
 
-  Future<String> copyJsonToWritableDirectory() async {
+  Future<Directory> copyJsonToWritableDirectory() async {
     try {
-      // Get the directory to store files
       final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/dev_config.json';
+      debugPrint('Base path directory: ${directory.path}');
 
-      debugPrint(
-          'Application documents directory: ${directory.path}'); // Log the directory path
-
-      // Load the asset file
       final jsonString = await rootBundle.loadString('assets/dev_config.json');
-      debugPrint(
-          'Loaded JSON string: $jsonString'); // Log the content of the JSON
+      debugPrint('Loaded dev config: $jsonString');
 
-      // Write the file to the writable directory
+      final filePath = '${directory.path}/dev_config.json';
       final file = File(filePath);
       await file.writeAsString(jsonString);
-      debugPrint(
-          'File written to: $filePath'); // Log the file path after writing
+      debugPrint('File written to: $filePath');
 
-      // Verify the file was written correctly
       final writtenFileContent = await file.readAsString();
-      debugPrint(
-          'Content of the written file: $writtenFileContent'); // Log the written file content
+      debugPrint('Content of the written file: $writtenFileContent');
 
-      // Return the directory path for use in FFI
-      return '${directory.path}/';
+      return directory;
     } catch (e) {
-      // Log any error that occurs
       debugPrint('Error in copyJsonToWritableDirectory: $e');
       rethrow;
     }
@@ -236,7 +230,7 @@ class GeniusApi {
       tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
     }
 
-    final result = _ffiBridgePrebuilt.gns_lib.GeniusSDKMint(amount,
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKMint(amount,
         transhash as Pointer<Char>, chainid as Pointer<Char>, tokenIdData.ref);
 
     calloc.free(tokenIdData);
@@ -253,7 +247,7 @@ class GeniusApi {
   }
 
   GeniusNodeReturnValue shutdownSDK() {
-    final result = _ffiBridgePrebuilt.gns_lib.GeniusSDKShutdown();
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKShutdown();
     final mappedResult = _mapNodeReturnValue(result);
     debugPrint("Shutting Down SDK: $mappedResult");
     dispose();
@@ -289,7 +283,7 @@ class GeniusApi {
 
     try {
       // Call the native function
-      final result = _ffiBridgePrebuilt.gns_lib.GeniusSDKProcess(jsonPointer);
+      final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKProcess(jsonPointer);
       return _mapNodeReturnValue(result);
     } finally {
       // Free the allocated memory to prevent memory leaks
@@ -309,7 +303,7 @@ class GeniusApi {
 
     try {
       // Call the native function
-      cost = _ffiBridgePrebuilt.gns_lib.GeniusSDKGetCost(jsonPointer);
+      cost = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetCost(jsonPointer);
     } catch (e, stackTrace) {
       // Handle the exception gracefully, e.g., log it
       debugPrint("Error in GeniusSDKGetCost: $e");
@@ -510,7 +504,7 @@ class GeniusApi {
     }
 
     final balance =
-        _ffiBridgePrebuilt.gns_lib.GeniusSDKGetBalance(tokenIdData.ref);
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalance(tokenIdData.ref);
     calloc.free(tokenIdData);
     return balance.toString();
   }
@@ -520,7 +514,7 @@ class GeniusApi {
       return "0";
     }
     GeniusTokenValue tokenValue =
-        _ffiBridgePrebuilt.gns_lib.GeniusSDKGetBalanceGNUS();
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalanceGNUS();
     final array = tokenValue.value;
     List<int> charCodes = [];
     for (int i = 0; i < 22; i++) {
@@ -530,20 +524,6 @@ class GeniusApi {
       }
       charCodes.add(c);
     }
-    return String.fromCharCodes(charCodes);
-  }
-
-  /// Returns address as a hexadecimal string, with 64 hex characters prepended
-  /// by `0x`.
-  String getSGNUSAddress() {
-    if (!_isSdkInitialized) {
-      return '';
-    }
-    var address = _ffiBridgePrebuilt.gns_lib.GeniusSDKGetAddress();
-
-    List<int> charCodes =
-        List<int>.generate(66, (index) => address.address[index]);
-
     return String.fromCharCodes(charCodes);
   }
 
@@ -594,7 +574,8 @@ class GeniusApi {
       return;
     }
 
-    var transactions = _ffiBridgePrebuilt.gns_lib.GeniusSDKGetOutTransactions();
+    var transactions =
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer =
@@ -648,7 +629,7 @@ class GeniusApi {
     // Sort by timestamp, newest first
     ret.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
 
-    _ffiBridgePrebuilt.gns_lib.GeniusSDKFreeTransactions(transactions);
+    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFreeTransactions(transactions);
 
     // Stream transactions to the UI
     getSGNUSTransactionsController().setTransactions(ret);
@@ -681,7 +662,7 @@ class GeniusApi {
       }
     }
 
-    final ret = _ffiBridgePrebuilt.gns_lib
+    final ret = _ffiBridgePrebuilt.sgns_lib
         .GeniusSDKTransfer(amount, convertedAddress, tokenIdData.ref);
 
     calloc.free(convertedAddress);
@@ -694,14 +675,14 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return 0.0;
     }
-    return _ffiBridgePrebuilt.gns_lib.GeniusSDKGetGNUSPrice();
+    return _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetGNUSPrice();
   }
 
   String getBalanceGNUSString() {
     if (!_isSdkInitialized) {
       return "0";
     }
-    final result = _ffiBridgePrebuilt.gns_lib.GeniusSDKGetBalanceGNUSString();
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalanceGNUSString();
     return result.cast<Utf8>().toDartString();
   }
 
@@ -729,7 +710,7 @@ class GeniusApi {
     }
 
     final result =
-        _ffiBridgePrebuilt.gns_lib.GeniusSDKPayDev(amount, tokenIdData.ref);
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKPayDev(amount, tokenIdData.ref);
     calloc.free(tokenIdData);
 
     return _mapNodeReturnValue(result);
@@ -830,18 +811,18 @@ class GeniusApi {
   }
 
   GeniusProcessingStatusInfo getProcessingStatus() {
-    final result = _ffiBridgePrebuilt.gns_lib.GeniusSDKGetProcessingStatus();
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetProcessingStatus();
     return result;
   }
 
   GeniusTransactionManagerState getTransactionManagerState() {
     final result =
-        _ffiBridgePrebuilt.gns_lib.GeniusSDKGetTransactionManagerState();
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetTransactionManagerState();
     return _mapTransactionManagerState(result);
   }
 
   GeniusNodeState getNodeState() {
-    final result = _ffiBridgePrebuilt.gns_lib.GeniusSDKGetNodeState();
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetNodeState();
     return _mapNodeState(result);
   }
 

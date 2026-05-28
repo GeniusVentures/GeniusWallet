@@ -4,6 +4,8 @@ class AppState extends Equatable {
   //? Maybe we can add a bool to easily see if the user is authenticated in the state.
   final List<Wallet> wallets;
 
+  final AppStatus sdkStatus;
+
   final AppStatus subscribeToWalletStatus;
 
   final AppStatus loadUserStatus;
@@ -23,6 +25,7 @@ class AppState extends Equatable {
 
   const AppState(
       {this.wallets = const [],
+      this.sdkStatus = AppStatus.initial,
       this.subscribeToWalletStatus = AppStatus.initial,
       this.loadUserStatus = AppStatus.initial,
       this.userStatus = UserStatus.initial,
@@ -35,6 +38,7 @@ class AppState extends Equatable {
 
   AppState copyWith(
       {List<Wallet>? wallets,
+      AppStatus? sdkStatus,
       AppStatus? subscribeToWalletStatus,
       AppStatus? loadUserStatus,
       UserStatus? userStatus,
@@ -46,6 +50,7 @@ class AppState extends Equatable {
       AppStatus? accountStatus}) {
     return AppState(
         wallets: wallets ?? this.wallets,
+        sdkStatus: sdkStatus ?? this.sdkStatus,
         subscribeToWalletStatus:
             subscribeToWalletStatus ?? this.subscribeToWalletStatus,
         loadUserStatus: loadUserStatus ?? this.loadUserStatus,
@@ -61,6 +66,7 @@ class AppState extends Equatable {
   @override
   List<Object?> get props => [
         wallets,
+        sdkStatus,
         subscribeToWalletStatus,
         loadUserStatus,
         userStatus,
