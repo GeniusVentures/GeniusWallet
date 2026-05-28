@@ -106,38 +106,30 @@ class _OrdersPageState extends State<OrdersPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: canGoBack,
-        leading: canGoBack
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.go('/dashboard'),
-              ),
         title: const Text("My Orders"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.remove_red_eye),
+            tooltip: "KYC",
+            icon: const Icon(Icons.assignment_ind),
             onPressed: () => context.push('/kyc'),
           ),
           IconButton(
+            tooltip: "Refresh",
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<OrdersCubit>().fetchOrders('your-cust-id');
             },
           ),
-          Semantics(
-            label: 'Create new order',
-            button: true,
-            child: IconButton(
-              onPressed: () => context.push('/createOrder'),
-              icon: const Row(
-                children: [
-                  Icon(Icons.add),
-                  SizedBox(width: 4),
-                  Text('New Order'),
-                ],
-              ),
-              tooltip: 'Create new order',
+          IconButton(
+            onPressed: () => context.push('/createOrder'),
+            icon: const Row(
+              children: [
+                Icon(Icons.add),
+                SizedBox(width: 4),
+                Text('New Order'),
+              ],
             ),
+            tooltip: 'Create new order',
           )
         ],
       ),
@@ -174,8 +166,8 @@ class _OrdersPageState extends State<OrdersPage> {
                     }).toList(),
                     requestFocusOnTap: false,
                   ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: 300.0),
+                  SizedBox(
+                    width: 300.0,
                     child: OutlinedButton(
                         onPressed: () => _pickDateRange(context),
                         child: const Text("Pick Date Range")),

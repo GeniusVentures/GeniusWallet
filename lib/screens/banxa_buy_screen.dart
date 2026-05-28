@@ -8,12 +8,13 @@ import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
-import 'package:genius_wallet/components/custom_drop_down.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class BanxaBuyScreen extends StatefulWidget {
   final String? initialFiatCode;
@@ -91,325 +92,251 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             );
           }
 
-          final w = MediaQuery.sizeOf(context).width;
-          final compact = w < 400;
-          final tight = w < 320;
-          final pad = EdgeInsets.all(compact ? 12 : 16);
-          final labelStyle = TextStyle(fontSize: compact ? 13 : 14);
-
           final isBootLoading = state.step == MakeOrderStep.loadingCurrencies &&
               state.fiats.isEmpty &&
               state.cryptos.isEmpty;
 
+          final width = GeniusBreakpoints.small * 2 / 3;
           return Scaffold(
             appBar: AppBar(
-              title: Text(compact ? 'Buy' : 'Buy Crypto'),
+              title: Text('Buy Crypto'),
             ),
             body: Stack(
               children: [
                 if (isBootLoading)
                   const Center()
                 else
-                  Padding(
-                    padding: pad,
-                    child: ListView(
-                      children: [
-                        // FIAT Dropdown
-                        // FIAT Dropdown
-                        AppDropdown<FiatCurrency>(
-                          label: 'Fiat',
-                          items: state.fiats,
-                          selected: state.selectedFiat,
-                          display: (f) =>
-                              compact ? f.code : '${f.name} (${f.code})',
-                          onChanged:
-                              state.step == MakeOrderStep.loadingCurrencies
-                                  ? null
-                                  : (val) {
-                                      if (val != null) {
-                                        context
-                                            .read<MakeOrderCubit>()
-                                            .selectFiat(val);
-                                      }
-                                    },
-                          labelStyle: labelStyle,
-                          compact: compact,
-                        ),
-                        const SizedBox(height: 12),
-
-// Crypto Dropdown
-                        AppDropdown<CryptoCurrency>(
-                          label: compact ? 'Crypto' : 'Crypto Currency',
-                          items: state.cryptos,
-                          selected: state.selectedCrypto,
-                          display: (c) =>
-                              compact ? c.code : '${c.name} (${c.code})',
-                          onChanged:
-                              state.step == MakeOrderStep.loadingCurrencies
-                                  ? null
-                                  : (val) {
-                                      if (val != null) {
-                                        context
-                                            .read<MakeOrderCubit>()
-                                            .selectCrypto(val);
-                                      }
-                                    },
-                          labelStyle: labelStyle,
-                          compact: compact,
-                        ),
-                        const SizedBox(height: 12),
-
-// Payment Method Dropdown
-                        AppDropdown<PaymentMethod>(
-                          label: compact ? 'Method' : 'Payment Method',
-                          items: state.paymentMethods,
-                          selected: state.selectedPaymentMethod,
-                          display: (m) =>
-                              compact ? _shortMethodName(m.name) : m.name,
-                          onChanged:
-                              state.step == MakeOrderStep.loadingCurrencies
-                                  ? null
-                                  : (val) {
-                                      if (val != null) {
-                                        context
-                                            .read<MakeOrderCubit>()
-                                            .selectPaymentMethod(val);
-                                      }
-                                    },
-                          labelStyle: labelStyle,
-                          compact: compact,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Payment Method Dropdown
-
-                        const SizedBox(height: 12),
-
-                        // Amount input
-                        TextField(
-                          controller: _amountController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          onChanged: (v) =>
-                              context.read<MakeOrderCubit>().setAmountText(v),
-                          style: TextStyle(fontSize: compact ? 14 : 16),
-                          decoration: InputDecoration(
-                            labelText: _amountLabel(state, compact),
-                            labelStyle: labelStyle,
-                            border: const OutlineInputBorder(),
-                            isDense: compact,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: compact ? 10 : 14,
+                  Align(
+                  alignment: Alignment.topCenter,
+                    child: SingleChildScrollView(
+                    padding: EdgeInsetsGeometry.all(20.0),
+                      child: SizedBox(
+                        width: width,
+                        child: Column(
+                          spacing: 20.0,
+                          children: [
+                            DropdownMenu<FiatCurrency>(
+                              key: ValueKey(state.selectedFiat),
+                              initialSelection: state.selectedFiat,
+                              label: const Text('Fiat'),
+                              width: width,
+                              dropdownMenuEntries: state.fiats.map((f) {
+                                return DropdownMenuEntry<FiatCurrency>(
+                                  value: f,
+                                  label: '${f.name} (${f.code})',
+                                );
+                              }).toList(),
+                              onSelected:
+                                  state.step == MakeOrderStep.loadingCurrencies
+                                      ? null
+                                      : (val) {
+                                          if (val != null) {
+                                            context
+                                                .read<MakeOrderCubit>()
+                                                .selectFiat(val);
+                                          }
+                                        },
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Get Quote & Retry Buttons
-                        if (compact)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              ElevatedButton(
-                                onPressed: state.canGetQuote
-                                    ? () => context
-                                        .read<MakeOrderCubit>()
-                                        .getQuote()
-                                    : null,
-                                child: const Text('Get Quote'),
+                            DropdownMenu<CryptoCurrency>(
+                              key: ValueKey(state.selectedCrypto),
+                              initialSelection: state.selectedCrypto,
+                              label: const Text('Crypto Currency'),
+                              width: width,
+                              dropdownMenuEntries: state.cryptos.map((c) {
+                                return DropdownMenuEntry<CryptoCurrency>(
+                                  value: c,
+                                  label: '${c.name} (${c.code})',
+                                );
+                              }).toList(),
+                              onSelected:
+                                  state.step == MakeOrderStep.loadingCurrencies
+                                      ? null
+                                      : (val) {
+                                          if (val != null) {
+                                            context
+                                                .read<MakeOrderCubit>()
+                                                .selectCrypto(val);
+                                          }
+                                        },
+                            ),
+                            DropdownMenu<PaymentMethod>(
+                              key: ValueKey(state.selectedPaymentMethod),
+                              initialSelection: state.selectedPaymentMethod,
+                              label: const Text('Payment Method'),
+                              width: width,
+                              dropdownMenuEntries:
+                                  state.paymentMethods.map((m) {
+                                return DropdownMenuEntry<PaymentMethod>(
+                                  value: m,
+                                  label: m.name,
+                                );
+                              }).toList(),
+                              onSelected:
+                                  state.step == MakeOrderStep.loadingCurrencies
+                                      ? null
+                                      : (val) {
+                                          if (val != null) {
+                                            context
+                                                .read<MakeOrderCubit>()
+                                                .selectPaymentMethod(val);
+                                          }
+                                        },
+                            ),
+                            TextField(
+                              controller: _amountController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              onChanged: (v) => context
+                                  .read<MakeOrderCubit>()
+                                  .setAmountText(v),
+                              decoration: InputDecoration(
+                                labelText: _amountLabel(state),
                               ),
-                              if (state.step == MakeOrderStep.error &&
-                                  state.fiats.isEmpty)
-                                TextButton.icon(
-                                  onPressed: () {
-                                    context
-                                        .read<MakeOrderCubit>()
-                                        .loadCurrencies(
-                                          initialFiatCode:
-                                              widget.initialFiatCode,
-                                          initialCryptoCode:
-                                              widget.initialCryptoCode,
-                                          initialPaymentMethodId:
-                                              widget.initialPaymentMethodId,
-                                          initialAmount: widget.initialAmount,
-                                          initialWalletAddress:
-                                              widget.initialWalletAddress,
-                                        );
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Retry'),
-                                ),
-                            ],
-                          )
-                        else
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: state.canGetQuote
-                                      ? () => context
-                                          .read<MakeOrderCubit>()
-                                          .getQuote()
-                                      : null,
-                                  child: const Text('Get Quote'),
-                                ),
-                              ),
-                              if (state.step == MakeOrderStep.error &&
-                                  state.fiats.isEmpty)
-                                IconButton(
-                                  onPressed: () {
-                                    context
-                                        .read<MakeOrderCubit>()
-                                        .loadCurrencies(
-                                          initialFiatCode:
-                                              widget.initialFiatCode,
-                                          initialCryptoCode:
-                                              widget.initialCryptoCode,
-                                          initialPaymentMethodId:
-                                              widget.initialPaymentMethodId,
-                                          initialAmount: widget.initialAmount,
-                                          initialWalletAddress:
-                                              widget.initialWalletAddress,
-                                        );
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  tooltip: 'Retry',
-                                ),
-                            ],
-                          ),
-
-                        // QUOTE CARD
-                        if (!state.hasQuote)
-                          const SizedBox()
-                        else
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    compact
-                                        ? 'Receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}'
-                                        : 'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}',
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: state.canGetQuote
+                                        ? () => context
+                                            .read<MakeOrderCubit>()
+                                            .getQuote()
+                                        : null,
+                                    child: const Text('Get Quote'),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 12,
-                                    runSpacing: 4,
+                                ),
+                                if (state.step == MakeOrderStep.error &&
+                                    state.fiats.isEmpty)
+                                  IconButton(
+                                    onPressed: () {
+                                      context
+                                          .read<MakeOrderCubit>()
+                                          .loadCurrencies(
+                                            initialFiatCode:
+                                                widget.initialFiatCode,
+                                            initialCryptoCode:
+                                                widget.initialCryptoCode,
+                                            initialPaymentMethodId:
+                                                widget.initialPaymentMethodId,
+                                            initialAmount: widget.initialAmount,
+                                            initialWalletAddress:
+                                                widget.initialWalletAddress,
+                                          );
+                                    },
+                                    icon: const Icon(Icons.refresh),
+                                    tooltip: 'Retry',
+                                  ),
+                              ],
+                            ),
+                            if (state.hasQuote)
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                          'Gateway: ${state.quote!.processingFee} ${state.fiatCode}'),
-                                      Text(
-                                          'Network: ${state.quote!.networkFee} ${state.fiatCode}'),
+                                          'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}'),
+                                      Wrap(
+                                        spacing: 12,
+                                        runSpacing: 4,
+                                        children: [
+                                          Text(
+                                              'Gateway: ${state.quote!.processingFee} ${state.fiatCode}'),
+                                          Text(
+                                              'Network: ${state.quote!.networkFee} ${state.fiatCode}'),
+                                        ],
+                                      ),
                                     ],
                                   ),
-                                ],
+                                ),
+                              ),
+                            TextField(
+                              controller: _walletController,
+                              onChanged: (v) => context
+                                  .read<MakeOrderCubit>()
+                                  .setWalletText(v),
+                              decoration: InputDecoration(
+                                labelText: 'Wallet Address',
                               ),
                             ),
-                          ),
-                        const SizedBox(height: 12),
+                            InkWell(
+                              onTap: state.canCreateOrder
+                                  ? () async {
+                                      final accepted =
+                                          await showDisclaimerDialog(
+                                        context,
+                                        title: "Payment Disclaimer",
+                                        message:
+                                            "You are now leaving GeniusWallet to complete your order or payment through Banxa (https://banxa.com). "
+                                            "Services related to card payments, crypto purchases, and transaction processing are provided by Banxa — "
+                                            "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
+                                            "Banxa's Terms of Use and Privacy & Cookies Policy.",
+                                        confirmText: "Continue",
+                                        activeColor: Colors.blue,
+                                      );
 
-                        // Wallet address input
-                        TextField(
-                          controller: _walletController,
-                          onChanged: (v) =>
-                              context.read<MakeOrderCubit>().setWalletText(v),
-                          style: TextStyle(fontSize: compact ? 14 : 16),
-                          decoration: InputDecoration(
-                            labelText: compact ? 'Wallet' : 'Wallet Address',
-                            labelStyle: labelStyle,
-                            border: const OutlineInputBorder(),
-                            isDense: compact,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: compact ? 10 : 14,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
+                                      if (!accepted) {
+                                        showAppSnackBar(
+                                          context,
+                                          'You must agree to the disclaimer to proceed.',
+                                        );
+                                        return;
+                                      }
 
-                        // Create Order Button
-                        ElevatedButton(
-                          onPressed: state.canCreateOrder
-                              ? () async {
-                                  final accepted = await showDisclaimerDialog(
-                                    context,
-                                    title: "Payment Disclaimer",
-                                    message:
-                                        "You are now leaving GeniusWallet to complete your order or payment through Banxa (https://banxa.com). "
-                                        "Services related to card payments, crypto purchases, and transaction processing are provided by Banxa — "
-                                        "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
-                                        "Banxa's Terms of Use and Privacy & Cookies Policy.",
-                                    confirmText: "Continue",
-                                    activeColor: Colors.blue,
-                                  );
-
-                                  if (!accepted) {
-                                    showAppSnackBar(
-                                      context,
-                                      'You must agree to the disclaimer to proceed.',
-                                    );
-                                    return;
-                                  }
-
-                                  // Proceed if disclaimer is accepted
-                                  if (state.checkoutUrl != null &&
-                                      state.orderId != null) {
-                                    await showCheckoutOptionsSheet(
-                                      context,
-                                      checkoutUrl: state.checkoutUrl!,
-                                      orderId: state.orderId!,
-                                      redirectUrl: state.redirectUrl ?? '',
-                                    );
-                                  } else {
-                                    await context
-                                        .read<MakeOrderCubit>()
-                                        .createOrder();
-                                  }
-                                }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            elevation: 0,
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: state.canCreateOrder
-                                  ? GeniusWalletGradient.greenBlueGreenGradient
-                                  : LinearGradient(
-                                      colors: [
-                                        Colors.grey.shade500,
-                                        Colors.grey.shade600
-                                      ],
+                                      // Proceed if disclaimer is accepted
+                                      if (state.checkoutUrl != null &&
+                                          state.orderId != null) {
+                                        await showCheckoutOptionsSheet(
+                                          context,
+                                          checkoutUrl: state.checkoutUrl!,
+                                          orderId: state.orderId!,
+                                          redirectUrl: state.redirectUrl ?? '',
+                                        );
+                                      } else {
+                                        await context
+                                            .read<MakeOrderCubit>()
+                                            .createOrder();
+                                      }
+                                    }
+                                  : null,
+                              borderRadius: BorderRadius.circular(
+                                  GeniusWalletConsts.borderRadiusButton),
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  gradient: state.canCreateOrder
+                                      ? GeniusWalletGradient
+                                          .greenBlueGreenGradient
+                                      : LinearGradient(
+                                          colors: [
+                                            Colors.grey.shade500,
+                                            Colors.grey.shade600
+                                          ],
+                                        ),
+                                  borderRadius: BorderRadius.circular(
+                                      GeniusWalletConsts.borderRadiusButton),
+                                ),
+                                child: Container(
+                                  height: 48,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Create Order',
+                                    style: TextStyle(
+                                      color: state.canCreateOrder
+                                          ? GeniusWalletColors.deepBlue
+                                          : Colors.black.withValues(alpha: 0.4),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
                                     ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: 48,
-                              child: Text(
-                                compact ? 'Checkout' : 'Create Order',
-                                style: TextStyle(
-                                  color: state.canCreateOrder
-                                      ? GeniusWalletColors.deepBlue
-                                      : Colors.black.withValues(alpha: 0.4),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        if (tight) const SizedBox(height: 6),
-                      ],
+                      ),
                     ),
                   ),
                 if (state.showOverlay || isBootLoading)
@@ -430,25 +357,12 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
   }
 }
 
-String _shortMethodName(String name) {
-  final n = name.trim();
-  if (n.length <= 10) return n;
-  final parts = n.split(RegExp(r'\s+'));
-  if (parts.isNotEmpty) {
-    final first = parts.first;
-    if (first.length <= 10) return first;
+String _amountLabel(MakeOrderState state) {
+  if (state.fiatCode.isEmpty) {
+    return 'Amount';
   }
-  return '${n.substring(0, 10)}…';
-}
-
-String _amountLabel(MakeOrderState state, bool compact) {
   if (state.selectedPaymentMethod == null) {
-    return compact
-        ? 'Amount (${state.fiatCode})'
-        : 'Amount (${state.fiatCode})';
-  }
-  if (compact) {
-    return 'Amt (${state.fiatCode}) [${state.minAmount ?? '-'}–${state.maxAmount ?? '-'}]';
+    return 'Amount (${state.fiatCode})';
   }
   return 'Amount (${state.fiatCode}) [Min: ${state.minAmount ?? '-'} - Max: ${state.maxAmount ?? '-'}]';
 }
