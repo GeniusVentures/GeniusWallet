@@ -31,7 +31,7 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
           geniusApi: context.read<GeniusApi>(),
         ),
         child: PinScreen(
-          text: 'Confirm PIN',
+          title: 'Confirm PIN',
           onCompleted: (value) {
             context.read<NewPinCubit>().pinConfirmSubmitted(value);
           },

@@ -29,9 +29,9 @@ import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
-import 'package:genius_wallet/pages/banaxa_buy_screen.dart';
-import 'package:genius_wallet/pages/order_details_page.dart';
-import 'package:genius_wallet/pages/splash.dart';
+import 'package:genius_wallet/screens/banxa_buy_screen.dart';
+import 'package:genius_wallet/screens/order_details_page.dart';
+import 'package:genius_wallet/screens/splash.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
