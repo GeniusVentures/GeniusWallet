@@ -36,6 +36,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     required this.walletDetailsCubit,
     required this.networkProvider,
   }) : super(const AppState()) {
+    on<InitializeSDK>(_onInitializeSDK);
     on<SubscribeToWallets>(_onSubscribeToWallets);
     on<CheckIfUserExists>(_onCheckIfUserExists);
     on<FetchAccount>(_onFetchAccount);
@@ -47,18 +48,21 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
   }
 
+  Future<void> _onInitializeSDK(
+    InitializeSDK event,
+    Emitter<AppState> emit,
+  ) async {
+    await api.initSDK();
+    emit(state.copyWith(sdkStatus: AppStatus.loaded));
+  }
+
   Future<void> _onSubscribeToWallets(
     SubscribeToWallets event,
     Emitter<AppState> emit,
   ) async {
     emit(state.copyWith(subscribeToWalletStatus: AppStatus.loading));
 
-    var wallets = await api.getWallets().first;
-
-    if (wallets.isNotEmpty) {
-      await api.initSDK();
-      wallets = await api.getWallets().first;
-    }
+    final wallets = await api.getWallets().first;
 
     _baseWallets = wallets;
     _startSgnusConnectionListener();
@@ -218,10 +222,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   List<Wallet> _mergeSgnusWallet() {
     final connection = _getSgnusConnection();
-    debugPrint(
-        '[AppBloc] _mergeSgnusWallet: isConnected=${connection.isConnected}, '
-        'sgnusAddress=${connection.sgnusAddress}, '
-        'baseWalletCount=${_baseWallets.length}');
     if (!connection.isConnected) {
       return _baseWallets;
     }

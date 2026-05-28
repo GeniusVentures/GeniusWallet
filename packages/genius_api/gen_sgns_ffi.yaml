@@ -1,4 +1,4 @@
 output: "lib/ffi/genius_api_ffi.dart"
 headers:
   entry-points:
-    - "../../../GeniusSDK/build/Linux/Debug/GeniusSDK/include/GeniusSDK.h"
+    - "../../../GeniusSDK/build/Linux/Debug/x86_64/GeniusSDK/include/GeniusSDK.h"

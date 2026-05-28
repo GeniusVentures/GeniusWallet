@@ -54,6 +54,10 @@ final geniusWalletRouter = GoRouter(
   redirect: (context, state) {
     final appBloc = context.read<AppBloc>();
 
+    if (appBloc.state.sdkStatus == AppStatus.initial) {
+      appBloc.add(InitializeSDK());
+    }
+
     if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
       appBloc.add(SubscribeToWallets());
       appBloc.add(StreamSGNUSTransactions());

@@ -15,7 +15,7 @@ bool isWalletPKBypass() {
   return walletPK.isNotEmpty;
 }
 
-void byPassSGNUSConnecton(geniusApi) {
+void byPassSGNUSConnecton(GeniusApi geniusApi) {
   if (!isWalletPKBypass()) {
     return;
   }
@@ -28,7 +28,7 @@ void byPassSGNUSConnecton(geniusApi) {
       isConnected: true));
 }
 
-void byPassWalletCreation(geniusApi) {
+void byPassWalletCreation(GeniusApi geniusApi) {
   if (!isWalletPKBypass()) {
     return;
   }
