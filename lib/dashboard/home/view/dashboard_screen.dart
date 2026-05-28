@@ -7,7 +7,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
-import 'package:genius_wallet/dashboard/transactions/transactions_scren.dart';
+import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';

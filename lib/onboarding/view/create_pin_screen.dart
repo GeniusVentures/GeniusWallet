@@ -29,7 +29,7 @@ class CreatePinScreen extends StatelessWidget {
           }
         },
         child: PinScreen(
-          text: GeniusWalletText.helpPin,
+          title: GeniusWalletText.helpPin,
           onCompleted: onCompleted,
         ),
       ),

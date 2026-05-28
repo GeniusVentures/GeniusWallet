@@ -7,7 +7,7 @@ import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
-import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
+import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
 import 'package:genius_wallet/components/custom_drop_down.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading.dart';

@@ -3,7 +3,7 @@ import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_details_card.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
-import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
+import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:go_router/go_router.dart';

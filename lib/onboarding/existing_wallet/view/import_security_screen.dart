@@ -6,8 +6,6 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/components/text_entry_field_widget.g.dart';
-import 'package:genius_wallet/components/text_form_field_logic.g.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
@@ -197,18 +195,12 @@ class KeystoreTabView extends StatelessWidget {
     return PasteField(
       controller: pasteFieldController,
       hintText: 'Wallet Keystore JSON',
-      additionalWidget: SizedBox(
-        height: 60,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return TextEntryFieldWidget(
-            logic: TextFormFieldLogic(
-              context,
-              controller: passwordController,
-              obscureText: true,
-              hintText: 'Password',
-            ),
-          );
-        }),
+      additionalWidget: TextFormField(
+        controller: passwordController,
+        obscureText: true,
+        decoration: const InputDecoration(
+          hintText: 'Password',
+        ),
       ),
       subtitle:
           'Several lines of text beginning with “{...}” plus the password you used to encrypt it',
