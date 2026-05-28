@@ -5,6 +5,7 @@ import 'package:rxdart/rxdart.dart';
 class SGNUSTransactionsController {
   final Set<Transaction> _transactions = {};
   final _controller = BehaviorSubject<List<Transaction>>();
+
   Stream<List<Transaction>> get stream => _controller.stream;
 
   SGNUSTransactionsController() {
@@ -18,7 +19,7 @@ class SGNUSTransactionsController {
         .add(List.unmodifiable(_transactions.toList().reversed.toList()));
   }
 
-  void addTransactions(List<Transaction> newTxs) {
+  void setTransactions(List<Transaction> newTxs) {
     _transactions.clear();
     _transactions.addAll(newTxs);
     _controller

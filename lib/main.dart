@@ -39,7 +39,7 @@ void main() async {
 
   await fetchAllCoinGeckoCoins();
 
-  await geniusApi.refreshWallets();
+  await geniusApi.loadStoredWallets();
 
   if ((await geniusApi.getWallets().first).isEmpty) {
     byPassSGNUSConnecton(geniusApi);

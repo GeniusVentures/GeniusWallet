@@ -5,7 +5,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart' as tw;
 import 'package:flutter/material.dart';
 
 class FFIBridgePrebuilt {
-  late tw.NativeLibrary wallet_lib;
+  late tw.NativeLibrary tw_lib;
   late gns.NativeLibrary gns_lib;
 
   FFIBridgePrebuilt() {
@@ -24,7 +24,7 @@ class FFIBridgePrebuilt {
       return;
     }
 
-    wallet_lib = tw.NativeLibrary(dylib);
+    tw_lib = tw.NativeLibrary(dylib);
     gns_lib = gns.NativeLibrary(dylib);
   }
 }

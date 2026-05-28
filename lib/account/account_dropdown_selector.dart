@@ -163,8 +163,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             itemBuilder: (context, i) => _buildDrawerRow(wallets[i],
                 wallets[i].walletName == selectedWallet?.walletName),
             itemCount: wallets.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(height: 8.0),
+            separatorBuilder: (context, index) => const SizedBox(height: 8.0),
           );
         },
       ),

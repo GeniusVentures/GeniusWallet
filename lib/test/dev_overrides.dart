@@ -49,7 +49,7 @@ void addFakeSGNUSTransactions(SGNUSTransactionsController txController) {
 
   debugPrint('\x1B[37m** Adding fake transactions\x1B[0m');
   txController
-      .addTransactions(List.generate(20, (_) => getFakeTransaction(true)));
+      .setTransactions(List.generate(20, (_) => getFakeTransaction(true)));
 }
 
 void addFakeWalletCubitTransactions(TransactionsCubit cubit) {
