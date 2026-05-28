@@ -1,4 +1,3 @@
-// checkout_options_sheet.dart
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
