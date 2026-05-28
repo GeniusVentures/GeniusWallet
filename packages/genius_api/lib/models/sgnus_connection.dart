@@ -13,4 +13,9 @@ class SGNUSConnection with _$SGNUSConnection {
 
   factory SGNUSConnection.fromJson(Map<String, Object?> json) =>
       _$SGNUSConnectionFromJson(json);
+
+  factory SGNUSConnection.empty() {
+    return SGNUSConnection(
+        sgnusAddress: "", walletAddress: "", isConnected: false);
+  }
 }

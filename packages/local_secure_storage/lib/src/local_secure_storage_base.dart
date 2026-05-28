@@ -55,9 +55,8 @@ class LocalWalletStorage {
         if (isAWallet(entry.key)) {
           StoredKey? storedKey = StoredKey.importJson(entry.value);
 
-          // A key was not able to be parsed, delete it
           if (storedKey == null) {
-            debugPrint("Deleted storedkey ${entry.key}");
+            debugPrint("Deleting key ${entry.key} because it is not parseable");
             await deleteKey(entry.key);
           }
         } else if (isAWatchedWallet(entry.key)) {
@@ -287,12 +286,11 @@ class LocalWalletStorage {
           final StoredKey? storedKey = StoredKey.importJson(entry.value);
           if (storedKey == null) continue;
           final storedKeyWallet = StoredKeyWallet(storedKey);
-          wallets.add(await mapStoredKeyWalletToWallets(storedKeyWallet));
+          wallets.add(await _toSafeWallet(storedKeyWallet));
         } else if (isAWatchedWallet(entry.key)) {
-          final Wallet? wallet = Wallet.fromJson(
+          final Wallet wallet = Wallet.fromJson(
               Map<String, dynamic>.from(jsonDecode(entry.value)));
-          if (wallet == null) continue;
-          wallets.add(await mapWalletToWallets(wallet));
+          wallets.add(await _fetchBalanceForWatchedWallet(wallet));
         }
       } catch (e) {
         debugPrint('Failed to parse wallet ${entry.key}: $e');
@@ -319,7 +317,7 @@ class LocalWalletStorage {
   }
 
   // Don't pass any sensitive data to the UI, no privateKey or mnemonic
-  Future<Wallet> mapStoredKeyWalletToWallets(StoredKeyWallet wallet) async {
+  Future<Wallet> _toSafeWallet(StoredKeyWallet wallet) async {
     final address = wallet.storedKey.account(0).address();
     final List<Network> networks = await readNetworkAssets();
     final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
@@ -350,7 +348,7 @@ class LocalWalletStorage {
     );
   }
 
-  Future<Wallet> mapWalletToWallets(Wallet wallet) async {
+  Future<Wallet> _fetchBalanceForWatchedWallet(Wallet wallet) async {
     final List<Network> networks = await readNetworkAssets();
     final network = networks.where(
         (element) => element.symbol == wallet.currencySymbol.toLowerCase());

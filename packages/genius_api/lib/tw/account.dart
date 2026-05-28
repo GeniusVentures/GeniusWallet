@@ -20,7 +20,7 @@ class Account {
       String derivationPath,
       String publicKey,
       String extendedPublicKey) {
-    return Account(ffiBridgePrebuilt.wallet_lib
+    return Account(ffiBridgePrebuilt.tw_lib
         .TWAccountCreate(
             StringUtil.toTWString(address).cast(),
             coin,
@@ -32,34 +32,35 @@ class Account {
   }
 
   String address() {
-    return StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
+    return StringUtil.toDartString(
+        ffiBridgePrebuilt.tw_lib
         .TWAccountAddress(nativehandle.cast())
         .cast());
   }
 
   TWCoinType coinType() {
-    return ffiBridgePrebuilt.wallet_lib.TWAccountCoin(nativehandle.cast());
+    return ffiBridgePrebuilt.tw_lib.TWAccountCoin(nativehandle.cast());
   }
 
   TWDerivation derivation() {
-    return ffiBridgePrebuilt.wallet_lib
+    return ffiBridgePrebuilt.tw_lib
         .TWAccountDerivation(nativehandle.cast());
   }
 
   String derivationPath() {
-    return StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
+    return StringUtil.toDartString(ffiBridgePrebuilt.tw_lib
         .TWAccountDerivationPath(nativehandle.cast())
         .cast());
   }
 
   String extendedPublicKey() {
-    return StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
+    return StringUtil.toDartString(ffiBridgePrebuilt.tw_lib
         .TWAccountExtendedPublicKey(nativehandle.cast())
         .cast());
   }
 
   String publicKey() {
-    return StringUtil.toDartString(ffiBridgePrebuilt.wallet_lib
+    return StringUtil.toDartString(ffiBridgePrebuilt.tw_lib
         .TWAccountPublicKey(nativehandle.cast())
         .cast());
   }
