@@ -11,7 +11,8 @@
             "type": "dart",
             "env": {
                 "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Debug -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
-            }
+            },
+            "program": "lib/main.dart"
         },
         {
             "name": "GeniusWallet (profile mode)",
@@ -20,7 +21,8 @@
             "flutterMode": "profile",
             "env": {
                 "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
-            }
+            },
+            "program": "lib/main.dart"
         },
         {
             "name": "GeniusWallet (release mode)",
@@ -29,7 +31,8 @@
             "flutterMode": "release",
             "env": {
                 "CMAKE_ARGUMENTS": "-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=TestNet-Phase-3.1 -DBRANCH_IS_TAG=ON",
-            }
+            },
+            "program": "lib/main.dart"
         },
     ]
 }
