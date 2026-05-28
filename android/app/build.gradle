@@ -159,6 +159,11 @@ tasks.configureEach { task ->
 
 dependencies {
     runtimeOnly secureStorageAarDependency
+    androidTestImplementation secureStorageAarDependency
+    androidTestImplementation "androidx.work:work-testing:2.9.1"
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "androidx.test:core-ktx:1.5.0"
 }
 
 flutter {
