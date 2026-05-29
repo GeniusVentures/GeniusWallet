@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_orders_history.dart';
 import 'package:genius_wallet/banxa/banxa_payment.dart';
@@ -59,8 +60,8 @@ final geniusWalletRouter = GoRouter(
     }
 
     if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
-      appBloc.add(SubscribeToWallets());
-      appBloc.add(StreamSGNUSTransactions());
+      appBloc.add(LoadWallets());
+      appBloc.add(StartSGNUSTransactionsStream());
     }
 
     if (appBloc.state.accountStatus == AppStatus.initial) {
@@ -243,7 +244,7 @@ final geniusWalletRouter = GoRouter(
                   BlocProvider(
                     create: (context) => NewWalletBloc(
                         api: context.read<GeniusApi>(),
-                        wallet: context.read<GeniusApi>().createNewWallet()),
+                        wallet: HDWallet()),
                   ),
                   BlocProvider(
                     create: (context) => NewPinCubit(

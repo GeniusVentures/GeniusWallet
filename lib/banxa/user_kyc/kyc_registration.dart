@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class BanxaKycScreen extends StatefulWidget {
@@ -74,11 +74,8 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
     debugPrint("WebView initialized and loading KYC URL...");
   }
 
-  Future<void> _openInBrowser() async {
-    final uri = Uri.parse(BanxaApiService.banxaKycUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+  void _openInBrowser() {
+    launchWebSite(context, BanxaApiService.banxaKycUrl);
   }
 
   @override
