@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
 class WalletCreationScreen extends StatelessWidget {
@@ -12,9 +13,9 @@ class WalletCreationScreen extends StatelessWidget {
       backgroundColor: GeniusWalletColors.deepBlue,
       body: Center(
         child: SizedBox(
-          width: 450,
+          width: GeniusBreakpoints.small * 2 / 3,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 16.0,
             children: [

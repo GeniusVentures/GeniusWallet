@@ -6,14 +6,15 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/components/overlay/selected_wallet_and_network.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -76,9 +77,25 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
 
     final mergedWallets = _mergeSgnusWallet();
-    final result = getSelectedWalletAndNetwork(networkProvider, mergedWallets);
-    final selectedWallet = result.wallet;
-    final selectedNetwork = result.network;
+
+    final walletBox = Hive.box(walletBoxName);
+    final address = walletBox.get(selectedWalletKey) as String?;
+
+    final networkBox = Hive.box(networkBoxName);
+    final chainId = networkBox.get(selectedNetworkKeyChainId) as int?;
+    final rpcUrl = networkBox.get(selectedNetworkKeyRpcUrl) as String?;
+
+    final networks = networkProvider.networks;
+
+    final selectedNetwork = networks.firstWhere(
+      (n) => n.chainId == chainId && n.rpcUrl == rpcUrl,
+      orElse: () => networks.first,
+    );
+
+    final selectedWallet = mergedWallets.firstWhere(
+      (w) => w.address == address,
+      orElse: () => mergedWallets.first,
+    );
 
     await transactionsCubit.loadInitial(selectedWallet.address);
     await walletDetailsCubit.loadInitial(

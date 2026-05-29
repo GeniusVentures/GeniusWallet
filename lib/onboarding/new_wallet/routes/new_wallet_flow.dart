@@ -36,18 +36,7 @@ class NewWalletFlow extends StatelessWidget {
               }
             },
             child: Scaffold(
-              appBar: AppBar(
-                leading: IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 20),
-                  onPressed: () {
-                    if (state.currentStep == _firstStep) {
-                      Navigator.of(context).pop();
-                    } else {
-                      context.read<NewWalletBloc>().add(GoBack());
-                    }
-                  },
-                ),
-              ),
+              appBar: AppBar(),
               body: _buildStep(context, newPinCubit, state),
             ),
           );
@@ -62,11 +51,10 @@ class NewWalletFlow extends StatelessWidget {
       case NewWalletStep.agreement:
         return LegalScreen(
           accepted: state.acceptedWarning,
-          onToggle: () =>
-              context.read<NewWalletBloc>().add(ToggleCheckbox()),
+          onToggle: () => context.read<NewWalletBloc>().add(ToggleCheckbox()),
           onContinue: () {
-            final userExists = context.read<AppBloc>().state.userStatus ==
-                UserStatus.exists;
+            final userExists =
+                context.read<AppBloc>().state.userStatus == UserStatus.exists;
             context
                 .read<NewWalletBloc>()
                 .add(AgreementAccepted(userExists: userExists));
