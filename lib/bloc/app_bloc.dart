@@ -68,18 +68,18 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _baseWallets = wallets;
     _startSgnusConnectionListener();
 
+    final mergedWallets = await _mergeSgnusWallet();
+
     if (_baseWallets.isEmpty) {
       emit(state.copyWith(
-        wallets: _mergeSgnusWallet(),
+        wallets: mergedWallets,
         subscribeToWalletStatus: AppStatus.loaded,
       ));
       return;
     }
 
-    final mergedWallets = _mergeSgnusWallet();
-
     final walletBox = Hive.box(walletBoxName);
-    final address = walletBox.get(selectedWalletKey) as String?;
+    final selectedWalletAddress = walletBox.get(selectedWalletKey) as String?;
 
     final networkBox = Hive.box(networkBoxName);
     final chainId = networkBox.get(selectedNetworkKeyChainId) as int?;
@@ -93,7 +93,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     );
 
     final selectedWallet = mergedWallets.firstWhere(
-      (w) => w.address == address,
+      (w) => w.address == selectedWalletAddress,
       orElse: () => mergedWallets.first,
     );
 
@@ -194,7 +194,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     await api.deleteWallet(event.address);
     _baseWallets =
         _baseWallets.where((w) => w.address != event.address).toList();
-    emit(state.copyWith(wallets: _mergeSgnusWallet()));
+    emit(state.copyWith(wallets: await _mergeSgnusWallet()));
   }
 
   FutureOr<void> _onRenameWallet(
@@ -208,7 +208,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       }
       return w;
     }).toList();
-    emit(state.copyWith(wallets: _mergeSgnusWallet()));
+    emit(state.copyWith(wallets: await _mergeSgnusWallet()));
   }
 
   void _startSgnusConnectionListener() {
@@ -219,26 +219,15 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     });
   }
 
-  void _onSgnusConnectionChanged(
+  FutureOr<void> _onSgnusConnectionChanged(
     SgnusConnectionChanged event,
     Emitter<AppState> emit,
-  ) {
-    emit(state.copyWith(wallets: _mergeSgnusWallet()));
+  ) async {
+    emit(state.copyWith(wallets: await _mergeSgnusWallet()));
   }
 
-  /// Returns the current SGNUS connection value directly from the
-  /// BehaviorSubject, bypassing any cached field timing issues.
-  SGNUSConnection _getSgnusConnection() {
-    final stream = api.getSGNUSConnectionStream();
-    if (stream is ValueStream<SGNUSConnection>) {
-      return stream.value;
-    }
-    return const SGNUSConnection(
-        sgnusAddress: '', walletAddress: '', isConnected: false);
-  }
-
-  List<Wallet> _mergeSgnusWallet() {
-    final connection = _getSgnusConnection();
+  Future<List<Wallet>> _mergeSgnusWallet() async {
+    final connection = await api.getSGNUSConnectionStream().first;
     if (!connection.isConnected) {
       return _baseWallets;
     }
