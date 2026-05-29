@@ -30,28 +30,13 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
         }
 
         final connection = snapshot.data!;
-        return GestureDetector(
-          onTap: () => context.push('/network'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Flexible(
-                      child: AutoSizeText(
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    'SGNUS Connection ',
-                    style: TextStyle(fontSize: 14),
-                  )),
-                  const SizedBox(width: 8),
-                  if (connection.isConnected) const CheckmarkAnimation(),
-                  if (!connection.isConnected) const XAnimation(),
-                ],
-              ),
-            ],
-          ),
+        return TextButton.icon(
+          iconAlignment: IconAlignment.end,
+          onPressed: () => context.push('/network'),
+          label: Text('SGNUS Connection'),
+          icon: connection.isConnected
+              ? const CheckmarkAnimation()
+              : const XAnimation(),
         );
       },
     );
@@ -107,18 +92,12 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
 }
 
 class SGNUSConnectionStatusWidget extends StatelessWidget {
-  final bool? isSmallScreen;
-
   const SGNUSConnectionStatusWidget({
     super.key,
-    this.isSmallScreen,
   });
 
   @override
   Widget build(BuildContext context) {
-    final alignment =
-        isSmallScreen == true ? Alignment.center : Alignment.centerRight;
-
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
         final isProcessing = appState.isProcessing;
@@ -127,31 +106,22 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
             ? '${appState.processingPercentage?.toStringAsFixed(2) ?? "0.00"}%'
             : 'idle';
 
-        return Align(
-          alignment: alignment,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isProcessing) ...[
-                const Loading(text: "processing"),
-                const SizedBox(width: 8),
-              ],
-              SizedBox(
-                width: 60,
-                child: AutoSizeText(
-                  statusText,
-                  maxLines: 1,
-                  textAlign: TextAlign.right,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isProcessing ? Colors.white : Colors.white70,
-                  ),
-                ),
-              ),
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isProcessing) ...[
+              const Loading(text: "processing"),
+              const SizedBox(width: 8),
             ],
-          ),
+            Text(
+              statusText,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isProcessing ? Colors.white : Colors.white70,
+              ),
+            ),
+          ],
         );
       },
     );

@@ -67,9 +67,6 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
       mainAxisSize: MainAxisSize.min,
       children: [
         Flexible(
