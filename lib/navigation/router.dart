@@ -189,37 +189,6 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/import_existing_wallet',
-      builder: (context, state) {
-        return BlocBuilder<AppBloc, AppState>(
-          builder: (context, state) {
-            if (state.loadUserStatus == AppStatus.loading) {
-              return const Loading();
-            } else if (state.loadUserStatus == AppStatus.loaded) {
-              return MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (context) => ExistingWalletBloc(
-                      geniusApi: context.read<GeniusApi>(),
-                    ),
-                  ),
-                  BlocProvider(
-                    create: (context) => NewPinCubit(
-                      api: context.read<GeniusApi>(),
-                    ),
-                  ),
-                ],
-                child: const ExistingWalletFlow(),
-              );
-            }
-            return const Center(
-              child: Text('Something went wrong! Please reload the app.'),
-            );
-          },
-        );
-      },
-    ),
-    GoRoute(
       path: '/network',
       builder: (context, state) {
         return BlocProvider.value(
@@ -227,39 +196,6 @@ final geniusWalletRouter = GoRouter(
           child: NetworkStatusPage(
             geniusApi: context.read<GeniusApi>(),
           ),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/create_wallet',
-      builder: (context, state) {
-        return BlocBuilder<AppBloc, AppState>(
-          builder: (context, state) {
-            /// Wait until we know if the user is new
-            if (state.loadUserStatus == AppStatus.loading) {
-              return const Loading();
-            } else if (state.loadUserStatus == AppStatus.loaded) {
-              return MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (context) => NewWalletBloc(
-                        api: context.read<GeniusApi>(),
-                        wallet: HDWallet()),
-                  ),
-                  BlocProvider(
-                    create: (context) => NewPinCubit(
-                      api: context.read<GeniusApi>(),
-                    ),
-                  ),
-                ],
-                child: const NewWalletFlow(),
-              );
-            } else {
-              return const Center(
-                child: Text('Something went wrong! Please reload the app.'),
-              );
-            }
-          },
         );
       },
     ),

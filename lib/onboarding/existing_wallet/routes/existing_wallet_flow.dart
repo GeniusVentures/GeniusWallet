@@ -36,19 +36,7 @@ class ExistingWalletFlow extends StatelessWidget {
               }
             },
             child: Scaffold(
-              appBar: AppBar(
-                leading: IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  tooltip: "Go back",
-                  onPressed: () {
-                    if (state.currentStep == _firstStep) {
-                      Navigator.of(context).pop();
-                    } else {
-                      context.read<ExistingWalletBloc>().add(GoBack());
-                    }
-                  },
-                ),
-              ),
+              appBar: AppBar(),
               body: _buildStep(context, newPinCubit, state),
             ),
           );
@@ -90,11 +78,10 @@ class ExistingWalletFlow extends StatelessWidget {
       case ImportWalletStep.legal:
         return LegalScreen(
           accepted: state.acceptedLegal,
-          onToggle: () =>
-              context.read<ExistingWalletBloc>().add(ToggleLegal()),
+          onToggle: () => context.read<ExistingWalletBloc>().add(ToggleLegal()),
           onContinue: () {
-            final userExists = context.read<AppBloc>().state.userStatus ==
-                UserStatus.exists;
+            final userExists =
+                context.read<AppBloc>().state.userStatus == UserStatus.exists;
             context
                 .read<ExistingWalletBloc>()
                 .add(LegalAccepted(userExists: userExists));

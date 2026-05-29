@@ -30,8 +30,8 @@ class LegalScreen extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () =>
-                  launchWebSite(context, 'https://www.gnus.ai/privacypolicy.html'),
+              onPressed: () => launchWebSite(
+                  context, 'https://www.gnus.ai/privacypolicy.html'),
               child: Text('Privacy Policy'),
             ),
           ),

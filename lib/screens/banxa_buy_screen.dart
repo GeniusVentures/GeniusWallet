@@ -107,9 +107,9 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                   const Center()
                 else
                   Align(
-                  alignment: Alignment.topCenter,
+                    alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
-                    padding: EdgeInsetsGeometry.all(20.0),
+                      padding: EdgeInsetsGeometry.all(20.0),
                       child: SizedBox(
                         width: width,
                         child: Column(

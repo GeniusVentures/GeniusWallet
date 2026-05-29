@@ -59,9 +59,9 @@ class ImportSecurityScreen extends StatelessWidget {
               child: LayoutBuilder(builder: (context, constraints) {
                 return Center(
                   child: SizedBox(
-                    width: GeniusBreakpoints.small,
+                    width: GeniusBreakpoints.small * 0.8,
                     child: Column(
-                      spacing: 20.0,
+                      spacing: 24.0,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text('Import $walletType Wallet',
@@ -89,7 +89,7 @@ class ImportSecurityScreen extends StatelessWidget {
                           ],
                         ),
                         SizedBox(
-                          height: 250,
+                          height: 260,
                           child: TabBarView(
                             children: [
                               PasteField(
