@@ -4,16 +4,16 @@ abstract class AppEvent {}
 
 class InitializeSDK extends AppEvent {}
 
-class SubscribeToWallets extends AppEvent {}
+class LoadWallets extends AppEvent {}
 
 class CheckIfUserExists extends AppEvent {}
 
 /// Class whose purpose is to test FFI Bridge functionality
-class FFITestEvent extends AppEvent {}
+class RunFFITest extends AppEvent {}
 
 class FetchAccount extends AppEvent {}
 
-class StreamSGNUSTransactions extends AppEvent {}
+class StartSGNUSTransactionsStream extends AppEvent {}
 
 class ProcessingStatusTicked extends AppEvent {}
 

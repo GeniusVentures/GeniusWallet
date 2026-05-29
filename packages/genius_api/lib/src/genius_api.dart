@@ -166,6 +166,12 @@ class GeniusApi {
     _isSdkInitialized = true;
   }
 
+  Future<void> _registerWallet(StoredKey storedKey) async {
+    await _secureStorage.saveStoredKey(storedKey);
+    await _initSDK(storedKey);
+    await loadStoredWallets();
+  }
+
   Future<Directory> copyJsonToWritableDirectory() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -254,21 +260,6 @@ class GeniusApi {
     return mappedResult;
   }
 
-  void requestAIProcess() {
-    //String job_id = "QmUDMvGQXbUKMsjmTzjf4ZuMx7tHx6Z4x8YH8RbwrgyGAf";
-//
-    //Pointer<Char> charPointer = malloc.allocate<Char>(job_id.length + 1);
-//
-    //for (int i = 0; i < job_id.length; i++) {
-    //  charPointer.elementAt(i).value = job_id.codeUnitAt(i);
-    //}
-    //charPointer.elementAt(job_id.length).value = 0;
-//
-    //ffiBridgePrebuilt.gns_lib.GeniusSDKProcess(charPointer, 100);
-//
-    //malloc.free(charPointer);
-  }
-
   GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
@@ -316,29 +307,6 @@ class GeniusApi {
     return cost;
   }
 
-  Future<List<Currency>> getMarkets() async {
-    return [
-      Currency(
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        price: '17000',
-        priceCurrency: 'USD',
-        priceDate: DateTime.now().toIso8601String(),
-      ),
-      Currency(
-        symbol: 'ETH',
-        name: 'Ethereum',
-        price: '1300',
-        priceCurrency: 'USD',
-        priceDate: DateTime.now().toIso8601String(),
-      ),
-    ];
-  }
-
-  HDWallet createNewWallet() {
-    return HDWallet();
-  }
-
   // Take in a created wallet and return the mnemonic
   Future<List<String>> getRecoveryPhrase(HDWallet wallet) async {
     return wallet.mnemonic().split(' ');
@@ -357,9 +325,7 @@ class GeniusApi {
       return;
     }
 
-    await _secureStorage.saveStoredKey(storedKey);
-    await _initSDK(storedKey);
-    await loadStoredWallets();
+    await _registerWallet(storedKey);
   }
 
   Future<bool> validateWalletImport({
@@ -411,9 +377,7 @@ class GeniusApi {
       return false;
     }
 
-    await _secureStorage.saveStoredKey(storedKey);
-    await _initSDK(storedKey);
-    await loadStoredWallets();
+    await _registerWallet(storedKey);
 
     return true;
   }
@@ -446,9 +410,7 @@ class GeniusApi {
       return false;
     }
 
-    await _secureStorage.saveStoredKey(storedKey);
-    await _initSDK(storedKey);
-    await loadStoredWallets();
+    await _registerWallet(storedKey);
 
     return true;
   }
@@ -463,9 +425,7 @@ class GeniusApi {
       return false;
     }
 
-    await _secureStorage.saveStoredKey(storedKey);
-    await _initSDK(storedKey);
-    await loadStoredWallets();
+    await _registerWallet(storedKey);
 
     return true;
   }
@@ -528,45 +488,31 @@ class GeniusApi {
   }
 
   DateTime parseTimestamp(int timestamp) {
+    // Determine the unit by the timestamp's magnitude and convert to microseconds.
+    int us;
+    final len = timestamp.abs().toString().length;
+
+    if (len >= 19) {
+      us = timestamp ~/ 1000; // nanoseconds
+    } else if (len >= 17) {
+      us = timestamp ~/ 10; // 100-nanosecond intervals (Windows FILETIME)
+    } else if (len >= 16) {
+      us = timestamp; // microseconds
+    } else if (len >= 13) {
+      us = timestamp * 1000; // milliseconds
+    } else {
+      us = timestamp * 1000000; // seconds
+    }
+
     try {
-      // Try new format (milliseconds) first
-      final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
-      // Accept reasonable dates (allow some future buffer for network time)
-      if (dt.year >= 2020 && dt.year <= 2530) {
+      final dt = DateTime.fromMicrosecondsSinceEpoch(us);
+      if (dt.year >= 2020 && dt.year <= 2100) {
         return dt;
       }
-      // If year is unreasonable, fall through to nanosecond conversions
-    } catch (e) {
-      // Will fall through to conversions below
-    }
+    } catch (_) {}
 
-    // Fallback: try different nanosecond-based conversions with year validation. None of these transaction should be outside of 2024/2025 so we're filtering for that
-    final conversions = [
-      () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 1000000), // nanoseconds (Linux)
-      () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 10), // 100ns (Windows old)
-      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10000000),
-      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100000000),
-      () => DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 100), // 10ns
-      () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 1000), // microseconds
-      () => DateTime.fromMicrosecondsSinceEpoch(
-          timestamp ~/ 1), // already microseconds
-    ];
-
-    for (final convert in conversions) {
-      try {
-        final dt = convert();
-        if (dt.year >= 2024 && dt.year <= 2025) {
-          return dt;
-        }
-      } catch (e) {
-        continue;
-      }
-    }
-    // Ultimate fallback, if nothing seems right we have to return something
-    return DateTime.fromMicrosecondsSinceEpoch(timestamp ~/ 10);
+    // Fallback: treat raw value as milliseconds
+    return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 
   void streamSGNUSTransactions() {
@@ -597,8 +543,6 @@ class GeniusApi {
         // No recipients in this kind of transaction
       } else if (header.type == "transfer") {
         rawRecipients = TransferTx.fromBuffer(buffer).utxoParams.outputs;
-      } else if (header.type == "escrow-release") {
-        // The recipients on release are not the payouts
       }
 
       if (rawRecipients != null) {
@@ -631,7 +575,6 @@ class GeniusApi {
 
     _ffiBridgePrebuilt.sgns_lib.GeniusSDKFreeTransactions(transactions);
 
-    // Stream transactions to the UI
     getSGNUSTransactionsController().setTransactions(ret);
   }
 

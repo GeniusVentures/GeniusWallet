@@ -23,7 +23,7 @@ class ExistingWalletFlow extends StatelessWidget {
           prev.importWalletStatus != ExistingWalletStatus.success &&
           curr.importWalletStatus == ExistingWalletStatus.success,
       listener: (context, state) {
-        context.read<AppBloc>().add(SubscribeToWallets());
+        context.read<AppBloc>().add(LoadWallets());
         context.go('/dashboard');
       },
       child: BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
@@ -88,7 +88,18 @@ class ExistingWalletFlow extends StatelessWidget {
           ),
         );
       case ImportWalletStep.legal:
-        return const LegalScreen();
+        return LegalScreen(
+          accepted: state.acceptedLegal,
+          onToggle: () =>
+              context.read<ExistingWalletBloc>().add(ToggleLegal()),
+          onContinue: () {
+            final userExists = context.read<AppBloc>().state.userStatus ==
+                UserStatus.exists;
+            context
+                .read<ExistingWalletBloc>()
+                .add(LegalAccepted(userExists: userExists));
+          },
+        );
     }
   }
 }

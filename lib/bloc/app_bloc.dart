@@ -37,11 +37,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     required this.networkProvider,
   }) : super(const AppState()) {
     on<InitializeSDK>(_onInitializeSDK);
-    on<SubscribeToWallets>(_onSubscribeToWallets);
+    on<LoadWallets>(_onLoadWallets);
     on<CheckIfUserExists>(_onCheckIfUserExists);
     on<FetchAccount>(_onFetchAccount);
-    on<StreamSGNUSTransactions>(_onStreamSGNUSTransactions);
-    on<FFITestEvent>(_onFFITestEvent);
+    on<StartSGNUSTransactionsStream>(_onStartSGNUSTransactionsStream);
+    on<RunFFITest>(_onRunFFITest);
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<DeleteWallet>(_onDeleteWallet);
     on<RenameWallet>(_onRenameWallet);
@@ -56,8 +56,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     emit(state.copyWith(sdkStatus: AppStatus.loaded));
   }
 
-  Future<void> _onSubscribeToWallets(
-    SubscribeToWallets event,
+  Future<void> _onLoadWallets(
+    LoadWallets event,
     Emitter<AppState> emit,
   ) async {
     emit(state.copyWith(subscribeToWalletStatus: AppStatus.loading));
@@ -163,10 +163,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
   }
 
-  Future<void> _onStreamSGNUSTransactions(
-    StreamSGNUSTransactions event,
+  void _onStartSGNUSTransactionsStream(
+    StartSGNUSTransactionsStream event,
     Emitter emit,
-  ) async {
+  ) {
     api.streamSGNUSTransactions();
   }
 
@@ -238,8 +238,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     ];
   }
 
-  FutureOr<void> _onFFITestEvent(
-    FFITestEvent event,
+  FutureOr<void> _onRunFFITest(
+    RunFFITest event,
     Emitter<AppState> emit,
   ) {
     final result = api.mintTokens(500, "", "", "");

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/new_wallet/view/backup_phrase_screen.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/view/confirm_and_save_pin_screen.dart';
@@ -23,7 +23,7 @@ class NewWalletFlow extends StatelessWidget {
           prev.walletSaveStatus != NewWalletStatus.loaded &&
           curr.walletSaveStatus == NewWalletStatus.loaded,
       listener: (context, state) {
-        context.read<AppBloc>().add(SubscribeToWallets());
+        context.read<AppBloc>().add(LoadWallets());
         context.go('/dashboard');
       },
       child: BlocBuilder<NewWalletBloc, NewWalletState>(
@@ -60,7 +60,18 @@ class NewWalletFlow extends StatelessWidget {
       BuildContext context, NewPinCubit newPinCubit, NewWalletState state) {
     switch (state.currentStep) {
       case NewWalletStep.agreement:
-        return const BackupPhraseScreen();
+        return LegalScreen(
+          accepted: state.acceptedWarning,
+          onToggle: () =>
+              context.read<NewWalletBloc>().add(ToggleCheckbox()),
+          onContinue: () {
+            final userExists = context.read<AppBloc>().state.userStatus ==
+                UserStatus.exists;
+            context
+                .read<NewWalletBloc>()
+                .add(AgreementAccepted(userExists: userExists));
+          },
+        );
       case NewWalletStep.verifyRecoveryPhrase:
         return const VerifyRecoveryPhraseScreen();
       case NewWalletStep.copyPhrase:

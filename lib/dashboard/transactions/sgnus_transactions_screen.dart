@@ -22,7 +22,7 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
 
     // Start polling every 10 seconds
     _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      context.read<AppBloc>().add(StreamSGNUSTransactions());
+      context.read<AppBloc>().add(StartSGNUSTransactionsStream());
     });
   }
 

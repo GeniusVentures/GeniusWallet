@@ -1,12 +1,19 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 
 class LegalScreen extends StatelessWidget {
-  const LegalScreen({super.key});
+  final bool accepted;
+  final VoidCallback onToggle;
+  final VoidCallback onContinue;
+
+  const LegalScreen({
+    super.key,
+    required this.accepted,
+    required this.onToggle,
+    required this.onContinue,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,44 +30,34 @@ class LegalScreen extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () =>
+                  launchWebSite(context, 'https://www.gnus.ai/privacypolicy.html'),
               child: Text('Privacy Policy'),
             ),
           ),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () =>
+                  launchWebSite(context, 'https://www.gnus.ai/tos.html'),
               child: Text('Terms of Service'),
             ),
           ),
           CheckboxListTile(
-            value: context.watch<ExistingWalletBloc>().state.acceptedLegal,
-            onChanged: (value) =>
-                context.read<ExistingWalletBloc>().add(ToggleLegal()),
+            value: accepted,
+            onChanged: (value) => onToggle(),
             title: AutoSizeText(
-              'I’ve read and accept the Terms of Service and Privacy Policy',
+              'I\'ve read and accept the Terms of Service and Privacy Policy',
             ),
             controlAffinity: ListTileControlAffinity.leading,
           ),
-          BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
-              builder: (context, state) {
-            return SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                  onPressed: state.acceptedLegal
-                      ? () {
-                          final userExists =
-                              context.read<AppBloc>().state.userStatus ==
-                                  UserStatus.exists;
-                          context
-                              .read<ExistingWalletBloc>()
-                              .add(LegalAccepted(userExists: userExists));
-                        }
-                      : null,
-                  child: Text("Continue")),
-            );
-          })
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: accepted ? onContinue : null,
+              child: Text("Continue"),
+            ),
+          ),
         ]),
       ),
     );
