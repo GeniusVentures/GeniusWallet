@@ -19,7 +19,7 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
 import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
-import 'package:genius_wallet/components/wallets_overview.g.dart';
+import 'package:genius_wallet/components/wallet_overview.dart';
 
 double gridSpacing = 8;
 

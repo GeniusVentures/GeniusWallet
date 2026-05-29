@@ -77,6 +77,9 @@ ThemeData getThemeData() => ThemeData(
             textStyle: const TextStyle(fontSize: 16),
             foregroundColor: Colors.white),
       ),
+      toggleButtonsTheme: ToggleButtonsThemeData(
+          borderRadius:
+              BorderRadius.circular(GeniusWalletConsts.borderRadiusButton)),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
             padding:

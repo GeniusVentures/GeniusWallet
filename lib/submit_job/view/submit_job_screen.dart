@@ -9,6 +9,7 @@ import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class SubmitJobScreen extends StatelessWidget {
   const SubmitJobScreen({super.key});
@@ -65,141 +66,139 @@ class SubmitJobScreen extends StatelessWidget {
 
           return Scaffold(
               appBar: AppBar(
-                centerTitle: false,
-                title: const AutoSizeText(
+                title: const Text(
                   "Submit a New Job",
-                  maxLines: 1,
                 ),
                 actions: [
                   TextButton.icon(
                     onPressed: submitJobCubit.openFilePicker,
-                    icon: const Icon(Icons.upload, size: 22),
-                    label: const AutoSizeText('Upload'),
+                    icon: const Icon(Icons.upload),
+                    label: const Text('Upload'),
                   ),
                 ],
               ),
-              body: Align(
-                  alignment: AlignmentGeometry.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: SingleChildScrollView(
-                        child: Column(
-                            spacing: 12.0,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                          Row(
-                            spacing: 8.0,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image.asset(
-                                'assets/images/crypto/gnus.png',
-                                height: 25,
-                                width: 25,
-                              ),
-                              Text(
-                                '$gnusBalance',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(width: 10.0),
-                              const FaIcon(
-                                FontAwesomeIcons.gasPump,
-                                color: Colors.red,
-                                size: 20,
-                              ),
-                              AutoSizeText(
-                                maxLines: 1,
-                                state.jobGasCost,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (uploadedFileName.isNotEmpty) ...[
+              body: Stack(children: [
+                Align(
+                    alignment: AlignmentGeometry.topCenter,
+                    child: SizedBox(
+                      width: GeniusBreakpoints.large,
+                      child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(spacing: 12.0, children: [
                             Row(
+                              spacing: 8.0,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const AutoSizeText(
-                                  'Uploaded File: ',
-                                  style: TextStyle(
+                                Image.asset(
+                                  'assets/images/crypto/gnus.png',
+                                  height: 25,
+                                  width: 25,
+                                ),
+                                Text(
+                                  '$gnusBalance',
+                                  style: const TextStyle(
                                     fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                SizedBox(width: 10.0),
+                                const FaIcon(
+                                  FontAwesomeIcons.gasPump,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
                                 AutoSizeText(
-                                  uploadedFileName,
+                                  maxLines: 1,
+                                  state.jobGasCost,
                                   style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (uploadedFileName.isNotEmpty) ...[
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const AutoSizeText(
+                                    'Uploaded File: ',
+                                    style: TextStyle(
                                       fontSize: 16,
-                                      color:
-                                          GeniusWalletColors.lightGreenPrimary,
-                                      fontFamily: "JetBrainsMono"),
+                                    ),
+                                  ),
+                                  AutoSizeText(
+                                    uploadedFileName,
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        color: GeniusWalletColors
+                                            .lightGreenPrimary,
+                                        fontFamily: "JetBrainsMono"),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const AutoSizeText(
+                                    'Cost: ',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  AutoSizeText(
+                                    "$jobCost GNUS",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (uploadedJson.isNotEmpty)
+                                FilledButton.icon(
+                                  onPressed: !isPurchaseable || isBridgingTokens
+                                      ? null
+                                      : () {
+                                          submitJobCubit.bridgeTokens();
+                                        },
+                                  label: const Text('Purchase'),
                                 ),
-                              ],
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const AutoSizeText(
-                                  'Cost: ',
+                              if (!isPurchaseable)
+                                Text(
+                                  '* You do not have enough GNUS',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    color: Colors.redAccent,
+                                    fontSize: 14,
                                   ),
                                 ),
-                                AutoSizeText(
-                                  "$jobCost GNUS",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            ],
                             if (uploadedJson.isNotEmpty)
-                              FilledButton.icon(
-                                onPressed: !isPurchaseable || isBridgingTokens
-                                    ? null
-                                    : () {
-                                        submitJobCubit.bridgeTokens();
-                                      },
-                                label: const Text('Purchase'),
-                              ),
-                            if (!isPurchaseable)
-                              AutoSizeText(
-                                '* You do not have enough GNUS',
-                                style: TextStyle(
-                                  color: GeniusWalletColors.red,
-                                  fontSize: 14,
-                                ),
-                              ),
-                          ],
-                          if (uploadedJson.isNotEmpty)
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: SelectableText(
-                                  const JsonEncoder.withIndent('    ')
-                                      .convert(uploadedJson),
-                                  style: const TextStyle(
-                                    fontFamily: 'JetBrainsMono',
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: SelectableText(
+                                    const JsonEncoder.withIndent('  ')
+                                        .convert(uploadedJson),
+                                    style: const TextStyle(
+                                      fontFamily: 'JetBrainsMono',
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          if (isFilePickerOpen)
-                            ModalBarrier(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              dismissible: false,
-                            ),
-                          if (isFilePickerOpen)
-                            const Center(
-                                child: Loading(
-                              text: "Preparing AI job...",
-                            ))
-                        ])),
-                  )));
+                          ])),
+                    )),
+                if (isFilePickerOpen)
+                  ModalBarrier(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    dismissible: false,
+                  ),
+                if (isFilePickerOpen)
+                  const Center(
+                      child: Loading(
+                    text: "Preparing AI job...",
+                  )),
+              ]));
         });
   }
 }

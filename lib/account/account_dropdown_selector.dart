@@ -268,6 +268,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 Expanded(
                   child: SelectableText(
                     wallet.address,
+                    maxLines: 2,
                     style: TextStyle(
                       fontFamily: 'JetBrainsMono',
                       color: subColor,
