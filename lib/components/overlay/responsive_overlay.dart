@@ -22,24 +22,16 @@ class MobileOverlay extends StatelessWidget {
     return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
       return Scaffold(
         extendBody: true,
-        backgroundColor: GeniusWalletColors.deepBlueTertiary,
         body: SafeArea(
           child: Column(
             children: [
               const DevToolsWidget(),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.all(8),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const NetworkDropdownSelector(),
-                    const Expanded(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: AccountDropdownSelector(),
-                      ),
-                    ),
+                    AccountDropdownSelector(),
                     ReownConnectButton(
                         walletAddress:
                             walletCubit.state.selectedWallet?.address ??
@@ -50,7 +42,6 @@ class MobileOverlay extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
               Expanded(child: child),
             ],
           ),
@@ -69,13 +60,13 @@ class DesktopOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      appBar: const DesktopTopBar(),
       body: SafeArea(
         child: BlocBuilder<AppBloc, AppState>(
           builder: (context, state) {
             return Column(
               children: [
                 const DevToolsWidget(),
-                const DesktopTopBar(),
                 Expanded(child: child),
               ],
             );

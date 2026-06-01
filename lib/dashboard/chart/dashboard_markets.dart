@@ -90,11 +90,9 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    widget.title!,
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.headlineMedium
-                  ),
+                  Text(widget.title!,
+                      maxLines: 1,
+                      style: Theme.of(context).textTheme.headlineMedium),
                   item,
                 ],
               );

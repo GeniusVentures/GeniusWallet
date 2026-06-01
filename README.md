@@ -1,11 +1,11 @@
 # Genius Wallet
 
-A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/) and [Parabeac](https://parabeac.com/).
+A Cryptocurrency wallet app built with [Flutter](https://flutter.dev/).
 
 ## Download Genius Wallet project
 
 ```bash
-git clone git@github.com:GeniusVentures/GeniusWallet.git --recursive 
+git clone git@github.com:GeniusVentures/GeniusWallet.git --recursive
 cd GeniusWallet
 ```
 
@@ -34,9 +34,9 @@ install_flutter.bat
 
 The scripts will:
 
-* Check if Flutter is already installed and its version
-* Install Flutter 3.32.5+ if needed via the thirdparty Git submodule
-* Provide instructions for PATH configuration
+- Check if Flutter is already installed and its version
+- Install Flutter 3.32.5+ if needed via the thirdparty Git submodule
+- Provide instructions for PATH configuration
 
 #### Manual Installation
 
@@ -246,10 +246,9 @@ If you see "Failed to load credentials" or "missing Xcode-Token" errors:
    ```
 
 4. **Download certificates manually:**
-
-   * Go to Xcode → Preferences → Accounts
-   * Select your team
-   * Click "Download Manual Profiles"
+   - Go to Xcode → Preferences → Accounts
+   - Select your team
+   - Click "Download Manual Profiles"
 
 **Note:** If using 2FA, you may need to generate an app-specific password at [https://appleid.apple.com](https://appleid.apple.com)
 
@@ -271,14 +270,17 @@ If you see "Failed to load credentials" or "missing Xcode-Token" errors:
 **Running from VS Code:**
 
 1. Open the project folder in VS Code:
+
    ```bash
    code .
    ```
 
 2. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run:
+
    ```
    Flutter: Select Device
    ```
+
    Choose your target device (Windows, macOS, Linux, Android emulator, iOS simulator, etc.)
 
 3. **Using the Debug Panel (Recommended):**
@@ -295,6 +297,7 @@ If you see "Failed to load credentials" or "missing Xcode-Token" errors:
    - Select your desired launch configuration
 
 **VS Code Features:**
+
 - **Hot Reload**: Save files (`Ctrl+S` / `Cmd+S`) to see changes instantly
 - **Hot Restart**: `Ctrl+Shift+F5` / `Cmd+Shift+F5` to restart the app
 - **Debug Console**: View logs and debug output
@@ -356,7 +359,7 @@ chmod +x build.sh run.sh
 
 ### Linux
 
-* Must have Zenity installed - `sudo apt install zenity`
+- Must have Zenity installed - `sudo apt install zenity`
 
 </details>
 
@@ -377,7 +380,7 @@ CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Release" flutter build <ostype> --release
 flutter build <ostype>
 ```
 
-* OR -
+- OR -
 
 ```
 CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Debug" flutter build <ostype> --debug
@@ -412,10 +415,10 @@ flutter build macos
 
 **Note:** Apps built with local signing:
 
-* Can only run on your local machine
-* Cannot be distributed to other users
-* Cannot be notarized or uploaded to the App Store
-* May trigger Gatekeeper warnings
+- Can only run on your local machine
+- Cannot be distributed to other users
+- Cannot be notarized or uploaded to the App Store
+- May trigger Gatekeeper warnings
 
 </details>
 
@@ -475,15 +478,15 @@ This approach allows you to predefine the wallet key for easier debugging and te
 
 ### 🎯 Summary
 
-| Feature               | Description                                                               |
-| --------------------- | ------------------------------------------------------------------------- |
-| **Flutter Version**   | 3.32.5 or higher required                                                 |
-| **Auto Install**      | Use `install_flutter.sh` (Linux/macOS) or `install_flutter.bat` (Windows) |
+| Feature               | Description                                                                    |
+| --------------------- | ------------------------------------------------------------------------------ |
+| **Flutter Version**   | 3.32.5 or higher required                                                      |
+| **Auto Install**      | Use `install_flutter.sh` (Linux/macOS) or `install_flutter.bat` (Windows)      |
 | **VS Code Setup**     | Install Flutter and Dart extensions, use F5 to run with preconfigured launches |
-| **iOS/macOS Dev**     | Requires CocoaPods and Xcode Command Line Tools                           |
-| **Dependencies**      | Automatically downloaded via CMake based on platform/build type           |
-| **Sandbox Mode**      | Runs without third-party dependencies                                     |
-| **CMake Setting**     | `set(CMAKE_SKIP_THIRD_PARTY ON)`                                          |
-| **Private Key Input** | Pass via Flutter args or a launch file                                    |
+| **iOS/macOS Dev**     | Requires CocoaPods and Xcode Command Line Tools                                |
+| **Dependencies**      | Automatically downloaded via CMake based on platform/build type                |
+| **Sandbox Mode**      | Runs without third-party dependencies                                          |
+| **CMake Setting**     | `set(CMAKE_SKIP_THIRD_PARTY ON)`                                               |
+| **Private Key Input** | Pass via Flutter args or a launch file                                         |
 
 ---

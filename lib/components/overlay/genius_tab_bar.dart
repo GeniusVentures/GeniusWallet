@@ -10,6 +10,7 @@ import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
@@ -93,6 +94,7 @@ class MobileTabBar extends StatelessWidget {
                 icon: Icon(d.icon),
                 activeIcon: Icon(d.activeIcon),
                 label: d.label,
+                tooltip: d.label,
               ))
           .toList(),
     );
@@ -101,14 +103,18 @@ class MobileTabBar extends StatelessWidget {
 
 const _kIconSize = 16.0;
 
-class DesktopTopBar extends StatelessWidget {
+class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
   const DesktopTopBar({super.key});
+
+  @override
+  Size get preferredSize =>
+      const Size.fromHeight(GeniusWalletConsts.appBarHeight);
 
   @override
   Widget build(BuildContext context) {
     final destinations = _visibleDestinations;
     final selected = _currentIndex(context);
-    final hideLabels = MediaQuery.sizeOf(context).width < 1300;
+    final hideLabels = MediaQuery.sizeOf(context).width < GeniusBreakpoints.xl;
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
 
     return ColoredBox(
@@ -116,19 +122,17 @@ class DesktopTopBar extends StatelessWidget {
       child: SizedBox(
         height: GeniusWalletConsts.appBarHeight,
         child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
+                spacing: 16,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Image.asset(
-                      'assets/images/geniusappbarlogo.png',
-                      height: 30,
-                      package: 'genius_wallet',
-                    ),
+                  Image.asset(
+                    'assets/images/geniusappbarlogo.png',
+                    height: 30,
+                    package: 'genius_wallet',
                   ),
                   ...destinations.indexed.map((entry) {
                     final (index, dest) = entry;
@@ -137,55 +141,46 @@ class DesktopTopBar extends StatelessWidget {
                         ? Colors.greenAccent
                         : Colors.white.withValues(alpha: 0.6);
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => context.go(dest.path),
-                          borderRadius: BorderRadius.circular(6),
-                          mouseCursor: SystemMouseCursors.click,
-                          child: Ink(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 6),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        isSelected
-                                            ? dest.activeIcon
-                                            : dest.icon,
-                                        size: _kIconSize,
-                                        color: color,
-                                      ),
-                                      if (!hideLabels) ...[
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          dest.label,
-                                          style: TextStyle(
-                                              fontSize: 14, color: color),
-                                        ),
-                                      ],
-                                    ],
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => context.go(dest.path),
+                        borderRadius: BorderRadius.circular(6),
+                        mouseCursor: SystemMouseCursors.click,
+                        child: Ink(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 2,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    isSelected ? dest.activeIcon : dest.icon,
+                                    size: _kIconSize,
+                                    color: color,
                                   ),
+                                  if (!hideLabels) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      dest.label,
+                                      style:
+                                          TextStyle(fontSize: 14, color: color),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                height: 1,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? Colors.greenAccent
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                                const SizedBox(height: 2),
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  height: 1,
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.greenAccent
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

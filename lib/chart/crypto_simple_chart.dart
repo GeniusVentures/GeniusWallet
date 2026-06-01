@@ -16,18 +16,17 @@ class CryptoSparkLineChart extends StatelessWidget {
   final double iconSize;
   final void Function()? onTap;
 
-  const CryptoSparkLineChart({
-    super.key,
-    required this.title,
-    required this.high24h,
-    required this.low24h,
-    required this.currentPrice,
-    required this.priceChangePercent,
-    this.sparkline,
-    this.iconSize = 28,
-    this.iconPath,
-    this.onTap
-  });
+  const CryptoSparkLineChart(
+      {super.key,
+      required this.title,
+      required this.high24h,
+      required this.low24h,
+      required this.currentPrice,
+      required this.priceChangePercent,
+      this.sparkline,
+      this.iconSize = 28,
+      this.iconPath,
+      this.onTap});
 
   /// Soft muted green/red colors
   static const Color _mutedGreen = GeniusWalletColors.mutedGreen;

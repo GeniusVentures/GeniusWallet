@@ -257,8 +257,6 @@ final geniusWalletRouter = GoRouter(
 
         return TokenInfoScreen(
             walletDetailsCubit: context.read<WalletDetailsCubit>(),
-            securityInfo: extra["securityInfo"],
-            transactionHistory: List<String>.from(extra["transactionHistory"]),
             isGnusWalletConnected: extra["isGnusWalletConnected"],
             marketData: marketData);
       },

@@ -19,16 +19,12 @@ import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
 
 class TokenInfoScreen extends StatelessWidget {
-  final String securityInfo;
   final bool? isGnusWalletConnected;
-  final List<String> transactionHistory;
   final CoinGeckoMarketData? marketData;
   final WalletDetailsCubit walletDetailsCubit;
 
   const TokenInfoScreen({
     super.key,
-    required this.securityInfo,
-    required this.transactionHistory,
     required this.walletDetailsCubit,
     this.marketData,
     this.isGnusWalletConnected,
