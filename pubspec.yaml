@@ -186,3 +186,24 @@ flutter:
     - packages/genius_wallet/assets/images/arrowright.png
     - packages/genius_wallet/assets/images/arrowleft.png
     - assets/dev_config.json
+  fonts:
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Italic.ttf
+          style: italic
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/JetBrainsMono-Bold-Italic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-Medium-Italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/JetBrainsMono-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/JetBrainsMono-ExtraBold-Italic.ttf
+          weight: 800
+          style: italic

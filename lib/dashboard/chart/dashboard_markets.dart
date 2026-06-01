@@ -5,7 +5,6 @@ import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,53 +67,33 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
             final coin = visibleCoins[index];
             final data = marketData[coin.symbol.toLowerCase()]!;
 
-            final item = Material(
-              child: InkWell(
-                onTap: () {
-                  context.push(
-                    '/token-info',
-                    extra: {
-                      "isGnusWalletConnected": false,
-                      "securityInfo": "Coming Soon",
-                      "transactionHistory": ["Coming Soon"],
-                      "marketData": data,
-                    },
-                  );
-                },
-                child: Ink(
-                  decoration: BoxDecoration(
-                    color: GeniusWalletColors.deepBlueCardColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: EdgeInsets.only(bottom: 1.0),
-                  child: CryptoSparkLineChart(
-                    title: coin.name,
-                    iconPath: data.imageUrl,
-                    currentPrice: data.currentPrice,
-                    high24h: data.high24h,
-                    low24h: data.low24h,
-                    priceChangePercent: data.priceChangePercentage24h,
-                    sparkline: data.sparkline,
-                  ),
-                ),
-              ),
+            final item = CryptoSparkLineChart(
+              onTap: () {
+                context.push(
+                  '/token-info',
+                  extra: {
+                    "isGnusWalletConnected": false,
+                    "marketData": data,
+                  },
+                );
+              },
+              title: coin.name,
+              iconPath: data.imageUrl,
+              currentPrice: data.currentPrice,
+              high24h: data.high24h,
+              low24h: data.low24h,
+              priceChangePercent: data.priceChangePercentage24h,
+              sparkline: data.sparkline,
             );
 
             if (index == 0 && widget.title != null) {
               return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Center(
-                    child: AutoSizeText(
-                      widget.title!,
-                      maxLines: 1,
-                      style: const TextStyle(
-                        fontSize: GeniusWalletFontSize.sectionHeader,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
+                  Text(
+                    widget.title!,
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.headlineMedium
                   ),
                   item,
                 ],

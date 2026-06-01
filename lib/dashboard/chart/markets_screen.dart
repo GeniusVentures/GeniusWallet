@@ -97,7 +97,6 @@ class MarketsScreen extends StatelessWidget {
                         );
                       }
 
-                      // Grid with robust lookup
                       return Expanded(
                         child: GridView.builder(
                             padding: const EdgeInsets.only(bottom: 16),
@@ -129,30 +128,27 @@ class MarketsScreen extends StatelessWidget {
 
                               return Card(
                                 clipBehavior: Clip.hardEdge,
-                                child: InkWell(
-                                    onTap: () {
-                                      context.push(
-                                        '/token-info',
-                                        extra: {
-                                          "isGnusWalletConnected": false,
-                                          "securityInfo": "Coming Soon",
-                                          "transactionHistory": ["Coming Soon"],
-                                          "marketData": data,
-                                          "coin": coin,
-                                        },
-                                      );
-                                    },
-                                    child: CryptoSparkLineChart(
-                                      title: coin.name,
-                                      iconPath: data.imageUrl,
-                                      currentPrice: data.currentPrice,
-                                      high24h: data.high24h,
-                                      low24h: data.low24h,
-                                      priceChangePercent:
-                                          data.priceChangePercentage24h,
-                                      iconSize: 32,
-                                      sparkline: data.sparkline,
-                                    )),
+                                child: CryptoSparkLineChart(
+                                  onTap: () {
+                                    context.push(
+                                      '/token-info',
+                                      extra: {
+                                        "isGnusWalletConnected": false,
+                                        "marketData": data,
+                                        "coin": coin,
+                                      },
+                                    );
+                                  },
+                                  title: coin.name,
+                                  iconPath: data.imageUrl,
+                                  currentPrice: data.currentPrice,
+                                  high24h: data.high24h,
+                                  low24h: data.low24h,
+                                  priceChangePercent:
+                                      data.priceChangePercentage24h,
+                                  iconSize: 32,
+                                  sparkline: data.sparkline,
+                                ),
                               );
                             }),
                       );

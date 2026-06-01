@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/tw/hd_wallet.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_orders_history.dart';
 import 'package:genius_wallet/banxa/banxa_payment.dart';
@@ -12,7 +11,6 @@ import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
@@ -24,11 +22,6 @@ import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
-import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/routes/existing_wallet_flow.dart';
-import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
 import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 import 'package:genius_wallet/screens/order_details_page.dart';
@@ -37,6 +30,7 @@ import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -248,12 +242,25 @@ final geniusWalletRouter = GoRouter(
         final extra = state.extra != null
             ? state.extra as Map<String, dynamic>
             : <String, dynamic>{};
+
+        final marketDataRaw = extra["marketData"];
+        final CoinGeckoMarketData? marketData;
+        if (marketDataRaw == null) {
+          marketData = null;
+        } else if (marketDataRaw is CoinGeckoMarketData) {
+          marketData = marketDataRaw;
+        } else if (marketDataRaw is Map<String, dynamic>) {
+          marketData = CoinGeckoMarketData.fromJson(marketDataRaw);
+        } else {
+          marketData = null;
+        }
+
         return TokenInfoScreen(
             walletDetailsCubit: context.read<WalletDetailsCubit>(),
             securityInfo: extra["securityInfo"],
             transactionHistory: List<String>.from(extra["transactionHistory"]),
             isGnusWalletConnected: extra["isGnusWalletConnected"],
-            marketData: extra["marketData"]);
+            marketData: marketData);
       },
     ),
     GoRoute(
