@@ -174,8 +174,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                           extra: {
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
-                            "securityInfo": "Coming Soon",
-                            "transactionHistory": ["Coming Soon"],
                             "marketData":
                                 _marketData[coin.symbol?.toLowerCase()]
                           },

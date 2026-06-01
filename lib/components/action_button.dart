@@ -72,7 +72,7 @@ class _ActionButtonState extends State<ActionButton>
         builder: (context, constraints) {
           final iconWidget = Icon(
             widget.icon,
-            size: constraints.maxWidth * 0.42,
+            size: constraints.maxWidth * 0.45,
             color: widget.iconColor,
           );
 
@@ -91,7 +91,6 @@ class _ActionButtonState extends State<ActionButton>
             child: ElevatedButton(
               onPressed: widget.onPressed,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(0),
                 fixedSize:
                     Size(constraints.maxWidth * 0.25, constraints.maxWidth),
                 shape: RoundedRectangleBorder(
@@ -99,7 +98,6 @@ class _ActionButtonState extends State<ActionButton>
                     GeniusWalletConsts.borderRadiusCard,
                   ),
                 ),
-                disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
                 backgroundColor: widget.backgroundColor,
               ),
               child: Column(

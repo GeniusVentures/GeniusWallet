@@ -14,6 +14,7 @@ class CryptoSparkLineChart extends StatelessWidget {
   final double priceChangePercent;
   final List<double>? sparkline;
   final double iconSize;
+  final void Function()? onTap;
 
   const CryptoSparkLineChart({
     super.key,
@@ -25,6 +26,7 @@ class CryptoSparkLineChart extends StatelessWidget {
     this.sparkline,
     this.iconSize = 28,
     this.iconPath,
+    this.onTap
   });
 
   /// Soft muted green/red colors
@@ -66,6 +68,7 @@ class CryptoSparkLineChart extends StatelessWidget {
         ),
         maxLines: 1,
       ),
+      onTap: onTap,
       subtitle: Text(
         formattedPrice,
         style: TextStyle(

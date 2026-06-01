@@ -52,7 +52,7 @@ class DashboardScreenState extends State<DashboardScreen> {
         child: Stack(fit: StackFit.expand, children: [
       BlocBuilder<AppBloc, AppState>(builder: (context, state) {
         final isDesktopLayout =
-            MediaQuery.sizeOf(context).width > GeniusBreakpoints.large;
+            MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium;
 
         if (state.subscribeToWalletStatus == AppStatus.loaded &&
             state.accountStatus == AppStatus.loaded) {
@@ -321,30 +321,25 @@ class ContributionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardScrollContainer(
-      child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-        builder: (context, walletState) {
-          final selectedWallet = walletState.selectedWallet;
-          return StreamBuilder<SGNUSConnection>(
-            stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-            builder: (context, snapshot) {
-              final connection = snapshot.data;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: CoinsScreen(
-                      isUseDivider: true,
-                      isGnusWalletConnected:
-                          (connection?.walletAddress ?? false) ==
-                              selectedWallet?.address,
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
+    return SizedBox.expand(
+      child: DashboardScrollContainer(
+        child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+          builder: (context, walletState) {
+            final selectedWallet = walletState.selectedWallet;
+            return StreamBuilder<SGNUSConnection>(
+              stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+              builder: (context, snapshot) {
+                final connection = snapshot.data;
+                return CoinsScreen(
+                  isUseDivider: true,
+                  isGnusWalletConnected:
+                      (connection?.walletAddress ?? false) ==
+                          selectedWallet?.address,
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

@@ -19,13 +19,13 @@ class GeniusWalletColors {
 
   static const Color white = Color(0xffffffff);
 
-  static const Color deepBlue = Color.fromRGBO(18, 33, 54, 1);
+  static const Color deepBlue = Color.fromRGBO(20, 37, 61, 1);
 
   static const Color deepBlueSecondary = Color.fromRGBO(11, 20, 32, 1);
 
   static const Color deepBlueTertiary = Color(0xff05090F);
 
-  static const Color deepBlueCardColor = Color(0xff0A121F);
+  static const Color deepBlueCardColor = Color.fromRGBO(10, 18, 31, 1);
 
   static const Color deepBlueMenu = Color(0xff0F1B2E);
 

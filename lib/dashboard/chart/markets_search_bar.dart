@@ -91,8 +91,6 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       context.push(
         '/token-info',
         extra: {
-          "securityInfo": "Coming Soon",
-          "transactionHistory": ["Coming Soon"],
           "marketData": marketData,
           "coin": coin,
         },

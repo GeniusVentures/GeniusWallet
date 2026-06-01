@@ -97,7 +97,7 @@ ThemeData getThemeData() => ThemeData(
             backgroundColor: WidgetStateProperty.resolveWith<Color?>(
               (Set states) {
                 if (states.contains(WidgetState.disabled)) {
-                  return GeniusWalletColors.gray600;
+                  return GeniusWalletColors.gray900;
                 }
                 return GeniusWalletColors.deepBlueCardColor;
               },
@@ -216,13 +216,19 @@ ThemeData getThemeData() => ThemeData(
             }
             return GeniusWalletColors.lightGreenPrimary;
           })),
+      dividerTheme: DividerThemeData(color: GeniusWalletColors.deepBlue),
       scaffoldBackgroundColor: GeniusWalletColors.deepBlueTertiary,
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-          fontSize: 40,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+          headlineLarge: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.bold,
+          ),
+          headlineMedium: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+          headlineSmall: TextStyle(
+            fontWeight: FontWeight.bold,
+          )),
       menuTheme: const MenuThemeData(
         style: MenuStyle(
             shape: WidgetStatePropertyAll(
