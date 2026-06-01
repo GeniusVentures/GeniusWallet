@@ -83,19 +83,19 @@ class ResponsiveDashboardView extends StatelessWidget {
       final is3Column = constraints.maxWidth > GeniusBreakpoints.xxl;
 
       if (is3Column) {
-        return _ThreeColumnLayout();
+        return _threeColumnLayout();
       }
-      return _TwoColumnLayout();
+      return _twoColumnLayout();
     });
   }
 
-  Widget _ThreeColumnLayout() {
+  Widget _threeColumnLayout() {
     const topRowMinHeight = 300.0;
     const bottomRowMinHeight = 380.0;
     const totalMinHeight = topRowMinHeight + bottomRowMinHeight;
 
     return Padding(
-      padding: EdgeInsets.all(gridSpacing),
+      padding: EdgeInsets.all(gridSpacing / 2),
       child: Row(children: [
         Expanded(
           flex: 3,
@@ -130,9 +130,9 @@ class ResponsiveDashboardView extends StatelessWidget {
     );
   }
 
-  Widget _TwoColumnLayout() {
+  Widget _twoColumnLayout() {
     return Padding(
-      padding: EdgeInsets.all(gridSpacing),
+      padding: EdgeInsets.all(gridSpacing / 2),
       child: Column(children: [
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 300),
@@ -332,9 +332,8 @@ class ContributionsDashboardView extends StatelessWidget {
                 final connection = snapshot.data;
                 return CoinsScreen(
                   isUseDivider: true,
-                  isGnusWalletConnected:
-                      (connection?.walletAddress ?? false) ==
-                          selectedWallet?.address,
+                  isGnusWalletConnected: (connection?.walletAddress ?? false) ==
+                      selectedWallet?.address,
                 );
               },
             );

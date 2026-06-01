@@ -106,7 +106,6 @@ class CoinsScreenState extends State<CoinsScreen> {
 
     final formattedTotal = totalValue.toStringAsFixed(2);
 
-    // ✅ Set it in the cubit
     context.read<WalletDetailsCubit>().setSelectedWalletBalance(formattedTotal);
   }
 
