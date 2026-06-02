@@ -159,6 +159,10 @@ tasks.configureEach { task ->
 
 dependencies {
     runtimeOnly secureStorageAarDependency
+    // WorkManager and AndroidX deps needed by the securestorage AAR at runtime
+    // (AAR consumed via runtimeOnly files() does not pull transitive impl deps)
+    implementation "androidx.work:work-runtime-ktx:2.9.1"
+    implementation "androidx.core:core-ktx:1.13.1"
     androidTestImplementation secureStorageAarDependency
     androidTestImplementation "androidx.work:work-testing:2.9.1"
     androidTestImplementation "androidx.test.ext:junit:1.1.5"
