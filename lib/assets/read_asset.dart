@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'assets.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
@@ -181,4 +182,63 @@ Future<Coin?> _fetchTokenData(
     debugPrint("⚠️ Error fetching data for ${tokenContract.name}: $e");
     return null;
   }
+}
+
+/// Returns `true` if the given [network] is a Super Genius network
+/// (i.e., uses the native SDK rather than RPC for balance queries).
+bool isSuperGeniusNetwork(Network network) {
+  return network.rpcUrl == null || network.rpcUrl!.isEmpty;
+}
+
+/// **Fetch Super Genius Token Balances via SDK**
+///
+/// Uses the native Genius SDK to retrieve balances for the GNUS native token
+/// and all token IDs listed in the network's tokens.json (e.g., Graffiti).
+Future<List<Coin>> readSuperGeniusTokenAssets({
+  required String walletAddress,
+  required Network network,
+  required NetworkTokensProvider networkTokensProvider,
+  required GeniusApi geniusApi,
+}) async {
+  final List<Token> tokensList =
+      networkTokensProvider.getTokensByNetwork(network);
+  final List<Coin> coins = [];
+
+  // Add native GNUS token
+  try {
+    final gnusBalance = geniusApi.getSGNUSBalance();
+    coins.add(Coin(
+      balance: double.tryParse(gnusBalance) ?? 0,
+      name: network.name,
+      symbol: network.symbol?.toUpperCase(),
+      networkSymbol: network.symbol,
+      iconPath: network.iconPath,
+      coinGeckoId: network.coinGeckoId,
+    ));
+  } catch (e) {
+    debugPrint("⚠️ Error fetching native GNUS balance: $e");
+  }
+
+  // Add token balances (e.g., Graffiti) using their token IDs
+  for (final token in tokensList) {
+    if (token.id == null || token.id!.isEmpty) continue;
+    // Skip native GNUS token (id "0") — already handled by getSGNUSBalance() above
+    if (token.id == '0') continue;
+    try {
+      final balance = geniusApi.getMinionsBalance(token.id);
+      coins.add(Coin(
+        balance: double.tryParse(balance) ?? 0,
+        address: token.id,
+        name: token.name,
+        symbol: token.name?.toUpperCase(),
+        networkSymbol: network.symbol,
+        iconPath: token.iconPath,
+        coinGeckoId: token.coinGeckoId,
+      ));
+    } catch (e) {
+      debugPrint("⚠️ Error fetching balance for token ${token.name}: $e");
+    }
+  }
+
+  return coins;
 }

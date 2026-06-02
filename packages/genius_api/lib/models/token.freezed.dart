@@ -24,6 +24,7 @@ mixin _$Token {
   String? get iconPath => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
   String? get coinGeckoId => throw _privateConstructorUsedError;
+  String? get id => throw _privateConstructorUsedError;
 
   /// Serializes this Token to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,7 +41,11 @@ abstract class $TokenCopyWith<$Res> {
       _$TokenCopyWithImpl<$Res, Token>;
   @useResult
   $Res call(
-      {String? address, String? iconPath, String? name, String? coinGeckoId});
+      {String? address,
+      String? iconPath,
+      String? name,
+      String? coinGeckoId,
+      String? id});
 }
 
 /// @nodoc
@@ -62,6 +67,7 @@ class _$TokenCopyWithImpl<$Res, $Val extends Token>
     Object? iconPath = freezed,
     Object? name = freezed,
     Object? coinGeckoId = freezed,
+    Object? id = freezed,
   }) {
     return _then(_value.copyWith(
       address: freezed == address
@@ -80,6 +86,10 @@ class _$TokenCopyWithImpl<$Res, $Val extends Token>
           ? _value.coinGeckoId
           : coinGeckoId // ignore: cast_nullable_to_non_nullable
               as String?,
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -92,7 +102,11 @@ abstract class _$$TokenImplCopyWith<$Res> implements $TokenCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {String? address, String? iconPath, String? name, String? coinGeckoId});
+      {String? address,
+      String? iconPath,
+      String? name,
+      String? coinGeckoId,
+      String? id});
 }
 
 /// @nodoc
@@ -112,6 +126,7 @@ class __$$TokenImplCopyWithImpl<$Res>
     Object? iconPath = freezed,
     Object? name = freezed,
     Object? coinGeckoId = freezed,
+    Object? id = freezed,
   }) {
     return _then(_$TokenImpl(
       address: freezed == address
@@ -130,6 +145,10 @@ class __$$TokenImplCopyWithImpl<$Res>
           ? _value.coinGeckoId
           : coinGeckoId // ignore: cast_nullable_to_non_nullable
               as String?,
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -137,7 +156,7 @@ class __$$TokenImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$TokenImpl implements _Token {
-  const _$TokenImpl({this.address, this.iconPath, this.name, this.coinGeckoId});
+  const _$TokenImpl({this.address, this.iconPath, this.name, this.coinGeckoId, this.id});
 
   factory _$TokenImpl.fromJson(Map<String, dynamic> json) =>
       _$$TokenImplFromJson(json);
@@ -150,10 +169,12 @@ class _$TokenImpl implements _Token {
   final String? name;
   @override
   final String? coinGeckoId;
+  @override
+  final String? id;
 
   @override
   String toString() {
-    return 'Token(address: $address, iconPath: $iconPath, name: $name, coinGeckoId: $coinGeckoId)';
+    return 'Token(address: $address, iconPath: $iconPath, name: $name, coinGeckoId: $coinGeckoId, id: $id)';
   }
 
   @override
@@ -166,13 +187,14 @@ class _$TokenImpl implements _Token {
                 other.iconPath == iconPath) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.coinGeckoId, coinGeckoId) ||
-                other.coinGeckoId == coinGeckoId));
+                other.coinGeckoId == coinGeckoId) &&
+            (identical(other.id, id) || other.id == id));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, address, iconPath, name, coinGeckoId);
+      Object.hash(runtimeType, address, iconPath, name, coinGeckoId, id);
 
   /// Create a copy of Token
   /// with the given fields replaced by the non-null parameter values.
@@ -195,7 +217,8 @@ abstract class _Token implements Token {
       {final String? address,
       final String? iconPath,
       final String? name,
-      final String? coinGeckoId}) = _$TokenImpl;
+      final String? coinGeckoId,
+      final String? id}) = _$TokenImpl;
 
   factory _Token.fromJson(Map<String, dynamic> json) = _$TokenImpl.fromJson;
 
@@ -207,6 +230,8 @@ abstract class _Token implements Token {
   String? get name;
   @override
   String? get coinGeckoId;
+  @override
+  String? get id;
 
   /// Create a copy of Token
   /// with the given fields replaced by the non-null parameter values.

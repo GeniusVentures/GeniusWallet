@@ -447,18 +447,20 @@ class GeniusApi {
 
     final tokenIdData = calloc<GeniusTokenID>();
 
-    if (tokenId == null) {
-      // Use default token (all zeros)
-      for (int i = 0; i < 32; i++) {
-        tokenIdData.ref.data[i] = 0;
-      }
-    } else {
+    if (tokenId != null) {
       // Parse provided token ID
       String cleanTokenId =
           tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
 
-      for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
-        String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+      // Pad odd-length hex strings with a leading zero
+      if (cleanTokenId.length.isOdd) {
+        cleanTokenId = '0$cleanTokenId';
+      }
+
+      // Parse hex bytes big-endian (most significant byte first)
+      final maxBytes = (cleanTokenId.length ~/ 2).clamp(0, 32);
+      for (int i = 0; i < maxBytes; i++) {
+        final hexByte = cleanTokenId.substring(i * 2, i * 2 + 2);
         tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
       }
     }
@@ -627,6 +629,26 @@ class GeniusApi {
     }
     final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalanceGNUSString();
     return result.cast<Utf8>().toDartString();
+  }
+
+  /// Returns a list of available Genius account addresses.
+  /// Each address is a hex string. Returns an empty list if the SDK is not
+  /// initialized or no accounts are available.
+  List<String> getAvailableAccounts() {
+    if (!_isSdkInitialized) {
+      return [];
+    }
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAvailableAccounts();
+    if (result == nullptr) {
+      return [];
+    }
+    final rawString = result.cast<Utf8>().toDartString();
+    malloc.free(result);
+    return rawString
+        .split('\n')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
 
   GeniusNodeReturnValue payDev(int amount, {String? tokenId}) {

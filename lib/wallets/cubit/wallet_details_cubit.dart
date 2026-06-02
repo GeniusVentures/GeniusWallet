@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:clipboard/clipboard.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 
@@ -38,7 +40,6 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
   void selectNetwork(Network network) {
     emit(state.copyWith(selectedNetwork: network));
-    // fetch coins if selecting a network
     getCoins();
   }
 
@@ -48,7 +49,6 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
   void selectWallet(Wallet wallet) {
     emit(state.copyWith(selectedWallet: wallet));
-    // fetch coins after selecting a wallet
     getCoins();
   }
 
@@ -95,23 +95,41 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         return;
       }
       final walletAddress = state.selectedWallet?.address;
-      final rpcUrl = state.selectedNetwork?.rpcUrl;
-      final networkSymbol = state.selectedNetwork?.symbol;
+      final selectedNetwork = state.selectedNetwork!;
 
-      if (walletAddress == null || rpcUrl == null || networkSymbol == null) {
+      if (walletAddress == null) {
+        debugPrint("Can't get coin info: wallet address is null");
         return;
       }
 
-      // TODO:
-      // IF SUPERGENIUS NETWORK... call the SDK to retrieve balances, etc.
-      // WE SHOULD NOT CALL THE RPC STUFF
-      // WE SHOULD CALL BALANCEOF and pass in the tokenIds from tokens.json
-      // TODO: move this to the provider in main for performance
-      readTokenAssets(
-              walletAddress: walletAddress,
-              network: state.selectedNetwork!,
-              networkTokensProvider: networkTokensProvider)
-          .then((List<Coin> coinList) {
+      // Use native SDK for Super Genius wallets, or if the selected network
+      // is a Super Genius network; otherwise use RPC.
+      final isSgnusWallet =
+          state.selectedWallet?.walletType == WalletType.sgnus;
+
+      final Future<List<Coin>> coinFuture;
+      if (isSgnusWallet || isSuperGeniusNetwork(selectedNetwork)) {
+        coinFuture = readSuperGeniusTokenAssets(
+          walletAddress: walletAddress,
+          network: selectedNetwork,
+          networkTokensProvider: networkTokensProvider,
+          geniusApi: geniusApi,
+        );
+      } else {
+        final rpcUrl = selectedNetwork.rpcUrl;
+        final networkSymbol = selectedNetwork.symbol;
+        if (rpcUrl == null || rpcUrl.isEmpty || networkSymbol == null) {
+          debugPrint("Can't get coin info: no RPC URL or network symbol");
+          return;
+        }
+        coinFuture = readTokenAssets(
+          walletAddress: walletAddress,
+          network: selectedNetwork,
+          networkTokensProvider: networkTokensProvider,
+        );
+      }
+
+      coinFuture.then((List<Coin> coinList) {
         if (!isClosed) {
           emit(state.copyWith(
               coinsStatus: WalletStatus.successful,

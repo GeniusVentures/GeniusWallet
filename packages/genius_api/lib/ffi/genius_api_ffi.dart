@@ -19,8 +19,13 @@ class NativeLibrary {
           lookup)
       : _lookup = lookup;
 
-  /// @brief Inits the SDK with saved settings
-  /// @returns Initialization path in case of success, null on failure
+  /// @brief Inits the SDK with saved settings (no private key — uses existing wallet).
+  /// @param[in] base_path    Base path for node data storage. Must contain a `dev_config.json` file.
+  /// @param[in] autodht      Whether to auto-discover DHT peers.
+  /// @param[in] process      Whether to enable processing.
+  /// @param[in] baseport     Base network port for the node.
+  /// @param[in] is_full_node Whether to run as a full node.
+  /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInit(
     ffi.Pointer<ffi.Char> base_path,
     bool autodht,
@@ -45,9 +50,14 @@ class NativeLibrary {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, bool, bool, int, bool)>();
 
-  /// @brief Inits the SDK with an ethereum private key
-  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix
-  /// @returns Initialization path in case of success, null on failure
+  /// @brief Inits the SDK with an ethereum private key.
+  /// @param[in] base_path       Base path for node data storage. Must contain a `dev_config.json` file.
+  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix.
+  /// @param[in] autodht         Whether to auto-discover DHT peers.
+  /// @param[in] process         Whether to enable processing.
+  /// @param[in] baseport        Base network port for the node.
+  /// @param[in] is_full_node    Whether to run as a full node.
+  /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInitWithKey(
     ffi.Pointer<ffi.Char> base_path,
     ffi.Pointer<ffi.Char> eth_private_key,
@@ -79,40 +89,15 @@ class NativeLibrary {
       ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>, bool, bool, int, bool)>();
 
-  /// @brief Inits the SDK with credentials
-  /// @returns Initialization path in case of success, null on failure
-  ffi.Pointer<ffi.Char> GeniusSDKInitWithCredentials(
-    ffi.Pointer<ffi.Char> base_path,
-    ffi.Pointer<GeniusCredentials> credentials,
-    bool autodht,
-    bool process,
-    int baseport,
-    bool is_full_node,
-  ) {
-    return _GeniusSDKInitWithCredentials(
-      base_path,
-      credentials,
-      autodht,
-      process,
-      baseport,
-      is_full_node,
-    );
-  }
-
-  late final _GeniusSDKInitWithCredentialsPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.Char>,
-              ffi.Pointer<GeniusCredentials>,
-              ffi.Bool,
-              ffi.Bool,
-              ffi.Uint16,
-              ffi.Bool)>>('GeniusSDKInitWithCredentials');
-  late final _GeniusSDKInitWithCredentials =
-      _GeniusSDKInitWithCredentialsPtr.asFunction<
-          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>,
-              ffi.Pointer<GeniusCredentials>, bool, bool, int, bool)>();
-
+  /// @brief Inits the SDK with an explicit developer config JSON string and an ethereum private key.
+  /// @param[in] base_path       Base path for node data storage.
+  /// @param[in] dev_config      Developer configuration as a JSON string (overrides dev_config.json).
+  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix.
+  /// @param[in] autodht         Whether to auto-discover DHT peers.
+  /// @param[in] process         Whether to enable processing.
+  /// @param[in] baseport        Base network port for the node.
+  /// @param[in] is_full_node    Whether to run as a full node.
+  /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInitWithKeyAndDevConfig(
     ffi.Pointer<ffi.Char> base_path,
     ffi.Pointer<ffi.Char> dev_config,
@@ -154,6 +139,12 @@ class NativeLibrary {
               int,
               bool)>();
 
+  /// @brief Inits the SDK with minimal configuration (convenience wrapper).
+  /// @details Equivalent to calling GeniusSDKInitWithKey() with autodht=true, process=true, is_full_node=false.
+  /// @param[in] base_path       Base path for node data storage.
+  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix.
+  /// @param[in] baseport        Base network port for the node.
+  /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(
     ffi.Pointer<ffi.Char> base_path,
     ffi.Pointer<ffi.Char> eth_private_key,
@@ -174,6 +165,8 @@ class NativeLibrary {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, int)>();
 
+  /// @brief Shuts down the SDK and releases all node resources.
+  /// @returns @ref GENIUS_NODE_RET_OK on success.
   int GeniusSDKShutdown() {
     return _GeniusSDKShutdown();
   }
@@ -184,75 +177,96 @@ class NativeLibrary {
   late final _GeniusSDKShutdown =
       _GeniusSDKShutdownPtr.asFunction<int Function()>();
 
-  ffi.Pointer<ffi.Char> GetAvailableAccounts() {
-    return _GetAvailableAccounts();
+  /// @brief Retrieves a list of available Genius accounts.
+  /// @return A null-terminated string containing newline-separated hex addresses,
+  /// or null if the SDK is not initialized. The caller must free the
+  /// returned string with free().
+  ffi.Pointer<ffi.Char> GeniusSDKGetAvailableAccounts() {
+    return _GeniusSDKGetAvailableAccounts();
   }
 
-  late final _GetAvailableAccountsPtr =
+  late final _GeniusSDKGetAvailableAccountsPtr =
       _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
-          'GetAvailableAccounts');
-  late final _GetAvailableAccounts =
-      _GetAvailableAccountsPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+          'GeniusSDKGetAvailableAccounts');
+  late final _GeniusSDKGetAvailableAccounts = _GeniusSDKGetAvailableAccountsPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
-  int SelectGeniusAccount(
+  /// @brief Selects the active account for subsequent SDK operations.
+  /// @param[in] public_address Null-terminated string representing the account's public address.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_CREATING if not initialized,
+  /// or @ref GENIUS_NODE_INVALID_ARGUMENT on failure.
+  int GeniusSDKSelectGeniusAccount(
     ffi.Pointer<ffi.Char> public_address,
   ) {
-    return _SelectGeniusAccount(
+    return _GeniusSDKSelectGeniusAccount(
       public_address,
     );
   }
 
-  late final _SelectGeniusAccountPtr = _lookup<
+  late final _GeniusSDKSelectGeniusAccountPtr = _lookup<
       ffi.NativeFunction<
           GeniusNodeReturnValue_t Function(
-              ffi.Pointer<ffi.Char>)>>('SelectGeniusAccount');
-  late final _SelectGeniusAccount =
-      _SelectGeniusAccountPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKSelectGeniusAccount');
+  late final _GeniusSDKSelectGeniusAccount = _GeniusSDKSelectGeniusAccountPtr
+      .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
-  int TransferGeniusAccount(
+  /// @brief Transfers an account to a different address.
+  /// @param[in] public_address Null-terminated string representing the target public address.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_CREATING if not initialized,
+  /// or @ref GENIUS_NODE_INVALID_ARGUMENT on failure.
+  int GeniusSDKTransferGeniusAccount(
     ffi.Pointer<ffi.Char> public_address,
   ) {
-    return _TransferGeniusAccount(
+    return _GeniusSDKTransferGeniusAccount(
       public_address,
     );
   }
 
-  late final _TransferGeniusAccountPtr = _lookup<
+  late final _GeniusSDKTransferGeniusAccountPtr = _lookup<
       ffi.NativeFunction<
           GeniusNodeReturnValue_t Function(
-              ffi.Pointer<ffi.Char>)>>('TransferGeniusAccount');
-  late final _TransferGeniusAccount = _TransferGeniusAccountPtr.asFunction<
-      int Function(ffi.Pointer<ffi.Char>)>();
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKTransferGeniusAccount');
+  late final _GeniusSDKTransferGeniusAccount =
+      _GeniusSDKTransferGeniusAccountPtr.asFunction<
+          int Function(ffi.Pointer<ffi.Char>)>();
 
-  int MergeGeniusAccount(
+  /// @brief Merges an external account into the node's wallet.
+  /// @param[in] public_address Null-terminated string representing the account's public address to merge.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_CREATING if not initialized,
+  /// or @ref GENIUS_NODE_INVALID_ARGUMENT on failure.
+  int GeniusSDKMergeGeniusAccount(
     ffi.Pointer<ffi.Char> public_address,
   ) {
-    return _MergeGeniusAccount(
+    return _GeniusSDKMergeGeniusAccount(
       public_address,
     );
   }
 
-  late final _MergeGeniusAccountPtr = _lookup<
+  late final _GeniusSDKMergeGeniusAccountPtr = _lookup<
       ffi.NativeFunction<
           GeniusNodeReturnValue_t Function(
-              ffi.Pointer<ffi.Char>)>>('MergeGeniusAccount');
-  late final _MergeGeniusAccount =
-      _MergeGeniusAccountPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKMergeGeniusAccount');
+  late final _GeniusSDKMergeGeniusAccount = _GeniusSDKMergeGeniusAccountPtr
+      .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
-  int SetPayoutAddress(
+  /// @brief Sets the payout address for processing rewards.
+  /// @param[in] public_address Null-terminated string representing the payout public address.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_CREATING if not initialized,
+  /// or @ref GENIUS_NODE_INVALID_ARGUMENT on failure.
+  int GeniusSDKSetPayoutAddress(
     ffi.Pointer<ffi.Char> public_address,
   ) {
-    return _SetPayoutAddress(
+    return _GeniusSDKSetPayoutAddress(
       public_address,
     );
   }
 
-  late final _SetPayoutAddressPtr = _lookup<
+  late final _GeniusSDKSetPayoutAddressPtr = _lookup<
       ffi.NativeFunction<
           GeniusNodeReturnValue_t Function(
-              ffi.Pointer<ffi.Char>)>>('SetPayoutAddress');
-  late final _SetPayoutAddress =
-      _SetPayoutAddressPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKSetPayoutAddress');
+  late final _GeniusSDKSetPayoutAddress = _GeniusSDKSetPayoutAddressPtr
+      .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
   /// @brief Retrieves the current balance for a specific token.
   /// @param[in] token_id  Token identifier to query.
@@ -319,6 +333,8 @@ class NativeLibrary {
   late final _GeniusSDKGetVersion =
       _GeniusSDKGetVersionPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  /// @brief Returns the public address of the currently selected account.
+  /// @return Address filled or zeroized if SDK wasn't initialized.
   GeniusAddress GeniusSDKGetAddress() {
     return _GeniusSDKGetAddress();
   }
@@ -329,6 +345,9 @@ class NativeLibrary {
   late final _GeniusSDKGetAddress =
       _GeniusSDKGetAddressPtr.asFunction<GeniusAddress Function()>();
 
+  /// @brief Retrieves all incoming transactions.
+  /// @return A @ref GeniusMatrix containing the incoming transactions.
+  /// Must be freed with @ref GeniusSDKFreeTransactions().
   GeniusMatrix GeniusSDKGetInTransactions() {
     return _GeniusSDKGetInTransactions();
   }
@@ -339,6 +358,9 @@ class NativeLibrary {
   late final _GeniusSDKGetInTransactions =
       _GeniusSDKGetInTransactionsPtr.asFunction<GeniusMatrix Function()>();
 
+  /// @brief Retrieves all outgoing transactions.
+  /// @return A @ref GeniusMatrix containing the outgoing transactions.
+  /// Must be freed with @ref GeniusSDKFreeTransactions().
   GeniusMatrix GeniusSDKGetOutTransactions() {
     return _GeniusSDKGetOutTransactions();
   }
@@ -349,6 +371,8 @@ class NativeLibrary {
   late final _GeniusSDKGetOutTransactions =
       _GeniusSDKGetOutTransactionsPtr.asFunction<GeniusMatrix Function()>();
 
+  /// @brief Frees a @ref GeniusMatrix previously obtained from GetInTransactions() or GetOutTransactions().
+  /// @param[in] matrix The matrix to free.
   void GeniusSDKFreeTransactions(
     GeniusMatrix matrix,
   ) {
@@ -420,7 +444,8 @@ class NativeLibrary {
   /// @param[in] amount    The amount to transfer in Minion Tokens.
   /// @param[in] dest      Pointer to a `GeniusAddress` struct representing the recipient's address.
   /// @param[in] token_id  Token identifier.
-  /// @return `true` if the transfer is successful, `false` otherwise.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// or @ref GENIUS_NODE_ERROR_TRANSFER on failure.
   int GeniusSDKTransfer(
     int amount,
     ffi.Pointer<GeniusAddress> dest,
@@ -442,8 +467,10 @@ class NativeLibrary {
 
   /// @brief     Transfers tokens using a **Genius Token** string representation.
   /// @param[in] amount Pointer to a `GeniusTokenValue` struct representing the amount in GNUS.
-  /// @param[in] dest Pointer to a `GeniusAddress` struct representing the recipient's address.
-  /// @return `true` if the transfer is successful, `false` otherwise.
+  /// @param[in] dest   Pointer to a `GeniusAddress` struct representing the recipient's address.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// @ref GENIUS_NODE_INVALID_ARGUMENT if amount or dest is null,
+  /// or @ref GENIUS_NODE_ERROR_TRANSFER on failure.
   int GeniusSDKTransferGNUS(
     ffi.Pointer<GeniusTokenValue> amount,
     ffi.Pointer<GeniusAddress> dest,
@@ -463,9 +490,10 @@ class NativeLibrary {
           ffi.Pointer<GeniusTokenValue>, ffi.Pointer<GeniusAddress>)>();
 
   /// @brief     Pays the developer for in-game transactions.
-  /// @param[in] amount The amount to transfer in Minion Tokens.
-  /// @param[in] token_id token identifier.
-  /// @return `true` if the transfer is successful, `false` otherwise.
+  /// @param[in] amount   The amount to transfer in Minion Tokens.
+  /// @param[in] token_id Token identifier.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// or @ref GENIUS_NODE_ERROR_PAY_DEV on failure.
   int GeniusSDKPayDev(
     int amount,
     GeniusTokenID token_id,
@@ -1195,3 +1223,5 @@ const int __bool_true_false_are_defined = 1;
 const int true$ = 1;
 
 const int false$ = 0;
+
+const int GENIUS_SDK_ADDRESS_SIZE = 130;

@@ -231,15 +231,37 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (!connection.isConnected) {
       return _baseWallets;
     }
-    return [
-      Wallet(
+
+    final accounts = api.getAvailableAccounts();
+    final sgnusWallets = accounts.asMap().entries.map((entry) {
+      final index = entry.key;
+      final address = entry.value;
+      return Wallet(
+        walletName: accounts.length == 1
+            ? 'Super Genius Wallet'
+            : 'Super Genius Wallet ${index + 1}',
+        walletType: WalletType.sgnus,
+        address: address,
+        currencySymbol: 'minions',
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        balance: 0,
+      );
+    }).toList();
+
+    // Fallback: if no accounts were returned, use the connection address
+    if (sgnusWallets.isEmpty) {
+      sgnusWallets.add(Wallet(
         walletName: 'Super Genius Wallet',
         walletType: WalletType.sgnus,
         address: connection.sgnusAddress,
         currencySymbol: 'minions',
         coinType: TWCoinType.TWCoinTypeEthereum,
         balance: 0,
-      ),
+      ));
+    }
+
+    return [
+      ...sgnusWallets,
       ..._baseWallets,
     ];
   }
