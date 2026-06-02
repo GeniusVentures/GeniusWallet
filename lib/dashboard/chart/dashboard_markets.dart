@@ -1,11 +1,9 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:go_router/go_router.dart';
 
 class DashboardMarkets extends StatefulWidget {
@@ -43,7 +41,6 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
       future: _future,
       error: const Text(
         "Failed to load market data",
-        style: TextStyle(color: Colors.white),
       ),
       onRetry: _retry,
       onData: (marketData) {
@@ -51,7 +48,6 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
           return const Center(
             child: Text(
               "No market data available",
-              style: TextStyle(color: Colors.white),
             ),
           );
         }

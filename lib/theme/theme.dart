@@ -73,7 +73,7 @@ ThemeData getThemeData() => ThemeData(
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
             textStyle: const TextStyle(fontSize: 16),
             foregroundColor: Colors.white),
       ),
@@ -83,7 +83,7 @@ ThemeData getThemeData() => ThemeData(
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
             textStyle: const TextStyle(fontSize: 16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -113,7 +113,7 @@ ThemeData getThemeData() => ThemeData(
             iconSize: const WidgetStatePropertyAll(20),
             iconColor: const WidgetStatePropertyAll(Colors.white),
             padding: const WidgetStatePropertyAll(
-                EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0))),
+                EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0))),
       ),
       inputDecorationTheme: const InputDecorationTheme(
         contentPadding: EdgeInsets.all(20),
@@ -136,7 +136,7 @@ ThemeData getThemeData() => ThemeData(
           style: ButtonStyle(
               textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
               padding: const WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)),
+                  EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0)),
               shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(
                       Radius.circular(GeniusWalletConsts.borderRadiusButton)))),

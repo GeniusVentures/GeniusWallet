@@ -127,7 +127,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                spacing: 16,
+                spacing: 2,
                 children: [
                   Image.asset(
                     'assets/images/geniusappbarlogo.png',
@@ -145,42 +145,47 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () => context.go(dest.path),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.borderRadiusCard),
                         mouseCursor: SystemMouseCursors.click,
-                        child: Ink(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 2,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    isSelected ? dest.activeIcon : dest.icon,
-                                    size: _kIconSize,
-                                    color: color,
-                                  ),
-                                  if (!hideLabels) ...[
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      dest.label,
-                                      style:
-                                          TextStyle(fontSize: 14, color: color),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 12.0),
+                          child: Ink(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 4,
+                              children: [
+                                Row(
+                                  spacing: 6,
+                                  children: [
+                                    Icon(
+                                      isSelected ? dest.activeIcon : dest.icon,
+                                      size: _kIconSize,
+                                      color: color,
                                     ),
+                                    if (!hideLabels) ...[
+                                      Text(
+                                        dest.label,
+                                        style: TextStyle(
+                                            fontSize: 14, color: color),
+                                      ),
+                                    ],
                                   ],
-                                ],
-                              ),
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                height: 1,
-                                width: 60,
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.greenAccent
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                              ),
-                            ],
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  height: 1,
+                                  width: 60,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.greenAccent
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -189,7 +194,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
               Row(
-                spacing: 8.0,
+                spacing: 4.0,
                 children: [
                   const NetworkDropdownSelector(),
                   AccountDropdownSelector(),
