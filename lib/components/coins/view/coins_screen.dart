@@ -188,14 +188,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                   ),
                   if ((widget.isUseDivider ?? false) &&
                       i != filteredCoins.length - 1)
-                    const Divider(
-                      thickness: 2.0,
-                      color: GeniusWalletColors.deepBlueTertiary,
-                      height: 1,
-                    ),
-                  if (!(widget.isUseDivider ?? false) &&
-                      i != filteredCoins.length - 1)
-                    const SizedBox(height: 8),
+                    const Divider(),
                 ],
               ],
             ),
