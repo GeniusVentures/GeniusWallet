@@ -39,8 +39,8 @@ class CoinsScreenState extends State<CoinsScreen> {
   void initState() {
     super.initState();
 
-    // periodically fetch market data every 20 seconds to keep wallet balance up to date
-    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
+    // periodically fetch market data to keep wallet balance up to date
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       final state = context.read<WalletDetailsCubit>().state;
       if (state.coinsStatus == WalletStatus.successful &&
           state.coins.isNotEmpty) {
