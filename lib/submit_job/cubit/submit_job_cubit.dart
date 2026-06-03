@@ -219,12 +219,12 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   void setFilePickerError(String errorMessage) {
     emit(state.copyWith(
-      filePickerError: FilePickerError(errorMessage), // Use FilePickerError
+      filePickerError: FilePickerError(errorMessage),
     ));
   }
 
   void resetFilePickerError() {
-    setFilePickerError(""); // Reset error state
+    setFilePickerError("");
   }
 
   void resetProcessError() {
@@ -247,8 +247,6 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         return "Payment to dev failed.";
       case GeniusNodeReturnValue.GENIUS_NODE_RET_OK:
         return "";
-      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_CREATING:
-        return "GeniusNode is still initializing.";
     }
   }
 }

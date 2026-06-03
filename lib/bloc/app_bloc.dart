@@ -248,18 +248,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       );
     }).toList();
 
-    // Fallback: if no accounts were returned, use the connection address
-    if (sgnusWallets.isEmpty) {
-      sgnusWallets.add(Wallet(
-        walletName: 'Super Genius Wallet',
-        walletType: WalletType.sgnus,
-        address: connection.sgnusAddress,
-        currencySymbol: 'minions',
-        coinType: TWCoinType.TWCoinTypeEthereum,
-        balance: 0,
-      ));
-    }
-
     return [
       ...sgnusWallets,
       ..._baseWallets,
