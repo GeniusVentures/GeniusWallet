@@ -191,6 +191,46 @@ class NativeLibrary {
   late final _GeniusSDKGetAvailableAccounts = _GeniusSDKGetAvailableAccountsPtr
       .asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  /// @brief Adds a new account using an Ethereum private key.
+  /// @param[in] private_key Null-terminated string representing the private key in hex format (0x prefix optional).
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// or @ref GENIUS_NODE_INVALID_ARGUMENT on failure.
+  int GeniusSDKAddAccountWithPrivateKey(
+    ffi.Pointer<ffi.Char> private_key,
+  ) {
+    return _GeniusSDKAddAccountWithPrivateKey(
+      private_key,
+    );
+  }
+
+  late final _GeniusSDKAddAccountWithPrivateKeyPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKAddAccountWithPrivateKey');
+  late final _GeniusSDKAddAccountWithPrivateKey =
+      _GeniusSDKAddAccountWithPrivateKeyPtr.asFunction<
+          int Function(ffi.Pointer<ffi.Char>)>();
+
+  /// @brief Adds a new account using a mnemonic phrase.
+  /// @param[in] mnemonic Null-terminated string representing the mnemonic recovery phrase.
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// or @ref GENIUS_NODE_INVALID_ARGUMENT on failure.
+  int GeniusSDKAddAccountWithMnemonic(
+    ffi.Pointer<ffi.Char> mnemonic,
+  ) {
+    return _GeniusSDKAddAccountWithMnemonic(
+      mnemonic,
+    );
+  }
+
+  late final _GeniusSDKAddAccountWithMnemonicPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKAddAccountWithMnemonic');
+  late final _GeniusSDKAddAccountWithMnemonic =
+      _GeniusSDKAddAccountWithMnemonicPtr.asFunction<
+          int Function(ffi.Pointer<ffi.Char>)>();
+
   /// @brief Selects the active account for subsequent SDK operations.
   /// @param[in] public_address Null-terminated string representing the account's public address.
   /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_CREATING if not initialized,
@@ -839,8 +879,7 @@ enum GeniusNodeReturnValue {
   GENIUS_NODE_ERROR_MINT(3),
   GENIUS_NODE_INVALID_ARGUMENT(4),
   GENIUS_NODE_ERROR_TRANSFER(5),
-  GENIUS_NODE_ERROR_PAY_DEV(6),
-  GENIUS_NODE_ERROR_CREATING(7);
+  GENIUS_NODE_ERROR_PAY_DEV(6);
 
   final int value;
   const GeniusNodeReturnValue(this.value);
@@ -853,7 +892,6 @@ enum GeniusNodeReturnValue {
         4 => GENIUS_NODE_INVALID_ARGUMENT,
         5 => GENIUS_NODE_ERROR_TRANSFER,
         6 => GENIUS_NODE_ERROR_PAY_DEV,
-        7 => GENIUS_NODE_ERROR_CREATING,
         _ => throw ArgumentError(
             'Unknown value for GeniusNodeReturnValue: $value'),
       };
