@@ -112,10 +112,8 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                 subtitle: Row(children: [
                   if (token.balance != null)
                     Text('${token.balance!.formattedBalance} ',
-                        style:
-                            const TextStyle(color: GeniusWalletColors.gray500)),
-                  Text(token.symbol,
-                      style: const TextStyle(color: GeniusWalletColors.gray500))
+                        style: const TextStyle(color: Colors.grey)),
+                  Text(token.symbol, style: const TextStyle(color: Colors.grey))
                 ]),
                 onTap: () {
                   Navigator.of(context).pop();

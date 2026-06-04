@@ -90,8 +90,9 @@ class TransactionEscrowReleaseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
-        color: GeniusWalletColors.deepBlueMenu,
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+        color: cs.surfaceContainerHigh,
         child: ListTile(
           title: Text("Completed job"),
         ));
@@ -105,6 +106,7 @@ class TransactionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final amount =
@@ -113,7 +115,7 @@ class TransactionItem extends StatelessWidget {
     final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
 
     return Card(
-        color: GeniusWalletColors.deepBlueMenu,
+        color: cs.surfaceContainerHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           leading:
@@ -123,18 +125,17 @@ class TransactionItem extends StatelessWidget {
               Text(label),
               Text(
                 " • ${tx.coinSymbol}",
-                style: const TextStyle(
-                    fontSize: 14, color: GeniusWalletColors.gray500),
+                style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
               )
             ],
           ),
           onTap: () => _showTransactionDetails(context),
           subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
-          trailing: _buildAmountTrailing(amount),
+          trailing: _buildAmountTrailing(amount, cs.onSurfaceVariant),
         ));
   }
 
-  Widget _buildAmountTrailing(String amount) {
+  Widget _buildAmountTrailing(String amount, Color feeColor) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -146,14 +147,14 @@ class TransactionItem extends StatelessWidget {
             )),
         Text(
           "Fee: ${tx.fees} ${tx.coinSymbol}",
-          style:
-              const TextStyle(fontSize: 12, color: GeniusWalletColors.gray500),
+          style: TextStyle(fontSize: 12, color: feeColor),
         ),
       ],
     );
   }
 
   void _showTransactionDetails(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
@@ -198,12 +199,11 @@ class TransactionItem extends StatelessWidget {
             launchWebSite(context, uri.toString());
           }
         },
-        icon: const Icon(Icons.open_in_new,
-            color: GeniusWalletColors.deepBlueTertiary),
+        icon: Icon(Icons.open_in_new, color: cs.surfaceDim),
         label: const Text("View on Explorer"),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.lightBlueAccent,
-          foregroundColor: GeniusWalletColors.deepBlueTertiary,
+          foregroundColor: cs.surfaceDim,
           minimumSize: const Size.fromHeight(48),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -220,6 +220,7 @@ class TransactionPurchasedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isFailed = tx.transactionStatus == TransactionStatus.failed;
     final amount = isFailed
         ? currencyFormatter.format(0)
@@ -229,7 +230,7 @@ class TransactionPurchasedItem extends StatelessWidget {
     final amountColor = isFailed ? Colors.redAccent : Colors.greenAccent;
 
     return Card(
-      color: GeniusWalletColors.deepBlueMenu,
+      color: cs.surfaceContainerHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: () => _showPurchaseTransactionDetails(context, tx),
@@ -246,8 +247,7 @@ class TransactionPurchasedItem extends StatelessWidget {
             ),
             Text(
               " • ${tx.coinSymbol}",
-              style: const TextStyle(
-                  fontSize: 14, color: GeniusWalletColors.gray500),
+              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
             ),
           ],
         ),
@@ -255,12 +255,14 @@ class TransactionPurchasedItem extends StatelessWidget {
           timeago.format(tx.timeStamp.toLocal()),
           style: const TextStyle(fontSize: 12, color: Colors.white60),
         ),
-        trailing: _buildAmountTrailing(amountColor, amount, isFailed),
+        trailing: _buildAmountTrailing(
+            amountColor, amount, isFailed, cs.onSurfaceVariant),
       ),
     );
   }
 
-  Widget _buildAmountTrailing(Color amountColor, String amount, bool isFailed) {
+  Widget _buildAmountTrailing(
+      Color amountColor, String amount, bool isFailed, Color feeColor) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
@@ -271,8 +273,7 @@ class TransactionPurchasedItem extends StatelessWidget {
           isFailed
               ? currencyFormatter.format(0)
               : "Spent: ${currencyFormatter.format(double.tryParse(tx.fees) ?? 0)}",
-          style:
-              const TextStyle(fontSize: 12, color: GeniusWalletColors.gray500),
+          style: TextStyle(fontSize: 12, color: feeColor),
         )
       ],
     );
@@ -329,6 +330,7 @@ class TransactionSwappedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isFailed = tx.transactionStatus == TransactionStatus.failed;
     final fromSymbol = tx.fromSymbol ?? "";
     final toSymbol = tx.toSymbol ?? "";
@@ -338,7 +340,7 @@ class TransactionSwappedItem extends StatelessWidget {
     final toAmount = tx.toAmount ?? "0";
 
     return Card(
-      color: GeniusWalletColors.deepBlueMenu,
+      color: cs.surfaceContainerHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         title: Text(
@@ -349,7 +351,7 @@ class TransactionSwappedItem extends StatelessWidget {
               color: isFailed ? Colors.redAccent : Colors.white),
         ),
         subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
-        leading: _buildOverlappedIcons(fromIcon, toIcon),
+        leading: _buildOverlappedIcons(fromIcon, toIcon, cs.surface),
         onTap: () => _showSwapTransactionDetails(context),
         trailing: _buildSwapAmounts(
             fromAmount, fromSymbol, toAmount, toSymbol, isFailed),
@@ -357,7 +359,8 @@ class TransactionSwappedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildOverlappedIcons(String? fromIconUrl, String? toIconUrl) {
+  Widget _buildOverlappedIcons(
+      String? fromIconUrl, String? toIconUrl, Color cardColor) {
     return SizedBox(
       width: 40,
       height: 40,
@@ -369,7 +372,7 @@ class TransactionSwappedItem extends StatelessWidget {
               left: 0,
               child: CircleAvatar(
                 radius: 12,
-                backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundColor: cardColor,
                 backgroundImage: NetworkImage(fromIconUrl),
               ),
             ),
@@ -379,13 +382,13 @@ class TransactionSwappedItem extends StatelessWidget {
               top: 10,
               child: CircleAvatar(
                 radius: 18,
-                backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundColor: cardColor,
                 backgroundImage: NetworkImage(toIconUrl),
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: GeniusWalletColors.deepBlueCardColor,
+                      color: cardColor,
                       width: 1,
                     ),
                   ),
@@ -431,6 +434,7 @@ class TransactionSwappedItem extends StatelessWidget {
   }
 
   void _showSwapTransactionDetails(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
     final fromSymbol = tx.fromSymbol ?? "";
     final toSymbol = tx.toSymbol ?? "";
@@ -453,7 +457,7 @@ class TransactionSwappedItem extends StatelessWidget {
                     CircleAvatar(
                       radius: 30,
                       backgroundImage: NetworkImage(fromIcon),
-                      backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                      backgroundColor: cs.surface,
                     ),
                   if (toIcon != null)
                     Positioned(
@@ -462,12 +466,12 @@ class TransactionSwappedItem extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundImage: NetworkImage(toIcon),
-                        backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                        backgroundColor: cs.surface,
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: GeniusWalletColors.deepBlueCardColor,
+                              color: cs.surface,
                               width: 2,
                             ),
                           ),

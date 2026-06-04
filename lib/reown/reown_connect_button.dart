@@ -315,7 +315,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                   ? "Show QR Code"
                                   : "Enter URI Manually",
                               style: const TextStyle(
-                                color: GeniusWalletColors.gray500,
+                                color: Colors.grey,
                                 decoration: TextDecoration.underline,
                                 decorationColor:
                                     GeniusWalletColors.lightGreenPrimary,

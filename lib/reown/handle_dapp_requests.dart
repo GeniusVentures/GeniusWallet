@@ -75,14 +75,12 @@ Future<void> handleDappRequests(
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(dappUrl,
-                    style: const TextStyle(
-                        color: GeniusWalletColors.gray500, fontSize: 12)),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ),
             Text("Method: $method",
                 style: const TextStyle(color: Colors.white)),
             const SizedBox(height: 12),
-            const Text("Params:",
-                style: TextStyle(color: GeniusWalletColors.gray500)),
+            const Text("Params:", style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.all(10),

@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -76,7 +75,7 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: GeniusWalletColors.gray500,
+                          color: Colors.grey,
                           width: 1.0,
                         ),
                       ),

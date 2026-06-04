@@ -85,10 +85,11 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
             if (index == 0 && widget.title != null) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.title!,
                       maxLines: 1,
-                      style: Theme.of(context).textTheme.headlineMedium),
+                      style: Theme.of(context).textTheme.titleLarge),
                   item,
                 ],
               );

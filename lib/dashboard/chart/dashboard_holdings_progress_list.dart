@@ -79,11 +79,10 @@ class HoldingProgressItem extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const CircularProgressIndicator(
+              CircularProgressIndicator(
                 value: 1.0,
                 strokeWidth: 2,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(GeniusWalletColors.gray800),
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade800),
               ),
               CircularProgressIndicator(
                 value: progress,

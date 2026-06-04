@@ -141,7 +141,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                     final color = isSelected
                         ? Colors.greenAccent
                         : Colors.white.withValues(alpha: 0.6);
-
+          
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(

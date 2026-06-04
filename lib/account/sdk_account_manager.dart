@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -33,18 +34,17 @@ class SDKAccountManagerButton extends StatelessWidget {
             onPressed: () => _showSDKAccountDrawer(context),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              spacing: 4.0,
+              spacing: 6.0,
               children: [
-                const Icon(Icons.settings_applications, size: 18),
-                Flexible(
-                  child: Text(
-                    selected != null
-                        ? WalletUtils.getAddressForDisplay(selected)
-                        : 'No account',
-                    style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                const Icon(Icons.settings_applications),
+                Text(
+                  selected != null
+                      ? WalletUtils.getAddressForDisplay(selected)
+                      : 'No account',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                const Icon(Icons.arrow_drop_down),
               ],
             ),
           ),
@@ -89,9 +89,9 @@ class SDKAccountManagerButton extends StatelessWidget {
               Expanded(
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemBuilder: (context, i) =>
-                      _buildAccountRow(context, accounts[i],
-                          isSelected: accounts[i] == selected),
+                  itemBuilder: (context, i) => _buildAccountRow(
+                      context, accounts[i],
+                      isSelected: accounts[i] == selected),
                   itemCount: accounts.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 6),
@@ -104,21 +104,26 @@ class SDKAccountManagerButton extends StatelessWidget {
       footer: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
+          spacing: 8,
           children: [
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _showAddWithMnemonicDialog(context),
                 icon: const Icon(Icons.text_fields, size: 18),
-                label: const Text('Mnemonic', style: TextStyle(fontSize: 13)),
+                label: const AutoSizeText(
+                  'Add with mnemonic',
+                  maxLines: 1,
+                ),
               ),
             ),
-            const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _showAddWithPrivateKeyDialog(context),
                 icon: const Icon(Icons.key, size: 18),
-                label:
-                    const Text('Private Key', style: TextStyle(fontSize: 13)),
+                label: const AutoSizeText(
+                  'Add with private key',
+                  maxLines: 1,
+                ),
               ),
             ),
           ],
@@ -137,48 +142,47 @@ class SDKAccountManagerButton extends StatelessWidget {
     final subColor =
         isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
 
-    return ListTile(
-      selected: isSelected,
-      selectedTileColor: Colors.greenAccent,
-      tileColor: GeniusWalletColors.deepBlueCardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      onTap: () {
-        if (!isSelected) {
-          context.read<AppBloc>().add(SelectSDKAccount(address));
-          showAppSnackBar(context, 'SDK account selected',
-              duration: const Duration(seconds: 1));
-        }
-      },
-      leading: Icon(
-        isSelected ? Icons.check_circle : Icons.account_balance_wallet,
-        color: textColor,
-      ),
-      title: Text(
-        WalletUtils.getAddressForDisplay(address),
-        style: TextStyle(
-          fontSize: 14,
-          fontFamily: 'JetBrainsMono',
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        selected: isSelected,
+        selectedTileColor: Colors.greenAccent,
+        onTap: () {
+          if (!isSelected) {
+            context.read<AppBloc>().add(SelectSDKAccount(address));
+            showAppSnackBar(context, 'SDK account selected',
+                duration: const Duration(seconds: 1));
+          }
+        },
+        leading: Icon(
+          isSelected ? Icons.check_circle : Icons.account_balance_wallet,
           color: textColor,
-          fontWeight: FontWeight.w500,
         ),
+        title: Text(
+          WalletUtils.getAddressForDisplay(address),
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'JetBrainsMono',
+            color: textColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: isSelected
+            ? Text(
+                'Active processing account',
+                style: TextStyle(fontSize: 12, color: subColor),
+              )
+            : null,
+        trailing: isSelected
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.delete_outline,
+                    size: 20, color: Colors.redAccent),
+                tooltip: 'Delete account',
+                onPressed: () =>
+                    _confirmDeleteSDKAccount(context, address, isSelected),
+              ),
       ),
-      subtitle: isSelected
-          ? Text(
-              'Active processing account',
-              style: TextStyle(fontSize: 12, color: subColor),
-            )
-          : null,
-      trailing: isSelected
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.delete_outline,
-                  size: 20, color: Colors.redAccent),
-              tooltip: 'Delete account',
-              onPressed: () =>
-                  _confirmDeleteSDKAccount(context, address, isSelected),
-            ),
     );
   }
 
@@ -204,8 +208,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Delete SDK account'),
         content: Text(
-          'Are you sure you want to delete this account?\n\n'
-          '${WalletUtils.getAddressForDisplay(address)}\n\n'
+          'Are you sure you want to delete the account ${WalletUtils.getAddressForDisplay(address)}?\n'
           'This action cannot be undone.',
         ),
         actions: [
@@ -240,7 +243,6 @@ class SDKAccountManagerButton extends StatelessWidget {
           maxLines: 4,
           decoration: const InputDecoration(
             hintText: 'Enter your 12 or 24 word mnemonic phrase',
-            border: OutlineInputBorder(),
           ),
         ),
         actions: [
@@ -279,7 +281,6 @@ class SDKAccountManagerButton extends StatelessWidget {
           controller: controller,
           decoration: const InputDecoration(
             hintText: 'Enter your Ethereum private key (hex)',
-            border: OutlineInputBorder(),
           ),
         ),
         actions: [

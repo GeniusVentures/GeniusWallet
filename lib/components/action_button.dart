@@ -22,7 +22,7 @@ class ActionButton extends StatefulWidget {
     this.onPressed,
     this.backgroundColor = GeniusWalletColors.deepBlueCardColor,
     this.iconColor = GeniusWalletColors.lightGreenSecondary,
-    this.textColor = GeniusWalletColors.gray500,
+    this.textColor = Colors.grey,
     this.animation = ActionButtonAnimation.none,
     this.semanticLabel,
   });

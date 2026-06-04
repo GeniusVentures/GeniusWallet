@@ -11,7 +11,7 @@ class Loading extends StatelessWidget {
     return Row(spacing: 16, mainAxisSize: MainAxisSize.min, children: [
       LoadingAnimationWidget.flickr(
         leftDotColor: GeniusWalletColors.lightGreenPrimary,
-        rightDotColor: GeniusWalletColors.blue500,
+        rightDotColor: Colors.blue,
         size: 50,
       ),
       if (text != null)
