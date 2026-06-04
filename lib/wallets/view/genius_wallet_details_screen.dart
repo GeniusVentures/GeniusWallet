@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class GeniusWalletDetailsScreen extends StatelessWidget {
   const GeniusWalletDetailsScreen({super.key});
@@ -61,7 +60,7 @@ class _ViewState extends State<View> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: GeniusWalletColors.gray500,
+                          color: Colors.grey,
                         ),
                       ),
                     ],

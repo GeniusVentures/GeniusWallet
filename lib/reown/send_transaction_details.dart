@@ -45,7 +45,7 @@ class SendTransactionDetails extends StatelessWidget {
               const Text(
                 "Estimated changes",
                 style: TextStyle(
-                  color: GeniusWalletColors.gray500,
+                  color: Colors.grey,
                   fontSize: 13,
                 ),
               ),
@@ -85,15 +85,13 @@ class SendTransactionDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(
-                color: GeniusWalletColors.gray500, fontSize: 14)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.all(12),
           width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: GeniusWalletColors.gray600),
+            border: Border.all(color: Colors.grey.shade700),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(

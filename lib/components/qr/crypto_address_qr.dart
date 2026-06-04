@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/components/button/copy_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CryptoAddressQR extends StatelessWidget {
@@ -20,7 +19,7 @@ class CryptoAddressQR extends StatelessWidget {
         QrImageView(
           data: address,
           version: QrVersions.auto,
-          backgroundColor: GeniusWalletColors.white.withValues(alpha: 0.6),
+          backgroundColor: Colors.white.withValues(alpha: 0.8),
           embeddedImage: AssetImage(iconPath ?? ""),
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(60, 60)),
         ),

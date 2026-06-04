@@ -30,7 +30,7 @@ class CryptoSparkLineChart extends StatelessWidget {
 
   /// Soft muted green/red colors
   static const Color _mutedGreen = GeniusWalletColors.mutedGreen;
-  static const Color _mutedRed = GeniusWalletColors.mutedRed;
+  static const Color _mutedRed = Colors.red;
 
   Color get priceColor => priceChangePercent > 0
       ? _mutedGreen
@@ -63,7 +63,7 @@ class CryptoSparkLineChart extends StatelessWidget {
         title,
         style: const TextStyle(
           fontSize: 16,
-          color: GeniusWalletColors.gray500,
+          color: Colors.grey,
         ),
         maxLines: 1,
       ),

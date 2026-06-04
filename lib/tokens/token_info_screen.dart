@@ -7,7 +7,6 @@ import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
@@ -324,13 +323,14 @@ class _MarketDataInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final infoTiles = <Widget>[
       if (network != null)
         ListTile(
           dense: true,
-          leading: const Icon(
+          leading: Icon(
             Icons.bubble_chart,
-            color: GeniusWalletColors.lightGreenPrimary,
+            color: cs.primary,
           ),
           title: const Text("Network"),
           trailing: Text(
@@ -341,8 +341,7 @@ class _MarketDataInfo extends StatelessWidget {
       if (address != null)
         ListTile(
           dense: true,
-          leading: const Icon(Icons.link,
-              color: GeniusWalletColors.lightGreenPrimary),
+          leading: Icon(Icons.link, color: cs.primary),
           title: const Text("Address"),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -354,10 +353,10 @@ class _MarketDataInfo extends StatelessWidget {
                   showAppSnackBar(context, 'Address copied to clipboard');
                 },
                 tooltip: "Copy address",
-                icon: const Icon(
+                icon: Icon(
                   Icons.copy,
                   size: 18,
-                  color: GeniusWalletColors.lightGreenPrimary,
+                  color: cs.primary,
                 ),
               ),
               Text(
@@ -416,7 +415,7 @@ class _MarketDataInfo extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         Card(
-          color: GeniusWalletColors.deepBlueCardColor,
+          color: cs.surface,
           margin: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -432,8 +431,8 @@ class _MarketDataInfo extends StatelessWidget {
                         ? NetworkImage(marketData!.imageUrl)
                         : null,
                     child: marketData?.imageUrl == null
-                        ? const Icon(Icons.token,
-                            color: GeniusWalletColors.gray500, size: 32)
+                        ? Icon(Icons.token,
+                            color: cs.onSurfaceVariant, size: 32)
                         : null,
                   ),
                   title: Text(
@@ -442,8 +441,8 @@ class _MarketDataInfo extends StatelessWidget {
                   ),
                   subtitle: Text(
                     (marketData?.symbol ?? "").toUpperCase(),
-                    style: const TextStyle(
-                      color: GeniusWalletColors.gray500,
+                    style: TextStyle(
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
                 ),

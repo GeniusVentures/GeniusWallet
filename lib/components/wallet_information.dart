@@ -86,10 +86,10 @@ class WalletInformationState extends State<WalletInformation> {
                 widget.totalBalance == "0" ||
                 widget.totalBalance == "0.00" ||
                 widget.totalBalance == "\$0.00")
-              const Text(
+              Text(
                 'No funds available',
                 style: TextStyle(
-                  color: GeniusWalletColors.red,
+                  color: Theme.of(context).colorScheme.error,
                   fontSize: 12,
                 ),
               ),

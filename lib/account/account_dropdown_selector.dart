@@ -374,18 +374,16 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             onPressed: () => _showAccountDrawer(),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              spacing: 8.0,
+              spacing: 6.0,
               children: [
                 _buildAvatar(selectedWallet!, isSelected: false, size: 25),
-                Flexible(
-                  child: Text(
-                    selectedWallet!.walletType == WalletType.sgnus
-                        ? 'Super Genius'
-                        : WalletUtils.getAddressForDisplay(
-                            selectedWallet!.address),
-                    style: const TextStyle(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  selectedWallet!.walletType == WalletType.sgnus
+                      ? 'Super Genius'
+                      : WalletUtils.getAddressForDisplay(
+                          selectedWallet!.address),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const Icon(Icons.arrow_drop_down),
               ],

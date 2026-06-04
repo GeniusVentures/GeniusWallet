@@ -21,7 +21,7 @@ import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
 import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/components/wallet_overview.dart';
 
-double gridSpacing = 8;
+const double gridSpacing = 12;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -291,17 +291,12 @@ class ChartDashboardView extends StatelessWidget {
     return DashboardScrollContainer(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: AutoSizeText(
-              "Bitcoin Chart",
-              maxLines: 1,
-              style: const TextStyle(
-                fontSize: GeniusWalletFontSize.sectionHeader,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
+          AutoSizeText(
+            "Bitcoin Chart",
+            maxLines: 1,
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           const Expanded(
             child: CryptoLiveChart(

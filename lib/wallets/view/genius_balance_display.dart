@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:provider/provider.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class GeniusBalanceDisplay extends StatefulWidget {
   final bool useMinions;
@@ -88,7 +87,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
             style: TextStyle(
               fontSize: widget.fontSize ?? 16,
               fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? GeniusWalletColors.gray500,
+              color: widget.fontColor ?? Colors.grey,
             ),
           )
         ]

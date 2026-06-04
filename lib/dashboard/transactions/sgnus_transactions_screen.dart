@@ -43,9 +43,11 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
         final allTx = snapshot.data ?? [];
         final sgnusTx = allTx.where((tx) => tx.isSGNUS == true).toList();
 
-        return TransactionsSlimView(
-          transactions: sgnusTx,
-          isShowOnlySGNUSTransactions: true,
+        return Center(
+          child: TransactionsSlimView(
+            transactions: sgnusTx,
+            isShowOnlySGNUSTransactions: true,
+          ),
         );
       },
     );

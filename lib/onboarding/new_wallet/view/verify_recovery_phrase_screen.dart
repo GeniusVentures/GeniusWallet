@@ -245,7 +245,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 : (hasUserInput
                                     ? Colors.green
                                     : Colors.blue.withValues(alpha: 0.5)))
-                            : GeniusWalletColors.gray500,
+                            : Colors.grey,
                         width: isHighlighted ? 2.0 : 1.0,
                       ),
                       color: isEmpty

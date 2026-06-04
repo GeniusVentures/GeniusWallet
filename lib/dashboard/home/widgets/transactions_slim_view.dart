@@ -1,10 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:intl/intl.dart';
 
@@ -63,252 +60,61 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final txs = filteredTransactions;
     final textScale = MediaQuery.textScalerOf(context).scale;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16.0,
-          children: [
-            TransactionFilters(
-              selected: selectedFilter,
-              onChanged: (f) => setState(() => selectedFilter = f),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16.0,
+        children: [
+          Text('Transactions',
+              style: Theme.of(context).textTheme.headlineLarge),
+          SegmentedButton<Filters>(
+            segments: Filters.values
+                .where((f) => f != Filters.all)
+                .map((filter) => ButtonSegment<Filters>(
+                      value: filter,
+                      label: Text(filter.label),
+                    ))
+                .toList(),
+            selected: selectedFilter == Filters.all
+                ? <Filters>{}
+                : {selectedFilter},
+            emptySelectionAllowed: true,
+            showSelectedIcon: false,
+            onSelectionChanged: (Set<Filters> newSelection) {
+              setState(() => selectedFilter =
+                  newSelection.isEmpty ? Filters.all : newSelection.first);
+            },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: txs.length,
+              itemBuilder: (_, i) => switch (txs[i].type) {
+                TransactionType.purchase =>
+                  TransactionPurchasedItem(tx: txs[i]),
+                TransactionType.escrowRelease =>
+                  TransactionEscrowReleaseItem(tx: txs[i]),
+                TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
+                _ => TransactionItem(tx: txs[i]),
+              },
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: txs.length,
-                itemBuilder: (_, i) => switch (txs[i].type) {
-                  TransactionType.purchase =>
-                    TransactionPurchasedItem(tx: txs[i]),
-                  TransactionType.escrowRelease =>
-                    TransactionEscrowReleaseItem(tx: txs[i]),
-                  TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
-                  _ => TransactionItem(tx: txs[i]),
-                },
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: AutoSizeText(
-                "Transactions: ${txs.length}",
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: textScale(16),
-                  color: GeniusWalletColors.gray500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TransactionFilters extends StatelessWidget {
-  final Filters selected;
-  final ValueChanged<Filters> onChanged;
-
-  const TransactionFilters({
-    super.key,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile =
-        MediaQuery.sizeOf(context).width < GeniusBreakpoints.medium;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 16.0,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const AutoSizeText(
-              'Transactions',
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: GeniusWalletFontSize.sectionHeader,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-            if (isMobile) _MobileFilters(selected, onChanged),
-          ],
-        ),
-        if (!isMobile)
+          ),
           Align(
             alignment: Alignment.centerRight,
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final filter in Filters.values)
-                  _FilterButton(
-                    filter: filter,
-                    selected: selected == filter,
-                    onTap: () => onChanged(
-                      selected == filter ? Filters.all : filter,
-                    ),
-                  ),
-              ],
+            child: AutoSizeText(
+              "Transactions: ${txs.length}",
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: textScale(16),
+                color: cs.onSurfaceVariant,
+              ),
             ),
           ),
-      ],
-    );
-  }
-}
-
-class _MobileFilters extends StatelessWidget {
-  final Filters selected;
-  final ValueChanged<Filters> onChanged;
-
-  const _MobileFilters(this.selected, this.onChanged);
-
-  @override
-  Widget build(BuildContext context) {
-    final applied = selected != Filters.all;
-
-    return Stack(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.filter_list, size: 30),
-          color: applied
-              ? GeniusWalletColors.lightGreenPrimary
-              : GeniusWalletColors.white,
-          onPressed: () => ResponsiveDrawer.show<void>(
-            context: context,
-            title: "Filters",
-            child: ListView(children: [
-              for (final filter in Filters.values)
-                _HoverableFilterItem(
-                  filter: filter,
-                  selected: selected == filter,
-                  onTap: () {
-                    onChanged(filter);
-                    Navigator.pop(context);
-                  },
-                ),
-            ]),
-          ),
-        ),
-        if (applied)
-          const Positioned(
-            right: 8,
-            top: 8,
-            child: _FilterDot(),
-          ),
-      ],
-    );
-  }
-}
-
-class _HoverableFilterItem extends StatefulWidget {
-  final Filters filter;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _HoverableFilterItem({
-    required this.filter,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  State<_HoverableFilterItem> createState() => _HoverableFilterItemState();
-}
-
-class _HoverableFilterItemState extends State<_HoverableFilterItem> {
-  bool hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => hovered = true),
-      onExit: (_) => setState(() => hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: hovered
-              ? GeniusWalletColors.lightGreenPrimary.withValues(alpha: 0.1)
-              : Colors.transparent,
-        ),
-        child: ListTile(
-          onTap: widget.onTap,
-          title: Text(
-            widget.filter.label,
-            style: const TextStyle(color: Colors.white),
-          ),
-          trailing: widget.selected
-              ? const Icon(
-                  Icons.check,
-                  color: GeniusWalletColors.lightGreenPrimary,
-                )
-              : null,
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterButton extends StatelessWidget {
-  final Filters filter;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterButton({
-    required this.filter,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected
-        ? GeniusWalletColors.btnFilterSelected
-        : GeniusWalletColors.btnFilter;
-
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
-          side: BorderSide(color: color),
-        ),
-      ),
-      child: Text(
-        filter.label,
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterDot extends StatelessWidget {
-  const _FilterDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: GeniusWalletColors.lightGreenPrimary,
+        ],
       ),
     );
   }

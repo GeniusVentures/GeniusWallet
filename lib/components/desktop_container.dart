@@ -76,7 +76,7 @@ class DesktopContainer extends StatelessWidget {
                               trailing: [
                                 Icon(
                                   Icons.search,
-                                  color: GeniusWalletColors.gray500,
+                                  color: Colors.grey,
                                 ),
                               ],
                             ),
@@ -84,7 +84,7 @@ class DesktopContainer extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         // Buttons
-                        const Row(
+                        Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             HeaderButton(
@@ -96,7 +96,7 @@ class DesktopContainer extends StatelessWidget {
                             ),
                             SizedBox(width: 12),
                             HeaderButton(
-                              color: GeniusWalletColors.gray900,
+                              color: Colors.grey.shade900,
                               text: 'Genius 1',
                               textColor: Colors.white,
                               icon: Icons.person,
