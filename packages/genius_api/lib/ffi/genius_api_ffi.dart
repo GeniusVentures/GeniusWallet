@@ -289,6 +289,22 @@ class NativeLibrary {
   late final _GeniusSDKMergeGeniusAccount = _GeniusSDKMergeGeniusAccountPtr
       .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
+  /// @brief Deletes the account.
+  int GeniusSDKDeleteAccount(
+    ffi.Pointer<ffi.Char> public_address,
+  ) {
+    return _GeniusSDKDeleteAccount(
+      public_address,
+    );
+  }
+
+  late final _GeniusSDKDeleteAccountPtr = _lookup<
+      ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+              ffi.Pointer<ffi.Char>)>>('GeniusSDKDeleteAccount');
+  late final _GeniusSDKDeleteAccount = _GeniusSDKDeleteAccountPtr.asFunction<
+      int Function(ffi.Pointer<ffi.Char>)>();
+
   /// @brief Sets the payout address for processing rewards.
   /// @param[in] public_address Null-terminated string representing the payout public address.
   /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_CREATING if not initialized,

@@ -23,6 +23,12 @@ class AppState extends Equatable {
   final bool isProcessing;
   final double? processingPercentage;
 
+  /// The currently selected SDK account address (for processing/minting).
+  final String? selectedSDKAccount;
+
+  /// All available SDK account addresses.
+  final List<String> sdkAccounts;
+
   const AppState(
       {this.wallets = const [],
       this.sdkStatus = AppStatus.initial,
@@ -34,6 +40,8 @@ class AppState extends Equatable {
       this.isProcessing = false,
       this.account,
       this.processingPercentage,
+      this.selectedSDKAccount,
+      this.sdkAccounts = const [],
       this.accountStatus = AppStatus.initial});
 
   AppState copyWith(
@@ -47,6 +55,8 @@ class AppState extends Equatable {
       bool? isProcessing,
       Account? account,
       double? processingPercentage,
+      String? selectedSDKAccount,
+      List<String>? sdkAccounts,
       AppStatus? accountStatus}) {
     return AppState(
         wallets: wallets ?? this.wallets,
@@ -60,6 +70,8 @@ class AppState extends Equatable {
         account: account ?? this.account,
         processingPercentage: processingPercentage ?? this.processingPercentage,
         isProcessing: isProcessing ?? this.isProcessing,
+        selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
+        sdkAccounts: sdkAccounts ?? this.sdkAccounts,
         accountStatus: accountStatus ?? this.accountStatus);
   }
 
@@ -75,7 +87,9 @@ class AppState extends Equatable {
         account,
         accountStatus,
         isProcessing,
-        processingPercentage
+        processingPercentage,
+        selectedSDKAccount,
+        sdkAccounts,
       ];
 }
 

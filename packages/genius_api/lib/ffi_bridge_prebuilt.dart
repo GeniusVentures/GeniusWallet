@@ -9,17 +9,7 @@ class FFIBridgePrebuilt {
   late gns.NativeLibrary sgns_lib;
 
   FFIBridgePrebuilt() {
-    final DynamicLibrary? dylib = () {
-      if (Platform.isAndroid) {
-        return loadGeniusWalletLibrary();
-      } else if (Platform.isIOS) {
-        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
-      } else if (Platform.isMacOS) {
-        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
-      }
-      return DynamicLibrary.executable();
-    }();
-
+    final dylib = loadGeniusSDKLibrary();
     if (dylib == null) {
       return;
     }
@@ -29,13 +19,18 @@ class FFIBridgePrebuilt {
   }
 }
 
-DynamicLibrary? loadGeniusWalletLibrary() {
-  try {
-    // Attempt to load the shared library
-    final library = DynamicLibrary.open('libGeniusWallet.so');
-    return library;
-  } catch (e) {
-    debugPrint("❌ Error loading library: $e");
-    return null; // Return null to handle errors gracefully
+/// Loads the Genius SDK shared library with platform-specific detection.
+DynamicLibrary? loadGeniusSDKLibrary() {
+  if (Platform.isAndroid) {
+    try {
+      return DynamicLibrary.open('libGeniusWallet.so');
+    } catch (e) {
+      debugPrint("❌ Error loading library: $e");
+      return null;
+    }
   }
+  if (Platform.isIOS || Platform.isMacOS) {
+    return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
+  }
+  return DynamicLibrary.executable();
 }

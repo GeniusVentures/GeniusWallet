@@ -35,3 +35,29 @@ class SgnusConnectionChanged extends AppEvent {
 
   SgnusConnectionChanged(this.connection);
 }
+
+class SelectSDKAccount extends AppEvent {
+  final String publicAddress;
+
+  SelectSDKAccount(this.publicAddress);
+}
+
+class AddSDKAccountWithMnemonic extends AppEvent {
+  final String mnemonic;
+
+  AddSDKAccountWithMnemonic(this.mnemonic);
+}
+
+class AddSDKAccountWithPrivateKey extends AppEvent {
+  final String privateKey;
+
+  AddSDKAccountWithPrivateKey(this.privateKey);
+}
+
+class DeleteSDKAccount extends AppEvent {
+  final String publicAddress;
+
+  DeleteSDKAccount(this.publicAddress);
+}
+
+class RefreshSDKAccounts extends AppEvent {}
