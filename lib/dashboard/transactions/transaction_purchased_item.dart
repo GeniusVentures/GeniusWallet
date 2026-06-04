@@ -31,17 +31,23 @@ class TransactionPurchasedItem extends StatelessWidget {
         leading: _buildIcon(arrowBgColor, arrowIcon),
         title: Row(
           children: [
-            Text(
-              isFailed ? "Buy - Failed" : "Buy",
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: isFailed ? Colors.redAccent : Colors.white),
+            Flexible(
+              child: Text(
+                isFailed ? "Buy - Failed" : "Buy",
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isFailed ? Colors.redAccent : Colors.white),
+              ),
             ),
-            Text(
-              " • ${tx.coinSymbol}",
-              style: const TextStyle(
-                  fontSize: 14, color: GeniusWalletColors.gray500),
+            Flexible(
+              child: Text(
+                " • ${tx.coinSymbol}",
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 14, color: GeniusWalletColors.gray500),
+              ),
             ),
           ],
         ),
@@ -49,7 +55,7 @@ class TransactionPurchasedItem extends StatelessWidget {
           timeago.format(tx.timeStamp.toLocal()),
           style: const TextStyle(fontSize: 12, color: Colors.white60),
         ),
-        trailing: _buildAmount(amountColor, amount, isFailed),
+        trailing: Flexible(child: _buildAmount(amountColor, amount, isFailed)),
       ),
     );
   }
@@ -217,8 +223,18 @@ class TransactionPurchasedItem extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
-          Text(value, style: TextStyle(color: valueColor)),
+          Flexible(
+            child: Text(label,
+                style: const TextStyle(color: Colors.white70),
+                overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: TextStyle(color: valueColor),
+                overflow: TextOverflow.ellipsis),
+          ),
         ],
       ),
     );

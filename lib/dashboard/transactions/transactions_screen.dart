@@ -6,18 +6,38 @@ import 'package:genius_wallet/dashboard/transactions/transactions_scren.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-class TransactionsScreen extends StatelessWidget {
+class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({Key? key}) : super(key: key);
 
   @override
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends State<TransactionsScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       body: SafeArea(
         child: Container(
-          height: screenHeight,
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Column(
             children: [

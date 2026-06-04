@@ -32,12 +32,20 @@ class TransactionItem extends StatelessWidget {
           leading: _buildIcon(arrowBgColor, arrowIcon),
           title: Row(
             children: [
-              Text(label),
-              Text(
-                " • ${tx.coinSymbol}",
-                style: const TextStyle(
-                    fontSize: 14, color: GeniusWalletColors.gray500),
-              )
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  " • ${tx.coinSymbol}",
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 14, color: GeniusWalletColors.gray500),
+                ),
+              ),
             ],
           ),
           onTap: () {
@@ -46,7 +54,7 @@ class TransactionItem extends StatelessWidget {
           subtitle: Text(
             timeago.format(tx.timeStamp.toLocal()),
           ),
-          trailing: _buildAmount(amount),
+          trailing: Flexible(child: _buildAmount(amount)),
         ));
   }
 
@@ -109,8 +117,18 @@ class TransactionItem extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
-          Text(value, style: TextStyle(color: valueColor)),
+          Flexible(
+            child: Text(label,
+                style: const TextStyle(color: Colors.white70),
+                overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: TextStyle(color: valueColor),
+                overflow: TextOverflow.ellipsis),
+          ),
         ],
       ),
     );
