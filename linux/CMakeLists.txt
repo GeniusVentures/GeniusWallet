@@ -34,17 +34,17 @@ set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
 if(DEFINED ENV{CMAKE_ARGUMENTS})
     # Split the arguments string into a list
     string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
-    
+
     # Process each argument
     foreach(ARG IN LISTS CMAKE_ARG_LIST)
         # Check if it's a -D argument (variable definition)
         if(ARG MATCHES "^-D(.+)=(.+)$")
             set(VAR_NAME "${CMAKE_MATCH_1}")
             set(VAR_VALUE "${CMAKE_MATCH_2}")
-            
+
             # Set the variable in the cache
             set(${VAR_NAME} "${VAR_VALUE}" CACHE STRING "From CMAKE_ARGUMENTS" FORCE)
-            
+
             # Special handling for CMAKE_BUILD_TYPE
             if(VAR_NAME STREQUAL "CMAKE_BUILD_TYPE")
                 if(VAR_VALUE STREQUAL "RelWithDebInfo")
@@ -62,7 +62,7 @@ if(DEFINED ENV{CMAKE_ARGUMENTS})
             endif()
         endif()
     endforeach()
-    
+
     # Optional: Log what was processed
     message(STATUS "Processed CMAKE_ARGUMENTS: $ENV{CMAKE_ARGUMENTS}")
 endif()

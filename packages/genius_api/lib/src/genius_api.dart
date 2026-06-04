@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
+
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/controllers/sgnus_connection_controller.dart';
 import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
-import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart' hide NativeLibrary;
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
@@ -649,6 +650,70 @@ class GeniusApi {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
+  }
+
+  /// Selects the active Genius account for subsequent SDK operations.
+  /// This is a synchronous FFI call — no isolate is used because FFI objects
+  /// (DynamicLibrary, NativeLibrary, and Pointer) are not sendable across
+  /// isolate boundaries.
+  GeniusNodeReturnValue selectGeniusAccount(String publicAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
+    final result =
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKSelectGeniusAccount(addressPtr);
+    malloc.free(addressPtr);
+    return _mapNodeReturnValue(result);
+  }
+
+  /// Adds a new Genius account to the SDK using a mnemonic recovery phrase.
+  GeniusNodeReturnValue addAccountWithMnemonic(String mnemonic) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final mnemonicPtr = mnemonic.toNativeUtf8().cast<Char>();
+    final result = _ffiBridgePrebuilt.sgns_lib
+        .GeniusSDKAddAccountWithMnemonic(mnemonicPtr);
+    malloc.free(mnemonicPtr);
+    return _mapNodeReturnValue(result);
+  }
+
+  /// Adds a new Genius account to the SDK using an Ethereum private key.
+  GeniusNodeReturnValue addAccountWithPrivateKey(String privateKey) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final keyPtr = privateKey.toNativeUtf8().cast<Char>();
+    final result =
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKAddAccountWithPrivateKey(keyPtr);
+    malloc.free(keyPtr);
+    return _mapNodeReturnValue(result);
+  }
+
+  /// Deletes a Genius account from the SDK. The currently selected account
+  /// cannot be deleted — the SDK will refuse the operation.
+  GeniusNodeReturnValue deleteAccount(String publicAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
+    final result =
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKDeleteAccount(addressPtr);
+    malloc.free(addressPtr);
+    return _mapNodeReturnValue(result);
+  }
+
+  /// Returns the public address of the currently selected Genius account,
+  /// or null if the SDK is not initialized.
+  String? getSelectedAccountAddress() {
+    if (!_isSdkInitialized) {
+      return null;
+    }
+    final rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
+    final charCodes =
+        List<int>.generate(2 + 128, (index) => rawAddress.address[index]);
+    return String.fromCharCodes(charCodes);
   }
 
   GeniusNodeReturnValue payDev(int amount, {String? tokenId}) {

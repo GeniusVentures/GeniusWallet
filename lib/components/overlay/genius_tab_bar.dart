@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
+import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
@@ -197,6 +198,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                 spacing: 4.0,
                 children: [
                   const NetworkDropdownSelector(),
+                  const SDKAccountManagerButton(),
                   AccountDropdownSelector(),
                   ReownConnectButton(
                     walletAddress:
