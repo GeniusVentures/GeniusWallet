@@ -89,7 +89,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
               ),
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               children: [
-                Text('Browser', style: GeniusWalletTypography.headlineLg),
+                Text('Discover', style: GeniusWalletTypography.headlineLg),
                 const SizedBox(height: GeniusWalletConsts.space2),
                 Text(
                   'Connect to any DeFi app from your wallet.',
