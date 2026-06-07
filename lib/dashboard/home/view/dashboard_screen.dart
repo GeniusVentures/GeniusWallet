@@ -5,6 +5,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -27,6 +28,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   _DashboardTab _tab = _DashboardTab.assets;
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
 
   @override
   void initState() {
@@ -37,6 +40,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context.read<WalletDetailsCubit>().getCoins();
       } catch (_) {/* mock mode */}
     });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<Coin> _filterCoins(List<Coin> coins) {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return coins;
+    return coins.where((c) {
+      final name = (c.name ?? '').toLowerCase();
+      final symbol = (c.symbol ?? '').toLowerCase();
+      return name.contains(q) || symbol.contains(q);
+    }).toList();
   }
 
   @override
@@ -73,9 +92,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onChanged: (t) => setState(() => _tab = t),
                           ),
                         ),
-                        if (_tab == _DashboardTab.assets)
-                          _AssetsSliver(coins: walletState.coins)
-                        else
+                        if (_tab == _DashboardTab.assets) ...[
+                          SliverToBoxAdapter(
+                            child: _AssetSearch(
+                              controller: _searchCtrl,
+                              onChanged: (v) => setState(() => _query = v),
+                            ),
+                          ),
+                          _AssetsSliver(
+                            coins: _filterCoins(walletState.coins),
+                            query: _query,
+                          ),
+                        ] else
                           const _ActivitySliver(),
                         const SliverToBoxAdapter(
                           child: SizedBox(
@@ -362,12 +390,23 @@ class _Tabs extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _AssetsSliver extends StatelessWidget {
-  const _AssetsSliver({required this.coins});
+  const _AssetsSliver({required this.coins, this.query = ''});
   final List<Coin> coins;
+  final String query;
 
   @override
   Widget build(BuildContext context) {
     if (coins.isEmpty) {
+      // Distinguish "no results for a search" from "no assets at all".
+      if (query.trim().isNotEmpty) {
+        return SliverToBoxAdapter(
+          child: _EmptyState(
+            icon: Icons.search_off_rounded,
+            title: 'No tokens match "$query"',
+            subtitle: 'Try a different name or symbol.',
+          ),
+        );
+      }
       return const SliverToBoxAdapter(
         child: _EmptyState(
           icon: Icons.account_balance_wallet_outlined,
@@ -380,6 +419,34 @@ class _AssetsSliver extends StatelessWidget {
       itemCount: coins.length,
       separatorBuilder: (_, __) => const _RowDivider(),
       itemBuilder: (_, i) => _CoinRow(coin: coins[i]),
+    );
+  }
+}
+
+class _AssetSearch extends StatelessWidget {
+  const _AssetSearch({required this.controller, required this.onChanged});
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        GeniusWalletConsts.space6,
+        GeniusWalletConsts.space2,
+        GeniusWalletConsts.space6,
+        GeniusWalletConsts.space4,
+      ),
+      child: GWTextField(
+        controller: controller,
+        hint: 'Search tokens',
+        onChanged: onChanged,
+        prefix: const Icon(
+          Icons.search_rounded,
+          size: 20,
+          color: GeniusWalletColors.textSecondary,
+        ),
+      ),
     );
   }
 }
