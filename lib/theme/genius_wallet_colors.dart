@@ -7,33 +7,33 @@ class GeniusWalletColors {
   // new code; legacy names below are remapped onto the new palette.
   // ---------------------------------------------------------------------------
 
-  // Brand — primary (cyan/blue). Vibrant v1.1 — see DESIGN_SYSTEM.md migration note 2026-05.
-  static const Color brandPrimary = Color(0xFF0AB4F5);
-  static const Color brandPrimaryStrong = Color(0xFF0696D6);
-  static Color brandPrimaryMuted = const Color(0xFF0AB4F5).withAlpha(61); // ~24%
-  static Color brandPrimarySubtle = const Color(0xFF0AB4F5).withAlpha(31); // ~12%
+  // Brand — primary (cyan/blue). Vibrant v1.2 — electric. See DESIGN_SYSTEM.md note 2026-05.
+  static const Color brandPrimary = Color(0xFF14C8FF);
+  static const Color brandPrimaryStrong = Color(0xFF0AAEE6);
+  static Color brandPrimaryMuted = const Color(0xFF14C8FF).withAlpha(61); // ~24%
+  static Color brandPrimarySubtle = const Color(0xFF14C8FF).withAlpha(31); // ~12%
 
-  // Brand — secondary (mint/green). Vibrant v1.1.
-  static const Color brandSecondary = Color(0xFF1FE0A4);
-  static const Color brandSecondaryStrong = Color(0xFF07C089);
-  static const Color brandSecondaryBright = Color(0xFF3DF7C0);
-  static Color brandSecondaryMuted = const Color(0xFF1FE0A4).withAlpha(61);
-  static Color brandSecondarySubtle = const Color(0xFF1FE0A4).withAlpha(31);
+  // Brand — secondary (mint/green). Vibrant v1.2 — electric.
+  static const Color brandSecondary = Color(0xFF2BF5B4);
+  static const Color brandSecondaryStrong = Color(0xFF0AD89C);
+  static const Color brandSecondaryBright = Color(0xFF5BFFD0);
+  static Color brandSecondaryMuted = const Color(0xFF2BF5B4).withAlpha(61);
+  static Color brandSecondarySubtle = const Color(0xFF2BF5B4).withAlpha(31);
 
-  // Brand — tertiary (purple accent). Vibrant v1.1.
-  static const Color brandTertiary = Color(0xFFB27CFF);
-  static Color brandTertiaryMuted = const Color(0xFFB27CFF).withAlpha(61);
-  static Color brandTertiarySubtle = const Color(0xFFB27CFF).withAlpha(31);
+  // Brand — tertiary (purple accent). Vibrant v1.2.
+  static const Color brandTertiary = Color(0xFFC28FFF);
+  static Color brandTertiaryMuted = const Color(0xFFC28FFF).withAlpha(61);
+  static Color brandTertiarySubtle = const Color(0xFFC28FFF).withAlpha(31);
 
-  // Signature gradient stops (blue → green CTA from gnus.ai). Vibrant v1.1.
-  static const Color gradientBlue = Color(0xFF0696D6);
-  static const Color gradientGreen = Color(0xFF07C089);
+  // Signature gradient stops (blue → green CTA from gnus.ai). Vibrant v1.2.
+  static const Color gradientBlue = Color(0xFF0AAEE6);
+  static const Color gradientGreen = Color(0xFF0AD89C);
 
-  // Surface — teal-blue canvas, lifted in v1.1 for more contrast/pop, with
-  // darker contained cards (gnus.ai layered look).
-  static const Color surfaceBase = Color(0xFF234453); // page background (teal)
+  // Surface — teal-blue canvas, lifted further in v1.2 for noticeably more pop,
+  // with darker contained cards (gnus.ai layered look).
+  static const Color surfaceBase = Color(0xFF2A6275); // page background (teal)
   static const Color surfaceElevated = Color(0xFF0C0E14); // card / contained
-  static const Color surfaceMenu = Color(0xFF1A3242); // sheet / menu
+  static const Color surfaceMenu = Color(0xFF224C5E); // sheet / menu
   static const Color surfaceSunken = Color(0xFF06080C); // deepest layer
   static Color surfaceOverlay = const Color(0xFF000000).withAlpha(153); // 60%
 
@@ -58,9 +58,9 @@ class GeniusWalletColors {
   static const Color borderBrand = brandPrimary;
 
   // Status
-  static const Color statusSuccess = Color(0xFF07C089); // mint-green from gradient (vibrant v1.1)
-  static const Color statusError = Color(0xFFEF3B3B); // gnus.ai --destructive, vibrant v1.1
-  static const Color statusWarning = Color(0xFFFFB020);
+  static const Color statusSuccess = Color(0xFF0AD89C); // mint-green from gradient (vibrant v1.2)
+  static const Color statusError = Color(0xFFFF4D4D); // gnus.ai --destructive, vibrant v1.2
+  static const Color statusWarning = Color(0xFFFFC42E);
   static const Color statusInfo = brandPrimary;
 
   // ---------------------------------------------------------------------------

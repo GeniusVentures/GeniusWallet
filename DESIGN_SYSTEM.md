@@ -737,6 +737,10 @@ Mark the legacy alias in `genius_wallet_colors.dart` (existing pattern: see the 
 
 ## Migration notes
 
+### v1.2 — Electric (2026-05, iterating)
+
+v1.1 still read too muted in-app, so the brand hues were pushed toward electric and the canvas lifted noticeably more. Current values: `brandPrimary #14C8FF`, `brandSecondary #2BF5B4` (strong `#0AD89C`, bright `#5BFFD0`), `brandTertiary #C28FFF`, gradient `#0AD89C → #0AAEE6`, `surfaceBase #2A6275`, `surfaceMenu #224C5E`, `statusSuccess #0AD89C`, `statusError #FF4D4D`, `statusWarning #FFC42E`. Direction approved during QA; the §3.1 tables + web Tailwind vars get refreshed once the exact values are locked.
+
 ### v1.1 — Vibrant palette (2026-05)
 
 Brand hues saturated and the app canvas lifted for more visual energy. **Token names and roles are unchanged** — every consumer that references the semantic tokens (`brandPrimary`, `surfaceBase`, …) picks up the new look automatically. Only the underlying hex values changed.
