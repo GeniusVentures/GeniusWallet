@@ -3,7 +3,6 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_gradient_border_card.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
-import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/components/inputs/gw_checkbox.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
