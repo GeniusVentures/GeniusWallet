@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
@@ -6,7 +5,7 @@ import 'package:genius_wallet/dashboard/transactions/transaction_escrow_release_
 import 'package:genius_wallet/dashboard/transactions/transaction_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_purchased_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_swapped_item.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:intl/intl.dart';
 
 final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
@@ -78,19 +77,16 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
         TransactionFilters(onFilterSelected: handleFilterSelected),
         const SizedBox(height: 20),
         Expanded(
-          child: _buildTransactionsView(filteredTransactions, textScaleFactor),
-        ),
-        const SizedBox(height: 20),
-        Align(
-          alignment: Alignment.centerRight,
-          child: AutoSizeText(
-            maxLines: 1,
-            "Transactions: ${filteredTransactions.length}",
-            style: TextStyle(
-              fontSize: 16 * textScaleFactor,
-              color: GeniusWalletColors.gray500,
-            ),
-          ),
+          child: filteredTransactions.isEmpty
+              ? GWEmptyState(
+                  icon: Icons.receipt_long_outlined,
+                  title: selectedFilter == 'All'
+                      ? 'No transactions yet'
+                      : 'No $selectedFilter transactions',
+                  message:
+                      'Your sends, receives and swaps will appear here.',
+                )
+              : _buildTransactionsView(filteredTransactions, textScaleFactor),
         ),
       ],
     );
