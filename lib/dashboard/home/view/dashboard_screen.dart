@@ -7,6 +7,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
+import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -522,7 +523,14 @@ class _CoinRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _RowIcon(letter: symbol.characters.first),
+            // Real token icon when available; letter avatar as fallback.
+            (coin.iconPath ?? '').isNotEmpty
+                ? SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: buildTokenIcon(iconPath: coin.iconPath!, size: 36),
+                  )
+                : _RowIcon(letter: symbol.characters.first),
             const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(
               child: Column(
@@ -540,20 +548,11 @@ class _CoinRow extends StatelessWidget {
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  _formatNumber(balance),
-                  style: GeniusWalletTypography.numericBody.copyWith(
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  symbol,
-                  style: GeniusWalletTypography.bodySm,
-                ),
-              ],
+            // Right side: holding amount only. The ticker already appears under
+            // the name on the left, so it isn't repeated here.
+            Text(
+              _formatNumber(balance),
+              style: GeniusWalletTypography.numericBody.copyWith(fontSize: 15),
             ),
           ],
         ),

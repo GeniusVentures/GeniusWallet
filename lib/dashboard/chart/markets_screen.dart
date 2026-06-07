@@ -106,8 +106,10 @@ class MarketsScreen extends StatelessWidget {
 
                       // Grid with robust lookup
                       return GridView.builder(
-                        // Even top/bottom rhythm (matches the 8px inter-card gap).
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        // 8px top (matches the inter-card gap); extra bottom is
+                        // scroll-only clearance so the last card isn't hidden by
+                        // the floating Swap FAB.
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 90),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: getCrossAxisCount(context),
                           crossAxisSpacing: 8,

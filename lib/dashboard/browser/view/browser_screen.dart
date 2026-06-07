@@ -81,11 +81,13 @@ class _BrowserScreenState extends State<BrowserScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: ListView(
+              // Bottom clearance so the floating Swap FAB doesn't cover the
+              // last dApp tiles.
               padding: const EdgeInsets.fromLTRB(
                 GeniusWalletConsts.space6,
                 GeniusWalletConsts.space4,
                 GeniusWalletConsts.space6,
-                GeniusWalletConsts.space20,
+                90,
               ),
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               children: [
