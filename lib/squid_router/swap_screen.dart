@@ -211,8 +211,20 @@ class _SwapScreenState extends State<SwapScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: [
-                        // Invisible widget to balance the settings icon on the right
-                        const SizedBox(width: 24), // Same width as the Icon
+                        // Back button when this screen was pushed (e.g. from the
+                        // global Swap FAB / action pills); falls back to a
+                        // spacer that balances the settings icon otherwise.
+                        Navigator.of(context).canPop()
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: GeniusWalletColors.textPrimary,
+                                  size: 24,
+                                ),
+                                onPressed: () =>
+                                    Navigator.of(context).maybePop(),
+                              )
+                            : const SizedBox(width: 24),
                         const Expanded(
                           child: Center(
                             child: Text(
