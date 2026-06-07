@@ -31,48 +31,48 @@ class _GWSwapFabState extends State<GWSwapFab> {
 
   @override
   Widget build(BuildContext context) {
+    // NOTE: no Tooltip here — this FAB is mounted at the MaterialApp.router
+    // builder level (above the Navigator's Overlay), and Tooltip requires an
+    // Overlay ancestor. Semantics already covers accessibility.
     return Semantics(
       label: widget.tooltip,
       button: true,
-      child: Tooltip(
-        message: widget.tooltip,
-        child: GestureDetector(
-          onTapDown: (_) => setState(() => _pressed = true),
-          onTapUp: (_) => setState(() => _pressed = false),
-          onTapCancel: () => setState(() => _pressed = false),
-          onTap: widget.onPressed,
-          child: AnimatedScale(
-            // motion/fast — snappy tap feedback per §3.7.
-            scale: _pressed ? 0.92 : 1.0,
-            duration: GeniusWalletMotion.fast,
-            curve: GeniusWalletMotion.standard,
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                gradient: GeniusWalletGradient.brandCta,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  // glow/gradient — dual brand glow lifted from the gnus.ai hero.
-                  BoxShadow(
-                    color: GeniusWalletColors.brandPrimary.withAlpha(64),
-                    blurRadius: 24,
-                    spreadRadius: -2,
-                    offset: const Offset(-2, 6),
-                  ),
-                  BoxShadow(
-                    color: GeniusWalletColors.brandSecondary.withAlpha(64),
-                    blurRadius: 24,
-                    spreadRadius: -2,
-                    offset: const Offset(2, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.swap_vert_rounded,
-                color: GeniusWalletColors.textOnBrand,
-                size: 26,
-              ),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onPressed,
+        child: AnimatedScale(
+          // motion/fast — snappy tap feedback per §3.7.
+          scale: _pressed ? 0.92 : 1.0,
+          duration: GeniusWalletMotion.fast,
+          curve: GeniusWalletMotion.standard,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              gradient: GeniusWalletGradient.brandCta,
+              shape: BoxShape.circle,
+              boxShadow: [
+                // glow/gradient — dual brand glow lifted from the gnus.ai hero.
+                BoxShadow(
+                  color: GeniusWalletColors.brandPrimary.withAlpha(64),
+                  blurRadius: 24,
+                  spreadRadius: -2,
+                  offset: const Offset(-2, 6),
+                ),
+                BoxShadow(
+                  color: GeniusWalletColors.brandSecondary.withAlpha(64),
+                  blurRadius: 24,
+                  spreadRadius: -2,
+                  offset: const Offset(2, 6),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.swap_vert_rounded,
+              color: GeniusWalletColors.textOnBrand,
+              size: 26,
             ),
           ),
         ),
