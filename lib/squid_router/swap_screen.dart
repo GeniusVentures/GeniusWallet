@@ -318,15 +318,14 @@ class _SwapScreenState extends State<SwapScreen> {
                     ),
                   ),
                   if (fetchedRoute != null)
-                    if (fetchedRoute != null)
-                      RouteDetailsCard(
-                        route: fetchedRoute!,
-                        fromAmount: fromAmountController.text,
-                        toAmount: toAmountController.text,
-                        fromToken: fromToken,
-                        toToken: toToken,
-                        slippage: slippage.toString(),
-                      ),
+                    RouteDetailsCard(
+                      route: fetchedRoute!,
+                      fromAmount: fromAmountController.text,
+                      toAmount: toAmountController.text,
+                      fromToken: fromToken,
+                      toToken: toToken,
+                      slippage: slippage.toString(),
+                    ),
                   if (canSwap)
                     LayoutBuilder(
                       builder: (context, constraints) {

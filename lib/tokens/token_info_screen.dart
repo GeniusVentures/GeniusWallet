@@ -54,6 +54,7 @@ class TokenInfoScreen extends StatelessWidget {
   Widget _buildScreenWithoutCubit(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text(marketData?.name ?? ''),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -132,6 +133,7 @@ class TokenInfoScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        title: Text(selectedCoin?.name ?? marketData?.name ?? ''),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
