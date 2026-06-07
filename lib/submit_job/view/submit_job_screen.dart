@@ -111,6 +111,7 @@ class SubmitJobScreen extends StatelessWidget {
                                       'assets/images/crypto/gnus.png',
                                       height: 25,
                                       width: 25,
+                                      semanticLabel: 'GNUS logo',
                                     ),
                                     const SizedBox(width: 8),
                                     SizedBox(

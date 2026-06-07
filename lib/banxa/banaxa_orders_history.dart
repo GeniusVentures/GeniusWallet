@@ -114,18 +114,21 @@ class _OrdersPageState extends State<OrdersPage> {
             : IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => context.go('/dashboard'),
+                tooltip: 'Back',
               ),
         title: const Text("My Orders"),
         actions: [
           IconButton(
             icon: const Icon(Icons.remove_red_eye),
             onPressed: () => context.push('/kyc'),
+            tooltip: 'View KYC',
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<OrdersCubit>().fetchOrders('your-cust-id');
             },
+            tooltip: 'Refresh',
           ),
           Semantics(
             label: 'Create new order',

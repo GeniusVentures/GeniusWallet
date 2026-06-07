@@ -155,6 +155,7 @@ class _PinViewMobile extends StatelessWidget {
                     left: GeniusWalletConsts.space10),
                 child: IconButton(
                   alignment: Alignment.center,
+                  tooltip: 'Close',
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.close, size: 32),
                 ),

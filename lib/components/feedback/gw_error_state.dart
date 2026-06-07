@@ -113,6 +113,7 @@ class GWErrorBanner extends StatelessWidget {
           ),
           if (onDismiss != null)
             IconButton(
+              tooltip: 'Close',
               icon: const Icon(
                 Icons.close,
                 size: 18,

@@ -39,6 +39,7 @@ class ApproveTransactionDrawer {
                             height: 24,
                             width: 24,
                             fit: BoxFit.cover,
+                            excludeFromSemantics: true,
                             errorBuilder: (context, error, stackTrace) {
                               return const SizedBox.shrink();
                             },

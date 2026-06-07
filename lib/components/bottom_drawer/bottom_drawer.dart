@@ -49,6 +49,7 @@ class BottomDrawer extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
+                      tooltip: 'Close',
                       icon: const Icon(Icons.close, color: GeniusWalletColors.textPrimary),
                       onPressed: () => Navigator.of(context).pop(),
                     ),

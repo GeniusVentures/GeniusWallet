@@ -161,6 +161,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                   )
                 : (_controller.text.isNotEmpty
                     ? IconButton(
+                        tooltip: 'Close',
                         icon: const Icon(Icons.clear,
                             color: GeniusWalletColors.textPrimary),
                         onPressed: () {

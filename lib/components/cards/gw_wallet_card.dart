@@ -42,6 +42,7 @@ class GWWalletCard extends StatelessWidget {
                   Image.asset(
                     walletIcon!,
                     package: 'genius_wallet',
+                    semanticLabel: walletName,
                     height: 30,
                     width: 30,
                     fit: BoxFit.contain,

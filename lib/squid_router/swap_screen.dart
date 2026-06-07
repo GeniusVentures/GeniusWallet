@@ -218,6 +218,7 @@ class _SwapScreenState extends State<SwapScreen> {
                         // spacer that balances the settings icon otherwise.
                         Navigator.of(context).canPop()
                             ? IconButton(
+                                tooltip: 'Back',
                                 icon: const Icon(
                                   Icons.arrow_back,
                                   color: GeniusWalletColors.textPrimary,
@@ -240,6 +241,7 @@ class _SwapScreenState extends State<SwapScreen> {
                           ),
                         ),
                         IconButton(
+                          tooltip: 'Settings',
                           icon: const Icon(
                             Icons.tune,
                             color: GeniusWalletColors.textPrimary,

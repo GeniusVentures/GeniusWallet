@@ -102,6 +102,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 coin.iconPath ?? "",
                                 height: 36,
                                 width: 36,
+                                semanticLabel: coin.symbol,
                                 errorBuilder: (context, error, stackTrace) {
                                   return const SizedBox(height: 36, width: 36);
                                 },
@@ -193,6 +194,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                           network.iconPath ?? "",
                           height: 36,
                           width: 36,
+                          semanticLabel: network.name,
                           errorBuilder: (context, error, stackTrace) {
                             return const SizedBox(height: 36, width: 36);
                           },
@@ -445,6 +447,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                           ),
                                                         ),
                                                         IconButton(
+                                                          tooltip: 'Copy',
                                                           icon: const Icon(
                                                               Icons.copy,
                                                               color: GeniusWalletColors

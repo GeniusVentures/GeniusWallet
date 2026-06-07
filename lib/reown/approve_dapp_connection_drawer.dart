@@ -34,6 +34,7 @@ class ApproveDappConnectionDrawer {
                         height: 28,
                         width: 28,
                         fit: BoxFit.cover,
+                        semanticLabel: dappName,
                         errorBuilder: (context, error, stackTrace) {
                           return const SizedBox.shrink();
                         },

@@ -98,6 +98,7 @@ class _OrderDetailCardState extends State<OrderDetailCard> {
                   onPressed: () {
                     setState(() => _showFullWallet = !_showFullWallet);
                   },
+                  tooltip: 'Toggle visibility',
                 ),
               ],
             ),

@@ -57,6 +57,7 @@ class TokenInfoScreen extends StatelessWidget {
         title: Text(marketData?.name ?? ''),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -136,6 +137,7 @@ class TokenInfoScreen extends StatelessWidget {
         title: Text(selectedCoin?.name ?? marketData?.name ?? ''),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

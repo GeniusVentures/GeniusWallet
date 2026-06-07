@@ -97,6 +97,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                     width: 36,
                     height: 36,
                     fit: BoxFit.cover,
+                    semanticLabel: token.name,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         width: 36,

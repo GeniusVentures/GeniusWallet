@@ -45,6 +45,7 @@ class TransactionFiltersState extends State<TransactionFilters> {
               Stack(
                 children: [
                   IconButton(
+                    tooltip: 'Filter',
                     onPressed: () {
                       ResponsiveDrawer.show<void>(
                         context: context,

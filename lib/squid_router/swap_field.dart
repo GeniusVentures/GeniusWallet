@@ -96,6 +96,7 @@ class SwapField extends StatelessWidget {
                                   width: 32,
                                   height: 32,
                                   fit: BoxFit.cover,
+                                  semanticLabel: selectedToken!.symbol,
                                   errorBuilder: (context, error, stackTrace) {
                                     return Container(
                                       width: 32,

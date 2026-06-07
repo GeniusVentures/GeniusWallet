@@ -51,6 +51,7 @@ class _SplashState extends State<Splash> {
                 Image.asset(
                   'assets/images/logo_and_title.png',
                   package: 'genius_wallet',
+                  excludeFromSemantics: true,
                 ),
                 const SizedBox(height: GeniusWalletConsts.space12),
                 const Loading(),

@@ -242,6 +242,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                   height: 50,
                   width: 50,
                   fit: BoxFit.cover,
+                  excludeFromSemantics: true,
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space6),

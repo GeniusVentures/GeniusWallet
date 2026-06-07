@@ -102,6 +102,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
             child: Image.asset(
               network.iconPath ?? "",
               fit: BoxFit.contain,
+              semanticLabel: network.name,
               errorBuilder: (context, error, stackTrace) =>
                   const SizedBox(width: 32, height: 32),
             ),
@@ -167,6 +168,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
                 selectedNetwork?.iconPath ?? "",
                 width: 18,
                 height: 18,
+                semanticLabel: selectedNetwork?.name,
                 errorBuilder: (context, error, stackTrace) =>
                     const SizedBox(width: 18, height: 18),
               ),

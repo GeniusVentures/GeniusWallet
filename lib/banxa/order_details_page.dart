@@ -119,6 +119,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 onPressed: () {
                   context.go('/buy');
                 },
+                tooltip: 'Back',
               ),
       ),
       body: FutureStateWidget<Order>(

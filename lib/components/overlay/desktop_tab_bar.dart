@@ -52,6 +52,7 @@ class DesktopTopBar extends StatelessWidget {
                   'assets/images/geniusappbarlogo.png',
                   height: 30,
                   package: 'genius_wallet',
+                  semanticLabel: 'Genius Wallet logo',
                 ),
               ),
             ]),

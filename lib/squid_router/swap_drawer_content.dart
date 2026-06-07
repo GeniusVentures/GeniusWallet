@@ -43,6 +43,7 @@ class SwapDrawerContent extends StatelessWidget {
                     width: 40,
                     height: 40,
                     fit: BoxFit.cover,
+                    excludeFromSemantics: true,
                   ),
                 ),
               ),

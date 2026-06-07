@@ -36,6 +36,7 @@ class LandingScreen extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/logo_and_title.png',
                     package: 'genius_wallet',
+                    semanticLabel: 'GeniusWallet logo',
                   ),
                 ),
                 if (kDebugMode)

@@ -81,6 +81,7 @@ class TransactionItem extends StatelessWidget {
           Image.asset(
             "assets/images/crypto/${tx.coinSymbol.toLowerCase()}.png",
             fit: BoxFit.contain,
+            semanticLabel: tx.coinSymbol,
             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
           ),
           Align(
@@ -141,6 +142,7 @@ class TransactionItem extends StatelessWidget {
                 width: 60,
                 height: 60,
                 fit: BoxFit.contain,
+                semanticLabel: tx.coinSymbol,
                 errorBuilder: (_, __, ___) =>
                     const SizedBox(width: 60, height: 60),
               ),

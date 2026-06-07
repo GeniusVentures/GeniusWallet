@@ -236,6 +236,7 @@ class GWSearchField extends StatelessWidget {
       ),
       suffix: onClear != null
           ? IconButton(
+              tooltip: 'Clear',
               icon: const Icon(
                 Icons.close,
                 size: 18,
