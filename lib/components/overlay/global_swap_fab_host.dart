@@ -25,6 +25,7 @@ class GlobalSwapFabHost extends StatelessWidget {
 
   /// Auth / onboarding / splash surfaces where the global swap action must
   /// not appear. Exact path match. Also hides on `/swap` (redundant there).
+  /// Swap stays reachable everywhere else, including the token detail.
   static const Set<String> _hiddenPaths = {
     '/',
     '/landing_screen',
@@ -37,16 +38,18 @@ class GlobalSwapFabHost extends StatelessWidget {
     '/import_existing_wallet',
     '/create_wallet',
     '/swap',
-    // Token detail has its own in-page Swap action — avoid a redundant FAB.
-    '/token-info',
   };
 
   @override
   Widget build(BuildContext context) {
+    // Listen to the router *delegate* (a ChangeNotifier) rather than the
+    // routeInformationProvider: the delegate fires on every navigation change
+    // including back-pops, so the FAB reliably reappears after returning from
+    // a hidden route (the provider doesn't always notify on pop).
     return ListenableBuilder(
-      listenable: router.routeInformationProvider,
+      listenable: router.routerDelegate,
       builder: (context, _) {
-        final path = router.routeInformationProvider.value.uri.path;
+        final path = router.routerDelegate.currentConfiguration.uri.path;
         final hidden = _hiddenPaths.contains(path);
         final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
