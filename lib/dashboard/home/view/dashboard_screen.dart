@@ -105,10 +105,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ] else
                           const _ActivitySliver(),
+                        // Clearance so the global Swap FAB (bottom-right)
+                        // doesn't cover the last list row.
                         const SliverToBoxAdapter(
-                          child: SizedBox(
-                            height: GeniusWalletConsts.space20,
-                          ),
+                          child: SizedBox(height: 96),
                         ),
                       ],
                     ),
@@ -227,10 +227,12 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = <_PillAction>[
-      _PillAction(
+      // Send has no flow yet — disabled rather than a "coming soon" dead-end.
+      const _PillAction(
         icon: Icons.arrow_upward_rounded,
         label: 'Send',
-        onTap: () => _stub(context, 'Send'),
+        onTap: null,
+        disabled: true,
       ),
       _PillAction(
         icon: Icons.arrow_downward_rounded,
@@ -259,15 +261,6 @@ class _ActionRow extends StatelessWidget {
     );
   }
 
-  void _stub(BuildContext context, String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label flow — coming soon'),
-        backgroundColor: GeniusWalletColors.surfaceMenu,
-      ),
-    );
-  }
-
   void _receive(BuildContext context) {
     if (walletAddress != null && walletAddress!.isNotEmpty) {
       Clipboard.setData(ClipboardData(text: walletAddress!));
@@ -286,10 +279,12 @@ class _PillAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.disabled = false,
   });
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -301,14 +296,16 @@ class _PillAction extends StatelessWidget {
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: onTap,
+            onTap: disabled ? null : onTap,
             child: SizedBox(
               width: 56,
               height: 56,
               child: Icon(
                 icon,
                 size: 22,
-                color: GeniusWalletColors.brandPrimary,
+                color: disabled
+                    ? GeniusWalletColors.textPrimary38
+                    : GeniusWalletColors.brandPrimary,
               ),
             ),
           ),
@@ -317,7 +314,9 @@ class _PillAction extends StatelessWidget {
         Text(
           label,
           style: GeniusWalletTypography.labelMd.copyWith(
-            color: GeniusWalletColors.textSecondary,
+            color: disabled
+                ? GeniusWalletColors.textPrimary38
+                : GeniusWalletColors.textSecondary,
           ),
         ),
       ],
@@ -439,7 +438,7 @@ class _AssetSearch extends StatelessWidget {
       ),
       child: GWTextField(
         controller: controller,
-        hint: 'Search tokens',
+        hint: 'Filter your assets',
         onChanged: onChanged,
         prefix: const Icon(
           Icons.search_rounded,
@@ -505,7 +504,17 @@ class _CoinRow extends StatelessWidget {
     final balance = coin.balance ?? 0;
     final symbol = coin.symbol ?? '?';
     return InkWell(
-      onTap: () => context.push('/token', extra: coin),
+      // Route to the canonical token detail (same screen the markets / coins
+      // lists use) so a token opens consistently from anywhere.
+      onTap: () {
+        context.read<WalletDetailsCubit>().selectCoin(coin);
+        context.push('/token-info', extra: {
+          "isGnusWalletConnected": false,
+          "securityInfo": "Coming Soon",
+          "transactionHistory": ["Coming Soon"],
+          "marketData": null,
+        });
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: GeniusWalletConsts.space6,

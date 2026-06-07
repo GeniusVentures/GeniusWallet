@@ -37,6 +37,8 @@ class GlobalSwapFabHost extends StatelessWidget {
     '/import_existing_wallet',
     '/create_wallet',
     '/swap',
+    // Token detail has its own in-page Swap action — avoid a redundant FAB.
+    '/token-info',
   };
 
   @override

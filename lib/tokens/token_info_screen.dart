@@ -298,9 +298,21 @@ class TokenInfoScreen extends StatelessWidget {
           },
         ),
         const SizedBox(width: 8),
-        const ActionButton(text: "Send", icon: Icons.send),
+        // No send flow exists yet — render muted/disabled so it doesn't read
+        // as a broken button.
+        const ActionButton(
+          text: "Send",
+          icon: Icons.send,
+          iconColor: GeniusWalletColors.textSecondary,
+          textColor: GeniusWalletColors.textSecondary,
+          onPressed: null,
+        ),
         const SizedBox(width: 8),
-        const ActionButton(text: "Swap", icon: Icons.swap_horiz),
+        ActionButton(
+          text: "Swap",
+          icon: Icons.swap_horiz,
+          onPressed: () => GoRouter.of(context).push('/swap'),
+        ),
         const SizedBox(width: 8),
         ActionButton(
           text: "More",

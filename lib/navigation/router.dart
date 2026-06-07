@@ -24,8 +24,6 @@ import 'package:genius_wallet/dev/design_gallery_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
-import 'package:genius_api/models/coin.dart';
-import 'package:genius_wallet/tokens/gw_token_detail_screen.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
@@ -282,14 +280,6 @@ final geniusWalletRouter = GoRouter(
             transactionHistory: List<String>.from(extra["transactionHistory"]),
             isGnusWalletConnected: extra["isGnusWalletConnected"],
             marketData: extra["marketData"]);
-      },
-    ),
-    GoRoute(
-      // Lightweight per-token detail (Trust-Wallet-style): tap a token on the
-      // dashboard → header + balance + Receive/Send/Swap/Buy. Takes a Coin.
-      path: '/token',
-      builder: (context, state) {
-        return GWTokenDetailScreen(coin: state.extra as Coin);
       },
     ),
     GoRoute(

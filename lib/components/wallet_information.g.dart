@@ -170,10 +170,14 @@ class WalletInformationState extends State<WalletInformation> {
               icon: Icons.qr_code,
             ),
             const SizedBox(width: 8),
+            // No send flow yet — muted/disabled rather than a dead button.
             const ActionButton(
               text: 'Send',
               icon: Icons.send,
               semanticLabel: "Send",
+              iconColor: GeniusWalletColors.textSecondary,
+              textColor: GeniusWalletColors.textSecondary,
+              onPressed: null,
             ),
             const SizedBox(width: 8),
             ActionButton(
