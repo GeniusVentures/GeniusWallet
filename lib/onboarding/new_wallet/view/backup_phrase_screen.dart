@@ -6,6 +6,7 @@ import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/continue_button/isactive_false.g.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
@@ -131,7 +132,7 @@ class _BackupPhraseViewDesktop extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: GeniusWalletConsts.space10),
               SizedBox(
                 width: 400,
                 height: 46,

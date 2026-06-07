@@ -4,6 +4,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
 class Splash extends StatefulWidget {
@@ -51,7 +52,7 @@ class _SplashState extends State<Splash> {
                   'assets/images/logo_and_title.png',
                   package: 'genius_wallet',
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: GeniusWalletConsts.space12),
                 const Loading(),
               ],
             ),

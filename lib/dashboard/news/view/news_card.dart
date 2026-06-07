@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
 class NewsCard extends StatefulWidget {
@@ -71,7 +72,8 @@ class _NewsCardState extends State<NewsCard> {
                     if (_isHovered)
                       Center(
                         child: Container(
-                          padding: const EdgeInsets.all(8.0),
+                          padding:
+                              const EdgeInsets.all(GeniusWalletConsts.space4),
                           color: Colors.black54, // Semi-transparent background
                           child: Column(
                             children: [
@@ -125,7 +127,7 @@ class _NewsCardState extends State<NewsCard> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(GeniusWalletConsts.space6),
         child: Row(
           children: [
             Expanded(
@@ -146,7 +148,7 @@ class _NewsCardState extends State<NewsCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: GeniusWalletConsts.space4),
                   Text(
                     widget.article.pubDate,
                     style: const TextStyle(
@@ -157,7 +159,7 @@ class _NewsCardState extends State<NewsCard> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: GeniusWalletConsts.space6),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(

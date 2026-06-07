@@ -31,7 +31,7 @@ class DesktopContainer extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding,
-              vertical: 40,
+              vertical: GeniusWalletConsts.space20,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,7 +67,7 @@ class DesktopContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: GeniusWalletConsts.space8),
                         // Search Bar
                         const Flexible(
                           child: SizedBox(
@@ -82,7 +82,7 @@ class DesktopContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: GeniusWalletConsts.space8),
                         // Buttons
                         const Row(
                           mainAxisSize: MainAxisSize.min,
@@ -94,7 +94,7 @@ class DesktopContainer extends StatelessWidget {
                               icon: Icons.question_mark_outlined,
                               isAddBorder: true,
                             ),
-                            SizedBox(width: 12),
+                            SizedBox(width: GeniusWalletConsts.space6),
                             HeaderButton(
                               color: GeniusWalletColors.gray900,
                               text: 'Genius 1',
@@ -107,7 +107,7 @@ class DesktopContainer extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: GeniusWalletConsts.space20),
                 child,
               ],
             ),
@@ -144,7 +144,7 @@ class HeaderButton extends StatelessWidget {
         child: TextButton.icon(
       onPressed: route != null ? () => context.push(route!) : null,
       style: ButtonStyle(
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(20)),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(GeniusWalletConsts.space10)),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           return color;
         }),

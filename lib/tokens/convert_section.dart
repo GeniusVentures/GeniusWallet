@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:intl/intl.dart';
 
 class ConvertSection extends StatefulWidget {
@@ -47,7 +48,7 @@ class _ConvertSectionState extends State<ConvertSection> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: const Padding(
-        padding: EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Convert",
           style: TextStyle(color: GeniusWalletColors.gray500),
@@ -58,7 +59,9 @@ class _ConvertSectionState extends State<ConvertSection> {
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          padding: const EdgeInsets.symmetric(
+              vertical: GeniusWalletConsts.space12,
+              horizontal: GeniusWalletConsts.space8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -86,7 +89,7 @@ class _ConvertSectionState extends State<ConvertSection> {
                 style: const TextStyle(color: GeniusWalletColors.textPrimary),
                 onChanged: (_) => _calculateTotalValue(),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: GeniusWalletConsts.space10),
               TextField(
                 controller: _tokenAmountController,
                 keyboardType:
@@ -111,7 +114,7 @@ class _ConvertSectionState extends State<ConvertSection> {
                 style: const TextStyle(color: GeniusWalletColors.textPrimary),
                 onChanged: (_) => _calculateTotalValue(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: GeniusWalletConsts.space8),
               Align(
                   alignment: Alignment.centerRight,
                   child: Text(

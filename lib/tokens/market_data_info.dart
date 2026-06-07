@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
@@ -72,7 +73,7 @@ class MarketDataInfo extends StatelessWidget {
                   color: GeniusWalletColors.textPrimary,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: GeniusWalletConsts.space4),
               GestureDetector(
                 onTap: () => _copyToClipboard(context, address!),
                 child: const Icon(
@@ -157,7 +158,7 @@ class MarketDataInfo extends StatelessWidget {
       children: [
         // Title
         const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space4),
           child: Text(
             "Info",
             style: TextStyle(
@@ -176,8 +177,9 @@ class MarketDataInfo extends StatelessWidget {
             children: [
               // Top ListTile (icon, name, symbol)
               ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space8,
+                    vertical: GeniusWalletConsts.space6),
                 leading: CircleAvatar(
                   radius: 24,
                   backgroundColor: GeniusWalletColors.textPrimary,
@@ -237,7 +239,8 @@ class MarketDataInfo extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                          horizontal: GeniusWalletConsts.space8,
+                          vertical: GeniusWalletConsts.space6),
                       child: Text(
                         aboutText!,
                         style: GeniusWalletTypography.bodyMd

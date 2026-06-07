@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:provider/provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class GeniusBalanceDisplay extends StatefulWidget {
   final bool useMinions;
@@ -86,7 +87,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
           ),
         ),
         if (widget.isShowSuffix ?? false) ...[
-          const SizedBox(width: 4),
+          const SizedBox(width: GeniusWalletConsts.space2),
           AutoSizeText(
             widget.useMinions ? "min" : "gnus",
             maxLines: 1,

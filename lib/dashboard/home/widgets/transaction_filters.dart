@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 
 final filters = ['All', 'Sent', 'Received', 'Escrow', 'Mint'];
@@ -96,7 +97,8 @@ class TransactionFiltersState extends State<TransactionFilters> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: filters.map((filter) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: GeniusWalletConsts.space2),
                   child: FilterButton(
                     filter: filter,
                     isSelected: filter == _selectedFilter,
@@ -190,7 +192,9 @@ class FilterButton extends StatelessWidget {
     return TextButton(
       onPressed: onTap,
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+            vertical: GeniusWalletConsts.space4),
         backgroundColor: isSelected
             ? GeniusWalletColors.btnFilterSelected
             : GeniusWalletColors.btnFilter,

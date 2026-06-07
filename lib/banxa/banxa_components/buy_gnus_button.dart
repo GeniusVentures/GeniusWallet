@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,7 +25,8 @@ class BuyGnusButton extends StatelessWidget {
           style: GeniusWalletTypography.bodyMd,
         ),
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space8, vertical: 10),
           overlayColor: Colors.transparent,
           shadowColor: Colors.transparent,
           backgroundColor: Colors.transparent,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SwapDrawerContent extends StatelessWidget {
@@ -65,7 +66,7 @@ class SwapDrawerContent extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: GeniusWalletConsts.space10),
         Text(
           "$fromAmount $fromSymbol → $toAmount $toSymbol",
           style: GeniusWalletTypography.titleMd.copyWith(
@@ -74,7 +75,7 @@ class SwapDrawerContent extends StatelessWidget {
                 : GeniusWalletColors.statusError,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: GeniusWalletConsts.space4),
         Text(
           "Swap on $chain",
           style: GeniusWalletTypography.bodyMd
@@ -82,7 +83,7 @@ class SwapDrawerContent extends StatelessWidget {
         ),
         if (!isSuccess)
           const Padding(
-            padding: EdgeInsets.only(top: 12),
+            padding: EdgeInsets.only(top: GeniusWalletConsts.space6),
             child: Text(
               "Your swap could not be completed.",
               style: TextStyle(color: GeniusWalletColors.statusError),

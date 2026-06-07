@@ -4,6 +4,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/components/cards/gw_wallet_card.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class SupportedExistingWallets extends StatelessWidget {
   const SupportedExistingWallets({Key? key}) : super(key: key);
@@ -27,13 +28,15 @@ class SupportedExistingWallets extends StatelessWidget {
           : null,
       child: ListView.separated(
         itemCount: supportedNetworks.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 20),
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: GeniusWalletConsts.space10),
         physics: const NeverScrollableScrollPhysics(),
         //NOTE: This can be made more efficient by making `shrinkWrap` false but implementing a [CustomScrollview]
         shrinkWrap: true,
         itemBuilder: (context, index) {
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding:
+                const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8),
             child: GWWalletCard(
               walletIcon: supportedNetworks[index].image,
               walletName: supportedNetworks[index].name,

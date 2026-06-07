@@ -17,13 +17,13 @@ class ApproveTransactionDrawer {
       title: "Transaction Request",
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Center(
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(GeniusWalletConsts.space4),
                   decoration: BoxDecoration(
                     border: Border.all(color: GeniusWalletColors.textSecondary),
                     borderRadius: BorderRadius.circular(
@@ -43,7 +43,7 @@ class ApproveTransactionDrawer {
                               return const SizedBox.shrink();
                             },
                           )),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: GeniusWalletConsts.space6),
                       Flexible(
                         child: Text(
                           dappUrl,
@@ -56,7 +56,7 @@ class ApproveTransactionDrawer {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: GeniusWalletConsts.space6),
               Flexible(fit: FlexFit.loose, child: content),
             ],
           ),
@@ -74,7 +74,7 @@ class ApproveTransactionDrawer {
                   style: TextStyle(color: GeniusWalletColors.textSecondary)),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: GeniusWalletConsts.space6),
           Expanded(
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(true),

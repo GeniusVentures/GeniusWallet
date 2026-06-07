@@ -11,6 +11,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 void Function() handleDappRequests(
     {required ReownWalletKit walletKit,
@@ -75,14 +76,14 @@ void Function() handleDappRequests(
           children: [
             if (dappUrl.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
                 child: Text(dappUrl,
                     style: const TextStyle(
                         color: GeniusWalletColors.gray500, fontSize: 12)),
               ),
             Text("Method: $method",
                 style: const TextStyle(color: GeniusWalletColors.textPrimary)),
-            const SizedBox(height: 12),
+            const SizedBox(height: GeniusWalletConsts.space6),
             const Text("Params:",
                 style: TextStyle(color: GeniusWalletColors.gray500)),
             const SizedBox(height: 6),

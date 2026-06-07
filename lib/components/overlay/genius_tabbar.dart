@@ -8,6 +8,7 @@ import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:flutter/gestures.dart';
 
 
@@ -136,7 +137,7 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6, vertical: 6),
                             decoration: BoxDecoration(
                               color: isSelected ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.15) : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
@@ -189,21 +190,21 @@ List<MapEntry<NavigationScreen, BottomNavigationBarItem>> _buildDestinations() {
         icon: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 4),
+            const SizedBox(height: GeniusWalletConsts.space2),
             Container(height: 1, width: 40, color: Colors.transparent),
-            const SizedBox(height: 8),
+            const SizedBox(height: GeniusWalletConsts.space4),
             e.icon,
           ],
         ),
         activeIcon: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 4),
+            const SizedBox(height: GeniusWalletConsts.space2),
             Container(
                 height: 1,
                 width: 40,
                 color: GeniusWalletColors.lightGreenPrimary),
-            const SizedBox(height: 8),
+            const SizedBox(height: GeniusWalletConsts.space4),
             e.selectedIcon ?? e.icon,
           ],
         ),

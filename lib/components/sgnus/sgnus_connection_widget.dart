@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,7 +48,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
                     'SGNUS Connection ',
                     style: GeniusWalletTypography.bodyMd,
                   )),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: GeniusWalletConsts.space4),
                   if (connection.isConnected) const CheckmarkAnimation(),
                   if (!connection.isConnected) const XAnimation(),
                 ],
@@ -95,7 +96,7 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
                     'SGNUS Connection ',
                     style: GeniusWalletTypography.bodyMd,
                   )),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: GeniusWalletConsts.space4),
                   if (connection.isConnected) const CheckmarkAnimation(),
                   if (!connection.isConnected) const XAnimation(),
                 ],
@@ -136,7 +137,7 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
             children: [
               if (isProcessing) ...[
                 const Loading(text: "processing"),
-                const SizedBox(width: 8),
+                const SizedBox(width: GeniusWalletConsts.space4),
               ],
               ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 60),

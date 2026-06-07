@@ -6,6 +6,7 @@ import 'package:genius_wallet/dashboard/transactions/transaction_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_purchased_item.dart';
 import 'package:genius_wallet/dashboard/transactions/transaction_swapped_item.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:intl/intl.dart';
 
 final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
@@ -75,7 +76,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TransactionFilters(onFilterSelected: handleFilterSelected),
-        const SizedBox(height: 20),
+        const SizedBox(height: GeniusWalletConsts.space10),
         Expanded(
           child: filteredTransactions.isEmpty
               ? GWEmptyState(

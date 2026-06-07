@@ -3,6 +3,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class TokenSelectorDrawer extends StatefulWidget {
   final List<SquidTokenInfo> tokens;
@@ -74,7 +75,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: GeniusWalletConsts.space12),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -87,8 +88,9 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space8,
+                    vertical: GeniusWalletConsts.space2),
                 leading: ClipOval(
                   child: Image.network(
                     token.logoURI,

@@ -4,6 +4,7 @@ import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
@@ -46,7 +47,9 @@ class CoinCardRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+            vertical: GeniusWalletConsts.space8),
         decoration: BoxDecoration(
           color: GeniusWalletColors.deepBlueCardColor,
           borderRadius: BorderRadius.circular(10),
@@ -55,7 +58,7 @@ class CoinCardRow extends StatelessWidget {
           children: [
             // Icon
             buildTokenIcon(iconPath: iconPath, size: 38),
-            const SizedBox(width: 12),
+            const SizedBox(width: GeniusWalletConsts.space6),
 
             // Name & Balance Column
             Expanded(
@@ -94,7 +97,7 @@ class CoinCardRow extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: GeniusWalletConsts.space6),
 
             // Right Column - Price & Gain/Loss (Always right-aligned)
             Column(

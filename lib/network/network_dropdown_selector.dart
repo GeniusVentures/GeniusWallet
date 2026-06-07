@@ -170,7 +170,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
                 errorBuilder: (context, error, stackTrace) =>
                     const SizedBox(width: 18, height: 18),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: GeniusWalletConsts.space2),
               const Icon(
                 Icons.keyboard_arrow_down_rounded,
                 size: 16,

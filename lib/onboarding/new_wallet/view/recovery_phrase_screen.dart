@@ -8,6 +8,7 @@ import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -83,7 +84,7 @@ class _RecoveryPhraseViewDesktopState
               GeniusWalletText.titleRecovery,
               style: TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: GeniusWalletConsts.space10),
             Text(
               GeniusWalletText.helpRecoveryPhrase,
               style: GeniusWalletTypography.bodyLg,
@@ -159,7 +160,10 @@ class _WordsGridWithCopyAndToggleState
                   ),
                 ],
               ),
-              padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
+              padding: const EdgeInsets.only(
+                  left: GeniusWalletConsts.space10,
+                  top: GeniusWalletConsts.space10,
+                  right: GeniusWalletConsts.space10),
               child: SizedBox(
                 height: 380,
                 width: 650,
@@ -268,7 +272,7 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.only(top: 0),
-            margin: const EdgeInsets.only(bottom: 20),
+            margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space10),
             width: MediaQuery.of(context).size.width * 0.8,
             child: const _WordsAndCopy(),
           ),
@@ -311,7 +315,7 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
           },
         ),
         const SizedBox(
-          height: 20,
+          height: GeniusWalletConsts.space10,
         ),
         TextButton.icon(
           onPressed: () async {

@@ -561,7 +561,7 @@ class _DappTile extends StatelessWidget {
             onTap: onToggleFavorite,
             radius: 18,
             child: Padding(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(GeniusWalletConsts.space2),
               child: Icon(
                 isFavorite
                     ? Icons.bookmark_rounded

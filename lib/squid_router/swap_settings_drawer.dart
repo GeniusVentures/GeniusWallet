@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
@@ -18,7 +19,7 @@ class SwapSettingsDrawer {
       title: "Swap Settings",
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
           child: Column(
             children: [
               Align(
@@ -28,7 +29,7 @@ class SwapSettingsDrawer {
                   style: GeniusWalletTypography.titleMd,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: GeniusWalletConsts.space4),
               TextField(
                 controller: slippageController,
                 keyboardType:

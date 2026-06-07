@@ -6,6 +6,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:go_router/go_router.dart';
 
@@ -77,7 +78,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: GeniusWalletConsts.space8),
                 ],
                 ...widget.coins.map((coin) {
                   final data = marketData[coin.symbol.toLowerCase()];
@@ -102,7 +103,8 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding:
+                              const EdgeInsets.only(bottom: GeniusWalletConsts.space8),
                           child: CryptoSparkLineChart(
                             title: coin.name,
                             iconPath: data.imageUrl,
@@ -118,7 +120,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                         height: 2,
                         color: GeniusWalletColors.deepBlueTertiary,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: GeniusWalletConsts.space6),
                     ],
                   );
                 }),

@@ -18,7 +18,7 @@ class ApproveDappConnectionDrawer {
       children: [
         Center(
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space4),
             decoration: BoxDecoration(
               borderRadius:
                   BorderRadius.circular(GeniusWalletConsts.borderRadiusButton),
@@ -38,7 +38,7 @@ class ApproveDappConnectionDrawer {
                           return const SizedBox.shrink();
                         },
                       )),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: GeniusWalletConsts.space6),
                   Flexible(
                     child: Text(
                       dappName,
@@ -59,7 +59,7 @@ class ApproveDappConnectionDrawer {
             ]),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         if (dappDescription != null && dappDescription.isNotEmpty) ...[
           Text(
             dappDescription,
@@ -67,7 +67,7 @@ class ApproveDappConnectionDrawer {
                 color: GeniusWalletColors.textPrimary70),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: GeniusWalletConsts.space6),
         ],
       ],
       footer: Column(children: [
@@ -76,7 +76,7 @@ class ApproveDappConnectionDrawer {
           style: GeniusWalletTypography.bodyLg,
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: GeniusWalletConsts.space10),
         Row(
           children: [
             Expanded(
@@ -89,7 +89,7 @@ class ApproveDappConnectionDrawer {
                     style: TextStyle(color: GeniusWalletColors.textSecondary)),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(
               child: OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(true),

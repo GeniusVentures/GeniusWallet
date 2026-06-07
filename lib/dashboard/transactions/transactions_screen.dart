@@ -4,6 +4,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_scren.dart';
 
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class TransactionsScreen extends StatelessWidget {
@@ -18,7 +19,8 @@ class TransactionsScreen extends StatelessWidget {
       body: SafeArea(
         child: Container(
           height: screenHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space4, vertical: 10),
           child: Column(
             children: [
               // Optional: Add a header or filter here
@@ -31,7 +33,9 @@ class TransactionsScreen extends StatelessWidget {
 
                     return Container(
                         padding: const EdgeInsets.only(
-                            left: 12, right: 12, bottom: 8),
+                            left: GeniusWalletConsts.space6,
+                            right: GeniusWalletConsts.space6,
+                            bottom: GeniusWalletConsts.space4),
                         child: isSgnusWallet
                             ? const SgnusTransactionsScreen()
                             : const TransactionsStream());

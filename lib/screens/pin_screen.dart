@@ -150,7 +150,9 @@ class _PinViewMobile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 20, left: 20),
+                padding: const EdgeInsets.only(
+                    top: GeniusWalletConsts.space10,
+                    left: GeniusWalletConsts.space10),
                 child: IconButton(
                   alignment: Alignment.center,
                   onPressed: () => context.pop(),
@@ -163,7 +165,7 @@ class _PinViewMobile extends StatelessWidget {
                     return Center(
                       child: SizedBox(
                         width: 200,
-                        height: 40,
+                        height: GeniusWalletConsts.space20,
                         child: LayoutBuilder(
                           builder: (BuildContext context,
                               BoxConstraints constraints) {

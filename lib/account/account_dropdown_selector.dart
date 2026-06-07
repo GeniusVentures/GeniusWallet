@@ -69,7 +69,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
     if (wallets.length < 3) {
       walletRows.add(const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
         child: Center(
           child: Text(
             "Add more wallets to manage your assets",
@@ -160,8 +160,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space6, vertical: 0),
               leading: _buildAccountAvatar(wallet, isSelected, 36),
               title: Row(
                 children: [
@@ -175,7 +175,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   ),
                   if (isWatched)
                     Padding(
-                      padding: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.only(left: GeniusWalletConsts.space4),
                       child: Icon(Icons.remove_red_eye_outlined,
                           size: 16, color: trailingIconColor),
                     ),
@@ -190,7 +190,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: GeniusWalletConsts.space6),
                   if (wallet.walletType == WalletType.sgnus)
                     GeniusBalanceDisplay(
                       useMinions: true,
@@ -212,7 +212,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             ),
             if ((wallet.address).isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(left: 18, right: 18, bottom: 8),
+                padding: const EdgeInsets.only(
+                    left: 18, right: 18, bottom: GeniusWalletConsts.space4),
                 child: Row(
                   children: [
                     Expanded(
@@ -324,12 +325,12 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             return GestureDetector(
               onTap: () => _showAccountDrawer(wallets),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space6),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildAccountAvatar(selectedWallet!, false, 25),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: GeniusWalletConsts.space4),
                     Flexible(
                       child: Text(
                         selectedWallet!.walletType == WalletType.sgnus
@@ -340,7 +341,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: GeniusWalletConsts.space4),
                     const Icon(Icons.keyboard_arrow_down),
                   ],
                 ),

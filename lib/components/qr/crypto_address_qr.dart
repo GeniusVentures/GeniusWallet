@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/components/button/copy_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -31,7 +32,7 @@ class CryptoAddressQR extends StatelessWidget {
           embeddedImage: AssetImage(iconPath ?? ""),
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(60, 60)),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: GeniusWalletConsts.space16),
         Text(
           "Your $network Address",
           style: const TextStyle(
@@ -39,7 +40,7 @@ class CryptoAddressQR extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: GeniusWalletConsts.space4),
 
         Row(mainAxisSize: MainAxisSize.min, children: [
           Flexible(

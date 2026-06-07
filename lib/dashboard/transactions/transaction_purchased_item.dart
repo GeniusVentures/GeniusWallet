@@ -4,6 +4,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -117,7 +118,7 @@ class TransactionPurchasedItem extends StatelessWidget {
       context: context,
       title: isFailed ? "Buy - Failed" : "Buy",
       children: [
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         Center(
           child: Stack(
             clipBehavior: Clip.none,
@@ -148,7 +149,7 @@ class TransactionPurchasedItem extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: GeniusWalletConsts.space6),
         Center(
           child: Text(
             amountText,
@@ -159,13 +160,13 @@ class TransactionPurchasedItem extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         Card(
           color: GeniusWalletColors.deepBlueMenu,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             child: Column(
               children: [
                 _buildRow(

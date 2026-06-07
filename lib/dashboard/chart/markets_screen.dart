@@ -8,6 +8,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,7 +34,9 @@ class MarketsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+            vertical: GeniusWalletConsts.space4),
         child: Column(
           children: [
             // Header and SearchBar
@@ -48,7 +51,7 @@ class MarketsScreen extends StatelessWidget {
                     color: GeniusWalletColors.textPrimary,
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: GeniusWalletConsts.space10),
                 IconButton(
                   icon: const Icon(FontAwesomeIcons.magnifyingGlass),
                   onPressed: () {
@@ -109,7 +112,8 @@ class MarketsScreen extends StatelessWidget {
                         // 8px top (matches the inter-card gap); extra bottom is
                         // scroll-only clearance so the last card isn't hidden by
                         // the floating Swap FAB.
-                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 90),
+                        padding: const EdgeInsets.fromLTRB(
+                            0, GeniusWalletConsts.space4, 0, 90),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: getCrossAxisCount(context),
                           crossAxisSpacing: 8,
@@ -175,8 +179,9 @@ class MarketsScreen extends StatelessWidget {
                   color: GeniusWalletColors.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space8,
+                    vertical: GeniusWalletConsts.space6),
                 child: Center(
                   child: CryptoSparkLineChart(
                     title: coin.name,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 
@@ -23,19 +24,19 @@ class SwapResultDrawer {
       context: context,
       title: message,
       children: [
-        const SizedBox(height: 24),
+        const SizedBox(height: GeniusWalletConsts.space12),
         Icon(icon, size: 64, color: iconColor),
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         Text(
           message,
           style: TextStyle(
               fontSize: 24, fontWeight: FontWeight.bold, color: iconColor),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: GeniusWalletConsts.space12),
         if (txHash.isNotEmpty)
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             decoration: BoxDecoration(
               color: GeniusWalletColors.deepBlueMenu,
               borderRadius: BorderRadius.circular(12),
@@ -45,7 +46,7 @@ class SwapResultDrawer {
               children: [
                 const Text("Transaction Hash:",
                     style: TextStyle(color: GeniusWalletColors.textPrimary70)),
-                const SizedBox(height: 4),
+                const SizedBox(height: GeniusWalletConsts.space2),
                 SelectableText(txHash,
                     style: const TextStyle(color: GeniusWalletColors.textPrimary)),
               ],
@@ -67,7 +68,7 @@ class SwapResultDrawer {
               style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: GeniusWalletConsts.space6),
           if (explorerUrl.isNotEmpty)
             OutlinedButton(
               onPressed: () => launchWebSite(context, explorerUrl),

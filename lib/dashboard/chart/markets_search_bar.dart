@@ -4,6 +4,7 @@ import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -130,8 +131,8 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
             fillColor: Colors.grey[900],
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space8, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
@@ -155,7 +156,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             ),
             suffixIcon: _isSearching
                 ? const Padding(
-                    padding: EdgeInsets.all(12.0),
+                    padding: EdgeInsets.all(GeniusWalletConsts.space6),
                     child: Loading(),
                   )
                 : (_controller.text.isNotEmpty
@@ -174,14 +175,15 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: GeniusWalletConsts.space4),
 
         if (_searchResults.isNotEmpty)
           ListView.separated(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             itemCount: _searchResults.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) =>
+                const SizedBox(height: GeniusWalletConsts.space4),
             itemBuilder: (context, index) {
               final coin = _searchResults[index];
               return SlidingDrawerButton(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
 class WideNewsCard extends StatelessWidget {
@@ -50,7 +51,7 @@ class WideNewsCard extends StatelessWidget {
             ),
             // Text on top
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(GeniusWalletConsts.space8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,7 +60,7 @@ class WideNewsCard extends StatelessWidget {
                     style: const TextStyle(
                         color: GeniusWalletColors.textPrimary70, fontSize: 12),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: GeniusWalletConsts.space4),
                   Expanded(
                     child: Text(
                       article.title,

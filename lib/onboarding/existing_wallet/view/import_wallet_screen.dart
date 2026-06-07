@@ -4,6 +4,7 @@ import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/app_screen_with_header_mobile.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/widgets/supported_existing_wallets.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class ImportWalletScreen extends StatelessWidget {
   static const title = 'Import Wallet';
@@ -64,7 +65,7 @@ class _ImportWalletViewMobile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       body: Container(
-        padding: const EdgeInsets.only(top: 40),
+        padding: const EdgeInsets.only(top: GeniusWalletConsts.space20),
         constraints: BoxConstraints(
           minHeight: 100,
           maxHeight: MediaQuery.of(context).size.height * 0.6,

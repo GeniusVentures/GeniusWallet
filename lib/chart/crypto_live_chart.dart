@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/pulsing_skeleton.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:intl/intl.dart';
 
 class CryptoLiveChart extends StatefulWidget {
@@ -217,7 +218,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: GeniusWalletConsts.space4),
           if (_hasData)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -232,8 +233,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: GeniusWalletConsts.space4,
+                      vertical: GeniusWalletConsts.space2),
                   decoration: BoxDecoration(
                     color: fillColor.withAlpha(51),
                     borderRadius: BorderRadius.circular(6),
@@ -250,11 +252,11 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
               ],
             ),
           if (widget.child != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: GeniusWalletConsts.space12),
             widget.child!,
-            const SizedBox(height: 24),
+            const SizedBox(height: GeniusWalletConsts.space12),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: GeniusWalletConsts.space12),
           _hasData
               ? Column(
                   children: [

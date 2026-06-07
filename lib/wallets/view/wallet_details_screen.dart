@@ -4,6 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/wallet_information.g.dart';
 import 'package:intl/intl.dart';
@@ -54,11 +55,12 @@ class WalletDetailsScreenState extends State<WalletDetailsScreen> {
             constraints: const BoxConstraints(maxWidth: 500),
             child: AppScreenView(
               body: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
+                    const SizedBox(height: GeniusWalletConsts.space4),
                     LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {

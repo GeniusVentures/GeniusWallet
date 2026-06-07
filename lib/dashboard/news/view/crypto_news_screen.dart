@@ -6,6 +6,7 @@ import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'news_card.dart';
 
 class CryptoNewsScreen extends StatefulWidget {
@@ -45,11 +46,12 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: GeniusWalletConsts.space4),
               const Text(
                 'Crypto News',
                 style: TextStyle(
@@ -58,7 +60,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: GeniusWalletConsts.space12),
               Expanded(
                 child: FutureStateWidget<List<NewsArticle>>(
                   future: _newsFuture,
@@ -113,7 +115,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 16)
+              const SizedBox(height: GeniusWalletConsts.space8)
             ],
           ),
         ),

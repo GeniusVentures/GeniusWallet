@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 
 class GeniusWalletDetailsScreen extends StatelessWidget {
@@ -32,7 +33,8 @@ class _ViewState extends State<View> {
           constraints: const BoxConstraints(maxWidth: 500),
           child: AppScreenView(
             body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -49,7 +51,7 @@ class _ViewState extends State<View> {
                           fontColor: GeniusWalletColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: GeniusWalletConsts.space4),
                       Text(
                         useMinionIcon ? "Minions" : "GNUS",
                         style: const TextStyle(
@@ -60,9 +62,9 @@ class _ViewState extends State<View> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: GeniusWalletConsts.space8),
                   _buildToggle(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: GeniusWalletConsts.space12),
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
@@ -71,7 +73,7 @@ class _ViewState extends State<View> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: const [
                           SGNUSConnectionWidget(),
-                          SizedBox(height: 8),
+                          SizedBox(height: GeniusWalletConsts.space4),
                           SGNUSConnectionStatusWidget(),
                         ],
                       ),
@@ -109,7 +111,7 @@ class _ViewState extends State<View> {
               height: 28,
               width: 28,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
             const Text("GNUS"),
           ],
         ),
@@ -121,7 +123,7 @@ class _ViewState extends State<View> {
               height: 28,
               width: 28,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
             const Text("Minions"),
           ],
         ),

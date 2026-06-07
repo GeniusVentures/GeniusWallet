@@ -70,7 +70,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         body: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
             builder: (context, state) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space12),
             child: Container(
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(
@@ -202,7 +202,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                         onAmountChanged: null, // Disable manual input for "To"
                         controller: toAmountController,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: GeniusWalletConsts.space12),
                       // Swap Button
 
                       TextButton(
@@ -233,7 +233,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                     backgroundColor:
                                         GeniusWalletColors.deepBlueCardColor,
                                     contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 18, vertical: 20),
+                                        horizontal: 18,
+                                        vertical: GeniusWalletConsts.space10),
                                     actionsAlignment: MainAxisAlignment.center,
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
@@ -267,7 +268,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                           children: bridgeTokensResponse
                                                   .isSuccess
                                               ? [
-                                                  const SizedBox(height: 16),
+                                                  const SizedBox(height: GeniusWalletConsts.space8),
                                                   Row(children: [
                                                     Expanded(
                                                         child: Row(
@@ -407,7 +408,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                       ],
                                                     ))
                                                   ]),
-                                                  const SizedBox(height: 64),
+                                                  const SizedBox(height: GeniusWalletConsts.space32),
 
                                                   /// **Transaction Hash**
                                                   const Align(
@@ -421,11 +422,11 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                               FontWeight.bold),
                                                     ),
                                                   ),
-                                                  const SizedBox(height: 8),
+                                                  const SizedBox(height: GeniusWalletConsts.space4),
                                                   Container(
                                                     padding:
                                                         const EdgeInsets.all(
-                                                            12),
+                                                            GeniusWalletConsts.space6),
                                                     decoration: BoxDecoration(
                                                       color: Colors.black26,
                                                       borderRadius:
@@ -465,7 +466,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                   ),
                                                 ]
                                               : [
-                                                  const SizedBox(height: 12),
+                                                  const SizedBox(height: GeniusWalletConsts.space6),
                                                   Text(
                                                     bridgeTokensResponse
                                                             .errorMessage ??
@@ -474,7 +475,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                         .bodyLg,
                                                     textAlign: TextAlign.center,
                                                   ),
-                                                  const SizedBox(height: 16),
+                                                  const SizedBox(height: GeniusWalletConsts.space8),
                                                 ],
                                         )),
                                     actions: [
@@ -501,13 +502,13 @@ class BridgeScreenState extends State<BridgeScreen> {
                           fixedSize: const Size(600, 60),
                           backgroundColor: GeniusWalletColors.deepBlueCardColor,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 64,
-                            vertical: 20,
+                            horizontal: GeniusWalletConsts.space32,
+                            vertical: GeniusWalletConsts.space10,
                           ),
                         ),
                         child: const Text('Bridge'),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: GeniusWalletConsts.space8),
                       Row(children: [
                         const Text("Estimated Gas Cost:   ",
                             style:
@@ -590,7 +591,7 @@ class BridgeScreenState extends State<BridgeScreen> {
               Flexible(
                 flex: 2,
                 child: SizedBox(
-                  height: 48,
+                  height: GeniusWalletConsts.space24,
                   child: TextField(
                     controller: controller,
                     style: GeniusWalletTypography.bodyLg,

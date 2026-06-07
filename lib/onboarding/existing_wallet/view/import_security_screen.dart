@@ -13,6 +13,7 @@ import 'package:genius_wallet/onboarding/view/address_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
@@ -250,7 +251,7 @@ class _ImportSecurityBody extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: GeniusWalletConsts.space10),
         const SizedBox(
           child: TabBar(
             tabAlignment: TabAlignment.center,
@@ -263,7 +264,7 @@ class _ImportSecurityBody extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: GeniusWalletConsts.space10),
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.9,
           height: 400,

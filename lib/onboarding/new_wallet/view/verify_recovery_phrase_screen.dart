@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
@@ -310,7 +311,10 @@ class _InputAndWordsState extends State<_InputAndWords> {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
+                padding: const EdgeInsets.only(
+                    left: GeniusWalletConsts.space10,
+                    top: GeniusWalletConsts.space10,
+                    right: GeniusWalletConsts.space10),
                 child: GridView.count(
                   crossAxisCount: 3,
                   mainAxisSpacing: 8,
@@ -339,7 +343,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: GeniusWalletConsts.space2),
                         Expanded(
                           child: GestureDetector(
                             onTap:
@@ -425,7 +429,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                         onTap: () => _onWordClick(word),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
+                            horizontal: GeniusWalletConsts.space8,
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
@@ -451,7 +455,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                 ),
               ],
 
-              const SizedBox(height: 20),
+              const SizedBox(height: GeniusWalletConsts.space10),
             ],
           )
         : SingleChildScrollView(
@@ -477,7 +481,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(GeniusWalletConsts.space8),
                   child: GridView.count(
                     shrinkWrap: true,
                     crossAxisCount: 2, // 2 columns for mobile
@@ -575,7 +579,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                     style: GeniusWalletTypography.titleMd,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: GeniusWalletConsts.space10),
                   Container(
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.9,
@@ -589,8 +593,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                           onTap: () => _onWordClick(word),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
+                              horizontal: GeniusWalletConsts.space10,
+                              vertical: GeniusWalletConsts.space6,
                             ),
                             decoration: BoxDecoration(
                               color: GeniusWalletColors.brandPrimary
@@ -613,7 +617,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                 ] else ...[
                   // Show completion message when all words are filled
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(GeniusWalletConsts.space8),
                     decoration: BoxDecoration(
                       color: GeniusWalletColors.statusSuccess.withAlpha(51),
                       borderRadius: BorderRadius.circular(12),
@@ -726,13 +730,14 @@ class _VerifyRecoveryPhraseViewMobileState
           ),
           // Expanded middle section - takes remaining space
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding:
+                const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space10),
             child: _InputAndWords(key: _inputAndWordsKey),
           ),
         ],
       ),
       footer: Padding(
-        padding: const EdgeInsets.only(bottom: 20.0),
+        padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space10),
         child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.8,
           height: 50,

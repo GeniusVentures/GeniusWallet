@@ -18,6 +18,7 @@ import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
@@ -206,9 +207,10 @@ class _SwapScreenState extends State<SwapScreen> {
               constraints: const BoxConstraints(maxWidth: 500),
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: GeniusWalletConsts.space12),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: GeniusWalletConsts.space10),
                     child: Row(
                       children: [
                         // Back button when this screen was pushed (e.g. from the
@@ -224,7 +226,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                 onPressed: () =>
                                     Navigator.of(context).maybePop(),
                               )
-                            : const SizedBox(width: 24),
+                            : const SizedBox(width: GeniusWalletConsts.space12),
                         const Expanded(
                           child: Center(
                             child: Text(
@@ -258,7 +260,7 @@ class _SwapScreenState extends State<SwapScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: GeniusWalletConsts.space8),
                   SwapField(
                     label: "You Pay",
                     controller: fromAmountController,
@@ -329,14 +331,14 @@ class _SwapScreenState extends State<SwapScreen> {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
                           child: SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: GeniusWalletColors.brandGreen,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: GeniusWalletConsts.space8),
                               ),
                               onPressed: swapParams == null
                                   ? null

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -296,7 +297,8 @@ class WebViewMobileState extends State<WebViewMobile> {
     final includeBackButton = widget.includeBackButton ?? false;
     return Container(
       color: GeniusWalletColors.deepBlueCardColor,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space6, vertical: 10),
       child: Row(
         children: [
           if (includeBackButton)
@@ -328,7 +330,7 @@ class WebViewMobileState extends State<WebViewMobile> {
               ),
               onPressed: _goBack,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
           ],
           Expanded(
             child: TextField(
@@ -348,12 +350,12 @@ class WebViewMobileState extends State<WebViewMobile> {
               onSubmitted: (_) => _loadUrl(),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: GeniusWalletConsts.space4),
           _BookmarkButton(
             currentUrl:
                 _tabUrls.isNotEmpty ? _tabUrls[_currentTabIndex] : widget.url,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: GeniusWalletConsts.space4),
           TextButton(
             onPressed: () => {
               setState(() => _showTabManager = true),
@@ -389,7 +391,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       children: [
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space6),
             itemCount: _controllers.length,
             itemBuilder: (context, index) {
               return GestureDetector(
@@ -399,7 +401,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                   child: Column(
                     children: [
                       SizedBox(
-                        height: 20,
+                        height: GeniusWalletConsts.space10,
                         child: Stack(
                           children: [
                             if (_tabImages[index] != null)
@@ -417,7 +419,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                               Container(
                                 color: GeniusWalletColors.deepBlue,
                                 alignment: Alignment.center,
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(GeniusWalletConsts.space4),
                                 child: Text(
                                   _tabUrls[index],
                                   maxLines: 2,
@@ -453,7 +455,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                                 size: 18,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: GeniusWalletConsts.space4),
                             Expanded(
                               child: FutureBuilder<String?>(
                                 future: _controllers[index].getTitle(),
@@ -503,7 +505,9 @@ class WebViewMobileState extends State<WebViewMobile> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space12,
+              vertical: GeniusWalletConsts.space6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class CopyButton extends StatefulWidget {
   final String textToCopy;
@@ -46,7 +47,8 @@ class CopyButtonState extends State<CopyButton> {
         onPressed: _copyToClipboard,
         style: ElevatedButton.styleFrom(
           backgroundColor: GeniusWalletColors.deepBlueCardColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(
+              vertical: GeniusWalletConsts.space8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -59,7 +61,7 @@ class CopyButtonState extends State<CopyButton> {
               size: 20,
               color: GeniusWalletColors.textPrimary,
             ),
-            const SizedBox(width: 8), // Space between icon & text
+            const SizedBox(width: GeniusWalletConsts.space4), // Space between icon & text
             Flexible(
                 child: AutoSizeText(
               _copied ? "Copied!" : widget.buttonText,

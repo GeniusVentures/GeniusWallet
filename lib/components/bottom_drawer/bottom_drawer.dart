@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class BottomDrawer extends StatelessWidget {
@@ -23,7 +24,9 @@ class BottomDrawer extends StatelessWidget {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space8,
+                  vertical: GeniusWalletConsts.space6),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -54,12 +57,13 @@ class BottomDrawer extends StatelessWidget {
               ),
             ),
             const Divider(height: 1, color: GeniusWalletColors.textPrimary12),
-            const SizedBox(height: 4),
+            const SizedBox(height: GeniusWalletConsts.space2),
             // Scrollable content
             Expanded(
               child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: GeniusWalletConsts.space8,
+                      vertical: GeniusWalletConsts.space6),
                   child: ListView.builder(
                     itemCount: children.length,
                     itemBuilder: (context, index) => children[index],
@@ -69,7 +73,7 @@ class BottomDrawer extends StatelessWidget {
             // Footer
             if (footer != null)
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(GeniusWalletConsts.space8),
                 child: footer!,
               ),
           ],

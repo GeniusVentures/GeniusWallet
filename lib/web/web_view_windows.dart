@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
@@ -181,7 +182,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
               Container(
                 height: 70,
                 color: GeniusWalletColors.deepBlueCardColor,
-                padding: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.only(left: GeniusWalletConsts.space4),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -196,7 +197,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                 ),
               ),
 
-              const SizedBox(height: 4),
+              const SizedBox(height: GeniusWalletConsts.space2),
 
               // Webview or loader
               Expanded(
@@ -225,8 +226,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.only(
-        left: 8,
-        right: 16,
+        left: GeniusWalletConsts.space4,
+        right: GeniusWalletConsts.space8,
       ),
       decoration: BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
@@ -242,7 +243,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
             canGoForward() ? goForward : null,
           ),
           _buildIconButton(Icons.refresh, _controller.reload),
-          const SizedBox(width: 8),
+          const SizedBox(width: GeniusWalletConsts.space4),
           Expanded(
             child: TextField(
               controller: _urlController,
@@ -295,7 +296,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(GeniusWalletConsts.space8),
                   child: Text(
                     "History",
                     style: GeniusWalletTypography.titleLg

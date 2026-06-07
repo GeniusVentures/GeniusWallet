@@ -8,6 +8,7 @@ import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -243,7 +244,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: GeniusWalletConsts.space6),
               Text(
                 "Wallet Connect",
                 style: GeniusWalletTypography.titleLg,
@@ -255,7 +256,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 12),
+                  const SizedBox(height: GeniusWalletConsts.space6),
                   Expanded(
                       child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
@@ -281,7 +282,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: GeniusWalletConsts.space4),
                                     IconButton(
                                       icon: const Icon(
                                         Icons.paste,
@@ -311,7 +312,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                   ],
                                 ),
                                 if (manualInputError != null) ...[
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: GeniusWalletConsts.space4),
                                   Text(
                                     manualInputError!,
                                     style: const TextStyle(
@@ -331,14 +332,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             ),
                           ),
                   )),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: GeniusWalletConsts.space8),
                   TextButton(
                     onPressed: () {
                       setInnerState(() => showManualInput = !showManualInput);
                     },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                          horizontal: GeniusWalletConsts.space6,
+                          vertical: GeniusWalletConsts.space2),
                       backgroundColor: Colors.transparent,
                     ),
                     child: Row(
@@ -349,7 +351,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                           size: 18,
                           color: GeniusWalletColors.lightGreenPrimary,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: GeniusWalletConsts.space4),
                         Text(
                           showManualInput
                               ? "Show QR Code"
@@ -435,7 +437,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                   ),
                 ),
               const SizedBox(
-                height: 8,
+                height: GeniusWalletConsts.space4,
               ),
               SizedBox(
                 width: double.infinity,
@@ -600,7 +602,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         width: isMobile ? 44 : 130,
         child: TextButton(
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space4, vertical: 6),
             backgroundColor: backgroundColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(40),

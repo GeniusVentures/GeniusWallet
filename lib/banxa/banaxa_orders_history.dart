@@ -135,7 +135,7 @@ class _OrdersPageState extends State<OrdersPage> {
               icon: const Row(
                 children: [
                   Icon(Icons.add),
-                  SizedBox(width: 4),
+                  SizedBox(width: GeniusWalletConsts.space2),
                   Text('New Order'),
                 ],
               ),

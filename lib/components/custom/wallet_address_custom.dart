@@ -43,7 +43,7 @@ class _WalletAddressCustomState extends State<WalletAddressCustom> {
           return widget.child!;
         }
         return MaterialButton(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(GeniusWalletConsts.space10),
           shape: const ContinuousRectangleBorder(
               borderRadius: BorderRadius.all(
                   Radius.circular(GeniusWalletConsts.borderRadiusButton))),

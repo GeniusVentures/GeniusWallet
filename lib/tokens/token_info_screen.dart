@@ -8,6 +8,7 @@ import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/tokens/convert_section.dart';
 import 'package:genius_wallet/tokens/market_data_info.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -64,7 +65,7 @@ class TokenInfoScreen extends StatelessWidget {
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(GeniusWalletConsts.space12),
               child: isDesktop
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +83,7 @@ class TokenInfoScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 32),
+                        const SizedBox(width: GeniusWalletConsts.space16),
                         Expanded(
                           flex: 1,
                           child: _buildActionSection(
@@ -100,7 +101,7 @@ class TokenInfoScreen extends StatelessWidget {
                   : Column(
                       children: [
                         _buildGraphSection(marketData, null),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: GeniusWalletConsts.space12),
                         _buildActionSection(
                           marketData,
                           null,
@@ -142,7 +143,7 @@ class TokenInfoScreen extends StatelessWidget {
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(GeniusWalletConsts.space12),
               child: isDesktop
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +169,7 @@ class TokenInfoScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 32),
+                        const SizedBox(width: GeniusWalletConsts.space16),
                         Expanded(
                           flex: 1,
                           child: _buildActionSection(
@@ -186,7 +187,7 @@ class TokenInfoScreen extends StatelessWidget {
                   : Column(
                       children: [
                         _buildGraphSection(marketData, null),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: GeniusWalletConsts.space10),
                         _buildStaticActions(
                             selectedCoin,
                             context,
@@ -194,7 +195,7 @@ class TokenInfoScreen extends StatelessWidget {
                             selectedNetwork,
                             isGnusBridgeEnabled,
                             walletDetailsCubit),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: GeniusWalletConsts.space12),
                         _buildActionSection(
                           marketData,
                           selectedCoin,
@@ -218,7 +219,7 @@ class TokenInfoScreen extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: const Padding(
-        padding: EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Security",
           style: TextStyle(color: GeniusWalletColors.gray500),
@@ -238,7 +239,7 @@ class TokenInfoScreen extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: const Padding(
-        padding: EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Activity",
           style: TextStyle(color: GeniusWalletColors.gray500),
@@ -297,7 +298,7 @@ class TokenInfoScreen extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: GeniusWalletConsts.space4),
         // No send flow exists yet — render muted/disabled so it doesn't read
         // as a broken button.
         const ActionButton(
@@ -307,13 +308,13 @@ class TokenInfoScreen extends StatelessWidget {
           textColor: GeniusWalletColors.textSecondary,
           onPressed: null,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: GeniusWalletConsts.space4),
         ActionButton(
           text: "Swap",
           icon: Icons.swap_horiz,
           onPressed: () => GoRouter.of(context).push('/swap'),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: GeniusWalletConsts.space4),
         ActionButton(
           text: "More",
           icon: Icons.more_horiz,
@@ -370,11 +371,11 @@ class TokenInfoScreen extends StatelessWidget {
           network: selectedNetwork?.name,
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         ConvertSection(tokenPrice: marketData?.currentPrice ?? 0.0),
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         _buildSecuritySection(),
-        const SizedBox(height: 16),
+        const SizedBox(height: GeniusWalletConsts.space8),
         _buildActivitySection(),
       ],
     );

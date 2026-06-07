@@ -38,7 +38,8 @@ class DesktopTopBar extends StatelessWidget {
     return Container(
       height: GeniusWalletConsts.appBarHeight,
       color: GeniusWalletColors.deepBlueCardColor,
-      padding: const EdgeInsets.only(left: 16, right: 8),
+      padding: const EdgeInsets.only(
+          left: GeniusWalletConsts.space8, right: GeniusWalletConsts.space4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -46,7 +47,7 @@ class DesktopTopBar extends StatelessWidget {
           Row(children: [
             Row(children: [
               Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: GeniusWalletConsts.space4),
                 child: Image.asset(
                   'assets/images/geniusappbarlogo.png',
                   height: 30,
@@ -61,7 +62,8 @@ class DesktopTopBar extends StatelessWidget {
               final isSelected = index == selectedIndex;
 
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space2),
                 child: InkWell(
                   onTap: () {
                     context
@@ -120,9 +122,9 @@ class DesktopTopBar extends StatelessWidget {
             })
           ]),
           Row(children: [
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
             const NetworkDropdownSelector(),
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
             const SizedBox(width: 155, child: AccountDropdownSelector()),
             ReownConnectButton(
                 walletAddress:
@@ -130,13 +132,13 @@ class DesktopTopBar extends StatelessWidget {
                 geniusApi: geniusApi,
                 walletDetailsCubit: walletDetailsCubit,
                 transactionsCubit: transactionsCubit),
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
             BuyGnusButton(
               userEmail: '',
               walletAddress:
                   walletDetailsCubit.state.selectedWallet?.address ?? "",
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: GeniusWalletConsts.space4),
           ])
         ],
       ),

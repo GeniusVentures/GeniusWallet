@@ -10,6 +10,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:go_router/go_router.dart';
@@ -160,7 +161,7 @@ class CoinsScreenState extends State<CoinsScreen> {
               .toList();
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space8),
             child: Column(
               children: [
                 for (int i = 0; i < filteredCoins.length; i++) ...[
@@ -200,7 +201,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                     ),
                   if (!(widget.isUseDivider ?? false) &&
                       i != filteredCoins.length - 1)
-                    const SizedBox(height: 8),
+                    const SizedBox(height: GeniusWalletConsts.space4),
                 ],
               ],
             ),

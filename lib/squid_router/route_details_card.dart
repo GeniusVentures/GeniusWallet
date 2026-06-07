@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class RouteDetailsCard extends StatelessWidget {
@@ -34,7 +35,9 @@ class RouteDetailsCard extends StatelessWidget {
 
     return Card(
       color: GeniusWalletColors.deepBlueCardColor,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space8,
+          vertical: GeniusWalletConsts.space4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -53,7 +56,9 @@ class RouteDetailsCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space10,
+              vertical: GeniusWalletConsts.space6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

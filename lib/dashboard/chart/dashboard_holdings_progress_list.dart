@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class DashboardHoldingsProgressList extends StatelessWidget {
@@ -17,7 +18,7 @@ class DashboardHoldingsProgressList extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: GeniusWalletConsts.space6),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
@@ -98,7 +99,7 @@ class HoldingProgressItem extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(width: 16),
+        const SizedBox(width: GeniusWalletConsts.space8),
 
         // Percentage Text
         SizedBox(
