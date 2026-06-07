@@ -8,6 +8,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
+import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
@@ -308,7 +309,16 @@ class MyApp extends StatelessWidget {
           // Mesh background is intentionally NOT applied app-wide — the
           // brand mesh stays on auth / Landing surfaces; interior screens
           // use a solid dark canvas (cleaner, calmer).
-          builder: DevicePreview.appBuilder,
+          //
+          // GlobalSwapFabHost floats the always-reachable Swap action over
+          // every authenticated screen (hidden on auth/onboarding/splash).
+          builder: (context, child) => DevicePreview.appBuilder(
+            context,
+            GlobalSwapFabHost(
+              router: geniusWalletRouter,
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
           title: 'Gnus AI',
           theme: getThemeData(),
           routerConfig: geniusWalletRouter,
