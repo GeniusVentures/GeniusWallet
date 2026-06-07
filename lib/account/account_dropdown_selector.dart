@@ -116,7 +116,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black, // always black
+                  color: GeniusWalletColors.textOnBrand, // always black
                 ),
               ),
             ),
@@ -141,7 +141,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final textColor =
         isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textPrimary;
     final subColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
+        isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textSecondary;
     final trailingIconColor = isWatched
         ? (isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textPrimary)
         : null;
@@ -282,7 +282,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black,
+                        color: GeniusWalletColors.textOnBrand,
                         height: 1.0,
                       ),
                     ),

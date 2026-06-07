@@ -24,7 +24,7 @@ class ApproveTransactionDrawer {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: GeniusWalletColors.textSecondary),
                     borderRadius: BorderRadius.circular(
                         GeniusWalletConsts.borderRadiusButton),
                   ),
@@ -46,8 +46,9 @@ class ApproveTransactionDrawer {
                       Flexible(
                         child: Text(
                           dappUrl,
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 16),
+                          style: const TextStyle(
+                              color: GeniusWalletColors.textSecondary,
+                              fontSize: 16),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -67,9 +68,10 @@ class ApproveTransactionDrawer {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.grey),
+                side: const BorderSide(color: GeniusWalletColors.textSecondary),
               ),
-              child: const Text("Reject", style: TextStyle(color: Colors.grey)),
+              child: const Text("Reject",
+                  style: TextStyle(color: GeniusWalletColors.textSecondary)),
             ),
           ),
           const SizedBox(width: 12),
@@ -80,8 +82,8 @@ class ApproveTransactionDrawer {
                 backgroundColor: GeniusWalletColors.brandGreen,
                 side: const BorderSide(color: GeniusWalletColors.brandGreen),
               ),
-              child:
-                  const Text("Approve", style: TextStyle(color: Colors.black)),
+              child: const Text("Approve",
+                  style: TextStyle(color: GeniusWalletColors.textOnBrand)),
             ),
           ),
         ],

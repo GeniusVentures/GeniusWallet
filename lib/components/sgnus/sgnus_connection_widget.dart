@@ -8,6 +8,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {
@@ -147,7 +148,9 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isProcessing ? Colors.white : Colors.white70,
+                    color: isProcessing
+                        ? GeniusWalletColors.textPrimary
+                        : GeniusWalletColors.textPrimary70,
                   ),
                 ),
               ),

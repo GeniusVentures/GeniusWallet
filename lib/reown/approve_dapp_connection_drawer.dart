@@ -50,7 +50,7 @@ class ApproveDappConnectionDrawer {
               Flexible(
                 child: Text(
                   dappUrl,
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  style: const TextStyle(color: GeniusWalletColors.textSecondary, fontSize: 14),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -80,9 +80,10 @@ class ApproveDappConnectionDrawer {
               child: OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.grey),
+                  side: const BorderSide(color: GeniusWalletColors.textSecondary),
                 ),
-                child: const Text("Deny", style: TextStyle(color: Colors.grey)),
+                child: const Text("Deny",
+                    style: TextStyle(color: GeniusWalletColors.textSecondary)),
               ),
             ),
             const SizedBox(width: 12),
@@ -93,8 +94,8 @@ class ApproveDappConnectionDrawer {
                   backgroundColor: GeniusWalletColors.brandGreen,
                   side: const BorderSide(color: GeniusWalletColors.brandGreen),
                 ),
-                child:
-                    const Text("Allow", style: TextStyle(color: Colors.black)),
+                child: const Text("Allow",
+                    style: TextStyle(color: GeniusWalletColors.textOnBrand)),
               ),
             ),
           ],

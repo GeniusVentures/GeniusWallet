@@ -36,7 +36,7 @@ class CoinCardRow extends StatelessWidget {
     Color changeColor = (balance ?? 0) > 0
         ? (gainLoss >= 0
             ? GeniusWalletColors.lightGreenPrimary
-            : GeniusWalletColors.red)
+            : GeniusWalletColors.statusError)
         : GeniusWalletColors.gray500;
 
     final bool noBalance = (balance ?? 0.0) == 0.0;

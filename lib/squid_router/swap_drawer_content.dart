@@ -70,20 +70,23 @@ class SwapDrawerContent extends StatelessWidget {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: isSuccess ? GeniusWalletColors.textPrimary : Colors.red,
+            color: isSuccess
+                ? GeniusWalletColors.textPrimary
+                : GeniusWalletColors.statusError,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           "Swap on $chain",
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: const TextStyle(
+              fontSize: 14, color: GeniusWalletColors.textSecondary),
         ),
         if (!isSuccess)
           const Padding(
             padding: EdgeInsets.only(top: 12),
             child: Text(
               "Your swap could not be completed.",
-              style: TextStyle(color: Colors.redAccent),
+              style: TextStyle(color: GeniusWalletColors.statusError),
               textAlign: TextAlign.center,
             ),
           ),

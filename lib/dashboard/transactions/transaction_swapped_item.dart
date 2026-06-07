@@ -31,7 +31,7 @@ class TransactionSwappedItem extends StatelessWidget {
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: isFailed ? Colors.redAccent : GeniusWalletColors.textPrimary),
+              color: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary),
         ),
         subtitle: Text(
           timeago.format(tx.timeStamp.toLocal()),
@@ -95,7 +95,7 @@ class TransactionSwappedItem extends StatelessWidget {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.redAccent,
+              color: GeniusWalletColors.statusError,
         ),
       );
     }
@@ -177,7 +177,7 @@ class TransactionSwappedItem extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: isFailed ? Colors.redAccent : GeniusWalletColors.textPrimary,
+              color: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -199,7 +199,7 @@ class TransactionSwappedItem extends StatelessWidget {
                     "Status",
                     tx.transactionStatus.name[0].toUpperCase() +
                         tx.transactionStatus.name.substring(1),
-                    valueColor: isFailed ? Colors.redAccent : GeniusWalletColors.textPrimary),
+                    valueColor: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary),
                 _buildRow("From", "$fromAmount $fromSymbol"),
                 _buildRow("To", "$toAmount $toSymbol"),
                 _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),

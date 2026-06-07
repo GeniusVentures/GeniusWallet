@@ -152,7 +152,7 @@ class HeaderButton extends StatelessWidget {
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: isAddBorder!
-                ? BorderSide(width: 1, color: textColor ?? Colors.red)
+                ? BorderSide(width: 1, color: textColor ?? GeniusWalletColors.statusError)
                 : BorderSide.none,
           ),
         ),

@@ -14,7 +14,8 @@ class SwapResultDrawer {
   }) async {
     final message = isSuccess ? "Swap Success" : "Swap Failed";
     final icon = isSuccess ? Icons.check_circle : Icons.error;
-    final iconColor = isSuccess ? GeniusWalletColors.brandGreen : Colors.redAccent;
+    final iconColor =
+        isSuccess ? GeniusWalletColors.brandGreen : GeniusWalletColors.statusError;
     final explorerUrl =
         (txHash.isNotEmpty) ? getExplorerUrl(coinSymbol, txHash) : '';
 

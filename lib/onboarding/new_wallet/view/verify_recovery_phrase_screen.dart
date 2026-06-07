@@ -350,16 +350,18 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 border: Border.all(
                                   color: isEmpty
                                       ? (isHighlighted
-                                          ? Colors.blue
+                                          ? GeniusWalletColors.brandPrimary
                                           : (hasUserInput
-                                              ? Colors.green
-                                              : Colors.blue.withAlpha(128)))
+                                              ? GeniusWalletColors.brandSecondary
+                                              : GeniusWalletColors.brandPrimary
+                                                  .withAlpha(128)))
                                       : GeniusWalletColors.gray500,
                                   width: isHighlighted ? 2.0 : 1.0,
                                 ),
                                 color: isEmpty
                                     ? (isHighlighted
-                                        ? Colors.blue.withAlpha(26)
+                                        ? GeniusWalletColors.brandPrimary
+                                            .withAlpha(26)
                                         : GeniusWalletColors.grayPrimary
                                             .withAlpha(77))
                                     : GeniusWalletColors.grayPrimary
@@ -380,7 +382,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                             : 10,
                                     color:
                                         isEmpty && userInputWords[index].isEmpty
-                                            ? Colors.blue.withAlpha(179)
+                                            ? GeniusWalletColors.brandPrimary
+                                                .withAlpha(179)
                                             : GeniusWalletColors.textPrimary,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -425,10 +428,10 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withAlpha(51),
+                            color: GeniusWalletColors.brandPrimary.withAlpha(51),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.blue,
+                              color: GeniusWalletColors.brandPrimary,
                               width: 1.5,
                             ),
                           ),
@@ -495,16 +498,18 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             border: Border.all(
                               color: isEmpty
                                   ? (isHighlighted
-                                      ? Colors.blue
+                                      ? GeniusWalletColors.brandPrimary
                                       : (hasUserInput
-                                          ? Colors.green
-                                          : Colors.blue.withAlpha(128)))
+                                          ? GeniusWalletColors.brandSecondary
+                                          : GeniusWalletColors.brandPrimary
+                                              .withAlpha(128)))
                                   : GeniusWalletColors.gray500,
                               width: isHighlighted ? 2.0 : 1.0,
                             ),
                             color: isEmpty
                                 ? (isHighlighted
-                                    ? Colors.blue.withAlpha(26)
+                                    ? GeniusWalletColors.brandPrimary
+                                        .withAlpha(26)
                                     : GeniusWalletColors.grayPrimary
                                         .withAlpha(77))
                                 : GeniusWalletColors.grayPrimary
@@ -546,7 +551,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                       fontSize: 14,
                                       color: isEmpty &&
                                               userInputWords[index].isEmpty
-                                          ? Colors.blue.withAlpha(179)
+                                          ? GeniusWalletColors.brandPrimary
+                                              .withAlpha(179)
                                           : GeniusWalletColors.textPrimary,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -594,10 +600,11 @@ class _InputAndWordsState extends State<_InputAndWords> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withAlpha(51),
+                              color: GeniusWalletColors.brandPrimary
+                                  .withAlpha(51),
                               borderRadius: BorderRadius.circular(25),
                               border: Border.all(
-                                color: Colors.blue,
+                                color: GeniusWalletColors.brandPrimary,
                                 width: 1.5,
                               ),
                             ),
@@ -619,10 +626,10 @@ class _InputAndWordsState extends State<_InputAndWords> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.green.withAlpha(51),
+                      color: GeniusWalletColors.statusSuccess.withAlpha(51),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.green,
+                        color: GeniusWalletColors.statusSuccess,
                         width: 1.5,
                       ),
                     ),
@@ -630,7 +637,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                       'All words have been filled.              Press continue.',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.green,
+                        color: GeniusWalletColors.statusSuccess,
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,

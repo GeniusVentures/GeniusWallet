@@ -156,7 +156,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           showAppSnackBar(
             context,
             "DApp connection was rejected.",
-            backgroundColor: Colors.red,
+            backgroundColor: GeniusWalletColors.statusError,
           );
 
           await walletKit.rejectSession(
@@ -314,7 +314,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                   Text(
                                     manualInputError!,
                                     style: const TextStyle(
-                                        color: Colors.redAccent),
+                                        color: GeniusWalletColors.statusError),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -426,7 +426,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: GeniusWalletColors.textOnBrand,
                           ),
                         ),
                       ),
@@ -488,7 +488,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             showAppSnackBar(
               context,
               "Wallet connection failed. Please try again.",
-              backgroundColor: Colors.red,
+              backgroundColor: GeniusWalletColors.statusError,
             );
           }
         }

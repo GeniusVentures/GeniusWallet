@@ -247,7 +247,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                           color: bridgeTokensResponse.isSuccess
                                               ? GeniusWalletColors
                                                   .lightGreenPrimary
-                                              : GeniusWalletColors.red,
+                                              : GeniusWalletColors.statusError,
                                           fontSize: 22,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -342,8 +342,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                             child: Icon(
                                                                 Icons
                                                                     .arrow_forward,
-                                                                color: Colors
-                                                                    .white70,
+                                                                color: GeniusWalletColors
+                                                                    .textPrimary70,
                                                                 size:
                                                                     30)), // Arrow Icon
 
@@ -451,8 +451,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                         IconButton(
                                                           icon: const Icon(
                                                               Icons.copy,
-                                                              color: Colors
-                                                                  .white70),
+                                                              color: GeniusWalletColors
+                                                                  .textPrimary70),
                                                           onPressed: () {
                                                             Clipboard.setData(
                                                               ClipboardData(

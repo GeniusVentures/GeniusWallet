@@ -200,7 +200,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     ).format(_displayPrice);
 
     bool isUptrend = _latestPrice >= _previousPrice;
-    Color fillColor = isUptrend ? GeniusWalletColors.brandGreen : Colors.redAccent;
+    Color fillColor = isUptrend ? GeniusWalletColors.brandGreen : GeniusWalletColors.statusError;
 
     return MouseRegion(
       onExit: _onHoverExit,
@@ -312,7 +312,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                               return spotIndexes.map((index) {
                                 return TouchedSpotIndicatorData(
                                   FlLine(
-                                    color: Colors.grey[400]!,
+                                    color: GeniusWalletColors.textSecondary,
                                     strokeWidth: 1.2,
                                     dashArray: [8, 4],
                                   ),

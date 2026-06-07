@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class NetworkStatusPage extends StatefulWidget {
@@ -87,8 +88,8 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                           ? Icons.check_circle
                           : Icons.error,
                       color: status.startsWith("Online")
-                          ? Colors.green
-                          : Colors.red,
+                          ? GeniusWalletColors.statusSuccess
+                          : GeniusWalletColors.statusError,
                     ),
                     title: const Text("Network Connectivity"),
                     subtitle: Text(status),
@@ -106,8 +107,8 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                           ? Icons.check_circle
                           : Icons.error_outline,
                       color: (connection != null && connection.isConnected)
-                          ? Colors.green
-                          : Colors.red,
+                          ? GeniusWalletColors.statusSuccess
+                          : GeniusWalletColors.statusError,
                     ),
                     title: const Text('SGNUS Connection'),
                     subtitle: Text(connection == null

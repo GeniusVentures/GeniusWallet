@@ -22,7 +22,7 @@ class CryptoMinimalChart extends StatelessWidget {
   }) : super(key: key);
 
   Color get priceColor =>
-      priceChangePercent >= 0 ? GeniusWalletColors.brandGreen : Colors.redAccent;
+      priceChangePercent >= 0 ? GeniusWalletColors.brandGreen : GeniusWalletColors.statusError;
 
   List<FlSpot> getGeneratedChartData() {
     Random random = Random();

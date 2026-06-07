@@ -320,7 +320,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                     Icons.arrow_back,
                     color: canGoBack
                         ? GeniusWalletColors.lightGreenPrimary
-                        : Colors.grey,
+                        : GeniusWalletColors.textSecondary,
                     size: 20,
                   );
                 },

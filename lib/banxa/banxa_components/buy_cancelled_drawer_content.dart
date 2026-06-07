@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class BuyCancelledDrawerContent extends StatelessWidget {
   const BuyCancelledDrawerContent({super.key});
@@ -7,7 +8,7 @@ class BuyCancelledDrawerContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       children: [
-        Icon(Icons.cancel, size: 72, color: Colors.redAccent),
+        Icon(Icons.cancel, size: 72, color: GeniusWalletColors.statusError),
         SizedBox(height: 16),
         Text(
           "Purchase Cancelled",
