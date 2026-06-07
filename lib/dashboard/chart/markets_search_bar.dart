@@ -192,6 +192,12 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                 onPressed: () => _onCoinTap(coin),
               );
             },
+          )
+        else if (_controller.text.isNotEmpty && !_isSearching)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space12),
+            child: Text('No coins found',
+                style: TextStyle(color: GeniusWalletColors.textPrimary70)),
           ),
       ],
     );

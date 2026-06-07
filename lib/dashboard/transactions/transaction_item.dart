@@ -38,7 +38,7 @@ class TransactionItem extends StatelessWidget {
               Text(
                 " • ${tx.coinSymbol}",
                 style: GeniusWalletTypography.bodyMd.copyWith(
-                    color: GeniusWalletColors.gray500),
+                    color: GeniusWalletColors.textPrimary70),
               )
             ],
           ),
@@ -64,8 +64,8 @@ class TransactionItem extends StatelessWidget {
             )),
         Text(
           "Fee: ${tx.fees} ${tx.coinSymbol}",
-          style:
-              const TextStyle(fontSize: 12, color: GeniusWalletColors.gray500),
+          style: const TextStyle(
+              fontSize: 12, color: GeniusWalletColors.textPrimary70),
         ),
       ],
     );

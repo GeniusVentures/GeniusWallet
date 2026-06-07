@@ -43,13 +43,14 @@ class TransactionPurchasedItem extends StatelessWidget {
             Text(
               " • ${tx.coinSymbol}",
               style: GeniusWalletTypography.bodyMd.copyWith(
-                  color: GeniusWalletColors.gray500),
+                  color: GeniusWalletColors.textPrimary70),
             ),
           ],
         ),
         subtitle: Text(
           timeago.format(tx.timeStamp.toLocal()),
-          style: const TextStyle(fontSize: 12, color: GeniusWalletColors.textPrimary60),
+          style: const TextStyle(
+              fontSize: 12, color: GeniusWalletColors.textPrimary70),
         ),
         trailing: _buildAmount(amountColor, amount, isFailed),
       ),
@@ -101,8 +102,8 @@ class TransactionPurchasedItem extends StatelessWidget {
           isFailed
               ? currencyFormatter.format(0)
               : "Spent: ${currencyFormatter.format(double.tryParse(tx.fees) ?? 0)}",
-          style:
-              const TextStyle(fontSize: 12, color: GeniusWalletColors.gray500),
+          style: const TextStyle(
+              fontSize: 12, color: GeniusWalletColors.textPrimary70),
         )
       ],
     );

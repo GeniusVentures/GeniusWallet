@@ -254,9 +254,11 @@ class TokenInfoScreen extends StatelessWidget {
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
         child: Column(
-          children: transactionHistory
-              .map((tx) => ListTile(title: Text(tx)))
-              .toList(),
+          children: transactionHistory.isEmpty
+              ? const [ListTile(title: Text('No activity yet'))]
+              : transactionHistory
+                  .map((tx) => ListTile(title: Text(tx)))
+                  .toList(),
         ),
       ),
     );

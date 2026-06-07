@@ -76,6 +76,12 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
           ),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
+        if (filtered.isEmpty && _query.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space16),
+            child: Text('No tokens found',
+                style: TextStyle(color: GeniusWalletColors.textPrimary70)),
+          ),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
