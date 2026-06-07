@@ -438,7 +438,7 @@ class _CoinRow extends StatelessWidget {
     final balance = coin.balance ?? 0;
     final symbol = coin.symbol ?? '?';
     return InkWell(
-      onTap: () {/* token info */},
+      onTap: () => context.push('/token', extra: coin),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: GeniusWalletConsts.space6,

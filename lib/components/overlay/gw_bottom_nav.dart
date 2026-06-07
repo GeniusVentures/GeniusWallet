@@ -32,9 +32,9 @@ class GWBottomNav extends StatelessWidget {
     ),
     _NavItem(
       screen: NavigationScreen.web,
-      icon: Icons.public_outlined,
-      activeIcon: Icons.public_rounded,
-      label: 'Browser',
+      icon: Icons.explore_outlined,
+      activeIcon: Icons.explore_rounded,
+      label: 'Discover',
     ),
   ];
 
