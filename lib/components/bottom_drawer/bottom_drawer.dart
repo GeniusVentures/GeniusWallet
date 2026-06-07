@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class BottomDrawer extends StatelessWidget {
   final List<Widget> children;
@@ -33,10 +34,8 @@ class BottomDrawer extends StatelessWidget {
                     child: Text(
                       title ?? '',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: GeniusWalletTypography.titleMd.copyWith(
                         color: GeniusWalletColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

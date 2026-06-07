@@ -10,6 +10,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:go_router/go_router.dart';
 
@@ -141,13 +142,13 @@ class CoinsScreenState extends State<CoinsScreen> {
           }
 
           if (state.coins.isEmpty) {
-            return const Card(
+            return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
               child: AutoSizeText(
                 'No Coins Detected',
-                style: TextStyle(
-                    fontSize: 24, color: GeniusWalletColors.btnTextDisabled),
+                style: GeniusWalletTypography.headlineLg.copyWith(
+                    color: GeniusWalletColors.btnTextDisabled),
               ),
             );
           }

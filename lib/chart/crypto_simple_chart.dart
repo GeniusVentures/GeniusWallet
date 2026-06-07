@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
 class CryptoSparkLineChart extends StatelessWidget {
@@ -72,16 +73,14 @@ class CryptoSparkLineChart extends StatelessWidget {
             children: [
               AutoSizeText(
                 title,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: GeniusWalletTypography.bodyLg.copyWith(
                   color: GeniusWalletColors.gray500,
                 ),
                 maxLines: 1,
               ),
               Text(
                 formattedPrice,
-                style: TextStyle(
-                  fontSize: 14,
+                style: GeniusWalletTypography.numericBody.copyWith(
                   color: currentPrice == 0
                       ? Colors.grey[600]
                       : GeniusWalletColors.textPrimary,

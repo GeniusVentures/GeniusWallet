@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SendTransactionDetails extends StatelessWidget {
   final String fromAddress;
@@ -42,11 +43,10 @@ class SendTransactionDetails extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 "Estimated changes",
-                style: TextStyle(
+                style: GeniusWalletTypography.bodySm.copyWith(
                   color: GeniusWalletColors.gray500,
-                  fontSize: 13,
                 ),
               ),
               const SizedBox(height: 8),
@@ -86,8 +86,8 @@ class SendTransactionDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                color: GeniusWalletColors.gray500, fontSize: 14)),
+            style: GeniusWalletTypography.bodyMd.copyWith(
+                color: GeniusWalletColors.gray500)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.all(12),
@@ -111,8 +111,11 @@ class SendTransactionDetails extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14)),
-        Text(value, style: const TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14)),
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.textPrimary70)),
+        Text(value,
+            style: GeniusWalletTypography.numericBody
+                .copyWith(color: GeniusWalletColors.textPrimary)),
       ],
     );
   }

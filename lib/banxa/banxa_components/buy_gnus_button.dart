@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
 class BuyGnusButton extends StatelessWidget {
@@ -18,9 +19,9 @@ class BuyGnusButton extends StatelessWidget {
         //   Icons.attach_money,
         //   color: GeniusWalletColors.lightGreenPrimary,
         // ),
-        label: const Text(
+        label: Text(
           "Buy GNUS",
-          style: TextStyle(fontSize: 14),
+          style: GeniusWalletTypography.bodyMd,
         ),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

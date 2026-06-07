@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/components/desktop_body_container.dart';
@@ -531,11 +532,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 child: Center(
                                   child: Text(
                                     '${index + 1}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: GeniusWalletColors.textPrimary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: GeniusWalletTypography.labelMd,
                                   ),
                                 ),
                               ),
@@ -573,13 +570,9 @@ class _InputAndWordsState extends State<_InputAndWords> {
 
                 // Available words to click
                 if (shuffledAvailableWords.isNotEmpty) ...[
-                  const Text(
+                  Text(
                     'Tap a word to fill the highlighted box:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: GeniusWalletColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: GeniusWalletTypography.titleMd,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
@@ -610,11 +603,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             ),
                             child: Text(
                               word,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: GeniusWalletColors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: GeniusWalletTypography.titleMd,
                             ),
                           ),
                         );
@@ -633,12 +622,10 @@ class _InputAndWordsState extends State<_InputAndWords> {
                         width: 1.5,
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'All words have been filled.              Press continue.',
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: GeniusWalletTypography.titleMd.copyWith(
                         color: GeniusWalletColors.statusSuccess,
-                        fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
                     ),

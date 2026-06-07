@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {
@@ -39,12 +40,12 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Flexible(
+                  Flexible(
                       child: AutoSizeText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     'SGNUS Connection ',
-                    style: TextStyle(fontSize: 14),
+                    style: GeniusWalletTypography.bodyMd,
                   )),
                   const SizedBox(width: 8),
                   if (connection.isConnected) const CheckmarkAnimation(),
@@ -87,12 +88,12 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Flexible(
+                  Flexible(
                       child: AutoSizeText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     'SGNUS Connection ',
-                    style: TextStyle(fontSize: 14),
+                    style: GeniusWalletTypography.bodyMd,
                   )),
                   const SizedBox(width: 8),
                   if (connection.isConnected) const CheckmarkAnimation(),

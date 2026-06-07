@@ -111,11 +111,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             child: Container(
               alignment: Alignment.center,
               height: 48,
-              child: const Text(
+              child: Text(
                 "Add Wallet",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                style: GeniusWalletTypography.titleMd.copyWith(
                   color: GeniusWalletColors.textOnBrand, // always black
                 ),
               ),
@@ -170,10 +168,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   Flexible(
                     child: Text(
                       wallet.walletName,
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
+                      style: GeniusWalletTypography.titleMd
+                          .copyWith(color: textColor),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -222,9 +218,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                     Expanded(
                       child: SelectableText(
                         wallet.address,
-                        style: const TextStyle(
+                        style: GeniusWalletTypography.bodySm.copyWith(
                           color: GeniusWalletColors.gray500,
-                          fontSize: 13,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -316,9 +311,10 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               );
             }
             if (wallets.isEmpty) {
-              return const Center(
+              return Center(
                 child: Text("You have no wallets!",
-                    style: TextStyle(fontSize: 16, color: GeniusWalletColors.textPrimary70)),
+                    style: GeniusWalletTypography.bodyLg
+                        .copyWith(color: GeniusWalletColors.textPrimary70)),
               );
             }
             selectedWallet ??= wallets.firstWhere(
@@ -340,7 +336,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                             ? 'Super Genius'
                             : WalletUtils.getAddressForDisplay(
                                 selectedWallet!.address),
-                        style: const TextStyle(fontSize: 14),
+                        style: GeniusWalletTypography.bodyMd,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

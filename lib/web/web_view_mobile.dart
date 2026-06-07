@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -422,9 +423,8 @@ class WebViewMobileState extends State<WebViewMobile> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: GeniusWalletTypography.bodyMd.copyWith(
                                     color: GeniusWalletColors.textPrimary,
-                                    fontSize: 14,
                                   ),
                                 ),
                               ),
@@ -460,13 +460,13 @@ class WebViewMobileState extends State<WebViewMobile> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const Text(
+                                    return Text(
                                       "Loading...",
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                      style:
+                                          GeniusWalletTypography.bodyMd.copyWith(
                                         color: GeniusWalletColors.textPrimary,
-                                        fontSize: 14,
                                       ),
                                     );
                                   }

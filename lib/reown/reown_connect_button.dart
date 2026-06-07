@@ -9,6 +9,7 @@ import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -243,9 +244,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 "Wallet Connect",
-                style: TextStyle(fontSize: 18),
+                style: GeniusWalletTypography.titleLg,
               ),
             ]),
             content: SizedBox(
@@ -626,7 +627,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                 const SizedBox(width: 6),
                 Text(
                   text,
-                  style: TextStyle(fontSize: 14, color: textColor),
+                  style: GeniusWalletTypography.bodyMd.copyWith(color: textColor),
                 ),
               ]
             ],

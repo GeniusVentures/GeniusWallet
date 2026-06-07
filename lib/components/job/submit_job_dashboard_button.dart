@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,14 +42,16 @@ class SubmitJobDashboardButton extends StatelessWidget {
           await context.push('/submit_job');
           walletDetailsCubit.getCoins(); // Refresh after returning
         },
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.create, size: 16, color: GeniusWalletColors.brandGreen),
-            SizedBox(width: 6),
+            const Icon(Icons.create,
+                size: 16, color: GeniusWalletColors.brandGreen),
+            const SizedBox(width: 6),
             Text(
               'Create Processing Job',
-              style: TextStyle(fontSize: 13, color: GeniusWalletColors.textPrimary),
+              style: GeniusWalletTypography.bodySm
+                  .copyWith(color: GeniusWalletColors.textPrimary),
             ),
           ],
         ),

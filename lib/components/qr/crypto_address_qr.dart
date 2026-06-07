@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/components/button/copy_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CryptoAddressQR extends StatelessWidget {
@@ -45,8 +46,7 @@ class CryptoAddressQR extends StatelessWidget {
               child: AutoSizeText(
             "Use this address to receive tokens",
             maxLines: 1,
-            style: TextStyle(
-              fontSize: 14,
+            style: GeniusWalletTypography.bodyMd.copyWith(
               color: Colors.grey[600],
             ),
           )),

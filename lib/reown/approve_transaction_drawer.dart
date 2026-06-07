@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class ApproveTransactionDrawer {
   static Future<bool?> show({
@@ -46,9 +47,8 @@ class ApproveTransactionDrawer {
                       Flexible(
                         child: Text(
                           dappUrl,
-                          style: const TextStyle(
-                              color: GeniusWalletColors.textSecondary,
-                              fontSize: 16),
+                          style: GeniusWalletTypography.bodyLg.copyWith(
+                              color: GeniusWalletColors.textSecondary),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

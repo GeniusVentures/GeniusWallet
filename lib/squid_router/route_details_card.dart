@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class RouteDetailsCard extends StatelessWidget {
   final SquidRouteResponse route;
@@ -57,9 +58,11 @@ class RouteDetailsCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label,
-                  style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14)),
+                  style: GeniusWalletTypography.bodyMd
+                      .copyWith(color: GeniusWalletColors.textPrimary70)),
               Text(value,
-                  style: const TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14)),
+                  style: GeniusWalletTypography.numericBody
+                      .copyWith(color: GeniusWalletColors.textPrimary)),
             ],
           ),
         ),

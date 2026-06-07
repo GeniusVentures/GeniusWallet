@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
 class MarketDataInfo extends StatelessWidget {
@@ -34,11 +35,9 @@ class MarketDataInfo extends StatelessWidget {
             color: GeniusWalletColors.lightGreenPrimary,
             size: 20,
           ),
-          title: const Text("Network",
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: GeniusWalletColors.gray500)),
+          title: Text("Network",
+              style: GeniusWalletTypography.bodyMd
+                  .copyWith(color: GeniusWalletColors.gray500)),
           trailing: Text(
             network ?? "",
             style: const TextStyle(
@@ -57,11 +56,9 @@ class MarketDataInfo extends StatelessWidget {
             color: GeniusWalletColors.lightGreenPrimary,
             size: 20,
           ),
-          title: const Text("Address",
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: GeniusWalletColors.gray500)),
+          title: Text("Address",
+              style: GeniusWalletTypography.bodyMd
+                  .copyWith(color: GeniusWalletColors.gray500)),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -91,11 +88,9 @@ class MarketDataInfo extends StatelessWidget {
       ListTile(
         dense: true,
         leading: Icon(Icons.pie_chart, color: Colors.amber[200], size: 20),
-        title: const Text("Market Cap",
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: GeniusWalletColors.gray500)),
+        title: Text("Market Cap",
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactCurrency(marketData?.marketCap),
           style: const TextStyle(
@@ -109,11 +104,9 @@ class MarketDataInfo extends StatelessWidget {
       ListTile(
         dense: true,
         leading: Icon(Icons.sync, color: Colors.lightBlue[200], size: 20),
-        title: const Text("Circulating Supply",
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: GeniusWalletColors.gray500)),
+        title: Text("Circulating Supply",
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactDecimal(marketData?.circulatingSupply),
           style: const TextStyle(
@@ -127,11 +120,9 @@ class MarketDataInfo extends StatelessWidget {
       ListTile(
         dense: true,
         leading: Icon(Icons.storage, color: Colors.orange[200], size: 20),
-        title: const Text("Total Supply",
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: GeniusWalletColors.gray500)),
+        title: Text("Total Supply",
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactDecimal(marketData?.totalSupply),
           style: const TextStyle(
@@ -146,11 +137,9 @@ class MarketDataInfo extends StatelessWidget {
         dense: true,
         leading: const Icon(Icons.bar_chart,
             color: GeniusWalletColors.mutedRed, size: 20),
-        title: const Text("Volume",
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: GeniusWalletColors.gray500)),
+        title: Text("Volume",
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactCurrency(marketData?.totalVolume),
           style: const TextStyle(
@@ -211,10 +200,8 @@ class MarketDataInfo extends StatelessWidget {
                 ),
                 subtitle: Text(
                   (marketData?.symbol ?? "").toUpperCase(),
-                  style: const TextStyle(
-                    color: GeniusWalletColors.gray500,
-                    fontSize: 14,
-                  ),
+                  style: GeniusWalletTypography.bodyMd
+                      .copyWith(color: GeniusWalletColors.gray500),
                 ),
               ),
               // Divider
@@ -242,12 +229,10 @@ class MarketDataInfo extends StatelessWidget {
               if (aboutText != null && aboutText!.isNotEmpty) ...[
                 const Divider(color: GeniusWalletColors.deepBlue, height: 1),
                 ExpansionTile(
-                  title: const Text(
+                  title: Text(
                     "About",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: GeniusWalletColors.gray500,
-                        fontWeight: FontWeight.w500),
+                    style: GeniusWalletTypography.titleMd
+                        .copyWith(color: GeniusWalletColors.gray500),
                   ),
                   children: [
                     Padding(
@@ -255,8 +240,8 @@ class MarketDataInfo extends StatelessWidget {
                           horizontal: 16, vertical: 12),
                       child: Text(
                         aboutText!,
-                        style: const TextStyle(
-                            color: GeniusWalletColors.textPrimary70, fontSize: 14),
+                        style: GeniusWalletTypography.bodyMd
+                            .copyWith(color: GeniusWalletColors.textPrimary70),
                       ),
                     ),
                   ],

@@ -3,6 +3,7 @@ import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SwapField extends StatelessWidget {
   final String label;
@@ -37,7 +38,8 @@ class SwapField extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14)),
+                style: GeniusWalletTypography.bodyMd
+                    .copyWith(color: GeniusWalletColors.textPrimary70)),
             const SizedBox(height: 8),
             Row(
               children: [

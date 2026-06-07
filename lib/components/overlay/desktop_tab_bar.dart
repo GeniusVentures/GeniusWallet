@@ -11,6 +11,7 @@ import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class DesktopTopBar extends StatelessWidget {
@@ -89,8 +90,7 @@ class DesktopTopBar extends StatelessWidget {
                             if (!isHideMenuText) ...[
                               const SizedBox(width: 6),
                               DefaultTextStyle(
-                                style: TextStyle(
-                                  fontSize: 14,
+                                style: GeniusWalletTypography.bodyMd.copyWith(
                                   color: isSelected
                                       ? GeniusWalletColors.brandGreen
                                       : GeniusWalletColors.textPrimary60,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SwapDrawerContent extends StatelessWidget {
   final String fromAmount;
@@ -67,9 +68,7 @@ class SwapDrawerContent extends StatelessWidget {
         const SizedBox(height: 20),
         Text(
           "$fromAmount $fromSymbol → $toAmount $toSymbol",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+          style: GeniusWalletTypography.titleMd.copyWith(
             color: isSuccess
                 ? GeniusWalletColors.textPrimary
                 : GeniusWalletColors.statusError,
@@ -78,8 +77,8 @@ class SwapDrawerContent extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           "Swap on $chain",
-          style: const TextStyle(
-              fontSize: 14, color: GeniusWalletColors.textSecondary),
+          style: GeniusWalletTypography.bodyMd
+              .copyWith(color: GeniusWalletColors.textSecondary),
         ),
         if (!isSuccess)
           const Padding(

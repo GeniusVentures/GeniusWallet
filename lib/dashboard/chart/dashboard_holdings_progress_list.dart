@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class DashboardHoldingsProgressList extends StatelessWidget {
   final Map<String, double> holdings;
@@ -118,9 +119,8 @@ class HoldingProgressItem extends StatelessWidget {
                 child: AutoSizeText(
                   label,
                   maxLines: 1,
-                  style: const TextStyle(
+                  style: GeniusWalletTypography.bodyMd.copyWith(
                     color: GeniusWalletColors.textPrimary,
-                    fontSize: 14,
                   ),
                 ))),
       ],

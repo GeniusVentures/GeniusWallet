@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class ApproveDappConnectionDrawer {
   static Future<bool?> show({
@@ -50,7 +51,8 @@ class ApproveDappConnectionDrawer {
               Flexible(
                 child: Text(
                   dappUrl,
-                  style: const TextStyle(color: GeniusWalletColors.textSecondary, fontSize: 14),
+                  style: GeniusWalletTypography.bodyMd.copyWith(
+                      color: GeniusWalletColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -61,7 +63,8 @@ class ApproveDappConnectionDrawer {
         if (dappDescription != null && dappDescription.isNotEmpty) ...[
           Text(
             dappDescription,
-            style: const TextStyle(color: GeniusWalletColors.textPrimary70, fontSize: 14),
+            style: GeniusWalletTypography.bodyMd.copyWith(
+                color: GeniusWalletColors.textPrimary70),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
@@ -70,7 +73,7 @@ class ApproveDappConnectionDrawer {
       footer: Column(children: [
         Text(
           "Allow $dappName to connect to your wallet?",
-          style: const TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 16),
+          style: GeniusWalletTypography.bodyLg,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),

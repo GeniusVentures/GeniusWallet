@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'package:window_manager/window_manager.dart';
@@ -293,12 +294,12 @@ class _WebViewWindowsState extends State<WebViewWindows> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16),
+                Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     "History",
-                    style: TextStyle(
-                        color: GeniusWalletColors.textPrimary, fontSize: 18),
+                    style: GeniusWalletTypography.titleLg
+                        .copyWith(color: GeniusWalletColors.textPrimary),
                   ),
                 ),
                 const Divider(color: GeniusWalletColors.textPrimary54),

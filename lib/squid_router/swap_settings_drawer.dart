@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SwapSettingsDrawer {
   static void show(
@@ -20,11 +21,11 @@ class SwapSettingsDrawer {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "Slippage Tolerance (%)",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: GeniusWalletTypography.titleMd,
                 ),
               ),
               const SizedBox(height: 8),

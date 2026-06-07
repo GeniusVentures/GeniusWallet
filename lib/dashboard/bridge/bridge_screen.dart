@@ -323,10 +323,9 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                               .ellipsis,
                                                                       softWrap:
                                                                           true,
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            14,
+                                                                      style: GeniusWalletTypography
+                                                                          .bodyMd
+                                                                          .copyWith(
                                                                         color: GeniusWalletColors
                                                                             .gray500,
                                                                       ),
@@ -392,10 +391,9 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                               .ellipsis,
                                                                       softWrap:
                                                                           true,
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            14,
+                                                                      style: GeniusWalletTypography
+                                                                          .bodyMd
+                                                                          .copyWith(
                                                                         color: GeniusWalletColors
                                                                             .gray500,
                                                                       ),
@@ -441,11 +439,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                             bridgeTokensResponse
                                                                     .data ??
                                                                 "No Hash Available",
-                                                            style: const TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500),
+                                                            style: GeniusWalletTypography
+                                                                .titleMd,
                                                           ),
                                                         ),
                                                         IconButton(
@@ -475,8 +470,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                     bridgeTokensResponse
                                                             .errorMessage ??
                                                         "Failed to bridge tokens",
-                                                    style: const TextStyle(
-                                                        fontSize: 16),
+                                                    style: GeniusWalletTypography
+                                                        .bodyLg,
                                                     textAlign: TextAlign.center,
                                                   ),
                                                   const SizedBox(height: 16),
