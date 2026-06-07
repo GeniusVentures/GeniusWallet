@@ -249,7 +249,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                               ? GeniusWalletColors
                                                   .lightGreenPrimary
                                               : GeniusWalletColors.statusError,
-                                          fontSize: 22,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),

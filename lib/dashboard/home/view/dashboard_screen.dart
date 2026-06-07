@@ -552,7 +552,7 @@ class _CoinRow extends StatelessWidget {
             // the name on the left, so it isn't repeated here.
             Text(
               _formatNumber(balance),
-              style: GeniusWalletTypography.numericBody.copyWith(fontSize: 15),
+              style: GeniusWalletTypography.numericBody,
             ),
           ],
         ),
@@ -654,7 +654,6 @@ class _TxRow extends StatelessWidget {
                 Text(
                   '${isReceived ? '+' : '−'}$amount',
                   style: GeniusWalletTypography.numericBody.copyWith(
-                    fontSize: 15,
                     color: isReceived
                         ? GeniusWalletColors.brandSecondary
                         : GeniusWalletColors.textPrimary,

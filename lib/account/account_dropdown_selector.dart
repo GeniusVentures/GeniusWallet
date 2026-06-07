@@ -74,7 +74,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
           child: Text(
             "Add more wallets to manage your assets",
             style: TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 color: GeniusWalletColors.textPrimary54,
                 fontStyle: FontStyle.italic),
             textAlign: TextAlign.center,

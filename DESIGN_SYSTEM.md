@@ -212,6 +212,13 @@ The palette is built from three brand hues plus a layered surface stack and a sm
 - Headings use **negative tracking** (`-0.4` letter-spacing) — body text never does.
 - Don't introduce new sizes. If a design needs a new size, add it to this table first.
 
+**Sanctioned off-scale exceptions** (deliberate, do not "fix" to a token):
+
+- **Hero balance numerics — 48 px / 56 px.** The primary balance figure on the home and wallet-detail screens (`GeniusBalanceDisplay`, desktop containers) is an oversized focal display number, not type-scale text. It sits above `numeric/display` (32 px) on purpose.
+- **Compact nav label — 11 px.** `gw_bottom_nav` overrides `label/md` down to 11 px so five tab labels fit without wrapping; this is a fixed-bar fit constraint, not a heading.
+
+Everything else stays on the scale — inline amounts/body snap to the nearest rung (`14`/`16`/`20`), never `15`/`22`.
+
 ---
 
 ### 3.3 Spacing
