@@ -58,30 +58,44 @@ class CryptoSparkLineChart extends StatelessWidget {
             decimalDigits: tokenDecimalsToDisplay)
         .format(currentPrice);
 
-    return ListTile(
-      minVerticalPadding: 0,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-      leading: buildTokenIcon(iconPath: iconPath ?? "", size: iconSize ?? 28),
-      title: AutoSizeText(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          color: GeniusWalletColors.gray500,
+    // Manually-centered Row (replaces a ListTile, whose internal title/subtitle
+    // metrics left more space above the content than below it).
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        buildTokenIcon(iconPath: iconPath ?? "", size: iconSize ?? 28),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AutoSizeText(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: GeniusWalletColors.gray500,
+                ),
+                maxLines: 1,
+              ),
+              Text(
+                formattedPrice,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: currentPrice == 0
+                      ? Colors.grey[600]
+                      : GeniusWalletColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
-        maxLines: 1,
-      ),
-      subtitle: Text(
-        formattedPrice,
-        style: TextStyle(
-          fontSize: 14,
-          color: currentPrice == 0 ? Colors.grey[600] : GeniusWalletColors.textPrimary,
-        ),
-      ),
-      trailing: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        const SizedBox(width: 8),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
             Text(
               "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
               style: TextStyle(
@@ -123,6 +137,7 @@ class CryptoSparkLineChart extends StatelessWidget {
             ),
           ],
         ),
+      ],
     );
   }
 }

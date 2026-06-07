@@ -66,8 +66,6 @@ class MarketsScreen extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 24),
-
             Expanded(
               child: FutureStateWidget<List<CoinGeckoCoin>>(
                 future: getMarketCoins(),
@@ -108,7 +106,8 @@ class MarketsScreen extends StatelessWidget {
 
                       // Grid with robust lookup
                       return GridView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        // Even top/bottom rhythm (matches the 8px inter-card gap).
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: getCrossAxisCount(context),
                           crossAxisSpacing: 8,
