@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/genius_destination.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 // This order must match whats in `navigation_overlay_state/NavigationScreen` enum
 double iconSize = 24.0;
@@ -53,7 +54,8 @@ class GeniusTabDestinations {
       destination: '/logs',
       label: const Text('Logs'),
       icon: Icon(Icons.bug_report, size: 24.0),
-      selectedIcon: Icon(Icons.bug_report, size: 24.0, color: Colors.greenAccent),
+      selectedIcon: Icon(Icons.bug_report,
+          size: 24.0, color: GeniusWalletColors.brandPrimary),
     ),
   ];
 }

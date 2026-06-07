@@ -7,32 +7,33 @@ class GeniusWalletColors {
   // new code; legacy names below are remapped onto the new palette.
   // ---------------------------------------------------------------------------
 
-  // Brand — primary (cyan/blue)
-  static const Color brandPrimary = Color(0xFF18AEF0);
-  static const Color brandPrimaryStrong = Color(0xFF0C91CC);
-  static Color brandPrimaryMuted = const Color(0xFF18AEF0).withAlpha(61); // ~24%
-  static Color brandPrimarySubtle = const Color(0xFF18AEF0).withAlpha(31); // ~12%
+  // Brand — primary (cyan/blue). Vibrant v1.1 — see DESIGN_SYSTEM.md migration note 2026-05.
+  static const Color brandPrimary = Color(0xFF0AB4F5);
+  static const Color brandPrimaryStrong = Color(0xFF0696D6);
+  static Color brandPrimaryMuted = const Color(0xFF0AB4F5).withAlpha(61); // ~24%
+  static Color brandPrimarySubtle = const Color(0xFF0AB4F5).withAlpha(31); // ~12%
 
-  // Brand — secondary (mint/green)
-  static const Color brandSecondary = Color(0xFF3BCDA1);
-  static const Color brandSecondaryStrong = Color(0xFF06AA78);
-  static const Color brandSecondaryBright = Color(0xFF36EDB5);
-  static Color brandSecondaryMuted = const Color(0xFF3BCDA1).withAlpha(61);
-  static Color brandSecondarySubtle = const Color(0xFF3BCDA1).withAlpha(31);
+  // Brand — secondary (mint/green). Vibrant v1.1.
+  static const Color brandSecondary = Color(0xFF1FE0A4);
+  static const Color brandSecondaryStrong = Color(0xFF07C089);
+  static const Color brandSecondaryBright = Color(0xFF3DF7C0);
+  static Color brandSecondaryMuted = const Color(0xFF1FE0A4).withAlpha(61);
+  static Color brandSecondarySubtle = const Color(0xFF1FE0A4).withAlpha(31);
 
-  // Brand — tertiary (purple accent)
-  static const Color brandTertiary = Color(0xFFA66CFF);
-  static Color brandTertiaryMuted = const Color(0xFFA66CFF).withAlpha(61);
-  static Color brandTertiarySubtle = const Color(0xFFA66CFF).withAlpha(31);
+  // Brand — tertiary (purple accent). Vibrant v1.1.
+  static const Color brandTertiary = Color(0xFFB27CFF);
+  static Color brandTertiaryMuted = const Color(0xFFB27CFF).withAlpha(61);
+  static Color brandTertiarySubtle = const Color(0xFFB27CFF).withAlpha(31);
 
-  // Signature gradient stops (blue → green CTA from gnus.ai)
-  static const Color gradientBlue = Color(0xFF0C91CC);
-  static const Color gradientGreen = Color(0xFF06AA78);
+  // Signature gradient stops (blue → green CTA from gnus.ai). Vibrant v1.1.
+  static const Color gradientBlue = Color(0xFF0696D6);
+  static const Color gradientGreen = Color(0xFF07C089);
 
-  // Surface — teal-blue canvas with darker contained cards (gnus.ai layered look)
-  static const Color surfaceBase = Color(0xFF1D3844); // page background (teal)
+  // Surface — teal-blue canvas, lifted in v1.1 for more contrast/pop, with
+  // darker contained cards (gnus.ai layered look).
+  static const Color surfaceBase = Color(0xFF234453); // page background (teal)
   static const Color surfaceElevated = Color(0xFF0C0E14); // card / contained
-  static const Color surfaceMenu = Color(0xFF14283A); // sheet / menu
+  static const Color surfaceMenu = Color(0xFF1A3242); // sheet / menu
   static const Color surfaceSunken = Color(0xFF06080C); // deepest layer
   static Color surfaceOverlay = const Color(0xFF000000).withAlpha(153); // 60%
 
@@ -57,8 +58,8 @@ class GeniusWalletColors {
   static const Color borderBrand = brandPrimary;
 
   // Status
-  static const Color statusSuccess = Color(0xFF06AA78); // mint-green from gradient
-  static const Color statusError = Color(0xFFDC2626); // gnus.ai --destructive
+  static const Color statusSuccess = Color(0xFF07C089); // mint-green from gradient (vibrant v1.1)
+  static const Color statusError = Color(0xFFEF3B3B); // gnus.ai --destructive, vibrant v1.1
   static const Color statusWarning = Color(0xFFFFB020);
   static const Color statusInfo = brandPrimary;
 

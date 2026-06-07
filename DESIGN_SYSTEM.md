@@ -121,26 +121,28 @@ Don't write a new tagline for individual campaigns. Reframe L2/L3 instead.
 
 The palette is built from three brand hues plus a layered surface stack and a small set of semantic status colors.
 
+> **Vibrant v1.1 (2026-05):** the brand hues and the app canvas were saturated/lifted for more pop. Hex values below reflect v1.1; token names and roles are unchanged. See the migration note in §10.
+
 #### Brand
 
 | Token | Hex | Web variable | App constant | Usage |
 |-------|-----|--------------|--------------|-------|
-| `brand/primary` | `#18AEF0` | `--color-palette-primary` | `GeniusWalletColors.brandPrimary` | Primary action, links, focus rings |
-| `brand/primary-strong` | `#0C91CC` | — | `brandPrimaryStrong` | Hover/pressed for primary, gradient stop |
-| `brand/primary-muted` | `#18AEF0` @ 24 % | — | `brandPrimaryMuted` | Selected pill background, badges |
-| `brand/primary-subtle` | `#18AEF0` @ 12 % | — | `brandPrimarySubtle` | Tints, hovers on dark surfaces |
-| `brand/secondary` | `#3BCDA1` | `--color-palette-secondary` | `brandSecondary` | Success states, secondary action |
-| `brand/secondary-strong` | `#06AA78` | — | `brandSecondaryStrong` | Gradient stop, "completed" |
-| `brand/secondary-bright` | `#36EDB5` | — | `brandSecondaryBright` | Border-gradient stop |
-| `brand/tertiary` | `#A66CFF` | `--color-palette-tertiary` / `--accent` | `brandTertiary` | Marketing accents, highlights |
+| `brand/primary` | `#0AB4F5` | `--color-palette-primary` | `GeniusWalletColors.brandPrimary` | Primary action, links, focus rings |
+| `brand/primary-strong` | `#0696D6` | — | `brandPrimaryStrong` | Hover/pressed for primary, gradient stop |
+| `brand/primary-muted` | `#0AB4F5` @ 24 % | — | `brandPrimaryMuted` | Selected pill background, badges |
+| `brand/primary-subtle` | `#0AB4F5` @ 12 % | — | `brandPrimarySubtle` | Tints, hovers on dark surfaces |
+| `brand/secondary` | `#1FE0A4` | `--color-palette-secondary` | `brandSecondary` | Success states, secondary action |
+| `brand/secondary-strong` | `#07C089` | — | `brandSecondaryStrong` | Gradient stop, "completed" |
+| `brand/secondary-bright` | `#3DF7C0` | — | `brandSecondaryBright` | Border-gradient stop |
+| `brand/tertiary` | `#B27CFF` | `--color-palette-tertiary` / `--accent` | `brandTertiary` | Marketing accents, highlights |
 
 #### Surface (dark canvas — wallet app)
 
 | Token | Hex | App constant | Role |
 |-------|-----|--------------|------|
-| `surface/base` | `#1D3844` | `surfaceBase` | Page background (teal) — equivalent to `--background` on the site |
+| `surface/base` | `#234453` | `surfaceBase` | Page background (teal) — equivalent to `--background` on the site |
 | `surface/elevated` | `#0C0E14` | `surfaceElevated` | Cards, contained components — equivalent to `--card` |
-| `surface/menu` | `#14283A` | `surfaceMenu` | Sheets, drawers, menus |
+| `surface/menu` | `#1A3242` | `surfaceMenu` | Sheets, drawers, menus |
 | `surface/sunken` | `#06080C` | `surfaceSunken` | Deepest layer (e.g. inset code) |
 | `surface/overlay` | `#000000` @ 60 % | `surfaceOverlay` | Modal scrim |
 
@@ -169,16 +171,16 @@ The palette is built from three brand hues plus a layered surface stack and a sm
 |-------|-------|-----|
 | `border/subtle` | white @ 12 % | Default hairline on dark surfaces |
 | `border/strong` | white @ 24 % | Emphasized divider, focused container |
-| `border/brand` | `#18AEF0` | Focus ring, selected card |
+| `border/brand` | `#0AB4F5` | Focus ring, selected card |
 
 #### Status
 
 | Token | Hex | Web variable | App constant |
 |-------|-----|--------------|--------------|
-| `status/success` | `#06AA78` | derived | `statusSuccess` |
-| `status/error` | `#DC2626` | `--destructive` | `statusError` |
+| `status/success` | `#07C089` | derived | `statusSuccess` |
+| `status/error` | `#EF3B3B` | `--destructive` | `statusError` |
 | `status/warning` | `#FFB020` | — | `statusWarning` |
-| `status/info` | `#18AEF0` | — | `statusInfo` |
+| `status/info` | `#0AB4F5` | — | `statusInfo` |
 
 ---
 
@@ -730,6 +732,32 @@ A breaking change. Requires:
 **Deprecating a token**
 
 Mark the legacy alias in `genius_wallet_colors.dart` (existing pattern: see the "Legacy constants" section at line 78). Don't delete until at least one release after consumers migrate.
+
+---
+
+## Migration notes
+
+### v1.1 — Vibrant palette (2026-05)
+
+Brand hues saturated and the app canvas lifted for more visual energy. **Token names and roles are unchanged** — every consumer that references the semantic tokens (`brandPrimary`, `surfaceBase`, …) picks up the new look automatically. Only the underlying hex values changed.
+
+| Token | v1.0 | v1.1 |
+|-------|------|------|
+| `brand/primary` | `#18AEF0` | `#0AB4F5` |
+| `brand/primary-strong` | `#0C91CC` | `#0696D6` |
+| `brand/secondary` | `#3BCDA1` | `#1FE0A4` |
+| `brand/secondary-strong` | `#06AA78` | `#07C089` |
+| `brand/secondary-bright` | `#36EDB5` | `#3DF7C0` |
+| `brand/tertiary` | `#A66CFF` | `#B27CFF` |
+| `gradient/cta` stops | `#06AA78 → #0C91CC` | `#07C089 → #0696D6` |
+| `surface/base` | `#1D3844` | `#234453` |
+| `surface/menu` | `#14283A` | `#1A3242` |
+| `status/success` | `#06AA78` | `#07C089` |
+| `status/error` | `#DC2626` | `#EF3B3B` |
+
+`surface/elevated` (`#0C0E14`) and `surface/sunken` (`#06080C`) were intentionally **not** lifted — keeping cards deep against the brighter canvas preserves the layered look and contrast.
+
+Follow-up for the web side: the marketing Tailwind config / CSS variables (`--color-palette-primary`, `--color-palette-secondary`, `--background`) should be updated to match before the next site build, so web and app stay in lockstep (§1 principle 1).
 
 ---
 
