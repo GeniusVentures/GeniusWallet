@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
@@ -57,7 +56,7 @@ class _ViewState extends State<View> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: GeniusWalletColors.gray500,
+                          color: GeniusWalletColors.textPrimary80,
                         ),
                       ),
                     ],

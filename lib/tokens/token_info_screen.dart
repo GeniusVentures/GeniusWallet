@@ -226,7 +226,7 @@ class TokenInfoScreen extends StatelessWidget {
         padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Security",
-          style: TextStyle(color: GeniusWalletColors.gray500),
+          style: TextStyle(color: GeniusWalletColors.textPrimary80),
         ),
       ),
       subtitle: Card(
@@ -246,7 +246,7 @@ class TokenInfoScreen extends StatelessWidget {
         padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Activity",
-          style: TextStyle(color: GeniusWalletColors.gray500),
+          style: TextStyle(color: GeniusWalletColors.textPrimary80),
         ),
       ),
       subtitle: Card(

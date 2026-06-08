@@ -39,6 +39,9 @@ class GeniusWalletColors {
 
   // Text
   static const Color textPrimary = Color(0xFFFFFFFF);
+  // 80% white — minimum muted tint that still clears WCAG AA (4.5:1) on the
+  // bright teal surfaceBase; use for secondary labels that sit on the page bg.
+  static const Color textPrimary80 = Color(0xCCFFFFFF);
   static const Color textPrimary70 = Color(0xB3FFFFFF);
   static const Color textPrimary60 = Color(0x99FFFFFF);
   static const Color textPrimary54 = Color(0x8AFFFFFF);

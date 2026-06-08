@@ -33,6 +33,7 @@ class _SwapScreenState extends State<SwapScreen> {
   SquidTokenInfo? fromToken;
   SquidTokenInfo? toToken;
   bool isLoading = true;
+  bool _loadError = false;
   String fromAmount = '';
   String toAmount = '';
   Timer? _debounce;
@@ -81,9 +82,13 @@ class _SwapScreenState extends State<SwapScreen> {
       setState(() {
         tokens = result;
         isLoading = false;
+        _loadError = false;
       });
     } catch (e) {
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        _loadError = true;
+      });
       debugPrint('Token or balance fetch failed: $e');
     }
   }
@@ -196,6 +201,36 @@ class _SwapScreenState extends State<SwapScreen> {
     if (isLoading) {
       return const Scaffold(
         body: Center(child: Loading()),
+      );
+    }
+
+    if (_loadError && tokens.isEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline,
+                  color: GeniusWalletColors.textSecondary, size: 32),
+              const SizedBox(height: GeniusWalletConsts.space4),
+              const Text(
+                "Couldn't load tokens",
+                style: TextStyle(color: GeniusWalletColors.textSecondary),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space4),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    isLoading = true;
+                    _loadError = false;
+                  });
+                  _loadTokens();
+                },
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
+        ),
       );
     }
 

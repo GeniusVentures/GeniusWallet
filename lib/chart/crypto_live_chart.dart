@@ -37,6 +37,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   double? _hoveredPrice;
   bool _isHovering = false;
   Timer? _timer;
+  bool _hasError = false;
 
   // For zoom/pan
   double? _viewMinX, _viewMaxX;
@@ -57,8 +58,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   Future<void> _fetchHistoricalData() async {
-    final historicalPrices =
-        await fetchHistoricalPrices(widget.coinGeckoCoinId);
+    final historicalPrices = await fetchHistoricalPrices(widget.coinGeckoCoinId)
+        .catchError((Object _) => <int, double>{});
 
     if (historicalPrices.isNotEmpty) {
       final historicalData = historicalPrices.entries
@@ -78,7 +79,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
             ? _priceData[totalPoints - 30].x
             : _priceData.first.x;
         _viewMaxX = _priceData.last.x;
+        _hasError = false;
       });
+    } else {
+      if (mounted) setState(() => _hasError = true);
     }
   }
 
@@ -369,17 +373,45 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                     ),
                   ],
                 )
-              : SizedBox(
-                  height: widget.chartHeight ??
-                      MediaQuery.of(context).size.height * 0.25,
-                  child: Center(
-                    child: PulsingSkeleton(
+              : _hasError
+                  ? SizedBox(
                       height: widget.chartHeight ??
                           MediaQuery.of(context).size.height * 0.25,
-                      width: double.infinity,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.show_chart_outlined,
+                                color: GeniusWalletColors.textSecondary,
+                                size: 28),
+                            const SizedBox(height: GeniusWalletConsts.space4),
+                            const Text(
+                              "Couldn't load chart",
+                              style: TextStyle(
+                                  color: GeniusWalletColors.textSecondary),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setState(() => _hasError = false);
+                                _fetchHistoricalData();
+                              },
+                              child: const Text("Retry"),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SizedBox(
+                      height: widget.chartHeight ??
+                          MediaQuery.of(context).size.height * 0.25,
+                      child: Center(
+                        child: PulsingSkeleton(
+                          height: widget.chartHeight ??
+                              MediaQuery.of(context).size.height * 0.25,
+                          width: double.infinity,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
         ],
       ),
     );
