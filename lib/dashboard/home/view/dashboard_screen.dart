@@ -10,6 +10,7 @@ import 'package:genius_wallet/components/loading/gw_spinner.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -63,61 +64,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GeniusWalletColors.surfaceBase,
-      body: SafeArea(
-        child: BlocBuilder<AppBloc, AppState>(
-          builder: (context, appState) {
-            if (appState.subscribeToWalletStatus != AppStatus.loaded) {
-              return const Center(child: GWSpinner(size: 48));
-            }
-            return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-              builder: (context, walletState) {
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: _HeroBalance(
-                            balance: _resolveBalance(appState, walletState),
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _ActionRow(
-                            walletAddress:
-                                walletState.selectedWallet?.address,
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _Tabs(
-                            value: _tab,
-                            onChanged: (t) => setState(() => _tab = t),
-                          ),
-                        ),
-                        if (_tab == _DashboardTab.assets) ...[
+      body: GWCanvasBackground(
+        child: SafeArea(
+          child: BlocBuilder<AppBloc, AppState>(
+            builder: (context, appState) {
+              if (appState.subscribeToWalletStatus != AppStatus.loaded) {
+                return const Center(child: GWSpinner(size: 48));
+              }
+              return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                builder: (context, walletState) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: CustomScrollView(
+                        slivers: [
                           SliverToBoxAdapter(
-                            child: _AssetSearch(
-                              controller: _searchCtrl,
-                              onChanged: (v) => setState(() => _query = v),
+                            child: _HeroBalance(
+                              balance: _resolveBalance(appState, walletState),
                             ),
                           ),
-                          _AssetsSliver(
-                            coins: _filterCoins(walletState.coins),
-                            query: _query,
+                          SliverToBoxAdapter(
+                            child: _ActionRow(
+                              walletAddress:
+                                  walletState.selectedWallet?.address,
+                            ),
                           ),
-                        ] else
-                          const _ActivitySliver(),
-                        // Clearance so the global Swap FAB (bottom-right)
-                        // doesn't cover the last list row.
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 96),
-                        ),
-                      ],
+                          SliverToBoxAdapter(
+                            child: _Tabs(
+                              value: _tab,
+                              onChanged: (t) => setState(() => _tab = t),
+                            ),
+                          ),
+                          if (_tab == _DashboardTab.assets) ...[
+                            SliverToBoxAdapter(
+                              child: _AssetSearch(
+                                controller: _searchCtrl,
+                                onChanged: (v) => setState(() => _query = v),
+                              ),
+                            ),
+                            _AssetsSliver(
+                              coins: _filterCoins(walletState.coins),
+                              query: _query,
+                            ),
+                          ] else
+                            const _ActivitySliver(),
+                          // Clearance so the global Swap FAB (bottom-right)
+                          // doesn't cover the last list row.
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 96),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -133,7 +136,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     return walletState.selectedWallet?.balance ?? 0;
   }
-
 }
 
 enum _DashboardTab { assets, activity }
@@ -166,20 +168,33 @@ class _HeroBalance extends StatelessWidget {
             ),
           ),
           const SizedBox(height: GeniusWalletConsts.space2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: GWAnimatedNumber(
-              value: balance,
-              prefix: '\$',
-              decimals: 2,
-              textAlign: TextAlign.center,
-              style: GeniusWalletTypography.numericDisplay.copyWith(
-                fontSize: 56,
-                fontWeight: FontWeight.w700,
-                height: 1.0,
-                letterSpacing: -1.5,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Soft cyan→mint aura behind the balance — a quiet hero moment.
+              IgnorePointer(
+                child: Container(
+                  width: 220,
+                  height: 48,
+                  decoration: GWDecorations.heroGlow,
+                ),
               ),
-            ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: GWAnimatedNumber(
+                  value: balance,
+                  prefix: '\$',
+                  decimals: 2,
+                  textAlign: TextAlign.center,
+                  style: GeniusWalletTypography.numericDisplay.copyWith(
+                    fontSize: 56,
+                    fontWeight: FontWeight.w700,
+                    height: 1.0,
+                    letterSpacing: -1.5,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: GeniusWalletConsts.space2),
           Row(
@@ -292,21 +307,24 @@ class _PillAction extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Material(
-          color: GeniusWalletColors.surfaceElevated,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: disabled ? null : onTap,
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(
-                icon,
-                size: 22,
-                color: disabled
-                    ? GeniusWalletColors.textPrimary38
-                    : GeniusWalletColors.brandPrimary,
+        Container(
+          width: 56,
+          height: 56,
+          decoration: GWDecorations.actionCircle(),
+          child: Material(
+            color: Colors.transparent,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: disabled ? null : onTap,
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: disabled
+                      ? GeniusWalletColors.textPrimary38
+                      : GeniusWalletColors.brandPrimary,
+                ),
               ),
             ),
           ),
@@ -343,10 +361,7 @@ class _Tabs extends StatelessWidget {
       ),
       child: Container(
         height: 36,
-        decoration: BoxDecoration(
-          color: GeniusWalletColors.surfaceElevated,
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-        ),
+        decoration: GWDecorations.pill(),
         child: Row(
           children: [
             Expanded(child: _tab(context, _DashboardTab.assets, 'Assets')),
@@ -367,10 +382,11 @@ class _Tabs extends StatelessWidget {
         curve: Curves.easeOut,
         margin: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: selected
-              ? GeniusWalletColors.surfaceMenu
-              : Colors.transparent,
+          color: selected ? GeniusWalletColors.surfaceMenu : Colors.transparent,
           borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+          border: selected
+              ? Border.all(color: GeniusWalletColors.borderSubtle, width: 1)
+              : null,
         ),
         alignment: Alignment.center,
         child: Text(
@@ -415,10 +431,21 @@ class _AssetsSliver extends StatelessWidget {
         ),
       );
     }
-    return SliverList.separated(
-      itemCount: coins.length,
-      separatorBuilder: (_, __) => const _RowDivider(),
-      itemBuilder: (_, i) => _CoinRow(coin: coins[i]),
+    return SliverPadding(
+      padding:
+          const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
+      sliver: DecoratedSliver(
+        decoration: GWDecorations.surface(radius: GeniusWalletConsts.radius2xl),
+        sliver: SliverPadding(
+          padding:
+              const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space4),
+          sliver: SliverList.separated(
+            itemCount: coins.length,
+            separatorBuilder: (_, __) => const _RowDivider(),
+            itemBuilder: (_, i) => _CoinRow(coin: coins[i]),
+          ),
+        ),
+      ),
     );
   }
 }
