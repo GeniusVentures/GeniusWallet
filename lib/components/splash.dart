@@ -32,11 +32,15 @@ class _SplashState extends State<Splash> {
     return BlocListener<AppBloc, AppState>(
       listener: (context, state) {
         if (state.subscribeToWalletStatus == AppStatus.loaded) {
-          if (state.wallets.isEmpty) {
-            context.go('/landing_screen');
-          } else {
-            context.go('/dashboard');
-          }
+          // Defer navigation out of the build/listener phase. If wallet status
+          // resolves synchronously (e.g. the UI-only stub backend), the bloc
+          // emits `loaded` while a frame is building, and calling context.go
+          // then marks the router dirty mid-build -> "!_dirty" red screen.
+          final target =
+              state.wallets.isEmpty ? '/landing_screen' : '/dashboard';
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) context.go(target);
+          });
         }
       },
       child: Scaffold(

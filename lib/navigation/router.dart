@@ -44,6 +44,10 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final toastManager = ToastManager();
 
+// Guards the one-time app-init dispatch in the router redirect so it is
+// scheduled exactly once, off the build pass.
+bool _appInitDispatched = false;
+
 final geniusWalletRouter = GoRouter(
   navigatorKey: navigatorKey,
   observers: [
@@ -52,17 +56,29 @@ final geniusWalletRouter = GoRouter(
   redirect: (context, state) {
     final appBloc = context.read<AppBloc>();
 
-    if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
-      appBloc.add(SubscribeToWallets());
-      appBloc.add(StreamSGNUSTransactions());
-    }
-
-    if (appBloc.state.accountStatus == AppStatus.initial) {
-      appBloc.add(FetchAccount());
-    }
-
-    if (appBloc.state.loadUserStatus == AppStatus.initial) {
-      appBloc.add(CheckIfUserExists());
+    // One-time app/wallet initialisation. Dispatched AFTER the current frame:
+    // `redirect` runs inside the router's build pass, so adding events here
+    // synchronously can make the bloc emit mid-build -> "!_dirty" red screen on
+    // cold start when the backend resolves synchronously (e.g. the UI-only
+    // stub). A post-frame callback keeps the redirect side-effect-free during
+    // build while still kicking off init on the first route.
+    if (!_appInitDispatched &&
+        (appBloc.state.subscribeToWalletStatus == AppStatus.initial ||
+            appBloc.state.accountStatus == AppStatus.initial ||
+            appBloc.state.loadUserStatus == AppStatus.initial)) {
+      _appInitDispatched = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (appBloc.state.subscribeToWalletStatus == AppStatus.initial) {
+          appBloc.add(SubscribeToWallets());
+          appBloc.add(StreamSGNUSTransactions());
+        }
+        if (appBloc.state.accountStatus == AppStatus.initial) {
+          appBloc.add(FetchAccount());
+        }
+        if (appBloc.state.loadUserStatus == AppStatus.initial) {
+          appBloc.add(CheckIfUserExists());
+        }
+      });
     }
     return null;
   },
