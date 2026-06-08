@@ -130,7 +130,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
         onPressed: () => _showNetworkDrawer(networks),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          spacing: 8.0,
+          spacing: 6.0,
           children: [
             Image.asset(
               selectedNetwork?.iconPath ?? "",

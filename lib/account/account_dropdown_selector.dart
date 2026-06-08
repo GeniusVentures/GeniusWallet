@@ -5,6 +5,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -377,14 +378,15 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               spacing: 6.0,
               children: [
                 _buildAvatar(selectedWallet!, isSelected: false, size: 25),
-                Text(
-                  selectedWallet!.walletType == WalletType.sgnus
-                      ? 'Super Genius'
-                      : WalletUtils.getAddressForDisplay(
-                          selectedWallet!.address),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
+                  Text(
+                    selectedWallet!.walletType == WalletType.sgnus
+                        ? 'Super Genius'
+                        : WalletUtils.getAddressForDisplay(
+                            selectedWallet!.address),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 const Icon(Icons.arrow_drop_down),
               ],
             ),
