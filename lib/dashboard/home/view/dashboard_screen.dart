@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -18,9 +16,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 /// Clean, mobile-first dashboard. Solid dark canvas, big centered hero
-/// balance, pill-shaped action row, segmented Assets/Activity tabs and flat
+/// balance, pill-shaped action row, segmented Assets / NFTs tabs and flat
 /// list rows separated by hairline dividers. Inspired by Phantom / Coinbase
-/// Wallet's restrained chrome.
+/// Wallet's restrained chrome. (Activity lives in its own bottom-nav tab.)
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -105,7 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             query: _query,
                           ),
                         ] else
-                          const _ActivitySliver(),
+                          const _NftsSliver(),
                         // Clearance so the global Swap FAB (bottom-right)
                         // doesn't cover the last list row.
                         const SliverToBoxAdapter(
@@ -135,7 +133,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-enum _DashboardTab { assets, activity }
+enum _DashboardTab { assets, nfts }
 
 // ---------------------------------------------------------------------------
 
@@ -362,7 +360,7 @@ class _Tabs extends StatelessWidget {
         child: Row(
           children: [
             Expanded(child: _tab(context, _DashboardTab.assets, 'Assets')),
-            Expanded(child: _tab(context, _DashboardTab.activity, 'Activity')),
+            Expanded(child: _tab(context, _DashboardTab.nfts, 'NFTs')),
           ],
         ),
       ),
@@ -475,29 +473,117 @@ class _AssetSearch extends StatelessWidget {
   }
 }
 
-class _ActivitySliver extends StatelessWidget {
-  const _ActivitySliver();
+class _NftsSliver extends StatelessWidget {
+  const _NftsSliver();
+
+  // Placeholder collectibles so the NFT grid is reviewable in the redesign —
+  // wire to real NFT data later.
+  static const _items = <_Nft>[
+    _Nft('Genius Mind #1024', 'Genius Originals'),
+    _Nft('Aurora Key #07', 'Aurora Keys'),
+    _Nft('Pixel Spirit #318', 'Pixel Spirits'),
+    _Nft('Cosmic Drop #55', 'Cosmic Drops'),
+    _Nft('Mecha Unit #09', 'Mecha Units'),
+    _Nft('Ancient Glyph #220', 'Glyphs'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TransactionsCubit, List<Transaction>>(
-      builder: (context, txs) {
-        final list = txs.toList();
-        if (list.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: _EmptyState(
-              icon: Icons.receipt_long_outlined,
-              title: 'No activity yet',
-              subtitle: 'Your sends, receives and swaps will appear here.',
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        GeniusWalletConsts.space6,
+        GeniusWalletConsts.space2,
+        GeniusWalletConsts.space6,
+        0,
+      ),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: GeniusWalletConsts.space6,
+          crossAxisSpacing: GeniusWalletConsts.space6,
+          childAspectRatio: 0.80,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, i) => _NftTile(nft: _items[i], seed: i),
+          childCount: _items.length,
+        ),
+      ),
+    );
+  }
+}
+
+class _Nft {
+  const _Nft(this.name, this.collection);
+  final String name;
+  final String collection;
+}
+
+class _NftTile extends StatelessWidget {
+  const _NftTile({required this.nft, required this.seed});
+  final _Nft nft;
+  final int seed;
+
+  static const _arts = <List<Color>>[
+    [GeniusWalletColors.brandPrimary, GeniusWalletColors.brandSecondary],
+    [GeniusWalletColors.brandTertiary, GeniusWalletColors.brandPrimary],
+    [GeniusWalletColors.brandSecondary, GeniusWalletColors.brandTertiary],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _arts[seed % _arts.length];
+    return Container(
+      decoration: GWDecorations.surface(radius: GeniusWalletConsts.radius2xl),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Placeholder art — replace with the NFT image.
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: colors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.auto_awesome_outlined,
+                    color: GeniusWalletColors.textPrimary70,
+                    size: 30,
+                  ),
+                ),
+              ),
             ),
-          );
-        }
-        return SliverList.separated(
-          itemCount: list.length,
-          separatorBuilder: (_, __) => const _RowDivider(),
-          itemBuilder: (_, i) => _TxRow(tx: list[i]),
-        );
-      },
+            Padding(
+              padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    nft.name,
+                    style: GeniusWalletTypography.titleMd,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: GeniusWalletConsts.space2),
+                  Text(
+                    nft.collection,
+                    style: GeniusWalletTypography.bodySm.copyWith(
+                      color: GeniusWalletColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -610,99 +696,6 @@ class _RowIcon extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// ---------------------------------------------------------------------------
-
-class _TxRow extends StatelessWidget {
-  const _TxRow({required this.tx});
-  final Transaction tx;
-
-  @override
-  Widget build(BuildContext context) {
-    final isReceived = tx.transactionDirection == TransactionDirection.received;
-    final amount = tx.recipients.isNotEmpty ? tx.recipients.first.amount : '0';
-    final counterparty = isReceived
-        ? _short(tx.fromAddress)
-        : _short(tx.recipients.isNotEmpty ? tx.recipients.first.toAddr : '');
-    return InkWell(
-      onTap: () {/* tx detail */},
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: GeniusWalletConsts.space6,
-          vertical: GeniusWalletConsts.space4,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: GeniusWalletColors.surfaceElevated,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                isReceived
-                    ? Icons.arrow_downward_rounded
-                    : Icons.arrow_upward_rounded,
-                size: 16,
-                color: isReceived
-                    ? GeniusWalletColors.brandSecondary
-                    : GeniusWalletColors.textPrimary,
-              ),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isReceived ? 'Received' : 'Sent',
-                    style: GeniusWalletTypography.titleMd,
-                  ),
-                  Text(
-                    counterparty.isEmpty
-                        ? _relative(tx.timeStamp)
-                        : '$counterparty · ${_relative(tx.timeStamp)}',
-                    style: GeniusWalletTypography.bodySm,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${isReceived ? '+' : '−'}$amount',
-                  style: GeniusWalletTypography.numericBody.copyWith(
-                    color: isReceived
-                        ? GeniusWalletColors.brandSecondary
-                        : GeniusWalletColors.textPrimary,
-                  ),
-                ),
-                Text(tx.coinSymbol, style: GeniusWalletTypography.bodySm),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _short(String addr) => addr.length > 10
-      ? '${addr.substring(0, 6)}…${addr.substring(addr.length - 4)}'
-      : addr;
-
-  String _relative(DateTime ts) {
-    final diff = DateTime.now().difference(ts);
-    if (diff.inSeconds < 60) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return DateFormat.MMMd().format(ts);
   }
 }
 
