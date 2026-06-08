@@ -19,6 +19,7 @@ import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
@@ -168,7 +169,9 @@ class _SwapScreenState extends State<SwapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GWCanvasBackground(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: BlocListener<WalletDetailsCubit, WalletDetailsState>(
         // If wallet or network changes
         listenWhen: (previous, current) =>
@@ -194,18 +197,20 @@ class _SwapScreenState extends State<SwapScreen> {
         },
         child: _buildSwapContent(context),
       ),
-    );
+    ));
   }
 
   Widget _buildSwapContent(BuildContext context) {
     if (isLoading) {
       return const Scaffold(
+        backgroundColor: Colors.transparent,
         body: Center(child: Loading()),
       );
     }
 
     if (_loadError && tokens.isEmpty) {
       return Scaffold(
+        backgroundColor: Colors.transparent,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -235,6 +240,7 @@ class _SwapScreenState extends State<SwapScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Align(
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(
@@ -367,7 +373,8 @@ class _SwapScreenState extends State<SwapScreen> {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Padding(
-                          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+                          padding:
+                              const EdgeInsets.all(GeniusWalletConsts.space8),
                           child: SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
