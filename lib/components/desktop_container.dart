@@ -89,7 +89,7 @@ class DesktopContainer extends StatelessWidget {
                           children: [
                             HeaderButton(
                               color: GeniusWalletColors.deepBlueTertiary,
-                              text: GeniusWalletText.btnSupport,
+                              text: "Support",
                               textColor: GeniusWalletColors.lightGreenPrimary,
                               icon: Icons.question_mark_outlined,
                               isAddBorder: true,

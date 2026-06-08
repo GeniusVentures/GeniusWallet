@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 
 class BackupPhraseScreen extends StatelessWidget {
   const BackupPhraseScreen({super.key});
@@ -26,7 +25,7 @@ class BackupPhraseScreen extends StatelessWidget {
               onChanged: (value) {
                 context.read<NewWalletBloc>().add(ToggleCheckbox());
               },
-              title: Text(GeniusWalletText.helpRecoveryWords),
+              title: Text('I understand that if I lose my recovery words, I will not be able to access my wallet.'),
               controlAffinity: ListTileControlAffinity.leading,
             ),
             BlocBuilder<NewWalletBloc, NewWalletState>(

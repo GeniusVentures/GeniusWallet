@@ -256,9 +256,7 @@ class MobileOverlay extends StatelessWidget {
             ),
           ],
         ),
-        body: SafeArea(
-          child: child,
-        ),
+        body: child,
         bottomNavigationBar: const _MobileTabBar(),
       );
     });
@@ -274,17 +272,15 @@ class DesktopOverlay extends StatelessWidget {
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       appBar: const _DesktopTopBar(),
-      body: SafeArea(
-        child: BlocBuilder<AppBloc, AppState>(
-          builder: (context, state) {
-            return Column(
-              children: [
-                const DevToolsWidget(),
-                Expanded(child: child),
-              ],
-            );
-          },
-        ),
+      body: BlocBuilder<AppBloc, AppState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              const DevToolsWidget(),
+              Expanded(child: child),
+            ],
+          );
+        },
       ),
     );
   }
