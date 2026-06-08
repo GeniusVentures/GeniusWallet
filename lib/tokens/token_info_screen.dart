@@ -9,6 +9,7 @@ import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/tokens/convert_section.dart';
 import 'package:genius_wallet/tokens/market_data_info.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -52,7 +53,9 @@ class TokenInfoScreen extends StatelessWidget {
 
   /// **Screen when WalletDetailsCubit is NOT available**
   Widget _buildScreenWithoutCubit(BuildContext context) {
-    return Scaffold(
+    return GWCanvasBackground(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(marketData?.name ?? ''),
         leading: IconButton(
@@ -119,7 +122,7 @@ class TokenInfoScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
 
   /// **Screen when WalletDetailsCubit is available**
@@ -132,7 +135,9 @@ class TokenInfoScreen extends StatelessWidget {
     final isGnusBridgeEnabled = (isGnusWalletConnected ?? false) &&
         selectedCoin?.symbol?.toLowerCase() == 'gnus';
 
-    return Scaffold(
+    return GWCanvasBackground(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(selectedCoin?.name ?? marketData?.name ?? ''),
         leading: IconButton(
@@ -215,7 +220,7 @@ class TokenInfoScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
 
   /// **Security Section**
