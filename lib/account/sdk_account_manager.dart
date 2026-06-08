@@ -5,6 +5,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
 /// A widget that shows the currently selected SDK account and opens a drawer
@@ -37,13 +38,14 @@ class SDKAccountManagerButton extends StatelessWidget {
               spacing: 6.0,
               children: [
                 const Icon(Icons.settings_applications),
-                Text(
-                  selected != null
-                      ? WalletUtils.getAddressForDisplay(selected)
-                      : 'No account',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
+                  Text(
+                    selected != null
+                        ? WalletUtils.getAddressForDisplay(selected)
+                        : 'No account',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 const Icon(Icons.arrow_drop_down),
               ],
             ),

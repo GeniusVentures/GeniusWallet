@@ -9,6 +9,7 @@ import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -475,7 +476,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   Widget build(BuildContext context) {
     final isConnected = _session != null;
 
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
 
     IconData icon;
     Color iconColor;
@@ -518,7 +519,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     return TextButton(
       style: TextButton.styleFrom(
         backgroundColor: backgroundColor,
-        minimumSize: Size(isMobile ? 60 : 40, 40),
       ),
       onPressed: () {
         if (_isConnecting) return;
@@ -539,12 +539,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             turns: _isConnecting ? 1 : 0,
             child: Icon(icon, color: iconColor, size: 20),
           ),
-          if (!isMobile) ...[
+          if (!isMobile)
             Text(
               text,
               style: TextStyle(fontSize: 14, color: textColor),
             ),
-          ]
         ],
       ),
     );
