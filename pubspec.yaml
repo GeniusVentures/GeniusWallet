@@ -71,6 +71,7 @@ flutter:
     - assets/json/tokens/
     - assets/images/
     - assets/images/crypto/
+    - assets/images/textures/
     - packages/genius_wallet/assets/images/mask2.png
     - packages/genius_wallet/assets/images/mask4.png
     - packages/genius_wallet/assets/images/mask3.svg
