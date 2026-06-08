@@ -22,12 +22,19 @@ class TransactionPurchasedItem extends StatelessWidget {
         ? currencyFormatter.format(0)
         : "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount) ?? 0)}";
     const arrowIcon = Icons.attach_money;
-    final arrowBgColor = isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.brandGreen;
-    final amountColor = isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.brandGreen;
+    final arrowBgColor = isFailed
+        ? GeniusWalletColors.statusError
+        : GeniusWalletColors.brandGreen;
+    final amountColor = isFailed
+        ? GeniusWalletColors.statusError
+        : GeniusWalletColors.brandGreen;
 
     return Card(
       color: GeniusWalletColors.deepBlueMenu,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+          side: const BorderSide(
+              color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: () => _showPurchaseTransactionDetails(context, tx),
         leading: _buildIcon(arrowBgColor, arrowIcon),
@@ -38,12 +45,14 @@ class TransactionPurchasedItem extends StatelessWidget {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary),
+                  color: isFailed
+                      ? GeniusWalletColors.statusError
+                      : GeniusWalletColors.textPrimary),
             ),
             Text(
               " • ${tx.coinSymbol}",
-              style: GeniusWalletTypography.bodyMd.copyWith(
-                  color: GeniusWalletColors.textPrimary70),
+              style: GeniusWalletTypography.bodyMd
+                  .copyWith(color: GeniusWalletColors.textPrimary70),
             ),
           ],
         ),
@@ -83,7 +92,8 @@ class TransactionPurchasedItem extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.black, width: 1.5),
               ),
-              child: Icon(icon, size: 12, color: GeniusWalletColors.textOnBrand),
+              child:
+                  Icon(icon, size: 12, color: GeniusWalletColors.textOnBrand),
             ),
           ),
         ],
@@ -111,7 +121,9 @@ class TransactionPurchasedItem extends StatelessWidget {
 
   void _showPurchaseTransactionDetails(BuildContext context, Transaction tx) {
     final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
-    final arrowBgColor = isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.brandGreen;
+    final arrowBgColor = isFailed
+        ? GeniusWalletColors.statusError
+        : GeniusWalletColors.brandGreen;
     final amountText = isFailed
         ? '\$0.00'
         : "+ \$${double.tryParse(tx.recipients.first.amount ?? '0')?.toStringAsFixed(2) ?? '0.00'}";
@@ -159,15 +171,19 @@ class TransactionPurchasedItem extends StatelessWidget {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary,
+              color: isFailed
+                  ? GeniusWalletColors.statusError
+                  : GeniusWalletColors.textPrimary,
             ),
           ),
         ),
         const SizedBox(height: GeniusWalletConsts.space8),
         Card(
           color: GeniusWalletColors.deepBlueMenu,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              side: const BorderSide(
+                  color: GeniusWalletColors.borderSubtle, width: 1),
+              borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             child: Column(
@@ -180,7 +196,9 @@ class TransactionPurchasedItem extends StatelessWidget {
                     "Status",
                     tx.transactionStatus.name[0].toUpperCase() +
                         tx.transactionStatus.name.substring(1),
-                    valueColor: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary),
+                    valueColor: isFailed
+                        ? GeniusWalletColors.statusError
+                        : GeniusWalletColors.textPrimary),
                 _buildRow(
                     "To",
                     WalletUtils.getAddressForDisplay(
@@ -222,7 +240,8 @@ class TransactionPurchasedItem extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
+          Text(label,
+              style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
           Text(value, style: TextStyle(color: valueColor)),
         ],
       ),

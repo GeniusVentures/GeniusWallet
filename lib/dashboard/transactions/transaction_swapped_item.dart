@@ -26,14 +26,20 @@ class TransactionSwappedItem extends StatelessWidget {
 
     return Card(
       color: GeniusWalletColors.deepBlueMenu,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        side:
+            const BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: ListTile(
         title: Text(
           "Swapped${isFailed ? ' - Failed' : ''}",
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary),
+              color: isFailed
+                  ? GeniusWalletColors.statusError
+                  : GeniusWalletColors.textPrimary),
         ),
         subtitle: Text(
           timeago.format(tx.timeStamp.toLocal()),
@@ -93,11 +99,11 @@ class TransactionSwappedItem extends StatelessWidget {
       String toAmount, String toSymbol, bool isFailed) {
     if (isFailed) {
       return Text(
-            "0 $toSymbol",
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: GeniusWalletColors.statusError,
+        "0 $toSymbol",
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: GeniusWalletColors.statusError,
         ),
       );
     }
@@ -177,7 +183,9 @@ class TransactionSwappedItem extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary,
+              color: isFailed
+                  ? GeniusWalletColors.statusError
+                  : GeniusWalletColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -185,8 +193,11 @@ class TransactionSwappedItem extends StatelessWidget {
         const SizedBox(height: GeniusWalletConsts.space12),
         Card(
           color: GeniusWalletColors.deepBlueMenu,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(
+                color: GeniusWalletColors.borderSubtle, width: 1),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             child: Column(
@@ -199,7 +210,9 @@ class TransactionSwappedItem extends StatelessWidget {
                     "Status",
                     tx.transactionStatus.name[0].toUpperCase() +
                         tx.transactionStatus.name.substring(1),
-                    valueColor: isFailed ? GeniusWalletColors.statusError : GeniusWalletColors.textPrimary),
+                    valueColor: isFailed
+                        ? GeniusWalletColors.statusError
+                        : GeniusWalletColors.textPrimary),
                 _buildRow("From", "$fromAmount $fromSymbol"),
                 _buildRow("To", "$toAmount $toSymbol"),
                 _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
@@ -219,7 +232,8 @@ class TransactionSwappedItem extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
+          Text(label,
+              style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
           Flexible(
             child: Text(
               value,

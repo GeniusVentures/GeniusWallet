@@ -38,7 +38,10 @@ class RouteDetailsCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(
           horizontal: GeniusWalletConsts.space8,
           vertical: GeniusWalletConsts.space4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+          side: const BorderSide(
+              color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

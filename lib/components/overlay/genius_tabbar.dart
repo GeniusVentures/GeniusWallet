@@ -1,7 +1,3 @@
-
-
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
@@ -9,8 +5,8 @@ import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:flutter/gestures.dart';
-
 
 class GeniusTabbar extends StatelessWidget {
   const GeniusTabbar({super.key});
@@ -78,7 +74,8 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
       snapIndex += 1;
     }
     // Clamp so we always have 5 icons in view
-    final maxSnapIndex = (widget.destinations.length - 5).clamp(0, widget.destinations.length);
+    final maxSnapIndex =
+        (widget.destinations.length - 5).clamp(0, widget.destinations.length);
     snapIndex = snapIndex.clamp(0, maxSnapIndex);
     final targetOffset = snapIndex * _tabWidth;
 
@@ -88,21 +85,26 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
     _isSnapping = true;
     _scrollController
         .animateTo(
-          targetOffset,
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-        )
+      targetOffset,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    )
         .whenComplete(() {
-          if (mounted) {
-            _isSnapping = false;
-          }
-        });
+      if (mounted) {
+        _isSnapping = false;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: GeniusWalletColors.deepBlueCardColor,
+      decoration: const BoxDecoration(
+        gradient: GWDecorations.surfaceSheen,
+        border: Border(
+          top: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        ),
+      ),
       child: SafeArea(
         top: false,
         child: SizedBox(
@@ -133,17 +135,26 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            context.read<NavigationOverlayCubit>().navigationTapped(widget.screenList[i]);
+                            context
+                                .read<NavigationOverlayCubit>()
+                                .navigationTapped(widget.screenList[i]);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: GeniusWalletConsts.space6,
+                                vertical: 6),
                             decoration: BoxDecoration(
-                              color: isSelected ? GeniusWalletColors.lightGreenPrimary.withOpacity(0.15) : Colors.transparent,
+                              color: isSelected
+                                  ? GeniusWalletColors.lightGreenPrimary
+                                      .withOpacity(0.15)
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
-                              child: isSelected ? entry.value.activeIcon : entry.value.icon,
+                              child: isSelected
+                                  ? entry.value.activeIcon
+                                  : entry.value.icon,
                             ),
                           ),
                         ),
@@ -178,7 +189,7 @@ class _TabBarScrollBehavior extends MaterialScrollBehavior {
 
 // Helper to build the destinations list
 List<MapEntry<NavigationScreen, BottomNavigationBarItem>> _buildDestinations() {
-    return GeniusTabDestinations.destinations
+  return GeniusTabDestinations.destinations
       .where((e) => e.isVisible ?? true)
       .map((e) {
     final navScreen = e.navScreen;

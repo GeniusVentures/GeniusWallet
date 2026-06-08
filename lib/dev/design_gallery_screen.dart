@@ -10,6 +10,7 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
@@ -166,8 +167,10 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('displayLg — 32/700', style: GeniusWalletTypography.displayLg),
-                Text('displayMd — 28/700', style: GeniusWalletTypography.displayMd),
+                Text('displayLg — 32/700',
+                    style: GeniusWalletTypography.displayLg),
+                Text('displayMd — 28/700',
+                    style: GeniusWalletTypography.displayMd),
                 Text('headlineLg — 24/600',
                     style: GeniusWalletTypography.headlineLg),
                 Text('headlineMd — 20/600',
@@ -220,8 +223,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                     variant: GWButtonVariant.gradient,
                     onPressed: () {}),
                 GWButton.icon(
-                    icon: const Icon(Icons.favorite_outline),
-                    onPressed: () {}),
+                    icon: const Icon(Icons.favorite_outline), onPressed: () {}),
               ],
             ),
           ),
@@ -502,14 +504,14 @@ class _ColorRow extends StatelessWidget {
       spacing: GeniusWalletConsts.space4,
       runSpacing: GeniusWalletConsts.space4,
       children: swatches.map((s) {
-        final hex = '#${s.color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+        final hex =
+            '#${s.color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
         return Container(
           width: 132,
           padding: const EdgeInsets.all(GeniusWalletConsts.space4),
           decoration: BoxDecoration(
-            color: GeniusWalletColors.surfaceElevated,
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.radiusBase),
+            gradient: GWDecorations.surfaceSheen,
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
             border: Border.all(color: GeniusWalletColors.borderSubtle),
           ),
           child: Column(

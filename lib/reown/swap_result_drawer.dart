@@ -15,8 +15,9 @@ class SwapResultDrawer {
   }) async {
     final message = isSuccess ? "Swap Success" : "Swap Failed";
     final icon = isSuccess ? Icons.check_circle : Icons.error;
-    final iconColor =
-        isSuccess ? GeniusWalletColors.brandGreen : GeniusWalletColors.statusError;
+    final iconColor = isSuccess
+        ? GeniusWalletColors.brandGreen
+        : GeniusWalletColors.statusError;
     final explorerUrl =
         (txHash.isNotEmpty) ? getExplorerUrl(coinSymbol, txHash) : '';
 
@@ -40,6 +41,8 @@ class SwapResultDrawer {
             decoration: BoxDecoration(
               color: GeniusWalletColors.deepBlueMenu,
               borderRadius: BorderRadius.circular(12),
+              border:
+                  Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +51,8 @@ class SwapResultDrawer {
                     style: TextStyle(color: GeniusWalletColors.textPrimary70)),
                 const SizedBox(height: GeniusWalletConsts.space2),
                 SelectableText(txHash,
-                    style: const TextStyle(color: GeniusWalletColors.textPrimary)),
+                    style:
+                        const TextStyle(color: GeniusWalletColors.textPrimary)),
               ],
             ),
           ),

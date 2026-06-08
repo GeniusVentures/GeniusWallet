@@ -238,6 +238,11 @@ class TokenInfoScreen extends StatelessWidget {
         margin: EdgeInsets.zero,
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(
+              color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: ListTile(title: Text(securityInfo)),
       ),
     );
@@ -258,6 +263,11 @@ class TokenInfoScreen extends StatelessWidget {
         margin: EdgeInsets.zero,
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(
+              color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           children: transactionHistory.isEmpty
               ? const [ListTile(title: Text('No activity yet'))]

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SendTransactionDetails extends StatelessWidget {
@@ -57,8 +58,10 @@ class SendTransactionDetails extends StatelessWidget {
                     vertical: GeniusWalletConsts.space6,
                     horizontal: GeniusWalletConsts.space8),
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  gradient: GWDecorations.surfaceSheen,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: GeniusWalletColors.borderSubtle, width: 1),
                 ),
                 child: Column(
                   children: [
@@ -88,8 +91,8 @@ class SendTransactionDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: GeniusWalletTypography.bodyMd.copyWith(
-                color: GeniusWalletColors.gray500)),
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.gray500)),
         const SizedBox(height: GeniusWalletConsts.space2),
         Container(
           padding: const EdgeInsets.all(GeniusWalletConsts.space6),

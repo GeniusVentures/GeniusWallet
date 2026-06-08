@@ -172,6 +172,11 @@ class MarketDataInfo extends StatelessWidget {
         Card(
           color: GeniusWalletColors.deepBlueCardColor,
           margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(
+                color: GeniusWalletColors.borderSubtle, width: 1),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -4,6 +4,7 @@ import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
 class NewsCard extends StatefulWidget {
@@ -33,8 +34,9 @@ class _NewsCardState extends State<NewsCard> {
   Widget _buildDesktopLayout(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
+        gradient: GWDecorations.surfaceSheen,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(51),
@@ -66,7 +68,8 @@ class _NewsCardState extends State<NewsCard> {
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[800],
-                        child: const Icon(Icons.error, color: GeniusWalletColors.statusError),
+                        child: const Icon(Icons.error,
+                            color: GeniusWalletColors.statusError),
                       ),
                     ),
                     if (_isHovered)
@@ -116,8 +119,9 @@ class _NewsCardState extends State<NewsCard> {
     return Container(
       height: 100,
       decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
+        gradient: GWDecorations.surfaceSheen,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(51),
@@ -177,7 +181,8 @@ class _NewsCardState extends State<NewsCard> {
                   width: 80,
                   height: 80,
                   color: Colors.grey[800],
-                  child: const Icon(Icons.error, color: GeniusWalletColors.statusError),
+                  child: const Icon(Icons.error,
+                      color: GeniusWalletColors.statusError),
                 ),
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
@@ -55,7 +56,7 @@ class GWDialog extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
           decoration: BoxDecoration(
-            color: GeniusWalletColors.surfaceElevated,
+            gradient: GWDecorations.surfaceSheen,
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXl),
             boxShadow: GeniusWalletElevation.dialog,
             border: Border.all(color: GeniusWalletColors.borderSubtle),

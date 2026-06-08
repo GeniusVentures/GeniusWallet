@@ -25,11 +25,15 @@ class TransactionItem extends StatelessWidget {
         "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
 
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
-    final arrowBgColor = isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
+    final arrowBgColor =
+        isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
 
     return Card(
         color: GeniusWalletColors.deepBlueMenu,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            side: const BorderSide(
+                color: GeniusWalletColors.borderSubtle, width: 1),
+            borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           leading: _buildIcon(arrowBgColor, arrowIcon),
           title: Row(
@@ -37,8 +41,8 @@ class TransactionItem extends StatelessWidget {
               Text(label),
               Text(
                 " • ${tx.coinSymbol}",
-                style: GeniusWalletTypography.bodyMd.copyWith(
-                    color: GeniusWalletColors.textPrimary70),
+                style: GeniusWalletTypography.bodyMd
+                    .copyWith(color: GeniusWalletColors.textPrimary70),
               )
             ],
           ),
@@ -96,7 +100,8 @@ class TransactionItem extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.black, width: 1.5),
                 ),
-                child: Icon(icon, size: 12, color: GeniusWalletColors.textOnBrand),
+                child:
+                    Icon(icon, size: 12, color: GeniusWalletColors.textOnBrand),
               ),
             ),
           ),
@@ -112,7 +117,8 @@ class TransactionItem extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
+          Text(label,
+              style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
           Text(value, style: TextStyle(color: valueColor)),
         ],
       ),
@@ -123,7 +129,8 @@ class TransactionItem extends StatelessWidget {
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
-    final arrowBgColor = isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
+    final arrowBgColor =
+        isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
     final amountText =
         "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
     final address = isSent ? tx.recipients.first.toAddr : tx.fromAddress;
@@ -157,7 +164,8 @@ class TransactionItem extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.black, width: 1.5),
                   ),
-                  child: Icon(arrowIcon, size: 14, color: GeniusWalletColors.textOnBrand),
+                  child: Icon(arrowIcon,
+                      size: 14, color: GeniusWalletColors.textOnBrand),
                 ),
               ),
             ],
@@ -168,14 +176,18 @@ class TransactionItem extends StatelessWidget {
           child: Text(
             amountText,
             style: const TextStyle(
-                fontSize: 28, fontWeight: FontWeight.bold, color: GeniusWalletColors.textPrimary),
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: GeniusWalletColors.textPrimary),
           ),
         ),
         const SizedBox(height: GeniusWalletConsts.space8),
         Card(
           color: GeniusWalletColors.deepBlueMenu,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              side: const BorderSide(
+                  color: GeniusWalletColors.borderSubtle, width: 1),
+              borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             child: Column(

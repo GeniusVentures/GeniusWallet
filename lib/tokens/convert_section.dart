@@ -58,6 +58,11 @@ class _ConvertSectionState extends State<ConvertSection> {
         margin: EdgeInsets.zero,
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(
+              color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(
               vertical: GeniusWalletConsts.space12,
@@ -71,14 +76,16 @@ class _ConvertSectionState extends State<ConvertSection> {
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Token Price",
-                  labelStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
+                  labelStyle:
+                      TextStyle(color: GeniusWalletColors.textPrimary70),
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                        color: GeniusWalletColors.textPrimary12), // Bottom border color
+                        color: GeniusWalletColors
+                            .textPrimary12), // Bottom border color
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
@@ -96,14 +103,16 @@ class _ConvertSectionState extends State<ConvertSection> {
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Token Amount",
-                  labelStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
+                  labelStyle:
+                      TextStyle(color: GeniusWalletColors.textPrimary70),
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                        color: GeniusWalletColors.textPrimary12), // Bottom border color
+                        color: GeniusWalletColors
+                            .textPrimary12), // Bottom border color
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(

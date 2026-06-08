@@ -263,6 +263,10 @@ class BridgeScreenState extends State<BridgeScreen> {
                                             actionsAlignment:
                                                 MainAxisAlignment.center,
                                             shape: RoundedRectangleBorder(
+                                                side: const BorderSide(
+                                                    color: GeniusWalletColors
+                                                        .borderSubtle,
+                                                    width: 1),
                                                 borderRadius:
                                                     BorderRadius.circular(
                                                         12)), // Rounded corners
@@ -569,9 +573,12 @@ class BridgeScreenState extends State<BridgeScreen> {
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       decoration: const BoxDecoration(
-        color: GeniusWalletColors.surfaceElevated,
+        gradient: GWDecorations.surfaceSheen,
         borderRadius: BorderRadius.all(
           Radius.circular(GeniusWalletConsts.radius2xl),
+        ),
+        border: Border.fromBorderSide(
+          BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
         ),
       ),
       child: Column(

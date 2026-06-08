@@ -18,7 +18,10 @@ class WideNewsCard extends StatelessWidget {
       onTap: () => launchWebSite(context, article.link),
       child: Card(
         color: GeniusWalletColors.deepBlueCardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            side: const BorderSide(
+                color: GeniusWalletColors.borderSubtle, width: 1),
+            borderRadius: BorderRadius.circular(12)),
         child: Stack(
           children: [
             // Full image background

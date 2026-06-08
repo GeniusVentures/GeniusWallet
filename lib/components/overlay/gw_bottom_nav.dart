@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 /// Clean flat bottom navigation, four destinations, cyan accent on the
@@ -43,8 +44,8 @@ class GWBottomNav extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         return Container(
-          decoration: BoxDecoration(
-            color: GeniusWalletColors.surfaceElevated,
+          decoration: const BoxDecoration(
+            gradient: GWDecorations.surfaceSheen,
             border: Border(
               top: BorderSide(
                 color: GeniusWalletColors.borderSubtle,

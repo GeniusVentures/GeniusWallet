@@ -133,10 +133,15 @@ class CoinsScreenState extends State<CoinsScreen> {
           final walletCubit = context.read<WalletDetailsCubit>();
 
           if (state.coinsStatus == WalletStatus.loading) {
-            return const Card(
+            return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
-              child: Center(
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(
+                    color: GeniusWalletColors.borderSubtle, width: 1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Center(
                 child: Loading(),
               ),
             );
@@ -146,10 +151,15 @@ class CoinsScreenState extends State<CoinsScreen> {
             return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(
+                    color: GeniusWalletColors.borderSubtle, width: 1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: AutoSizeText(
                 'No Coins Detected',
-                style: GeniusWalletTypography.headlineLg.copyWith(
-                    color: GeniusWalletColors.btnTextDisabled),
+                style: GeniusWalletTypography.headlineLg
+                    .copyWith(color: GeniusWalletColors.btnTextDisabled),
               ),
             );
           }

@@ -3,6 +3,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -81,9 +82,9 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected
-              ? GeniusWalletColors.brandPrimary.withAlpha(38)
-              : GeniusWalletColors.surfaceElevated,
+          color:
+              isSelected ? GeniusWalletColors.brandPrimary.withAlpha(38) : null,
+          gradient: isSelected ? null : GWDecorations.surfaceSheen,
           borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
           border: Border.all(
             color: isSelected
@@ -151,6 +152,8 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     return Material(
       color: GeniusWalletColors.surfaceElevated,
       shape: RoundedRectangleBorder(
+        side:
+            const BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),
       child: InkWell(

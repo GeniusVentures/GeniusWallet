@@ -5,6 +5,7 @@ import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
@@ -43,7 +44,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
-    _clipboardPoller = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _clipboardPoller =
+        Timer.periodic(const Duration(seconds: 2), (timer) async {
       if (!mounted) {
         return;
       }
@@ -230,8 +232,9 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         right: GeniusWalletConsts.space8,
       ),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
+        gradient: GWDecorations.surfaceSheen,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

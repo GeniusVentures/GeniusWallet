@@ -66,7 +66,8 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
           decoration: InputDecoration(
             hintText: "Search Tokens...",
             hintStyle: const TextStyle(color: GeniusWalletColors.textPrimary54),
-            prefixIcon: const Icon(Icons.search, color: GeniusWalletColors.textPrimary54),
+            prefixIcon: const Icon(Icons.search,
+                color: GeniusWalletColors.textPrimary54),
             filled: true,
             fillColor: Colors.black54,
             border: OutlineInputBorder(
@@ -91,6 +92,8 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
             return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shape: RoundedRectangleBorder(
+                side: const BorderSide(
+                    color: GeniusWalletColors.borderSubtle, width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
@@ -117,7 +120,8 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                   ),
                 ),
                 title: Text(token.name,
-                    style: const TextStyle(color: GeniusWalletColors.textPrimary)),
+                    style:
+                        const TextStyle(color: GeniusWalletColors.textPrimary)),
                 subtitle: Row(children: [
                   if (token.balance != null)
                     Text('${token.balance!.formattedBalance} ',

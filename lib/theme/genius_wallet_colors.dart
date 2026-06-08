@@ -10,8 +10,10 @@ class GeniusWalletColors {
   // Brand — primary (cyan/blue). Vibrant v1.2 — electric. See DESIGN_SYSTEM.md note 2026-05.
   static const Color brandPrimary = Color(0xFF14C8FF);
   static const Color brandPrimaryStrong = Color(0xFF0AAEE6);
-  static Color brandPrimaryMuted = const Color(0xFF14C8FF).withAlpha(61); // ~24%
-  static Color brandPrimarySubtle = const Color(0xFF14C8FF).withAlpha(31); // ~12%
+  static Color brandPrimaryMuted =
+      const Color(0xFF14C8FF).withAlpha(61); // ~24%
+  static Color brandPrimarySubtle =
+      const Color(0xFF14C8FF).withAlpha(31); // ~12%
 
   // Brand — secondary (mint/green). Vibrant v1.2 — electric.
   static const Color brandSecondary = Color(0xFF2BF5B4);
@@ -50,19 +52,22 @@ class GeniusWalletColors {
   static const Color textPrimary24 = Color(0x3DFFFFFF);
   static const Color textPrimary12 = Color(0x1FFFFFFF);
   static const Color textPrimary10 = Color(0x1AFFFFFF);
-  static const Color textSecondary = Color(0xFF8A8F9D); // gnus.ai --muted-foreground
+  static const Color textSecondary =
+      Color(0xFF8A8F9D); // gnus.ai --muted-foreground
   static const Color textTertiary = Color.fromARGB(255, 53, 54, 61);
   static const Color textDisabled = Color(0xFF2A2B31);
   static const Color textOnBrand = Color(0xFF000B18);
 
   // Border
-  static Color borderSubtle = const Color.fromRGBO(255, 255, 255, 0.12);
-  static Color borderStrong = const Color.fromRGBO(255, 255, 255, 0.24);
+  static const Color borderSubtle = Color.fromRGBO(255, 255, 255, 0.12);
+  static const Color borderStrong = Color.fromRGBO(255, 255, 255, 0.24);
   static const Color borderBrand = brandPrimary;
 
   // Status
-  static const Color statusSuccess = Color(0xFF0AD89C); // mint-green from gradient (vibrant v1.2)
-  static const Color statusError = Color(0xFFFF4D4D); // gnus.ai --destructive, vibrant v1.2
+  static const Color statusSuccess =
+      Color(0xFF0AD89C); // mint-green from gradient (vibrant v1.2)
+  static const Color statusError =
+      Color(0xFFFF4D4D); // gnus.ai --destructive, vibrant v1.2
   static const Color statusWarning = Color(0xFFFFC42E);
   static const Color statusInfo = brandPrimary;
 

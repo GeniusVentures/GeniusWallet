@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class GWEmptyState extends StatelessWidget {
@@ -32,7 +33,7 @@ class GWEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: GeniusWalletColors.surfaceElevated,
+                gradient: GWDecorations.surfaceSheen,
                 shape: BoxShape.circle,
                 border: Border.all(color: GeniusWalletColors.borderSubtle),
               ),

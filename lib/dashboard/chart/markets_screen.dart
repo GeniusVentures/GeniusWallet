@@ -9,6 +9,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:go_router/go_router.dart';
 
@@ -179,8 +180,10 @@ class MarketsScreen extends StatelessWidget {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  gradient: GWDecorations.surfaceSheen,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: GeniusWalletColors.borderSubtle, width: 1),
                 ),
                 padding: const EdgeInsets.symmetric(
                     horizontal: GeniusWalletConsts.space8,

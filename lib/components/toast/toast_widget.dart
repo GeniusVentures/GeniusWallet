@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
@@ -47,7 +48,7 @@ class ToastWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.surfaceElevated,
+        gradient: GWDecorations.surfaceSheen,
         border: Border.all(color: accent, width: 2),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
         boxShadow: GeniusWalletElevation.card,

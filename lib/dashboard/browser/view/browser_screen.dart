@@ -344,7 +344,8 @@ class _RecentList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (urls.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space16),
+        padding:
+            const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space16),
         child: Column(
           children: [
             const Icon(
@@ -384,8 +385,7 @@ class _RecentList extends StatelessWidget {
         const SizedBox(height: GeniusWalletConsts.space2),
         ...urls.map(
           (u) => InkWell(
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.radiusBase),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
             onTap: () => onTap(u),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -422,8 +422,9 @@ class _RecentList extends StatelessWidget {
     );
   }
 
-  String _displayUrl(String url) =>
-      url.replaceFirst(RegExp(r'^https?://'), '').replaceFirst(RegExp(r'/$'), '');
+  String _displayUrl(String url) => url
+      .replaceFirst(RegExp(r'^https?://'), '')
+      .replaceFirst(RegExp(r'/$'), '');
 }
 
 // ---------------------------------------------------------------------------
@@ -454,7 +455,6 @@ class _FavoritesList extends StatelessWidget {
             child: GWCard(
               onTap: () => onTap(f),
               elevated: false,
-              background: GeniusWalletColors.surfaceElevated,
               radius: GeniusWalletConsts.radius2xl,
               padding: const EdgeInsets.symmetric(
                 horizontal: GeniusWalletConsts.space2,
@@ -519,7 +519,6 @@ class _DappTile extends StatelessWidget {
     return GWCard(
       onTap: onTap,
       elevated: false,
-      background: GeniusWalletColors.surfaceElevated,
       radius: GeniusWalletConsts.radius2xl,
       padding: const EdgeInsets.symmetric(
         horizontal: GeniusWalletConsts.space4,

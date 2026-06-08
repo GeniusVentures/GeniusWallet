@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
@@ -28,18 +29,16 @@ class PasteField extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: GeniusWalletColors.surfaceElevated,
+            gradient: GWDecorations.surfaceSheen,
             border: Border.all(color: GeniusWalletColors.borderSubtle),
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.radius2xl),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
           ),
           width: MediaQuery.of(context).size.width * 0.9,
           height: height,
           child: Stack(
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.all(GeniusWalletConsts.space6),
+                padding: const EdgeInsets.all(GeniusWalletConsts.space6),
                 child: TextFormField(
                   controller: controller,
                   style: GeniusWalletTypography.bodyLg,
