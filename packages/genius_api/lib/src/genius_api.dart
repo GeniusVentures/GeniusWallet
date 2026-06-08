@@ -1,3 +1,5 @@
+import 'dart:ffi' as ffi;
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
@@ -30,6 +32,22 @@ import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:rxdart/rxdart.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+/// Extension that mirrors [Utf8Pointer.toDartString] on [ffi.Pointer<Utf8>]
+/// for inline [ffi.Array]<[ffi.Char]> fields in FFI structs.
+extension _CharArrayToDartString on ffi.Array<ffi.Char> {
+  /// Reads this null-terminated C string array, reading at most [maxLength]
+  /// chars.
+  String toDartString(int maxLength) {
+    final units = <int>[];
+    for (var i = 0; i < maxLength; i++) {
+      final c = this[i];
+      if (c == 0) break;
+      units.add(c);
+    }
+    return String.fromCharCodes(units);
+  }
+}
 
 class GeniusApi {
   final LocalWalletStorage _secureStorage;
@@ -152,9 +170,7 @@ class GeniusApi {
     }
 
     var rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
-    List<int> charCodes =
-        List<int>.generate(2 + 128, (index) => rawAddress.address[index]);
-    _address = String.fromCharCodes(charCodes);
+    _address = rawAddress.address.toDartString(131);
 
     getSGNUSController().updateConnection(SGNUSConnection(
         sgnusAddress: _address,
@@ -478,16 +494,7 @@ class GeniusApi {
     }
     GeniusTokenValue tokenValue =
         _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalanceGNUS();
-    final array = tokenValue.value;
-    List<int> charCodes = [];
-    for (int i = 0; i < 22; i++) {
-      final c = array[i];
-      if (c == 0) {
-        break;
-      }
-      charCodes.add(c);
-    }
-    return String.fromCharCodes(charCodes);
+    return tokenValue.value.toDartString(22);
   }
 
   DateTime parseTimestamp(int timestamp) {
@@ -711,9 +718,7 @@ class GeniusApi {
       return null;
     }
     final rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
-    final charCodes =
-        List<int>.generate(2 + 128, (index) => rawAddress.address[index]);
-    return String.fromCharCodes(charCodes);
+    return rawAddress.address.toDartString(131);
   }
 
   GeniusNodeReturnValue payDev(int amount, {String? tokenId}) {

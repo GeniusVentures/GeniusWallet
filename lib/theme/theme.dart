@@ -103,7 +103,6 @@ ThemeData getThemeData() {
         borderRadius:
             BorderRadius.circular(GeniusWalletConsts.borderRadiusButton)),
     filledButtonTheme: FilledButtonThemeData(
-      
       style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
           textStyle: const TextStyle(fontSize: 16)),

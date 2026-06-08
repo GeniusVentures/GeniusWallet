@@ -14,11 +14,8 @@ import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/wallets/view/genius_wallet_details_screen.dart';
-import 'package:genius_wallet/wallets/view/wallet_details_screen.dart';
 import 'package:genius_wallet/components/wallet_overview.dart';
 
 const double gridSpacing = 12;
@@ -165,7 +162,8 @@ class _OverviewContributionsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(children: [
       const Expanded(flex: 2, child: OverviewDashboardView()),
-      const Expanded(flex: 3, child: ContributionsDashboardView()),
+      const Expanded(
+          flex: 3, child: SizedBox.expand(child: ContributionsDashboardView())),
     ]);
   }
 }
@@ -187,28 +185,38 @@ class OneColumnDashBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-          builder: (context, walletState) {
-        final selectedWallet = walletState.selectedWallet;
-        final isSgnusWallet = selectedWallet?.walletType == WalletType.sgnus;
-        if (selectedWallet != null) {
-          return SizedBox(
-            height: constraints.maxHeight,
-            child: isSgnusWallet
-                ? const GeniusWalletDetailsScreen()
-                : const WalletDetailsScreen(),
-          );
-        } else {
-          return const Center(
-            child: Text(
-              "No Wallet selected",
-              style: TextStyle(fontSize: 32, color: Colors.white),
-            ),
-          );
-        }
-      });
-    });
+    const spacing = SizedBox(height: gridSpacing / 2);
+
+    return Padding(
+      padding: const EdgeInsets.all(gridSpacing / 2),
+      child: ListView(
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: OverviewDashboardView(),
+          ),
+          spacing,
+          ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ContributionsDashboardView()),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 350),
+            child: const ChartDashboardView(),
+          ),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 350),
+            child: const MarketsDashboardView(),
+          ),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: const TransactionsDashboardView(),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -316,24 +324,22 @@ class ContributionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: DashboardScrollContainer(
-        child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-          builder: (context, walletState) {
-            final selectedWallet = walletState.selectedWallet;
-            return StreamBuilder<SGNUSConnection>(
-              stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-              builder: (context, snapshot) {
-                final connection = snapshot.data;
-                return CoinsScreen(
-                  isUseDivider: true,
-                  isGnusWalletConnected: (connection?.walletAddress ?? false) ==
-                      selectedWallet?.address,
-                );
-              },
-            );
-          },
-        ),
+    return DashboardScrollContainer(
+      child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, walletState) {
+          final selectedWallet = walletState.selectedWallet;
+          return StreamBuilder<SGNUSConnection>(
+            stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+            builder: (context, snapshot) {
+              final connection = snapshot.data;
+              return CoinsScreen(
+                isUseDivider: true,
+                isGnusWalletConnected: (connection?.walletAddress ?? false) ==
+                    selectedWallet?.address,
+              );
+            },
+          );
+        },
       ),
     );
   }

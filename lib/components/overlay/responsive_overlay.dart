@@ -22,31 +22,32 @@ class MobileOverlay extends StatelessWidget {
 
     return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
       return Scaffold(
-        extendBody: true,
+        appBar: AppBar(
+          title: const Text("Genius Wallet"),
+          actions: [
+            Flexible(
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      const DevToolsWidget(),
+                      const NetworkDropdownSelector(),
+                      const SDKAccountManagerButton(),
+                      AccountDropdownSelector(),
+                      ReownConnectButton(
+                          walletAddress:
+                              walletCubit.state.selectedWallet?.address ??
+                                  '0x0000000000000000000000000000000000000000',
+                          geniusApi: context.read<GeniusApi>(),
+                          walletDetailsCubit: walletCubit,
+                          transactionsCubit: context.read<TransactionsCubit>())
+                    ],
+                  )),
+            )
+          ],
+        ),
         body: SafeArea(
-          child: Column(
-            children: [
-              const DevToolsWidget(),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    const NetworkDropdownSelector(),
-                    const SDKAccountManagerButton(),
-                    AccountDropdownSelector(),
-                    ReownConnectButton(
-                        walletAddress:
-                            walletCubit.state.selectedWallet?.address ??
-                                '0x0000000000000000000000000000000000000000',
-                        geniusApi: context.read<GeniusApi>(),
-                        walletDetailsCubit: walletCubit,
-                        transactionsCubit: context.read<TransactionsCubit>()),
-                  ],
-                ),
-              ),
-              Expanded(child: child),
-            ],
-          ),
+          child: child,
         ),
         bottomNavigationBar: const MobileTabBar(),
       );

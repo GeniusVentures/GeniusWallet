@@ -1,7 +1,6 @@
-import 'dart:math';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
@@ -35,13 +34,9 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Crypto News',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(context).textTheme.displaySmall,
               ),
               const SizedBox(height: 24),
               Expanded(
@@ -52,25 +47,20 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                     if (articles.isEmpty) {
                       return const Center(child: Text('No news found.'));
                     }
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount =
-                            max((constraints.maxWidth / 294.0).floor(), 1);
-
-                        return GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
+                    return SingleChildScrollView(
+                      child: StaggeredGrid.extent(
+                        maxCrossAxisExtent: 300,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        children: List.generate(articles.length, (index) {
+                          final crossAxisCellCount = index % 5 == 0 ? 2 : 1;
+                          return StaggeredGridTile.extent(
+                            crossAxisCellCount: crossAxisCellCount,
                             mainAxisExtent: 220,
-                          ),
-                          itemCount: articles.length,
-                          itemBuilder: (context, index) {
-                            return _NewsCard(article: articles[index]);
-                          },
-                        );
-                      },
+                            child: _NewsCard(article: articles[index]),
+                          );
+                        }),
+                      ),
                     );
                   },
                 ),
@@ -112,11 +102,11 @@ class _NewsCardState extends State<_NewsCard> {
                 imageUrl: widget.article.imageUrl ?? '',
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
-                  color: Colors.grey[800],
+                  color: Colors.grey.shade800,
                   child: const Center(child: Loading()),
                 ),
                 errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[800],
+                  color: Colors.grey.shade800,
                   child: const Icon(Icons.error, color: Colors.red),
                 ),
               ),

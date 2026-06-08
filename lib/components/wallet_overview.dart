@@ -47,7 +47,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
 
           if (state.selectedWallet?.walletType == WalletType.sgnus) {
             return Column(
-              spacing: 4,
               children: [
                 GeniusBalanceDisplay(useMinions: useMinions),
                 _buildToggle(),
@@ -80,7 +79,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
           );
         },
       ),
-      SizedBox(height: 16),
+      SizedBox(height: 20),
       SGNUSConnectionWidget(),
       SGNUSConnectionStatusWidget(),
       BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
