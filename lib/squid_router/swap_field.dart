@@ -77,11 +77,12 @@ class SwapField extends StatelessWidget {
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
+                        // >=48px tap target (a11y); content vertically centered.
+                        constraints: const BoxConstraints(minHeight: 48),
+                        alignment: Alignment.center,
                         padding: const EdgeInsets.only(
                             left: GeniusWalletConsts.space2,
-                            right: GeniusWalletConsts.space4,
-                            top: 2,
-                            bottom: 2),
+                            right: GeniusWalletConsts.space4),
                         decoration: BoxDecoration(
                           color: GeniusWalletColors.deepBlue,
                           borderRadius: BorderRadius.circular(40),

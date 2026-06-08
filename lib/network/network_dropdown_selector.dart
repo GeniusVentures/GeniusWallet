@@ -156,10 +156,12 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       child: InkWell(
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
         onTap: () => _showNetworkDrawer(networks),
-        child: Padding(
+        child: Container(
+          // >=48px tap target (a11y); content stays vertically centered.
+          constraints: const BoxConstraints(minHeight: 48),
+          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(
             horizontal: GeniusWalletConsts.space4,
-            vertical: 6,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

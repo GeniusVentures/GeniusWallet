@@ -557,20 +557,21 @@ class _DappTile extends StatelessWidget {
               ],
             ),
           ),
-          InkResponse(
-            onTap: onToggleFavorite,
-            radius: 18,
-            child: Padding(
-              padding: const EdgeInsets.all(GeniusWalletConsts.space2),
-              child: Icon(
-                isFavorite
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_border_rounded,
-                color: isFavorite
-                    ? GeniusWalletColors.brandPrimary
-                    : GeniusWalletColors.textSecondary,
-                size: 18,
-              ),
+          IconButton(
+            onPressed: onToggleFavorite,
+            iconSize: 18,
+            padding: EdgeInsets.zero,
+            // 48x48 hit area for a11y; the glyph itself stays 18px.
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            tooltip: isFavorite ? 'Remove bookmark' : 'Add bookmark',
+            icon: Icon(
+              isFavorite
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
+              color: isFavorite
+                  ? GeniusWalletColors.brandPrimary
+                  : GeniusWalletColors.textSecondary,
+              size: 18,
             ),
           ),
         ],
