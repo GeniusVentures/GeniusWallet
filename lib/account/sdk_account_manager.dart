@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
@@ -176,7 +177,13 @@ class SDKAccountManagerButton extends StatelessWidget {
               )
             : null,
         trailing: isSelected
-            ? null
+            ? IconButton(
+                icon: const Icon(Icons.edit_location_alt,
+                    size: 20, color: Colors.orangeAccent),
+                tooltip: 'Set payout address',
+                onPressed: () =>
+                    _showSetPayoutAddressDialog(context),
+              )
             : IconButton(
                 icon: const Icon(Icons.delete_outline,
                     size: 20, color: Colors.redAccent),
@@ -307,6 +314,46 @@ class SDKAccountManagerButton extends StatelessWidget {
         bloc.add(RefreshSDKAccounts());
         showAppSnackBar(context, 'Account added successfully',
             duration: const Duration(seconds: 1));
+      }
+    }
+  }
+
+  Future<void> _showSetPayoutAddressDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final payoutAddress = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Set Payout Address'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Enter the payout address (hex)',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+            child: const Text('Set Address'),
+          ),
+        ],
+      ),
+    );
+
+    if (payoutAddress != null && payoutAddress.isNotEmpty && context.mounted) {
+      context.read<AppBloc>().add(SetSDKPayoutAddress(payoutAddress));
+      final result =
+          context.read<AppBloc>().state.setPayoutAddressResult;
+      if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+        showAppSnackBar(context, 'Payout address set successfully',
+            duration: const Duration(seconds: 1));
+      } else {
+        showAppSnackBar(
+            context, 'Failed to set payout address: ${result?.name}',
+            duration: const Duration(seconds: 3));
       }
     }
   }

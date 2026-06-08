@@ -29,6 +29,10 @@ class AppState extends Equatable {
   /// All available SDK account addresses.
   final List<String> sdkAccounts;
 
+  /// The result of the last [SetSDKPayoutAddress] operation, or null if
+  /// no operation has been performed yet.
+  final GeniusNodeReturnValue? setPayoutAddressResult;
+
   const AppState(
       {this.wallets = const [],
       this.sdkStatus = AppStatus.initial,
@@ -42,6 +46,7 @@ class AppState extends Equatable {
       this.processingPercentage,
       this.selectedSDKAccount,
       this.sdkAccounts = const [],
+      this.setPayoutAddressResult,
       this.accountStatus = AppStatus.initial});
 
   AppState copyWith(
@@ -57,6 +62,7 @@ class AppState extends Equatable {
       double? processingPercentage,
       String? selectedSDKAccount,
       List<String>? sdkAccounts,
+      GeniusNodeReturnValue? setPayoutAddressResult,
       AppStatus? accountStatus}) {
     return AppState(
         wallets: wallets ?? this.wallets,
@@ -72,6 +78,8 @@ class AppState extends Equatable {
         isProcessing: isProcessing ?? this.isProcessing,
         selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
         sdkAccounts: sdkAccounts ?? this.sdkAccounts,
+        setPayoutAddressResult:
+            setPayoutAddressResult ?? this.setPayoutAddressResult,
         accountStatus: accountStatus ?? this.accountStatus);
   }
 
@@ -90,6 +98,7 @@ class AppState extends Equatable {
         processingPercentage,
         selectedSDKAccount,
         sdkAccounts,
+        setPayoutAddressResult,
       ];
 }
 

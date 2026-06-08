@@ -61,3 +61,9 @@ class DeleteSDKAccount extends AppEvent {
 }
 
 class RefreshSDKAccounts extends AppEvent {}
+
+class SetSDKPayoutAddress extends AppEvent {
+  final String publicAddress;
+
+  SetSDKPayoutAddress(this.publicAddress);
+}
