@@ -33,6 +33,7 @@ class MarketsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Padding(
         padding: const EdgeInsets.symmetric(
             horizontal: GeniusWalletConsts.space6,
@@ -103,7 +104,8 @@ class MarketsScreen extends StatelessWidget {
                         return const Center(
                           child: Text(
                             "No market data available",
-                            style: TextStyle(color: GeniusWalletColors.textPrimary),
+                            style: TextStyle(
+                                color: GeniusWalletColors.textPrimary),
                           ),
                         );
                       }
@@ -131,8 +133,8 @@ class MarketsScreen extends StatelessWidget {
                             // Missing-data placeholder (debug aid, tinted to
                             // stand out without looking like a system error).
                             return Container(
-                              color: GeniusWalletColors.statusError
-                                  .withAlpha(100),
+                              color:
+                                  GeniusWalletColors.statusError.withAlpha(100),
                               child: Center(
                                 child: Text(
                                   '${coin.symbol}\n${coin.id}',

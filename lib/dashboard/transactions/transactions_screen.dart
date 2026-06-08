@@ -16,6 +16,7 @@ class TransactionsScreen extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Container(
           height: screenHeight,

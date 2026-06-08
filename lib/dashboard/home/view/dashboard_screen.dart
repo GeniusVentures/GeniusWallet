@@ -63,64 +63,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GeniusWalletColors.surfaceBase,
-      body: GWCanvasBackground(
-        child: SafeArea(
-          child: BlocBuilder<AppBloc, AppState>(
-            builder: (context, appState) {
-              if (appState.subscribeToWalletStatus != AppStatus.loaded) {
-                return const Center(child: GWSpinner(size: 48));
-              }
-              return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                builder: (context, walletState) {
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: CustomScrollView(
-                        slivers: [
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: BlocBuilder<AppBloc, AppState>(
+          builder: (context, appState) {
+            if (appState.subscribeToWalletStatus != AppStatus.loaded) {
+              return const Center(child: GWSpinner(size: 48));
+            }
+            return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+              builder: (context, walletState) {
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: _HeroBalance(
+                            balance: _resolveBalance(appState, walletState),
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _ActionRow(
+                            walletAddress: walletState.selectedWallet?.address,
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _Tabs(
+                            value: _tab,
+                            onChanged: (t) => setState(() => _tab = t),
+                          ),
+                        ),
+                        if (_tab == _DashboardTab.assets) ...[
                           SliverToBoxAdapter(
-                            child: _HeroBalance(
-                              balance: _resolveBalance(appState, walletState),
+                            child: _AssetSearch(
+                              controller: _searchCtrl,
+                              onChanged: (v) => setState(() => _query = v),
                             ),
                           ),
-                          SliverToBoxAdapter(
-                            child: _ActionRow(
-                              walletAddress:
-                                  walletState.selectedWallet?.address,
-                            ),
+                          _AssetsSliver(
+                            coins: _filterCoins(walletState.coins),
+                            query: _query,
                           ),
-                          SliverToBoxAdapter(
-                            child: _Tabs(
-                              value: _tab,
-                              onChanged: (t) => setState(() => _tab = t),
-                            ),
-                          ),
-                          if (_tab == _DashboardTab.assets) ...[
-                            SliverToBoxAdapter(
-                              child: _AssetSearch(
-                                controller: _searchCtrl,
-                                onChanged: (v) => setState(() => _query = v),
-                              ),
-                            ),
-                            _AssetsSliver(
-                              coins: _filterCoins(walletState.coins),
-                              query: _query,
-                            ),
-                          ] else
-                            const _ActivitySliver(),
-                          // Clearance so the global Swap FAB (bottom-right)
-                          // doesn't cover the last list row.
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 96),
-                          ),
-                        ],
-                      ),
+                        ] else
+                          const _ActivitySliver(),
+                        // Clearance so the global Swap FAB (bottom-right)
+                        // doesn't cover the last list row.
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 96),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              );
-            },
-          ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );

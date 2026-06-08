@@ -9,6 +9,7 @@ import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Mobile shell. Owns the persistent chrome (network selector, wallet
@@ -23,14 +24,16 @@ class MobileOverlay extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       backgroundColor: GeniusWalletColors.surfaceBase,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const DevToolsWidget(),
-            const _OverlayTopBar(),
-            Expanded(child: child),
-          ],
+      body: GWCanvasBackground(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              const DevToolsWidget(),
+              const _OverlayTopBar(),
+              Expanded(child: child),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const GWBottomNav(),
