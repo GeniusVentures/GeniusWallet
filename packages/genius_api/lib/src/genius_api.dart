@@ -711,6 +711,19 @@ class GeniusApi {
     return _mapNodeReturnValue(result);
   }
 
+  /// Sets the payout address for processing rewards on the currently selected
+  /// Genius account.
+  GeniusNodeReturnValue setPayoutAddress(String publicAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
+    final result =
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKSetPayoutAddress(addressPtr);
+    malloc.free(addressPtr);
+    return _mapNodeReturnValue(result);
+  }
+
   /// Returns the public address of the currently selected Genius account,
   /// or null if the SDK is not initialized.
   String? getSelectedAccountAddress() {

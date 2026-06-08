@@ -52,6 +52,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<AddSDKAccountWithPrivateKey>(_onAddSDKAccountWithPrivateKey);
     on<DeleteSDKAccount>(_onDeleteSDKAccount);
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
+    on<SetSDKPayoutAddress>(_onSetSDKPayoutAddress);
   }
 
   Future<void> _onInitializeSDK(
@@ -364,6 +365,15 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       selectedSDKAccount: sdkState.$1,
       sdkAccounts: sdkState.$2,
     ));
+  }
+
+  void _onSetSDKPayoutAddress(
+    SetSDKPayoutAddress event,
+    Emitter<AppState> emit,
+  ) {
+    final result = api.setPayoutAddress(event.publicAddress);
+    // Always emit the result so the UI can display the actual SDK response.
+    emit(state.copyWith(setPayoutAddressResult: result));
   }
 
   @override
