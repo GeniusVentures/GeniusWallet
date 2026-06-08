@@ -205,7 +205,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
           final chartContent = Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 6.0,
+            spacing: 2,
             children: [
               AutoSizeText(
                 _hasData ? formattedPrice : 'Loading...',
@@ -213,7 +213,6 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                 style: TextStyle(
                   fontSize: widget.priceHeight,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),

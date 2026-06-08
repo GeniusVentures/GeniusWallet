@@ -157,7 +157,6 @@ class CoinsScreenState extends State<CoinsScreen> {
               .toList();
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 16),
             child: Column(
               children: [
                 for (int i = 0; i < filteredCoins.length; i++) ...[
@@ -187,7 +186,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                         _marketData[filteredCoins[i].symbol?.toLowerCase()],
                   ),
                   if ((widget.isUseDivider ?? false) &&
-                      i != filteredCoins.length - 1)
+                      i < filteredCoins.length - 1)
                     const Divider(),
                 ],
               ],

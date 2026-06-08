@@ -80,9 +80,8 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
                       label: Text(filter.label),
                     ))
                 .toList(),
-            selected: selectedFilter == Filters.all
-                ? <Filters>{}
-                : {selectedFilter},
+            selected:
+                selectedFilter == Filters.all ? <Filters>{} : {selectedFilter},
             emptySelectionAllowed: true,
             showSelectedIcon: false,
             onSelectionChanged: (Set<Filters> newSelection) {

@@ -128,7 +128,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                spacing: 2,
+                spacing: hideLabels ? 6 : 2,
                 children: [
                   Image.asset(
                     'assets/images/geniusappbarlogo.png',
@@ -141,8 +141,8 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                     final color = isSelected
                         ? Colors.greenAccent
                         : Colors.white.withValues(alpha: 0.6);
-          
-                    return Material(
+
+                    final tabButton = Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () => context.go(dest.path),
@@ -151,7 +151,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                         mouseCursor: SystemMouseCursors.click,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 12.0),
+                              vertical: 6.0, horizontal: 12.0),
                           child: Ink(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -177,7 +177,7 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                 AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   height: 1,
-                                  width: 60,
+                                  width: hideLabels ? 20 : 60,
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? Colors.greenAccent
@@ -191,6 +191,10 @@ class DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ),
                     );
+
+                    return hideLabels
+                        ? Tooltip(message: dest.label, child: tabButton)
+                        : tabButton;
                   }),
                 ],
               ),
