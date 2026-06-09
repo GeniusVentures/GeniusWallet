@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
@@ -44,6 +46,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   bool _isConnecting = false;
   bool _hasError = false;
   bool _timedOut = false;
+  bool _isInitialized = false;
+  Completer<void>? _initCompleter;
   final TextEditingController _uriController = TextEditingController();
 
   bool get _isDesktopOrIot {
@@ -150,22 +154,20 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   }
 
   Future<void> maybeInitWalletKit() async {
-    final arch = Platform.version.toLowerCase();
-
-    // Skip if running on x86 or x86_64 (i.e. emulators without native .so support)
-    if ((arch.contains('x86') ||
-            arch.contains('x64') ||
-            arch.contains('ia32')) &&
-        !arch.contains('windows')) {
-      debugPrint("❌  Skipping WalletKit init on x86/x86_64 architecture");
+    if (_isInitialized) return;
+    if (_initCompleter != null) {
+      await _initCompleter!.future;
       return;
     }
-
+    _initCompleter = Completer<void>();
     try {
       await walletKit.init();
+      _isInitialized = true;
       debugPrint("✅ WalletKit initialized");
     } catch (e) {
       debugPrint("❌ WalletKit initialization failed: $e");
+    } finally {
+      _initCompleter!.complete();
     }
   }
 
@@ -176,6 +178,24 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       _timedOut = false;
     });
 
+    await maybeInitWalletKit();
+
+    if (!_isInitialized) {
+      setState(() {
+        _isConnecting = false;
+        _hasError = true;
+      });
+      debugPrint('❌ Connection failed: WalletKit not initialized');
+      if (mounted && context.mounted) {
+        showAppSnackBar(
+          context,
+          "WalletKit failed to initialize. Please restart the app.",
+          backgroundColor: Colors.red,
+        );
+      }
+      return;
+    }
+
     try {
       final CreateResponse pairingInfo = await walletKit.core.pairing.create();
       final wcUri = pairingInfo.uri.toString();
@@ -185,156 +205,137 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
       if (!mounted) return;
 
-      await ResponsiveDrawer.show<void>(
+      await showDialog<void>(
           context: context,
-          title: "Wallet Connect",
-          child: ListView(children: [
-            StatefulBuilder(
-              builder: (context, setInnerState) => AlertDialog(
-                backgroundColor: GeniusWalletColors.deepBlueTertiary,
-                title: Row(mainAxisSize: MainAxisSize.min, children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      'assets/images/crypto/wallet-connect.png',
-                      height: 50,
-                      width: 50,
-                      fit: BoxFit.cover,
+          builder: (ctx) => StatefulBuilder(
+                builder: (ctx, setInnerState) => AlertDialog(
+                  backgroundColor: GeniusWalletColors.deepBlueTertiary,
+                  title: Row(mainAxisSize: MainAxisSize.min, children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        'assets/images/crypto/wallet-connect.png',
+                        height: 30,
+                        width: 30,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Wallet Connect",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ]),
-                content: SizedBox(
-                  width: 300,
-                  height: 320,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 12),
-                      Expanded(
-                          child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        switchInCurve: Curves.easeIn,
-                        switchOutCurve: Curves.easeOut,
-                        child: showManualInput
-                            ? KeyedSubtree(
-                                key: ValueKey(
-                                    "manual-${DateTime.now().millisecondsSinceEpoch}"),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: _uriController,
-                                            decoration: const InputDecoration(
-                                              hintText: "wc:...",
-                                              hintStyle: TextStyle(
-                                                  color: Colors.white38),
+                    const SizedBox(width: 12),
+                    const Text(
+                      "Wallet Connect",
+                    ),
+                  ]),
+                  content: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        minWidth: GeniusBreakpoints.small * 1 / 2),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          switchInCurve: Curves.easeIn,
+                          switchOutCurve: Curves.easeOut,
+                          child: showManualInput
+                              ? KeyedSubtree(
+                                  key: ValueKey(
+                                      "manual-${DateTime.now().millisecondsSinceEpoch}"),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        spacing: 8,
+                                        children: [
+                                          Expanded(
+                                            child: TextField(
+                                              controller: _uriController,
+                                              decoration: InputDecoration(
+                                                hintText: "wc:...",
+                                                errorText: manualInputError,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.paste,
-                                            size: 20,
-                                            color: GeniusWalletColors
-                                                .lightGreenPrimary,
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.paste,
+                                              color: GeniusWalletColors
+                                                  .lightGreenPrimary,
+                                            ),
+                                            tooltip: "Paste from clipboard",
+                                            onPressed: () async {
+                                              final data =
+                                                  await Clipboard.getData(
+                                                      Clipboard.kTextPlain);
+                                              if (data?.text != null &&
+                                                  data!.text!
+                                                      .trim()
+                                                      .isNotEmpty) {
+                                                setInnerState(() {
+                                                  _uriController.text =
+                                                      data.text!.trim();
+                                                  manualInputError = null;
+                                                });
+                                              } else {
+                                                setInnerState(() {
+                                                  manualInputError =
+                                                      "Clipboard is empty or has no text.";
+                                                });
+                                              }
+                                            },
                                           ),
-                                          tooltip: "Paste from clipboard",
-                                          onPressed: () async {
-                                            final data =
-                                                await Clipboard.getData(
-                                                    Clipboard.kTextPlain);
-                                            if (data?.text != null &&
-                                                data!.text!.trim().isNotEmpty) {
-                                              setInnerState(() {
-                                                _uriController.text =
-                                                    data.text!.trim();
-                                                manualInputError = null;
-                                              });
-                                            } else {
-                                              setInnerState(() {
-                                                manualInputError =
-                                                    "Clipboard is empty or has no text.";
-                                              });
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    if (manualInputError != null) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        manualInputError!,
-                                        style: const TextStyle(
-                                            color: Colors.redAccent),
-                                        textAlign: TextAlign.center,
+                                        ],
                                       ),
                                     ],
-                                  ],
-                                ))
-                            : KeyedSubtree(
-                                key: ValueKey(
-                                    "qr-${DateTime.now().millisecondsSinceEpoch}"),
-                                child: QrImageView(
-                                  backgroundColor: Colors.white,
-                                  data: wcUri,
-                                  version: QrVersions.auto,
+                                  ))
+                              : KeyedSubtree(
+                                  key: ValueKey(
+                                      "qr-${DateTime.now().millisecondsSinceEpoch}"),
+                                  child: SizedBox(
+                                    width: 250,
+                                    height: 250,
+                                    child: QrImageView(
+                                      backgroundColor: Colors.white,
+                                      data: wcUri,
+                                      version: QrVersions.auto,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                      )),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          setInnerState(
-                              () => showManualInput = !showManualInput);
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          backgroundColor: Colors.transparent,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.link,
-                              size: 18,
-                              color: GeniusWalletColors.lightGreenPrimary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              showManualInput
-                                  ? "Show QR Code"
-                                  : "Enter URI Manually",
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                decoration: TextDecoration.underline,
-                                decorationColor:
-                                    GeniusWalletColors.lightGreenPrimary,
-                                decorationThickness: 2.0,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                        TextButton.icon(
+                          onPressed: () {
+                            setInnerState(
+                                () => showManualInput = !showManualInput);
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
+                            backgroundColor: Colors.transparent,
+                          ),
+                          icon: const Icon(
+                            Icons.link,
+                            color: GeniusWalletColors.lightGreenPrimary,
+                          ),
+                          label: Text(
+                            showManualInput
+                                ? "Show QR Code"
+                                : "Enter URI Manually",
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                actions: [
-                  if (showManualInput)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
+                  actions: [
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() => _isConnecting = false);
+                      },
+                      child: const Text("Cancel"),
+                    ),
+                    if (showManualInput)
+                      FilledButton(
                         onPressed: () async {
                           final input = _uriController.text.trim();
 
@@ -358,71 +359,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             debugPrint('❌ WalletKit pair failed: $e');
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          elevation: 0,
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient:
-                                GeniusWalletGradient.greenBlueGreenGradient,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Container(
-                            height: 48,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              "Connect",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: const Text("Connect"),
                       ),
-                    ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        setState(() => _isConnecting = false);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: GeniusWalletColors.lightGreenPrimary,
-                          width: 1.6,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: Colors.transparent,
-                      ),
-                      child: const Text(
-                        "Cancel",
-                        style: TextStyle(
-                          color: GeniusWalletColors.lightGreenPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          ]));
+                  ],
+                ),
+              ));
 
       if (_session == null) {
         setState(() {
@@ -516,24 +457,20 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       text = 'Connect';
     }
 
-    return TextButton(
-      style: TextButton.styleFrom(
-        backgroundColor: backgroundColor,
-      ),
-      onPressed: () {
-        if (_isConnecting) return;
+    final btn = TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: backgroundColor,
+        ),
+        onPressed: () {
+          if (_isConnecting) return;
 
-        if (isConnected) {
-          _disconnect();
-        } else {
-          _connect();
-        }
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        spacing: 8.0,
-        children: [
+          if (isConnected) {
+            _disconnect();
+          } else {
+            _connect();
+          }
+        },
+        child: Row(spacing: 6, children: [
           AnimatedRotation(
             duration: const Duration(milliseconds: 600),
             turns: _isConnecting ? 1 : 0,
@@ -543,9 +480,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             Text(
               text,
               style: TextStyle(fontSize: 14, color: textColor),
-            ),
-        ],
-      ),
-    );
+            )
+        ]));
+
+    return isMobile ? Tooltip(message: text, child: btn) : btn;
   }
 }
