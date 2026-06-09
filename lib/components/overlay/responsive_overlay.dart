@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -80,6 +81,7 @@ int _currentIndex(BuildContext context) {
 List<Widget> _buildActionRowWidgets(BuildContext context) {
   final walletDetailsCubit = context.read<WalletDetailsCubit>();
   return [
+    if (kDebugMode) const DevToolsWidget(),
     const NetworkDropdownSelector(),
     const SDKAccountManagerButton(),
     AccountDropdownSelector(),
@@ -248,7 +250,6 @@ class MobileOverlay extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    const DevToolsWidget(),
                     ..._buildActionRowWidgets(context),
                   ],
                 ),
@@ -274,12 +275,7 @@ class DesktopOverlay extends StatelessWidget {
       appBar: const _DesktopTopBar(),
       body: BlocBuilder<AppBloc, AppState>(
         builder: (context, state) {
-          return Column(
-            children: [
-              const DevToolsWidget(),
-              Expanded(child: child),
-            ],
-          );
+          return child;
         },
       ),
     );
