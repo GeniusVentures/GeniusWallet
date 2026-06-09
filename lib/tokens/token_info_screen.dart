@@ -320,14 +320,10 @@ class TokenInfoScreen extends StatelessWidget {
           },
         ),
         const SizedBox(width: GeniusWalletConsts.space4),
-        // No send flow exists yet — render muted/disabled so it doesn't read
-        // as a broken button.
-        const ActionButton(
+        ActionButton(
           text: "Send",
           icon: Icons.send,
-          iconColor: GeniusWalletColors.textSecondary,
-          textColor: GeniusWalletColors.textSecondary,
-          onPressed: null,
+          onPressed: () => GoRouter.of(context).push('/send'),
         ),
         const SizedBox(width: GeniusWalletConsts.space4),
         ActionButton(

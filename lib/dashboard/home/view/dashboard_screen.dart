@@ -238,12 +238,10 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = <_PillAction>[
-      // Send has no flow yet — disabled rather than a "coming soon" dead-end.
-      const _PillAction(
+      _PillAction(
         icon: Icons.arrow_upward_rounded,
         label: 'Send',
-        onTap: null,
-        disabled: true,
+        onTap: () => context.push('/send'),
       ),
       _PillAction(
         icon: Icons.arrow_downward_rounded,
@@ -290,12 +288,10 @@ class _PillAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.disabled = false,
   });
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
-  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -311,14 +307,12 @@ class _PillAction extends StatelessWidget {
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
-              onTap: disabled ? null : onTap,
+              onTap: onTap,
               child: Center(
                 child: Icon(
                   icon,
                   size: 22,
-                  color: disabled
-                      ? GeniusWalletColors.textPrimary38
-                      : GeniusWalletColors.brandPrimary,
+                  color: GeniusWalletColors.brandPrimary,
                 ),
               ),
             ),
@@ -328,9 +322,7 @@ class _PillAction extends StatelessWidget {
         Text(
           label,
           style: GeniusWalletTypography.labelMd.copyWith(
-            color: disabled
-                ? GeniusWalletColors.textPrimary38
-                : GeniusWalletColors.textSecondary,
+            color: GeniusWalletColors.textSecondary,
           ),
         ),
       ],

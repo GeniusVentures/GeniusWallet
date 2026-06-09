@@ -24,6 +24,7 @@ import 'package:genius_wallet/dev/design_gallery_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
+import 'package:genius_wallet/tokens/send_screen.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
@@ -201,6 +202,12 @@ final geniusWalletRouter = GoRouter(
       path: '/swap',
       builder: (context, state) {
         return const SwapScreen();
+      },
+    ),
+    GoRoute(
+      path: '/send',
+      builder: (context, state) {
+        return const SendScreen();
       },
     ),
     GoRoute(
