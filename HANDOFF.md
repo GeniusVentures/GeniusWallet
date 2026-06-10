@@ -1,8 +1,10 @@
 # UI Redesign — Developer Handoff
 
 This branch applies the **GNUS UI redesign + polish** on top of `dev_logsubmissions`.
-It is **UI-only**: no SDK, native, or build-system work. This document explains
-everything you need to know to review, integrate, and ship it.
+It is **UI-only**, with **one required native follow-up**: the new WalletConnect QR
+scanner needs a camera permission you must add (see **§5a**). Everything else is pure
+Dart/UI — no SDK or build-system work. This document explains everything you need to
+know to review, integrate, and ship it.
 
 ---
 
@@ -19,7 +21,8 @@ everything you need to know to review, integrate, and ship it.
 | **Builds & runs** | Yes — verified on macOS (profile) end-to-end. |
 
 **Everything outside `lib/` and the `*.md` docs that we touched is just two things:**
-`pubspec.yaml` (+2 UI packages) and one texture asset. See §5.
+`pubspec.yaml` (+3 packages — one needs a native camera permission, §5a) and one
+texture asset. See §5.
 
 ---
 
@@ -35,6 +38,13 @@ The redesign is a full visual + structural pass. Highlights:
   token detail, swap, bridge, onboarding, etc.
 - **Global Swap FAB** — a floating Swap action reachable from every authenticated
   screen (`lib/components/overlay/global_swap_fab_host.dart`).
+- **Send screen** — a full Send flow (asset picker → recipient → amount/Max → review),
+  wired to the Home and token-detail **Send** actions (`lib/tokens/send_screen.dart`).
+  The final confirm is a **demo** (see §6).
+- **WalletConnect QR scanner** — the connect drawer (top-right link button) now has a
+  **"Scan QR Code"** option that reads a dApp's `wc:` pairing QR via the camera and
+  pairs through the existing `walletKit.pair()` (`lib/reown/wc_qr_scanner.dart`).
+  **Needs a native camera permission — see §5a.**
 - **Depth & material layer** — a lit page canvas (wash + soft top-light + a subtle
   monochrome grain), top-lit surface "sheen", hairline edges, soft elevation, a
   hero glow behind the balance, and tactile action chips. All centralized in
@@ -91,8 +101,9 @@ off the build pass. Search the diffs for the comments explaining each.
 
 ```yaml
 dependencies:
-  shimmer: ^3.0.0        # loading skeletons
-  google_fonts: ^6.2.1  # Inter typography
+  shimmer: ^3.0.0          # loading skeletons
+  google_fonts: ^6.2.1     # Inter typography
+  mobile_scanner: ^5.2.3   # camera QR scanner for WalletConnect pairing
 flutter:
   assets:
     - assets/images/textures/    # contains noise.png (the canvas grain)
@@ -101,6 +112,23 @@ flutter:
 - `assets/images/textures/noise.png` — a 128px tileable monochrome grain used at
   ~4% opacity for the canvas texture. Committed.
 - Run `flutter pub get` after merging.
+
+### ⚠️ 5a. `mobile_scanner` needs a native camera permission (YOUR action)
+
+The new WalletConnect QR scanner (§2) uses the device camera. We added the Dart
+package + the scanner UI + the pairing wiring, but **the camera permission is native
+config we did not touch** (it lives in the platform projects, outside our UI scope).
+The scanner **will not open until you add it**:
+
+- **iOS** — add `NSCameraUsageDescription` to `ios/Runner/Info.plist`.
+- **macOS** — add `NSCameraUsageDescription` to `macos/Runner/Info.plist` **and** the
+  `com.apple.security.device.camera` entitlement to **both**
+  `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`.
+- **Android** — `mobile_scanner` declares the `CAMERA` permission in its own manifest;
+  just confirm `minSdkVersion >= 21`.
+
+Not testable in our UI-only stub (no camera / entitlement). Verify in your real build:
+open the connect drawer (top-right link button) → **Scan QR Code**.
 
 ---
 
@@ -114,6 +142,9 @@ real data when convenient:
   and the gradient placeholder with the NFT image.
 - **Balance 24h delta** (`_HeroBalance`) — currently a mock `balance * 0.024`.
 - **Token-detail "Security" / "Activity"** sections — still WIP "Coming Soon" content.
+- **Send screen** (`lib/tokens/send_screen.dart`) — a complete Send UI, but the final
+  **"Confirm & Send" is a demo**: it shows a "Transaction submitted (demo)" toast and
+  returns to the dashboard; it does **not** broadcast. Wire it to your real send/sign flow.
 
 ---
 
@@ -175,6 +206,8 @@ judgment or live verification:
   but the main swap UI needs the real token list (won't load in the stub) to eyeball.
 - **Intensity tuning** of the depth layer (glow/grain/AppBar transparency on detail
   screens) — easy, centralized in `GWDecorations`.
+- **Camera permission for the QR scanner** (§5a) — add the native camera usage string +
+  entitlement and verify the scanner opens in your real build. Not testable in the stub.
 
 ---
 

@@ -13,6 +13,7 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/reown/wc_qr_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'dart:io';
@@ -366,6 +367,43 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                  // Scan a dApp's WalletConnect QR with the camera.
+                  TextButton(
+                    onPressed: () async {
+                      final scanned = await WcQrScanner.show(context);
+                      if (scanned == null) return;
+                      try {
+                        final paired = await _tryPair(Uri.parse(scanned));
+                        if (paired) {
+                          _didManualPair = true;
+                          if (context.mounted) Navigator.of(context).pop();
+                        } else {
+                          setInnerState(() => manualInputError =
+                              '❌ Failed to start WalletConnect session.');
+                        }
+                      } catch (e) {
+                        debugPrint('❌ Scan pair failed: $e');
+                      }
+                    },
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.qr_code_scanner,
+                            size: 18,
+                            color: GeniusWalletColors.lightGreenPrimary),
+                        SizedBox(width: GeniusWalletConsts.space4),
+                        Text('Scan QR Code',
+                            style: TextStyle(
+                              color: GeniusWalletColors.gray500,
+                              decoration: TextDecoration.underline,
+                              decorationColor:
+                                  GeniusWalletColors.lightGreenPrimary,
+                              decorationThickness: 2.0,
+                              fontWeight: FontWeight.w600,
+                            )),
                       ],
                     ),
                   ),
