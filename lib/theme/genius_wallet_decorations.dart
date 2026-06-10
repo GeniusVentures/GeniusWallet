@@ -30,15 +30,15 @@ class GWDecorations {
     stops: [0.0, 0.4, 1.0],
   );
 
-  /// Light: a soft cool-gray wash (≈10% off white) so the white cards
-  /// separate clearly from the page.
+  /// Light: a soft cool-gray wash (≈15% off white, user-tuned) so the white
+  /// cards separate clearly from the page.
   static const LinearGradient _canvasLight = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFF0F2F5),
-      Color(0xFFE9ECF1),
-      Color(0xFFE0E4EA),
+      Color(0xFFE3E6EB),
+      Color(0xFFDCE0E6),
+      Color(0xFFD3D7DE),
     ],
     stops: [0.0, 0.4, 1.0],
   );

@@ -45,8 +45,8 @@ class GeniusWalletColors {
   // ---------------------------------------------------------------------------
 
   static const Color _surfaceBaseDark = Color(0xFF0B0D12);
-  // ≈10% gray so white cards separate from the page (user-tuned).
-  static const Color _surfaceBaseLight = Color(0xFFE9ECF1);
+  // ≈15% gray so white cards separate from the page (user-tuned).
+  static const Color _surfaceBaseLight = Color(0xFFDCE0E6);
 
   /// Page background.
   static Color get surfaceBase =>
@@ -67,7 +67,7 @@ class GeniusWalletColors {
       _isLight ? _surfaceMenuLight : _surfaceMenuDark;
 
   static const Color _surfaceSunkenDark = Color(0xFF06080C);
-  static const Color _surfaceSunkenLight = Color(0xFFDCE0E7);
+  static const Color _surfaceSunkenLight = Color(0xFFCFD4DB);
 
   /// Deepest layer.
   static Color get surfaceSunken =>
