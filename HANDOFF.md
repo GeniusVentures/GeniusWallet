@@ -283,6 +283,11 @@ judgment or live verification:
   screens) — easy, centralized in `GWDecorations`.
 - **Camera permission for the QR scanner** (§5a) — add the native camera usage string +
   entitlement and verify the scanner opens in your real build. Not testable in the stub.
+- **Notch / Dynamic Island** — all routed screens were audited for top-inset
+  safety (AppBar / SafeArea / shell-level SafeArea). The swap screen (no AppBar)
+  was the only gap and its body now sits in a `SafeArea`; the QR scanner's
+  bottom hint clears the home indicator. The macOS stub has zero insets, so give
+  the swap header one visual pass on a real notched iPhone.
 
 ---
 

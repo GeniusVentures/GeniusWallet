@@ -132,7 +132,9 @@ class _GWQrScannerState extends State<GWQrScanner> {
           Positioned(
             left: GeniusWalletConsts.space8,
             right: GeniusWalletConsts.space8,
-            bottom: GeniusWalletConsts.space24,
+            // Clear the home indicator on bottom-inset devices.
+            bottom: GeniusWalletConsts.space24 +
+                MediaQuery.of(context).viewPadding.bottom,
             child: Text(
               widget.hint,
               textAlign: TextAlign.center,
