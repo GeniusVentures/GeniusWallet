@@ -31,3 +31,4 @@ const String addressBookContactsKey = 'contacts';
 // preferences
 const String preferencesBoxName = 'preferences';
 const String appearanceModeKey = 'appearance_mode';
+const String currencyCodeKey = 'currency_code';

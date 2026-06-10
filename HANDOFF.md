@@ -89,7 +89,7 @@ fixes are safe, behavior-preserving robustness improvements.
 | `lib/dashboard/transactions/cubit/transactions_cubit.dart` | Removed the **`emit()` from the constructor**; the seed list is sorted via `super(...)` instead. | A Cubit ctor `emit()` is a known anti-pattern; it fires synchronously and can land mid-frame. |
 | `lib/components/overlay/global_swap_fab_host.dart` | (Our own component.) Converted from a `ListenableBuilder` to a `StatefulWidget` that registers the router listener in `initState` and only touches the router after the first frame. | It read `routerDelegate.currentConfiguration` inside the `MaterialApp.router` builder during the first build. |
 | `lib/hive/constants/cache.dart` + `lib/hive/init.dart` | Added and open new `addressBook` + `preferences` Hive boxes (plain maps, no adapters). | Persistence for the send-screen address book and the dark/light appearance. |
-| `lib/main.dart` | Loads the persisted appearance after Hive init and wraps `MaterialApp.router` in a `ValueListenableBuilder` on `GWAppearance`. | Rebuilds the app when dark/light toggles. |
+| `lib/main.dart` | Loads the persisted appearance + currency after Hive init and wraps `MaterialApp.router` in an `AnimatedBuilder` on both notifiers, with a **`ValueKey` that remounts the subtree** when either changes. | The colour tokens are static getters (not `InheritedWidget` lookups), so a plain rebuild leaves captured colours stale — the keyed remount guarantees a full re-skin. go_router's delegate is global, so the current location survives. |
 | ~60 widget files | Mechanical sweep: removed `const` from expressions referencing colour/typography tokens (they are appearance-aware **getters** now). A few optional params defaulting to tokens became nullable with `?? token` at the use site — behaviour identical. | Const expressions can't reference getters; this is the cost of runtime-switchable theming without a full `Theme.of(context)` refactor. |
 
 **None of these change behavior in the normal async flow** — they just move work
@@ -168,8 +168,11 @@ real data when convenient:
   relay, `_connect()` falls back to a **demo QR** so the drawer (QR + paste + Scan QR
   Code) is operable for verification, and `create()` got an **8s timeout** so it can't
   hang. Production (no `WALLET_PK`) is unchanged — real pairing + real error surfacing.
-- **Preferences sheet** — the **Currency (USD)** row is a static, display-only
-  placeholder; **Network** and **Appearance (Dark/Light)** are functional.
+- **Preferences sheet** — all three rows are functional (Network, Currency,
+  Appearance). **Currency is display-only**: the chosen symbol shows on the home
+  hero balance (`lib/preferences/gw_currency.dart`), but values are **not
+  FX-converted** — they stay USD-priced. Wire real rates/formatting to make it
+  meaningful.
 - **Light mode coverage** — the token layer flips cleanly, but screens that
   hardcode `Colors.white`/legacy dark fills (some auth/onboarding surfaces, the
   branded `GWMeshBackground`, a few legacy `btnFilter`-style fills) keep their

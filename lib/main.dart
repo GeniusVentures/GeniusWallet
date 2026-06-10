@@ -13,6 +13,7 @@ import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
+import 'package:genius_wallet/preferences/gw_currency.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -104,6 +105,7 @@ Future<void> main() async {
     appRunner: () async {
       await initHive();
       GWAppearance.instance.load();
+      GWCurrency.instance.load();
 
       final secureStorage = await LocalWalletStorage.create();
       try {
@@ -304,11 +306,17 @@ class MyApp extends StatelessWidget {
             create: (context) => NavigationOverlayCubit(),
           )
         ],
-        // Rebuild the whole app when the appearance (dark/light) toggles so
-        // the mode-aware colour tokens re-resolve everywhere.
-        child: ValueListenableBuilder<GWAppearanceMode>(
-          valueListenable: GWAppearance.instance,
-          builder: (context, appearanceMode, _) => MaterialApp.router(
+        // Rebuild AND remount the app when the appearance (dark/light) or the
+        // display currency changes. The colour tokens are plain static getters
+        // (not InheritedWidget lookups), so without the ValueKey remount,
+        // widgets that captured a token during build would keep stale colours.
+        // go_router's delegate is a global — the current location survives.
+        child: AnimatedBuilder(
+          animation:
+              Listenable.merge([GWAppearance.instance, GWCurrency.instance]),
+          builder: (context, _) => MaterialApp.router(
+            key: ValueKey(
+                '${GWAppearance.instance.value.name}-${GWCurrency.instance.value}'),
             debugShowCheckedModeBanner: false,
             useInheritedMediaQuery: true,
             locale: DevicePreview.locale(context),

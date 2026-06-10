@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
+import 'package:genius_wallet/preferences/gw_currency.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -101,14 +102,28 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
                   if (picked != null && mounted) setState(() {});
                 },
         ),
-        const _PrefRow(
-          leading: Icon(
+        _PrefRow(
+          leading: const Icon(
             Icons.payments_outlined,
             size: 20,
             color: GeniusWalletColors.textSecondary,
           ),
           title: 'Currency',
-          value: 'USD',
+          value: GWCurrency.instance.value,
+          showChevron: true,
+          onTap: () async {
+            final picked = await ResponsiveDrawer.show<String>(
+              context: context,
+              title: 'Currency',
+              children: [
+                for (final c in gwCurrencies) _CurrencyOption(option: c),
+              ],
+            );
+            if (picked != null) {
+              await GWCurrency.instance.setCode(picked);
+              if (mounted) setState(() {});
+            }
+          },
         ),
         _PrefRow(
           leading: Icon(
@@ -148,6 +163,61 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
         ),
         const SizedBox(height: GeniusWalletConsts.space4),
       ],
+    );
+  }
+}
+
+class _CurrencyOption extends StatelessWidget {
+  const _CurrencyOption({required this.option});
+
+  final GWCurrencyOption option;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = GWCurrency.instance.value == option.code;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              isSelected ? GeniusWalletColors.brandPrimary.withAlpha(38) : null,
+          gradient: isSelected ? null : GWDecorations.surfaceSheen,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+          border: Border.all(
+            color: isSelected
+                ? GeniusWalletColors.brandPrimary
+                : GeniusWalletColors.borderSubtle,
+          ),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+          ),
+          leading: SizedBox(
+            width: 32,
+            child: Text(
+              option.symbol.trim(),
+              textAlign: TextAlign.center,
+              style: GeniusWalletTypography.titleMd
+                  .copyWith(color: GeniusWalletColors.brandPrimary),
+            ),
+          ),
+          minLeadingWidth: 0,
+          title: Text(option.code, style: GeniusWalletTypography.titleMd),
+          subtitle: Text(option.label, style: GeniusWalletTypography.bodySm),
+          trailing: isSelected
+              ? const Icon(
+                  Icons.check_circle_rounded,
+                  color: GeniusWalletColors.brandPrimary,
+                  size: 20,
+                )
+              : null,
+          onTap: () => Navigator.of(context).pop(option.code),
+        ),
+      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
+import 'package:genius_wallet/preferences/gw_currency.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -178,7 +179,9 @@ class _HeroBalance extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: GWAnimatedNumber(
                   value: balance,
-                  prefix: '\$',
+                  // Display-only currency symbol — values stay USD-priced
+                  // until FX conversion is wired (HANDOFF.md §6).
+                  prefix: GWCurrency.symbol,
                   decimals: 2,
                   textAlign: TextAlign.center,
                   style: GeniusWalletTypography.numericDisplay.copyWith(
@@ -206,7 +209,7 @@ class _HeroBalance extends StatelessWidget {
               ),
               const SizedBox(width: GeniusWalletConsts.space2),
               Text(
-                '${positive ? '+' : '−'}\$${delta.abs().toStringAsFixed(2)}',
+                '${positive ? '+' : '−'}${GWCurrency.symbol}${delta.abs().toStringAsFixed(2)}',
                 style: GeniusWalletTypography.labelMd.copyWith(
                   color: positive
                       ? GeniusWalletColors.brandSecondary
