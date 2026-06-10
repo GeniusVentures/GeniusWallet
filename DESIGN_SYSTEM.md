@@ -752,9 +752,10 @@ persisted in Hive, driven by `lib/theme/gw_appearance.dart`):
 - **Dark** (default): a **true-black** canvas — `surfaceBase #0B0D12`, canvas wash
   `#14171E → #0B0D12 → #07090D`, cards `surfaceElevated #0C0E14`, menus
   `surfaceMenu #171A21`. This replaces the previous teal canvas (`#2A6275`).
-- **Light**: a **white** canvas — `surfaceBase #FFFFFF`, wash `#FFFFFF → #F2F4F8`,
-  white cards, `surfaceMenu #EFF2F6`, ink text `#10131A` with the same alpha
-  ladder, ink-based hairlines.
+- **Light**: a cool-gray canvas with **white cards** — `surfaceBase #E9ECF1`,
+  wash `#F0F2F5 → #E0E4EA` (≈10% off white so cards separate clearly),
+  `surfaceMenu #EFF2F6`, ink text `#10131A` with the same alpha ladder,
+  ink-based hairlines.
 - Mode-aware tokens are **getters** now: surfaces, the `textPrimary` ladder,
   `borderSubtle/Strong`, the canvas/sheen gradients in `GWDecorations`, and the
   `GeniusWalletTypography` styles. **They can no longer appear inside `const`
