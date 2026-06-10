@@ -184,11 +184,19 @@ real data when convenient:
   no address validation or sync. Wire to real contact storage/validation if desired.
 - **Buy screen** (`lib/tokens/buy_screen.dart`, route `/buy-tokens`) — a
   credit-card purchase flow (fiat amount + quick chips, token picker, card as
-  the payment method, review sheet). The final **"Confirm purchase" is a demo**
-  (toast + back to dashboard) and no live quote is fetched — wire it to the
-  real on-ramp (Banxa) for quotes + checkout. The pre-existing Banxa
-  `/buy` route (`OrdersPage`, used by the desktop "Buy GNUS" button) is
-  untouched.
+  the payment method, review sheet). To wire it up:
+  1. The final **"Confirm purchase" is a demo** (toast + back to dashboard) —
+     hand off to the real on-ramp (Banxa) checkout instead.
+  2. **No live quote is fetched** — fetch/show the on-ramp quote (the UI slot
+     is the "Quote — shown at checkout" review row).
+  3. The token picker currently lists the **wallet's own coins**; swap it to
+     the on-ramp's **purchasable-token catalogue** (you can buy tokens you
+     don't hold yet).
+  4. The fiat amount uses the **display currency** from Preferences — pass it
+     to the on-ramp as the fiat code.
+  The pre-existing Banxa `/buy` route (`OrdersPage`, used by the desktop
+  "Buy GNUS" button) is untouched; decide whether that button should also
+  point at the new flow.
 
 ---
 
