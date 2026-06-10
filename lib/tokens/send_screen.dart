@@ -5,6 +5,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
+import 'package:genius_wallet/components/qr_scanner/gw_qr_scanner.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -119,6 +120,29 @@ class _SendScreenState extends State<SendScreen> {
                           suffix: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              IconButton(
+                                tooltip: 'Scan QR code',
+                                icon: const Icon(Icons.qr_code_scanner_rounded,
+                                    size: 18,
+                                    color: GeniusWalletColors.textSecondary),
+                                onPressed: () async {
+                                  final scanned = await GWQrScanner.show(
+                                    context,
+                                    title: 'Scan address',
+                                    hint:
+                                        'Point at a wallet-address QR code',
+                                    // Ignore WalletConnect pairing codes —
+                                    // they are not addresses.
+                                    accept: (raw) => raw.startsWith('wc:')
+                                        ? null
+                                        : extractWalletAddress(raw),
+                                  );
+                                  if (scanned != null && mounted) {
+                                    _recipient.text = scanned;
+                                    setState(() {});
+                                  }
+                                },
+                              ),
                               IconButton(
                                 tooltip: 'Address book',
                                 icon: const Icon(Icons.contacts_outlined,

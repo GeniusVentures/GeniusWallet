@@ -14,7 +14,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
-import 'package:genius_wallet/reown/wc_qr_scanner.dart';
+import 'package:genius_wallet/components/qr_scanner/gw_qr_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'dart:io';
@@ -393,7 +393,12 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                   // Scan a dApp's WalletConnect QR with the camera.
                   TextButton(
                     onPressed: () async {
-                      final scanned = await WcQrScanner.show(context);
+                      final scanned = await GWQrScanner.show(
+                        context,
+                        title: 'Scan to connect',
+                        hint: 'Point at a WalletConnect QR code on the dApp',
+                        accept: (raw) => raw.startsWith('wc:') ? raw : null,
+                      );
                       if (scanned == null) return;
                       try {
                         final paired = await _tryPair(Uri.parse(scanned));

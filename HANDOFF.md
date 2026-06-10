@@ -65,9 +65,15 @@ The redesign is a full visual + structural pass. Highlights:
 - **Send screen** — a full Send flow (asset picker → recipient → amount/Max → review),
   wired to the Home and token-detail **Send** actions (`lib/tokens/send_screen.dart`).
   The final confirm is a **demo** (see §6).
-- **WalletConnect QR scanner** — the connect drawer (top-right link button) now has a
-  **"Scan QR Code"** option that reads a dApp's `wc:` pairing QR via the camera and
-  pairs through the existing `walletKit.pair()` (`lib/reown/wc_qr_scanner.dart`).
+- **Camera QR scanner** — a shared full-screen scanner component
+  (`lib/components/qr_scanner/gw_qr_scanner.dart`) with two call sites:
+  1. **WalletConnect** — the connect drawer (top-right link button) has a
+     **"Scan QR Code"** option that reads a dApp's `wc:` pairing QR and pairs
+     through the existing `walletKit.pair()`.
+  2. **Send screen** — the recipient field has a scan button that reads a
+     wallet-address QR. `extractWalletAddress()` (same file) strips
+     EIP-681/BIP-21 URI wrappers (`ethereum:0x…@1?value=…`, `bitcoin:…?amount=…`)
+     down to the bare address; WalletConnect codes are ignored here.
   **Needs a native camera permission — see §5a.**
 - **Depth & material layer** — a lit page canvas (wash + soft top-light + a subtle
   monochrome grain), top-lit surface "sheen", hairline edges, soft elevation, a
@@ -142,10 +148,11 @@ flutter:
 
 ### ⚠️ 5a. `mobile_scanner` needs a native camera permission (YOUR action)
 
-The new WalletConnect QR scanner (§2) uses the device camera. We added the Dart
-package + the scanner UI + the pairing wiring, but **the camera permission is native
-config we did not touch** (it lives in the platform projects, outside our UI scope).
-The scanner **will not open until you add it**:
+The QR scanner (§2 — used by **both** the WalletConnect connect drawer and the
+Send screen's address scan) uses the device camera. We added the Dart package +
+the scanner UI + the wiring, but **the camera permission is native config we did
+not touch** (it lives in the platform projects, outside our UI scope). The
+scanner **will not open until you add it**:
 
 - **iOS** — add `NSCameraUsageDescription` to `ios/Runner/Info.plist`.
 - **macOS** — add `NSCameraUsageDescription` to `macos/Runner/Info.plist` **and** the
@@ -154,8 +161,9 @@ The scanner **will not open until you add it**:
 - **Android** — `mobile_scanner` declares the `CAMERA` permission in its own manifest;
   just confirm `minSdkVersion >= 21`.
 
-Not testable in our UI-only stub (no camera / entitlement). Verify in your real build:
-open the connect drawer (top-right link button) → **Scan QR Code**.
+Not testable in our UI-only stub (no camera / entitlement). Verify in your real
+build at both call sites: connect drawer (top-right link button) → **Scan QR
+Code**, and Send screen → scan icon in the recipient field.
 
 ---
 
