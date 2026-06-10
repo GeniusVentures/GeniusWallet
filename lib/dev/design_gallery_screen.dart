@@ -122,9 +122,9 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               _Swatch('Tertiary', GeniusWalletColors.brandTertiary),
             ]),
           ),
-          const _Section(
+          _Section(
             title: 'Surfaces',
-            child: _ColorRow(swatches: const [
+            child: _ColorRow(swatches: [
               _Swatch('Base (canvas)', GeniusWalletColors.surfaceBase),
               _Swatch('Elevated (card)', GeniusWalletColors.surfaceElevated),
               _Swatch('Menu / sheet', GeniusWalletColors.surfaceMenu),
@@ -140,21 +140,21 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               _Swatch('Info', GeniusWalletColors.statusInfo),
             ]),
           ),
-          const _Section(
+          _Section(
             title: 'Gradients',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: const [
-                _GradientSwatch(
+              children: [
+                const _GradientSwatch(
                   label: 'brandCta (CTA, green→blue)',
                   gradient: GeniusWalletGradient.brandCta,
                 ),
-                SizedBox(height: GeniusWalletConsts.space4),
-                _GradientSwatch(
+                const SizedBox(height: GeniusWalletConsts.space4),
+                const _GradientSwatch(
                   label: 'brandBorder (cyan→mint, used as outline)',
                   gradient: GeniusWalletGradient.brandBorder,
                 ),
-                SizedBox(height: GeniusWalletConsts.space4),
+                const SizedBox(height: GeniusWalletConsts.space4),
                 _GradientSwatch(
                   label: 'heroWash (canvas → card)',
                   gradient: GeniusWalletGradient.heroWash,

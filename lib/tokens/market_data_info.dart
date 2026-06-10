@@ -41,7 +41,7 @@ class MarketDataInfo extends StatelessWidget {
                   .copyWith(color: GeniusWalletColors.gray500)),
           trailing: Text(
             network ?? "",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: GeniusWalletColors.textPrimary,
@@ -67,7 +67,7 @@ class MarketDataInfo extends StatelessWidget {
                 address!.length > 12
                     ? "${address!.substring(0, 6)}...${address!.substring(address!.length - 6)}"
                     : address!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: GeniusWalletColors.textPrimary,
@@ -94,7 +94,7 @@ class MarketDataInfo extends StatelessWidget {
                 .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactCurrency(marketData?.marketCap),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: GeniusWalletColors.textPrimary,
@@ -110,7 +110,7 @@ class MarketDataInfo extends StatelessWidget {
                 .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactDecimal(marketData?.circulatingSupply),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: GeniusWalletColors.textPrimary,
@@ -126,7 +126,7 @@ class MarketDataInfo extends StatelessWidget {
                 .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactDecimal(marketData?.totalSupply),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: GeniusWalletColors.textPrimary,
@@ -143,7 +143,7 @@ class MarketDataInfo extends StatelessWidget {
                 .copyWith(color: GeniusWalletColors.gray500)),
         trailing: Text(
           _formatCompactCurrency(marketData?.totalVolume),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: GeniusWalletColors.textPrimary,
@@ -173,8 +173,7 @@ class MarketDataInfo extends StatelessWidget {
           color: GeniusWalletColors.deepBlueCardColor,
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(
-                color: GeniusWalletColors.borderSubtle, width: 1),
+            side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -199,7 +198,7 @@ class MarketDataInfo extends StatelessWidget {
                 title: Text(
                   marketData?.name ?? "Unknown Token",
                   maxLines: 2,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: GeniusWalletColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -221,8 +220,8 @@ class MarketDataInfo extends StatelessWidget {
                 children: [
                   for (int i = 0; i < infoTiles.length; i++) ...[
                     if (i > 0)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 50.0, right: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 50.0, right: 10),
                         child: Divider(
                           height: 1,
                           color: GeniusWalletColors.deepBlue,
@@ -234,7 +233,7 @@ class MarketDataInfo extends StatelessWidget {
               ),
 
               if (aboutText != null && aboutText!.isNotEmpty) ...[
-                const Divider(color: GeniusWalletColors.deepBlue, height: 1),
+                Divider(color: GeniusWalletColors.deepBlue, height: 1),
                 ExpansionTile(
                   title: Text(
                     "About",

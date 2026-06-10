@@ -31,8 +31,7 @@ class TransactionItem extends StatelessWidget {
     return Card(
         color: GeniusWalletColors.deepBlueMenu,
         shape: RoundedRectangleBorder(
-            side: const BorderSide(
-                color: GeniusWalletColors.borderSubtle, width: 1),
+            side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
             borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           leading: _buildIcon(arrowBgColor, arrowIcon),
@@ -68,8 +67,8 @@ class TransactionItem extends StatelessWidget {
             )),
         Text(
           "Fee: ${tx.fees} ${tx.coinSymbol}",
-          style: const TextStyle(
-              fontSize: 12, color: GeniusWalletColors.textPrimary70),
+          style:
+              TextStyle(fontSize: 12, color: GeniusWalletColors.textPrimary70),
         ),
       ],
     );
@@ -110,16 +109,17 @@ class TransactionItem extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(String label, String value,
-      {Color valueColor = GeniusWalletColors.textPrimary}) {
+  Widget _buildRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
-          Text(value, style: TextStyle(color: valueColor)),
+              style: TextStyle(color: GeniusWalletColors.textPrimary70)),
+          Text(value,
+              style: TextStyle(
+                  color: valueColor ?? GeniusWalletColors.textPrimary)),
         ],
       ),
     );
@@ -175,7 +175,7 @@ class TransactionItem extends StatelessWidget {
         Center(
           child: Text(
             amountText,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: GeniusWalletColors.textPrimary),
@@ -185,8 +185,8 @@ class TransactionItem extends StatelessWidget {
         Card(
           color: GeniusWalletColors.deepBlueMenu,
           shape: RoundedRectangleBorder(
-              side: const BorderSide(
-                  color: GeniusWalletColors.borderSubtle, width: 1),
+              side:
+                  BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
               borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(GeniusWalletConsts.space8),
@@ -219,8 +219,8 @@ class TransactionItem extends StatelessWidget {
             launchWebSite(context, uri.toString());
           }
         },
-        icon: const Icon(Icons.open_in_new,
-            color: GeniusWalletColors.deepBlueTertiary),
+        icon:
+            Icon(Icons.open_in_new, color: GeniusWalletColors.deepBlueTertiary),
         label: const Text("View on Explorer"),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.lightBlueAccent,

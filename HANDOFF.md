@@ -46,6 +46,14 @@ The redesign is a full visual + structural pass. Highlights:
   contextual reuse but is no longer mounted).
 - **Send address book** — save/pick recipients on the Send screen, persisted
   device-locally in Hive (`lib/tokens/address_book.dart`).
+- **Dark / Light appearance** — Preferences ▸ Appearance toggles a **black**
+  (dark) or **white** (light) canvas, persisted in Hive. The neutral tokens
+  (surfaces, the `textPrimary` alpha ladder, hairlines, canvas/sheen gradients,
+  typography defaults) are now **appearance-aware getters** driven by
+  `lib/theme/gw_appearance.dart`; brand + status colours stay fixed.
+  `main.dart` rebuilds `MaterialApp` on toggle (ValueListenableBuilder).
+  Note: this replaced the previous teal page canvas with a true-black one in
+  dark mode.
 - **Send screen** — a full Send flow (asset picker → recipient → amount/Max → review),
   wired to the Home and token-detail **Send** actions (`lib/tokens/send_screen.dart`).
   The final confirm is a **demo** (see §6).
@@ -80,7 +88,9 @@ fixes are safe, behavior-preserving robustness improvements.
 | `lib/components/splash.dart` | The `BlocListener`'s `context.go(...)` is now deferred to a **post-frame callback** (with a `mounted` guard). | It navigated the instant `AppBloc` emitted `loaded`, i.e. potentially mid-build. |
 | `lib/dashboard/transactions/cubit/transactions_cubit.dart` | Removed the **`emit()` from the constructor**; the seed list is sorted via `super(...)` instead. | A Cubit ctor `emit()` is a known anti-pattern; it fires synchronously and can land mid-frame. |
 | `lib/components/overlay/global_swap_fab_host.dart` | (Our own component.) Converted from a `ListenableBuilder` to a `StatefulWidget` that registers the router listener in `initState` and only touches the router after the first frame. | It read `routerDelegate.currentConfiguration` inside the `MaterialApp.router` builder during the first build. |
-| `lib/hive/constants/cache.dart` + `lib/hive/init.dart` | Added and open a new `addressBook` Hive box (plain maps, no adapter). | Persistence for the send-screen address book. |
+| `lib/hive/constants/cache.dart` + `lib/hive/init.dart` | Added and open new `addressBook` + `preferences` Hive boxes (plain maps, no adapters). | Persistence for the send-screen address book and the dark/light appearance. |
+| `lib/main.dart` | Loads the persisted appearance after Hive init and wraps `MaterialApp.router` in a `ValueListenableBuilder` on `GWAppearance`. | Rebuilds the app when dark/light toggles. |
+| ~60 widget files | Mechanical sweep: removed `const` from expressions referencing colour/typography tokens (they are appearance-aware **getters** now). A few optional params defaulting to tokens became nullable with `?? token` at the use site — behaviour identical. | Const expressions can't reference getters; this is the cost of runtime-switchable theming without a full `Theme.of(context)` refactor. |
 
 **None of these change behavior in the normal async flow** — they just move work
 off the build pass. Search the diffs for the comments explaining each.
@@ -158,8 +168,13 @@ real data when convenient:
   relay, `_connect()` falls back to a **demo QR** so the drawer (QR + paste + Scan QR
   Code) is operable for verification, and `create()` got an **8s timeout** so it can't
   hang. Production (no `WALLET_PK`) is unchanged — real pairing + real error surfacing.
-- **Preferences sheet** — the **Currency (USD)** and **Appearance (Dark)** rows are
-  static, display-only placeholders; only **Network** is functional today.
+- **Preferences sheet** — the **Currency (USD)** row is a static, display-only
+  placeholder; **Network** and **Appearance (Dark/Light)** are functional.
+- **Light mode coverage** — the token layer flips cleanly, but screens that
+  hardcode `Colors.white`/legacy dark fills (some auth/onboarding surfaces, the
+  branded `GWMeshBackground`, a few legacy `btnFilter`-style fills) keep their
+  dark styling in light mode. Sweep them token-by-token if full light coverage
+  is wanted.
 - **Address book** — local-only (`addressBook` Hive box), plain name/address pairs,
   no address validation or sync. Wire to real contact storage/validation if desired.
 

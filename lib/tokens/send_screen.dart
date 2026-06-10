@@ -300,8 +300,8 @@ class _SendScreenState extends State<SendScreen> {
           onPressed: () {
             Navigator.of(context).pop(); // close review sheet
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Transaction submitted (demo)'),
+              SnackBar(
+                content: const Text('Transaction submitted (demo)'),
                 backgroundColor: GeniusWalletColors.surfaceMenu,
               ),
             );

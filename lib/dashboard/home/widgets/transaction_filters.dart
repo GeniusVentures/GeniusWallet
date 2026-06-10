@@ -32,7 +32,7 @@ class TransactionFiltersState extends State<TransactionFilters> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Center(
+            Center(
                 child: AutoSizeText(
               'Transactions',
               maxLines: 1,

@@ -44,7 +44,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Flexible(
+                Flexible(
                   child: AutoSizeText(
                     'Current Balance',
                     maxLines: 1,
@@ -95,7 +95,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
                       child: AutoSizeText(
                         displayBalance,
                         maxLines: 1,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 36.0,
                           fontWeight: FontWeight.w500,
                           color: GeniusWalletColors.textPrimary,

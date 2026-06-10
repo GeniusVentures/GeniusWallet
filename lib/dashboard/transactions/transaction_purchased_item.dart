@@ -32,8 +32,7 @@ class TransactionPurchasedItem extends StatelessWidget {
     return Card(
       color: GeniusWalletColors.deepBlueMenu,
       shape: RoundedRectangleBorder(
-          side: const BorderSide(
-              color: GeniusWalletColors.borderSubtle, width: 1),
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
           borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: () => _showPurchaseTransactionDetails(context, tx),
@@ -58,8 +57,8 @@ class TransactionPurchasedItem extends StatelessWidget {
         ),
         subtitle: Text(
           timeago.format(tx.timeStamp.toLocal()),
-          style: const TextStyle(
-              fontSize: 12, color: GeniusWalletColors.textPrimary70),
+          style:
+              TextStyle(fontSize: 12, color: GeniusWalletColors.textPrimary70),
         ),
         trailing: _buildAmount(amountColor, amount, isFailed),
       ),
@@ -112,8 +111,8 @@ class TransactionPurchasedItem extends StatelessWidget {
           isFailed
               ? currencyFormatter.format(0)
               : "Spent: ${currencyFormatter.format(double.tryParse(tx.fees) ?? 0)}",
-          style: const TextStyle(
-              fontSize: 12, color: GeniusWalletColors.textPrimary70),
+          style:
+              TextStyle(fontSize: 12, color: GeniusWalletColors.textPrimary70),
         )
       ],
     );
@@ -181,8 +180,8 @@ class TransactionPurchasedItem extends StatelessWidget {
         Card(
           color: GeniusWalletColors.deepBlueMenu,
           shape: RoundedRectangleBorder(
-              side: const BorderSide(
-                  color: GeniusWalletColors.borderSubtle, width: 1),
+              side:
+                  BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
               borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(GeniusWalletConsts.space8),
@@ -233,16 +232,17 @@ class TransactionPurchasedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(String label, String value,
-      {Color valueColor = GeniusWalletColors.textPrimary}) {
+  Widget _buildRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
-          Text(value, style: TextStyle(color: valueColor)),
+              style: TextStyle(color: GeniusWalletColors.textPrimary70)),
+          Text(value,
+              style: TextStyle(
+                  color: valueColor ?? GeniusWalletColors.textPrimary)),
         ],
       ),
     );

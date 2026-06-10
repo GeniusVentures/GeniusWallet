@@ -37,6 +37,7 @@ Widget _defaultIcon(size) {
       shape: BoxShape.circle,
       color: Colors.grey, // Background color for default icon
     ),
-    child: const Icon(Icons.image_not_supported, color: GeniusWalletColors.textPrimary),
+    child:
+        Icon(Icons.image_not_supported, color: GeniusWalletColors.textPrimary),
   );
 }

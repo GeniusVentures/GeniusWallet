@@ -12,8 +12,7 @@ class TransactionEscrowReleaseItem extends StatelessWidget {
     return Card(
         color: GeniusWalletColors.deepBlueMenu,
         shape: RoundedRectangleBorder(
-            side: const BorderSide(
-                color: GeniusWalletColors.borderSubtle, width: 1),
+            side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
             borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           title: Text("Completed job"),

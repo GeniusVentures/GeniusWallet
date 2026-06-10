@@ -50,14 +50,15 @@ class BottomDrawer extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       tooltip: 'Close',
-                      icon: const Icon(Icons.close, color: GeniusWalletColors.textPrimary),
+                      icon: Icon(Icons.close,
+                          color: GeniusWalletColors.textPrimary),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: GeniusWalletColors.textPrimary12),
+            Divider(height: 1, color: GeniusWalletColors.textPrimary12),
             const SizedBox(height: GeniusWalletConsts.space2),
             // Scrollable content
             Expanded(

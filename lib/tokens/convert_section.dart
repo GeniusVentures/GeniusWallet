@@ -59,8 +59,7 @@ class _ConvertSectionState extends State<ConvertSection> {
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(
-              color: GeniusWalletColors.borderSubtle, width: 1),
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
@@ -74,11 +73,11 @@ class _ConvertSectionState extends State<ConvertSection> {
                 controller: _tokenPriceController,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Token Price",
                   labelStyle:
                       TextStyle(color: GeniusWalletColors.textPrimary70),
-                  border: OutlineInputBorder(
+                  border: const OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
@@ -87,13 +86,13 @@ class _ConvertSectionState extends State<ConvertSection> {
                         color: GeniusWalletColors
                             .textPrimary12), // Bottom border color
                   ),
-                  focusedBorder: UnderlineInputBorder(
+                  focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(
                         color: GeniusWalletColors
                             .lightGreenPrimary), // Highlighted border
                   ),
                 ),
-                style: const TextStyle(color: GeniusWalletColors.textPrimary),
+                style: TextStyle(color: GeniusWalletColors.textPrimary),
                 onChanged: (_) => _calculateTotalValue(),
               ),
               const SizedBox(height: GeniusWalletConsts.space10),
@@ -101,11 +100,11 @@ class _ConvertSectionState extends State<ConvertSection> {
                 controller: _tokenAmountController,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Token Amount",
                   labelStyle:
                       TextStyle(color: GeniusWalletColors.textPrimary70),
-                  border: OutlineInputBorder(
+                  border: const OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
@@ -114,13 +113,13 @@ class _ConvertSectionState extends State<ConvertSection> {
                         color: GeniusWalletColors
                             .textPrimary12), // Bottom border color
                   ),
-                  focusedBorder: UnderlineInputBorder(
+                  focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(
                         color: GeniusWalletColors
                             .lightGreenPrimary), // Highlighted border
                   ),
                 ),
-                style: const TextStyle(color: GeniusWalletColors.textPrimary),
+                style: TextStyle(color: GeniusWalletColors.textPrimary),
                 onChanged: (_) => _calculateTotalValue(),
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
@@ -131,7 +130,7 @@ class _ConvertSectionState extends State<ConvertSection> {
                       locale: "en_US",
                       symbol: "\$",
                     ).format(_totalValue)}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: GeniusWalletColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -85,7 +85,7 @@ class DesktopContainer extends StatelessWidget {
                         ),
                         const SizedBox(width: GeniusWalletConsts.space8),
                         // Buttons
-                        const Row(
+                        Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             HeaderButton(
@@ -95,7 +95,7 @@ class DesktopContainer extends StatelessWidget {
                               icon: Icons.question_mark_outlined,
                               isAddBorder: true,
                             ),
-                            SizedBox(width: GeniusWalletConsts.space6),
+                            const SizedBox(width: GeniusWalletConsts.space6),
                             HeaderButton(
                               color: GeniusWalletColors.gray900,
                               text: 'Genius 1',
@@ -145,7 +145,8 @@ class HeaderButton extends StatelessWidget {
         child: TextButton.icon(
       onPressed: route != null ? () => context.push(route!) : null,
       style: ButtonStyle(
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(GeniusWalletConsts.space10)),
+        padding: const WidgetStatePropertyAll(
+            EdgeInsets.all(GeniusWalletConsts.space10)),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           return color;
         }),
@@ -153,7 +154,9 @@ class HeaderButton extends StatelessWidget {
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: isAddBorder!
-                ? BorderSide(width: 1, color: textColor ?? GeniusWalletColors.statusError)
+                ? BorderSide(
+                    width: 1,
+                    color: textColor ?? GeniusWalletColors.statusError)
                 : BorderSide.none,
           ),
         ),

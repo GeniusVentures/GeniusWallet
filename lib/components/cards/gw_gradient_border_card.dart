@@ -21,7 +21,7 @@ class GWGradientBorderCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(GeniusWalletConsts.space8),
     this.onTap,
     this.gradient = GeniusWalletGradient.brandBorder,
-    this.background = GeniusWalletColors.surfaceElevated,
+    this.background,
     this.borderWidth = 1.5,
     this.radius = GeniusWalletConsts.radius2xl,
     this.glow = false,
@@ -38,7 +38,7 @@ class GWGradientBorderCard extends StatelessWidget {
   /// Outline gradient. Defaults to the cyan→mint brand outline; pass
   /// [GeniusWalletGradient.brandCta] for a green→blue treatment instead.
   final LinearGradient gradient;
-  final Color background;
+  final Color? background;
   final double borderWidth;
   final double radius;
 
@@ -64,7 +64,9 @@ class GWGradientBorderCard extends StatelessWidget {
       (radius - borderWidth).clamp(0.0, radius),
     );
 
-    final innerBg = glass ? background.withAlpha(115) : background;
+    final innerBg = glass
+        ? (background ?? GeniusWalletColors.surfaceElevated).withAlpha(115)
+        : (background ?? GeniusWalletColors.surfaceElevated);
 
     Widget innerSurface = Container(
       decoration: BoxDecoration(

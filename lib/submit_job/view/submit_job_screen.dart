@@ -261,8 +261,8 @@ class SubmitJobScreen extends StatelessWidget {
                                 if (uploadedJson.isNotEmpty)
                                   Container(
                                     padding: const EdgeInsets.all(16),
-                                    decoration: const BoxDecoration(
-                                      borderRadius: BorderRadius.all(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
                                         Radius.circular(
                                           GeniusWalletConsts.borderRadiusCard,
                                         ),
@@ -275,7 +275,7 @@ class SubmitJobScreen extends StatelessWidget {
                                       child: SelectableText(
                                         const JsonEncoder.withIndent('   ')
                                             .convert(uploadedJson),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'monospace',
                                           fontSize: 14,
                                           color: GeniusWalletColors.textPrimary,

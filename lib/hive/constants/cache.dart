@@ -27,3 +27,7 @@ const int browserRecentLimit = 5;
 // address book (send screen)
 const String addressBookBoxName = 'addressBook';
 const String addressBookContactsKey = 'contacts';
+
+// preferences
+const String preferencesBoxName = 'preferences';
+const String appearanceModeKey = 'appearance_mode';

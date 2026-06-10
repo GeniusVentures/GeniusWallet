@@ -744,6 +744,23 @@ Mark the legacy alias in `genius_wallet_colors.dart` (existing pattern: see the 
 
 ## Migration notes
 
+### v1.3 — Appearance modes: black & white canvases (2026-06)
+
+The neutral token stack is now **appearance-aware** (Preferences ▸ Appearance,
+persisted in Hive, driven by `lib/theme/gw_appearance.dart`):
+
+- **Dark** (default): a **true-black** canvas — `surfaceBase #0B0D12`, canvas wash
+  `#14171E → #0B0D12 → #07090D`, cards `surfaceElevated #0C0E14`, menus
+  `surfaceMenu #171A21`. This replaces the previous teal canvas (`#2A6275`).
+- **Light**: a **white** canvas — `surfaceBase #FFFFFF`, wash `#FFFFFF → #F2F4F8`,
+  white cards, `surfaceMenu #EFF2F6`, ink text `#10131A` with the same alpha
+  ladder, ink-based hairlines.
+- Mode-aware tokens are **getters** now: surfaces, the `textPrimary` ladder,
+  `borderSubtle/Strong`, the canvas/sheen gradients in `GWDecorations`, and the
+  `GeniusWalletTypography` styles. **They can no longer appear inside `const`
+  expressions.** Brand, status and `textSecondary` stay `const`.
+- Brand + status hues are unchanged from v1.2 and identical in both modes.
+
 ### v1.2 — Electric (2026-05, iterating)
 
 v1.1 still read too muted in-app, so the brand hues were pushed toward electric and the canvas lifted noticeably more. Current values: `brandPrimary #14C8FF`, `brandSecondary #2BF5B4` (strong `#0AD89C`, bright `#5BFFD0`), `brandTertiary #C28FFF`, gradient `#0AD89C → #0AAEE6`, `surfaceBase #2A6275`, `surfaceMenu #224C5E`, `statusSuccess #0AD89C`, `statusError #FF4D4D`, `statusWarning #FFC42E`. Direction approved during QA; the §3.1 tables + web Tailwind vars get refreshed once the exact values are locked.

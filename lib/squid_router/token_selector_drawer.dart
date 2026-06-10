@@ -62,12 +62,12 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
       children: [
         TextField(
           onChanged: (val) => setState(() => _query = val),
-          style: const TextStyle(color: GeniusWalletColors.textPrimary),
+          style: TextStyle(color: GeniusWalletColors.textPrimary),
           decoration: InputDecoration(
             hintText: "Search Tokens...",
-            hintStyle: const TextStyle(color: GeniusWalletColors.textPrimary54),
-            prefixIcon: const Icon(Icons.search,
-                color: GeniusWalletColors.textPrimary54),
+            hintStyle: TextStyle(color: GeniusWalletColors.textPrimary54),
+            prefixIcon:
+                Icon(Icons.search, color: GeniusWalletColors.textPrimary54),
             filled: true,
             fillColor: Colors.black54,
             border: OutlineInputBorder(
@@ -78,8 +78,9 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
         if (filtered.isEmpty && _query.isNotEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space16),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                vertical: GeniusWalletConsts.space16),
             child: Text('No tokens found',
                 style: TextStyle(color: GeniusWalletColors.textPrimary70)),
           ),
@@ -92,7 +93,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
             return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shape: RoundedRectangleBorder(
-                side: const BorderSide(
+                side: BorderSide(
                     color: GeniusWalletColors.borderSubtle, width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -113,15 +114,14 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                         height: 36,
                         color: Colors.grey[700],
                         alignment: Alignment.center,
-                        child: const Icon(Icons.broken_image,
+                        child: Icon(Icons.broken_image,
                             color: GeniusWalletColors.textPrimary70, size: 16),
                       );
                     },
                   ),
                 ),
                 title: Text(token.name,
-                    style:
-                        const TextStyle(color: GeniusWalletColors.textPrimary)),
+                    style: TextStyle(color: GeniusWalletColors.textPrimary)),
                 subtitle: Row(children: [
                   if (token.balance != null)
                     Text('${token.balance!.formattedBalance} ',

@@ -47,12 +47,11 @@ class SwapResultDrawer {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Transaction Hash:",
+                Text("Transaction Hash:",
                     style: TextStyle(color: GeniusWalletColors.textPrimary70)),
                 const SizedBox(height: GeniusWalletConsts.space2),
                 SelectableText(txHash,
-                    style:
-                        const TextStyle(color: GeniusWalletColors.textPrimary)),
+                    style: TextStyle(color: GeniusWalletColors.textPrimary)),
               ],
             ),
           ),
@@ -67,7 +66,7 @@ class SwapResultDrawer {
                   borderRadius: BorderRadius.circular(10)),
               minimumSize: const Size.fromHeight(48),
             ),
-            child: const Text(
+            child: Text(
               "Go to Transactions",
               style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
             ),

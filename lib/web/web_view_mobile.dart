@@ -141,12 +141,16 @@ class WebViewMobileState extends State<WebViewMobile> {
             if (!Platform.isMacOS &&
                 url.contains('uniswap.org') &&
                 loadedUrl == 'about:blank') {
-              _debug('[DEBUG] Injecting localStorage for Uniswap (about:blank)');
-              await _safeRunJavaScript(controller!, '''
+              _debug(
+                  '[DEBUG] Injecting localStorage for Uniswap (about:blank)');
+              await _safeRunJavaScript(
+                  controller!,
+                  '''
               localStorage.setItem("interface_color_theme", "\\"Dark\\"");
               localStorage.setItem("uni-theme", "\\"dark\\"");
               document.title = "DARK MODE SET";
-            ''', context: 'uniswap-about-blank-theme');
+            ''',
+                  context: 'uniswap-about-blank-theme');
               await Future.delayed(const Duration(milliseconds: 80));
               controller.loadRequest(Uri.parse(url));
               return;
@@ -159,16 +163,20 @@ class WebViewMobileState extends State<WebViewMobile> {
                     '[DEBUG] Uniswap loaded, attempting one retry for dark mode.');
                 retried = true;
                 await Future.delayed(const Duration(milliseconds: 350));
-                await _safeRunJavaScript(controller!, '''
+                await _safeRunJavaScript(
+                    controller!,
+                    '''
                 if (!document.body.classList.contains('dark')) {
                   localStorage.setItem("interface_color_theme", "\\"Dark\\"");
                   localStorage.setItem("uni-theme", "\\"dark\\"");
                   window.dispatchEvent(new Event('storage'));
                   setTimeout(() => { window.location.reload(); }, 100);
                 }
-              ''', context: 'uniswap-retry-theme');
+              ''',
+                    context: 'uniswap-retry-theme');
               } else {
-                _debug('[DEBUG] Already retried dark mode once. Not repeating.');
+                _debug(
+                    '[DEBUG] Already retried dark mode once. Not repeating.');
               }
             } else {
               _debug(
@@ -335,11 +343,10 @@ class WebViewMobileState extends State<WebViewMobile> {
           Expanded(
             child: TextField(
               controller: _urlController,
-              style: const TextStyle(color: GeniusWalletColors.textPrimary),
+              style: TextStyle(color: GeniusWalletColors.textPrimary),
               decoration: InputDecoration(
                 hintText: "Enter URL...",
-                hintStyle:
-                    const TextStyle(color: GeniusWalletColors.textPrimary70),
+                hintStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
                 filled: true,
                 fillColor: GeniusWalletColors.deepBlueTertiary,
                 border: OutlineInputBorder(
@@ -367,14 +374,13 @@ class WebViewMobileState extends State<WebViewMobile> {
               padding: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
-                side:
-                    const BorderSide(color: GeniusWalletColors.textPrimary),
+                side: BorderSide(color: GeniusWalletColors.textPrimary),
               ),
               backgroundColor: GeniusWalletColors.deepBlueTertiary,
             ),
             child: Text(
               "${_controllers.length}",
-              style: const TextStyle(
+              style: TextStyle(
                 color: GeniusWalletColors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -419,7 +425,8 @@ class WebViewMobileState extends State<WebViewMobile> {
                               Container(
                                 color: GeniusWalletColors.deepBlue,
                                 alignment: Alignment.center,
-                                padding: const EdgeInsets.all(GeniusWalletConsts.space4),
+                                padding: const EdgeInsets.all(
+                                    GeniusWalletConsts.space4),
                                 child: Text(
                                   _tabUrls[index],
                                   maxLines: 2,
@@ -434,9 +441,9 @@ class WebViewMobileState extends State<WebViewMobile> {
                         ),
                       ),
                       Container(
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: GeniusWalletColors.deepBlue,
-                          borderRadius: BorderRadius.only(
+                          borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(12),
                             bottomRight: Radius.circular(12),
                           ),
@@ -449,7 +456,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                               width: 22,
                               height: 22,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
+                                  Icon(
                                 Icons.language,
                                 color: GeniusWalletColors.textPrimary,
                                 size: 18,
@@ -466,8 +473,8 @@ class WebViewMobileState extends State<WebViewMobile> {
                                       "Loading...",
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style:
-                                          GeniusWalletTypography.bodyMd.copyWith(
+                                      style: GeniusWalletTypography.bodyMd
+                                          .copyWith(
                                         color: GeniusWalletColors.textPrimary,
                                       ),
                                     );
@@ -476,7 +483,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                                     snapshot.data ?? _tabUrls[index],
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: GeniusWalletColors.textPrimary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -486,7 +493,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.close,
                                 color: GeniusWalletColors.textPrimary,
                                 size: 24,
@@ -512,13 +519,13 @@ class WebViewMobileState extends State<WebViewMobile> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.add,
+                icon: Icon(Icons.add,
                     color: GeniusWalletColors.textPrimary, size: 30),
                 onPressed: () => _addNewTab("https://www.duckduckgo.com"),
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.close,
+                icon: Icon(Icons.close,
                     color: GeniusWalletColors.textPrimary, size: 30),
                 onPressed: () => setState(() => _showTabManager = false),
               ),
@@ -564,8 +571,8 @@ class _BookmarkButton extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 2),
-            content: Text(
-                isFav ? 'Removed from favorites' : 'Added to favorites'),
+            content:
+                Text(isFav ? 'Removed from favorites' : 'Added to favorites'),
             backgroundColor: GeniusWalletColors.deepBlueTertiary,
           ),
         );

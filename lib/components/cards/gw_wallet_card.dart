@@ -48,7 +48,7 @@ class GWWalletCard extends StatelessWidget {
                     fit: BoxFit.contain,
                   )
                 else
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 15,
                     backgroundColor: GeniusWalletColors.surfaceMenu,
                     child: Icon(

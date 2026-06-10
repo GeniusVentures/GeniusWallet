@@ -357,7 +357,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                       ? (isHighlighted
                                           ? GeniusWalletColors.brandPrimary
                                           : (hasUserInput
-                                              ? GeniusWalletColors.brandSecondary
+                                              ? GeniusWalletColors
+                                                  .brandSecondary
                                               : GeniusWalletColors.brandPrimary
                                                   .withAlpha(128)))
                                       : GeniusWalletColors.gray500,
@@ -433,7 +434,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: GeniusWalletColors.brandPrimary.withAlpha(51),
+                            color:
+                                GeniusWalletColors.brandPrimary.withAlpha(51),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: GeniusWalletColors.brandPrimary,
@@ -442,7 +444,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                           ),
                           child: Text(
                             word,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               color: GeniusWalletColors.textPrimary,
                               fontWeight: FontWeight.w500,
@@ -517,8 +519,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                         .withAlpha(26)
                                     : GeniusWalletColors.grayPrimary
                                         .withAlpha(77))
-                                : GeniusWalletColors.grayPrimary
-                                    .withAlpha(77),
+                                : GeniusWalletColors.grayPrimary.withAlpha(77),
                           ),
                           child: Row(
                             children: [
@@ -526,8 +527,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                                 width: 28,
                                 height: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: GeniusWalletColors.gray500
-                                      .withAlpha(77),
+                                  color:
+                                      GeniusWalletColors.gray500.withAlpha(77),
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(11),
                                     bottomLeft: Radius.circular(11),
@@ -597,8 +598,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                               vertical: GeniusWalletConsts.space6,
                             ),
                             decoration: BoxDecoration(
-                              color: GeniusWalletColors.brandPrimary
-                                  .withAlpha(51),
+                              color:
+                                  GeniusWalletColors.brandPrimary.withAlpha(51),
                               borderRadius: BorderRadius.circular(25),
                               border: Border.all(
                                 color: GeniusWalletColors.brandPrimary,
@@ -730,8 +731,8 @@ class _VerifyRecoveryPhraseViewMobileState
           ),
           // Expanded middle section - takes remaining space
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space10),
+            padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space10),
             child: _InputAndWords(key: _inputAndWordsKey),
           ),
         ],

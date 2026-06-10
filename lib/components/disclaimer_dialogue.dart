@@ -50,7 +50,7 @@ Future<bool> showDisclaimerDialog(
                     },
                     activeColor: resolvedActiveColor,
                     checkColor: GeniusWalletColors.textPrimary,
-                    side: const BorderSide(
+                    side: BorderSide(
                         color: GeniusWalletColors.textPrimary, width: 1.5),
                   ),
                   Expanded(

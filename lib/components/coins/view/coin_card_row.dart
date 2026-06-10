@@ -74,7 +74,7 @@ class CoinCardRow extends StatelessWidget {
                     maxLines: 1,
                     minFontSize: 12,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: GeniusWalletColors.textPrimary,
                     ),
@@ -112,7 +112,7 @@ class CoinCardRow extends StatelessWidget {
                   maxLines: 1,
                   minFontSize: 12,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: GeniusWalletColors.textPrimary,

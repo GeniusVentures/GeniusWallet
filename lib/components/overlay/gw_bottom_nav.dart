@@ -44,7 +44,7 @@ class GWBottomNav extends StatelessWidget {
     return BlocBuilder<NavigationOverlayCubit, NavigationOverlayState>(
       builder: (context, state) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: GWDecorations.surfaceSheen,
             border: Border(
               top: BorderSide(

@@ -334,13 +334,13 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-            side: const BorderSide(
-                width: 1.0, color: GeniusWalletColors.btnCopyBorder),
+            side:
+                BorderSide(width: 1.0, color: GeniusWalletColors.btnCopyBorder),
           ),
-          icon: const Icon(Icons.content_copy,
+          icon: Icon(Icons.content_copy,
               color: GeniusWalletColors.textPrimary,
               size: GeniusWalletFontSize.base),
-          label: const Text(
+          label: Text(
             ' ${GeniusWalletText.btnCopy}',
             style: TextStyle(
                 fontSize: GeniusWalletFontSize.medium,

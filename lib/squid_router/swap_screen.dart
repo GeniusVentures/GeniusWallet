@@ -260,7 +260,7 @@ class _SwapScreenState extends State<SwapScreen> {
                         Navigator.of(context).canPop()
                             ? IconButton(
                                 tooltip: 'Back',
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.arrow_back,
                                   color: GeniusWalletColors.textPrimary,
                                   size: 24,
@@ -269,7 +269,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                     Navigator.of(context).maybePop(),
                               )
                             : const SizedBox(width: GeniusWalletConsts.space12),
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Text(
                               "Swap",
@@ -283,7 +283,7 @@ class _SwapScreenState extends State<SwapScreen> {
                         ),
                         IconButton(
                           tooltip: 'Settings',
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.tune,
                             color: GeniusWalletColors.textPrimary,
                             size: 24,
@@ -484,7 +484,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                           .addTransaction(
                                               walletAddress, transaction);
                                     },
-                              child: const Text("Swap",
+                              child: Text("Swap",
                                   style: TextStyle(
                                       color:
                                           GeniusWalletColors.deepBlueTertiary,

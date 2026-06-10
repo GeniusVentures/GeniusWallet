@@ -263,7 +263,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                             actionsAlignment:
                                                 MainAxisAlignment.center,
                                             shape: RoundedRectangleBorder(
-                                                side: const BorderSide(
+                                                side: BorderSide(
                                                     color: GeniusWalletColors
                                                         .borderSubtle,
                                                     width: 1),
@@ -357,7 +357,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       ),
                                                                     ),
 
-                                                                    const Expanded(
+                                                                    Expanded(
                                                                         child: Icon(
                                                                             Icons
                                                                                 .arrow_forward,
@@ -457,7 +457,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                     IconButton(
                                                                       tooltip:
                                                                           'Copy',
-                                                                      icon: const Icon(
+                                                                      icon: Icon(
                                                                           Icons
                                                                               .copy,
                                                                           color:
@@ -553,10 +553,10 @@ class BridgeScreenState extends State<BridgeScreen> {
     return iconPath != null && iconPath.isNotEmpty
         ? Image.asset(iconPath, width: 28, height: 28,
             errorBuilder: (_, __, ___) {
-            return const Icon(Icons.currency_bitcoin,
+            return Icon(Icons.currency_bitcoin,
                 color: GeniusWalletColors.textPrimary70, size: 28);
           })
-        : const Icon(Icons.currency_bitcoin,
+        : Icon(Icons.currency_bitcoin,
             color: GeniusWalletColors.textPrimary70, size: 28);
   }
 
@@ -572,9 +572,9 @@ class BridgeScreenState extends State<BridgeScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space8),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: GWDecorations.surfaceSheen,
-        borderRadius: BorderRadius.all(
+        borderRadius: const BorderRadius.all(
           Radius.circular(GeniusWalletConsts.radius2xl),
         ),
         border: Border.fromBorderSide(

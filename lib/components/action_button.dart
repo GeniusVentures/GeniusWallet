@@ -9,7 +9,7 @@ class ActionButton extends StatefulWidget {
   final IconData icon;
   final String text;
   final VoidCallback? onPressed;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color iconColor;
   final Color textColor;
   final ActionButtonAnimation animation;
@@ -20,7 +20,7 @@ class ActionButton extends StatefulWidget {
     required this.icon,
     required this.text,
     this.onPressed,
-    this.backgroundColor = GeniusWalletColors.deepBlueCardColor,
+    this.backgroundColor,
     this.iconColor = GeniusWalletColors.lightGreenSecondary,
     this.textColor = GeniusWalletColors.gray500,
     this.animation = ActionButtonAnimation.none,
@@ -100,7 +100,8 @@ class _ActionButtonState extends State<ActionButton>
                   ),
                 ),
                 disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
-                backgroundColor: widget.backgroundColor,
+                backgroundColor: widget.backgroundColor ??
+                    GeniusWalletColors.deepBlueCardColor,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

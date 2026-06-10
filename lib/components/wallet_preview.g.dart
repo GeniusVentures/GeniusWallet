@@ -39,9 +39,9 @@ class WalletPreviewState extends State<WalletPreview> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: GeniusWalletColors.surfaceElevated,
-        borderRadius: BorderRadius.all(
+        borderRadius: const BorderRadius.all(
           Radius.circular(GeniusWalletConsts.borderRadiusCard),
         ),
       ),

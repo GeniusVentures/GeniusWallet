@@ -137,7 +137,7 @@ class CoinsScreenState extends State<CoinsScreen> {
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                side: const BorderSide(
+                side: BorderSide(
                     color: GeniusWalletColors.borderSubtle, width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -152,7 +152,7 @@ class CoinsScreenState extends State<CoinsScreen> {
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                side: const BorderSide(
+                side: BorderSide(
                     color: GeniusWalletColors.borderSubtle, width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -204,7 +204,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                   ),
                   if ((widget.isUseDivider ?? false) &&
                       i != filteredCoins.length - 1)
-                    const Divider(
+                    Divider(
                       thickness: 2.0,
                       color: GeniusWalletColors.deepBlueTertiary,
                       height: 1,

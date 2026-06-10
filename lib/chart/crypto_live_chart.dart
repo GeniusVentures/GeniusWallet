@@ -205,7 +205,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     ).format(_displayPrice);
 
     bool isUptrend = _latestPrice >= _previousPrice;
-    Color fillColor = isUptrend ? GeniusWalletColors.brandGreen : GeniusWalletColors.statusError;
+    Color fillColor = isUptrend
+        ? GeniusWalletColors.brandGreen
+        : GeniusWalletColors.statusError;
 
     return MouseRegion(
       onExit: _onHoverExit,
@@ -332,7 +334,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                                 return touchedSpots.map((spot) {
                                   return LineTooltipItem(
                                     '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
-                                    const TextStyle(
+                                    TextStyle(
                                         color: GeniusWalletColors.textPrimary,
                                         fontWeight: FontWeight.bold),
                                   );
@@ -348,23 +350,25 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.zoom_in, color: GeniusWalletColors.textPrimary),
+                          icon: Icon(Icons.zoom_in,
+                              color: GeniusWalletColors.textPrimary),
                           onPressed: _zoomIn,
                           tooltip: "Zoom In",
                         ),
                         IconButton(
-                          icon: const Icon(Icons.zoom_out, color: GeniusWalletColors.textPrimary),
+                          icon: Icon(Icons.zoom_out,
+                              color: GeniusWalletColors.textPrimary),
                           onPressed: _zoomOut,
                           tooltip: "Zoom Out",
                         ),
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios,
+                          icon: Icon(Icons.arrow_back_ios,
                               color: GeniusWalletColors.textPrimary, size: 18),
                           onPressed: _panLeft,
                           tooltip: "Pan Left",
                         ),
                         IconButton(
-                          icon: const Icon(Icons.arrow_forward_ios,
+                          icon: Icon(Icons.arrow_forward_ios,
                               color: GeniusWalletColors.textPrimary, size: 18),
                           onPressed: _panRight,
                           tooltip: "Pan Right",

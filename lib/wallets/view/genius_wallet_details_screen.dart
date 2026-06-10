@@ -53,7 +53,7 @@ class _ViewState extends State<View> {
                       const SizedBox(width: GeniusWalletConsts.space4),
                       Text(
                         useMinionIcon ? "Minions" : "GNUS",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: GeniusWalletColors.textPrimary80,

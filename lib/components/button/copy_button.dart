@@ -47,8 +47,8 @@ class CopyButtonState extends State<CopyButton> {
         onPressed: _copyToClipboard,
         style: ElevatedButton.styleFrom(
           backgroundColor: GeniusWalletColors.deepBlueCardColor,
-          padding: const EdgeInsets.symmetric(
-              vertical: GeniusWalletConsts.space8),
+          padding:
+              const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -61,11 +61,12 @@ class CopyButtonState extends State<CopyButton> {
               size: 20,
               color: GeniusWalletColors.textPrimary,
             ),
-            const SizedBox(width: GeniusWalletConsts.space4), // Space between icon & text
+            const SizedBox(
+                width: GeniusWalletConsts.space4), // Space between icon & text
             Flexible(
                 child: AutoSizeText(
               _copied ? "Copied!" : widget.buttonText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: GeniusWalletColors.textPrimary,

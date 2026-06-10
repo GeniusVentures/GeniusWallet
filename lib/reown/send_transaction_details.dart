@@ -38,7 +38,7 @@ class SendTransactionDetails extends StatelessWidget {
             children: [
               Text(
                 amount,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: GeniusWalletColors.textPrimary,
@@ -103,7 +103,7 @@ class SendTransactionDetails extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: const TextStyle(color: GeniusWalletColors.textPrimary),
+            style: TextStyle(color: GeniusWalletColors.textPrimary),
             overflow: TextOverflow.ellipsis,
           ),
         ),

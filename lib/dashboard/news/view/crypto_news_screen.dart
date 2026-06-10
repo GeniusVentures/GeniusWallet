@@ -46,13 +46,13 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: GeniusWalletConsts.space6),
+          padding:
+              const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: GeniusWalletConsts.space4),
-              const Text(
+              Text(
                 'Crypto News',
                 style: TextStyle(
                   color: GeniusWalletColors.textPrimary,

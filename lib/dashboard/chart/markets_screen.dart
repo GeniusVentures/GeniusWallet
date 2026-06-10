@@ -45,7 +45,7 @@ class MarketsScreen extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   "Markets",
                   style: TextStyle(
                     fontSize: 32,
@@ -75,7 +75,7 @@ class MarketsScreen extends StatelessWidget {
             Expanded(
               child: FutureStateWidget<List<CoinGeckoCoin>>(
                 future: getMarketCoins(),
-                error: const Center(
+                error: Center(
                   child: Text(
                     "Failed to load market coins",
                     style: TextStyle(color: GeniusWalletColors.textPrimary),
@@ -83,7 +83,7 @@ class MarketsScreen extends StatelessWidget {
                 ),
                 onData: (coins) {
                   if (coins.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         "No market data available",
                         style: TextStyle(color: GeniusWalletColors.textPrimary),
@@ -94,7 +94,7 @@ class MarketsScreen extends StatelessWidget {
                     future: fetchCoinsMarketData(
                       coinIds: coins.map((coin) => coin.id).toList(),
                     ),
-                    error: const Center(
+                    error: Center(
                       child: Text(
                         "Failed to load market data",
                         style: TextStyle(color: GeniusWalletColors.textPrimary),
@@ -102,7 +102,7 @@ class MarketsScreen extends StatelessWidget {
                     ),
                     onData: (marketData) {
                       if (marketData.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Text(
                             "No market data available",
                             style: TextStyle(
@@ -139,7 +139,7 @@ class MarketsScreen extends StatelessWidget {
                               child: Center(
                                 child: Text(
                                   '${coin.symbol}\n${coin.id}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       color: GeniusWalletColors.textPrimary),
                                 ),
                               ),

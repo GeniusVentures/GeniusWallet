@@ -227,8 +227,8 @@ class TokenInfoScreen extends StatelessWidget {
   Widget _buildSecuritySection() {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: const Padding(
-        padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Security",
           style: TextStyle(color: GeniusWalletColors.textPrimary80),
@@ -239,8 +239,7 @@ class TokenInfoScreen extends StatelessWidget {
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(
-              color: GeniusWalletColors.borderSubtle, width: 1),
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: ListTile(title: Text(securityInfo)),
@@ -252,8 +251,8 @@ class TokenInfoScreen extends StatelessWidget {
   Widget _buildActivitySection() {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: const Padding(
-        padding: EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
         child: Text(
           "Activity",
           style: TextStyle(color: GeniusWalletColors.textPrimary80),
@@ -264,8 +263,7 @@ class TokenInfoScreen extends StatelessWidget {
         color: GeniusWalletColors.deepBlueCardColor,
         elevation: 1,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(
-              color: GeniusWalletColors.borderSubtle, width: 1),
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

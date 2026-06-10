@@ -14,9 +14,9 @@ class DashboardViewContainer extends StatelessWidget {
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
         child: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 gradient: GWDecorations.surfaceSheen,
-                borderRadius: BorderRadius.all(
+                borderRadius: const BorderRadius.all(
                     Radius.circular(GeniusWalletConsts.borderRadiusCard)),
                 border: Border.fromBorderSide(BorderSide(
                     color: GeniusWalletColors.borderSubtle, width: 1))),
@@ -53,9 +53,9 @@ class DashboardScrollContainer extends StatelessWidget {
     return Padding(
         padding: EdgeInsets.all(gridSpacing),
         child: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
                 gradient: GWDecorations.surfaceSheen,
-                borderRadius: BorderRadius.all(
+                borderRadius: const BorderRadius.all(
                     Radius.circular(GeniusWalletConsts.borderRadiusCard)),
                 border: Border.fromBorderSide(BorderSide(
                     color: GeniusWalletColors.borderSubtle, width: 1))),

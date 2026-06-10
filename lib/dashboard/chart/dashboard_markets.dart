@@ -44,14 +44,14 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
   Widget build(BuildContext context) {
     return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
       future: _future,
-      error: const Text(
+      error: Text(
         "Failed to load market data",
         style: TextStyle(color: GeniusWalletColors.textPrimary),
       ),
       onRetry: _retry,
       onData: (marketData) {
         if (marketData.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               "No market data available",
               style: TextStyle(color: GeniusWalletColors.textPrimary),
@@ -71,7 +71,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                     child: AutoSizeText(
                       widget.title!,
                       maxLines: 1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: GeniusWalletFontSize.sectionHeader,
                         fontWeight: FontWeight.w500,
                         color: GeniusWalletColors.textPrimary,
@@ -103,8 +103,8 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding:
-                              const EdgeInsets.only(bottom: GeniusWalletConsts.space8),
+                          padding: const EdgeInsets.only(
+                              bottom: GeniusWalletConsts.space8),
                           child: CryptoSparkLineChart(
                             title: coin.name,
                             iconPath: data.imageUrl,

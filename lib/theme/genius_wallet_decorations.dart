@@ -2,34 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 
 /// Depth & material primitives that lift surfaces off the flat canvas.
 ///
-/// The brand stays clean and dark — these add *quality* through subtle
-/// top-lighting, hairline edges and soft elevation rather than colour or
-/// ornament. Use these instead of painting flat `surfaceElevated` fills.
+/// The brand stays clean — these add *quality* through subtle top-lighting,
+/// hairline edges and soft elevation rather than colour or ornament. All
+/// primitives are appearance-aware (dark = black canvas, light = white
+/// canvas) via [GWAppearance]. Use these instead of painting flat
+/// `surfaceElevated` fills.
 class GWDecorations {
   GWDecorations._();
 
   // --- canvas -------------------------------------------------------------
 
-  /// Page background: a quiet vertical wash on the teal base (a touch lighter
-  /// at the top, deeper at the bottom) so the canvas reads as a lit space
-  /// instead of one flat fill. Replaces `backgroundColor: surfaceBase`.
-  static const LinearGradient canvas = LinearGradient(
+  /// Dark: a quiet vertical wash on a true-black base — a touch lifted at the
+  /// top, deepest at the bottom — so the canvas reads as a lit space instead
+  /// of one flat fill.
+  static const LinearGradient _canvasDark = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF316E80), // surfaceBase, lifted ~8% at the top
-      GeniusWalletColors.surfaceBase, // #2A6275
-      Color(0xFF234E5E), // settling toward surfaceMenu at the bottom
+      Color(0xFF14171E), // lifted near-black at the top
+      Color(0xFF0B0D12), // surfaceBase (dark)
+      Color(0xFF07090D), // settling toward sunken at the bottom
     ],
     stops: [0.0, 0.4, 1.0],
   );
 
-  /// A quiet overhead light near the top of the canvas — a faint cool glow
-  /// that fades out by mid-screen, so the hero area reads as lit. Layered over
-  /// [canvas].
+  /// Light: white at the top settling into a faint cool wash, so cards keep a
+  /// whisper of separation from the page.
+  static const LinearGradient _canvasLight = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFFFFFF),
+      Color(0xFFFBFCFE),
+      Color(0xFFF2F4F8),
+    ],
+    stops: [0.0, 0.4, 1.0],
+  );
+
+  /// Page background wash. Replaces `backgroundColor: surfaceBase`.
+  static LinearGradient get canvas =>
+      GWAppearance.isLight ? _canvasLight : _canvasDark;
+
+  /// A quiet overhead light near the top of the dark canvas — a faint cool
+  /// glow that fades out by mid-screen, so the hero area reads as lit.
+  /// Layered over [canvas] (dark mode only; a vignette would read as dirt on
+  /// white).
   static const RadialGradient canvasTopLight = RadialGradient(
     center: Alignment(0, -0.9),
     radius: 1.0,
@@ -39,17 +60,30 @@ class GWDecorations {
 
   // --- elevated surfaces --------------------------------------------------
 
-  /// Top-lit sheen for dark elevated surfaces — a near-black fill that's a
-  /// hair lighter at the top edge, simulating a soft overhead light. The
-  /// delta is tiny (~8 L*) so it never reads as a gradient, just as material.
-  static const LinearGradient surfaceSheen = LinearGradient(
+  /// Dark: a near-black fill that's a hair lighter at the top edge. The delta
+  /// is tiny (~8 L*) so it never reads as a gradient, just as material.
+  static const LinearGradient _surfaceSheenDark = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
       Color(0xFF181B24), // surfaceElevated + sheen
-      GeniusWalletColors.surfaceElevated, // #0C0E14
+      Color(0xFF0C0E14), // surfaceElevated (dark)
     ],
   );
+
+  /// Light: white settling into a faint cool gray at the bottom edge.
+  static const LinearGradient _surfaceSheenLight = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFFFFFF),
+      Color(0xFFF5F7FA),
+    ],
+  );
+
+  /// Top-lit sheen for elevated surfaces, simulating a soft overhead light.
+  static LinearGradient get surfaceSheen =>
+      GWAppearance.isLight ? _surfaceSheenLight : _surfaceSheenDark;
 
   /// Standard premium surface: top-lit sheen + a 1px hairline edge + soft
   /// card elevation. This is the default for cards, pills, fields, tiles.
@@ -62,7 +96,7 @@ class GWDecorations {
         gradient: surfaceSheen,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: border ?? GeniusWalletColors.borderSubtle, // white @ 12%
+          color: border ?? GeniusWalletColors.borderSubtle, // hairline @ 12%
           width: 1,
         ),
         boxShadow: elevated ? GeniusWalletElevation.card : null,
@@ -104,9 +138,10 @@ class GWDecorations {
   );
 }
 
-/// Layered page background: vertical wash + a quiet overhead light + fine grain
-/// so the canvas reads as a lit, textured space instead of one flat fill. Wrap
-/// a page body in this instead of painting a solid `surfaceBase`.
+/// Layered page background: vertical wash + (dark mode) a quiet overhead
+/// light + fine grain, so the canvas reads as a lit, textured space instead of
+/// one flat fill. Wrap a page body in this instead of painting a solid
+/// `surfaceBase`.
 class GWCanvasBackground extends StatelessWidget {
   const GWCanvasBackground({super.key, required this.child});
 
@@ -114,28 +149,31 @@ class GWCanvasBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = GWAppearance.isLight;
     return Stack(
       fit: StackFit.expand,
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(gradient: GWDecorations.canvas),
         ),
-        const DecoratedBox(
-          decoration: BoxDecoration(gradient: GWDecorations.canvasTopLight),
-        ),
-        // Fine monochrome grain so large dark fills aren't perfectly flat.
-        const IgnorePointer(
-          child: Opacity(
-            opacity: 0.04,
-            child: Image(
-              image: AssetImage('assets/images/textures/noise.png'),
-              repeat: ImageRepeat.repeat,
-              fit: BoxFit.none,
-              alignment: Alignment.topLeft,
-              filterQuality: FilterQuality.none,
+        if (!isLight) ...[
+          const DecoratedBox(
+            decoration: BoxDecoration(gradient: GWDecorations.canvasTopLight),
+          ),
+          // Fine monochrome grain so large dark fills aren't perfectly flat.
+          const IgnorePointer(
+            child: Opacity(
+              opacity: 0.04,
+              child: Image(
+                image: AssetImage('assets/images/textures/noise.png'),
+                repeat: ImageRepeat.repeat,
+                fit: BoxFit.none,
+                alignment: Alignment.topLeft,
+                filterQuality: FilterQuality.none,
+              ),
             ),
           ),
-        ),
+        ],
         child,
       ],
     );

@@ -34,6 +34,8 @@ Future<void> initHive() async {
 
   await Hive.openBox(addressBookBoxName);
 
+  await Hive.openBox(preferencesBoxName);
+
   // Transactions
   Hive
     ..registerAdapter(TransactionDirectionAdapter())

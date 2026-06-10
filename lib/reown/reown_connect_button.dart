@@ -111,10 +111,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
     // Listen for incoming requests
     _sessionRequestDisposer = handleDappRequests(
-          walletKit: walletKit,
-          geniusApi: widget.geniusApi,
-          walletDetailsCubit: widget.walletDetailsCubit,
-          transactionsCubit: widget.transactionsCubit);
+        walletKit: walletKit,
+        geniusApi: widget.geniusApi,
+        walletDetailsCubit: widget.walletDetailsCubit,
+        transactionsCubit: widget.transactionsCubit);
 
     _sessionConnectHandler = (event) {
       if (!mounted || event == null) return;
@@ -294,7 +294,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                     Expanded(
                                       child: TextField(
                                         controller: _uriController,
-                                        decoration: const InputDecoration(
+                                        decoration: InputDecoration(
                                           hintText: "wc:...",
                                           hintStyle: TextStyle(
                                               color: GeniusWalletColors
@@ -302,7 +302,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: GeniusWalletConsts.space4),
+                                    const SizedBox(
+                                        width: GeniusWalletConsts.space4),
                                     IconButton(
                                       icon: const Icon(
                                         Icons.paste,
@@ -332,7 +333,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                   ],
                                 ),
                                 if (manualInputError != null) ...[
-                                  const SizedBox(height: GeniusWalletConsts.space4),
+                                  const SizedBox(
+                                      height: GeniusWalletConsts.space4),
                                   Text(
                                     manualInputError!,
                                     style: const TextStyle(
@@ -688,7 +690,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                 const SizedBox(width: 6),
                 Text(
                   text,
-                  style: GeniusWalletTypography.bodyMd.copyWith(color: textColor),
+                  style:
+                      GeniusWalletTypography.bodyMd.copyWith(color: textColor),
                 ),
               ]
             ],

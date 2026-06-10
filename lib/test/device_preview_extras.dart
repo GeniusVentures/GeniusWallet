@@ -17,7 +17,7 @@ class DevicePreviewExtras extends StatelessWidget {
           return Container(
             padding:
                 const EdgeInsets.only(left: 40, right: 12, top: 12, bottom: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: GeniusWalletColors.deepBlueTertiary,
             ),
             child: Column(

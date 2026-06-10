@@ -13,6 +13,7 @@ import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -102,6 +103,7 @@ Future<void> main() async {
     },
     appRunner: () async {
       await initHive();
+      GWAppearance.instance.load();
 
       final secureStorage = await LocalWalletStorage.create();
       try {
@@ -302,26 +304,31 @@ class MyApp extends StatelessWidget {
             create: (context) => NavigationOverlayCubit(),
           )
         ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          useInheritedMediaQuery: true,
-          locale: DevicePreview.locale(context),
-          // Mesh background is intentionally NOT applied app-wide — the
-          // brand mesh stays on auth / Landing surfaces; interior screens
-          // use a solid dark canvas (cleaner, calmer).
-          //
-          // GlobalSwapFabHost floats the always-reachable Swap action over
-          // every authenticated screen (hidden on auth/onboarding/splash).
-          builder: (context, child) => DevicePreview.appBuilder(
-            context,
-            GlobalSwapFabHost(
-              router: geniusWalletRouter,
-              child: child ?? const SizedBox.shrink(),
+        // Rebuild the whole app when the appearance (dark/light) toggles so
+        // the mode-aware colour tokens re-resolve everywhere.
+        child: ValueListenableBuilder<GWAppearanceMode>(
+          valueListenable: GWAppearance.instance,
+          builder: (context, appearanceMode, _) => MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            useInheritedMediaQuery: true,
+            locale: DevicePreview.locale(context),
+            // Mesh background is intentionally NOT applied app-wide — the
+            // brand mesh stays on auth / Landing surfaces; interior screens
+            // use a solid canvas (cleaner, calmer).
+            //
+            // GlobalSwapFabHost floats the always-reachable Swap action over
+            // every authenticated screen (hidden on auth/onboarding/splash).
+            builder: (context, child) => DevicePreview.appBuilder(
+              context,
+              GlobalSwapFabHost(
+                router: geniusWalletRouter,
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
+            title: 'Gnus AI',
+            theme: getThemeData(),
+            routerConfig: geniusWalletRouter,
           ),
-          title: 'Gnus AI',
-          theme: getThemeData(),
-          routerConfig: geniusWalletRouter,
         ),
       ),
     );

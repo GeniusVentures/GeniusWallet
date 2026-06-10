@@ -42,7 +42,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                 height: 56,
                 child: Container(
                   width: widget.constraints.maxWidth * 1.0,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: GeniusWalletColors.deepBlueCardColor,
                   ),
                 ),
@@ -56,8 +56,8 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                     child: AutoSizeText(
                       widget.ovrSubtitle ??
                           'In the next step you will see 12 words that allows you to recover a wallet.',
-                      style: const TextStyle(
-fontSize: 14.0,
+                      style: TextStyle(
+                        fontSize: 14.0,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
                         color: GeniusWalletColors.textPrimary,
@@ -73,8 +73,8 @@ fontSize: 14.0,
                     child: AutoSizeText(
                       widget.ovrTitle ?? GeniusWalletText.titleWalletBackup,
                       maxLines: 1,
-                      style: const TextStyle(
-fontSize: GeniusWalletFontSize.title,
+                      style: TextStyle(
+                        fontSize: GeniusWalletFontSize.title,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.13750000298023224,
                         color: GeniusWalletColors.textPrimary,

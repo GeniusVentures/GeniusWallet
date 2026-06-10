@@ -55,11 +55,12 @@ class OrderFilterPanel extends StatelessWidget {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                side: const BorderSide(color: GeniusWalletColors.textPrimary),
+                side: BorderSide(color: GeniusWalletColors.textPrimary),
                 padding: const EdgeInsets.symmetric(
                     horizontal: GeniusWalletConsts.space8),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
+                  borderRadius:
+                      BorderRadius.circular(GeniusWalletConsts.radiusXs),
                 ),
               ),
               onPressed: onDateRangePressed,

@@ -84,7 +84,7 @@ class _NewsCardState extends State<NewsCard> {
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   widget.article.pubDate,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: GeniusWalletColors.textPrimary60,
                                     fontSize: 12,
                                   ),
@@ -94,7 +94,7 @@ class _NewsCardState extends State<NewsCard> {
                               ),
                               Text(
                                 widget.article.title.trim(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: GeniusWalletColors.textPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -142,7 +142,7 @@ class _NewsCardState extends State<NewsCard> {
                   Flexible(
                     child: Text(
                       widget.article.title.trim(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: GeniusWalletColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -155,7 +155,7 @@ class _NewsCardState extends State<NewsCard> {
                   const SizedBox(height: GeniusWalletConsts.space4),
                   Text(
                     widget.article.pubDate,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: GeniusWalletColors.textPrimary60,
                       fontSize: 12,
                     ),

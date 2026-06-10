@@ -27,8 +27,7 @@ class TransactionSwappedItem extends StatelessWidget {
     return Card(
       color: GeniusWalletColors.deepBlueMenu,
       shape: RoundedRectangleBorder(
-        side:
-            const BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -194,8 +193,7 @@ class TransactionSwappedItem extends StatelessWidget {
         Card(
           color: GeniusWalletColors.deepBlueMenu,
           shape: RoundedRectangleBorder(
-            side: const BorderSide(
-                color: GeniusWalletColors.borderSubtle, width: 1),
+            side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Padding(
@@ -225,20 +223,20 @@ class TransactionSwappedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(String label, String value,
-      {Color valueColor = GeniusWalletColors.textPrimary}) {
+  Widget _buildRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: const TextStyle(color: GeniusWalletColors.textPrimary70)),
+              style: TextStyle(color: GeniusWalletColors.textPrimary70)),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: TextStyle(color: valueColor),
+              style: TextStyle(
+                  color: valueColor ?? GeniusWalletColors.textPrimary),
               overflow: TextOverflow.ellipsis,
             ),
           ),

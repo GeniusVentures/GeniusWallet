@@ -19,8 +19,7 @@ class WideNewsCard extends StatelessWidget {
       child: Card(
         color: GeniusWalletColors.deepBlueCardColor,
         shape: RoundedRectangleBorder(
-            side: const BorderSide(
-                color: GeniusWalletColors.borderSubtle, width: 1),
+            side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
             borderRadius: BorderRadius.circular(12)),
         child: Stack(
           children: [
@@ -60,14 +59,14 @@ class WideNewsCard extends StatelessWidget {
                 children: [
                   Text(
                     article.pubDate,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: GeniusWalletColors.textPrimary70, fontSize: 12),
                   ),
                   const SizedBox(height: GeniusWalletConsts.space4),
                   Expanded(
                     child: Text(
                       article.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: GeniusWalletColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,

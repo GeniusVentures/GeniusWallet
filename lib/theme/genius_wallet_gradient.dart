@@ -31,14 +31,14 @@ class GeniusWalletGradient {
 
   /// Subtle background wash for hero sections — fades the brand teal into the
   /// darker contained surface so cards still feel anchored.
-  static const LinearGradient heroWash = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: <Color>[
-      GeniusWalletColors.surfaceBase,
-      GeniusWalletColors.surfaceElevated,
-    ],
-  );
+  static LinearGradient get heroWash => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: <Color>[
+          GeniusWalletColors.surfaceBase,
+          GeniusWalletColors.surfaceElevated,
+        ],
+      );
 
   /// Legacy alias — points at the new branded CTA gradient. Existing widgets
   /// referencing this name pick up the new look automatically.

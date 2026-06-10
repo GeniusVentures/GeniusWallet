@@ -6,13 +6,15 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:provider/provider.dart';
 
 /// Top-bar entry point for app preferences.
 ///
-/// Network selection moved here from the top bar; the Currency and Appearance
-/// rows are static placeholders for now (see HANDOFF.md §6).
+/// Network selection moved here from the top bar. Appearance toggles the
+/// dark (black) / light (white) canvas. The Currency row is a static
+/// placeholder for now (see HANDOFF.md §6).
 class PreferencesButton extends StatelessWidget {
   const PreferencesButton({super.key});
 
@@ -21,8 +23,7 @@ class PreferencesButton extends StatelessWidget {
     return Material(
       color: GeniusWalletColors.surfaceElevated,
       shape: RoundedRectangleBorder(
-        side:
-            const BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),
       child: InkWell(
@@ -36,7 +37,7 @@ class PreferencesButton extends StatelessWidget {
           // >=48px tap target (a11y), matching the other top-bar pills.
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           alignment: Alignment.center,
-          child: const Tooltip(
+          child: Tooltip(
             message: 'Preferences',
             child: Icon(
               Icons.tune_rounded,
@@ -109,17 +110,99 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
           title: 'Currency',
           value: 'USD',
         ),
-        const _PrefRow(
+        _PrefRow(
           leading: Icon(
-            Icons.dark_mode_outlined,
+            GWAppearance.isLight
+                ? Icons.light_mode_outlined
+                : Icons.dark_mode_outlined,
             size: 20,
             color: GeniusWalletColors.textSecondary,
           ),
           title: 'Appearance',
-          value: 'Dark',
+          value: GWAppearance.isLight ? 'Light' : 'Dark',
+          showChevron: true,
+          onTap: () async {
+            final picked = await ResponsiveDrawer.show<GWAppearanceMode>(
+              context: context,
+              title: 'Appearance',
+              children: const [
+                _AppearanceOption(
+                  mode: GWAppearanceMode.dark,
+                  label: 'Dark',
+                  hint: 'Black canvas',
+                  icon: Icons.dark_mode_outlined,
+                ),
+                _AppearanceOption(
+                  mode: GWAppearanceMode.light,
+                  label: 'Light',
+                  hint: 'White canvas',
+                  icon: Icons.light_mode_outlined,
+                ),
+              ],
+            );
+            if (picked != null) {
+              await GWAppearance.instance.setMode(picked);
+              if (mounted) setState(() {});
+            }
+          },
         ),
         const SizedBox(height: GeniusWalletConsts.space4),
       ],
+    );
+  }
+}
+
+class _AppearanceOption extends StatelessWidget {
+  const _AppearanceOption({
+    required this.mode,
+    required this.label,
+    required this.hint,
+    required this.icon,
+  });
+
+  final GWAppearanceMode mode;
+  final String label;
+  final String hint;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = GWAppearance.instance.value == mode;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              isSelected ? GeniusWalletColors.brandPrimary.withAlpha(38) : null,
+          gradient: isSelected ? null : GWDecorations.surfaceSheen,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+          border: Border.all(
+            color: isSelected
+                ? GeniusWalletColors.brandPrimary
+                : GeniusWalletColors.borderSubtle,
+          ),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+          ),
+          leading: Icon(icon, size: 22, color: GeniusWalletColors.textPrimary),
+          minLeadingWidth: 0,
+          title: Text(label, style: GeniusWalletTypography.titleMd),
+          subtitle: Text(hint, style: GeniusWalletTypography.bodySm),
+          trailing: isSelected
+              ? const Icon(
+                  Icons.check_circle_rounded,
+                  color: GeniusWalletColors.brandPrimary,
+                  size: 20,
+                )
+              : null,
+          onTap: () => Navigator.of(context).pop(mode),
+        ),
+      ),
     );
   }
 }

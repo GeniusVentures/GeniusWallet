@@ -10,8 +10,7 @@ class CoinCardContainer extends StatelessWidget {
     return Card(
       color: GeniusWalletColors.deepBlueCardColor,
       shape: RoundedRectangleBorder(
-        side:
-            const BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: SizedBox(height: 80, child: child),

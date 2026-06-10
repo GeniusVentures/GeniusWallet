@@ -143,7 +143,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final networks = Provider.of<NetworkProvider>(context).networks;
 
     if (networks.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "No networks available.",
           style: TextStyle(color: GeniusWalletColors.textPrimary70),
@@ -157,8 +157,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     return Material(
       color: GeniusWalletColors.surfaceElevated,
       shape: RoundedRectangleBorder(
-        side:
-            const BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),
       child: InkWell(

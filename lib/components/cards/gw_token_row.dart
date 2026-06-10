@@ -106,10 +106,10 @@ class _FallbackDot extends StatelessWidget {
   const _FallbackDot();
 
   @override
-  Widget build(BuildContext context) => const CircleAvatar(
+  Widget build(BuildContext context) => CircleAvatar(
         radius: 20,
         backgroundColor: GeniusWalletColors.surfaceMenu,
-        child: Icon(
+        child: const Icon(
           Icons.token,
           size: 18,
           color: GeniusWalletColors.textSecondary,

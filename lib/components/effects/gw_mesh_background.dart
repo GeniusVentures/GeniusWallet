@@ -17,7 +17,7 @@ class GWMeshBackground extends StatefulWidget {
     required this.child,
     this.intensity = 1.0,
     this.duration = const Duration(seconds: 36),
-    this.baseColor = GeniusWalletColors.surfaceBase,
+    this.baseColor,
   });
 
   final Widget child;
@@ -32,7 +32,7 @@ class GWMeshBackground extends StatefulWidget {
 
   /// Solid colour painted underneath the mesh. Defaults to the brand canvas
   /// teal — override only if you need a different base.
-  final Color baseColor;
+  final Color? baseColor;
 
   @override
   State<GWMeshBackground> createState() => _GWMeshBackgroundState();
@@ -60,7 +60,7 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
     return Stack(
       fit: StackFit.expand,
       children: [
-        ColoredBox(color: widget.baseColor),
+        ColoredBox(color: widget.baseColor ?? GeniusWalletColors.surfaceBase),
         RepaintBoundary(
           child: AnimatedBuilder(
             animation: _controller,

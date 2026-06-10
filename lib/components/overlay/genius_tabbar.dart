@@ -99,7 +99,7 @@ class _ScrollableSnapTabBarState extends State<_ScrollableSnapTabBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: GWDecorations.surfaceSheen,
         border: Border(
           top: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),

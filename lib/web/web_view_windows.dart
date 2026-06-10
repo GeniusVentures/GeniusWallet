@@ -191,7 +191,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                     if (includeBackButton)
                       GestureDetector(
                         onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(Icons.cancel,
+                        child: Icon(Icons.cancel,
                             size: 20, color: GeniusWalletColors.textPrimary),
                       ),
                     Flexible(child: _buildSearchBar()),
@@ -250,11 +250,10 @@ class _WebViewWindowsState extends State<WebViewWindows> {
           Expanded(
             child: TextField(
               controller: _urlController,
-              style: const TextStyle(color: GeniusWalletColors.textPrimary),
+              style: TextStyle(color: GeniusWalletColors.textPrimary),
               decoration: InputDecoration(
                 hintText: "Enter URL...",
-                hintStyle:
-                    const TextStyle(color: GeniusWalletColors.textPrimary70),
+                hintStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
                 filled: true,
                 fillColor: GeniusWalletColors.deepBlueTertiary,
                 border: OutlineInputBorder(
@@ -306,7 +305,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                         .copyWith(color: GeniusWalletColors.textPrimary),
                   ),
                 ),
-                const Divider(color: GeniusWalletColors.textPrimary54),
+                Divider(color: GeniusWalletColors.textPrimary54),
                 Expanded(
                   child: ListView.builder(
                     itemCount: history.length,

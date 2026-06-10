@@ -270,8 +270,8 @@ class _ActionRow extends StatelessWidget {
     if (walletAddress != null && walletAddress!.isNotEmpty) {
       Clipboard.setData(ClipboardData(text: walletAddress!));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Wallet address copied'),
+        SnackBar(
+          content: const Text('Wallet address copied'),
           backgroundColor: GeniusWalletColors.surfaceMenu,
         ),
       );
@@ -537,7 +537,7 @@ class _NftTile extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.auto_awesome_outlined,
                     color: GeniusWalletColors.textPrimary70,

@@ -45,9 +45,9 @@ class _SheetContainer extends StatelessWidget {
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: GWDecorations.surfaceSheen,
-        borderRadius: BorderRadius.vertical(
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(GeniusWalletConsts.radiusXl),
         ),
         border: Border(

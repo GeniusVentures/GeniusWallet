@@ -63,13 +63,15 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         context,
       ));
       if (i < wallets.length - 1) {
-        walletRows.add(const Divider(height: 1, color: GeniusWalletColors.textPrimary12));
+        walletRows
+            .add(Divider(height: 1, color: GeniusWalletColors.textPrimary12));
       }
     }
 
     if (wallets.length < 3) {
-      walletRows.add(const Padding(
-        padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
+      walletRows.add(Padding(
+        padding:
+            const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
         child: Center(
           child: Text(
             "Add more wallets to manage your assets",
@@ -136,12 +138,16 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
   Widget _buildDrawerRow(Wallet wallet, bool isSelected, BuildContext context) {
     final isWatched = wallet.walletType == WalletType.tracking;
-    final textColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textPrimary;
-    final subColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textSecondary;
+    final textColor = isSelected
+        ? GeniusWalletColors.deepBlueTertiary
+        : GeniusWalletColors.textPrimary;
+    final subColor = isSelected
+        ? GeniusWalletColors.deepBlueTertiary
+        : GeniusWalletColors.textSecondary;
     final trailingIconColor = isWatched
-        ? (isSelected ? GeniusWalletColors.deepBlueTertiary : GeniusWalletColors.textPrimary)
+        ? (isSelected
+            ? GeniusWalletColors.deepBlueTertiary
+            : GeniusWalletColors.textPrimary)
         : null;
 
     return InkWell(
@@ -175,7 +181,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   ),
                   if (isWatched)
                     Padding(
-                      padding: const EdgeInsets.only(left: GeniusWalletConsts.space4),
+                      padding: const EdgeInsets.only(
+                          left: GeniusWalletConsts.space4),
                       child: Icon(Icons.remove_red_eye_outlined,
                           size: 16, color: trailingIconColor),
                     ),
@@ -226,7 +233,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.copy,
+                      icon: Icon(Icons.copy,
                           color: GeniusWalletColors.textPrimary, size: 20),
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: wallet.address));
@@ -265,7 +272,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         ),
         child: Center(
           child: isWatched
-              ? const Icon(Icons.remove_red_eye_outlined,
+              ? Icon(Icons.remove_red_eye_outlined,
                   size: 20, color: GeniusWalletColors.deepBlueTertiary)
               : SizedBox(
                   height: 20,
@@ -325,7 +332,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             return GestureDetector(
               onTap: () => _showAccountDrawer(wallets),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space6),
+                padding: const EdgeInsets.symmetric(
+                    vertical: GeniusWalletConsts.space6),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

@@ -39,8 +39,7 @@ class RouteDetailsCard extends StatelessWidget {
           horizontal: GeniusWalletConsts.space8,
           vertical: GeniusWalletConsts.space4),
       shape: RoundedRectangleBorder(
-          side: const BorderSide(
-              color: GeniusWalletColors.borderSubtle, width: 1),
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
           borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,7 +74,7 @@ class RouteDetailsCard extends StatelessWidget {
           ),
         ),
         if (showDivider)
-          const Divider(
+          Divider(
             height: 1,
             thickness: 1,
             color: GeniusWalletColors.deepBlueTertiary,

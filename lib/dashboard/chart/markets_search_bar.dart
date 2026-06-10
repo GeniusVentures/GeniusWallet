@@ -124,7 +124,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
         // Replace SearchBar with this TextField for custom style
         TextField(
           controller: _controller,
-          style: const TextStyle(color: GeniusWalletColors.textPrimary),
+          style: TextStyle(color: GeniusWalletColors.textPrimary),
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Search Coins...',
@@ -135,14 +135,14 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                 horizontal: GeniusWalletConsts.space8, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: GeniusWalletColors.textPrimary24,
                 width: 1.4,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(5),
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: GeniusWalletColors.textPrimary38,
                 width: 1.4,
               ),
@@ -162,7 +162,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                 : (_controller.text.isNotEmpty
                     ? IconButton(
                         tooltip: 'Close',
-                        icon: const Icon(Icons.clear,
+                        icon: Icon(Icons.clear,
                             color: GeniusWalletColors.textPrimary),
                         onPressed: () {
                           _controller.clear();
@@ -171,7 +171,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                           });
                         },
                       )
-                    : const Icon(Icons.search,
+                    : Icon(Icons.search,
                         color: GeniusWalletColors.textPrimary38)),
           ),
         ),
@@ -194,8 +194,9 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             },
           )
         else if (_controller.text.isNotEmpty && !_isSearching)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space12),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                vertical: GeniusWalletConsts.space12),
             child: Text('No coins found',
                 style: TextStyle(color: GeniusWalletColors.textPrimary70)),
           ),
