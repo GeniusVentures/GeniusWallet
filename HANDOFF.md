@@ -289,6 +289,38 @@ judgment or live verification:
   bottom hint clears the home indicator. The macOS stub has zero insets, so give
   the swap header one visual pass on a real notched iPhone.
 
+### 10a. Hardening pass — what we audited and fixed
+
+A four-dimension sweep over every session screen: layout overflow at 320–390px
+widths, keyboard/bottom insets, light-mode regressions, and feature logic +
+route integrity (every `push`/`go` target verified against the router; the
+FAB hidden-path list verified against the actual route table). Fixed:
+
+- **Keyboard over drawer inputs** — `ResponsiveDrawer` now lifts mobile sheets
+  by `viewInsets.bottom` (`lib/components/bottom_drawer/responsive_drawer.dart`).
+  One central fix; covers the address-book form, the WalletConnect paste field,
+  the token-selector search and the slippage input.
+- **WalletConnect QR unreadable in light mode** — the QR background was
+  `textPrimary` (near-black in light mode, black modules on it). Now fixed
+  white in both modes, as scanners expect.
+- **Hardcoded dark fills** — token-selector search field/image placeholder and
+  news-card image placeholders used `Colors.black54` / `grey[700/800]`; now the
+  mode-aware `surfaceSunken`.
+- **Decimal comma** — Send/Buy amount parsing accepts `0,5`: German/EU number
+  pads type a comma and `double.tryParse` is dot-only, which silently disabled
+  the CTA for those users.
+- **Trailing overflow** — Preferences rows ellipsize long values (network
+  names) instead of overflowing the ListTile trailing slot.
+- **FAB clearance** — Send/Buy scroll bodies pad the bottom so their CTA can
+  scroll above the floating FABs; the Activity list got the same 90px clearance
+  markets/home already had; and the global FABs now hide on payment/KYC routes
+  (`/checkout`, `/checkoutQR`, `/kyc`, `/banxa/callback`).
+
+**Still device-only** (cannot be verified in the macOS stub, please give these
+one pass on a real phone): camera permission/scanner open (§5a), notch
+rendering, on-device keyboard behavior in the drawers, FAB ergonomics on small
+phones. Everything else above is analyzer- and build-verified.
+
 ---
 
 *Questions about any of the above? Happy to walk through the cold-start fixes (§3) or

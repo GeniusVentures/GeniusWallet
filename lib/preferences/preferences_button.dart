@@ -315,10 +315,17 @@ class _PrefRow extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                value,
-                style: GeniusWalletTypography.bodyMd
-                    .copyWith(color: GeniusWalletColors.textSecondary),
+              // Bounded: long network names ("Binance Smart Chain") must
+              // ellipsize instead of overflowing the ListTile trailing slot.
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GeniusWalletTypography.bodyMd
+                      .copyWith(color: GeniusWalletColors.textSecondary),
+                ),
               ),
               if (showChevron) ...[
                 const SizedBox(width: GeniusWalletConsts.space2),

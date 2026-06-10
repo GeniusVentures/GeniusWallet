@@ -46,10 +46,17 @@ class ResponsiveDrawer {
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
             builder: (context) {
-              return BottomDrawer(
-                title: title,
-                footer: footer,
-                children: children,
+              // Lift the sheet above the keyboard — isScrollControlled alone
+              // does NOT inset for it, so text fields in drawers (address
+              // book, WC paste, token search, slippage) would be covered.
+              return Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                child: BottomDrawer(
+                  title: title,
+                  footer: footer,
+                  children: children,
+                ),
               );
             },
           );

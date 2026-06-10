@@ -69,7 +69,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
             prefixIcon:
                 Icon(Icons.search, color: GeniusWalletColors.textPrimary54),
             filled: true,
-            fillColor: Colors.black54,
+            fillColor: GeniusWalletColors.surfaceSunken,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -112,7 +112,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                       return Container(
                         width: 36,
                         height: 36,
-                        color: Colors.grey[700],
+                        color: GeniusWalletColors.surfaceSunken,
                         alignment: Alignment.center,
                         child: Icon(Icons.broken_image,
                             color: GeniusWalletColors.textPrimary70, size: 16),

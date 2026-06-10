@@ -84,8 +84,7 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
                   title: selectedFilter == 'All'
                       ? 'No transactions yet'
                       : 'No $selectedFilter transactions',
-                  message:
-                      'Your sends, receives and swaps will appear here.',
+                  message: 'Your sends, receives and swaps will appear here.',
                 )
               : _buildTransactionsView(filteredTransactions, textScaleFactor),
         ),
@@ -96,6 +95,9 @@ class TransactionsSlimViewState extends State<TransactionsSlimView>
   Widget _buildTransactionsView(
       List<Transaction> transactions, double textScaleFactor) {
     return ListView.builder(
+      // Scroll-only clearance so the last row isn't hidden behind the
+      // floating Swap/AI FABs (mirrors the markets grid).
+      padding: const EdgeInsets.only(bottom: 90),
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final tx = transactions[index];

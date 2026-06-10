@@ -64,7 +64,10 @@ class _SendScreenState extends State<SendScreen> {
             state.selectedCoin ??
             (coins.isNotEmpty ? coins.first : null);
         final balance = coin?.balance ?? 0;
-        final amount = double.tryParse(_amount.text.trim()) ?? 0;
+        // Accept a decimal comma — iOS/Android number pads show "," in
+        // German/EU locales, and double.tryParse only knows the dot.
+        final amount =
+            double.tryParse(_amount.text.trim().replaceAll(',', '.')) ?? 0;
         final overBalance = amount > balance;
         final valid =
             _recipient.text.trim().length >= 6 && amount > 0 && !overBalance;
@@ -85,7 +88,10 @@ class _SendScreenState extends State<SendScreen> {
             ),
             body: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+                // Extra bottom clearance so Review can scroll above the
+                // floating Swap/AI FABs (bottom 80 + 56 high).
+                padding: const EdgeInsets.fromLTRB(GeniusWalletConsts.space6,
+                    GeniusWalletConsts.space6, GeniusWalletConsts.space6, 148),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 480),
@@ -129,8 +135,7 @@ class _SendScreenState extends State<SendScreen> {
                                   final scanned = await GWQrScanner.show(
                                     context,
                                     title: 'Scan address',
-                                    hint:
-                                        'Point at a wallet-address QR code',
+                                    hint: 'Point at a wallet-address QR code',
                                     // Ignore WalletConnect pairing codes —
                                     // they are not addresses.
                                     accept: (raw) => raw.startsWith('wc:')
@@ -233,8 +238,14 @@ class _SendScreenState extends State<SendScreen> {
                                   ),
                                   const SizedBox(
                                       width: GeniusWalletConsts.space4),
-                                  Text(coin?.symbol ?? '',
-                                      style: GeniusWalletTypography.titleMd),
+                                  ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 96),
+                                    child: Text(coin?.symbol ?? '',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GeniusWalletTypography.titleMd),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: GeniusWalletConsts.space4),

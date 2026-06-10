@@ -53,7 +53,10 @@ class _BuyScreenState extends State<BuyScreen> {
         final coin = _coin ??
             state.selectedCoin ??
             (coins.isNotEmpty ? coins.first : null);
-        final amount = double.tryParse(_amount.text.trim()) ?? 0;
+        // Accept a decimal comma — iOS/Android number pads show "," in
+        // German/EU locales, and double.tryParse only knows the dot.
+        final amount =
+            double.tryParse(_amount.text.trim().replaceAll(',', '.')) ?? 0;
         final valid = amount > 0 && coin != null;
         final symbol = GWCurrency.symbol.trim();
 
@@ -73,7 +76,10 @@ class _BuyScreenState extends State<BuyScreen> {
             ),
             body: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+                // Extra bottom clearance so the confirm CTA can scroll above
+                // the floating Swap/AI FABs (bottom 80 + 56 high).
+                padding: const EdgeInsets.fromLTRB(GeniusWalletConsts.space6,
+                    GeniusWalletConsts.space6, GeniusWalletConsts.space6, 148),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 480),

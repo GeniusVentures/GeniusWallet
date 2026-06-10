@@ -42,6 +42,12 @@ class GlobalSwapFabHost extends StatefulWidget {
     '/import_existing_wallet',
     '/create_wallet',
     '/swap',
+    // Payment / KYC flows: floating wallet actions over a checkout or
+    // identity form are distracting and can cover their CTAs.
+    '/checkout',
+    '/checkoutQR',
+    '/kyc',
+    '/banxa/callback',
   };
 
   @override

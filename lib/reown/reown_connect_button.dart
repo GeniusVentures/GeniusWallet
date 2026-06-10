@@ -348,7 +348,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             key: ValueKey(
                                 "qr-${DateTime.now().millisecondsSinceEpoch}"),
                             child: QrImageView(
-                              backgroundColor: GeniusWalletColors.textPrimary,
+                              // Always white: QR quiet zones must stay light
+                              // for scanners — textPrimary flips to near-black
+                              // in light mode and made the code unreadable.
+                              backgroundColor: Colors.white,
                               data: wcUri,
                               version: QrVersions.auto,
                             ),
