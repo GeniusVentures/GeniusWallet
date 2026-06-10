@@ -182,10 +182,13 @@ real data when convenient:
   is wanted.
 - **Address book** — local-only (`addressBook` Hive box), plain name/address pairs,
   no address validation or sync. Wire to real contact storage/validation if desired.
-- **Buy action (home row)** — pushes the existing Banxa **`/buy`** route
-  (`OrdersPage`), i.e. the same flow the old top-bar "Buy GNUS" button used. The
-  Banxa flow itself isn't reachable in the UI-only stub — please verify the
-  end-to-end purchase path in your real build.
+- **Buy screen** (`lib/tokens/buy_screen.dart`, route `/buy-tokens`) — a
+  credit-card purchase flow (fiat amount + quick chips, token picker, card as
+  the payment method, review sheet). The final **"Confirm purchase" is a demo**
+  (toast + back to dashboard) and no live quote is fetched — wire it to the
+  real on-ramp (Banxa) for quotes + checkout. The pre-existing Banxa
+  `/buy` route (`OrdersPage`, used by the desktop "Buy GNUS" button) is
+  untouched.
 
 ---
 

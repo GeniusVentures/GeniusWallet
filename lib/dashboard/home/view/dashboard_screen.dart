@@ -260,12 +260,12 @@ class _ActionRow extends StatelessWidget {
         onTap: () => context.push('/bridge'),
       ),
       // Buy = the row's primary CTA, so it carries the brand gradient.
-      // Routes to the existing Banxa flow (see HANDOFF.md §6).
+      // Opens the credit-card purchase flow (demo confirm — HANDOFF.md §6).
       _PillAction(
         icon: Icons.add_rounded,
         label: 'Buy',
         highlight: true,
-        onTap: () => context.push('/buy'),
+        onTap: () => context.push('/buy-tokens'),
       ),
     ];
     return Padding(
