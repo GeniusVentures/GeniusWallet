@@ -12,6 +12,7 @@ import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
+import 'package:genius_wallet/ai/ai_processing_status.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/preferences/gw_currency.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -106,6 +107,8 @@ Future<void> main() async {
       await initHive();
       GWAppearance.instance.load();
       GWCurrency.instance.load();
+      // Animates the AI-processing FAB in mock builds only (WALLET_PK).
+      AiProcessingStatus.instance.startDemoSweepIfMock();
 
       final secureStorage = await LocalWalletStorage.create();
       try {

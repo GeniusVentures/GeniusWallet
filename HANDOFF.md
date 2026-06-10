@@ -48,6 +48,12 @@ The redesign is a full visual + structural pass. Highlights:
   contextual reuse but is no longer mounted).
 - **Send address book** — save/pick recipients on the Send screen, persisted
   device-locally in Hive (`lib/tokens/address_book.dart`).
+- **AI-processing FAB** — the bottom-left mirror of the Swap FAB
+  (`lib/components/buttons/gw_ai_fab.dart`, hosted by
+  `global_swap_fab_host.dart`): a brain glyph with a live **0–100% counter**
+  in its centre + a purple progress ring (the tertiary "AI" accent). Tapping
+  it opens the existing **submit-job screen** (`/submit_job`). Progress source
+  needs wiring — see §6.
 - **Dark / Light appearance** — Preferences ▸ Appearance toggles a **black**
   (dark) or **white** (light) canvas, persisted in Hive. The neutral tokens
   (surfaces, the `textPrimary` alpha ladder, hairlines, canvas/sheen gradients,
@@ -197,6 +203,15 @@ real data when convenient:
   The pre-existing Banxa `/buy` route (`OrdersPage`, used by the desktop
   "Buy GNUS" button) is untouched; decide whether that button should also
   point at the new flow.
+- **AI-processing progress (bottom-left FAB)** — the FAB listens to
+  `AiProcessingStatus.instance` (`lib/ai/ai_processing_status.dart`, a
+  `ValueNotifier<int>` 0–100). Nothing in the current SDK surface exposes a
+  numeric job progress, so **push real SGNUS job progress into it** from
+  wherever your job events arrive (submit-job flow / SGNUS events):
+  `AiProcessingStatus.instance.set(percent)` — the FAB updates live. In
+  mock/QA builds (`WALLET_PK`) a **demo sweep** loops 0→100 so the FAB is
+  reviewable; production builds sit at 0% until wired. Tap routes to
+  `/submit_job` — adjust if a dedicated AI-status screen lands later.
 
 ---
 

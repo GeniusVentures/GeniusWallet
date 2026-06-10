@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:genius_wallet/components/buttons/gw_ai_fab.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
-/// Wraps the app navigator and floats a global [GWSwapFab] over every
+/// Wraps the app navigator and floats the global FABs over every
 /// authenticated screen — including pushed detail / settings pages that
-/// don't carry the bottom nav — so Swap is reachable from anywhere.
+/// don't carry the bottom nav: [GWSwapFab] bottom-right (Swap from
+/// anywhere) and its mirror [GWAiFab] bottom-left (live AI-processing %,
+/// taps through to the submit-job screen).
 ///
 /// Hidden on splash, landing, onboarding and wallet-creation surfaces
-/// (and redundantly on the swap screen itself). Mounted once at the
+/// (and redundantly on their own destination screens). Mounted once at the
 /// `MaterialApp.router` builder level in `main.dart`.
 ///
 /// Takes the [router] instance explicitly rather than `GoRouter.of(context)`
@@ -107,6 +110,16 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
             bottom: 80 + bottomInset,
             child: GWSwapFab(
               onPressed: () => widget.router.push('/swap'),
+            ),
+          ),
+        // Bottom-left mirror: live AI-processing status. Hidden additionally
+        // on its own destination (the submit-job screen).
+        if (!hidden && path != '/submit_job')
+          Positioned(
+            left: GeniusWalletConsts.space10,
+            bottom: 80 + bottomInset,
+            child: GWAiFab(
+              onPressed: () => widget.router.push('/submit_job'),
             ),
           ),
       ],
