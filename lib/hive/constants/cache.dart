@@ -23,3 +23,7 @@ const String browserBoxName = 'browser';
 const String browserRecentKey = 'recent';
 const String browserFavoritesKey = 'favorites';
 const int browserRecentLimit = 5;
+
+// address book (send screen)
+const String addressBookBoxName = 'addressBook';
+const String addressBookContactsKey = 'contacts';

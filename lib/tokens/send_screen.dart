@@ -9,6 +9,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/tokens/address_book.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -115,19 +116,40 @@ class _SendScreenState extends State<SendScreen> {
                               Icons.account_balance_wallet_outlined,
                               size: 20,
                               color: GeniusWalletColors.textSecondary),
-                          suffix: IconButton(
-                            tooltip: 'Paste',
-                            icon: const Icon(Icons.content_paste_rounded,
-                                size: 18,
-                                color: GeniusWalletColors.textSecondary),
-                            onPressed: () async {
-                              final data =
-                                  await Clipboard.getData('text/plain');
-                              if (data?.text != null) {
-                                _recipient.text = data!.text!.trim();
-                                setState(() {});
-                              }
-                            },
+                          suffix: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: 'Address book',
+                                icon: const Icon(Icons.contacts_outlined,
+                                    size: 18,
+                                    color: GeniusWalletColors.textSecondary),
+                                onPressed: () async {
+                                  final picked = await showAddressBookPicker(
+                                    context,
+                                    draftAddress: _recipient.text.trim(),
+                                  );
+                                  if (picked != null && mounted) {
+                                    _recipient.text = picked;
+                                    setState(() {});
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                tooltip: 'Paste',
+                                icon: const Icon(Icons.content_paste_rounded,
+                                    size: 18,
+                                    color: GeniusWalletColors.textSecondary),
+                                onPressed: () async {
+                                  final data =
+                                      await Clipboard.getData('text/plain');
+                                  if (data?.text != null) {
+                                    _recipient.text = data!.text!.trim();
+                                    setState(() {});
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: GeniusWalletConsts.space10),
@@ -268,7 +290,7 @@ class _SendScreenState extends State<SendScreen> {
         _SummaryRow('Asset', '${coin.name ?? coin.symbol}'),
         _SummaryRow('Amount', '${_fmt(amount)} ${coin.symbol ?? ''}'),
         _SummaryRow('To', _short(_recipient.text.trim())),
-        _SummaryRow('Network fee', '≈ \$0.00'),
+        const _SummaryRow('Network fee', '≈ \$0.00'),
         const SizedBox(height: GeniusWalletConsts.space8),
         GWButton(
           label: 'Confirm & Send',
