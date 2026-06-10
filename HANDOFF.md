@@ -145,6 +145,10 @@ real data when convenient:
 - **Send screen** (`lib/tokens/send_screen.dart`) — a complete Send UI, but the final
   **"Confirm & Send" is a demo**: it shows a "Transaction submitted (demo)" toast and
   returns to the dashboard; it does **not** broadcast. Wire it to your real send/sign flow.
+- **WalletConnect connect drawer** — in a mock/QA build (`WALLET_PK` set) with no live
+  relay, `_connect()` falls back to a **demo QR** so the drawer (QR + paste + Scan QR
+  Code) is operable for verification, and `create()` got an **8s timeout** so it can't
+  hang. Production (no `WALLET_PK`) is unchanged — real pairing + real error surfacing.
 
 ---
 

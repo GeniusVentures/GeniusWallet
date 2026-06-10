@@ -12,6 +12,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/reown/wc_qr_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -222,8 +223,25 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     });
 
     try {
-      final CreateResponse pairingInfo = await walletKit.core.pairing.create();
-      final wcUri = pairingInfo.uri.toString();
+      String wcUri;
+      bool usedDemoUri = false;
+      try {
+        final CreateResponse pairingInfo = await walletKit.core.pairing
+            .create()
+            .timeout(const Duration(seconds: 8));
+        wcUri = pairingInfo.uri.toString();
+      } catch (pairErr) {
+        // No live WalletConnect relay reachable (e.g. the UI-only mock / QA
+        // build, where the native stack is stubbed) — fall back to a demo URI
+        // so the connect drawer (QR + paste + Scan QR Code) stays operable for
+        // verification. Production builds (no WALLET_PK) rethrow so a real
+        // failure still surfaces to the user.
+        if (walletPK.isEmpty) rethrow;
+        usedDemoUri = true;
+        debugPrint(
+            "⚠️ pairing.create() failed in mock build ($pairErr) — using demo URI");
+        wcUri = 'wc:demo-mock@2?relay-protocol=irn&symKey=demo';
+      }
       debugPrint("🔗 WalletConnect URI: $wcUri");
       String? manualInputError;
       bool showManualInput = _isDesktopOrIot;
@@ -536,8 +554,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         }
       });
 
-      // Call pairing to start the process
-      if (!_didManualPair) {
+      // Call pairing to start the process. Skip when we fell back to the demo
+      // URI (mock build) — it can't pair against a live relay.
+      if (!_didManualPair && !usedDemoUri) {
         await _tryPair(Uri.parse(wcUri));
       }
     } catch (e) {
@@ -630,7 +649,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       backgroundColor = GeniusWalletColors.statusError.withAlpha(38);
       text = 'Retry';
     } else {
-      icon = Icons.link_rounded;
+      icon = Icons.qr_code_scanner_rounded;
       iconColor = GeniusWalletColors.brandPrimary;
       textColor = GeniusWalletColors.textPrimary;
       backgroundColor = GeniusWalletColors.surfaceElevated;
