@@ -10,6 +10,7 @@ import 'package:genius_wallet/preferences/gw_currency.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -347,7 +348,13 @@ class _Tabs extends StatelessWidget {
       ),
       child: Container(
         height: 36,
-        decoration: GWDecorations.pill(),
+        // Recessed track — sits a layer below the canvas in both modes, so
+        // the raised thumb reads as a physical slider.
+        decoration: BoxDecoration(
+          color: GeniusWalletColors.surfaceSunken,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+          border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
+        ),
         child: Row(
           children: [
             Expanded(child: _tab(context, _DashboardTab.assets, 'Assets')),
@@ -368,11 +375,14 @@ class _Tabs extends StatelessWidget {
         curve: Curves.easeOut,
         margin: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: selected ? GeniusWalletColors.surfaceMenu : Colors.transparent,
+          // Raised thumb: top-lit sheen + hairline + soft shadow so the
+          // active segment pops off the recessed track in both modes.
+          gradient: selected ? GWDecorations.surfaceSheen : null,
           borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
           border: selected
               ? Border.all(color: GeniusWalletColors.borderSubtle, width: 1)
               : null,
+          boxShadow: selected ? GeniusWalletElevation.card : null,
         ),
         alignment: Alignment.center,
         child: Text(
@@ -450,14 +460,22 @@ class _AssetSearch extends StatelessWidget {
         GeniusWalletConsts.space6,
         GeniusWalletConsts.space4,
       ),
-      child: GWTextField(
-        controller: controller,
-        hint: 'Filter your assets',
-        onChanged: onChanged,
-        prefix: const Icon(
-          Icons.search_rounded,
-          size: 20,
-          color: GeniusWalletColors.textSecondary,
+      // Card shadow behind the field so it separates from the open canvas
+      // (matches the asset list's elevated surface).
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+          boxShadow: GeniusWalletElevation.card,
+        ),
+        child: GWTextField(
+          controller: controller,
+          hint: 'Filter your assets',
+          onChanged: onChanged,
+          prefix: const Icon(
+            Icons.search_rounded,
+            size: 20,
+            color: GeniusWalletColors.textSecondary,
+          ),
         ),
       ),
     );
