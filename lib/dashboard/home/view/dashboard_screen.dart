@@ -248,11 +248,7 @@ class _ActionRow extends StatelessWidget {
         label: 'Receive',
         onTap: () => _receive(context),
       ),
-      _PillAction(
-        icon: Icons.swap_horiz_rounded,
-        label: 'Swap',
-        onTap: () => context.push('/swap'),
-      ),
+      // Swap deliberately absent here — the global Swap FAB covers it.
       _PillAction(
         icon: Icons.compare_arrows_rounded,
         label: 'Bridge',
@@ -274,8 +270,8 @@ class _ActionRow extends StatelessWidget {
     if (walletAddress != null && walletAddress!.isNotEmpty) {
       Clipboard.setData(ClipboardData(text: walletAddress!));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Wallet address copied'),
+        const SnackBar(
+          content: Text('Wallet address copied'),
           backgroundColor: GeniusWalletColors.surfaceMenu,
         ),
       );
