@@ -37,7 +37,15 @@ The redesign is a full visual + structural pass. Highlights:
 - **Redesigned screens** — dashboard/home, markets, activity, discover/browser,
   token detail, swap, bridge, onboarding, etc.
 - **Global Swap FAB** — a floating Swap action reachable from every authenticated
-  screen (`lib/components/overlay/global_swap_fab_host.dart`).
+  screen (`lib/components/overlay/global_swap_fab_host.dart`). The Home action row
+  is **Send / Receive / Bridge** — Swap deliberately lives only in the FAB.
+- **Preferences sheet** — a top-left preferences entry in both shells
+  (`lib/preferences/preferences_button.dart`). **Network selection moved here**
+  from the top bar; the shared picker is `showNetworkPicker()` in
+  `lib/network/network_dropdown_selector.dart` (the old pill widget is kept for
+  contextual reuse but is no longer mounted).
+- **Send address book** — save/pick recipients on the Send screen, persisted
+  device-locally in Hive (`lib/tokens/address_book.dart`).
 - **Send screen** — a full Send flow (asset picker → recipient → amount/Max → review),
   wired to the Home and token-detail **Send** actions (`lib/tokens/send_screen.dart`).
   The final confirm is a **demo** (see §6).
@@ -72,6 +80,7 @@ fixes are safe, behavior-preserving robustness improvements.
 | `lib/components/splash.dart` | The `BlocListener`'s `context.go(...)` is now deferred to a **post-frame callback** (with a `mounted` guard). | It navigated the instant `AppBloc` emitted `loaded`, i.e. potentially mid-build. |
 | `lib/dashboard/transactions/cubit/transactions_cubit.dart` | Removed the **`emit()` from the constructor**; the seed list is sorted via `super(...)` instead. | A Cubit ctor `emit()` is a known anti-pattern; it fires synchronously and can land mid-frame. |
 | `lib/components/overlay/global_swap_fab_host.dart` | (Our own component.) Converted from a `ListenableBuilder` to a `StatefulWidget` that registers the router listener in `initState` and only touches the router after the first frame. | It read `routerDelegate.currentConfiguration` inside the `MaterialApp.router` builder during the first build. |
+| `lib/hive/constants/cache.dart` + `lib/hive/init.dart` | Added and open a new `addressBook` Hive box (plain maps, no adapter). | Persistence for the send-screen address book. |
 
 **None of these change behavior in the normal async flow** — they just move work
 off the build pass. Search the diffs for the comments explaining each.
@@ -149,6 +158,10 @@ real data when convenient:
   relay, `_connect()` falls back to a **demo QR** so the drawer (QR + paste + Scan QR
   Code) is operable for verification, and `create()` got an **8s timeout** so it can't
   hang. Production (no `WALLET_PK`) is unchanged — real pairing + real error surfacing.
+- **Preferences sheet** — the **Currency (USD)** and **Appearance (Dark)** rows are
+  static, display-only placeholders; only **Network** is functional today.
+- **Address book** — local-only (`addressBook` Hive box), plain name/address pairs,
+  no address validation or sync. Wire to real contact storage/validation if desired.
 
 ---
 
