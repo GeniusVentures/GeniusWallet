@@ -11,6 +11,7 @@ import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -258,6 +259,14 @@ class _ActionRow extends StatelessWidget {
         label: 'Bridge',
         onTap: () => context.push('/bridge'),
       ),
+      // Buy = the row's primary CTA, so it carries the brand gradient.
+      // Routes to the existing Banxa flow (see HANDOFF.md §6).
+      _PillAction(
+        icon: Icons.add_rounded,
+        label: 'Buy',
+        highlight: true,
+        onTap: () => context.push('/buy'),
+      ),
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -288,10 +297,14 @@ class _PillAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.highlight = false,
   });
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+
+  /// Brand-gradient treatment for the row's primary CTA (Buy).
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +314,19 @@ class _PillAction extends StatelessWidget {
         Container(
           width: 56,
           height: 56,
-          decoration: GWDecorations.actionCircle(),
+          decoration: highlight
+              ? BoxDecoration(
+                  gradient: GeniusWalletGradient.brandCta,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    ...GeniusWalletElevation.card,
+                    BoxShadow(
+                      color: GeniusWalletColors.brandPrimary.withAlpha(64),
+                      blurRadius: 18,
+                    ),
+                  ],
+                )
+              : GWDecorations.actionCircle(),
           child: Material(
             color: Colors.transparent,
             shape: const CircleBorder(),
@@ -312,7 +337,9 @@ class _PillAction extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 22,
-                  color: GeniusWalletColors.brandPrimary,
+                  color: highlight
+                      ? GeniusWalletColors.textOnBrand
+                      : GeniusWalletColors.brandPrimary,
                 ),
               ),
             ),

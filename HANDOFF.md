@@ -38,7 +38,9 @@ The redesign is a full visual + structural pass. Highlights:
   token detail, swap, bridge, onboarding, etc.
 - **Global Swap FAB** — a floating Swap action reachable from every authenticated
   screen (`lib/components/overlay/global_swap_fab_host.dart`). The Home action row
-  is **Send / Receive / Bridge** — Swap deliberately lives only in the FAB.
+  is **Send / Receive / Bridge / Buy** — Swap deliberately lives only in the FAB,
+  and **Buy** is the row's primary CTA (brand-gradient circle, visually distinct
+  from the three neutral actions).
 - **Preferences sheet** — a top-left preferences entry in both shells
   (`lib/preferences/preferences_button.dart`). **Network selection moved here**
   from the top bar; the shared picker is `showNetworkPicker()` in
@@ -180,6 +182,10 @@ real data when convenient:
   is wanted.
 - **Address book** — local-only (`addressBook` Hive box), plain name/address pairs,
   no address validation or sync. Wire to real contact storage/validation if desired.
+- **Buy action (home row)** — pushes the existing Banxa **`/buy`** route
+  (`OrdersPage`), i.e. the same flow the old top-bar "Buy GNUS" button used. The
+  Banxa flow itself isn't reachable in the UI-only stub — please verify the
+  end-to-end purchase path in your real build.
 
 ---
 
