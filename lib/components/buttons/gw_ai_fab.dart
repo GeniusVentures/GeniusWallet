@@ -83,19 +83,26 @@ class _GWAiFabState extends State<GWAiFab> {
                       backgroundColor: GeniusWalletColors.textPrimary12,
                     ),
                   ),
-                  // Faint brain behind the counter.
-                  Icon(
-                    Icons.psychology_outlined,
-                    size: 26,
-                    color: GeniusWalletColors.brandTertiary.withAlpha(82),
-                  ),
-                  Text(
-                    '$percent%',
-                    style: GeniusWalletTypography.numericBody.copyWith(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: GeniusWalletColors.textPrimary,
-                    ),
+                  // Brain on top (full opacity, unobstructed — clearly a
+                  // brain), live counter right below it.
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.psychology,
+                        size: 21,
+                        color: GeniusWalletColors.brandTertiary,
+                      ),
+                      Text(
+                        '$percent%',
+                        style: GeniusWalletTypography.numericBody.copyWith(
+                          fontSize: 9,
+                          height: 1.1,
+                          fontWeight: FontWeight.w800,
+                          color: GeniusWalletColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
