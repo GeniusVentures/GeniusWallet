@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/ai/ai_processing_status.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -83,26 +84,29 @@ class _GWAiFabState extends State<GWAiFab> {
                       backgroundColor: GeniusWalletColors.textPrimary12,
                     ),
                   ),
-                  // Brain on top (full opacity, unobstructed — clearly a
-                  // brain), live counter right below it.
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.psychology,
-                        size: 21,
-                        color: GeniusWalletColors.brandTertiary,
-                      ),
-                      Text(
-                        '$percent%',
-                        style: GeniusWalletTypography.numericBody.copyWith(
-                          fontSize: 9,
-                          height: 1.1,
-                          fontWeight: FontWeight.w800,
-                          color: GeniusWalletColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                  // A real (anatomical) brain filling the FAB centre…
+                  FaIcon(
+                    FontAwesomeIcons.brain,
+                    size: 30,
+                    color: GeniusWalletColors.brandTertiary.withAlpha(120),
+                  ),
+                  // …with the live counter inside it. The surface-coloured
+                  // halo keeps it readable on the brain fill.
+                  Text(
+                    '$percent%',
+                    style: GeniusWalletTypography.numericBody.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: GeniusWalletColors.textPrimary,
+                      shadows: [
+                        Shadow(
+                            color: GeniusWalletColors.surfaceElevated,
+                            blurRadius: 5),
+                        Shadow(
+                            color: GeniusWalletColors.surfaceElevated,
+                            blurRadius: 2),
+                      ],
+                    ),
                   ),
                 ],
               ),
