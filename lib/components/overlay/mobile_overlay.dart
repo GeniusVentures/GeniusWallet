@@ -4,7 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/components/overlay/gw_bottom_nav.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/network/network_dropdown_selector.dart';
+import 'package:genius_wallet/preferences/preferences_button.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -12,9 +12,9 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// Mobile shell. Owns the persistent chrome (network selector, wallet
-/// selector, WalletConnect button + bottom nav). Each screen renders its
-/// own content below.
+/// Mobile shell. Owns the persistent chrome (preferences, wallet selector,
+/// WalletConnect button + bottom nav). Each screen renders its own content
+/// below.
 class MobileOverlay extends StatelessWidget {
   final Widget child;
   const MobileOverlay({super.key, required this.child});
@@ -56,13 +56,13 @@ class _OverlayTopBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const NetworkDropdownSelector(),
-          Flexible(
+          const PreferencesButton(),
+          const Flexible(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: GeniusWalletConsts.space4,
               ),
-              child: const AccountDropdownSelector(),
+              child: AccountDropdownSelector(),
             ),
           ),
           ReownConnectButton(

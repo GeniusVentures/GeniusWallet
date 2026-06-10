@@ -8,7 +8,7 @@ import 'package:genius_wallet/bloc/overlay/navigation_overlay_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/components/overlay/destinations.dart';
-import 'package:genius_wallet/network/network_dropdown_selector.dart';
+import 'package:genius_wallet/preferences/preferences_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -47,7 +47,8 @@ class DesktopTopBar extends StatelessWidget {
           Row(children: [
             Row(children: [
               Padding(
-                padding: const EdgeInsets.only(right: GeniusWalletConsts.space4),
+                padding:
+                    const EdgeInsets.only(right: GeniusWalletConsts.space4),
                 child: Image.asset(
                   'assets/images/geniusappbarlogo.png',
                   height: 30,
@@ -63,8 +64,8 @@ class DesktopTopBar extends StatelessWidget {
               final isSelected = index == selectedIndex;
 
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space2),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space2),
                 child: InkWell(
                   onTap: () {
                     context
@@ -124,7 +125,7 @@ class DesktopTopBar extends StatelessWidget {
           ]),
           Row(children: [
             const SizedBox(width: GeniusWalletConsts.space4),
-            const NetworkDropdownSelector(),
+            const PreferencesButton(),
             const SizedBox(width: GeniusWalletConsts.space4),
             const SizedBox(width: 155, child: AccountDropdownSelector()),
             ReownConnectButton(

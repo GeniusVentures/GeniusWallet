@@ -11,73 +11,60 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 
-class NetworkDropdownSelector extends StatefulWidget {
-  final Function(Network selectedNetwork)? onNetworkSelected;
-  final Network? initialSelected;
-
-  const NetworkDropdownSelector({
-    super.key,
-    this.onNetworkSelected,
-    this.initialSelected,
-  });
-
-  @override
-  State<NetworkDropdownSelector> createState() =>
-      _NetworkDropdownSelectorState();
+/// Resolve the active network: the Hive-persisted selection when it matches an
+/// available network, else [fallback], else the first available network.
+Network? resolveSelectedNetwork(List<Network> networks, {Network? fallback}) {
+  if (networks.isEmpty) return fallback;
+  final box = Hive.box(networkBoxName);
+  final chainId = box.get(selectedNetworkKeyChainId) as int?;
+  final rpcUrl = box.get(selectedNetworkKeyRpcUrl) as String?;
+  return networks.firstWhere(
+    (n) => n.chainId == chainId && n.rpcUrl == rpcUrl,
+    orElse: () => fallback ?? networks.first,
+  );
 }
 
-class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
-  Network? selectedNetwork;
-  int? savedChainId;
-  String? savedRpcUrl;
+/// Show the network picker drawer. Persists the choice and pushes it into
+/// [WalletDetailsCubit]. Returns the picked network (null when dismissed).
+/// Lives here so the Preferences sheet and any contextual selector share one
+/// implementation.
+Future<Network?> showNetworkPicker(BuildContext context) async {
+  final networks = context.read<NetworkProvider>().networks;
+  if (networks.isEmpty) return null;
+  final walletCubit = context.read<WalletDetailsCubit>();
+  final current = resolveSelectedNetwork(
+    networks,
+    fallback: walletCubit.state.selectedNetwork,
+  );
+
+  final selected = await ResponsiveDrawer.show<Network>(
+    context: context,
+    title: "Select Network",
+    children: networks
+        .map((network) => _NetworkPickerRow(
+              network: network,
+              isSelected: network.chainId == current?.chainId,
+            ))
+        .toList(),
+  );
+
+  if (selected != null && selected.chainId != current?.chainId) {
+    walletCubit.selectNetwork(selected);
+    final box = Hive.box(networkBoxName);
+    await box.put(selectedNetworkKeyChainId, selected.chainId);
+    await box.put(selectedNetworkKeyRpcUrl, selected.rpcUrl);
+  }
+  return selected;
+}
+
+class _NetworkPickerRow extends StatelessWidget {
+  const _NetworkPickerRow({required this.network, required this.isSelected});
+
+  final Network network;
+  final bool isSelected;
 
   @override
-  void initState() {
-    super.initState();
-    _loadSavedNetwork();
-  }
-
-  void _loadSavedNetwork() async {
-    final box = Hive.box(networkBoxName);
-    final chainId = box.get(selectedNetworkKeyChainId) as int?;
-    final rpcUrl = box.get(selectedNetworkKeyRpcUrl) as String?;
-
-    //print("Saved chainId: $chainId, rpcUrl: $rpcUrl");
-
-    if (!mounted) return;
-    setState(() {
-      savedChainId = chainId;
-      savedRpcUrl = rpcUrl;
-    });
-  }
-
-  void _showNetworkDrawer(List<Network> networks) async {
-    final walletCubit = context.read<WalletDetailsCubit>();
-    final selected = await ResponsiveDrawer.show<Network>(
-      context: context,
-      title: "Select Network",
-      children: networks.map((network) {
-        final isSelected = network.chainId == selectedNetwork?.chainId;
-        return _buildDrawerRow(network, isSelected);
-      }).toList(),
-    );
-
-    if (selected != null && selected != selectedNetwork) {
-      setState(() => selectedNetwork = selected);
-
-      if (widget.onNetworkSelected != null) {
-        widget.onNetworkSelected!(selected);
-      }
-
-      walletCubit.selectNetwork(selected);
-
-      final box = Hive.box(networkBoxName);
-      await box.put(selectedNetworkKeyChainId, selected.chainId);
-      await box.put(selectedNetworkKeyRpcUrl, selected.rpcUrl);
-    }
-  }
-
-  Widget _buildDrawerRow(Network network, bool isSelected) {
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
       child: Container(
@@ -130,7 +117,27 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       ),
     );
   }
+}
 
+/// Compact pill showing the active network; tap opens the shared picker.
+/// No longer mounted in the top bar — network selection moved into the
+/// Preferences sheet — but kept for contextual placements.
+class NetworkDropdownSelector extends StatefulWidget {
+  final Function(Network selectedNetwork)? onNetworkSelected;
+  final Network? initialSelected;
+
+  const NetworkDropdownSelector({
+    super.key,
+    this.onNetworkSelected,
+    this.initialSelected,
+  });
+
+  @override
+  State<NetworkDropdownSelector> createState() =>
+      _NetworkDropdownSelectorState();
+}
+
+class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
   @override
   Widget build(BuildContext context) {
     final networks = Provider.of<NetworkProvider>(context).networks;
@@ -144,10 +151,8 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       );
     }
 
-    selectedNetwork ??= networks.firstWhere(
-      (n) => n.chainId == savedChainId && n.rpcUrl == savedRpcUrl,
-      orElse: () => widget.initialSelected ?? networks.first,
-    );
+    final selectedNetwork =
+        resolveSelectedNetwork(networks, fallback: widget.initialSelected);
 
     return Material(
       color: GeniusWalletColors.surfaceElevated,
@@ -158,7 +163,13 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-        onTap: () => _showNetworkDrawer(networks),
+        onTap: () async {
+          final picked = await showNetworkPicker(context);
+          if (picked != null) {
+            widget.onNetworkSelected?.call(picked);
+            if (mounted) setState(() {});
+          }
+        },
         child: Container(
           // >=48px tap target (a11y); content stays vertically centered.
           constraints: const BoxConstraints(minHeight: 48),
