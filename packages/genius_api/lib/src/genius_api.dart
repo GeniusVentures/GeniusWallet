@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'dart:typed_data';
 import 'package:convert/convert.dart';
@@ -47,6 +48,29 @@ extension _CharArrayToDartString on ffi.Array<ffi.Char> {
     }
     return String.fromCharCodes(units);
   }
+}
+
+/// Isolate entry point for [GeniusApi.selectGeniusAccountAsync].
+///
+/// Opens the native library independently (the OS shares code pages across
+/// isolates) and calls [GeniusSDKSelectGeniusAccount] off the main isolate
+/// so the UI thread stays responsive during account switching.
+void _selectGeniusAccountIsolate(List<Object> args) {
+  final sendPort = args[0] as SendPort;
+  final publicAddress = args[1] as String;
+
+  final dylib = loadGeniusSDKLibrary();
+  if (dylib == null) {
+    sendPort.send(GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index);
+    return;
+  }
+  final lib = NativeLibrary(dylib);
+
+  final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
+  final result = lib.GeniusSDKSelectGeniusAccount(addressPtr);
+  malloc.free(addressPtr);
+
+  sendPort.send(result);
 }
 
 class GeniusApi {
@@ -671,6 +695,23 @@ class GeniusApi {
     final result =
         _ffiBridgePrebuilt.sgns_lib.GeniusSDKSelectGeniusAccount(addressPtr);
     malloc.free(addressPtr);
+    return _mapNodeReturnValue(result);
+  }
+
+  /// Async version of [selectGeniusAccount] that runs the FFI call in a
+  /// short-lived isolate so the UI thread stays responsive.
+  ///
+  /// Prefer this over the synchronous version in UI-driven code paths.
+  Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
+      String publicAddress) async {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final receivePort = ReceivePort();
+    await Isolate.spawn(
+        _selectGeniusAccountIsolate, [receivePort.sendPort, publicAddress]);
+    final result = await receivePort.first as int;
+    receivePort.close();
     return _mapNodeReturnValue(result);
   }
 

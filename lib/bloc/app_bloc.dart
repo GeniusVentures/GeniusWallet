@@ -299,7 +299,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     SelectSDKAccount event,
     Emitter<AppState> emit,
   ) async {
-    final result = api.selectGeniusAccount(event.publicAddress);
+    final result = await api.selectGeniusAccountAsync(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       final sdkState = _getSDKAccountState();
       emit(state.copyWith(
