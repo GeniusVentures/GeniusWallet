@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
@@ -42,6 +43,18 @@ class GeniusApi {
   late final String address;
   late final String jsonFilePath;
   bool isSdkInitialized = false;
+
+  /// Directory name within app documents for user-editable override files.
+  static const String _overridesDirName = 'overrides';
+
+  /// Keys in network_config.json that users are allowed to override.
+  static const Set<String> _networkConfigOverrideKeys = {
+    'pubsub_port',
+    'pubsub_bind_address',
+    'upnp_enabled',
+    'high_water',
+    'low_water',
+  };
 
   GeniusApi({
     required LocalWalletStorage secureStorage,
@@ -133,7 +146,7 @@ class GeniusApi {
           storedKey.privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0))!;
     }
 
-    jsonFilePath = await copyJsonToWritableDirectory();
+    jsonFilePath = await prepareConfigFiles();
     final basePathPtr = jsonFilePath.toNativeUtf8();
 
     final privateKeyAsStr = privateKey
@@ -180,40 +193,128 @@ class GeniusApi {
     }
   }
 
-  Future<String> copyJsonToWritableDirectory() async {
+  /// Returns (and creates if necessary) the user overrides directory.
+  Future<Directory> _ensureOverridesDir(Directory appDocsDir) async {
+    final overridesDir = Directory('${appDocsDir.path}/$_overridesDirName');
+    if (!await overridesDir.exists()) {
+      await overridesDir.create(recursive: true);
+    }
+    return overridesDir;
+  }
+
+  /// Loads user overrides from [overridesDir]/[fileName].
+  /// Returns an empty map if the file doesn't exist or is malformed.
+  Future<Map<String, dynamic>> _loadUserOverrides(
+      Directory overridesDir, String fileName) async {
+    final file = File('${overridesDir.path}/$fileName');
+    if (!await file.exists()) {
+      return {};
+    }
     try {
-      // Get the directory to store files
+      final content = await file.readAsString();
+      final decoded = jsonDecode(content);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      debugPrint('User overrides $fileName is not a JSON object, ignoring');
+      return {};
+    } catch (e) {
+      debugPrint('Failed to parse user overrides $fileName: $e');
+      return {};
+    }
+  }
+
+  /// Applies [overrides] on top of [defaults].
+  /// If [whitelist] is provided, only keys in the whitelist are applied.
+  Map<String, dynamic> _applyOverrides(
+    Map<String, dynamic> defaults,
+    Map<String, dynamic> overrides, {
+    Set<String>? whitelist,
+  }) {
+    final merged = Map<String, dynamic>.from(defaults);
+    for (final entry in overrides.entries) {
+      if (whitelist != null && !whitelist.contains(entry.key)) {
+        debugPrint('Skipping non-whitelisted override key: ${entry.key}');
+        continue;
+      }
+      merged[entry.key] = entry.value;
+    }
+    return merged;
+  }
+
+  /// Prepares config files in the writable directory that the native SDK reads.
+  ///
+  /// - dev_config.json: copied verbatim from bundled assets (no overrides).
+  /// - network_config.json: merged with user overrides (whitelisted keys only).
+  /// - crdt_config.json: merged with user overrides (all keys allowed).
+  /// - log_config.json: merged with user overrides (all keys allowed).
+  ///
+  /// User overrides are read from [appDocsDir]/overrides/.
+  Future<String> prepareConfigFiles() async {
+    try {
       final directory = await getApplicationDocumentsDirectory();
-      final configFiles = ['dev_config.json', 'network_config.json', 'crdt_config.json'];
+      debugPrint('Application documents directory: ${directory.path}');
 
-      debugPrint(
-          'Application documents directory: ${directory.path}'); // Log the directory path
+      final overridesDir = await _ensureOverridesDir(directory);
 
-      for (final fileName in configFiles) {
-      final filePath = '${directory.path}/$fileName';
-
-      // Load the asset file
-      final jsonString = await rootBundle.loadString('assets/$fileName');
-      debugPrint(
-        'Loaded JSON string for $fileName: $jsonString'); // Log the content of the JSON
-
-      // Write the file to the writable directory
-      final file = File(filePath);
-      await file.writeAsString(jsonString);
-      debugPrint(
-        'File written to: $filePath'); // Log the file path after writing
-
-      // Verify the file was written correctly
-      final writtenFileContent = await file.readAsString();
-      debugPrint(
-        'Content of the written file $fileName: $writtenFileContent'); // Log the written file content
+      // Seed empty override files on first launch so users know where to edit.
+      for (final fileName in ['network_config.json', 'crdt_config.json', 'log_config.json']) {
+        final overrideFile = File('${overridesDir.path}/$fileName');
+        if (!await overrideFile.exists()) {
+          await overrideFile.writeAsString('{}');
+          debugPrint('Seeded empty override file: ${overrideFile.path}');
+        }
       }
 
-      // Return the directory path for use in FFI
+      // ── dev_config.json: no overrides, copy verbatim ──
+      {
+        const fileName = 'dev_config.json';
+        final jsonString = await rootBundle.loadString('assets/$fileName');
+        await File('${directory.path}/$fileName')
+            .writeAsString(jsonString);
+        debugPrint('$fileName written verbatim (no overrides)');
+      }
+
+      // ── network_config.json: merge with whitelisted overrides ──
+      {
+        const fileName = 'network_config.json';
+        final defaultsJson = await rootBundle.loadString('assets/$fileName');
+        final defaults = jsonDecode(defaultsJson) as Map<String, dynamic>;
+        final overrides = await _loadUserOverrides(overridesDir, fileName);
+        final merged = _applyOverrides(defaults, overrides,
+            whitelist: _networkConfigOverrideKeys);
+        await File('${directory.path}/$fileName')
+            .writeAsString(jsonEncode(merged));
+        debugPrint('$fileName written (merged with ${overrides.length} override(s))');
+      }
+
+      // ── crdt_config.json: merge with all overrides ──
+      {
+        const fileName = 'crdt_config.json';
+        final defaultsJson = await rootBundle.loadString('assets/$fileName');
+        final defaults = jsonDecode(defaultsJson) as Map<String, dynamic>;
+        final overrides = await _loadUserOverrides(overridesDir, fileName);
+        final merged = _applyOverrides(defaults, overrides);
+        await File('${directory.path}/$fileName')
+            .writeAsString(jsonEncode(merged));
+        debugPrint('$fileName written (merged with ${overrides.length} override(s))');
+      }
+
+      // ── log_config.json: merge with all overrides ──
+      {
+        const fileName = 'log_config.json';
+        final defaultsJson = await rootBundle.loadString('assets/$fileName');
+        final defaults = jsonDecode(defaultsJson) as Map<String, dynamic>;
+        final overrides = await _loadUserOverrides(overridesDir, fileName);
+        final merged = _applyOverrides(defaults, overrides);
+        await File('${directory.path}/$fileName')
+            .writeAsString(jsonEncode(merged));
+        debugPrint('$fileName written (merged with ${overrides.length} override(s))');
+      }
+
       return '${directory.path}/';
     } catch (e) {
-      // Log any error that occurs
-      debugPrint('Error in copyJsonToWritableDirectory: $e');
+      debugPrint('Error in prepareConfigFiles: $e');
       rethrow;
     }
   }
