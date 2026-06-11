@@ -10,9 +10,11 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -135,6 +137,42 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return Material(
+        color: GeniusWalletColors.deepBlueTertiary,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline,
+                    color: Colors.redAccent, size: 64),
+                const SizedBox(height: 16),
+                const Text('Something went wrong',
+                    style: TextStyle(color: Colors.white, fontSize: 18)),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    if (navigatorKey.currentContext != null) {
+                      GoRouter.of(navigatorKey.currentContext!)
+                          .go('/dashboard');
+                    }
+                  },
+                  child: const Text('Go to Dashboard'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    };
+
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('FlutterError caught: ${details.exception}');
+    };
+
     return RepositoryProvider.value(
       value: geniusApi,
       child: MultiBlocProvider(

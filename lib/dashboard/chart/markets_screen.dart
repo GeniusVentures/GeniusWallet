@@ -11,8 +11,38 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
-class MarketsScreen extends StatelessWidget {
+class MarketsScreen extends StatefulWidget {
   const MarketsScreen({super.key});
+
+  @override
+  State<MarketsScreen> createState() => _MarketsScreenState();
+}
+
+class _MarketsScreenState extends State<MarketsScreen> {
+  late Future<List<CoinGeckoCoin>> _coinsFuture;
+  List<String>? _cachedCoinIds;
+  Future<Map<String, CoinGeckoMarketData?>>? _marketDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _coinsFuture = getMarketCoins();
+  }
+
+  void _retryCoins() {
+    setState(() {
+      _coinsFuture = getMarketCoins();
+      _marketDataFuture = null;
+      _cachedCoinIds = null;
+    });
+  }
+
+  void _retryMarketData() {
+    if (_cachedCoinIds == null || _cachedCoinIds!.isEmpty) return;
+    setState(() {
+      _marketDataFuture = fetchCoinsMarketData(coinIds: _cachedCoinIds!);
+    });
+  }
 
   int getCrossAxisCount(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -61,7 +91,8 @@ class MarketsScreen extends StatelessWidget {
                 ],
               ),
               FutureStateWidget<List<CoinGeckoCoin>>(
-                future: getMarketCoins(),
+                future: _coinsFuture,
+                onRetry: _retryCoins,
                 error: const Center(
                   child: Text(
                     "Failed to load market coins",
@@ -77,10 +108,13 @@ class MarketsScreen extends StatelessWidget {
                       ),
                     );
                   }
+                  _cachedCoinIds = coins.map((coin) => coin.id).toList();
                   return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
-                    future: fetchCoinsMarketData(
-                      coinIds: coins.map((coin) => coin.id).toList(),
-                    ),
+                    future: _marketDataFuture ??
+                        (_marketDataFuture = fetchCoinsMarketData(
+                          coinIds: _cachedCoinIds!,
+                        )),
+                    onRetry: _retryMarketData,
                     error: const Center(
                       child: Text(
                         "Failed to load market data",
