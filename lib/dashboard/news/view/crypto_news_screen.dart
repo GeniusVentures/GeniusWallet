@@ -58,19 +58,19 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                       onRefresh: () async => _retryNews(),
                       child: SingleChildScrollView(
                         child: StaggeredGrid.extent(
-                        maxCrossAxisExtent: 300,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        children: List.generate(articles.length, (index) {
-                          final crossAxisCellCount = index % 5 == 0 ? 2 : 1;
-                          return StaggeredGridTile.extent(
-                            crossAxisCellCount: crossAxisCellCount,
-                            mainAxisExtent: 220,
-                            child: _NewsCard(article: articles[index]),
-                          );
-                        }),
+                          maxCrossAxisExtent: 300,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          children: List.generate(articles.length, (index) {
+                            final crossAxisCellCount = index % 5 == 0 ? 2 : 1;
+                            return StaggeredGridTile.extent(
+                              crossAxisCellCount: crossAxisCellCount,
+                              mainAxisExtent: 220,
+                              child: _NewsCard(article: articles[index]),
+                            );
+                          }),
+                        ),
                       ),
-                    ),
                     );
                   },
                 ),
