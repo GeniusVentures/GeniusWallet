@@ -24,6 +24,12 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
     _newsFuture = fetchCoinTelegraphNews();
   }
 
+  void _retryNews() {
+    setState(() {
+      _newsFuture = fetchCoinTelegraphNews();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -42,13 +48,16 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
               Expanded(
                 child: FutureStateWidget<List<NewsArticle>>(
                   future: _newsFuture,
+                  onRetry: _retryNews,
                   error: const Center(child: Text('Failed to load news.')),
                   onData: (articles) {
                     if (articles.isEmpty) {
                       return const Center(child: Text('No news found.'));
                     }
-                    return SingleChildScrollView(
-                      child: StaggeredGrid.extent(
+                    return RefreshIndicator(
+                      onRefresh: () async => _retryNews(),
+                      child: SingleChildScrollView(
+                        child: StaggeredGrid.extent(
                         maxCrossAxisExtent: 300,
                         mainAxisSpacing: 8,
                         crossAxisSpacing: 8,
@@ -61,6 +70,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                           );
                         }),
                       ),
+                    ),
                     );
                   },
                 ),

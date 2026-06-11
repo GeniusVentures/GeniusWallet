@@ -183,38 +183,50 @@ class _ChartMarketsRow extends StatelessWidget {
 class OneColumnDashBoardView extends StatelessWidget {
   const OneColumnDashBoardView({super.key});
 
+  Future<void> _onRefresh(BuildContext context) async {
+    final walletCubit = context.read<WalletDetailsCubit>();
+    context.read<AppBloc>().add(LoadWallets());
+    if (walletCubit.state.selectedWallet != null &&
+        walletCubit.state.selectedNetwork != null) {
+      walletCubit.getCoins();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const spacing = SizedBox(height: gridSpacing / 2);
 
     return Padding(
       padding: const EdgeInsets.all(gridSpacing / 2),
-      child: ListView(
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 300),
-            child: OverviewDashboardView(),
-          ),
-          spacing,
-          ConstrainedBox(
+      child: RefreshIndicator(
+        onRefresh: () => _onRefresh(context),
+        child: ListView(
+          children: [
+            ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300),
-              child: ContributionsDashboardView()),
-          spacing,
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 350),
-            child: const ChartDashboardView(),
-          ),
-          spacing,
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 350),
-            child: const MarketsDashboardView(),
-          ),
-          spacing,
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 400),
-            child: const TransactionsDashboardView(),
-          ),
-        ],
+              child: OverviewDashboardView(),
+            ),
+            spacing,
+            ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ContributionsDashboardView()),
+            spacing,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 350),
+              child: const ChartDashboardView(),
+            ),
+            spacing,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 350),
+              child: const MarketsDashboardView(),
+            ),
+            spacing,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 400),
+              child: const TransactionsDashboardView(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -268,13 +280,33 @@ class TransactionsDashboardView extends StatelessWidget {
   }
 }
 
-class MarketsDashboardView extends StatelessWidget {
+class MarketsDashboardView extends StatefulWidget {
   const MarketsDashboardView({super.key});
+
+  @override
+  State<MarketsDashboardView> createState() => _MarketsDashboardViewState();
+}
+
+class _MarketsDashboardViewState extends State<MarketsDashboardView> {
+  late Future<List<CoinGeckoCoin>> _marketFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _marketFuture = getDashboardMarketCoins();
+  }
+
+  void _retry() {
+    setState(() {
+      _marketFuture = getDashboardMarketCoins();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureStateWidget<List<CoinGeckoCoin>>(
-      future: getDashboardMarketCoins(),
+      future: _marketFuture,
+      onRetry: _retry,
       error: const Center(child: Text("Failed to load market coins")),
       onData: (coins) {
         if (coins.isEmpty) {

@@ -17,7 +17,7 @@ class ResponsiveDrawer {
     final isDesktop =
         MediaQuery.sizeOf(context).width >= GeniusBreakpoints.medium;
 
-    final content = _ReponsiveDrawerScaffold(
+    final content = _ResponsiveDrawerScaffold(
       title: title,
       actions: actions,
       footer: footer,
@@ -71,13 +71,13 @@ class ResponsiveDrawer {
   }
 }
 
-class _ReponsiveDrawerScaffold extends StatelessWidget {
+class _ResponsiveDrawerScaffold extends StatelessWidget {
   final Widget child;
   final String? title;
   final List<Widget>? actions;
   final Widget? footer;
 
-  const _ReponsiveDrawerScaffold({
+  const _ResponsiveDrawerScaffold({
     required this.child,
     this.title,
     this.actions,

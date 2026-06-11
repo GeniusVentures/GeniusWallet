@@ -7,6 +7,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -226,6 +227,19 @@ class BridgeScreenState extends State<BridgeScreen> {
                                         shouldMintTokens: true);
 
                                 if (!context.mounted) return;
+
+                                ToastManager.instance.showToast(
+                                  context: context,
+                                  title: bridgeTokensResponse.isSuccess
+                                      ? 'Success'
+                                      : 'Error',
+                                  message: bridgeTokensResponse.isSuccess
+                                      ? 'Bridge transaction completed.'
+                                      : 'Bridge transaction failed.',
+                                  type: bridgeTokensResponse.isSuccess
+                                      ? ToastType.success
+                                      : ToastType.error,
+                                );
 
                                 showDialog(
                                   context: context,

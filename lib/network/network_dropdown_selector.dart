@@ -3,6 +3,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
@@ -65,6 +66,16 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       }
 
       walletCubit.selectNetwork(selected);
+
+      if (context.mounted) {
+        ToastManager.instance.showToast(
+          context: context,
+          title: 'Network Changed',
+          message:
+              'Switched to ${selected.name ?? selected.symbol ?? "network"}.',
+          type: ToastType.success,
+        );
+      }
 
       final box = Hive.box(networkBoxName);
       await box.put(selectedNetworkKeyChainId, selected.chainId);

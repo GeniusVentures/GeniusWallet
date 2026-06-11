@@ -10,7 +10,6 @@ class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({super.key});
 
   @override
-  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
 
@@ -21,21 +20,25 @@ class TransactionsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Column(
             children: [
-              // Optional: Add a header or filter here
               Expanded(
-                child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                  builder: (context, walletState) {
-                    final selectedWallet = walletState.selectedWallet;
-                    final isSgnusWallet =
-                        selectedWallet?.walletType == WalletType.sgnus;
-
-                    return Container(
-                        padding: const EdgeInsets.only(
-                            left: 12, right: 12, bottom: 8),
-                        child: isSgnusWallet
-                            ? const SgnusTransactionsScreen()
-                            : const TransactionsStream());
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<WalletDetailsCubit>().getCoins();
                   },
+                  child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                    builder: (context, walletState) {
+                      final selectedWallet = walletState.selectedWallet;
+                      final isSgnusWallet =
+                          selectedWallet?.walletType == WalletType.sgnus;
+
+                      return Container(
+                          padding: const EdgeInsets.only(
+                              left: 12, right: 12, bottom: 8),
+                          child: isSgnusWallet
+                              ? const SgnusTransactionsScreen()
+                              : const TransactionsStream());
+                    },
+                  ),
                 ),
               ),
             ],

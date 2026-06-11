@@ -25,7 +25,8 @@ class BackupPhraseScreen extends StatelessWidget {
               onChanged: (value) {
                 context.read<NewWalletBloc>().add(ToggleCheckbox());
               },
-              title: Text('I understand that if I lose my recovery words, I will not be able to access my wallet.'),
+              title: Text(
+                  'I understand that if I lose my recovery words, I will not be able to access my wallet.'),
               controlAffinity: ListTileControlAffinity.leading,
             ),
             BlocBuilder<NewWalletBloc, NewWalletState>(

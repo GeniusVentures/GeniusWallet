@@ -117,6 +117,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       ),
       body: FutureStateWidget<Order>(
         future: _orderFuture,
+        onRetry: () {
+          setState(() {
+            _orderFuture = _service.getOrderById(widget.orderId);
+          });
+        },
         onData: (order) => OrderDetailCard(
           order: order,
           bannerColor: _bannerColor,

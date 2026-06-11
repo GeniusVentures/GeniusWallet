@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
@@ -83,7 +85,10 @@ class _SwapScreenState extends State<SwapScreen> {
       });
     } catch (e) {
       setState(() => isLoading = false);
-      debugPrint('Token or balance fetch failed: $e');
+      if (mounted) {
+        showAppSnackBar(context,
+            'Failed to load tokens. Check your connection and try again.');
+      }
     }
   }
 
@@ -149,7 +154,10 @@ class _SwapScreenState extends State<SwapScreen> {
         fetchedRoute = route;
       });
     } catch (e) {
-      debugPrint("Route fetch failed: $e");
+      if (mounted) {
+        showAppSnackBar(
+            context, 'Failed to fetch route. Check your input and try again.');
+      }
     }
   }
 
@@ -370,6 +378,14 @@ class _SwapScreenState extends State<SwapScreen> {
                                           toSymbol: toToken?.symbol,
                                           fromAmount: fromAmount,
                                           fromIconUrl: fromToken?.logoURI);
+
+                                      ToastManager.instance.showToast(
+                                        context: context,
+                                        title: 'Swap Submitted',
+                                        message:
+                                            'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
+                                        type: ToastType.success,
+                                      );
 
                                       SwapSuccessDrawer.show(context,
                                           fromAmount: fromAmount,

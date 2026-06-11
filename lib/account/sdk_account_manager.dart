@@ -181,8 +181,7 @@ class SDKAccountManagerButton extends StatelessWidget {
                 icon: const Icon(Icons.edit_location_alt,
                     size: 20, color: Colors.orangeAccent),
                 tooltip: 'Set payout address',
-                onPressed: () =>
-                    _showSetPayoutAddressDialog(context),
+                onPressed: () => _showSetPayoutAddressDialog(context),
               )
             : IconButton(
                 icon: const Icon(Icons.delete_outline,
@@ -345,8 +344,7 @@ class SDKAccountManagerButton extends StatelessWidget {
 
     if (payoutAddress != null && payoutAddress.isNotEmpty && context.mounted) {
       context.read<AppBloc>().add(SetSDKPayoutAddress(payoutAddress));
-      final result =
-          context.read<AppBloc>().state.setPayoutAddressResult;
+      final result = context.read<AppBloc>().state.setPayoutAddressResult;
       if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
         showAppSnackBar(context, 'Payout address set successfully',
             duration: const Duration(seconds: 1));
