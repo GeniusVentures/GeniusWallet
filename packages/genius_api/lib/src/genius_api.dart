@@ -56,6 +56,12 @@ class GeniusApi {
     'low_water',
   };
 
+  /// Public accessor for the whitelist of overridable network config keys.
+  Set<String> get networkConfigOverrideKeys => _networkConfigOverrideKeys;
+
+  /// Path to the user overrides directory.
+  String get overridesDirPath => '${jsonFilePath}$_overridesDirName';
+
   GeniusApi({
     required LocalWalletStorage secureStorage,
   })  : _secureStorage = secureStorage,
@@ -224,8 +230,9 @@ class GeniusApi {
     }
   }
 
-  /// Applies [overrides] on top of [defaults].
-  /// If [whitelist] is provided, only keys in the whitelist are applied.
+  /// Applies [overrides] on top of [defaults] with deep merge.
+  /// If [whitelist] is provided, only keys in the whitelist are applied
+  /// at the top level (nested keys under whitelisted keys are all merged).
   Map<String, dynamic> _applyOverrides(
     Map<String, dynamic> defaults,
     Map<String, dynamic> overrides, {
@@ -237,7 +244,13 @@ class GeniusApi {
         debugPrint('Skipping non-whitelisted override key: ${entry.key}');
         continue;
       }
-      merged[entry.key] = entry.value;
+      if (entry.value is Map<String, dynamic> &&
+          merged[entry.key] is Map<String, dynamic>) {
+        merged[entry.key] = _applyOverrides(
+            merged[entry.key], entry.value);
+      } else {
+        merged[entry.key] = entry.value;
+      }
     }
     return merged;
   }
