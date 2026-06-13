@@ -164,18 +164,13 @@ class MyWindowListener extends WindowListener {
 
   @override
   void onWindowClose() async {
-    if (!Platform.isWindows ||
-        !WindowsWebViewShutdown.instance.hasActiveWebViews) {
-      return;
-    }
-
     if (_isClosing) {
       return;
     }
-
     _isClosing = true;
 
-    if (Platform.isWindows) {
+    // Windows-specific web view cleanup
+    if (Platform.isWindows && WindowsWebViewShutdown.instance.hasActiveWebViews) {
       try {
         await WindowsWebViewShutdown.instance
             .disposeAll()
@@ -185,7 +180,7 @@ class MyWindowListener extends WindowListener {
       }
     }
 
-    // Trigger cleanup when the window is closed
+    // Trigger SDK cleanup when the window is closed (all desktop platforms)
     final result = geniusApi.shutdownSDK();
     debugPrint("Window closed. GeniusApi shutdown: $result");
 
