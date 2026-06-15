@@ -55,5 +55,12 @@ class GeniusTabDestinations {
       icon: Icon(Icons.bug_report, size: 24.0),
       selectedIcon: Icon(Icons.bug_report, size: 24.0, color: Colors.greenAccent),
     ),
+    GeniusDestination(
+      navScreen: NavigationScreen.settings,
+      destination: '/settings',
+      label: const Text('Settings'),
+      icon: Icon(Icons.settings, size: iconSize),
+      selectedIcon: Icon(Icons.settings, size: iconSize, color: Colors.greenAccent),
+    ),
   ];
 }
