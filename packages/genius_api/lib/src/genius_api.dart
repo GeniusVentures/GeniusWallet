@@ -685,7 +685,7 @@ class GeniusApi {
       return [];
     }
     final rawString = result.cast<Utf8>().toDartString();
-    malloc.free(result);
+    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(result.cast<ffi.Void>());
     return rawString
         .split('\n')
         .map((s) => s.trim())
@@ -915,15 +915,11 @@ class GeniusApi {
   }
 
   /// Returns the current SDK initialization status.
-  ///
-  /// The native function returns a [GeniusStatusInfo] struct containing a
-  /// malloc-allocated message string. This method converts the C string to
-  /// a Dart [String] and frees the native allocation via [malloc.free].
   GeniusInitStatus getInitializationStatus() {
     final result =
         _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetInitializationStatus();
     final message = result.message.cast<Utf8>().toDartString();
-    malloc.free(result.message);
+    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(result.message.cast<ffi.Void>());
     return GeniusInitStatus(percentage: result.percentage, message: message);
   }
 
