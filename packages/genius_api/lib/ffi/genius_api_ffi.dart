@@ -177,6 +177,17 @@ class NativeLibrary {
   late final _GeniusSDKShutdown =
       _GeniusSDKShutdownPtr.asFunction<int Function()>();
 
+  GeniusStatusInfo GeniusSDKGetInitializationStatus() {
+    return _GeniusSDKGetInitializationStatus();
+  }
+
+  late final _GeniusSDKGetInitializationStatusPtr =
+      _lookup<ffi.NativeFunction<GeniusStatusInfo Function()>>(
+          'GeniusSDKGetInitializationStatus');
+  late final _GeniusSDKGetInitializationStatus =
+      _GeniusSDKGetInitializationStatusPtr.asFunction<
+          GeniusStatusInfo Function()>();
+
   /// @brief Retrieves a list of available Genius accounts.
   /// @return A null-terminated string containing newline-separated hex addresses,
   /// or null if the SDK is not initialized. The caller must free the
@@ -1034,6 +1045,13 @@ final class GeniusProcessingStatusInfo extends ffi.Struct {
   /// < Progress percentage from 0.0 to 100.0
   @ffi.Float()
   external double percentage;
+}
+
+final class GeniusStatusInfo extends ffi.Struct {
+  @ffi.Float()
+  external double percentage;
+
+  external ffi.Pointer<ffi.Char> message;
 }
 
 final class GeniusCredentials extends ffi.Struct {

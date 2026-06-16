@@ -17,8 +17,11 @@ class NetworkStatusPage extends StatefulWidget {
 
 class _NetworkStatusPageState extends State<NetworkStatusPage> {
   late Stream<ConnectivityResult> connectivityStream;
-  ConnectivityResult? lastKnownConnectivity;
+  ConnectivityResult? lastKnownConnectivity = ConnectivityResult.none;
   StreamSubscription<ConnectivityResult>? _connectivitySub;
+  Timer? _initStatusTimer;
+  String? _initStatusMessage;
+  double? _initPercentage;
 
   @override
   void initState() {
@@ -42,11 +45,35 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
         lastKnownConnectivity = result;
       });
     });
+
+    _startInitStatusPolling();
+  }
+
+  void _startInitStatusPolling() {
+    _initStatusTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) {
+        if (!mounted) return;
+        try {
+          final status = widget.geniusApi.getInitializationStatus();
+          setState(() {
+            _initPercentage = status.percentage;
+            _initStatusMessage = status.message;
+          });
+          if (status.percentage >= 1.0) {
+            _initStatusTimer?.cancel();
+          }
+        } catch (_) {
+          // Ignore polling errors and try again next tick.
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
     _connectivitySub?.cancel();
+    _initStatusTimer?.cancel();
     super.dispose();
   }
 
@@ -68,8 +95,6 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                   stream: connectivityStream,
                   initialData: lastKnownConnectivity,
                   builder: (context, snapshot) {
-                    print(
-                        '[DEBUG] Network StreamBuilder snapshot: ${snapshot.connectionState}, data: ${snapshot.data}');
                     ConnectivityResult? statusValue =
                         snapshot.data ?? lastKnownConnectivity;
                     String status = "Checking...";
@@ -118,6 +143,32 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                     );
                   },
                 ),
+                const Divider(),
+                if (_initStatusMessage != null)
+                  ListTile(
+                    leading: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        value: _initPercentage ?? 0.0,
+                        strokeWidth: 2.0,
+                        color:
+                            (_initPercentage ?? 0.0) >= 1.0
+                                ? Colors.green
+                                : Colors.blue,
+                      ),
+                    ),
+                    title: const Text('SDK Initialization'),
+                    subtitle: Text(
+                      _initStatusMessage ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: _initPercentage != null
+                        ? Text(
+                            '${(_initPercentage! * 100).toStringAsFixed(1)}%')
+                        : null,
+                  ),
                 const Divider(),
                 BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
                   builder: (context, state) {
