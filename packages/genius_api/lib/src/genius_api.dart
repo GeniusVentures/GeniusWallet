@@ -73,6 +73,16 @@ void _selectGeniusAccountIsolate(List<Object> args) {
   sendPort.send(result);
 }
 
+/// Deserialized result of [GeniusApi.getInitializationStatus].
+class GeniusInitStatus {
+  /// Initialization progress from 0.0 to 1.0.
+  final double percentage;
+  /// Human-readable status message.
+  final String message;
+
+  const GeniusInitStatus({required this.percentage, required this.message});
+}
+
 class GeniusApi {
   final LocalWalletStorage _secureStorage;
   final _ffiBridgePrebuilt = FFIBridgePrebuilt();
@@ -902,6 +912,19 @@ class GeniusApi {
   GeniusProcessingStatusInfo getProcessingStatus() {
     final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetProcessingStatus();
     return result;
+  }
+
+  /// Returns the current SDK initialization status.
+  ///
+  /// The native function returns a [GeniusStatusInfo] struct containing a
+  /// malloc-allocated message string. This method converts the C string to
+  /// a Dart [String] and frees the native allocation via [malloc.free].
+  GeniusInitStatus getInitializationStatus() {
+    final result =
+        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetInitializationStatus();
+    final message = result.message.cast<Utf8>().toDartString();
+    malloc.free(result.message);
+    return GeniusInitStatus(percentage: result.percentage, message: message);
   }
 
   GeniusTransactionManagerState getTransactionManagerState() {

@@ -1,4 +1,5 @@
-import 'package:auto_size_text/auto_size_text.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,43 +19,51 @@ class SGNUSConnectionWidget extends StatefulWidget {
 }
 
 class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<SGNUSConnection>(
-      stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(
-            child: Text('No connection data available'),
-          );
-        }
+  Timer? _initTimer;
+  double? _initPercentage;
+  bool _initComplete = false;
+  GeniusApi? _geniusApi;
 
-        final connection = snapshot.data!;
-        return TextButton.icon(
-          iconAlignment: IconAlignment.end,
-          onPressed: () => context.push('/network'),
-          label: Text('SGNUS Connection'),
-          icon: connection.isConnected
-              ? const CheckmarkAnimation()
-              : const XAnimation(),
-        );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _geniusApi ??= context.read<GeniusApi>();
+    _startInitPolling();
+  }
+
+  void _startInitPolling() {
+    _initTimer?.cancel();
+    if (_initComplete || _geniusApi == null) return;
+    _initTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) {
+        if (!mounted) return;
+        try {
+          final status = _geniusApi!.getInitializationStatus();
+          setState(() {
+            _initPercentage = status.percentage;
+            if (status.percentage >= 1.0) {
+              _initComplete = true;
+              _initTimer?.cancel();
+            }
+          });
+        } catch (_) {
+          // Ignore polling errors and try again next tick.
+        }
       },
     );
   }
-}
-
-class SGNUSConnectionMobileWidget extends StatefulWidget {
-  const SGNUSConnectionMobileWidget({super.key});
 
   @override
-  SGNUSConnectionMobileState createState() => SGNUSConnectionMobileState();
-}
+  void dispose() {
+    _initTimer?.cancel();
+    super.dispose();
+  }
 
-class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<SGNUSConnection>(
-      stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+      stream: _geniusApi!.getSGNUSConnectionStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -63,28 +72,37 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
         }
 
         final connection = snapshot.data!;
-        return GestureDetector(
-          onTap: () => context.push('/network'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Flexible(
-                      child: AutoSizeText(
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    'SGNUS Connection ',
-                    style: TextStyle(fontSize: 14),
-                  )),
-                  const SizedBox(width: 8),
-                  if (connection.isConnected) const CheckmarkAnimation(),
-                  if (!connection.isConnected) const XAnimation(),
-                ],
-              ),
-            ],
-          ),
+
+        Widget icon;
+        String label;
+
+        if (_initComplete || (_initPercentage != null && _initPercentage! >= 1.0)) {
+          icon = const CheckmarkAnimation();
+          label = 'SGNUS Connection';
+        } else if (_initPercentage != null) {
+          icon = SizedBox(
+            width: 25,
+            height: 25,
+            child: CircularProgressIndicator(
+              value: _initPercentage,
+              strokeWidth: 3.0,
+              color: Colors.greenAccent,
+            ),
+          );
+          label =
+              'SGNUS Connection (${(_initPercentage! * 100).toStringAsFixed(1)}%)';
+        } else {
+          icon = connection.isConnected
+              ? const CheckmarkAnimation()
+              : const XAnimation();
+          label = 'SGNUS Connection';
+        }
+
+        return TextButton.icon(
+          iconAlignment: IconAlignment.end,
+          onPressed: () => context.push('/network'),
+          label: Text(label),
+          icon: icon,
         );
       },
     );
