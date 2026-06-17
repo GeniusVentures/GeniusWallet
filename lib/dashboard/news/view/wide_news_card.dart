@@ -31,11 +31,11 @@ class WideNewsCard extends StatelessWidget {
                   imageUrl: article.imageUrl ?? '',
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    color: Colors.grey[800],
+                    color: GeniusWalletColors.surfaceSunken,
                     child: const Center(child: Loading()),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[800],
+                    color: GeniusWalletColors.surfaceSunken,
                     child: const Icon(Icons.error,
                         color: GeniusWalletColors.statusError),
                   ),

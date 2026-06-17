@@ -321,6 +321,55 @@ one pass on a real phone): camera permission/scanner open (§5a), notch
 rendering, on-device keyboard behavior in the drawers, FAB ergonomics on small
 phones. Everything else above is analyzer- and build-verified.
 
+### 10b. Design-token homogeneity audit
+
+A six-dimension consistency audit (color, spacing, radius, typography,
+components, surface/elevation) ran over the redesigned surface, each finding
+adversarially verified. The important conclusion for triage: **the legacy
+neutral tokens are aliases of the canonical ones** — in `genius_wallet_colors.dart`,
+`deepBlueCardColor => surfaceElevated`, `deepBlueMenu => surfaceMenu`,
+`deepBlueTertiary => surfaceSunken`, `gray500 = textSecondary`,
+`lightGreenPrimary = brandSecondary`. So a screen using `deepBlueCardColor`
+renders **pixel-identical** to one using `surfaceElevated`. Most of the audit's
+"high-severity" hits are therefore **naming hygiene with zero visual impact**,
+not homogeneity breaks.
+
+**Fixed (genuinely pixel-affecting — hardcoded Material values that don't theme):**
+- `markets_search_bar.dart` — `Colors.grey[400]` hint → `textSecondary`,
+  `Colors.grey[900]` fill → `surfaceElevated` (the grey fill rendered near-black
+  and broke in light mode); a stray `circular(5)` corner unified to `radiusMd`
+  to match the field's other two border states.
+- `news_card.dart` / `wide_news_card.dart` — `Colors.grey[800]` image
+  placeholders → `surfaceSunken`.
+- `dashboard_holdings_progress_list.dart` — the progress-ring track used the
+  fixed-dark `gray800` (vanished on the light canvas) → `textPrimary12`.
+
+**Left as a dev backlog (naming hygiene / needs a design decision — NOT visual
+bugs):**
+1. **Alias-name sweep (cosmetic, ~30 sites, zero visual change):** replace
+   `deepBlue*` / `gray500` / `lightGreenPrimary` references with their canonical
+   aliases (`surfaceElevated` / `surfaceMenu` / `surfaceSunken` / `textSecondary`
+   / `brandSecondary`) across the swap, bridge, token-info, transaction-item and
+   reown internals. Safe find/replace; do it for DRY, not for looks.
+2. **Missing `numericLarge` token:** the 28px/​w600 amount-input size is invented
+   in `send_screen`, `buy_screen`, `transaction_item`, `send_transaction_details`.
+   Add `numericLarge` to `genius_wallet_typography.dart` and adopt it. The 56px
+   home balance and 48px live-chart price are also un-tokenized — decide whether
+   they become `numericXl` or stay documented one-offs.
+3. **Screen-title weight drift:** `Markets`/`Crypto News`/`Swap` headings render
+   at `w500` while `displayLg` is `w700` / `headlineLg` is `w600` — a visible but
+   minor inconsistency. Pick one canonical title weight and apply it (also
+   migrate the two `GeniusWalletFontSize.sectionHeader` usages).
+4. **Sent-transaction accent:** `transaction_item.dart` colors *sent* rows with
+   `Colors.lightBlueAccent` vs *received* on brand green — a semantic color
+   choice that needs design sign-off before changing, so left untouched.
+5. **`market_data_info.dart`:** 8 hardcoded `TextStyle(16/18, w700)` could
+   consolidate to `titleMd/titleLg.copyWith(w700)` (pixel-identical; DRY only).
+
+The audit's headline "score" was floored low because it counted alias usage as
+breaks; corrected for that, the redesigned surface is visually homogeneous —
+the remaining items are token-naming tidiness and two small type decisions.
+
 ---
 
 *Questions about any of the above? Happy to walk through the cold-start fixes (§3) or

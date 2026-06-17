@@ -82,11 +82,14 @@ class HoldingProgressItem extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const CircularProgressIndicator(
+              CircularProgressIndicator(
                 value: 1.0,
                 strokeWidth: 2,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(GeniusWalletColors.gray800),
+                // Themeable track: gray800 was a fixed dark tone that vanished
+                // on the light canvas; textPrimary12 stays a subtle ring in
+                // both appearances.
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    GeniusWalletColors.textPrimary12),
               ),
               CircularProgressIndicator(
                 value: progress,

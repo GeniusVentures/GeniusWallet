@@ -174,13 +174,13 @@ class _NewsCardState extends State<NewsCard> {
                 placeholder: (context, url) => Container(
                   width: 80,
                   height: 80,
-                  color: Colors.grey[800],
+                  color: GeniusWalletColors.surfaceSunken,
                   child: const Center(child: Loading()),
                 ),
                 errorWidget: (context, url, error) => Container(
                   width: 80,
                   height: 80,
-                  color: Colors.grey[800],
+                  color: GeniusWalletColors.surfaceSunken,
                   child: const Icon(Icons.error,
                       color: GeniusWalletColors.statusError),
                 ),

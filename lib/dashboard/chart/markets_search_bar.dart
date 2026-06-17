@@ -128,29 +128,33 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Search Coins...',
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            // Themed tokens — the hardcoded Material greys here did not flip
+            // with appearance (near-black fill broke in light mode).
+            hintStyle: const TextStyle(color: GeniusWalletColors.textSecondary),
             filled: true,
-            fillColor: Colors.grey[900],
+            fillColor: GeniusWalletColors.surfaceElevated,
             contentPadding: const EdgeInsets.symmetric(
                 horizontal: GeniusWalletConsts.space8, vertical: 14),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
               borderSide: BorderSide(
                 color: GeniusWalletColors.textPrimary24,
                 width: 1.4,
               ),
             ),
+            // Was 5px — a stray corner radius vs the 12px on the other two
+            // border states; unified to radiusMd.
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
               borderSide: BorderSide(
                 color: GeniusWalletColors.textPrimary38,
                 width: 1.4,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
               borderSide: const BorderSide(
-                color: GeniusWalletColors.lightGreenPrimary,
+                color: GeniusWalletColors.brandSecondary,
                 width: 2,
               ),
             ),
