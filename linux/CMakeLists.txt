@@ -42,8 +42,17 @@ endif()
 set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
 # Parse CMAKE_ARGUMENTS environment variable if present
 if(DEFINED ENV{CMAKE_ARGUMENTS})
+    # Strip surrounding double-quotes from the value (e.g. from 'export VAR="..."' in shell)
+    set(CMAKE_ARGUMENTS_RAW "$ENV{CMAKE_ARGUMENTS}")
+    string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    if(CMAKE_ARGUMENTS_RAW MATCHES "^\".*\"$")
+        string(LENGTH "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_LEN)
+        math(EXPR CMAKE_ARGUMENTS_END "${CMAKE_ARGUMENTS_LEN} - 2")
+        string(SUBSTRING "${CMAKE_ARGUMENTS_RAW}" 1 "${CMAKE_ARGUMENTS_END}" CMAKE_ARGUMENTS_RAW)
+        string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    endif()
     # Split the arguments string into a list
-    string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
+    string(REPLACE " " ";" CMAKE_ARG_LIST "${CMAKE_ARGUMENTS_RAW}")
     
     # Process each argument
     foreach(ARG IN LISTS CMAKE_ARG_LIST)
