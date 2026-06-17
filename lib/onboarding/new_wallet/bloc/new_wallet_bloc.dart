@@ -30,21 +30,35 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     on<RecoveryVerificationContinueForMobile>(
         _onRecoveryVerificationContinueForMobile);
 
-    on<ToggleCheckbox>(_onToggleCheckbox);
+    on<ToggleCheckbox>((event, emit) {
+      emit(state.copyWith(acceptedWarning: !state.acceptedWarning));
+    });
 
     on<AgreementAccepted>(_onAgreementAccepted);
 
-    on<AddWallet>(_onAddWallet);
+    on<AddWallet>((event, emit) async {
+      emit(state.copyWith(walletSaveStatus: NewWalletStatus.loading));
+      try {
+        await api.saveWallet(event.wallet);
+        emit(state.copyWith(walletSaveStatus: NewWalletStatus.loaded));
+      } catch (e) {
+        emit(state.copyWith(walletSaveStatus: NewWalletStatus.error));
+      }
+    });
 
-    on<PinCreated>(_onPinCreated);
+    on<PinCreated>((event, emit) {
+      emit(state.copyWith(currentStep: NewWalletStep.confirmPin));
+    });
 
-    on<PinConfirmPassed>(_onPinConfirmPassed);
+    on<PinConfirmPassed>((event, emit) {
+      emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
+    });
 
-    on<PinConfirmFailed>(_onPinConfirmFailed);
-  }
+    on<PinConfirmFailed>((event, emit) {
+      emit(state.copyWith(currentStep: NewWalletStep.createPin));
+    });
 
-  FutureOr<void> _onToggleCheckbox(event, emit) {
-    emit(state.copyWith(acceptedWarning: !state.acceptedWarning));
+    on<GoBack>(_onGoBack);
   }
 
   FutureOr<void> _onRecoveryVerificationContinue(
@@ -53,6 +67,7 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.passed,
       ));
+      add(AddWallet(wallet: wallet));
     } else {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.failed,
@@ -93,6 +108,7 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.passed,
       ));
+      add(AddWallet(wallet: wallet));
     } else {
       emit(state.copyWith(
         verificationStatus: VerificationStatus.failed,
@@ -147,30 +163,27 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     }
   }
 
-  Future<void> _onAddWallet(AddWallet event, Emitter emit) async {
-    await api.saveWallet(event.wallet);
-  }
-
-  FutureOr<void> _onPinCreated(PinCreated event, Emitter<NewWalletState> emit) {
-    emit(state.copyWith(currentStep: NewWalletStep.confirmPin));
-  }
-
-  FutureOr<void> _onPinConfirmPassed(
-      PinConfirmPassed event, Emitter<NewWalletState> emit) {
-    emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
-  }
-
-  FutureOr<void> _onPinConfirmFailed(
-      PinConfirmFailed event, Emitter<NewWalletState> emit) {
-    emit(state.copyWith(currentStep: NewWalletStep.createPin));
-  }
-
   FutureOr<void> _onAgreementAccepted(
       AgreementAccepted event, Emitter<NewWalletState> emit) {
     if (event.userExists) {
       emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
     } else {
       emit(state.copyWith(currentStep: NewWalletStep.createPin));
+    }
+  }
+
+  void _onGoBack(GoBack event, Emitter<NewWalletState> emit) {
+    switch (state.currentStep) {
+      case NewWalletStep.agreement:
+        break; // First step — PopScope handles route pop
+      case NewWalletStep.createPin:
+        emit(state.copyWith(currentStep: NewWalletStep.agreement));
+      case NewWalletStep.confirmPin:
+        emit(state.copyWith(currentStep: NewWalletStep.createPin));
+      case NewWalletStep.copyPhrase:
+        emit(state.copyWith(currentStep: NewWalletStep.agreement));
+      case NewWalletStep.verifyRecoveryPhrase:
+        emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
     }
   }
 }

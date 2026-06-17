@@ -1,11 +1,12 @@
 name: genius_api
+publish_to: none
 version: 2.0.0
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: ">=3.10.0"
 
 dev_dependencies:
-  ffigen: ^19.1.0
+  ffigen: ^20.1.1
   build_runner: ^2.8.0
   freezed: ^3.2.3
 
@@ -13,12 +14,12 @@ dependencies:
   flutter:
     sdk: flutter
   freezed_annotation: ^3.1.0
-  hive: ^2.2.3
+  hive_ce: ^2.19.3
   http: ^1.5.0
   local_secure_storage:
     path: ../local_secure_storage
   permission_handler: ^12.0.1
-  protobuf: ^4.2.0
+  protobuf: ^6.0.0
   reown_walletkit: ^1.3.2
   wallet: ^0.0.13
-  web3dart: ^2.7.2
+  web3dart: ^3.0.2

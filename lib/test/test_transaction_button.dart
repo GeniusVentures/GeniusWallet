@@ -19,7 +19,7 @@ class TestTransactionButton extends StatelessWidget {
         final fakeTx = getFakeTransaction(true);
         txController.addTransaction(fakeTx);
 
-        ToastManager().showToast(
+        ToastManager.instance.showToast(
           context: context,
           title: "Transaction Added",
           message: "Added: ${fakeTx.type} | ${fakeTx.transactionDirection}",

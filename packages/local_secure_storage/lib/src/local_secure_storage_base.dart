@@ -9,7 +9,7 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
-import 'package:rxdart/rxdart.dart';
+
 import 'package:flutter/material.dart';
 
 class LocalWalletStorage {
@@ -19,8 +19,6 @@ class LocalWalletStorage {
   static const _walletKeyPrefix = 'wallet_';
   static const _accountKeyPrefix = '__account__';
 
-  final walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
-  Stream<List<Wallet>> getWallets() => walletsController.asBroadcastStream();
   final FlutterSecureStorage _secureStorage;
   final Web3 _web3;
 
@@ -28,7 +26,6 @@ class LocalWalletStorage {
 
   static Future<LocalWalletStorage> create(
       {FlutterSecureStorage? secureStorage, Web3? web3}) async {
-    
     FlutterSecureStorage storageInstance;
     if (secureStorage != null) {
       storageInstance = secureStorage;
@@ -37,16 +34,16 @@ class LocalWalletStorage {
       const androidOptions = AndroidOptions(
         encryptedSharedPreferences: true,
       );
-      
+
       storageInstance = const FlutterSecureStorage(
         aOptions: androidOptions,
       );
     }
-    
+
     final web3Instance = web3 ?? Web3();
     final localWalletStorage =
         LocalWalletStorage._create(storageInstance, web3Instance);
-    // await localWalletStorage.deleteAllWallets();
+
     return localWalletStorage;
   }
 
@@ -58,23 +55,16 @@ class LocalWalletStorage {
         if (isAWallet(entry.key)) {
           StoredKey? storedKey = StoredKey.importJson(entry.value);
 
-          // A key was not able to be parsed, delete it
           if (storedKey == null) {
-            debugPrint("Deleted storedkey ${entry.key}");
+            debugPrint("Deleting key ${entry.key} because it is not parseable");
             await deleteKey(entry.key);
           }
-
-          final storedKeyWallet = StoredKeyWallet(storedKey);
-
-          addWalletToController(
-              await mapStoredKeyWalletToWallets(storedKeyWallet));
         } else if (isAWatchedWallet(entry.key)) {
-          Wallet? wallet = Wallet.fromJson(
-              Map<String, dynamic>.from(jsonDecode(entry.value)));
-          addWalletToController(await mapWalletToWallets(wallet));
+          // Validate watched wallet JSON is parseable
+          Wallet.fromJson(Map<String, dynamic>.from(jsonDecode(entry.value)));
         }
       } catch (e) {
-        debugPrint('** Issue with loading wallets ');
+        debugPrint('Issue with loading wallets');
         debugPrint(e.toString());
       }
     }
@@ -105,17 +95,16 @@ class LocalWalletStorage {
           Account.fromJson(Map<String, dynamic>.from(jsonDecode(accountData)));
       return account;
     } catch (e) {
-      // What to do if the account doesn't load? Is deleting / creating a new one appropriate? We don't want to brick the app
-      debugPrint('** Issue with loading acount');
+      debugPrint('Issue with loading acount');
       debugPrint(e.toString());
       _secureStorage.delete(key: _accountKeyPrefix);
-      return await createNewAccount();
+      return null;
     }
   }
 
   Future<void> saveAccount(Account account) async {
     await _secureStorage.write(
-        key: getAccountKey(), value: jsonEncode(account.toJson()));
+        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
   }
 
   Future<void> saveAccountBalance(double balance) async {
@@ -129,10 +118,10 @@ class LocalWalletStorage {
     account.lastBalanceRetrievalDate = DateTime.now();
 
     await _secureStorage.write(
-        key: getAccountKey(), value: jsonEncode(account.toJson()));
+        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
   }
 
-  updateAccountFetchDate() async {
+  Future<void> updateAccountFetchDate() async {
     final account = await loadAccount();
     if (account == null) {
       return;
@@ -142,7 +131,7 @@ class LocalWalletStorage {
     account.lastBalanceRetrievalDate = DateTime.now();
 
     await _secureStorage.write(
-        key: getAccountKey(), value: jsonEncode(account.toJson()));
+        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
   }
 
   Future<void> deleteAccount() async {
@@ -157,20 +146,40 @@ class LocalWalletStorage {
   }
 
   Future<void> saveStoredKey(StoredKey storedKey) async {
-    addWalletToController(
-        await mapStoredKeyWalletToWallets(StoredKeyWallet(storedKey)));
-
     await _secureStorage.write(
         key: createWalletKey(storedKey.account(0).address()),
         value: storedKey.exportJson());
   }
 
   Future<void> saveWatchedWallet(Wallet wallet) async {
-    addWalletToController(await mapWalletToWallets(wallet));
-
     await _secureStorage.write(
         key: createWatchedWalletKey(wallet.address),
         value: jsonEncode(wallet.toJson()));
+  }
+
+  Future<void> renameWallet(String walletAddress, String newName) async {
+    Map<String, String> keys = await _secureStorage.readAll();
+
+    for (var entry in keys.entries) {
+      if ((isAWallet(entry.key) || isAWatchedWallet(entry.key)) &&
+          isKeyMatchesAddress(entry.key, walletAddress)) {
+        if (isAWatchedWallet(entry.key)) {
+          // For watched wallets, parse the JSON, update the name, and save.
+          final walletJson = Map<String, dynamic>.from(jsonDecode(entry.value));
+          walletJson['walletName'] = newName;
+          await _secureStorage.write(
+              key: entry.key, value: jsonEncode(walletJson));
+        } else {
+          // For stored-key wallets, parse the JSON, update the name, and save.
+          final storedKeyJson =
+              Map<String, dynamic>.from(jsonDecode(entry.value));
+          storedKeyJson['name'] = newName;
+          await _secureStorage.write(
+              key: entry.key, value: jsonEncode(storedKeyJson));
+        }
+        return;
+      }
+    }
   }
 
   Future<void> deleteWallet(String walletAddress) async {
@@ -180,7 +189,6 @@ class LocalWalletStorage {
       if ((isAWallet(entry.key) || isAWatchedWallet(entry.key)) &&
           isKeyMatchesAddress(entry.key, walletAddress)) {
         await deleteKey(entry.key);
-        deleteWalletFromController(walletAddress);
         return;
       }
     }
@@ -237,8 +245,6 @@ class LocalWalletStorage {
         await deleteKey(entry.key);
       }
     }
-
-    deleteAllWalletsFromController();
   }
 
   Future<void> deleteKey(String key) async {
@@ -261,10 +267,6 @@ class LocalWalletStorage {
     return '$_watchesKeyPrefix${address.toLowerCase()}';
   }
 
-  String getAccountKey() {
-    return _accountKeyPrefix;
-  }
-
   bool isAAccount(String key) {
     return key.toLowerCase().contains(_accountKeyPrefix);
   }
@@ -274,23 +276,28 @@ class LocalWalletStorage {
         key.toLowerCase() == createWatchedWalletKey(address.toLowerCase());
   }
 
-  void addWalletToController(Wallet wallet) {
-    // delete it if it already existed
-    deleteWalletFromController(wallet.address);
-    final currentWallets = [...walletsController.value];
-    currentWallets.add(wallet);
-    walletsController.add(currentWallets);
-  }
+  Future<List<Wallet>> getAllWallets() async {
+    final List<Wallet> wallets = [];
+    final Map<String, String> keys = await _secureStorage.readAll();
 
-  void deleteAllWalletsFromController() {
-    walletsController.add([]);
-  }
+    for (var entry in keys.entries) {
+      try {
+        if (isAWallet(entry.key)) {
+          final StoredKey? storedKey = StoredKey.importJson(entry.value);
+          if (storedKey == null) continue;
+          final storedKeyWallet = StoredKeyWallet(storedKey);
+          wallets.add(await _toSafeWallet(storedKeyWallet));
+        } else if (isAWatchedWallet(entry.key)) {
+          final Wallet wallet = Wallet.fromJson(
+              Map<String, dynamic>.from(jsonDecode(entry.value)));
+          wallets.add(await _fetchBalanceForWatchedWallet(wallet));
+        }
+      } catch (e) {
+        debugPrint('Failed to parse wallet ${entry.key}: $e');
+      }
+    }
 
-  void deleteWalletFromController(String address) {
-    final currentWallets = [...walletsController.value];
-    currentWallets.removeWhere(
-        (element) => element.address.toLowerCase() == address.toLowerCase());
-    walletsController.add(currentWallets);
+    return wallets;
   }
 
   Future<StoredKey?> getSGNUSLinkedWalletPrivateKey() async {
@@ -310,7 +317,7 @@ class LocalWalletStorage {
   }
 
   // Don't pass any sensitive data to the UI, no privateKey or mnemonic
-  Future<Wallet> mapStoredKeyWalletToWallets(StoredKeyWallet wallet) async {
+  Future<Wallet> _toSafeWallet(StoredKeyWallet wallet) async {
     final address = wallet.storedKey.account(0).address();
     final List<Network> networks = await readNetworkAssets();
     final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
@@ -341,7 +348,7 @@ class LocalWalletStorage {
     );
   }
 
-  Future<Wallet> mapWalletToWallets(Wallet wallet) async {
+  Future<Wallet> _fetchBalanceForWatchedWallet(Wallet wallet) async {
     final List<Network> networks = await readNetworkAssets();
     final network = networks.where(
         (element) => element.symbol == wallet.currencySymbol.toLowerCase());

@@ -34,8 +34,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final balance = resp?.balance;
 
     if (balance == null) {
-      debugPrint('balance issue');
-      return 0; // TODO: handle error
+      setFilePickerError('Unable to fetch GNUS balance');
+      return 0;
     }
 
     // this can be long running since we delay it..
@@ -51,8 +51,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final info = await gnusCubit.fetchGnusInfo();
 
     if (info == null) {
-      debugPrint('token issue');
-      return; //TODO: handle error
+      setFilePickerError('Unable to fetch token information');
+      return;
     }
 
     emit(state.copyWith(gnusTokenDetails: info));
@@ -64,7 +64,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     try {
       emit(state.copyWith(filePickerError: null)); // Clear previous errors
 
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
         allowMultiple: false,
@@ -75,8 +75,6 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final file = File(result.files.single.path!);
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
-        print(jsonData.runtimeType);
-        print(jsonData);
 
         final jobCost =
             geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
@@ -125,7 +123,9 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         gnusAddress == null ||
         walletAddress == null ||
         rpcUrl == null) {
-      return; // TODO: handle errors
+      setFilePickerError(
+          'Missing required data for bridge gas estimation. Please select a wallet and network.');
+      return;
     }
 
     final resp = await geniusApi.getBrigeOutGasCost(
@@ -140,7 +140,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final jobGasCost = resp.data;
 
     if (!resp.isSuccess || jobGasCost == null) {
-      return; // TODO: handle errors if bridge out fails
+      setFilePickerError('Failed to estimate bridge gas cost.');
+      return;
     }
 
     emit(state.copyWith(jobGasCost: jobGasCost));
@@ -163,8 +164,11 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         rpcUrl == null ||
         state.jobCost == 0 ||
         uploadedJson.isEmpty) {
-      emit(state.copyWith(isBridgingTokens: false));
-      return; // TODO: handle errors
+      emit(state.copyWith(
+          isBridgingTokens: false,
+          filePickerError: const FilePickerError(
+              'Missing required data. Please select a wallet and network.')));
+      return;
     }
 
     final resp = await geniusApi.bridgeOut(
@@ -179,9 +183,11 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final txHash = resp.data;
 
     if (!resp.isSuccess || txHash == null) {
-      emit(state.copyWith(isBridgingTokens: false));
+      emit(state.copyWith(
+          isBridgingTokens: false,
+          processErrorMessage: 'Bridge transaction failed. Please try again.'));
 
-      return; // TODO: handle errors if bridge out fails
+      return;
     }
 
     // process the job
@@ -219,12 +225,12 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   void setFilePickerError(String errorMessage) {
     emit(state.copyWith(
-      filePickerError: FilePickerError(errorMessage), // Use FilePickerError
+      filePickerError: FilePickerError(errorMessage),
     ));
   }
 
   void resetFilePickerError() {
-    setFilePickerError(""); // Reset error state
+    setFilePickerError("");
   }
 
   void resetProcessError() {

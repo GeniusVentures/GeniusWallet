@@ -93,6 +93,7 @@ android {
         }
         externalNativeBuild {
             cmake {
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
                 def cmakeArgs = System.getenv("CMAKE_ARGUMENTS")
                 def argList = []
 

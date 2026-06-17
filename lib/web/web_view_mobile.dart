@@ -12,10 +12,10 @@ class WebViewMobile extends StatefulWidget {
   final bool? includeBackButton;
 
   const WebViewMobile({
-    Key? key,
+    super.key,
     required this.url,
     this.includeBackButton = false,
-  }) : super(key: key);
+  });
 
   @override
   WebViewMobileState createState() => WebViewMobileState();

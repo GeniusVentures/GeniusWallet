@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:clipboard/clipboard.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
+import 'package:flutter/services.dart';
 
 class PasteField extends StatelessWidget {
   final String hintText;
@@ -12,80 +8,50 @@ class PasteField extends StatelessWidget {
   final TextEditingController controller;
   final double height;
   const PasteField({
-    Key? key,
+    super.key,
     this.additionalWidget,
     this.subtitle = '',
     this.hintText = '',
     this.height = 200,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    var addon = const <Widget>[SizedBox()];
-    if (additionalWidget != null) {
-      addon = [
-        const SizedBox(height: 20),
-        additionalWidget!,
-      ];
-    }
     return Column(
+      spacing: 16.0,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: GeniusWalletColors.grayPrimary,
-            border: Border.all(color: GeniusWalletColors.borderGrey),
-            borderRadius:
-                BorderRadius.circular(GeniusWalletConsts.borderRadiusCard),
-          ),
-          width: MediaQuery.of(context).size.width * 0.9,
-          height: height,
-          child: Stack(
-            children: [
-              TextFormField(
-                controller: controller,
-                decoration: InputDecoration(
-                  hintStyle: const TextStyle(
-                      color: GeniusWalletColors.gray500,
-                      fontSize: GeniusWalletFontSize.base),
-                  hintText: hintText,
-                  border: InputBorder.none,
-                ),
-                minLines: 10,
-                maxLines: 10,
+        Stack(
+          children: [
+            TextFormField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: hintText,
               ),
-              Positioned(
-                bottom: 10,
-                right: 10,
-                child: TextButton.icon(
-                  onPressed: () async {
-                    final textValue = await FlutterClipboard.paste();
-                    controller.text = textValue;
-                  },
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                    side: const BorderSide(width: 1.0, color: Colors.white),
-                  ),
-                  icon: const Icon(Icons.content_copy,
-                      color: Colors.white, size: GeniusWalletFontSize.base),
-                  label: const Text(
-                    GeniusWalletText.btnPaste,
-                    style: TextStyle(
-                        fontSize: GeniusWalletFontSize.medium,
-                        color: Colors.white),
-                  ),
-                ),
+              minLines: 4,
+              maxLines: 10,
+            ),
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey)),
+                onPressed: () async {
+                  final textValue =
+                      (await Clipboard.getData(Clipboard.kTextPlain))?.text ??
+                          "";
+                  controller.text = textValue;
+                },
+                icon: const Icon(Icons.content_copy),
+                label: const Text("Paste"),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        ...addon,
-        const SizedBox(height: 20),
+        if (additionalWidget != null) additionalWidget!,
         SizedBox(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.sizeOf(context).width,
             child: Text(
               subtitle,
               textAlign: TextAlign.left,

@@ -1,9 +1,11 @@
-# Project-level configuration.
 set(ARCHS "x86_64;arm64" CACHE STRING "Default build for OSX is now x86_64 and arm64")
-# Set OSX specific runtime options
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "OSX Architectures")
+set(CMAKE_OSX_DEPLOYMENT_TARGET 12.1)
+
 cmake_minimum_required(VERSION 3.18)
+
 project(runner LANGUAGES C CXX)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -arch arm64")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -arch arm64")
 # The name of the executable created for the application. Change this to change
@@ -13,7 +15,6 @@ set(BINARY_NAME "genius_wallet")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "io.geniusventures.genius_wallet")
-
 
 set(ARCH_BUILD_DIR /build/OSX/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
@@ -58,11 +59,9 @@ function(APPLY_STANDARD_SETTINGS TARGET)
     target_compile_definitions(${TARGET} PRIVATE "$<$<NOT:$<CONFIG:Debug>>:NDEBUG>")
 endfunction()
 
-#find_package(Vulkan REQUIRED)
 set(THIRDPARTY_DIR "${CMAKE_BINARY_DIR}/../../../../thirdparty" CACHE PATH "Path to third-party dependencies")
 set(SUPERGENIUS_SRC_DIR "${CMAKE_BINARY_DIR}/../../../../SuperGenius" CACHE PATH "Path to sgns dependencies")
 set(GENIUSSDK_SRC_DIR "${CMAKE_BINARY_DIR}/../../../../GeniusSDK" CACHE PATH "Path to sdk dependencies")
+
 # Flutter library and tool build rules.
-#set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../flutter")
-#add_subdirectory(${FLUTTER_MANAGED_DIR})
 include(../../cmake/CommonBuildParameters.cmake)

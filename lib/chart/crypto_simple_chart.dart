@@ -13,23 +13,24 @@ class CryptoSparkLineChart extends StatelessWidget {
   final double currentPrice;
   final double priceChangePercent;
   final List<double>? sparkline;
-  final double? iconSize;
+  final double iconSize;
+  final void Function()? onTap;
 
-  const CryptoSparkLineChart({
-    super.key,
-    required this.title,
-    required this.high24h,
-    required this.low24h,
-    required this.currentPrice,
-    required this.priceChangePercent,
-    this.sparkline,
-    this.iconSize,
-    this.iconPath,
-  });
+  const CryptoSparkLineChart(
+      {super.key,
+      required this.title,
+      required this.high24h,
+      required this.low24h,
+      required this.currentPrice,
+      required this.priceChangePercent,
+      this.sparkline,
+      this.iconSize = 28,
+      this.iconPath,
+      this.onTap});
 
   /// Soft muted green/red colors
   static const Color _mutedGreen = GeniusWalletColors.mutedGreen;
-  static const Color _mutedRed = GeniusWalletColors.mutedRed;
+  static const Color _mutedRed = Colors.red;
 
   Color get priceColor => priceChangePercent > 0
       ? _mutedGreen
@@ -53,23 +54,20 @@ class CryptoSparkLineChart extends StatelessWidget {
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
-            locale: "en_US",
-            symbol: "\$",
-            decimalDigits: tokenDecimalsToDisplay)
+            symbol: "\$", decimalDigits: tokenDecimalsToDisplay)
         .format(currentPrice);
 
     return ListTile(
-      minVerticalPadding: 0,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-      leading: buildTokenIcon(iconPath: iconPath ?? "", size: iconSize ?? 28),
+      leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
       title: AutoSizeText(
         title,
         style: const TextStyle(
           fontSize: 16,
-          color: GeniusWalletColors.gray500,
+          color: Colors.grey,
         ),
         maxLines: 1,
       ),
+      onTap: onTap,
       subtitle: Text(
         formattedPrice,
         style: TextStyle(
@@ -77,12 +75,13 @@ class CryptoSparkLineChart extends StatelessWidget {
           color: currentPrice == 0 ? Colors.grey[600] : Colors.white,
         ),
       ),
+      titleAlignment: ListTileTitleAlignment.center,
       trailing: SizedBox(
-        height: 44, // Fix for overflow, ensures everything fits
+        height: 44,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 5.0,
           children: [
             Text(
               "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
@@ -92,9 +91,8 @@ class CryptoSparkLineChart extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 5),
             SizedBox(
-              width: 70,
+              width: 80,
               height: 15,
               child: LineChart(
                 LineChartData(

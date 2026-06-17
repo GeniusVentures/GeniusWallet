@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:provider/provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 
 class NetworkDropdownSelector extends StatefulWidget {
@@ -39,8 +39,6 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final chainId = box.get(selectedNetworkKeyChainId) as int?;
     final rpcUrl = box.get(selectedNetworkKeyRpcUrl) as String?;
 
-    //print("Saved chainId: $chainId, rpcUrl: $rpcUrl");
-
     if (!mounted) return;
     setState(() {
       savedChainId = chainId;
@@ -53,10 +51,11 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final selected = await ResponsiveDrawer.show<Network>(
       context: context,
       title: "Select Network",
-      children: networks.map((network) {
+      child: ListView(
+          children: networks.map((network) {
         final isSelected = network.chainId == selectedNetwork?.chainId;
         return _buildDrawerRow(network, isSelected);
-      }).toList(),
+      }).toList()),
     );
 
     if (selected != null && selected != selectedNetwork) {
@@ -68,6 +67,16 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
 
       walletCubit.selectNetwork(selected);
 
+      if (context.mounted) {
+        ToastManager.instance.showToast(
+          context: context,
+          title: 'Network Changed',
+          message:
+              'Switched to ${selected.name ?? selected.symbol ?? "network"}.',
+          type: ToastType.success,
+        );
+      }
+
       final box = Hive.box(networkBoxName);
       await box.put(selectedNetworkKeyChainId, selected.chainId);
       await box.put(selectedNetworkKeyRpcUrl, selected.rpcUrl);
@@ -75,53 +84,36 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
   }
 
   Widget _buildDrawerRow(Network network, bool isSelected) {
-    final color =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
-    final subColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.greenAccent
-              : GeniusWalletColors.deepBlueCardColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          leading: SizedBox(
-            width: 36,
-            height: 36,
-            child: Image.asset(
-              network.iconPath ?? "",
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox(width: 36, height: 36),
-            ),
-          ),
-          minLeadingWidth: 0,
-          title: Text(
-            network.name ?? "Unnamed",
-            style: TextStyle(
-              fontSize: 16,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            network.symbol ?? "",
-            style: TextStyle(
-              fontSize: 12,
-              color: subColor,
-            ),
-          ),
-          onTap: () => Navigator.of(context).pop(network),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+      selected: isSelected,
+      style: ListTileStyle.drawer,
+      leading: SizedBox(
+        width: 36,
+        height: 36,
+        child: Image.asset(
+          network.iconPath ?? "",
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) =>
+              const SizedBox(width: 36, height: 36),
         ),
       ),
+      title: Text(
+        network.name ?? "Unnamed",
+        style: TextStyle(
+          fontSize: 16,
+          // color: color,
+          fontWeight: FontWeight.w500,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        network.symbol ?? "",
+        style: TextStyle(
+          fontSize: 12,
+        ),
+      ),
+      onTap: () => Navigator.of(context).pop(network),
     );
   }
 
@@ -143,16 +135,13 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       orElse: () => widget.initialSelected ?? networks.first,
     );
 
-    return GestureDetector(
-      onTap: () => _showNetworkDrawer(networks),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: GeniusWalletColors.deepBlueCardColor,
-          borderRadius: BorderRadius.circular(40),
-        ),
+    return Tooltip(
+      message: "Select network",
+      child: TextButton(
+        onPressed: () => _showNetworkDrawer(networks),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 6.0,
           children: [
             Image.asset(
               selectedNetwork?.iconPath ?? "",
@@ -161,9 +150,8 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
               errorBuilder: (context, error, stackTrace) =>
                   const SizedBox(width: 20, height: 20),
             ),
-            const SizedBox(width: 8),
             const Icon(
-              Icons.keyboard_arrow_down,
+              Icons.arrow_drop_down,
               size: 16,
             ),
           ],

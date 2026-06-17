@@ -5,7 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -20,12 +20,11 @@ class CoinsScreen extends StatefulWidget {
   final bool? isGnusWalletConnected;
 
   const CoinsScreen(
-      {Key? key,
+      {super.key,
       this.onCoinSelected,
       this.filterCoins,
       this.isGnusWalletConnected,
-      this.isUseDivider})
-      : super(key: key);
+      this.isUseDivider});
 
   @override
   CoinsScreenState createState() => CoinsScreenState();
@@ -40,8 +39,8 @@ class CoinsScreenState extends State<CoinsScreen> {
   void initState() {
     super.initState();
 
-    // periodically fetch market data every 20 seconds to keep wallet balance up to date
-    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
+    // periodically fetch market data to keep wallet balance up to date
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       final state = context.read<WalletDetailsCubit>().state;
       if (state.coinsStatus == WalletStatus.successful &&
           state.coins.isNotEmpty) {
@@ -107,7 +106,6 @@ class CoinsScreenState extends State<CoinsScreen> {
 
     final formattedTotal = totalValue.toStringAsFixed(2);
 
-    // ✅ Set it in the cubit
     context.read<WalletDetailsCubit>().setSelectedWalletBalance(formattedTotal);
   }
 
@@ -159,7 +157,6 @@ class CoinsScreenState extends State<CoinsScreen> {
               .toList();
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 16),
             child: Column(
               children: [
                 for (int i = 0; i < filteredCoins.length; i++) ...[
@@ -175,8 +172,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                           extra: {
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
-                            "securityInfo": "Coming Soon",
-                            "transactionHistory": ["Coming Soon"],
                             "marketData":
                                 _marketData[coin.symbol?.toLowerCase()]
                           },
@@ -191,15 +186,8 @@ class CoinsScreenState extends State<CoinsScreen> {
                         _marketData[filteredCoins[i].symbol?.toLowerCase()],
                   ),
                   if ((widget.isUseDivider ?? false) &&
-                      i != filteredCoins.length - 1)
-                    const Divider(
-                      thickness: 2.0,
-                      color: GeniusWalletColors.deepBlueTertiary,
-                      height: 1,
-                    ),
-                  if (!(widget.isUseDivider ?? false) &&
-                      i != filteredCoins.length - 1)
-                    const SizedBox(height: 8),
+                      i < filteredCoins.length - 1)
+                    const Divider(),
                 ],
               ],
             ),

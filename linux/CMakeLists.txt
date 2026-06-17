@@ -1,5 +1,3 @@
-include(../cmake/CommonOverrideFlags.cmake)
-
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES C CXX)
@@ -18,7 +16,6 @@ set(BINARY_NAME "genius_wallet")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.example.genius_wallet")
-
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -42,7 +39,6 @@ endif()
 set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
 # Parse CMAKE_ARGUMENTS environment variable if present
 if(DEFINED ENV{CMAKE_ARGUMENTS})
-    # Strip surrounding double-quotes from the value (e.g. from 'export VAR="..."' in shell)
     set(CMAKE_ARGUMENTS_RAW "$ENV{CMAKE_ARGUMENTS}")
     string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
     if(CMAKE_ARGUMENTS_RAW MATCHES "^\".*\"$")
@@ -53,17 +49,17 @@ if(DEFINED ENV{CMAKE_ARGUMENTS})
     endif()
     # Split the arguments string into a list
     string(REPLACE " " ";" CMAKE_ARG_LIST "${CMAKE_ARGUMENTS_RAW}")
-    
+
     # Process each argument
     foreach(ARG IN LISTS CMAKE_ARG_LIST)
         # Check if it's a -D argument (variable definition)
         if(ARG MATCHES "^-D(.+)=(.+)$")
             set(VAR_NAME "${CMAKE_MATCH_1}")
             set(VAR_VALUE "${CMAKE_MATCH_2}")
-            
+
             # Set the variable in the cache
             set(${VAR_NAME} "${VAR_VALUE}" CACHE STRING "From CMAKE_ARGUMENTS" FORCE)
-            
+
             # Special handling for CMAKE_BUILD_TYPE
             if(VAR_NAME STREQUAL "CMAKE_BUILD_TYPE")
                 if(VAR_VALUE STREQUAL "RelWithDebInfo")
@@ -81,7 +77,7 @@ if(DEFINED ENV{CMAKE_ARGUMENTS})
             endif()
         endif()
     endforeach()
-    
+
     # Optional: Log what was processed
     message(STATUS "Processed CMAKE_ARGUMENTS: $ENV{CMAKE_ARGUMENTS}")
 endif()
@@ -212,10 +208,7 @@ endif()
 
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
-    # Some plugins (including sentry_flutter) pass generator expressions such as
-    # $<TARGET_FILE:crashpad_handler>, so match on the full entry string.
     if("${bundled_library}" MATCHES "(^|/|:)crashpad_handler($|[^A-Za-z0-9_])")
-        # Sentry's crashpad_handler must be executable in the final Linux bundle.
         install(PROGRAMS "${bundled_library}"
             DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
             COMPONENT Runtime)

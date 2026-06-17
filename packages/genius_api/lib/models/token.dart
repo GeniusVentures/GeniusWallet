@@ -9,7 +9,8 @@ class Token with _$Token {
       {String? address,
       String? iconPath,
       String? name,
-      String? coinGeckoId}) = _Token;
+      String? coinGeckoId,
+      String? id}) = _Token;
 
   factory Token.fromJson(Map<String, Object?> json) => _$TokenFromJson(json);
 }

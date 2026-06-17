@@ -8,7 +8,7 @@ part of 'coin_gecko_market_data.dart';
 
 class CoinGeckoMarketDataAdapter extends TypeAdapter<CoinGeckoMarketData> {
   @override
-  final int typeId = 1;
+  final typeId = 1;
 
   @override
   CoinGeckoMarketData read(BinaryReader reader) {
@@ -21,25 +21,25 @@ class CoinGeckoMarketDataAdapter extends TypeAdapter<CoinGeckoMarketData> {
       symbol: fields[1] as String,
       name: fields[2] as String,
       imageUrl: fields[3] as String,
-      currentPrice: fields[4] as double,
-      marketCap: fields[5] as double,
-      marketCapRank: fields[6] as int,
-      fullyDilutedValuation: fields[7] as double,
-      totalVolume: fields[8] as double,
-      high24h: fields[9] as double,
-      low24h: fields[10] as double,
-      priceChange24h: fields[11] as double,
-      priceChangePercentage24h: fields[12] as double,
-      marketCapChange24h: fields[13] as double,
-      marketCapChangePercentage24h: fields[14] as double,
-      circulatingSupply: fields[15] as double,
-      totalSupply: fields[16] as double,
-      maxSupply: fields[17] as double?,
-      ath: fields[18] as double,
-      athChangePercentage: fields[19] as double,
+      currentPrice: (fields[4] as num).toDouble(),
+      marketCap: (fields[5] as num).toDouble(),
+      marketCapRank: (fields[6] as num).toInt(),
+      fullyDilutedValuation: (fields[7] as num).toDouble(),
+      totalVolume: (fields[8] as num).toDouble(),
+      high24h: (fields[9] as num).toDouble(),
+      low24h: (fields[10] as num).toDouble(),
+      priceChange24h: (fields[11] as num).toDouble(),
+      priceChangePercentage24h: (fields[12] as num).toDouble(),
+      marketCapChange24h: (fields[13] as num).toDouble(),
+      marketCapChangePercentage24h: (fields[14] as num).toDouble(),
+      circulatingSupply: (fields[15] as num).toDouble(),
+      totalSupply: (fields[16] as num).toDouble(),
+      maxSupply: (fields[17] as num?)?.toDouble(),
+      ath: (fields[18] as num).toDouble(),
+      athChangePercentage: (fields[19] as num).toDouble(),
       athDate: fields[20] as DateTime,
-      atl: fields[21] as double,
-      atlChangePercentage: fields[22] as double,
+      atl: (fields[21] as num).toDouble(),
+      atlChangePercentage: (fields[22] as num).toDouble(),
       atlDate: fields[23] as DateTime,
       lastUpdated: fields[24] as DateTime,
       sparkline: (fields[25] as List?)?.cast<double>(),

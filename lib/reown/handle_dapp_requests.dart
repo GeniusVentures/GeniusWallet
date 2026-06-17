@@ -6,7 +6,7 @@ import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
-import 'package:genius_wallet/reown/utilites.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
@@ -77,14 +77,12 @@ void Function() handleDappRequests(
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(dappUrl,
-                    style: const TextStyle(
-                        color: GeniusWalletColors.gray500, fontSize: 12)),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ),
             Text("Method: $method",
                 style: const TextStyle(color: Colors.white)),
             const SizedBox(height: 12),
-            const Text("Params:",
-                style: TextStyle(color: GeniusWalletColors.gray500)),
+            const Text("Params:", style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.all(10),

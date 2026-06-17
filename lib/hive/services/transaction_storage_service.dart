@@ -1,5 +1,5 @@
 import 'package:genius_api/genius_api.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 /// Usage
 // final txService = TransactionStorageService();

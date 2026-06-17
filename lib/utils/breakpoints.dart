@@ -4,40 +4,26 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 abstract class GeniusBreakpoints {
-  /// Max width for a small layout.
-  static const double small = 760;
+  static const double small = 640;
 
-  static const double tablet = 1200;
+  static const double medium = 768;
 
-  /// Max width for a medium layout.
-  static const double medium = 1644;
+  static const double large = 1024;
 
-  /// Max width for a large layout.
-  static const double large = 1920;
+  static const double xl = 1280;
+
+  static const double xxl = 1536;
 
   static bool useDesktopLayout(BuildContext context) {
-    return MediaQuery.of(context).size.width > small && !isMobileApp();
+    return MediaQuery.sizeOf(context).width > medium && !isMobileApp();
   }
 
   static bool useDesktopOverlay(BuildContext context) {
-    return MediaQuery.of(context).size.width > tablet && !isMobileApp();
+    return MediaQuery.sizeOf(context).width > large && !isMobileApp();
   }
 
-  static bool isNativeApp(BuildContext context) {
-    return getPlaform(context) == Platforms.mobile;
-  }
-
-  static Platforms getPlaform(BuildContext context) {
-    if (kIsWeb) {
-      return MediaQuery.of(context).size.width >= small
-          ? Platforms.desktop
-          : Platforms.mobile;
-    } else {
-      return isMobileApp() ? Platforms.mobile : Platforms.desktop;
-    }
-  }
-
-  static bool isMobileApp() => Platform.isAndroid || Platform.isIOS;
+  static bool isMobileApp() =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 }
 
 enum Platforms {

@@ -47,3 +47,5 @@ class LegalAccepted extends ExistingWalletEvent {
 
   LegalAccepted({required this.userExists});
 }
+
+class GoBack extends ExistingWalletEvent {}

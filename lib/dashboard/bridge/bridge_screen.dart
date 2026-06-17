@@ -7,16 +7,16 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
 class BridgeScreen extends StatefulWidget {
   final Coin? fromToken;
-  const BridgeScreen({Key? key, this.fromToken}) : super(key: key);
+  const BridgeScreen({super.key, this.fromToken});
 
   @override
   BridgeScreenState createState() => BridgeScreenState();
@@ -61,6 +61,7 @@ class BridgeScreenState extends State<BridgeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
         appBar: AppBar(
           title: const Text("Bridge"),
@@ -87,6 +88,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                     children: [
                       // From Token Input
                       _buildDropdown<Coin>(
+                          cs: cs,
                           availableItems: fromToken != null
                               ? List.from([fromToken!])
                               : List.empty(),
@@ -180,6 +182,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                       const SizedBox(height: 30),
                       // To Token Input
                       _buildDropdown<Network>(
+                        cs: cs,
                         availableItems: availableBridgeNetworks ?? List.empty(),
                         onItemChanged: (Network newNetwork) {
                           setState(() {
@@ -225,11 +228,23 @@ class BridgeScreenState extends State<BridgeScreen> {
 
                                 if (!context.mounted) return;
 
+                                ToastManager.instance.showToast(
+                                  context: context,
+                                  title: bridgeTokensResponse.isSuccess
+                                      ? 'Success'
+                                      : 'Error',
+                                  message: bridgeTokensResponse.isSuccess
+                                      ? 'Bridge transaction completed.'
+                                      : 'Bridge transaction failed.',
+                                  type: bridgeTokensResponse.isSuccess
+                                      ? ToastType.success
+                                      : ToastType.error,
+                                );
+
                                 showDialog(
                                   context: context,
                                   builder: (_) => AlertDialog(
-                                    backgroundColor:
-                                        GeniusWalletColors.deepBlueCardColor,
+                                    backgroundColor: cs.surface,
                                     contentPadding: const EdgeInsets.symmetric(
                                         horizontal: 18, vertical: 20),
                                     actionsAlignment: MainAxisAlignment.center,
@@ -243,9 +258,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                             : 'Bridge Failed!',
                                         style: TextStyle(
                                           color: bridgeTokensResponse.isSuccess
-                                              ? GeniusWalletColors
-                                                  .lightGreenPrimary
-                                              : GeniusWalletColors.red,
+                                              ? cs.primary
+                                              : cs.error,
                                           fontSize: 22,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -322,11 +336,11 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       softWrap:
                                                                           true,
                                                                       style:
-                                                                          const TextStyle(
+                                                                          TextStyle(
                                                                         fontSize:
                                                                             14,
-                                                                        color: GeniusWalletColors
-                                                                            .gray500,
+                                                                        color: cs
+                                                                            .onSurfaceVariant,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -391,11 +405,11 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       softWrap:
                                                                           true,
                                                                       style:
-                                                                          const TextStyle(
+                                                                          TextStyle(
                                                                         fontSize:
                                                                             14,
-                                                                        color: GeniusWalletColors
-                                                                            .gray500,
+                                                                        color: cs
+                                                                            .onSurfaceVariant,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -499,10 +513,9 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 );
                               },
                         style: ElevatedButton.styleFrom(
-                          disabledBackgroundColor:
-                              GeniusWalletColors.deepBlueCardColor,
+                          disabledBackgroundColor: cs.surface,
                           fixedSize: const Size(600, 60),
-                          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                          backgroundColor: cs.surface,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 64,
                             vertical: 20,
@@ -512,9 +525,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                       ),
                       const SizedBox(height: 16),
                       Row(children: [
-                        const Text("Estimated Gas Cost:   ",
-                            style:
-                                TextStyle(color: GeniusWalletColors.gray500)),
+                        Text("Estimated Gas Cost:   ",
+                            style: TextStyle(color: cs.onSurfaceVariant)),
                         Text(
                             "${transactionCost == null ? 0 : transactionCost.toString()}")
                       ])
@@ -539,19 +551,20 @@ class BridgeScreenState extends State<BridgeScreen> {
 
   Widget _buildDropdown<T>({
     required String label,
-    T? selectedItem, // Selected token or network
+    T? selectedItem,
     required TextEditingController controller,
-    required List<T> availableItems, // List of tokens or networks
-    required String Function(T) displayText, // Function to extract display text
-    required Widget Function(T) displayIcon, // Function to extract the icon
-    required Function(T) onItemChanged, // Callback when an item is selected
+    required List<T> availableItems,
+    required String Function(T) displayText,
+    required Widget Function(T) displayIcon,
+    required Function(T) onItemChanged,
     Function(String)? onAmountChanged,
+    required ColorScheme cs,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
-        borderRadius: BorderRadius.all(
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.all(
           Radius.circular(GeniusWalletConsts.borderRadiusCard),
         ),
       ),
@@ -560,32 +573,29 @@ class BridgeScreenState extends State<BridgeScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               letterSpacing: 0.5,
-              color: GeniusWalletColors.gray500,
+              color: cs.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Dropdown for item selection
               Flexible(
-                flex: 3, // Adjust flex values for proportional sizing
+                flex: 3,
                 child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: 300), // Set max width
+                  constraints: const BoxConstraints(maxWidth: 300),
                   child: DropdownButton<T>(
-                    isExpanded:
-                        true, // Stretches dropdown to match parent width
-                    underline: const SizedBox(), // Remove underline
-                    value: selectedItem, // Currently selected item
+                    isExpanded: true,
+                    underline: const SizedBox(),
+                    value: selectedItem,
                     hint: const Text(
                       'Select',
                       style: TextStyle(color: Colors.white),
                     ),
-                    dropdownColor: GeniusWalletColors.deepBlueCardColor,
+                    dropdownColor: cs.surface,
                     icon:
                         const Icon(Icons.arrow_drop_down, color: Colors.white),
                     items: availableItems.map((T item) {
@@ -635,15 +645,14 @@ class BridgeScreenState extends State<BridgeScreen> {
                     ],
                     onChanged: onAmountChanged,
                     readOnly: onAmountChanged == null, // Disable for read-only
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                      hintStyle: TextStyle(color: GeniusWalletColors.gray500),
-                      border: OutlineInputBorder(
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      hintStyle: TextStyle(color: cs.onSurfaceVariant),
+                      border: const OutlineInputBorder(
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: GeniusWalletColors.gray500),
+                        borderSide: BorderSide(color: cs.onSurfaceVariant),
                       ),
                       hintText: '0',
                     ),
@@ -658,10 +667,10 @@ class BridgeScreenState extends State<BridgeScreen> {
               padding: const EdgeInsets.only(left: 12),
               child: Text(
                 "${selectedItem.balance == 0 ? 0 : selectedItem.balance.toString()} ${selectedItem.symbol}",
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14,
                     letterSpacing: 0.5,
-                    color: GeniusWalletColors.gray500),
+                    color: cs.onSurfaceVariant),
               ),
             ),
         ],

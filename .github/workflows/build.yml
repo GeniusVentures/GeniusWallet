@@ -54,7 +54,9 @@ on:
         description: "thirdparty dependency branch override"
         required: false
         type: string
-
+permissions:
+  contents: write
+  packages: read
 jobs:
   build:
     env:
@@ -111,7 +113,7 @@ jobs:
             Add-Content -Path $env:GITHUB_PATH -Value $gitBinPath
             $env:PATH = "$gitBinPath;$env:PATH"
           }
-          
+
           Write-Output "Git Bash configured for bash shell commands"
           $bashLocation = (Get-Command bash.exe -ErrorAction SilentlyContinue).Source
           if ($bashLocation) {
@@ -119,7 +121,7 @@ jobs:
           } else {
             Write-Output "WARNING: bash.exe not found in PATH"
           }
-          
+
       - name: Clean workspace (self-hosted runners)
         if: ${{ runner.environment == 'self-hosted' }}
         working-directory: ${{runner.workspace}}
@@ -137,14 +139,14 @@ jobs:
 
           echo "=== CLEANUP ARTIFACTS ==="
           # Clean up artifacts from previous runs (self-hosted runners only)
-          
+
           # Clean contents of GeniusWallet directory but keep the directory itself
           if [ -d "GeniusWallet" ]; then
             echo "Cleaning GeniusWallet directory contents..."
             $SUDO rm -rf GeniusWallet/* GeniusWallet/.* 2>/dev/null || true
             echo "GeniusWallet directory cleaned (kept the directory)"
           fi
-          
+
           # Delete sibling dependency directories completely
           if [ -d "thirdparty" ]; then
             echo "Removing thirdparty directory..."
@@ -178,6 +180,7 @@ jobs:
           TAR_OPTIONS: --no-same-owner
         run: |
           sudo apt update
+
           sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
           sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
           sudo update-alternatives --set cc $(which clang)
@@ -190,18 +193,31 @@ jobs:
               ninja-build \
               libvulkan-dev \
               libzstd-dev \
-              libsecret-1-dev
+              libsecret-1-dev \
+              lld
 
             sudo apt install -y -t bullseye-backports \
               libgtk-3-dev \
               jq
+
+            CLANG_BIN_DIR="$(dirname "$(readlink -f "$(which clang)")")"
+            LLD_PATH="$(command -v ld.lld || true)"
+            if [ -n "$LLD_PATH" ] && [ ! -x "$CLANG_BIN_DIR/ld.lld" ]; then
+              sudo ln -sf "$LLD_PATH" "$CLANG_BIN_DIR/ld.lld"
+            fi
           else
             # Android/Linux-host jobs are not containerized and should use host repos.
             sudo apt install -y \
               ninja-build \
               libvulkan-dev \
               libzstd-dev \
-              libsecret-1-dev
+              libsecret-1-dev \
+              jq
+          fi
+
+          if [ "${{ runner.environment }}" = "self-hosted" ] && [ -z "${{ matrix.container }}" ] && [ -n "${RUNNER_TOOL_CACHE:-}" ]; then
+            sudo mkdir -p "$RUNNER_TOOL_CACHE/flutter"
+            sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TOOL_CACHE/flutter"
           fi
 
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
@@ -248,18 +264,22 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" "$TOOLCACHE_ROOT" || true
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
-          channel: "master"
-          flutter-version: 3.41.6
+          channel: master
+          flutter-version: 3.38.10
 
       - name: Set current branch
+        shell: bash
+        env:
+          GITHUB_EVENT_INPUTS_TAG: ${{ github.event.inputs.tag }}
+          GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" ]; then
-              CURRENT_BRANCH="${{ github.event.inputs.tag }}"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${GITHUB_EVENT_INPUTS_TAG}" ]; then
+              CURRENT_BRANCH="${GITHUB_EVENT_INPUTS_TAG}"
               IS_TAG=true
           elif ${{github.event_name == 'pull_request'}}; then
-              CURRENT_BRANCH=${{ github.event.pull_request.head.ref }}
+              CURRENT_BRANCH=${GITHUB_EVENT_PULL_REQUEST_HEAD_REF}
               IS_TAG=false
           else
               CURRENT_BRANCH=$GITHUB_REF_NAME
@@ -267,12 +287,12 @@ jobs:
           fi
           echo "CURRENT_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
           echo "IS_TAG=${IS_TAG}" >>$GITHUB_ENV
-        shell: bash
 
       - name: Checkout GeniusWallet
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: "recursive"
+          persist-credentials: true
 
       - name: Install Apple certificates and provisioning profiles for macOS
         if: ${{ runner.os == 'macOS' }}
@@ -350,7 +370,7 @@ jobs:
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
-          
+
           echo "=== Keychain search list after configuration ==="
           security list-keychains -d user
 
@@ -382,6 +402,7 @@ jobs:
 
       - name: Configure Android keystore
         if: ${{ matrix.target == 'Android' }}
+        shell: bash
         run: |
           # Create the android directory if it doesn't exist
           mkdir -p android/app
@@ -406,10 +427,10 @@ jobs:
             echo "ERROR: Keystore file not found!"
             exit 1
           fi
-        shell: bash
 
       - name: Configure Gradle memory
         if: ${{ matrix.target == 'Android' }}
+        shell: bash
         run: |
           # Create gradle.properties with increased heap size
           mkdir -p ~/.gradle
@@ -420,7 +441,6 @@ jobs:
             echo "" >> "android/gradle.properties"
             echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> "android/gradle.properties"
           fi
-        shell: bash
 
       - name: Get Flutter Dependencies
         run: |
@@ -428,10 +448,11 @@ jobs:
 
       - name: Setup Android SDK and NDK
         if: ${{ matrix.target == 'Android' }}
+        shell: bash
         run: |
           # Setup Android SDK
           ANDROID_SDK_ROOT="$HOME/android-sdk"
-          
+
           # Download command-line tools if not present
           if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
             echo "Downloading Android command-line tools..."
@@ -443,24 +464,24 @@ jobs:
           else
             echo "Android command-line tools already exist"
           fi
-          
+
           # Always accept licenses and install/update required SDK components
           echo "Installing/updating Android SDK components..."
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
           # Set environment variables
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
           echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          
+
           # Verify SDK installation
           echo "=== Android SDK Setup ==="
           echo "ANDROID_HOME: $ANDROID_SDK_ROOT"
           echo "SDK contents:"
           ls -la "$ANDROID_SDK_ROOT"
-          
+
           # Download and setup Android NDK
           NDK_VERSION="r27b"
           NDK_DIR="$HOME/android-ndk-$NDK_VERSION"
@@ -473,33 +494,39 @@ jobs:
             echo "Android NDK already exists at $NDK_DIR"
           fi
           echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
-          
+
           echo "=== Environment Summary ==="
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           echo "ANDROID_NDK_HOME=$NDK_DIR"
-        shell: bash
 
       - name: Setup CMake Arguments
+        shell: bash
+        env:
+          GITHUB_EVENT_INPUTS_TAG: ${{ github.event.inputs.tag }}
+          GITHUB_EVENT_INPUTS_SUPERGENIUS_BRANCH: ${{ github.event.inputs.supergenius_branch }}
+          GITHUB_EVENT_INPUTS_GENIUSSDK_BRANCH: ${{ github.event.inputs.geniussdk_branch }}
+          GITHUB_EVENT_INPUTS_ZKLLVM_BRANCH: ${{ github.event.inputs.zkllvm_branch }}
+          GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH: ${{ github.event.inputs.thirdparty_branch }}
         run: |
           CMAKE_ARGS="-DCMAKE_BUILD_TYPE=${{matrix.build-type}}"
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.tag }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${{ github.event.inputs.tag }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_TAG}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_DEPENDENCY_BRANCH=${GITHUB_EVENT_INPUTS_TAG}"
             CMAKE_ARGS="$CMAKE_ARGS -DBRANCH_IS_TAG=ON"
           fi
 
           # Add dependency-specific branch overrides if provided
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.supergenius_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_SUPERGENIUS_BRANCH=${{ github.event.inputs.supergenius_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_SUPERGENIUS_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_SUPERGENIUS_BRANCH=${GITHUB_EVENT_INPUTS_SUPERGENIUS_BRANCH}"
           fi
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.geniussdk_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_GENIUSSDK_BRANCH=${{ github.event.inputs.geniussdk_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_GENIUSSDK_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_GENIUSSDK_BRANCH=${GITHUB_EVENT_INPUTS_GENIUSSDK_BRANCH}"
           fi
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.zkllvm_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_ZKLLVM_BRANCH=${{ github.event.inputs.zkllvm_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_ZKLLVM_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_ZKLLVM_BRANCH=${GITHUB_EVENT_INPUTS_ZKLLVM_BRANCH}"
           fi
-          if ${{github.event_name == 'workflow_dispatch'}} && [ '${{ github.event.inputs.thirdparty_branch }}' ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${{ github.event.inputs.thirdparty_branch }}"
+          if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH}" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH}"
           fi
 
           # Add verbose output for debugging
@@ -526,7 +553,10 @@ jobs:
             EXTRA_ARGS="--target-platform android-arm,android-arm64"
           else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
-          fi 
+          fi
+          if [ "${{ matrix.target }}" = "Android" ]; then
+            EXTRA_ARGS="--target-platform android-arm,android-arm64"
+          fi
 
           FLUTTER_VERSION_ARGS=""
           if ${{github.event_name == 'workflow_dispatch'}}; then
@@ -542,7 +572,6 @@ jobs:
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_ARGS=$FLUTTER_VERSION_ARGS" >> $GITHUB_ENV
-        shell: bash
 
       - name: Build Flutter
         shell: bash
@@ -717,13 +746,14 @@ jobs:
           APPLE_ID: ${{ secrets.WALLET_NOTARIZE_APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           NOTARIZATION_PASSWORD: ${{ secrets.WALLET_NOTARIZATION_PASSWORD }}
+          GITHUB_EVENT_INPUTS_DISTRIBUTION_TYPE: ${{ github.event.inputs.distribution_type }}
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
-          
+
           # Re-ensure temp keychain is the only one in search list
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           security list-keychains -d user -s $KEYCHAIN_PATH
-          
+
           echo "=== Keychain search list at signing step ==="
           security list-keychains -d user
 
@@ -735,7 +765,7 @@ jobs:
           security find-identity -v
 
           # Determine distribution type
-          DISTRIBUTION_TYPE="${{ github.event.inputs.distribution_type }}"
+          DISTRIBUTION_TYPE="${GITHUB_EVENT_INPUTS_DISTRIBUTION_TYPE}"
           if [ -z "$DISTRIBUTION_TYPE" ]; then
             DISTRIBUTION_TYPE="both"
           fi
@@ -745,25 +775,25 @@ jobs:
             local cert_name="$1"
             local app_name="$2"
             local output_dir="$3"
-            
+
             echo "Signing app with identity: $cert_name"
-            
+
             # Copy app to output directory
             mkdir -p "$output_dir"
             cp -R "Genius Wallet.app" "$output_dir/$app_name"
-            
+
             # Use the project's entitlements file for Release builds
             local entitlements_path="../../../../../macos/Runner/Release.entitlements"
-            
+
             echo "Checking for project entitlements file..."
             if [ -f "$entitlements_path" ]; then
               echo "Found project entitlements file: $entitlements_path"
               echo "Entitlements content:"
               cat "$entitlements_path"
-              
+
               # Copy entitlements to working directory and expand variables
               cp "$entitlements_path" "$output_dir/entitlements.plist"
-              
+
               # Replace $(AppIdentifierPrefix) with the actual team ID
               sed -i '' 's/$(AppIdentifierPrefix)/P7T32QQX5V./g' "$output_dir/entitlements.plist"
 
@@ -773,14 +803,14 @@ jobs:
               /usr/libexec/PlistBuddy -c "Set :com.apple.developer.team-identifier P7T32QQX5V" "$output_dir/entitlements.plist" 2>/dev/null || \
               /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string P7T32QQX5V" "$output_dir/entitlements.plist"
 
-              
+
               echo "Processed entitlements:"
               cat "$output_dir/entitlements.plist"
-              
+
               entitlements_to_use="$output_dir/entitlements.plist"
             else
               echo "No project entitlements file found, falling back to provisioning profile entitlements"
-              
+
               # Fallback to provisioning profile entitlements
               if [ -f "$output_dir/$app_name/Contents/embedded.provisionprofile" ]; then
                 echo "Extracting entitlements from provisioning profile..."
@@ -791,7 +821,7 @@ jobs:
                 entitlements_to_use=""
               fi
             fi
-            
+
             # Sign with the appropriate entitlements
             if [ -n "$entitlements_to_use" ] && [ -f "$entitlements_to_use" ]; then
               echo "Signing with entitlements: $entitlements_to_use"
@@ -800,7 +830,7 @@ jobs:
               echo "No entitlements available, signing without..."
               codesign --force --deep --sign "$cert_name" --options runtime --timestamp "$output_dir/$app_name"
             fi
-            
+
             # If that fails, try without runtime option
             if [ $? -ne 0 ]; then
               echo "Signing with runtime failed, trying without runtime option..."
@@ -810,13 +840,13 @@ jobs:
                 codesign --force --deep --sign "$cert_name" --timestamp "$output_dir/$app_name"
               fi
             fi
-            
+
             # If that fails, try basic signing
             if [ $? -ne 0 ]; then
               echo "Timestamp signing failed, trying basic signing..."
               codesign --force --deep --sign "$cert_name" "$output_dir/$app_name"
             fi
-            
+
             # Verify signature and show entitlements
             echo "Verifying signature..."
             codesign --verify --deep --strict "$output_dir/$app_name"
@@ -828,7 +858,7 @@ jobs:
               echo "Signature verification failed"
               return 1
             fi
-            
+
             echo "App signed successfully: $output_dir/$app_name"
           }
 
@@ -837,46 +867,46 @@ jobs:
             local app_path="$1"
             local pkg_name="$2"
             local installer_cert_name="$3"
-            
+
             echo "Creating pkg: $pkg_name"
             echo "Using installer identity: $installer_cert_name"
-            
+
             # Create unsigned pkg
             xcrun productbuild --component "$app_path" /Applications "${pkg_name}_unsigned.pkg"
-            
+
             # Sign the pkg
             xcrun productsign --sign "$installer_cert_name" "${pkg_name}_unsigned.pkg" "$pkg_name"
-            
+
             # Verify pkg signature
             pkgutil --check-signature "$pkg_name"
-            
+
             echo "Package created and signed: $pkg_name"
           }
 
           # Function to notarize
           notarize() {
             local file_path="$1"
-            
+
             echo "Notarizing: $file_path"
-            
+
             # If it's an app bundle, we need to zip it first
             if [[ "$file_path" == *.app ]]; then
               local zip_path="${file_path}.zip"
               echo "Creating zip archive for notarization: $zip_path"
-              
+
               # Create zip archive (ditto preserves resource forks and metadata)
               ditto -c -k --keepParent "$file_path" "$zip_path"
-              
+
               # Submit the zip for notarization
               xcrun notarytool submit "$zip_path" \
                 --apple-id "$APPLE_ID" \
                 --team-id "$APPLE_TEAM_ID" \
                 --password "$NOTARIZATION_PASSWORD" \
                 --wait
-              
+
               # Clean up the zip file
               rm "$zip_path"
-              
+
               # Staple the notarization to the original app
               xcrun stapler staple "$file_path"
             else
@@ -886,11 +916,11 @@ jobs:
                 --team-id "$APPLE_TEAM_ID" \
                 --password "$NOTARIZATION_PASSWORD" \
                 --wait
-              
+
               # Staple the notarization
               xcrun stapler staple "$file_path"
             fi
-            
+
             echo "Notarization completed for: $file_path"
           }
 
@@ -905,13 +935,13 @@ jobs:
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
             echo "Building Developer ID version..."
             sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id"
-            
+
             # Notarize the app first
             notarize "developer_id/Genius Wallet.app"
-            
+
             # Create and sign the pkg (keeping original naming)
             create_pkg "developer_id/Genius Wallet.app" "Genius Wallet.pkg" "Developer ID Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
-            
+
             # Notarize the pkg
             notarize "Genius Wallet.pkg"
           fi
@@ -941,14 +971,14 @@ jobs:
               ;;
             "OSX")
               cd build/macos/Build/Products/${{matrix.build-type}}
-              
+
               # Copy the signed packages
               if ls *.pkg >/dev/null 2>&1; then
                 cp -r *.pkg ../../../../../artifacts/
               else
                 echo "No macOS .pkg files found to upload"
               fi
-              
+
               # Create a README explaining the different packages
               cat > ../../../../../artifacts/README.txt << EOF
           macOS Distribution Packages:
@@ -966,9 +996,9 @@ jobs:
             "Windows")
               # Windows builds to build/windows/x64/runner/Release or Debug
               BUILD_DIR="build/windows/x64/runner/${{ matrix.build-type }}"
-              
+
               echo "Looking for Windows build output in: $BUILD_DIR"
-              
+
               if [ -d "$BUILD_DIR" ]; then
                 echo "Found build directory: $BUILD_DIR"
                 ls -la "$BUILD_DIR"
@@ -1066,9 +1096,9 @@ jobs:
           else
               # Include ABI in release tag if defined
               if [ '${{matrix.abi}}' ]; then
-                RELEASE_TAG='${{matrix.target}}-${{matrix.abi}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${{matrix.abi}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               else
-                RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               fi
               IS_TAG_RELEASE="false"
           fi
@@ -1096,14 +1126,14 @@ jobs:
             if [ "$IS_TAG_RELEASE" = "true" ]; then
             RELEASE_TITLE="$RELEASE_TAG"
             else
-            RELEASE_TITLE="${{ matrix.target }} ${{ github.ref_name }} ${{ matrix.build-type }} build"
+            RELEASE_TITLE="${{ matrix.target }} ${GITHUB_REF_NAME} ${{ matrix.build-type }} build"
             fi
 
             echo "Creating GitHub release $RELEASE_TAG..."
             gh release create "$RELEASE_TAG" \
             --target "${{ github.sha }}" \
             -t "$RELEASE_TITLE" \
-            -n "Branch: ${{ github.ref_name }} | SHA: ${{ github.sha }}" \
+            -n "Branch: ${GITHUB_REF_NAME} | SHA: ${{ github.sha }}" \
             $( [ "$IS_TAG_RELEASE" = "true" ] && echo "--draft" || echo "--prerelease" )
 
       - name: Upload file
@@ -1116,14 +1146,13 @@ jobs:
           else
               # Include ABI in release tag if defined
               if [ '${{matrix.abi}}' ]; then
-                RELEASE_TAG='${{matrix.target}}-${{matrix.abi}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${{matrix.abi}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               else
-                RELEASE_TAG='${{matrix.target}}-${{github.ref_name}}-${{matrix.build-type}}'
+                RELEASE_TAG="${{matrix.target}}-${GITHUB_REF_NAME}-${{matrix.build-type}}"
               fi
           fi
-          
+
           echo "Upload step using RELEASE_TAG: $RELEASE_TAG"
-          
           # Upload artifacts
           if [ "${{ matrix.target }}" = "OSX" ]; then
             # Upload macOS packages individually
@@ -1133,7 +1162,7 @@ jobs:
                 gh release upload --clobber ${RELEASE_TAG} "$pkg"
               fi
             done
-            
+
             # Upload README
             if [ -f "artifacts/README.txt" ]; then
               gh release upload --clobber ${RELEASE_TAG} "artifacts/README.txt"

@@ -12,8 +12,7 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
   final void Function() onFailed;
   final void Function() onPassed;
   const ConfirmAndSavePinScreen(
-      {Key? key, required this.onFailed, required this.onPassed})
-      : super(key: key);
+      {super.key, required this.onFailed, required this.onPassed});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +31,7 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
           geniusApi: context.read<GeniusApi>(),
         ),
         child: PinScreen(
-          text: 'Confirm PIN',
+          title: 'Confirm PIN',
           onCompleted: (value) {
             context.read<NewPinCubit>().pinConfirmSubmitted(value);
           },

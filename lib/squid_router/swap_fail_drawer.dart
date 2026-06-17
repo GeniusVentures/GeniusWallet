@@ -17,7 +17,7 @@ class SwapFailDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Failed",
-      children: [
+      child: ListView(children: [
         SwapDrawerContent(
           fromAmount: fromAmount,
           toAmount: toAmount,
@@ -28,7 +28,7 @@ class SwapFailDrawer {
           chain: chain,
           isSuccess: false,
         ),
-      ],
+      ]),
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) onClose();

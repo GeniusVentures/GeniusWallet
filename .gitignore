@@ -54,6 +54,7 @@ app.*.map.json
 # Testnet
 *.TestNet.*
 lib/tokeninfo/*.g.dart
+!lib/tokeninfo/token_model.g.dart
 ios/Runner.xcworkspace/
 
 # Generated CMake/Xcode build files - DO NOT commit

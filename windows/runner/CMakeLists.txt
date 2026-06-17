@@ -1,28 +1,18 @@
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES CXX)
-include(../../cmake/CommonOverrideFlags.cmake)
-include(../../cmake/Utilities.cmake)
 
-if(NOT CMAKE_SKIP_THIRD_PARTY)
-    if(CMAKE_BUILD_TYPE)
-        set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
-    else()
-        set(ARCH_OUTPUT_DIR /build/Windows/${BUILD_TYPE_SEARCH})
-    endif()
-    set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
-    set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_OUTPUT_DIR_REL})
-
-    set(PROTOBUF_CONFIG_LOCATION "/grpc/cmake")
-
-
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
-        set(Boost_COMPILER "-vc142")
-    else() # v143 toolset
-        set(Boost_COMPILER "-vc143")
-    endif()
-
+if(CMAKE_BUILD_TYPE)
+    set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+else()
+    set(ARCH_OUTPUT_DIR /build/Windows/${BUILD_TYPE_SEARCH})
 endif()
-# FLUTTER DEPENDENCIES ****************************************************
+set(ARCH_RELEASE_OUTPUT_DIR /build/Windows/Release)
+
+if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
+    set(Boost_COMPILER "-vc142")
+else() # v143 toolset
+    set(Boost_COMPILER "-vc143")
+endif()
 
 # Define the application target. To change its name, change BINARY_NAME in the
 # top-level CMakeLists.txt, not the value here, or `flutter run` will no longer
@@ -39,9 +29,6 @@ add_executable(${BINARY_NAME} WIN32
     "runner.exe.manifest"
 )
 
-# Ensure native symbol files are generated for non-Debug builds.
-# /Zi writes compiler debug info to PDB, and /DEBUG on the final link
-# emits the final executable PDB for symbolication.
 if(MSVC)
     target_compile_options(${BINARY_NAME} PRIVATE
         $<$<CONFIG:Release>:/Zi>
@@ -85,22 +72,15 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
-if(NOT CMAKE_SKIP_THIRD_PARTY)
-	TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
-	target_link_libraries(${BINARY_NAME} PRIVATE
-		wallet_core_rs
-		TrezorCrypto
-		ws2_32 userenv ntdll
-	)
-endif()
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
+target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
+TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(${BINARY_NAME} PRIVATE TrustWalletCore sgns::GeniusSDK)
+target_link_libraries(${BINARY_NAME} PRIVATE
+  wallet_core_rs
+  TrezorCrypto
+  ws2_32 userenv ntdll
+ )
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
-
-# **************************************************** FLUTTER DEPENDENCIES 
-
-
-# *** Add all none flutter dependencies here:
-

@@ -4,7 +4,9 @@ analyzer:
   exclude:
     - lib/**/*.g.dart
     - lib/**/*.freezed.dart
+    - banxa
+    - squidrouter
+    - packages/genius_api/lib/proto
 
-linter:
-  rules:
-    always_declare_return_types: true
+formatter:
+  page_width: 80

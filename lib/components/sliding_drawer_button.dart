@@ -8,12 +8,12 @@ class SlidingDrawerButton extends StatelessWidget {
   final Color? color; // Configurable color for both text and icon
 
   const SlidingDrawerButton({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
     this.color, // Color is now required for customization
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

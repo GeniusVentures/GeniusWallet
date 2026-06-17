@@ -72,7 +72,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Writes overrides to `overridesDir/$fileName`.
   Future<void> _writeOverrides(
-      String fileName, Map<String, dynamic> data) async {
+    String fileName,
+    Map<String, dynamic> data,
+  ) async {
     final dir = Directory(_api.overridesDirPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -105,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Re-merge and write to SDK dir
       await _api.prepareConfigFiles();
       // Reload in native SDK
-      _api.ffiBridgePrebuilt.gns_lib.GeniusSDKLoadLogConfig();
+      _api.reloadLogConfig();
       setState(() => _logStatus = 'Log levels applied ✅');
     } catch (e) {
       setState(() => _logStatus = 'Error: $e');
@@ -121,7 +123,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final json = await _readSdkJson('network_config.json');
     final whitelist = _api.networkConfigOverrideKeys;
     _networkConfig = Map.fromEntries(
-        json.entries.where((e) => whitelist.contains(e.key)));
+      json.entries.where((e) => whitelist.contains(e.key)),
+    );
     setState(() => _networkLoading = false);
   }
 
@@ -129,8 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _networkStatus = 'Saving...');
     try {
       await _writeOverrides('network_config.json', _networkConfig);
-      setState(
-          () => _networkStatus = 'Saved ✅ — Restart required for changes');
+      setState(() => _networkStatus = 'Saved ✅ — Restart required for changes');
     } catch (e) {
       setState(() => _networkStatus = 'Error: $e');
     }
@@ -219,8 +221,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Expanded(
             flex: 3,
-            child: Text(entry.key,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+            child: Text(
+              entry.key,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
           ),
           Expanded(
             flex: 2,
@@ -288,7 +292,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'backup_keep_count': 'Keep Count',
           'backup_auto_restore_on_repair_failure': 'Auto Restore',
         },
-        boolKeys: const {'backup_enabled', 'backup_auto_restore_on_repair_failure'},
+        boolKeys: const {
+          'backup_enabled',
+          'backup_auto_restore_on_repair_failure',
+        },
         numberKeys: const {'backup_interval_minutes', 'backup_keep_count'},
       ),
     );
@@ -316,9 +323,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Icon(icon, size: 20),
                 const SizedBox(width: 8),
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const Divider(),
@@ -333,15 +344,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (status != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Text(status,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: status.contains('✅')
-                          ? Colors.greenAccent
-                          : status.contains('Error')
-                              ? Colors.redAccent
-                              : Colors.grey,
-                    )),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: status.contains('✅')
+                        ? Colors.greenAccent
+                        : status.contains('Error')
+                        ? Colors.redAccent
+                        : Colors.grey,
+                  ),
+                ),
               ),
             Align(alignment: Alignment.centerRight, child: action),
           ],
@@ -360,8 +373,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       icon: Icon(isPrimary ? Icons.play_arrow : Icons.save, size: 18),
       label: Text(label),
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isPrimary ? Colors.green : Theme.of(context).primaryColor,
+        backgroundColor: isPrimary
+            ? Colors.green
+            : Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
       ),
     );
@@ -398,7 +412,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Row(
             children: [
               Expanded(
-                  flex: 2, child: Text(label, style: const TextStyle(fontSize: 13))),
+                flex: 2,
+                child: Text(label, style: const TextStyle(fontSize: 13)),
+              ),
               Expanded(
                 flex: 3,
                 child: TextFormField(
@@ -409,14 +425,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
                   decoration: const InputDecoration(
                     isDense: true,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (v) {
                     if (numberKeys.contains(entry.key)) {
                       final parsed = int.tryParse(v);
-                      if (parsed != null) setState(() => config[entry.key] = parsed);
+                      if (parsed != null)
+                        setState(() => config[entry.key] = parsed);
                     } else {
                       setState(() => config[entry.key] = v);
                     }

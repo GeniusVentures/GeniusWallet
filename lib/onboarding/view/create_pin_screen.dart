@@ -6,14 +6,13 @@ import 'package:genius_wallet/screens/pin_screen.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 
 class CreatePinScreen extends StatelessWidget {
   final void Function(String) onCompleted;
   const CreatePinScreen({
-    Key? key,
+    super.key,
     required this.onCompleted,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +28,7 @@ class CreatePinScreen extends StatelessWidget {
           }
         },
         child: PinScreen(
-          text: GeniusWalletText.helpPin,
+          title: "Create a PIN",
           onCompleted: onCompleted,
         ),
       ),

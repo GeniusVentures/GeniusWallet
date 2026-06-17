@@ -5,38 +5,32 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart' as tw;
 import 'package:flutter/material.dart';
 
 class FFIBridgePrebuilt {
-  static const String _libName = 'GeniusWallet';
-  late tw.NativeLibrary wallet_lib;
-  late gns.NativeLibrary gns_lib;
+  late tw.NativeLibrary tw_lib;
+  late gns.NativeLibrary sgns_lib;
 
   FFIBridgePrebuilt() {
-    final DynamicLibrary? dylib = () {
-      if (Platform.isAndroid) {
-        return loadGeniusWalletLibrary();
-      } else if (Platform.isIOS) {
-        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
-      } else if (Platform.isMacOS) {
-        return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
-      }
-      return DynamicLibrary.executable();
-    }();
-
+    final dylib = loadGeniusSDKLibrary();
     if (dylib == null) {
       return;
     }
 
-    wallet_lib = tw.NativeLibrary(dylib);
-    gns_lib = gns.NativeLibrary(dylib);
+    tw_lib = tw.NativeLibrary(dylib);
+    sgns_lib = gns.NativeLibrary(dylib);
   }
 }
 
-DynamicLibrary? loadGeniusWalletLibrary() {
-  try {
-    // Attempt to load the shared library
-    final library = DynamicLibrary.open('libGeniusWallet.so');
-    return library;
-  } catch (e) {
-    debugPrint("❌ Error loading library: $e");
-    return null; // Return null to handle errors gracefully
+/// Loads the Genius SDK shared library with platform-specific detection.
+DynamicLibrary? loadGeniusSDKLibrary() {
+  if (Platform.isAndroid) {
+    try {
+      return DynamicLibrary.open('libGeniusWallet.so');
+    } catch (e) {
+      debugPrint("❌ Error loading library: $e");
+      return null;
+    }
   }
+  if (Platform.isIOS || Platform.isMacOS) {
+    return DynamicLibrary.open('GeniusWallet.framework/GeniusWallet');
+  }
+  return DynamicLibrary.executable();
 }

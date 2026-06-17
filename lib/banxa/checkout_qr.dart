@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_state.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -21,8 +21,8 @@ class CheckoutQrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qrSize = math.max(
-        160.0, math.min(320.0, MediaQuery.of(context).size.width - 64));
+    final qrSize =
+        math.max(160.0, math.min(320.0, MediaQuery.sizeOf(context).width - 64));
 
     return BlocBuilder<PollingCubit, PollingState>(
       builder: (context, state) {

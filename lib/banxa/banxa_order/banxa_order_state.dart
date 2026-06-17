@@ -1,11 +1,11 @@
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 
 enum OrdersStatus { initial, loading, success, error }
 
 class OrdersState {
   final OrdersStatus status;
-  final OrdersResponse? orders; 
-  final List<Order>? filteredOrders; 
+  final OrdersResponse? orders;
+  final List<Order>? filteredOrders;
   final String error;
 
   OrdersState({

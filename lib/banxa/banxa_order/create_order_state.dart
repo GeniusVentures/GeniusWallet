@@ -1,4 +1,4 @@
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 
 enum MakeOrderStep {
   initial,
@@ -28,7 +28,7 @@ class MakeOrderState {
   final String errorMessage;
   final String? checkoutUrl;
   final String? redirectUrl;
-  final String? orderId; 
+  final String? orderId;
 
   const MakeOrderState({
     required this.step,
@@ -91,8 +91,8 @@ class MakeOrderState {
     bool clearError = false,
     bool clearCheckout = false,
     String? orderId,
-     bool clearOrderId = false,
-    bool clearRedirectUrl = false, 
+    bool clearOrderId = false,
+    bool clearRedirectUrl = false,
   }) {
     return MakeOrderState(
       step: step ?? this.step,
@@ -121,9 +121,9 @@ class MakeOrderState {
   double? get amountValue {
     final v = double.tryParse(amountText.trim());
     return (v == null || v.isNaN || v.isInfinite) ? null : v;
-    
   }
-   bool get hasOrder => (orderId != null && orderId!.isNotEmpty);
+
+  bool get hasOrder => (orderId != null && orderId!.isNotEmpty);
 
   num? get minAmount => selectedPaymentMethod?.minimum;
   num? get maxAmount => selectedPaymentMethod?.maximum;
@@ -152,6 +152,4 @@ class MakeOrderState {
   String get fiatCode => selectedFiat?.code ?? '';
   String get cryptoCode => selectedCrypto?.code ?? '';
   String get paymentMethodName => selectedPaymentMethod?.name ?? '';
-
-
 }

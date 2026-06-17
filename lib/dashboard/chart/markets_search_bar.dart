@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -11,7 +11,7 @@ import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 class MarketSearchBar extends StatefulWidget {
   final VoidCallback? onCoinPressed;
 
-  const MarketSearchBar({Key? key, this.onCoinPressed}) : super(key: key);
+  const MarketSearchBar({super.key, this.onCoinPressed});
 
   @override
   State<MarketSearchBar> createState() => _MarketSearchBarState();
@@ -91,8 +91,6 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       context.push(
         '/token-info',
         extra: {
-          "securityInfo": "Coming Soon",
-          "transactionHistory": ["Coming Soon"],
           "marketData": marketData,
           "coin": coin,
         },

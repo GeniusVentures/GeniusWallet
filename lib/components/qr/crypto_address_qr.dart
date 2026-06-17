@@ -1,8 +1,6 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/components/button/copy_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CryptoAddressQR extends StatelessWidget {
@@ -11,50 +9,32 @@ class CryptoAddressQR extends StatelessWidget {
   final String? iconPath;
 
   const CryptoAddressQR(
-      {Key? key, required this.address, required this.network, this.iconPath})
-      : super(key: key);
+      {super.key, required this.address, required this.network, this.iconPath});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // QR Code
         QrImageView(
           data: address,
           version: QrVersions.auto,
-          size: 280,
-          gapless: false,
-          backgroundColor: GeniusWalletColors.white.withAlpha(153),
+          backgroundColor: Colors.white.withValues(alpha: 0.8),
           embeddedImage: AssetImage(iconPath ?? ""),
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(60, 60)),
         ),
         const SizedBox(height: 32),
         Text(
           "Your $network Address",
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          Flexible(
-              child: AutoSizeText(
-            "Use this address to receive tokens",
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          )),
-        ]),
-
-        const SizedBox(height: 50),
+        Text(
+          "Use this address to receive tokens.",
+          maxLines: 1,
+        ),
+        const SizedBox(height: 32),
         CopyButton(
-            width: 300,
             buttonText: WalletUtils.getAddressForDisplay(address),
             textToCopy: address)
       ],

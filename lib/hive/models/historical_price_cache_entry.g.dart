@@ -9,7 +9,7 @@ part of 'historical_price_cache_entry.dart';
 class HistoricalPriceCacheEntryAdapter
     extends TypeAdapter<HistoricalPriceCacheEntry> {
   @override
-  final int typeId = 2;
+  final typeId = 2;
 
   @override
   HistoricalPriceCacheEntry read(BinaryReader reader) {
@@ -19,7 +19,7 @@ class HistoricalPriceCacheEntryAdapter
     };
     return HistoricalPriceCacheEntry(
       data: (fields[0] as Map).cast<String, double>(),
-      timestamp: fields[1] as int,
+      timestamp: (fields[1] as num).toInt(),
     );
   }
 

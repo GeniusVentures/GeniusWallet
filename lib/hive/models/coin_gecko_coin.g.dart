@@ -8,7 +8,7 @@ part of 'coin_gecko_coin.dart';
 
 class CoinGeckoCoinAdapter extends TypeAdapter<CoinGeckoCoin> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   CoinGeckoCoin read(BinaryReader reader) {

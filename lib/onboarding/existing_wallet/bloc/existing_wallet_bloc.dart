@@ -15,40 +15,40 @@ class ExistingWalletBloc
     ExistingWalletState initialState = const ExistingWalletState(),
     required this.geniusApi,
   }) : super(initialState) {
-    on<ToggleLegal>(_onToggleLegal);
+    on<ToggleLegal>((event, emit) =>
+        emit(state.copyWith(acceptedLegal: !state.acceptedLegal)));
 
     on<ImportWalletSelected>(_onImportWalletSelected);
 
     on<WalletSecurityEntered>(_onWalletSecurityEntered);
 
-    on<PinCreated>(_onPinCreated);
+    on<PinCreated>((event, emit) {
+      emit(state.copyWith(currentStep: ImportWalletStep.confirmPin));
+    });
 
     /// On [PinCheckFailed], send user back a screen and reset pin state
-    on<PinConfirmFailed>(_onPinConfirmFailed);
+    on<PinConfirmFailed>((event, emit) {
+      emit(state.copyWith(currentStep: ImportWalletStep.createPin));
+    });
 
-    on<PinConfirmPassed>(_onPinConfirmPassed);
+    on<PinConfirmPassed>((event, emit) {
+      emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
+    });
 
     on<LegalAccepted>(_onLegalAccepted);
+
+    on<GoBack>(_onGoBack);
   }
 
-  FutureOr<void> _onPinConfirmFailed(event, emit) {
-    emit(state.copyWith(currentStep: FlowStep.createPin));
-  }
-
-  FutureOr<void> _onPinCreated(event, emit) {
-    emit(state.copyWith(currentStep: FlowStep.confirmPin));
-  }
-
-  FutureOr<void> _onImportWalletSelected(event, emit) => emit(
+  void _onImportWalletSelected(
+          ImportWalletSelected event, Emitter<ExistingWalletState> emit) =>
+      emit(
         state.copyWith(
-          currentStep: FlowStep.importWalletSecurity,
+          currentStep: ImportWalletStep.importWalletSecurity,
           selectedCoinType: event.coinType,
           selectedWallet: event.walletName,
         ),
       );
-
-  FutureOr<void> _onToggleLegal(event, emit) =>
-      emit(state.copyWith(acceptedLegal: !state.acceptedLegal));
 
   FutureOr<void> _onWalletSecurityEntered(
       WalletSecurityEntered event, Emitter<ExistingWalletState> emit) async {
@@ -73,17 +73,27 @@ class ExistingWalletBloc
     }
   }
 
-  FutureOr<void> _onPinConfirmPassed(
-      PinConfirmPassed event, Emitter<ExistingWalletState> emit) {
-    emit(state.copyWith(currentStep: FlowStep.importWallet));
-  }
-
-  FutureOr<void> _onLegalAccepted(
+  void _onLegalAccepted(
       LegalAccepted event, Emitter<ExistingWalletState> emit) {
     if (event.userExists) {
-      emit(state.copyWith(currentStep: FlowStep.importWallet));
+      emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
     } else {
-      emit(state.copyWith(currentStep: FlowStep.createPin));
+      emit(state.copyWith(currentStep: ImportWalletStep.createPin));
+    }
+  }
+
+  void _onGoBack(GoBack event, Emitter<ExistingWalletState> emit) {
+    switch (state.currentStep) {
+      case ImportWalletStep.legal:
+        break; // First step — PopScope handles route pop
+      case ImportWalletStep.createPin:
+        emit(state.copyWith(currentStep: ImportWalletStep.legal));
+      case ImportWalletStep.confirmPin:
+        emit(state.copyWith(currentStep: ImportWalletStep.createPin));
+      case ImportWalletStep.importWallet:
+        emit(state.copyWith(currentStep: ImportWalletStep.legal));
+      case ImportWalletStep.importWalletSecurity:
+        emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
     }
   }
 }

@@ -1,31 +1,30 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/banxa/banaxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
-import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:path_provider/path_provider.dart';
-
-import 'dart:io';
+import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:window_manager/window_manager.dart';
+import 'dart:io';
 
 // ignore: unused_element
 Future<void> _attachSdkLogsToHint(Hint hint) async {
@@ -50,9 +49,6 @@ Future<void> _attachSdkLogsToHint(Hint hint) async {
     }
 
     final bytes = await file.readAsBytes();
-
-    // Skip empty files — a zero-byte attachment produces a malformed
-    // envelope item header that Android's native SDK rejects.
     if (bytes.isEmpty) {
       continue;
     }
@@ -74,10 +70,11 @@ Future<void> main() async {
     (options) {
       options.dsn =
           'https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944';
-      options.tracesSampleRate = 1.0; // Adjust for production
+      options.tracesSampleRate = 1.0;
       options.sendDefaultPii = true;
       options.beforeSend = (event, hint) async {
-        final isErrorOrFatal = event.throwable != null ||
+        final isErrorOrFatal =
+            event.throwable != null ||
             event.level == SentryLevel.error ||
             event.level == SentryLevel.fatal;
         final isManualLogSubmission =
@@ -87,10 +84,7 @@ Future<void> main() async {
           return event;
         }
 
-        // _attachSdkLogsToHint is disabled until attachment support is verified.
-        // if (!kIsWeb && Platform.isAndroid) {
-        //   return event;
-        // }
+        // Disabled until attachment support is verified on all platforms.
         // try {
         //   await _attachSdkLogsToHint(hint);
         // } catch (_) {}
@@ -109,47 +103,37 @@ Future<void> main() async {
       await networkProvider.loadNetworks();
 
       final networkTokensProvider = NetworkTokensProvider();
-      await networkTokensProvider
-          .loadTokensForNetworks(networkProvider.networks);
+      await networkTokensProvider.loadTokensForNetworks(
+        networkProvider.networks,
+      );
 
-      /// Must come after hive init
       await fetchAllCoinGeckoCoins();
 
-      // SDK initialization moved to AppBloc to show splash screen during init
-      // Dev mode bypasses still happen here for initial setup
-      if ((await secureStorage.getWallets().first).isEmpty) {
+      await geniusApi.loadStoredWallets();
+
+      if ((await geniusApi.getWallets().first).isEmpty) {
         byPassSGNUSConnecton(geniusApi);
-        byPassWalletCreation(secureStorage);
+        byPassWalletCreation(geniusApi);
         addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
       }
 
-      /// Initialize window_manager only on **desktop**
-      if (!kIsWeb &&
-          (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+      if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
         await windowManager.ensureInitialized();
         windowManager.addListener(MyWindowListener(geniusApi));
       }
 
       runApp(
         MultiProvider(
-            providers: [
-              ChangeNotifierProvider(create: (_) => networkProvider),
-              ChangeNotifierProvider(create: (_) => networkTokensProvider),
-              Provider(create: (_) => geniusApi),
-            ],
-            child: AppLifecycleHandler(
-              geniusApi: geniusApi,
-              child:
-                  //DevicePreview(
-                  //  enabled: !kReleaseMode &&
-                  // (Platform.isMacOS || Platform.isWindows || Platform.isLinux),
-                  //  builder: (context) =>
-                  MyApp(
-                geniusApi: geniusApi,
-              ),
-              // tools: const [DevicePreviewExtras(), ...DevicePreview.defaultTools],
-              //),
-            )),
+          providers: [
+            ChangeNotifierProvider(create: (_) => networkProvider),
+            ChangeNotifierProvider(create: (_) => networkTokensProvider),
+            Provider(create: (_) => geniusApi),
+          ],
+          child: AppLifecycleHandler(
+            geniusApi: geniusApi,
+            child: MyApp(geniusApi: geniusApi),
+          ),
+        ),
       );
       DeepLinkService().startListening(navigatorKey);
     },
@@ -169,18 +153,17 @@ class MyWindowListener extends WindowListener {
     }
     _isClosing = true;
 
-    // Windows-specific web view cleanup
-    if (Platform.isWindows && WindowsWebViewShutdown.instance.hasActiveWebViews) {
+    if (Platform.isWindows &&
+        WindowsWebViewShutdown.instance.hasActiveWebViews) {
       try {
-        await WindowsWebViewShutdown.instance
-            .disposeAll()
-            .timeout(const Duration(seconds: 3));
+        await WindowsWebViewShutdown.instance.disposeAll().timeout(
+          const Duration(seconds: 3),
+        );
       } catch (e) {
         debugPrint("Window close: webview dispose timed out/failed: $e");
       }
     }
 
-    // Trigger SDK cleanup when the window is closed (all desktop platforms)
     final result = geniusApi.shutdownSDK();
     debugPrint("Window closed. GeniusApi shutdown: $result");
 
@@ -193,10 +176,10 @@ class AppLifecycleHandler extends StatefulWidget {
   final GeniusApi geniusApi;
 
   const AppLifecycleHandler({
-    Key? key,
+    super.key,
     required this.child,
     required this.geniusApi,
-  }) : super(key: key);
+  });
 
   @override
   State<AppLifecycleHandler> createState() => _AppLifecycleHandlerState();
@@ -213,18 +196,12 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    debugPrint(
-        "---------------------------------------------------------------------------------------------------");
-    final result = widget.geniusApi.shutdownSDK(); // Ensure SDK cleanup
-    debugPrint("GeniusApi shutdown on dispose: $result");
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
-      debugPrint(
-          "---------------------------------------------------------------------------------------------------");
       final result = widget.geniusApi.shutdownSDK(); // Handle app exit
       debugPrint("GeniusApi shutdown on detach: $result");
     }
@@ -238,14 +215,53 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
 
 class MyApp extends StatelessWidget {
   final GeniusApi geniusApi;
-  const MyApp({
-    super.key,
-    required this.geniusApi,
-  });
+  const MyApp({super.key, required this.geniusApi});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return Material(
+        color: GeniusWalletColors.deepBlueTertiary,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Something went wrong',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    if (navigatorKey.currentContext != null) {
+                      GoRouter.of(
+                        navigatorKey.currentContext!,
+                      ).go('/dashboard');
+                    }
+                  },
+                  child: const Text('Go to Dashboard'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    };
+
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('FlutterError caught: ${details.exception}');
+    };
+
     return RepositoryProvider.value(
       value: geniusApi,
       child: MultiBlocProvider(
@@ -253,36 +269,33 @@ class MyApp extends StatelessWidget {
           BlocProvider<TransactionsCubit>(
             create: (_) => TransactionsCubit(), // Or with initial state
           ),
-          BlocProvider<OrdersCubit>(
-            create: (_) => OrdersCubit(),
-          ),
+          BlocProvider<OrdersCubit>(create: (_) => OrdersCubit()),
           BlocProvider<MakeOrderCubit>(
-              create: (_) => MakeOrderCubit(BanxaApiService())),
+            create: (_) => MakeOrderCubit(BanxaApiService()),
+          ),
           BlocProvider(
-              create: (_) => WalletDetailsCubit(
-                    geniusApi: context.read<GeniusApi>(),
-                    networkTokensProvider:
-                        context.read<NetworkTokensProvider>(),
-                  )),
+            create: (_) => WalletDetailsCubit(
+              geniusApi: context.read<GeniusApi>(),
+              networkTokensProvider: context.read<NetworkTokensProvider>(),
+            ),
+          ),
           BlocProvider(
             create: (context) => AppBloc(
               api: geniusApi,
               transactionsCubit: context.read<TransactionsCubit>(),
               walletDetailsCubit: context.read<WalletDetailsCubit>(),
-              networkProvider:
-                  Provider.of<NetworkProvider>(context, listen: false),
+              networkProvider: Provider.of<NetworkProvider>(
+                context,
+                listen: false,
+              ),
             ),
           ),
-          BlocProvider(
-            create: (context) => NavigationOverlayCubit(),
-          )
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          useInheritedMediaQuery: true,
           locale: DevicePreview.locale(context),
           builder: DevicePreview.appBuilder,
-          title: 'Gnus AI',
+          title: 'Genius Wallet',
           theme: getThemeData(),
           routerConfig: geniusWalletRouter,
         ),

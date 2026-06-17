@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'coin_gecko_coin.g.dart'; // Generated adapter file
 

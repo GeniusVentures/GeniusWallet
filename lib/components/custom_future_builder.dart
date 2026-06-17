@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 
 class FutureStateWidget<T> extends StatelessWidget {
@@ -10,13 +10,13 @@ class FutureStateWidget<T> extends StatelessWidget {
   final VoidCallback? onRetry;
 
   const FutureStateWidget({
-    Key? key,
+    super.key,
     required this.future,
     required this.onData,
     this.loading,
     this.error,
     this.onRetry,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

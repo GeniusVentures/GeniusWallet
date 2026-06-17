@@ -7,12 +7,12 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 class WalletAddressCustom extends StatefulWidget {
   final Widget? child;
   const WalletAddressCustom({
-    Key? key,
+    super.key,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
-  _WalletAddressCustomState createState() => _WalletAddressCustomState();
+  State<WalletAddressCustom> createState() => _WalletAddressCustomState();
 }
 
 class _WalletAddressCustomState extends State<WalletAddressCustom> {

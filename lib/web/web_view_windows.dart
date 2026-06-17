@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:genius_wallet/components/loading/loading.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
@@ -13,11 +13,10 @@ class WebViewWindows extends StatefulWidget {
   final bool? includeBackButton;
 
   const WebViewWindows(
-      {Key? key, required this.url, this.includeBackButton = false})
-      : super(key: key);
+      {super.key, required this.url, this.includeBackButton = false});
 
   @override
-  _WebViewWindowsState createState() => _WebViewWindowsState();
+  State<WebViewWindows> createState() => _WebViewWindowsState();
 }
 
 class _WebViewWindowsState extends State<WebViewWindows> {
@@ -271,8 +270,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       color: GeniusWalletColors.lightGreenPrimary,
       iconSize: 24,
       onPressed: onPressed,
-      hoverColor: GeniusWalletColors.deepBlueCardColor.withAlpha(77),
-      splashColor: GeniusWalletColors.deepBlueCardColor.withAlpha(128),
+      hoverColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.3),
+      splashColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.5),
     );
   }
 

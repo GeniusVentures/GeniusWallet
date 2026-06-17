@@ -75,7 +75,6 @@ class TestSwapButtons extends StatelessWidget {
             );
           },
         ),
-        // ✅ SwapSuccessDrawer
         IconButton(
           tooltip: "Test Swap Success Drawer",
           icon: const Icon(Icons.check_circle_outline, color: Colors.green),
@@ -94,7 +93,6 @@ class TestSwapButtons extends StatelessWidget {
             );
           },
         ),
-        // ❌ SwapFailedDrawer
         IconButton(
           tooltip: "Test Swap Failed Drawer",
           icon: const Icon(Icons.error_outline, color: Colors.redAccent),
