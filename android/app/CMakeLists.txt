@@ -11,10 +11,10 @@ else()
         set(BUILD_TYPE_SEARCH "Release")
     elseif(_CMAKE_BUILD_TYPE_UPPER STREQUAL "DEBUG")
         set(BUILD_TYPE_SEARCH "Debug")
+    else()
+        set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
     endif()
 endif()
-
-set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
 
 set(ARCH_BUILD_DIR /build/Android/)
 set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${BUILD_TYPE_SEARCH}/${ANDROID_ABI})
