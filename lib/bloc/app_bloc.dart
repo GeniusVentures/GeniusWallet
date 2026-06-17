@@ -63,10 +63,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     emit(state.copyWith(sdkStatus: AppStatus.loaded));
   }
 
-  Future<void> _onLoadWallets(
-    LoadWallets event,
-    Emitter<AppState> emit,
-  ) async {
+  Future<void> _onLoadWallets(LoadWallets event, Emitter<AppState> emit) async {
     emit(state.copyWith(subscribeToWalletStatus: AppStatus.loading));
 
     final wallets = await api.getWallets().first;
@@ -78,12 +75,14 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final sdkState = _getSDKAccountState();
 
     if (_baseWallets.isEmpty) {
-      emit(state.copyWith(
-        wallets: mergedWallets,
-        subscribeToWalletStatus: AppStatus.loaded,
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-      ));
+      emit(
+        state.copyWith(
+          wallets: mergedWallets,
+          subscribeToWalletStatus: AppStatus.loaded,
+          selectedSDKAccount: sdkState.$1,
+          sdkAccounts: sdkState.$2,
+        ),
+      );
       return;
     }
 
@@ -114,23 +113,22 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     _startProcessingPolling();
 
-    emit(state.copyWith(
-      wallets: mergedWallets,
-      subscribeToWalletStatus: AppStatus.loaded,
-      selectedSDKAccount: sdkState.$1,
-      sdkAccounts: sdkState.$2,
-    ));
+    emit(
+      state.copyWith(
+        wallets: mergedWallets,
+        subscribeToWalletStatus: AppStatus.loaded,
+        selectedSDKAccount: sdkState.$1,
+        sdkAccounts: sdkState.$2,
+      ),
+    );
   }
 
   void _startProcessingPolling() {
     _processingTimer?.cancel();
 
-    _processingTimer = Timer.periodic(
-      const Duration(milliseconds: 1000),
-      (_) {
-        add(ProcessingStatusTicked());
-      },
-    );
+    _processingTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
+      add(ProcessingStatusTicked());
+    });
   }
 
   FutureOr<void> _onProcessingStatusTicked(
@@ -140,7 +138,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     try {
       final statusInfo = api.getProcessingStatus();
 
-      final isProcessing = statusInfo.status ==
+      final isProcessing =
+          statusInfo.status ==
           GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING.value;
 
       if (state.isProcessing != isProcessing) {
@@ -165,10 +164,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     try {
       final account = await api.getAccount();
-      emit(state.copyWith(
-        accountStatus: AppStatus.loaded,
-        account: account,
-      ));
+      emit(state.copyWith(accountStatus: AppStatus.loaded, account: account));
     } catch (_) {
       emit(state.copyWith(accountStatus: AppStatus.error));
     }
@@ -182,10 +178,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     try {
       final exists = await api.userExists();
-      emit(state.copyWith(
-        loadUserStatus: AppStatus.loaded,
-        userStatus: exists ? UserStatus.exists : UserStatus.nonExistent,
-      ));
+      emit(
+        state.copyWith(
+          loadUserStatus: AppStatus.loaded,
+          userStatus: exists ? UserStatus.exists : UserStatus.nonExistent,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(loadUserStatus: AppStatus.error));
     }
@@ -203,14 +201,17 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     await api.deleteWallet(event.address);
-    _baseWallets =
-        _baseWallets.where((w) => w.address != event.address).toList();
+    _baseWallets = _baseWallets
+        .where((w) => w.address != event.address)
+        .toList();
     final sdkState = _getSDKAccountState();
-    emit(state.copyWith(
-      wallets: await _mergeSgnusWallet(),
-      selectedSDKAccount: sdkState.$1,
-      sdkAccounts: sdkState.$2,
-    ));
+    emit(
+      state.copyWith(
+        wallets: await _mergeSgnusWallet(),
+        selectedSDKAccount: sdkState.$1,
+        sdkAccounts: sdkState.$2,
+      ),
+    );
   }
 
   FutureOr<void> _onRenameWallet(
@@ -225,17 +226,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       return w;
     }).toList();
     final sdkState = _getSDKAccountState();
-    emit(state.copyWith(
-      wallets: await _mergeSgnusWallet(),
-      selectedSDKAccount: sdkState.$1,
-      sdkAccounts: sdkState.$2,
-    ));
+    emit(
+      state.copyWith(
+        wallets: await _mergeSgnusWallet(),
+        selectedSDKAccount: sdkState.$1,
+        sdkAccounts: sdkState.$2,
+      ),
+    );
   }
 
   void _startSgnusConnectionListener() {
     if (_sgnusConnectionSubscription != null) return;
-    _sgnusConnectionSubscription =
-        api.getSGNUSConnectionStream().listen((connection) {
+    _sgnusConnectionSubscription = api.getSGNUSConnectionStream().listen((
+      connection,
+    ) {
       add(SgnusConnectionChanged(connection));
     });
   }
@@ -245,11 +249,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     final sdkState = _getSDKAccountState();
-    emit(state.copyWith(
-      wallets: await _mergeSgnusWallet(),
-      selectedSDKAccount: sdkState.$1,
-      sdkAccounts: sdkState.$2,
-    ));
+    emit(
+      state.copyWith(
+        wallets: await _mergeSgnusWallet(),
+        selectedSDKAccount: sdkState.$1,
+        sdkAccounts: sdkState.$2,
+      ),
+    );
   }
 
   Future<List<Wallet>> _mergeSgnusWallet() async {
@@ -274,16 +280,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       );
     }).toList();
 
-    return [
-      ...sgnusWallets,
-      ..._baseWallets,
-    ];
+    return [...sgnusWallets, ..._baseWallets];
   }
 
-  FutureOr<void> _onRunFFITest(
-    RunFFITest event,
-    Emitter<AppState> emit,
-  ) {
+  FutureOr<void> _onRunFFITest(RunFFITest event, Emitter<AppState> emit) {
     final result = api.mintTokens(500, "", "", "");
     debugPrint("FFI mintTokens result: $result");
   }
@@ -302,11 +302,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final result = await api.selectGeniusAccountAsync(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       final sdkState = _getSDKAccountState();
-      emit(state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-      ));
+      emit(
+        state.copyWith(
+          wallets: await _mergeSgnusWallet(),
+          selectedSDKAccount: sdkState.$1,
+          sdkAccounts: sdkState.$2,
+        ),
+      );
     }
   }
 
@@ -317,11 +319,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final result = api.addAccountWithMnemonic(event.mnemonic);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       final sdkState = _getSDKAccountState();
-      emit(state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-      ));
+      emit(
+        state.copyWith(
+          wallets: await _mergeSgnusWallet(),
+          selectedSDKAccount: sdkState.$1,
+          sdkAccounts: sdkState.$2,
+        ),
+      );
     }
   }
 
@@ -332,11 +336,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final result = api.addAccountWithPrivateKey(event.privateKey);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       final sdkState = _getSDKAccountState();
-      emit(state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-      ));
+      emit(
+        state.copyWith(
+          wallets: await _mergeSgnusWallet(),
+          selectedSDKAccount: sdkState.$1,
+          sdkAccounts: sdkState.$2,
+        ),
+      );
     }
   }
 
@@ -347,11 +353,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final result = api.deleteAccount(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       final sdkState = _getSDKAccountState();
-      emit(state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-      ));
+      emit(
+        state.copyWith(
+          wallets: await _mergeSgnusWallet(),
+          selectedSDKAccount: sdkState.$1,
+          sdkAccounts: sdkState.$2,
+        ),
+      );
     }
   }
 
@@ -360,11 +368,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     final sdkState = _getSDKAccountState();
-    emit(state.copyWith(
-      wallets: await _mergeSgnusWallet(),
-      selectedSDKAccount: sdkState.$1,
-      sdkAccounts: sdkState.$2,
-    ));
+    emit(
+      state.copyWith(
+        wallets: await _mergeSgnusWallet(),
+        selectedSDKAccount: sdkState.$1,
+        sdkAccounts: sdkState.$2,
+      ),
+    );
   }
 
   void _onSetSDKPayoutAddress(

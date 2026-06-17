@@ -24,25 +24,11 @@ class NewPinState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        pinToConfirm,
-        pinConfirmStatus,
-        pinSaveStatus,
-      ];
+  List<Object?> get props => [pinToConfirm, pinConfirmStatus, pinSaveStatus];
 }
 
 /// Status for whether the pins entered match or not
-enum PinConfirmStatus {
-  initial,
-  awaitingVerification,
-  passed,
-  failed,
-}
+enum PinConfirmStatus { initial, awaitingVerification, passed, failed }
 
 /// Status for whether the confirmed pin was successfully saved
-enum PinSaveStatus {
-  initial,
-  loading,
-  saved,
-  error,
-}
+enum PinSaveStatus { initial, loading, saved, error }

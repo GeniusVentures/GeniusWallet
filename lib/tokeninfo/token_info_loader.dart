@@ -10,10 +10,8 @@ class TokenInfoLoader {
   final String tokensUrl;
   final http.Client _httpClient;
 
-  TokenInfoLoader({
-    this.tokensUrl = _defaultTokensUrl,
-    http.Client? httpClient,
-  }) : _httpClient = httpClient ?? http.Client();
+  TokenInfoLoader({this.tokensUrl = _defaultTokensUrl, http.Client? httpClient})
+    : _httpClient = httpClient ?? http.Client();
 
   /// Load the first token from the GitHub URL (for backward compatibility)
   /// Returns null if loading fails or array is empty
@@ -43,8 +41,10 @@ class TokenInfoLoader {
       // Handle both single object and array of objects
       if (json is List) {
         return json
-            .map((item) =>
-                SuperGeniusTokenInfo.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) =>
+                  SuperGeniusTokenInfo.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
       } else if (json is Map<String, dynamic>) {
         return [SuperGeniusTokenInfo.fromJson(json)];
@@ -99,6 +99,7 @@ extension TokenInfoLoaderExtension on TokenInfoLoader {
   /// Load GNUS token specifically
   Future<SuperGeniusTokenInfo?> loadGNUSToken() async {
     return loadTokenById(
-        '0000000000000000000000000000000000000000000000000000000000000000');
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    );
   }
 }

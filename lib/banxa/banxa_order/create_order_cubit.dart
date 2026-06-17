@@ -16,13 +16,15 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
     String? initialWalletAddress,
   }) async {
     if (isClosed) return;
-    emit(state.copyWith(
-      step: MakeOrderStep.loadingCurrencies,
-      isLoadingOverlay: true,
-      loadingMessage: 'Loading currencies...',
-      clearError: true,
-      clearCheckout: true,
-    ));
+    emit(
+      state.copyWith(
+        step: MakeOrderStep.loadingCurrencies,
+        isLoadingOverlay: true,
+        loadingMessage: 'Loading currencies...',
+        clearError: true,
+        clearCheckout: true,
+      ),
+    );
 
     try {
       final fiats = await _service.getFiatCurrencies();
@@ -46,103 +48,116 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         );
       }
 
-      emit(state.copyWith(
-        step: MakeOrderStep.currenciesLoaded,
-        fiats: fiats,
-        cryptos: cryptos,
-        selectedFiat: selFiat,
-        selectedCrypto: selCrypto,
-        paymentMethods: methods,
-        selectedPaymentMethod: selMethod,
-        amountText: initialAmount ?? state.amountText,
-        walletText: initialWalletAddress ?? state.walletText,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.currenciesLoaded,
+          fiats: fiats,
+          cryptos: cryptos,
+          selectedFiat: selFiat,
+          selectedCrypto: selCrypto,
+          paymentMethods: methods,
+          selectedPaymentMethod: selMethod,
+          amountText: initialAmount ?? state.amountText,
+          walletText: initialWalletAddress ?? state.walletText,
+          isLoadingOverlay: false,
+          loadingMessage: '',
+        ),
+      );
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(
-        step: MakeOrderStep.error,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-        errorMessage: 'Failed to load currencies: $e',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.error,
+          isLoadingOverlay: false,
+          loadingMessage: '',
+          errorMessage: 'Failed to load currencies: $e',
+        ),
+      );
     }
   }
 
   void selectFiat(FiatCurrency fiat) {
-    emit(state.copyWith(
-      step: MakeOrderStep.selecting,
-      selectedFiat: fiat,
-      paymentMethods: fiat.supportedPaymentMethods,
-      clearSelectedPaymentMethod: true,
-      clearQuote: true,
-      clearError: true,
-      clearCheckout: true,
-      clearOrderId: true,
-      clearRedirectUrl: true,
-    ));
+    emit(
+      state.copyWith(
+        step: MakeOrderStep.selecting,
+        selectedFiat: fiat,
+        paymentMethods: fiat.supportedPaymentMethods,
+        clearSelectedPaymentMethod: true,
+        clearQuote: true,
+        clearError: true,
+        clearCheckout: true,
+        clearOrderId: true,
+        clearRedirectUrl: true,
+      ),
+    );
   }
 
   void selectCrypto(CryptoCurrency crypto) {
-    emit(state.copyWith(
-      step: MakeOrderStep.selecting,
-      selectedCrypto: crypto,
-      clearQuote: true,
-      clearError: true,
-      clearCheckout: true,
-      clearOrderId: true,
-      clearRedirectUrl: true,
-    ));
+    emit(
+      state.copyWith(
+        step: MakeOrderStep.selecting,
+        selectedCrypto: crypto,
+        clearQuote: true,
+        clearError: true,
+        clearCheckout: true,
+        clearOrderId: true,
+        clearRedirectUrl: true,
+      ),
+    );
   }
 
   void selectPaymentMethod(PaymentMethod method) {
-    emit(state.copyWith(
-      step: MakeOrderStep.selecting,
-      selectedPaymentMethod: method,
-      clearQuote: true,
-      clearError: true,
-      clearCheckout: true,
-      clearOrderId: true,
-      clearRedirectUrl: true,
-    ));
+    emit(
+      state.copyWith(
+        step: MakeOrderStep.selecting,
+        selectedPaymentMethod: method,
+        clearQuote: true,
+        clearError: true,
+        clearCheckout: true,
+        clearOrderId: true,
+        clearRedirectUrl: true,
+      ),
+    );
   }
 
   void setAmountText(String v) {
-    emit(state.copyWith(
-      amountText: v,
-      clearQuote: true,
-      clearError: true,
-      clearCheckout: true,
-      clearOrderId: true,
-      clearRedirectUrl: true,
-    ));
+    emit(
+      state.copyWith(
+        amountText: v,
+        clearQuote: true,
+        clearError: true,
+        clearCheckout: true,
+        clearOrderId: true,
+        clearRedirectUrl: true,
+      ),
+    );
   }
 
   void setWalletText(String v) {
-    emit(state.copyWith(
-      walletText: v,
-      clearError: true,
-    ));
+    emit(state.copyWith(walletText: v, clearError: true));
   }
 
   Future<Quote?> getQuote() async {
     if (!state.canGetQuote) {
-      emit(state.copyWith(
-        step: MakeOrderStep.error,
-        errorMessage:
-            'Please select fiat, crypto, method and enter a valid amount.',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.error,
+          errorMessage:
+              'Please select fiat, crypto, method and enter a valid amount.',
+        ),
+      );
       return null;
     }
 
-    emit(state.copyWith(
-      step: MakeOrderStep.gettingQuote,
-      isLoadingOverlay: true,
-      loadingMessage: 'Fetching quote...',
-      clearError: true,
-      clearCheckout: true,
-    ));
+    emit(
+      state.copyWith(
+        step: MakeOrderStep.gettingQuote,
+        isLoadingOverlay: true,
+        loadingMessage: 'Fetching quote...',
+        clearError: true,
+        clearCheckout: true,
+      ),
+    );
 
     try {
       final quote = await _service.getQuote(
@@ -154,40 +169,48 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         fiatAmount: state.amountValue!.toString(),
       );
 
-      emit(state.copyWith(
-        step: MakeOrderStep.quoteReady,
-        quote: quote,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.quoteReady,
+          quote: quote,
+          isLoadingOverlay: false,
+          loadingMessage: '',
+        ),
+      );
       return quote;
     } catch (e) {
-      emit(state.copyWith(
-        step: MakeOrderStep.error,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-        errorMessage: 'Could not fetch quote: $e',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.error,
+          isLoadingOverlay: false,
+          loadingMessage: '',
+          errorMessage: 'Could not fetch quote: $e',
+        ),
+      );
       return null;
     }
   }
 
   Future<String?> createOrder() async {
     if (!state.canCreateOrder) {
-      emit(state.copyWith(
-        step: MakeOrderStep.error,
-        errorMessage: 'Missing data to create order.',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.error,
+          errorMessage: 'Missing data to create order.',
+        ),
+      );
       return null;
     }
 
-    emit(state.copyWith(
-      step: MakeOrderStep.creatingOrder,
-      isLoadingOverlay: true,
-      loadingMessage: 'Creating order...',
-      clearError: true,
-      clearCheckout: true,
-    ));
+    emit(
+      state.copyWith(
+        step: MakeOrderStep.creatingOrder,
+        isLoadingOverlay: true,
+        loadingMessage: 'Creating order...',
+        clearError: true,
+        clearCheckout: true,
+      ),
+    );
 
     try {
       const redirectUrl = 'yourapp://banxa-callback';
@@ -205,22 +228,27 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         subPartnerId: 'macOS-app',
       );
 
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           step: MakeOrderStep.orderReady,
           checkoutUrl: order.checkoutUrl,
           redirectUrl: redirectUrl,
           isLoadingOverlay: false,
           loadingMessage: '',
-          orderId: order.orderId));
+          orderId: order.orderId,
+        ),
+      );
       return order.checkoutUrl;
     } catch (e) {
       print(e);
-      emit(state.copyWith(
-        step: MakeOrderStep.error,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-        errorMessage: 'Failed to create order: $e',
-      ));
+      emit(
+        state.copyWith(
+          step: MakeOrderStep.error,
+          isLoadingOverlay: false,
+          loadingMessage: '',
+          errorMessage: 'Failed to create order: $e',
+        ),
+      );
       return null;
     }
   }
@@ -230,11 +258,13 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
   }
 
   void clearCheckout() {
-    emit(state.copyWith(
-      clearCheckout: true,
-      clearOrderId: true,
-      clearRedirectUrl: true,
-    ));
+    emit(
+      state.copyWith(
+        clearCheckout: true,
+        clearOrderId: true,
+        clearRedirectUrl: true,
+      ),
+    );
   }
 }
 

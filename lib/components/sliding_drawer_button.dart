@@ -20,8 +20,12 @@ class SlidingDrawerButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        padding:
-            const EdgeInsets.only(top: 24, bottom: 24, left: 24, right: 24),
+        padding: const EdgeInsets.only(
+          top: 24,
+          bottom: 24,
+          left: 24,
+          right: 24,
+        ),
         backgroundColor: Colors.transparent,
       ),
       child: Row(
@@ -35,14 +39,15 @@ class SlidingDrawerButton extends StatelessWidget {
           const SizedBox(width: 16), // Space between icon and text
 
           Flexible(
-              child: AutoSizeText(
-            label,
-            maxLines: 2,
-            style: TextStyle(
-              fontSize: 16,
-              color: color, // Apply the custom color
+            child: AutoSizeText(
+              label,
+              maxLines: 2,
+              style: TextStyle(
+                fontSize: 16,
+                color: color, // Apply the custom color
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );

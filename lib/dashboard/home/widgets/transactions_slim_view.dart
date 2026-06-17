@@ -18,15 +18,15 @@ enum Filters {
   const Filters(this.label);
 
   bool matches(Transaction tx) => switch (this) {
-        all => true,
-        sent => tx.transactionDirection == TransactionDirection.sent,
-        received => tx.transactionDirection == TransactionDirection.received,
-        mint => tx.type == TransactionType.mint,
-        escrow => {
-            TransactionType.escrow,
-            TransactionType.escrowRelease,
-          }.contains(tx.type),
-      };
+    all => true,
+    sent => tx.transactionDirection == TransactionDirection.sent,
+    received => tx.transactionDirection == TransactionDirection.received,
+    mint => tx.type == TransactionType.mint,
+    escrow => {
+      TransactionType.escrow,
+      TransactionType.escrowRelease,
+    }.contains(tx.type),
+  };
 }
 
 class TransactionsSlimView extends StatefulWidget {
@@ -48,12 +48,12 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
   Filters selectedFilter = Filters.all;
 
   List<Transaction> get filteredTransactions => widget.transactions.where((tx) {
-        final matchesFilter = selectedFilter.matches(tx);
-        final matchesSGNUS = !(widget.isShowOnlySGNUSTransactions ?? false) ||
-            (tx.isSGNUS ?? false);
+    final matchesFilter = selectedFilter.matches(tx);
+    final matchesSGNUS =
+        !(widget.isShowOnlySGNUSTransactions ?? false) || (tx.isSGNUS ?? false);
 
-        return matchesFilter && matchesSGNUS;
-      }).toList();
+    return matchesFilter && matchesSGNUS;
+  }).toList();
 
   @override
   void didChangeMetrics() => setState(() {});
@@ -70,33 +70,43 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 16.0,
         children: [
-          Text('Transactions',
-              style: Theme.of(context).textTheme.headlineLarge),
+          Text(
+            'Transactions',
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
           SegmentedButton<Filters>(
             segments: Filters.values
                 .where((f) => f != Filters.all)
-                .map((filter) => ButtonSegment<Filters>(
-                      value: filter,
-                      label: Text(filter.label),
-                    ))
+                .map(
+                  (filter) => ButtonSegment<Filters>(
+                    value: filter,
+                    label: Text(filter.label),
+                  ),
+                )
                 .toList(),
-            selected:
-                selectedFilter == Filters.all ? <Filters>{} : {selectedFilter},
+            selected: selectedFilter == Filters.all
+                ? <Filters>{}
+                : {selectedFilter},
             emptySelectionAllowed: true,
             showSelectedIcon: false,
             onSelectionChanged: (Set<Filters> newSelection) {
-              setState(() => selectedFilter =
-                  newSelection.isEmpty ? Filters.all : newSelection.first);
+              setState(
+                () => selectedFilter = newSelection.isEmpty
+                    ? Filters.all
+                    : newSelection.first,
+              );
             },
           ),
           Expanded(
             child: ListView.builder(
               itemCount: txs.length,
               itemBuilder: (_, i) => switch (txs[i].type) {
-                TransactionType.purchase =>
-                  TransactionPurchasedItem(tx: txs[i]),
-                TransactionType.escrowRelease =>
-                  TransactionEscrowReleaseItem(tx: txs[i]),
+                TransactionType.purchase => TransactionPurchasedItem(
+                  tx: txs[i],
+                ),
+                TransactionType.escrowRelease => TransactionEscrowReleaseItem(
+                  tx: txs[i],
+                ),
                 TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
                 _ => TransactionItem(tx: txs[i]),
               },

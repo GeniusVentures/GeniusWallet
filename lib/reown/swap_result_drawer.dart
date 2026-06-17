@@ -15,42 +15,52 @@ class SwapResultDrawer {
     final message = isSuccess ? "Swap Success" : "Swap Failed";
     final icon = isSuccess ? Icons.check_circle : Icons.error;
     final iconColor = isSuccess ? Colors.greenAccent : Colors.redAccent;
-    final explorerUrl =
-        (txHash.isNotEmpty) ? getExplorerUrl(coinSymbol, txHash) : '';
+    final explorerUrl = (txHash.isNotEmpty)
+        ? getExplorerUrl(coinSymbol, txHash)
+        : '';
 
     await ResponsiveDrawer.show(
       context: context,
       title: message,
-      child: ListView(children: [
-        const SizedBox(height: 24),
-        Icon(icon, size: 64, color: iconColor),
-        const SizedBox(height: 16),
-        Text(
-          message,
-          style: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: iconColor),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        if (txHash.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: GeniusWalletColors.deepBlueMenu,
-              borderRadius: BorderRadius.circular(12),
+      child: ListView(
+        children: [
+          const SizedBox(height: 24),
+          Icon(icon, size: 64, color: iconColor),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: iconColor,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Transaction Hash:",
-                    style: TextStyle(color: Colors.white70)),
-                const SizedBox(height: 4),
-                SelectableText(txHash,
-                    style: const TextStyle(color: Colors.white)),
-              ],
-            ),
+            textAlign: TextAlign.center,
           ),
-      ]),
+          const SizedBox(height: 24),
+          if (txHash.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: GeniusWalletColors.deepBlueMenu,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Transaction Hash:",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 4),
+                  SelectableText(
+                    txHash,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
       footer: Column(
         children: [
           ElevatedButton(
@@ -58,7 +68,8 @@ class SwapResultDrawer {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.greenAccent,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
               minimumSize: const Size.fromHeight(48),
             ),
             child: const Text(
@@ -72,12 +83,15 @@ class SwapResultDrawer {
               onPressed: () => launchWebSite(context, explorerUrl),
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 side: const BorderSide(color: Colors.greenAccent),
                 minimumSize: const Size.fromHeight(48),
               ),
-              child: const Text("View on Explorer",
-                  style: TextStyle(color: Colors.greenAccent)),
+              child: const Text(
+                "View on Explorer",
+                style: TextStyle(color: Colors.greenAccent),
+              ),
             ),
         ],
       ),

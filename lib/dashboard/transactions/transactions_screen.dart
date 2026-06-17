@@ -32,11 +32,15 @@ class TransactionsScreen extends StatelessWidget {
                           selectedWallet?.walletType == WalletType.sgnus;
 
                       return Container(
-                          padding: const EdgeInsets.only(
-                              left: 12, right: 12, bottom: 8),
-                          child: isSgnusWallet
-                              ? const SgnusTransactionsScreen()
-                              : const TransactionsStream());
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 12,
+                          bottom: 8,
+                        ),
+                        child: isSgnusWallet
+                            ? const SgnusTransactionsScreen()
+                            : const TransactionsStream(),
+                      );
                     },
                   ),
                 ),

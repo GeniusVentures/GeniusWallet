@@ -10,16 +10,16 @@ class HistoricalPriceCacheEntry {
   @HiveField(1)
   final int timestamp; // UNIX timestamp (seconds)
 
-  HistoricalPriceCacheEntry({
-    required this.data,
-    required this.timestamp,
-  });
+  HistoricalPriceCacheEntry({required this.data, required this.timestamp});
 
   /// Convert from Map<int, double> to Map<String, double>
   factory HistoricalPriceCacheEntry.fromIntMap(
-      Map<int, double> intMap, int timestamp) {
-    final stringMap =
-        intMap.map((key, value) => MapEntry(key.toString(), value));
+    Map<int, double> intMap,
+    int timestamp,
+  ) {
+    final stringMap = intMap.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
     return HistoricalPriceCacheEntry(data: stringMap, timestamp: timestamp);
   }
 

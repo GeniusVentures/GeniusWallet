@@ -19,7 +19,9 @@ class NetworkProvider extends ChangeNotifier {
 
   /// Get Network by ID
   Network? getNetworkById(int chainId) {
-    return _networks.firstWhere((network) => network.chainId == chainId,
-        orElse: () => const Network(chainId: -1, name: 'Unknown'));
+    return _networks.firstWhere(
+      (network) => network.chainId == chainId,
+      orElse: () => const Network(chainId: -1, name: 'Unknown'),
+    );
   }
 }

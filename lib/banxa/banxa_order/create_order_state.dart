@@ -50,23 +50,23 @@ class MakeOrderState {
   });
 
   factory MakeOrderState.initial() => const MakeOrderState(
-        step: MakeOrderStep.initial,
-        fiats: [],
-        cryptos: [],
-        paymentMethods: [],
-        selectedFiat: null,
-        selectedCrypto: null,
-        selectedPaymentMethod: null,
-        amountText: '',
-        walletText: '',
-        quote: null,
-        isLoadingOverlay: false,
-        loadingMessage: '',
-        errorMessage: '',
-        checkoutUrl: null,
-        redirectUrl: null,
-        orderId: null,
-      );
+    step: MakeOrderStep.initial,
+    fiats: [],
+    cryptos: [],
+    paymentMethods: [],
+    selectedFiat: null,
+    selectedCrypto: null,
+    selectedPaymentMethod: null,
+    amountText: '',
+    walletText: '',
+    quote: null,
+    isLoadingOverlay: false,
+    loadingMessage: '',
+    errorMessage: '',
+    checkoutUrl: null,
+    redirectUrl: null,
+    orderId: null,
+  );
 
   MakeOrderState copyWith({
     MakeOrderStep? step,
@@ -99,10 +99,12 @@ class MakeOrderState {
       fiats: fiats ?? this.fiats,
       cryptos: cryptos ?? this.cryptos,
       paymentMethods: paymentMethods ?? this.paymentMethods,
-      selectedFiat:
-          clearSelectedFiat ? null : (selectedFiat ?? this.selectedFiat),
-      selectedCrypto:
-          clearSelectedCrypto ? null : (selectedCrypto ?? this.selectedCrypto),
+      selectedFiat: clearSelectedFiat
+          ? null
+          : (selectedFiat ?? this.selectedFiat),
+      selectedCrypto: clearSelectedCrypto
+          ? null
+          : (selectedCrypto ?? this.selectedCrypto),
       selectedPaymentMethod: clearSelectedPaymentMethod
           ? null
           : (selectedPaymentMethod ?? this.selectedPaymentMethod),

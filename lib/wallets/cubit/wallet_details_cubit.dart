@@ -15,11 +15,11 @@ part 'wallet_details_state.dart';
 class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   GeniusApi geniusApi;
   NetworkTokensProvider networkTokensProvider;
-  WalletDetailsCubit(
-      {WalletDetailsState initialState = const WalletDetailsState(),
-      required this.geniusApi,
-      required this.networkTokensProvider})
-      : super(initialState);
+  WalletDetailsCubit({
+    WalletDetailsState initialState = const WalletDetailsState(),
+    required this.geniusApi,
+    required this.networkTokensProvider,
+  }) : super(initialState);
 
   Future<void> loadInitial({
     required Wallet selectedWallet,
@@ -29,11 +29,13 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
     final balance = selectedWallet.balance.toString();
 
-    emit(WalletDetailsState(
-      selectedWallet: selectedWallet,
-      selectedWalletBalance: balance,
-      selectedNetwork: selectedNetwork,
-    ));
+    emit(
+      WalletDetailsState(
+        selectedWallet: selectedWallet,
+        selectedWalletBalance: balance,
+        selectedNetwork: selectedNetwork,
+      ),
+    );
 
     emit(state.copyWith(initStatus: WalletStatus.successful));
   }
@@ -78,10 +80,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     try {
       emit(state.copyWith(gasFeesStatus: WalletStatus.loading));
       final gasFee = await geniusApi.getGasFees();
-      emit(state.copyWith(
-        gasFeesStatus: WalletStatus.successful,
-        gasFees: gasFee,
-      ));
+      emit(
+        state.copyWith(gasFeesStatus: WalletStatus.successful, gasFees: gasFee),
+      );
     } catch (e) {
       emit(state.copyWith(gasFeesStatus: WalletStatus.error));
     }
@@ -131,7 +132,8 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
       coinFuture.then((List<Coin> coinList) {
         if (!isClosed) {
-          emit(state.copyWith(
+          emit(
+            state.copyWith(
               coinsStatus: WalletStatus.successful,
               coins: coinList,
               // update selected coin to updated values after retrieval
@@ -141,7 +143,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
                       orElse: () =>
                           state.selectedCoin!, // Keep the old coin if not found
                     )
-                  : null));
+                  : null,
+            ),
+          );
         }
       });
     } catch (e) {

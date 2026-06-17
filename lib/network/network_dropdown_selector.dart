@@ -52,10 +52,11 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       context: context,
       title: "Select Network",
       child: ListView(
-          children: networks.map((network) {
-        final isSelected = network.chainId == selectedNetwork?.chainId;
-        return _buildDrawerRow(network, isSelected);
-      }).toList()),
+        children: networks.map((network) {
+          final isSelected = network.chainId == selectedNetwork?.chainId;
+          return _buildDrawerRow(network, isSelected);
+        }).toList(),
+      ),
     );
 
     if (selected != null && selected != selectedNetwork) {
@@ -107,12 +108,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
         ),
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text(
-        network.symbol ?? "",
-        style: TextStyle(
-          fontSize: 12,
-        ),
-      ),
+      subtitle: Text(network.symbol ?? "", style: TextStyle(fontSize: 12)),
       onTap: () => Navigator.of(context).pop(network),
     );
   }
@@ -150,10 +146,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
               errorBuilder: (context, error, stackTrace) =>
                   const SizedBox(width: 20, height: 20),
             ),
-            const Icon(
-              Icons.arrow_drop_down,
-              size: 16,
-            ),
+            const Icon(Icons.arrow_drop_down, size: 16),
           ],
         ),
       ),

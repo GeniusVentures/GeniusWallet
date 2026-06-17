@@ -9,29 +9,29 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 class PinCubit extends Cubit<PinState> {
   final int pinMaxLength;
   final GeniusApi geniusApi;
-  PinCubit({
-    required this.pinMaxLength,
-    required this.geniusApi,
-  }) : super(PinState(pinController: PinInputController()));
+  PinCubit({required this.pinMaxLength, required this.geniusApi})
+    : super(PinState(pinController: PinInputController()));
 
   TextEditingController get _textController =>
       state.pinController.textController;
 
   void clearAll() {
     _textController.clear();
-    emit(state.copyWith(
-      pinController: state.pinController,
-      pinFullness: PinFullness.inProgress,
-    ));
+    emit(
+      state.copyWith(
+        pinController: state.pinController,
+        pinFullness: PinFullness.inProgress,
+      ),
+    );
   }
 
   void backspace() {
     if (_textController.text.isNotEmpty) {
-      _textController.text =
-          _textController.text.substring(0, _textController.text.length - 1);
-      emit(state.copyWith(
-        pinFullness: PinFullness.completed,
-      ));
+      _textController.text = _textController.text.substring(
+        0,
+        _textController.text.length - 1,
+      );
+      emit(state.copyWith(pinFullness: PinFullness.completed));
     }
   }
 
@@ -44,9 +44,7 @@ class PinCubit extends Cubit<PinState> {
       if (newValue.length == pinMaxLength) {
         emit(state.copyWith(pinFullness: PinFullness.completed));
       } else {
-        emit(state.copyWith(
-          pinFullness: PinFullness.inProgress,
-        ));
+        emit(state.copyWith(pinFullness: PinFullness.inProgress));
       }
     }
   }
@@ -54,11 +52,13 @@ class PinCubit extends Cubit<PinState> {
   void pinConfirmFailed() {
     _textController.clear();
     state.pinController.triggerError();
-    emit(state.copyWith(
-      pinController: state.pinController,
-      displayIncorrectPin: true,
-      pinFullness: PinFullness.inProgress,
-    ));
+    emit(
+      state.copyWith(
+        pinController: state.pinController,
+        displayIncorrectPin: true,
+        pinFullness: PinFullness.inProgress,
+      ),
+    );
   }
 
   /// Verifies [pin] with the user-set pin

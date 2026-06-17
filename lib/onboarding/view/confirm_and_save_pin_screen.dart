@@ -11,8 +11,11 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 class ConfirmAndSavePinScreen extends StatelessWidget {
   final void Function() onFailed;
   final void Function() onPassed;
-  const ConfirmAndSavePinScreen(
-      {super.key, required this.onFailed, required this.onPassed});
+  const ConfirmAndSavePinScreen({
+    super.key,
+    required this.onFailed,
+    required this.onPassed,
+  });
 
   @override
   Widget build(BuildContext context) {

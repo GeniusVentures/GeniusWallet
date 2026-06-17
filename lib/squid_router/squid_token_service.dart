@@ -82,11 +82,11 @@ class SquidTokenService {
     // return SquidRouteResponse.fromJson(data);
   }
 
-// TODO: Add chains, update main chains dropdown to also use this.. remove the chains hardcoded in assets/networks.json
-//   const getChains = async () => {
-//     const result = await axios.get('https://testnet.api.squidrouter.com/v1/chains');
-//     return result.data;
-//   }
+  // TODO: Add chains, update main chains dropdown to also use this.. remove the chains hardcoded in assets/networks.json
+  //   const getChains = async () => {
+  //     const result = await axios.get('https://testnet.api.squidrouter.com/v1/chains');
+  //     return result.data;
+  //   }
 }
 
 final mockSquidRoute = SquidRouteResponse(
@@ -196,7 +196,7 @@ final List<SquidBalance> mockSquidBalances = [
     address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     symbol: 'DAI',
     decimals: 18,
-  )
+  ),
 ];
 
 final mockTokens = [

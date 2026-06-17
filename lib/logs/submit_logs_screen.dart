@@ -57,9 +57,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied Sentry event ID.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Copied Sentry event ID.')));
   }
 
   Future<void> _submitFeedback() async {
@@ -90,8 +90,8 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     final basePath = geniusApi.jsonFilePath;
     final normalizedBasePath =
         basePath.endsWith(Platform.pathSeparator) || basePath.endsWith('/')
-            ? basePath
-            : '$basePath${Platform.pathSeparator}';
+        ? basePath
+        : '$basePath${Platform.pathSeparator}';
 
     final candidateLogs = [
       File('${normalizedBasePath}sgnslog.log'),
@@ -139,8 +139,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           continue;
         }
 
-        final attachmentName =
-            size <= _maxAttachmentBytes ? fileName : '$fileName.tail.log';
+        final attachmentName = size <= _maxAttachmentBytes
+            ? fileName
+            : '$fileName.tail.log';
         preparedAttachments.add(
           SentryAttachment.fromUint8List(
             payloadBytes,
@@ -206,9 +207,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Send Feedback'),
-      ),
+      appBar: AppBar(title: const Text('Send Feedback')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -252,14 +251,10 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.send),
-                label:
-                    Text(_isSubmitting ? 'Sending...' : 'Send Feedback'),
+                label: Text(_isSubmitting ? 'Sending...' : 'Send Feedback'),
               ),
               const SizedBox(height: 16),
-              Text(
-                _statusMessage,
-                textAlign: TextAlign.center,
-              ),
+              Text(_statusMessage, textAlign: TextAlign.center),
               if (_lastEventId != null) ...[
                 const SizedBox(height: 12),
                 OutlinedButton.icon(

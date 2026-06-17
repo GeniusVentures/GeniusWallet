@@ -24,14 +24,14 @@ class StringButton extends StatelessWidget {
         onPressed(value);
       },
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-              Radius.circular(GeniusWalletConsts.borderRadiusCard))),
+        borderRadius: BorderRadius.all(
+          Radius.circular(GeniusWalletConsts.borderRadiusCard),
+        ),
+      ),
       height: 60,
       child: Text(
         value,
-        style: TextStyle(
-          fontSize: 30 * MediaQuery.of(context).textScaleFactor,
-        ),
+        style: TextStyle(fontSize: 30 * MediaQuery.of(context).textScaleFactor),
       ),
     );
   }

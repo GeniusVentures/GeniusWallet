@@ -14,11 +14,13 @@ class WebViewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     if (Platform.isWindows) {
       return WebViewWindows(
-          url: url ?? "https://www.duckduckgo.com",
-          includeBackButton: includeBackButton);
+        url: url ?? "https://www.duckduckgo.com",
+        includeBackButton: includeBackButton,
+      );
     }
     return WebViewMobile(
-        url: url ?? "https://www.duckduckgo.com",
-        includeBackButton: includeBackButton);
+      url: url ?? "https://www.duckduckgo.com",
+      includeBackButton: includeBackButton,
+    );
   }
 }

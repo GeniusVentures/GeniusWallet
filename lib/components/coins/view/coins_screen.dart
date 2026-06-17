@@ -19,12 +19,13 @@ class CoinsScreen extends StatefulWidget {
   final bool? isUseDivider;
   final bool? isGnusWalletConnected;
 
-  const CoinsScreen(
-      {super.key,
-      this.onCoinSelected,
-      this.filterCoins,
-      this.isGnusWalletConnected,
-      this.isUseDivider});
+  const CoinsScreen({
+    super.key,
+    this.onCoinSelected,
+    this.filterCoins,
+    this.isGnusWalletConnected,
+    this.isUseDivider,
+  });
 
   @override
   CoinsScreenState createState() => CoinsScreenState();
@@ -132,9 +133,7 @@ class CoinsScreenState extends State<CoinsScreen> {
             return const Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
-              child: Center(
-                child: Loading(),
-              ),
+              child: Center(child: Loading()),
             );
           }
 
@@ -145,15 +144,19 @@ class CoinsScreenState extends State<CoinsScreen> {
               child: AutoSizeText(
                 'No Coins Detected',
                 style: TextStyle(
-                    fontSize: 24, color: GeniusWalletColors.btnTextDisabled),
+                  fontSize: 24,
+                  color: GeniusWalletColors.btnTextDisabled,
+                ),
               ),
             );
           }
 
           final filteredCoins = state.coins
-              .where((coin) =>
-                  widget.filterCoins?.contains(coin) == false ||
-                  widget.filterCoins == null)
+              .where(
+                (coin) =>
+                    widget.filterCoins?.contains(coin) == false ||
+                    widget.filterCoins == null,
+              )
               .toList();
 
           return SingleChildScrollView(
@@ -173,7 +176,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
                             "marketData":
-                                _marketData[coin.symbol?.toLowerCase()]
+                                _marketData[coin.symbol?.toLowerCase()],
                           },
                         );
                       }

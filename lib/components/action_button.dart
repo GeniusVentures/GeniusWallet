@@ -77,10 +77,7 @@ class _ActionButtonState extends State<ActionButton>
           );
 
           final animatedIcon = widget.animation == ActionButtonAnimation.rotate
-              ? RotationTransition(
-                  turns: _controller,
-                  child: iconWidget,
-                )
+              ? RotationTransition(turns: _controller, child: iconWidget)
               : iconWidget;
 
           // 🟢 Semantics wrapper for accessibility
@@ -91,8 +88,10 @@ class _ActionButtonState extends State<ActionButton>
             child: ElevatedButton(
               onPressed: widget.onPressed,
               style: ElevatedButton.styleFrom(
-                fixedSize:
-                    Size(constraints.maxWidth * 0.25, constraints.maxWidth),
+                fixedSize: Size(
+                  constraints.maxWidth * 0.25,
+                  constraints.maxWidth,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     GeniusWalletConsts.borderRadiusCard,

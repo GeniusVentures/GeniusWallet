@@ -26,7 +26,8 @@ class QuoteCard extends StatelessWidget {
               runSpacing: 4,
               children: [
                 Text(
-                    'Gateway: ${state.quote!.processingFee} ${state.fiatCode}'),
+                  'Gateway: ${state.quote!.processingFee} ${state.fiatCode}',
+                ),
                 Text('Network: ${state.quote!.networkFee} ${state.fiatCode}'),
               ],
             ),

@@ -20,45 +20,49 @@ class LegalScreen extends StatelessWidget {
     return Center(
       child: SizedBox(
         width: GeniusBreakpoints.small * 2 / 3,
-        child: Column(mainAxisSize: MainAxisSize.min, spacing: 20.0, children: [
-          Text(
-            "Legal",
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          Text(
-              'Please review the privacy policy and terms of service before proceeding.'),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => launchWebSite(
-                  context, 'https://www.gnus.ai/privacypolicy.html'),
-              child: Text('Privacy Policy'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 20.0,
+          children: [
+            Text("Legal", style: Theme.of(context).textTheme.headlineLarge),
+            Text(
+              'Please review the privacy policy and terms of service before proceeding.',
             ),
-          ),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () =>
-                  launchWebSite(context, 'https://www.gnus.ai/tos.html'),
-              child: Text('Terms of Service'),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => launchWebSite(
+                  context,
+                  'https://www.gnus.ai/privacypolicy.html',
+                ),
+                child: Text('Privacy Policy'),
+              ),
             ),
-          ),
-          CheckboxListTile(
-            value: accepted,
-            onChanged: (value) => onToggle(),
-            title: AutoSizeText(
-              'I\'ve read and accept the Terms of Service and Privacy Policy',
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () =>
+                    launchWebSite(context, 'https://www.gnus.ai/tos.html'),
+                child: Text('Terms of Service'),
+              ),
             ),
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: accepted ? onContinue : null,
-              child: Text("Continue"),
+            CheckboxListTile(
+              value: accepted,
+              onChanged: (value) => onToggle(),
+              title: AutoSizeText(
+                'I\'ve read and accept the Terms of Service and Privacy Policy',
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
             ),
-          ),
-        ]),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: accepted ? onContinue : null,
+                child: Text("Continue"),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

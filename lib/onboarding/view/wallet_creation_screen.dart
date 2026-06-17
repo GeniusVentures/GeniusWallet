@@ -33,8 +33,9 @@ class WalletCreationScreen extends StatelessWidget {
               SizedBox(
                 height: 50,
                 child: FilledButton(
-                    onPressed: () => context.push('/create_wallet'),
-                    child: const Text("Create new wallet")),
+                  onPressed: () => context.push('/create_wallet'),
+                  child: const Text("Create new wallet"),
+                ),
               ),
               if (includeBackButton)
                 SizedBox(

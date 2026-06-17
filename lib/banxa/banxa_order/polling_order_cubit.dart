@@ -11,7 +11,7 @@ class PollingCubit extends Cubit<PollingState> {
   bool hasNavigated = false;
 
   PollingCubit({required this.orderId, required this.api})
-      : super(const PollingState(status: PollingStatus.initial));
+    : super(const PollingState(status: PollingStatus.initial));
 
   void startPolling() {
     emit(state.copyWith(status: PollingStatus.loading));
@@ -21,11 +21,13 @@ class PollingCubit extends Cubit<PollingState> {
         final order = await api.getOrderStatus(orderId);
         final statusLower = order.status.toLowerCase();
 
-        emit(state.copyWith(
-          status: PollingStatus.success,
-          order: order,
-          message: 'Order status: ${order.status}',
-        ));
+        emit(
+          state.copyWith(
+            status: PollingStatus.success,
+            order: order,
+            message: 'Order status: ${order.status}',
+          ),
+        );
 
         // Stop polling if order is completed, failed, or cancelled
         if (statusLower == 'completed' ||
@@ -34,10 +36,12 @@ class PollingCubit extends Cubit<PollingState> {
           _pollingTimer?.cancel();
         }
       } catch (e) {
-        emit(state.copyWith(
-          status: PollingStatus.error,
-          message: 'Error fetching order status: $e',
-        ));
+        emit(
+          state.copyWith(
+            status: PollingStatus.error,
+            message: 'Error fetching order status: $e',
+          ),
+        );
       }
     });
   }

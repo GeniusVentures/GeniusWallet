@@ -50,25 +50,27 @@ class _OrdersPageState extends State<OrdersPage> {
       });
 
       context.read<OrdersCubit>().applyFilters(
-            status: selectedStatus,
-            startDate: startDate,
-            endDate: endDate,
-          );
+        status: selectedStatus,
+        startDate: startDate,
+        endDate: endDate,
+      );
     }
   }
 
   void _onStatusChanged(String? status) {
     setState(() => selectedStatus = status ?? "");
     context.read<OrdersCubit>().applyFilters(
-          status: selectedStatus,
-          startDate: startDate,
-          endDate: endDate,
-        );
+      status: selectedStatus,
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 
   void _onSeeDetails(Order order) {
-    context.push('/orderDetails',
-        extra: BanxaHelpers.buildOrderDetailsExtra(order));
+    context.push(
+      '/orderDetails',
+      extra: BanxaHelpers.buildOrderDetailsExtra(order),
+    );
   }
 
   void _onCompletePayment(Order order) {
@@ -130,7 +132,7 @@ class _OrdersPageState extends State<OrdersPage> {
               ],
             ),
             tooltip: 'Create new order',
-          )
+          ),
         ],
       ),
       body: BlocBuilder<OrdersCubit, OrdersState>(
@@ -140,8 +142,10 @@ class _OrdersPageState extends State<OrdersPage> {
           }
           if (state.status == OrdersStatus.error) {
             return Center(
-              child: Text("❌ ${state.error}",
-                  style: const TextStyle(color: Colors.red)),
+              child: Text(
+                "❌ ${state.error}",
+                style: const TextStyle(color: Colors.red),
+              ),
             );
           }
           final orders = state.filteredOrders ?? [];
@@ -150,69 +154,82 @@ class _OrdersPageState extends State<OrdersPage> {
               padding: const EdgeInsets.all(16.0),
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
-                child: Column(spacing: 16.0, children: [
-                  DropdownMenu<String>(
-                    label: const Text("Status"),
-                    width: 300.0,
-                    onSelected: _onStatusChanged,
-                    initialSelection: selectedStatus,
-                    dropdownMenuEntries: statuses.map((status) {
-                      return DropdownMenuEntry(
-                        value: status,
-                        label: status.isEmpty
-                            ? "All"
-                            : BanxaHelpers.getOrderStatusLabel(status),
-                      );
-                    }).toList(),
-                    requestFocusOnTap: false,
-                  ),
-                  SizedBox(
-                    width: 300.0,
-                    child: OutlinedButton(
+                child: Column(
+                  spacing: 16.0,
+                  children: [
+                    DropdownMenu<String>(
+                      label: const Text("Status"),
+                      width: 300.0,
+                      onSelected: _onStatusChanged,
+                      initialSelection: selectedStatus,
+                      dropdownMenuEntries: statuses.map((status) {
+                        return DropdownMenuEntry(
+                          value: status,
+                          label: status.isEmpty
+                              ? "All"
+                              : BanxaHelpers.getOrderStatusLabel(status),
+                        );
+                      }).toList(),
+                      requestFocusOnTap: false,
+                    ),
+                    SizedBox(
+                      width: 300.0,
+                      child: OutlinedButton(
                         onPressed: () => _pickDateRange(context),
-                        child: const Text("Pick Date Range")),
-                  ),
-                  if (startDate != null && endDate != null)
+                        child: const Text("Pick Date Range"),
+                      ),
+                    ),
+                    if (startDate != null && endDate != null)
+                      Text(
+                        "Selected: ${DateFormat('yyyy-MM-dd').format(startDate!)} → ${DateFormat('yyyy-MM-dd').format(endDate!)}",
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
                     Text(
-                      "Selected: ${DateFormat('yyyy-MM-dd').format(startDate!)} → ${DateFormat('yyyy-MM-dd').format(endDate!)}",
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      "Total Orders: ${orders.length}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  Text(
-                    "Total Orders: ${orders.length}",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  orders.isEmpty
-                      ? Text("No orders found.")
-                      : Expanded(
-                          child: LayoutBuilder(builder: (context, constraints) {
-                          final crossAxisCount =
-                              max((constraints.maxWidth / (294.0)).floor(), 1);
-                          const spacing = 16.0;
+                    orders.isEmpty
+                        ? Text("No orders found.")
+                        : Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final crossAxisCount = max(
+                                  (constraints.maxWidth / (294.0)).floor(),
+                                  1,
+                                );
+                                const spacing = 16.0;
 
-                          return GridView.builder(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    mainAxisSpacing: spacing,
-                                    crossAxisSpacing: spacing,
-                                    mainAxisExtent: 300.0),
-                            itemCount: orders.length,
-                            itemBuilder: (context, index) {
-                              final order = orders[index];
-                              return OrderCard(
-                                order: order,
-                                onSeeDetails: () => _onSeeDetails(order),
-                                onCompletePayment: () =>
-                                    _onCompletePayment(order),
-                                onRetryOrder: () => _onRetryOrder(order),
-                              );
-                            },
-                          );
-                        }))
-                ]),
+                                return GridView.builder(
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: crossAxisCount,
+                                        mainAxisSpacing: spacing,
+                                        crossAxisSpacing: spacing,
+                                        mainAxisExtent: 300.0,
+                                      ),
+                                  itemCount: orders.length,
+                                  itemBuilder: (context, index) {
+                                    final order = orders[index];
+                                    return OrderCard(
+                                      order: order,
+                                      onSeeDetails: () => _onSeeDetails(order),
+                                      onCompletePayment: () =>
+                                          _onCompletePayment(order),
+                                      onRetryOrder: () => _onRetryOrder(order),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                  ],
+                ),
               ),
             ),
           );

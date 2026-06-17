@@ -27,10 +27,13 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
           mainAxisSize: MainAxisSize.min,
           spacing: 16.0,
           children: [
-            Text("Your Recovery Phrase",
-                style: Theme.of(context).textTheme.headlineLarge),
             Text(
-                "Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access."),
+              "Your Recovery Phrase",
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            Text(
+              "Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.",
+            ),
             _buildWordsGridWithCopyAndToggle(),
             SizedBox(
               width: 300,
@@ -74,16 +77,15 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                     return Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey,
-                          width: 1.0,
-                        ),
+                        border: Border.all(color: Colors.grey, width: 1.0),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         '${(index + 1).toString().padLeft(2, '0')}. ${_isVisible ? words[index].padRight(8) : '••••••'}',
                         style: const TextStyle(
-                            fontSize: 16, fontFamily: "JetBrainsMono"),
+                          fontSize: 16,
+                          fontFamily: "JetBrainsMono",
+                        ),
                       ),
                     );
                   }),
@@ -99,8 +101,8 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content:
-                              Text("Recovery phrase copied to clipboard!")),
+                        content: Text("Recovery phrase copied to clipboard!"),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.copy),
@@ -113,9 +115,11 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                     });
                   },
                   icon: Icon(
-                      _isVisible ? Icons.visibility_off : Icons.visibility),
+                    _isVisible ? Icons.visibility_off : Icons.visibility,
+                  ),
                   label: Text(
-                      _isVisible ? "Hide seed phrase" : "Show seed phrase"),
+                    _isVisible ? "Hide seed phrase" : "Show seed phrase",
+                  ),
                 ),
               ],
             ),

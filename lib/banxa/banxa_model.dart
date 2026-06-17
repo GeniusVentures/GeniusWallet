@@ -14,9 +14,9 @@ class FiatCurrency {
   factory FiatCurrency.fromJson(Map<String, dynamic> json) {
     final List<PaymentMethod> methods =
         (json['supportedPaymentMethods'] as List<dynamic>?)
-                ?.map((m) => PaymentMethod.fromJson(m))
-                .toList() ??
-            [];
+            ?.map((m) => PaymentMethod.fromJson(m))
+            .toList() ??
+        [];
 
     return FiatCurrency(
       code: json['id'] ?? '',
@@ -42,7 +42,8 @@ class CryptoCurrency {
   });
 
   factory CryptoCurrency.fromJson(Map<String, dynamic> json) {
-    final List<Blockchain> chains = (json['blockchains'] as List<dynamic>?)
+    final List<Blockchain> chains =
+        (json['blockchains'] as List<dynamic>?)
             ?.map((b) => Blockchain.fromJson(b))
             .toList() ??
         [];
@@ -198,10 +199,7 @@ class OrderStatus {
       'updatedAt': updatedAt.toIso8601String(),
       'fiat': fiatCurrency,
       'fiatAmount': fiatAmount,
-      'crypto': {
-        'id': cryptoCurrency,
-        'blockchain': blockchain,
-      },
+      'crypto': {'id': cryptoCurrency, 'blockchain': blockchain},
       'walletAddress': walletAddress,
       'walletAddressTag': walletAddressTag,
       'cryptoAmount': cryptoAmount,
@@ -471,10 +469,7 @@ class BanxaKycResponse {
   final String accountId;
   final String accountReference;
 
-  BanxaKycResponse({
-    required this.accountId,
-    required this.accountReference,
-  });
+  BanxaKycResponse({required this.accountId, required this.accountReference});
 
   factory BanxaKycResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};

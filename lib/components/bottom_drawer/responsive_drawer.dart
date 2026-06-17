@@ -62,9 +62,7 @@ class ResponsiveDrawer {
       isScrollControlled: true,
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => content,
     );
@@ -110,10 +108,7 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
 
       // Native Material footer area
       bottomNavigationBar: footer != null
-          ? SafeArea(
-              top: false,
-              child: footer!,
-            )
+          ? SafeArea(top: false, child: footer!)
           : null,
     );
   }

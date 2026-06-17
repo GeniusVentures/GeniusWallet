@@ -79,13 +79,16 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     } else if (status == 'declined') {
       return OutlinedButton(
         onPressed: () {
-          context.push('/createOrder', extra: {
-            'fiat': o.fiat,
-            'crypto': o.crypto.id,
-            'method': o.paymentMethodId,
-            'amount': o.fiatAmount,
-            'wallet': o.walletAddress,
-          });
+          context.push(
+            '/createOrder',
+            extra: {
+              'fiat': o.fiat,
+              'crypto': o.crypto.id,
+              'method': o.paymentMethodId,
+              'amount': o.fiatAmount,
+              'wallet': o.walletAddress,
+            },
+          );
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red,

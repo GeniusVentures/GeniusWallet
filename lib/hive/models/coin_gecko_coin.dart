@@ -13,21 +13,13 @@ class CoinGeckoCoin {
   @HiveField(2)
   final String name;
 
-  CoinGeckoCoin({
-    required this.id,
-    required this.symbol,
-    required this.name,
-  });
+  CoinGeckoCoin({required this.id, required this.symbol, required this.name});
 
   factory CoinGeckoCoin.fromJson(Map<String, dynamic> json) => CoinGeckoCoin(
-        id: json['id'] ?? '',
-        symbol: json['symbol'] ?? '',
-        name: json['name'] ?? '',
-      );
+    id: json['id'] ?? '',
+    symbol: json['symbol'] ?? '',
+    name: json['name'] ?? '',
+  );
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'symbol': symbol,
-        'name': name,
-      };
+  Map<String, dynamic> toJson() => {'id': id, 'symbol': symbol, 'name': name};
 }

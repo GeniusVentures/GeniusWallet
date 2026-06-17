@@ -7,7 +7,7 @@ class GeniusWalletGradient {
     end: Alignment.bottomCenter,
     colors: <Color>[
       GeniusWalletColors.btnGradientBlue,
-      GeniusWalletColors.btnGradientGreen
+      GeniusWalletColors.btnGradientGreen,
     ],
   );
 }

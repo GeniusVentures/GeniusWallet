@@ -45,8 +45,11 @@ class ExistingWalletFlow extends StatelessWidget {
     );
   }
 
-  Widget _buildStep(BuildContext context, NewPinCubit newPinCubit,
-      ExistingWalletState state) {
+  Widget _buildStep(
+    BuildContext context,
+    NewPinCubit newPinCubit,
+    ExistingWalletState state,
+  ) {
     switch (state.currentStep) {
       case ImportWalletStep.importWalletSecurity:
         return ImportSecurityScreen(
@@ -82,9 +85,9 @@ class ExistingWalletFlow extends StatelessWidget {
           onContinue: () {
             final userExists =
                 context.read<AppBloc>().state.userStatus == UserStatus.exists;
-            context
-                .read<ExistingWalletBloc>()
-                .add(LegalAccepted(userExists: userExists));
+            context.read<ExistingWalletBloc>().add(
+              LegalAccepted(userExists: userExists),
+            );
           },
         );
     }

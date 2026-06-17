@@ -25,13 +25,15 @@ class TokenSelectorDrawer extends StatefulWidget {
     ResponsiveDrawer.show<void>(
       context: context,
       title: title,
-      child: ListView(children: [
-        TokenSelectorDrawer(
-          tokens: tokens,
-          onTokenSelected: onTokenSelected,
-          title: title,
-        ),
-      ]),
+      child: ListView(
+        children: [
+          TokenSelectorDrawer(
+            tokens: tokens,
+            onTokenSelected: onTokenSelected,
+            title: title,
+          ),
+        ],
+      ),
     );
   }
 
@@ -87,8 +89,10 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 leading: ClipOval(
                   child: Image.network(
                     token.logoURI,
@@ -101,20 +105,32 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                         height: 36,
                         color: Colors.grey[700],
                         alignment: Alignment.center,
-                        child: const Icon(Icons.broken_image,
-                            color: Colors.white70, size: 16),
+                        child: const Icon(
+                          Icons.broken_image,
+                          color: Colors.white70,
+                          size: 16,
+                        ),
                       );
                     },
                   ),
                 ),
-                title: Text(token.name,
-                    style: const TextStyle(color: Colors.white)),
-                subtitle: Row(children: [
-                  if (token.balance != null)
-                    Text('${token.balance!.formattedBalance} ',
-                        style: const TextStyle(color: Colors.grey)),
-                  Text(token.symbol, style: const TextStyle(color: Colors.grey))
-                ]),
+                title: Text(
+                  token.name,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                subtitle: Row(
+                  children: [
+                    if (token.balance != null)
+                      Text(
+                        '${token.balance!.formattedBalance} ',
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    Text(
+                      token.symbol,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   widget.onTokenSelected(token);

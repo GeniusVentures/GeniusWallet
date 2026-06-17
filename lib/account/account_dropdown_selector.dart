@@ -58,9 +58,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Wallet name',
-          ),
+          decoration: const InputDecoration(labelText: 'Wallet name'),
           onSubmitted: (value) => Navigator.of(ctx).pop(value.trim()),
         ),
         actions: [
@@ -136,8 +134,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             .where((w) => w.address != wallet.address)
             .toList();
         setState(() {
-          selectedWallet =
-              remainingWallets.isNotEmpty ? remainingWallets.first : null;
+          selectedWallet = remainingWallets.isNotEmpty
+              ? remainingWallets.first
+              : null;
         });
       }
     }
@@ -161,8 +160,10 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             );
           }
           return ListView.separated(
-            itemBuilder: (context, i) => _buildDrawerRow(wallets[i],
-                wallets[i].walletName == selectedWallet?.walletName),
+            itemBuilder: (context, i) => _buildDrawerRow(
+              wallets[i],
+              wallets[i].walletName == selectedWallet?.walletName,
+            ),
             itemCount: wallets.length,
             separatorBuilder: (context, index) => const SizedBox(height: 8.0),
           );
@@ -172,9 +173,12 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         padding: const EdgeInsets.all(16.0),
         child: FilledButton.icon(
           style: FilledButton.styleFrom(
-              textStyle:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              iconSize: 28),
+            textStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+            iconSize: 28,
+          ),
           onPressed: () => context.push('/landing_screen', extra: true),
           icon: const Icon(Icons.add),
           label: const Text("Add Wallet"),
@@ -190,31 +194,24 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     await Hive.box(walletBoxName).put(selectedWalletKey, selected.address);
   }
 
-  Widget _buildDrawerRow(
-    Wallet wallet,
-    bool isSelected,
-  ) {
+  Widget _buildDrawerRow(Wallet wallet, bool isSelected) {
     final isWatched = wallet.walletType == WalletType.tracking;
 
-    final textColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
+    final textColor = isSelected
+        ? GeniusWalletColors.deepBlueTertiary
+        : Colors.white;
 
-    final subColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
+    final subColor = isSelected
+        ? GeniusWalletColors.deepBlueTertiary
+        : Colors.grey;
 
     return ListTile(
       selected: isSelected,
       selectedTileColor: Colors.greenAccent,
       tileColor: GeniusWalletColors.deepBlueCardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onTap: () => Navigator.of(context).pop(wallet),
-      leading: _buildAvatar(
-        wallet,
-        isSelected: isSelected,
-        size: 36,
-      ),
+      leading: _buildAvatar(wallet, isSelected: isSelected, size: 36),
       title: Row(
         children: [
           Flexible(
@@ -276,7 +273,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                       fontSize: 13,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ],
@@ -286,11 +283,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
           ? null
           : MenuAnchor(
               builder: (context, controller, child) => IconButton(
-                icon: Icon(
-                  Icons.more_vert,
-                  size: 20,
-                  color: textColor,
-                ),
+                icon: Icon(Icons.more_vert, size: 20, color: textColor),
                 onPressed: () {
                   if (controller.isOpen) {
                     controller.close();
@@ -303,9 +296,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 MenuItemButton(
                   leadingIcon: const Icon(Icons.copy, size: 20),
                   onPressed: () {
-                    Clipboard.setData(
-                      ClipboardData(text: wallet.address),
-                    );
+                    Clipboard.setData(ClipboardData(text: wallet.address));
                     HapticFeedback.lightImpact();
                     Navigator.of(context).pop();
                     showAppSnackBar(
@@ -324,26 +315,37 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   ),
                 if (wallet.walletType != WalletType.sgnus)
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.delete_outline,
-                        size: 20, color: Colors.redAccent),
+                    leadingIcon: const Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: Colors.redAccent,
+                    ),
                     onPressed: () => _confirmDeleteWallet(context, wallet),
-                    child: const Text('Delete',
-                        style: TextStyle(color: Colors.redAccent)),
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.redAccent),
+                    ),
                   ),
               ],
             ),
     );
   }
 
-  Widget _buildAvatar(Wallet wallet,
-      {required bool isSelected, required double size}) {
+  Widget _buildAvatar(
+    Wallet wallet, {
+    required bool isSelected,
+    required double size,
+  }) {
     final isWatched = wallet.walletType == WalletType.tracking;
     return CircleAvatar(
       radius: size / 2 - 2,
       backgroundColor: Colors.greenAccent,
       child: isWatched
-          ? const Icon(Icons.remove_red_eye_outlined,
-              size: 20, color: GeniusWalletColors.deepBlueTertiary)
+          ? const Icon(
+              Icons.remove_red_eye_outlined,
+              size: 20,
+              color: GeniusWalletColors.deepBlueTertiary,
+            )
           : Image.asset(
               'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
               fit: BoxFit.contain,
@@ -383,7 +385,8 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                     selectedWallet!.walletType == WalletType.sgnus
                         ? 'Super Genius'
                         : WalletUtils.getAddressForDisplay(
-                            selectedWallet!.address),
+                            selectedWallet!.address,
+                          ),
                     style: Theme.of(context).textTheme.bodyMedium,
                     overflow: TextOverflow.ellipsis,
                   ),

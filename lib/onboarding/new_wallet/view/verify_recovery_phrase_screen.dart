@@ -50,9 +50,7 @@ class _VerifyRecoveryPhraseScreenState
 
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all missing words.'),
-        ),
+        const SnackBar(content: Text('Please fill in all missing words.')),
       );
       return;
     }
@@ -241,27 +239,29 @@ class _InputAndWordsState extends State<_InputAndWords> {
                       border: Border.all(
                         color: isEmpty
                             ? (isHighlighted
-                                ? Colors.blue
-                                : (hasUserInput
-                                    ? Colors.green
-                                    : Colors.blue.withValues(alpha: 0.5)))
+                                  ? Colors.blue
+                                  : (hasUserInput
+                                        ? Colors.green
+                                        : Colors.blue.withValues(alpha: 0.5)))
                             : Colors.grey,
                         width: isHighlighted ? 2.0 : 1.0,
                       ),
                       color: isEmpty
                           ? (isHighlighted
-                              ? Colors.blue.withValues(alpha: 0.1)
-                              : GeniusWalletColors.grayPrimary
-                                  .withValues(alpha: 0.3))
-                          : GeniusWalletColors.grayPrimary
-                              .withValues(alpha: 0.3),
+                                ? Colors.blue.withValues(alpha: 0.1)
+                                : GeniusWalletColors.grayPrimary.withValues(
+                                    alpha: 0.3,
+                                  ))
+                          : GeniusWalletColors.grayPrimary.withValues(
+                              alpha: 0.3,
+                            ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       isEmpty
                           ? (userInputWords[index].isEmpty
-                              ? (isHighlighted ? '???' : '---')
-                              : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index].padRight(8)}')
+                                ? (isHighlighted ? '???' : '---')
+                                : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index].padRight(8)}')
                           : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index].padRight(8)}',
                       style: const TextStyle(
                         fontSize: 16,

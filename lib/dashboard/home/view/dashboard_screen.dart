@@ -46,28 +46,32 @@ class DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: Stack(fit: StackFit.expand, children: [
-      BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-        final isDesktopLayout =
-            MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium;
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          BlocBuilder<AppBloc, AppState>(
+            builder: (context, state) {
+              final isDesktopLayout =
+                  MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium;
 
-        if (state.subscribeToWalletStatus == AppStatus.loaded &&
-            state.accountStatus == AppStatus.loaded) {
-          if (isDesktopLayout) {
-            return const ResponsiveDashboardView();
-          }
-          return const OneColumnDashBoardView();
-        }
-        if (state.subscribeToWalletStatus == AppStatus.error ||
-            state.accountStatus == AppStatus.error) {
-          return const Center(
-            child: Text('Something went wrong!'),
-          );
-        }
+              if (state.subscribeToWalletStatus == AppStatus.loaded &&
+                  state.accountStatus == AppStatus.loaded) {
+                if (isDesktopLayout) {
+                  return const ResponsiveDashboardView();
+                }
+                return const OneColumnDashBoardView();
+              }
+              if (state.subscribeToWalletStatus == AppStatus.error ||
+                  state.accountStatus == AppStatus.error) {
+                return const Center(child: Text('Something went wrong!'));
+              }
 
-        return const LoadingScreen();
-      }),
-    ]));
+              return const LoadingScreen();
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -76,14 +80,16 @@ class ResponsiveDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final is3Column = constraints.maxWidth > GeniusBreakpoints.xxl;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final is3Column = constraints.maxWidth > GeniusBreakpoints.xxl;
 
-      if (is3Column) {
-        return _threeColumnLayout();
-      }
-      return _twoColumnLayout();
-    });
+        if (is3Column) {
+          return _threeColumnLayout();
+        }
+        return _twoColumnLayout();
+      },
+    );
   }
 
   Widget _threeColumnLayout() {
@@ -93,64 +99,73 @@ class ResponsiveDashboardView extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.all(gridSpacing / 2),
-      child: Row(children: [
-        Expanded(
-          flex: 3,
-          child: Column(children: [
-            Expanded(
-              flex: 45,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: topRowMinHeight),
-                child: const _OverviewContributionsRow(),
-              ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 45,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: topRowMinHeight,
+                    ),
+                    child: const _OverviewContributionsRow(),
+                  ),
+                ),
+                Expanded(
+                  flex: 55,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: bottomRowMinHeight,
+                    ),
+                    child: const _ChartMarketsRow(),
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              flex: 55,
-              child: ConstrainedBox(
-                constraints:
-                    const BoxConstraints(minHeight: bottomRowMinHeight),
-                child: const _ChartMarketsRow(),
-              ),
-            ),
-          ]),
-        ),
-        Expanded(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 600,
-              minHeight: totalMinHeight,
-            ),
-            child: const TransactionsDashboardView(),
           ),
-        ),
-      ]),
+          Expanded(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 600,
+                minHeight: totalMinHeight,
+              ),
+              child: const TransactionsDashboardView(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _twoColumnLayout() {
     return Padding(
       padding: EdgeInsets.all(gridSpacing / 2),
-      child: Column(children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 300),
-          child: const _OverviewContributionsRow(),
-        ),
-        Expanded(
-          child: Row(children: [
-            Expanded(
-              child: Column(children: [
-                const Expanded(
-                  child: ChartDashboardView(),
+      child: Column(
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: const _OverviewContributionsRow(),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Expanded(child: ChartDashboardView()),
+                      const Expanded(child: MarketsDashboardView()),
+                    ],
+                  ),
                 ),
-                const Expanded(
-                  child: MarketsDashboardView(),
-                ),
-              ]),
+                const Expanded(child: TransactionsDashboardView()),
+              ],
             ),
-            const Expanded(child: TransactionsDashboardView()),
-          ]),
-        ),
-      ]),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -160,11 +175,15 @@ class _OverviewContributionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      const Expanded(flex: 2, child: OverviewDashboardView()),
-      const Expanded(
-          flex: 3, child: SizedBox.expand(child: ContributionsDashboardView())),
-    ]);
+    return Row(
+      children: [
+        const Expanded(flex: 2, child: OverviewDashboardView()),
+        const Expanded(
+          flex: 3,
+          child: SizedBox.expand(child: ContributionsDashboardView()),
+        ),
+      ],
+    );
   }
 }
 
@@ -173,10 +192,12 @@ class _ChartMarketsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      const Expanded(flex: 3, child: ChartDashboardView()),
-      const Expanded(flex: 2, child: MarketsDashboardView()),
-    ]);
+    return Row(
+      children: [
+        const Expanded(flex: 3, child: ChartDashboardView()),
+        const Expanded(flex: 2, child: MarketsDashboardView()),
+      ],
+    );
   }
 }
 
@@ -208,8 +229,9 @@ class OneColumnDashBoardView extends StatelessWidget {
             ),
             spacing,
             ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 300),
-                child: ContributionsDashboardView()),
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ContributionsDashboardView(),
+            ),
             spacing,
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 350),
@@ -249,14 +271,16 @@ class OverviewDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardScrollContainer(child: BlocBuilder<AppBloc, AppState>(
-      builder: (context, state) {
-        return WalletsOverview(
-          geniusApi: context.read<GeniusApi>(),
-          account: state.account,
-        );
-      },
-    ));
+    return DashboardScrollContainer(
+      child: BlocBuilder<AppBloc, AppState>(
+        builder: (context, state) {
+          return WalletsOverview(
+            geniusApi: context.read<GeniusApi>(),
+            account: state.account,
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -313,10 +337,7 @@ class _MarketsDashboardViewState extends State<MarketsDashboardView> {
           return const Center(child: Text("No market data available"));
         }
         return DashboardScrollContainer(
-          child: DashboardMarkets(
-            title: 'Markets',
-            coins: coins,
-          ),
+          child: DashboardMarkets(title: 'Markets', coins: coins),
         );
       },
     );
@@ -366,7 +387,8 @@ class ContributionsDashboardView extends StatelessWidget {
               final connection = snapshot.data;
               return CoinsScreen(
                 isUseDivider: true,
-                isGnusWalletConnected: (connection?.walletAddress ?? false) ==
+                isGnusWalletConnected:
+                    (connection?.walletAddress ?? false) ==
                     selectedWallet?.address,
               );
             },

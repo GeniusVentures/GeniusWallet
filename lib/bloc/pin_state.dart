@@ -38,21 +38,8 @@ class PinState {
   }
 }
 
-enum SavePinStatus {
-  initial,
-  loading,
-  success,
-  error,
-}
+enum SavePinStatus { initial, loading, success, error }
 
-enum PinFullness {
-  initial,
-  inProgress,
-  completed,
-}
+enum PinFullness { initial, inProgress, completed }
 
-enum VerificationStatus {
-  initial,
-  pass,
-  fail,
-}
+enum VerificationStatus { initial, pass, fail }

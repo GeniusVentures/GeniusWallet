@@ -16,7 +16,7 @@ class DevToolsWidget extends StatelessWidget {
           SizedBox(width: 12),
           TestTransactionButton(),
           TestSwapButtons(),
-          TestBuyButtons()
+          TestBuyButtons(),
         ],
       ),
     );

@@ -46,7 +46,10 @@ class NewWalletFlow extends StatelessWidget {
   }
 
   Widget _buildStep(
-      BuildContext context, NewPinCubit newPinCubit, NewWalletState state) {
+    BuildContext context,
+    NewPinCubit newPinCubit,
+    NewWalletState state,
+  ) {
     switch (state.currentStep) {
       case NewWalletStep.agreement:
         return LegalScreen(
@@ -55,9 +58,9 @@ class NewWalletFlow extends StatelessWidget {
           onContinue: () {
             final userExists =
                 context.read<AppBloc>().state.userStatus == UserStatus.exists;
-            context
-                .read<NewWalletBloc>()
-                .add(AgreementAccepted(userExists: userExists));
+            context.read<NewWalletBloc>().add(
+              AgreementAccepted(userExists: userExists),
+            );
           },
         );
       case NewWalletStep.verifyRecoveryPhrase:

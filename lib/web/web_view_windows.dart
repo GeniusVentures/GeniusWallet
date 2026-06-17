@@ -12,8 +12,11 @@ class WebViewWindows extends StatefulWidget {
   final String url;
   final bool? includeBackButton;
 
-  const WebViewWindows(
-      {super.key, required this.url, this.includeBackButton = false});
+  const WebViewWindows({
+    super.key,
+    required this.url,
+    this.includeBackButton = false,
+  });
 
   @override
   State<WebViewWindows> createState() => _WebViewWindowsState();
@@ -40,7 +43,9 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
-    _clipboardPoller = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _clipboardPoller = Timer.periodic(const Duration(seconds: 2), (
+      timer,
+    ) async {
       if (!mounted) {
         return;
       }
@@ -172,60 +177,59 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   Widget build(BuildContext context) {
     final includeBackButton = widget.includeBackButton ?? false;
     return Scaffold(
-        backgroundColor: GeniusWalletColors.deepBlueCardColor,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Container(
-                height: 70,
-                color: GeniusWalletColors.deepBlueCardColor,
-                padding: const EdgeInsets.only(left: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (includeBackButton)
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(Icons.cancel,
-                            size: 20, color: Colors.white),
+      backgroundColor: GeniusWalletColors.deepBlueCardColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              height: 70,
+              color: GeniusWalletColors.deepBlueCardColor,
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (includeBackButton)
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(
+                        Icons.cancel,
+                        size: 20,
+                        color: Colors.white,
                       ),
-                    Flexible(child: _buildSearchBar()),
-                  ],
-                ),
+                    ),
+                  Flexible(child: _buildSearchBar()),
+                ],
               ),
+            ),
 
-              const SizedBox(height: 4),
+            const SizedBox(height: 4),
 
-              // Webview or loader
-              Expanded(
-                child: _controller.value.isInitialized
-                    ? Container(
-                        decoration: const BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(child: Webview(_controller)),
-                      )
-                    : const Center(
-                        child: Loading(),
+            // Webview or loader
+            Expanded(
+              child: _controller.value.isInitialized
+                  ? Container(
+                      decoration: const BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
-              ),
-            ],
-          ),
-        ));
+                      child: ClipRRect(child: Webview(_controller)),
+                    )
+                  : const Center(child: Loading()),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.only(
-        left: 8,
-        right: 16,
-      ),
+      padding: const EdgeInsets.only(left: 8, right: 16),
       decoration: BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.circular(20),

@@ -57,21 +57,13 @@ class ToastWidget extends StatelessWidget {
         border: Border.all(color: _getBorderColor(), width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            _getIcon(),
-            color: _getBorderColor(),
-            size: 36,
-          ),
+          Icon(_getIcon(), color: _getBorderColor(), size: 36),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -80,9 +72,10 @@ class ToastWidget extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 SelectableText(

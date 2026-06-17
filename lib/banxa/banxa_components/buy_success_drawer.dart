@@ -4,16 +4,11 @@ import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer_content.
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 
 class BuySuccessDrawer {
-  static void show(
-    BuildContext context, {
-    VoidCallback? onClose,
-  }) {
+  static void show(BuildContext context, {VoidCallback? onClose}) {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Success",
-      child: ListView(children: const [
-        BuySuccessDrawerContent(),
-      ]),
+      child: ListView(children: const [BuySuccessDrawerContent()]),
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) {
@@ -27,10 +22,7 @@ class BuySuccessDrawer {
           side: const BorderSide(color: Colors.greenAccent),
           minimumSize: const Size.fromHeight(48),
         ),
-        child: const Text(
-          "Done",
-          style: TextStyle(color: Colors.greenAccent),
-        ),
+        child: const Text("Done", style: TextStyle(color: Colors.greenAccent)),
       ),
     );
   }

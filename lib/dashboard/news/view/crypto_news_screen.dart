@@ -177,10 +177,7 @@ class _TextOverlay extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.black54,
-            Colors.black,
-          ],
+          colors: [Colors.black54, Colors.black],
         ),
       ),
       padding: const EdgeInsets.all(12),
@@ -191,19 +188,13 @@ class _TextOverlay extends StatelessWidget {
         children: [
           Text(
             article.title.trim(),
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             article.pubDate,
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 11,
-            ),
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
           ),
         ],
       ),

@@ -16,8 +16,10 @@ class TestSwapButtons extends StatelessWidget {
       children: [
         IconButton(
           tooltip: "Test Approve Connection Drawer",
-          icon: const Icon(Icons.private_connectivity_outlined,
-              color: Colors.yellowAccent),
+          icon: const Icon(
+            Icons.private_connectivity_outlined,
+            color: Colors.yellowAccent,
+          ),
           onPressed: () {
             ApproveDappConnectionDrawer.show(
               context: context,

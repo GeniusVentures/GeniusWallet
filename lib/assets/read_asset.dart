@@ -20,7 +20,8 @@ Future<List<Network>> readNetworkAssets() async {
   final networksJson = await jsonDecode(response);
 
   List<Network> networkList = List<Network>.from(
-      networksJson.map((network) => Network.fromJson(network)));
+    networksJson.map((network) => Network.fromJson(network)),
+  );
 
   return networkList;
 }
@@ -36,13 +37,16 @@ Future<List<Network>> readNetworkBridgeAssets() async {
   final networksJson = await jsonDecode(response);
 
   List<Network> networkList = List<Network>.from(
-      networksJson.map((network) => Network.fromJson(network)));
+    networksJson.map((network) => Network.fromJson(network)),
+  );
 
   return networkList;
 }
 
-Future<Token?> getTokenFromNetworkByName(
-    {required Network network, required String name}) async {
+Future<Token?> getTokenFromNetworkByName({
+  required Network network,
+  required String name,
+}) async {
   final String? response = await safeLoadAsset(network.tokensPath ?? "");
 
   if (response == null) {
@@ -51,11 +55,13 @@ Future<Token?> getTokenFromNetworkByName(
 
   final tokensJson = await jsonDecode(response);
 
-  List<Token> tokensList =
-      List<Token>.from(tokensJson.map((token) => Token.fromJson(token)));
+  List<Token> tokensList = List<Token>.from(
+    tokensJson.map((token) => Token.fromJson(token)),
+  );
 
-  return tokensList
-      .firstWhere((token) => token.name?.toLowerCase() == name.toLowerCase());
+  return tokensList.firstWhere(
+    (token) => token.name?.toLowerCase() == name.toLowerCase(),
+  );
 }
 
 Future<List<Token>> getTokensFromNetwork({required Network network}) async {
@@ -67,40 +73,50 @@ Future<List<Token>> getTokensFromNetwork({required Network network}) async {
 
   final tokensJson = await jsonDecode(response);
 
-  List<Token> tokensList =
-      List<Token>.from(tokensJson.map((token) => Token.fromJson(token)));
+  List<Token> tokensList = List<Token>.from(
+    tokensJson.map((token) => Token.fromJson(token)),
+  );
 
   return tokensList;
 }
 
-Future<Coin?> fetchCoinBalance(
-    {required String walletAddress,
-    required Network network,
-    required String coinName}) async {
+Future<Coin?> fetchCoinBalance({
+  required String walletAddress,
+  required Network network,
+  required String coinName,
+}) async {
   final web3 = Web3();
-  final token =
-      await getTokenFromNetworkByName(name: coinName, network: network);
+  final token = await getTokenFromNetworkByName(
+    name: coinName,
+    network: network,
+  );
 
   if (token == null) {
     return null;
   }
 
   final tokenAddress = token.address!;
-  final coinSymbol =
-      await web3.symbol(contractAddress: tokenAddress, rpcUrl: network.rpcUrl!);
+  final coinSymbol = await web3.symbol(
+    contractAddress: tokenAddress,
+    rpcUrl: network.rpcUrl!,
+  );
   final balance = await web3.balanceOf(
-      address: walletAddress,
-      contractAddress: tokenAddress,
-      rpcUrl: network.rpcUrl!);
+    address: walletAddress,
+    contractAddress: tokenAddress,
+    rpcUrl: network.rpcUrl!,
+  );
 
   return Coin(
-      balance: balance,
-      address: tokenAddress,
-      name: await web3.name(
-          contractAddress: tokenAddress, rpcUrl: network.rpcUrl!),
-      symbol: coinSymbol,
-      networkSymbol: network.symbol,
-      iconPath: token.iconPath);
+    balance: balance,
+    address: tokenAddress,
+    name: await web3.name(
+      contractAddress: tokenAddress,
+      rpcUrl: network.rpcUrl!,
+    ),
+    symbol: coinSymbol,
+    networkSymbol: network.symbol,
+    iconPath: token.iconPath,
+  );
 }
 
 Future<List<Coin>> readTokenAssets({
@@ -127,7 +143,10 @@ Future<List<Coin>> readTokenAssets({
 
 /// **Fetch Native Token Data**
 Future<Coin?> _fetchNativeToken(
-    Web3 web3, String walletAddress, Network network) async {
+  Web3 web3,
+  String walletAddress,
+  Network network,
+) async {
   try {
     final balance = await web3.getBalance(
       rpcUrl: network.rpcUrl!,
@@ -200,21 +219,24 @@ Future<List<Coin>> readSuperGeniusTokenAssets({
   required NetworkTokensProvider networkTokensProvider,
   required GeniusApi geniusApi,
 }) async {
-  final List<Token> tokensList =
-      networkTokensProvider.getTokensByNetwork(network);
+  final List<Token> tokensList = networkTokensProvider.getTokensByNetwork(
+    network,
+  );
   final List<Coin> coins = [];
 
   // Add native GNUS token
   try {
     final gnusBalance = geniusApi.getSGNUSBalance();
-    coins.add(Coin(
-      balance: double.tryParse(gnusBalance) ?? 0,
-      name: network.name,
-      symbol: network.symbol?.toUpperCase(),
-      networkSymbol: network.symbol,
-      iconPath: network.iconPath,
-      coinGeckoId: network.coinGeckoId,
-    ));
+    coins.add(
+      Coin(
+        balance: double.tryParse(gnusBalance) ?? 0,
+        name: network.name,
+        symbol: network.symbol?.toUpperCase(),
+        networkSymbol: network.symbol,
+        iconPath: network.iconPath,
+        coinGeckoId: network.coinGeckoId,
+      ),
+    );
   } catch (e) {
     debugPrint("⚠️ Error fetching native GNUS balance: $e");
   }
@@ -226,15 +248,17 @@ Future<List<Coin>> readSuperGeniusTokenAssets({
     if (token.id == '0') continue;
     try {
       final balance = geniusApi.getMinionsBalance(token.id);
-      coins.add(Coin(
-        balance: double.tryParse(balance) ?? 0,
-        address: token.id,
-        name: token.name,
-        symbol: token.name?.toUpperCase(),
-        networkSymbol: network.symbol,
-        iconPath: token.iconPath,
-        coinGeckoId: token.coinGeckoId,
-      ));
+      coins.add(
+        Coin(
+          balance: double.tryParse(balance) ?? 0,
+          address: token.id,
+          name: token.name,
+          symbol: token.name?.toUpperCase(),
+          networkSymbol: network.symbol,
+          iconPath: token.iconPath,
+          coinGeckoId: token.coinGeckoId,
+        ),
+      );
     } catch (e) {
       debugPrint("⚠️ Error fetching balance for token ${token.name}: $e");
     }

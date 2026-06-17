@@ -39,7 +39,7 @@ Future<List<CoinGeckoCoin>> getDashboardMarketCoins() async {
 
   // Convert list to a Map for O(1) lookup time
   final Map<String, CoinGeckoCoin> coinMap = {
-    for (var coin in coins) coin.id: coin
+    for (var coin in coins) coin.id: coin,
   };
 
   // Retrieve only the requested IDs
@@ -55,7 +55,7 @@ Future<List<CoinGeckoCoin>> getMarketCoins() async {
 
   // Convert list to a Map for O(1) lookup time
   final Map<String, CoinGeckoCoin> coinMap = {
-    for (var coin in coins) coin.id: coin
+    for (var coin in coins) coin.id: coin,
   };
 
   // Retrieve only the requested IDs

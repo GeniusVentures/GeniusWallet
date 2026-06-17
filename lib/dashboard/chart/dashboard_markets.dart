@@ -39,17 +39,11 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
   Widget build(BuildContext context) {
     return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
       future: _future,
-      error: const Text(
-        "Failed to load market data",
-      ),
+      error: const Text("Failed to load market data"),
       onRetry: _retry,
       onData: (marketData) {
         if (marketData.isEmpty) {
-          return const Center(
-            child: Text(
-              "No market data available",
-            ),
-          );
+          return const Center(child: Text("No market data available"));
         }
 
         final visibleCoins = widget.coins.where((coin) {
@@ -67,10 +61,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
               onTap: () {
                 context.push(
                   '/token-info',
-                  extra: {
-                    "isGnusWalletConnected": false,
-                    "marketData": data,
-                  },
+                  extra: {"isGnusWalletConnected": false, "marketData": data},
                 );
               },
               title: coin.name,
@@ -87,9 +78,11 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title!,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    widget.title!,
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   item,
                 ],
               );

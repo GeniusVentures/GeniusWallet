@@ -33,84 +33,78 @@ class AppState extends Equatable {
   /// no operation has been performed yet.
   final GeniusNodeReturnValue? setPayoutAddressResult;
 
-  const AppState(
-      {this.wallets = const [],
-      this.sdkStatus = AppStatus.initial,
-      this.subscribeToWalletStatus = AppStatus.initial,
-      this.loadUserStatus = AppStatus.initial,
-      this.userStatus = UserStatus.initial,
-      this.ffiString,
-      this.testWallet,
-      this.isProcessing = false,
-      this.account,
-      this.processingPercentage,
-      this.selectedSDKAccount,
-      this.sdkAccounts = const [],
-      this.setPayoutAddressResult,
-      this.accountStatus = AppStatus.initial});
+  const AppState({
+    this.wallets = const [],
+    this.sdkStatus = AppStatus.initial,
+    this.subscribeToWalletStatus = AppStatus.initial,
+    this.loadUserStatus = AppStatus.initial,
+    this.userStatus = UserStatus.initial,
+    this.ffiString,
+    this.testWallet,
+    this.isProcessing = false,
+    this.account,
+    this.processingPercentage,
+    this.selectedSDKAccount,
+    this.sdkAccounts = const [],
+    this.setPayoutAddressResult,
+    this.accountStatus = AppStatus.initial,
+  });
 
-  AppState copyWith(
-      {List<Wallet>? wallets,
-      AppStatus? sdkStatus,
-      AppStatus? subscribeToWalletStatus,
-      AppStatus? loadUserStatus,
-      UserStatus? userStatus,
-      String? ffiString,
-      Pointer<Void>? testWallet,
-      bool? isProcessing,
-      Account? account,
-      double? processingPercentage,
-      String? selectedSDKAccount,
-      List<String>? sdkAccounts,
-      GeniusNodeReturnValue? setPayoutAddressResult,
-      AppStatus? accountStatus}) {
+  AppState copyWith({
+    List<Wallet>? wallets,
+    AppStatus? sdkStatus,
+    AppStatus? subscribeToWalletStatus,
+    AppStatus? loadUserStatus,
+    UserStatus? userStatus,
+    String? ffiString,
+    Pointer<Void>? testWallet,
+    bool? isProcessing,
+    Account? account,
+    double? processingPercentage,
+    String? selectedSDKAccount,
+    List<String>? sdkAccounts,
+    GeniusNodeReturnValue? setPayoutAddressResult,
+    AppStatus? accountStatus,
+  }) {
     return AppState(
-        wallets: wallets ?? this.wallets,
-        sdkStatus: sdkStatus ?? this.sdkStatus,
-        subscribeToWalletStatus:
-            subscribeToWalletStatus ?? this.subscribeToWalletStatus,
-        loadUserStatus: loadUserStatus ?? this.loadUserStatus,
-        userStatus: userStatus ?? this.userStatus,
-        ffiString: ffiString ?? this.ffiString,
-        testWallet: testWallet,
-        account: account ?? this.account,
-        processingPercentage: processingPercentage ?? this.processingPercentage,
-        isProcessing: isProcessing ?? this.isProcessing,
-        selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
-        sdkAccounts: sdkAccounts ?? this.sdkAccounts,
-        setPayoutAddressResult:
-            setPayoutAddressResult ?? this.setPayoutAddressResult,
-        accountStatus: accountStatus ?? this.accountStatus);
+      wallets: wallets ?? this.wallets,
+      sdkStatus: sdkStatus ?? this.sdkStatus,
+      subscribeToWalletStatus:
+          subscribeToWalletStatus ?? this.subscribeToWalletStatus,
+      loadUserStatus: loadUserStatus ?? this.loadUserStatus,
+      userStatus: userStatus ?? this.userStatus,
+      ffiString: ffiString ?? this.ffiString,
+      testWallet: testWallet,
+      account: account ?? this.account,
+      processingPercentage: processingPercentage ?? this.processingPercentage,
+      isProcessing: isProcessing ?? this.isProcessing,
+      selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
+      sdkAccounts: sdkAccounts ?? this.sdkAccounts,
+      setPayoutAddressResult:
+          setPayoutAddressResult ?? this.setPayoutAddressResult,
+      accountStatus: accountStatus ?? this.accountStatus,
+    );
   }
 
   @override
   List<Object?> get props => [
-        wallets,
-        sdkStatus,
-        subscribeToWalletStatus,
-        loadUserStatus,
-        userStatus,
-        ffiString,
-        testWallet,
-        account,
-        accountStatus,
-        isProcessing,
-        processingPercentage,
-        selectedSDKAccount,
-        sdkAccounts,
-        setPayoutAddressResult,
-      ];
+    wallets,
+    sdkStatus,
+    subscribeToWalletStatus,
+    loadUserStatus,
+    userStatus,
+    ffiString,
+    testWallet,
+    account,
+    accountStatus,
+    isProcessing,
+    processingPercentage,
+    selectedSDKAccount,
+    sdkAccounts,
+    setPayoutAddressResult,
+  ];
 }
 
-enum AppStatus {
-  initial,
-  loading,
-  loaded,
-  error,
-}
+enum AppStatus { initial, loading, loaded, error }
 
-enum UserStatus {
-  initial,
-  exists,
-  nonExistent,
-}
+enum UserStatus { initial, exists, nonExistent }

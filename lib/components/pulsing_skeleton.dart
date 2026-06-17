@@ -28,9 +28,10 @@ class _PulsingSkeletonState extends State<PulsingSkeleton>
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    _opacityAnim = Tween<double>(begin: 0.3, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _opacityAnim = Tween<double>(
+      begin: 0.3,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override

@@ -30,14 +30,15 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
     Connectivity().checkConnectivity().then((list) {
       if (!mounted) return;
       setState(() {
-        lastKnownConnectivity =
-            list.isNotEmpty ? list.first : ConnectivityResult.none;
+        lastKnownConnectivity = list.isNotEmpty
+            ? list.first
+            : ConnectivityResult.none;
       });
     });
 
     connectivityStream = Connectivity().onConnectivityChanged.map(
-          (list) => list.isNotEmpty ? list.first : ConnectivityResult.none,
-        );
+      (list) => list.isNotEmpty ? list.first : ConnectivityResult.none,
+    );
 
     _connectivitySub = connectivityStream.listen((result) {
       if (!mounted) return;
@@ -50,24 +51,21 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
   }
 
   void _startInitStatusPolling() {
-    _initStatusTimer = Timer.periodic(
-      const Duration(seconds: 3),
-      (_) {
-        if (!mounted) return;
-        try {
-          final status = widget.geniusApi.getInitializationStatus();
-          setState(() {
-            _initPercentage = status.percentage;
-            _initStatusMessage = status.message;
-          });
-          if (status.percentage >= 1.0) {
-            _initStatusTimer?.cancel();
-          }
-        } catch (_) {
-          // Ignore polling errors and try again next tick.
+    _initStatusTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      try {
+        final status = widget.geniusApi.getInitializationStatus();
+        setState(() {
+          _initPercentage = status.percentage;
+          _initStatusMessage = status.message;
+        });
+        if (status.percentage >= 1.0) {
+          _initStatusTimer?.cancel();
         }
-      },
-    );
+      } catch (_) {
+        // Ignore polling errors and try again next tick.
+      }
+    });
   }
 
   @override
@@ -135,11 +133,13 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                             : Colors.red,
                       ),
                       title: const Text('SGNUS Connection'),
-                      subtitle: Text(connection == null
-                          ? 'No data'
-                          : connection.isConnected
-                              ? "Connected\nAddress: ${connection.sgnusAddress}\nWallet: ${connection.walletAddress}"
-                              : "Disconnected"),
+                      subtitle: Text(
+                        connection == null
+                            ? 'No data'
+                            : connection.isConnected
+                            ? "Connected\nAddress: ${connection.sgnusAddress}\nWallet: ${connection.walletAddress}"
+                            : "Disconnected",
+                      ),
                     );
                   },
                 ),
@@ -152,10 +152,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                       child: CircularProgressIndicator(
                         value: _initPercentage ?? 0.0,
                         strokeWidth: 2.0,
-                        color:
-                            (_initPercentage ?? 0.0) >= 1.0
-                                ? Colors.green
-                                : Colors.blue,
+                        color: (_initPercentage ?? 0.0) >= 1.0
+                            ? Colors.green
+                            : Colors.blue,
                       ),
                     ),
                     title: const Text('SDK Initialization'),
@@ -166,7 +165,8 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                     ),
                     trailing: _initPercentage != null
                         ? Text(
-                            '${(_initPercentage! * 100).toStringAsFixed(1)}%')
+                            '${(_initPercentage! * 100).toStringAsFixed(1)}%',
+                          )
                         : null,
                   ),
                 const Divider(),

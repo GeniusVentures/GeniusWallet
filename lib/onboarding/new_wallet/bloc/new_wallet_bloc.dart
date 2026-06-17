@@ -12,11 +12,11 @@ part 'new_wallet_state.dart';
 class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
   final GeniusApi api;
   final HDWallet wallet;
-  NewWalletBloc(
-      {NewWalletState initialState = const NewWalletState(),
-      required this.api,
-      required this.wallet})
-      : super(initialState) {
+  NewWalletBloc({
+    NewWalletState initialState = const NewWalletState(),
+    required this.api,
+    required this.wallet,
+  }) : super(initialState) {
     on<LoadRecoveryPhrase>(onLoadRecoveryPhrase);
 
     on<RecoveryPhraseContinue>(_onRecoveryPhraseContinue);
@@ -28,7 +28,8 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     on<RecoveryVerificationContinue>(_onRecoveryVerificationContinue);
 
     on<RecoveryVerificationContinueForMobile>(
-        _onRecoveryVerificationContinueForMobile);
+      _onRecoveryVerificationContinueForMobile,
+    );
 
     on<ToggleCheckbox>((event, emit) {
       emit(state.copyWith(acceptedWarning: !state.acceptedWarning));
@@ -62,22 +63,26 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
   }
 
   FutureOr<void> _onRecoveryVerificationContinue(
-      RecoveryVerificationContinue event, Emitter emit) {
+    RecoveryVerificationContinue event,
+    Emitter emit,
+  ) {
     if (listEquals(state.selectedWords, state.recoveryWords)) {
-      emit(state.copyWith(
-        verificationStatus: VerificationStatus.passed,
-      ));
+      emit(state.copyWith(verificationStatus: VerificationStatus.passed));
       add(AddWallet(wallet: wallet));
     } else {
-      emit(state.copyWith(
-        verificationStatus: VerificationStatus.failed,
-        selectedWords: [],
-      ));
+      emit(
+        state.copyWith(
+          verificationStatus: VerificationStatus.failed,
+          selectedWords: [],
+        ),
+      );
     }
   }
 
   bool checkMatchingOrder(
-      List<String> recoveryWords, List<String> shuffledWords) {
+    List<String> recoveryWords,
+    List<String> shuffledWords,
+  ) {
     // Create a mapping from words to their indices in recoveryWords
     Map<String, int> indexMap = {};
     for (int i = 0; i < recoveryWords.length; i++) {
@@ -103,25 +108,24 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
   }
 
   FutureOr<void> _onRecoveryVerificationContinueForMobile(
-      RecoveryVerificationContinueForMobile event, Emitter emit) {
+    RecoveryVerificationContinueForMobile event,
+    Emitter emit,
+  ) {
     if (checkMatchingOrder(state.recoveryWords, state.selectedWords)) {
-      emit(state.copyWith(
-        verificationStatus: VerificationStatus.passed,
-      ));
+      emit(state.copyWith(verificationStatus: VerificationStatus.passed));
       add(AddWallet(wallet: wallet));
     } else {
-      emit(state.copyWith(
-        verificationStatus: VerificationStatus.failed,
-        selectedWords: [],
-      ));
+      emit(
+        state.copyWith(
+          verificationStatus: VerificationStatus.failed,
+          selectedWords: [],
+        ),
+      );
     }
   }
 
   FutureOr<void> _onRecoveryWordTapped(RecoveryWordTapped event, Emitter emit) {
-    final newSelectedWords = [
-      ...state.selectedWords,
-      event.wordTapped,
-    ];
+    final newSelectedWords = [...state.selectedWords, event.wordTapped];
     emit(
       state.copyWith(
         selectedWords: newSelectedWords,
@@ -141,30 +145,41 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
   }
 
   FutureOr<void> _onRecoveryPhraseContinue(
-      RecoveryPhraseContinue event, Emitter emit) {
-    emit(state.copyWith(
-      currentStep: NewWalletStep.verifyRecoveryPhrase,
-      shuffledWords: List.from(state.recoveryWords)..shuffle(),
-    ));
+    RecoveryPhraseContinue event,
+    Emitter emit,
+  ) {
+    emit(
+      state.copyWith(
+        currentStep: NewWalletStep.verifyRecoveryPhrase,
+        shuffledWords: List.from(state.recoveryWords)..shuffle(),
+      ),
+    );
   }
 
   FutureOr<void> onLoadRecoveryPhrase(
-      LoadRecoveryPhrase event, Emitter<NewWalletState> emit) async {
+    LoadRecoveryPhrase event,
+    Emitter<NewWalletState> emit,
+  ) async {
     emit(state.copyWith(recoveryPhraseStatus: NewWalletStatus.loading));
 
     try {
       final recoveryWords = await api.getRecoveryPhrase(wallet);
 
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           recoveryPhraseStatus: NewWalletStatus.loaded,
-          recoveryWords: recoveryWords));
+          recoveryWords: recoveryWords,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(recoveryPhraseStatus: NewWalletStatus.error));
     }
   }
 
   FutureOr<void> _onAgreementAccepted(
-      AgreementAccepted event, Emitter<NewWalletState> emit) {
+    AgreementAccepted event,
+    Emitter<NewWalletState> emit,
+  ) {
     if (event.userExists) {
       emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
     } else {

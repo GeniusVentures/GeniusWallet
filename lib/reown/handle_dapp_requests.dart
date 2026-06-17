@@ -12,11 +12,12 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
-void Function() handleDappRequests(
-    {required ReownWalletKit walletKit,
-    required GeniusApi geniusApi,
-    required WalletDetailsCubit walletDetailsCubit,
-    required TransactionsCubit transactionsCubit}) {
+void Function() handleDappRequests({
+  required ReownWalletKit walletKit,
+  required GeniusApi geniusApi,
+  required WalletDetailsCubit walletDetailsCubit,
+  required TransactionsCubit transactionsCubit,
+}) {
   final Set<int> pendingRequestIds = {};
 
   Future<void> onSessionRequest(SessionRequestEvent? event) async {
@@ -30,88 +31,93 @@ void Function() handleDappRequests(
 
     pendingRequestIds.add(requestId);
 
-  try {
+    try {
+      final Map<String, dynamic> tx = event.params[0];
+      final String method = event.method;
+      final String topic = event.topic;
+      final dappMetadata = walletKit.getActiveSessions()[topic]?.peer.metadata;
+      final dappName = dappMetadata?.name ?? 'Unknown DApp';
+      final dappUrl = dappMetadata?.url ?? '';
 
-    final Map<String, dynamic> tx = event.params[0];
-    final String method = event.method;
-    final String topic = event.topic;
-    final dappMetadata = walletKit.getActiveSessions()[topic]?.peer.metadata;
-    final dappName = dappMetadata?.name ?? 'Unknown DApp';
-    final dappUrl = dappMetadata?.url ?? '';
+      // todo parse the data to get token swap information
+      // no built in help.. might need to build manually :(
+      //final data = (tx['data']);
 
-    // todo parse the data to get token swap information
-    // no built in help.. might need to build manually :(
-    //final data = (tx['data']);
+      Widget content;
 
-    Widget content;
+      if (method == 'eth_sendTransaction') {
+        final from = tx['from'] ?? 'Unknown';
+        final to = tx['to'] ?? 'Unknown';
+        final amountWei = parseHexToBigInt(tx['value']);
 
-    if (method == 'eth_sendTransaction') {
-      final from = tx['from'] ?? 'Unknown';
-      final to = tx['to'] ?? 'Unknown';
-      final amountWei = parseHexToBigInt(tx['value']);
+        final gasLimit = parseHexToBigInt(tx['gas']);
+        final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
+        final maxPriorityFee = parseHexToBigInt(tx['maxPriorityFeePerGas']);
 
-      final gasLimit = parseHexToBigInt(tx['gas']);
-      final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
-      final maxPriorityFee = parseHexToBigInt(tx['maxPriorityFeePerGas']);
+        final totalFeeWei = gasLimit * maxFeePerGas;
+        final amountEth = formatEth(amountWei.toString());
+        final totalFeeEth = formatEth(totalFeeWei.toString());
+        final maxFeePerGasEth = formatEth(maxFeePerGas.toString());
+        final priorityFeeEth = formatEth(maxPriorityFee.toString());
 
-      final totalFeeWei = gasLimit * maxFeePerGas;
-      final amountEth = formatEth(amountWei.toString());
-      final totalFeeEth = formatEth(totalFeeWei.toString());
-      final maxFeePerGasEth = formatEth(maxFeePerGas.toString());
-      final priorityFeeEth = formatEth(maxPriorityFee.toString());
-
-      content = SendTransactionDetails(
-        fromAddress: from,
-        toAddress: to,
-        amount: amountEth,
-        totalGasFee: totalFeeEth,
-        priorityFee: priorityFeeEth,
-        maxFeePerGas: maxFeePerGasEth,
-      );
-    } else {
-      content = SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (dappUrl.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(dappUrl,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        content = SendTransactionDetails(
+          fromAddress: from,
+          toAddress: to,
+          amount: amountEth,
+          totalGasFee: totalFeeEth,
+          priorityFee: priorityFeeEth,
+          maxFeePerGas: maxFeePerGasEth,
+        );
+      } else {
+        content = SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (dappUrl.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    dappUrl,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
+              Text(
+                "Method: $method",
+                style: const TextStyle(color: Colors.white),
               ),
-            Text("Method: $method",
-                style: const TextStyle(color: Colors.white)),
-            const SizedBox(height: 12),
-            const Text("Params:", style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: GeniusWalletColors.deepBlueCardColor,
-                borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 12),
+              const Text("Params:", style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: GeniusWalletColors.deepBlueCardColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  event.params.toString(),
+                  style: const TextStyle(color: Colors.white70),
+                ),
               ),
-              child: Text(event.params.toString(),
-                  style: const TextStyle(color: Colors.white70)),
-            ),
-          ],
-        ),
-      );
-    }
+            ],
+          ),
+        );
+      }
 
-    final shouldApprove = await ApproveTransactionDrawer.show(
-      context: navigatorKey.currentContext!,
-      content: content,
-      dappName: dappName,
-      dappUrl: dappUrl,
-      iconUrl: dappMetadata?.icons.isNotEmpty == true
-          ? dappMetadata?.icons[0]
-          : null,
-    );
+      final shouldApprove = await ApproveTransactionDrawer.show(
+        context: navigatorKey.currentContext!,
+        content: content,
+        dappName: dappName,
+        dappUrl: dappUrl,
+        iconUrl: dappMetadata?.icons.isNotEmpty == true
+            ? dappMetadata?.icons[0]
+            : null,
+      );
 
       if (shouldApprove == true) {
-      final chainId = walletDetailsCubit.state.selectedNetwork?.chainId;
-      final rpcUrl = walletDetailsCubit.state.selectedNetwork?.rpcUrl;
-      final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
+        final chainId = walletDetailsCubit.state.selectedNetwork?.chainId;
+        final rpcUrl = walletDetailsCubit.state.selectedNetwork?.rpcUrl;
+        final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
 
         if (chainId == null || rpcUrl == null || walletAddress == null) {
           debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
@@ -138,7 +144,8 @@ void Function() handleDappRequests(
           tx: tx,
           sourceChainId: chainId,
           rpcUrl: rpcUrl,
-          address: walletAddress);
+          address: walletAddress,
+        );
 
         if (result.isSuccess) {
           final txHash = result.data;
@@ -179,8 +186,10 @@ void Function() handleDappRequests(
           // stream to ui
           transactionsCubit.addTransaction(txModel);
           // save to hive
-          await TransactionStorageService()
-              .addTransaction(walletAddress, txModel);
+          await TransactionStorageService().addTransaction(
+            walletAddress,
+            txModel,
+          );
         } else {
           await walletKit.respondSessionRequest(
             topic: topic,

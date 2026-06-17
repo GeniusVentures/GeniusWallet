@@ -8,10 +8,12 @@ class NewPinCubit extends Cubit<NewPinState> {
 
   /// Saves the current pin to state to confirm later
   void pinEntered(String pin) {
-    emit(state.copyWith(
-      pinToConfirm: pin,
-      pinConfirmStatus: PinConfirmStatus.awaitingVerification,
-    ));
+    emit(
+      state.copyWith(
+        pinToConfirm: pin,
+        pinConfirmStatus: PinConfirmStatus.awaitingVerification,
+      ),
+    );
   }
 
   /// Compared [currentPin] with [state.pinToConfirm] and
@@ -20,10 +22,12 @@ class NewPinCubit extends Cubit<NewPinState> {
   /// Emits a [PinConfirmStatus.failed] status otherwise.
   Future<void> pinConfirmSubmitted(String currentPin) async {
     if (currentPin == state.pinToConfirm) {
-      emit(state.copyWith(
-        pinSaveStatus: PinSaveStatus.loading,
-        pinConfirmStatus: PinConfirmStatus.passed,
-      ));
+      emit(
+        state.copyWith(
+          pinSaveStatus: PinSaveStatus.loading,
+          pinConfirmStatus: PinConfirmStatus.passed,
+        ),
+      );
 
       try {
         await api.storeUserPin(currentPin);
@@ -32,11 +36,7 @@ class NewPinCubit extends Cubit<NewPinState> {
         emit(state.copyWith(pinSaveStatus: PinSaveStatus.error));
       }
     } else {
-      emit(
-        state.copyWith(
-          pinConfirmStatus: PinConfirmStatus.failed,
-        ),
-      );
+      emit(state.copyWith(pinConfirmStatus: PinConfirmStatus.failed));
     }
   }
 }

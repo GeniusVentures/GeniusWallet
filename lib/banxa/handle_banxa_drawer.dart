@@ -58,11 +58,15 @@ class CheckoutOptionsSheet extends StatelessWidget {
                 onPressed: () async {
                   Navigator.of(context).pop();
                   try {
-                    await launchUrl(Uri.parse(checkoutUrl),
-                        mode: LaunchMode.externalApplication);
+                    await launchUrl(
+                      Uri.parse(checkoutUrl),
+                      mode: LaunchMode.externalApplication,
+                    );
                   } catch (_) {
                     showAppSnackBar(
-                        context, 'Cannot open browser. Try QR or copy link.');
+                      context,
+                      'Cannot open browser. Try QR or copy link.',
+                    );
                   }
                 },
                 child: const Text('Open in Browser'),
@@ -75,10 +79,10 @@ class CheckoutOptionsSheet extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  GoRouter.of(parentContext).push('/checkoutQR', extra: {
-                    'checkoutUrl': checkoutUrl,
-                    'orderId': orderId,
-                  });
+                  GoRouter.of(parentContext).push(
+                    '/checkoutQR',
+                    extra: {'checkoutUrl': checkoutUrl, 'orderId': orderId},
+                  );
                 },
                 child: const Text('Show QR (use another device)'),
               ),

@@ -147,7 +147,8 @@ class WebViewMobileState extends State<WebViewMobile> {
             if (!Platform.isMacOS && loadedUrl.contains('uniswap.org')) {
               if (!retried) {
                 print(
-                    '[DEBUG] Uniswap loaded, attempting one retry for dark mode.');
+                  '[DEBUG] Uniswap loaded, attempting one retry for dark mode.',
+                );
                 retried = true;
                 await Future.delayed(const Duration(milliseconds: 350));
                 await _safeRunJavaScript(controller!, '''
@@ -163,7 +164,8 @@ class WebViewMobileState extends State<WebViewMobile> {
               }
             } else {
               print(
-                  '[DEBUG] Non-Uniswap or macOS, injecting generic dark mode.');
+                '[DEBUG] Non-Uniswap or macOS, injecting generic dark mode.',
+              );
               await forceDarkModeAndRemoveBanner(_currentTabIndex);
             }
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -176,7 +178,8 @@ class WebViewMobileState extends State<WebViewMobile> {
 
     if (!Platform.isMacOS && url.contains('uniswap.org')) {
       print(
-          '[DEBUG] Loading about:blank before Uniswap for reliable dark theme');
+        '[DEBUG] Loading about:blank before Uniswap for reliable dark theme',
+      );
       controller.loadRequest(Uri.parse('about:blank'));
     } else {
       controller.loadRequest(Uri.parse(url));
@@ -434,10 +437,10 @@ class WebViewMobileState extends State<WebViewMobile> {
                               height: 22,
                               errorBuilder: (context, error, stackTrace) =>
                                   const Icon(
-                                Icons.language,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                                    Icons.language,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(

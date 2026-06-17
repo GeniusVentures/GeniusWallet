@@ -48,7 +48,8 @@ class TokenInfoScreen extends StatelessWidget {
     final selectedNetwork = state.selectedNetwork;
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
 
-    final isGnusBridgeEnabled = (isGnusWalletConnected ?? false) &&
+    final isGnusBridgeEnabled =
+        (isGnusWalletConnected ?? false) &&
         selectedCoin?.symbol?.toLowerCase() == 'gnus';
 
     return Scaffold(
@@ -69,14 +70,16 @@ class TokenInfoScreen extends StatelessWidget {
                           child: SizedBox(
                             height: constraints.maxHeight - 40,
                             child: _buildGraphSection(
-                                marketData!,
-                                _buildStaticActions(
-                                    selectedCoin,
-                                    context,
-                                    selectedWallet,
-                                    selectedNetwork,
-                                    isGnusBridgeEnabled,
-                                    walletDetailsCubit)),
+                              marketData!,
+                              _buildStaticActions(
+                                selectedCoin,
+                                context,
+                                selectedWallet,
+                                selectedNetwork,
+                                isGnusBridgeEnabled,
+                                walletDetailsCubit,
+                              ),
+                            ),
                           ),
                         ),
                       Expanded(
@@ -99,12 +102,13 @@ class TokenInfoScreen extends StatelessWidget {
                       if (marketData != null)
                         _buildGraphSection(marketData!, null),
                       _buildStaticActions(
-                          selectedCoin,
-                          context,
-                          selectedWallet,
-                          selectedNetwork,
-                          isGnusBridgeEnabled,
-                          walletDetailsCubit),
+                        selectedCoin,
+                        context,
+                        selectedWallet,
+                        selectedNetwork,
+                        isGnusBridgeEnabled,
+                        walletDetailsCubit,
+                      ),
                       _buildActionSection(
                         marketData,
                         selectedCoin,
@@ -130,8 +134,14 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStaticActions(selectedCoin, context, selectedWallet,
-      selectedNetwork, bool isGnusBridgeEnabled, walletDetailsCubit) {
+  Widget _buildStaticActions(
+    selectedCoin,
+    context,
+    selectedWallet,
+    selectedNetwork,
+    bool isGnusBridgeEnabled,
+    walletDetailsCubit,
+  ) {
     return SizedBox(
       width: 400,
       child: Row(
@@ -164,26 +174,29 @@ class TokenInfoScreen extends StatelessWidget {
           const ActionButton(text: "Send", icon: Icons.send),
           const ActionButton(text: "Swap", icon: Icons.swap_horiz),
           ActionButton(
-              text: "More",
-              icon: Icons.more_horiz,
-              onPressed: isGnusBridgeEnabled
-                  ? () {
-                      ResponsiveDrawer.show<void>(
-                          context: context,
-                          title: "More Options",
-                          child: SlidingDrawerButton(
-                            onPressed: selectedCoin?.balance == 0
-                                ? null
-                                : () async {
-                                    Navigator.of(context).pop();
-                                    await GoRouter.of(context).push('/bridge',
-                                        extra: walletDetailsCubit);
-                                    walletDetailsCubit.getCoins();
-                                  },
-                            label: "Bridge Tokens",
-                          ));
-                    }
-                  : null),
+            text: "More",
+            icon: Icons.more_horiz,
+            onPressed: isGnusBridgeEnabled
+                ? () {
+                    ResponsiveDrawer.show<void>(
+                      context: context,
+                      title: "More Options",
+                      child: SlidingDrawerButton(
+                        onPressed: selectedCoin?.balance == 0
+                            ? null
+                            : () async {
+                                Navigator.of(context).pop();
+                                await GoRouter.of(
+                                  context,
+                                ).push('/bridge', extra: walletDetailsCubit);
+                                walletDetailsCubit.getCoins();
+                              },
+                        label: "Bridge Tokens",
+                      ),
+                    );
+                  }
+                : null,
+          ),
         ],
       ),
     );
@@ -222,9 +235,7 @@ class TokenInfoScreen extends StatelessWidget {
 class _ConvertSection extends StatefulWidget {
   final double tokenPrice;
 
-  const _ConvertSection({
-    required this.tokenPrice,
-  });
+  const _ConvertSection({required this.tokenPrice});
 
   @override
   State<_ConvertSection> createState() => _ConvertSectionState();
@@ -242,9 +253,7 @@ class _ConvertSectionState extends State<_ConvertSection> {
     _tokenPriceController = TextEditingController(
       text: widget.tokenPrice.toString(),
     );
-    _tokenAmountController = TextEditingController(
-      text: "1",
-    );
+    _tokenAmountController = TextEditingController(text: "1");
     _calculateTotalValue();
   }
 
@@ -261,50 +270,45 @@ class _ConvertSectionState extends State<_ConvertSection> {
   @override
   Widget build(BuildContext context) {
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 8,
-        children: [
-          Text(
-            "Convert",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          Card(
-              child: Padding(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
+      children: [
+        Text("Convert", style: Theme.of(context).textTheme.titleMedium),
+        Card(
+          child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               spacing: 16,
               children: [
                 TextField(
                   controller: _tokenPriceController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: "Token Price",
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
+                  decoration: const InputDecoration(labelText: "Token Price"),
                   onChanged: (_) => _calculateTotalValue(),
                 ),
                 TextField(
                   controller: _tokenAmountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: "Token Amount",
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
+                  decoration: const InputDecoration(labelText: "Token Amount"),
                   onChanged: (_) => _calculateTotalValue(),
                 ),
                 Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "Total: ${NumberFormat.currency(
-                        locale: "en_US",
-                        symbol: "\$",
-                      ).format(_totalValue)}",
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    )),
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "Total: ${NumberFormat.currency(locale: "en_US", symbol: "\$").format(_totalValue)}",
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
               ],
             ),
-          ))
-        ]);
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -328,10 +332,7 @@ class _MarketDataInfo extends StatelessWidget {
       if (network != null)
         ListTile(
           dense: true,
-          leading: Icon(
-            Icons.bubble_chart,
-            color: cs.primary,
-          ),
+          leading: Icon(Icons.bubble_chart, color: cs.primary),
           title: const Text("Network"),
           trailing: Text(
             network!,
@@ -353,11 +354,7 @@ class _MarketDataInfo extends StatelessWidget {
                   showAppSnackBar(context, 'Address copied to clipboard');
                 },
                 tooltip: "Copy address",
-                icon: Icon(
-                  Icons.copy,
-                  size: 18,
-                  color: cs.primary,
-                ),
+                icon: Icon(Icons.copy, size: 18, color: cs.primary),
               ),
               Text(
                 address!.length > 12
@@ -410,10 +407,7 @@ class _MarketDataInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text(
-          "Info",
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text("Info", style: Theme.of(context).textTheme.titleMedium),
         Card(
           color: cs.surface,
           margin: EdgeInsets.zero,
@@ -431,19 +425,17 @@ class _MarketDataInfo extends StatelessWidget {
                         ? NetworkImage(marketData!.imageUrl)
                         : null,
                     child: marketData?.imageUrl == null
-                        ? Icon(Icons.token,
-                            color: cs.onSurfaceVariant, size: 32)
+                        ? Icon(
+                            Icons.token,
+                            color: cs.onSurfaceVariant,
+                            size: 32,
+                          )
                         : null,
                   ),
-                  title: Text(
-                    marketData?.name ?? "Unknown Token",
-                    maxLines: 2,
-                  ),
+                  title: Text(marketData?.name ?? "Unknown Token", maxLines: 2),
                   subtitle: Text(
                     (marketData?.symbol ?? "").toUpperCase(),
-                    style: TextStyle(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: TextStyle(color: cs.onSurfaceVariant),
                   ),
                 ),
                 Column(
@@ -451,13 +443,13 @@ class _MarketDataInfo extends StatelessWidget {
                     for (int i = 0; i < infoTiles.length; i++) ...[
                       Divider(height: 1),
                       infoTiles[i],
-                    ]
+                    ],
                   ],
                 ),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }

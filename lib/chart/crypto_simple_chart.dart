@@ -16,17 +16,18 @@ class CryptoSparkLineChart extends StatelessWidget {
   final double iconSize;
   final void Function()? onTap;
 
-  const CryptoSparkLineChart(
-      {super.key,
-      required this.title,
-      required this.high24h,
-      required this.low24h,
-      required this.currentPrice,
-      required this.priceChangePercent,
-      this.sparkline,
-      this.iconSize = 28,
-      this.iconPath,
-      this.onTap});
+  const CryptoSparkLineChart({
+    super.key,
+    required this.title,
+    required this.high24h,
+    required this.low24h,
+    required this.currentPrice,
+    required this.priceChangePercent,
+    this.sparkline,
+    this.iconSize = 28,
+    this.iconPath,
+    this.onTap,
+  });
 
   /// Soft muted green/red colors
   static const Color _mutedGreen = GeniusWalletColors.mutedGreen;
@@ -35,8 +36,8 @@ class CryptoSparkLineChart extends StatelessWidget {
   Color get priceColor => priceChangePercent > 0
       ? _mutedGreen
       : priceChangePercent < 0
-          ? _mutedRed
-          : Colors.grey[500]!;
+      ? _mutedRed
+      : Colors.grey[500]!;
 
   List<FlSpot> getSparklineChartData() {
     if (sparkline == null || sparkline!.isEmpty) {
@@ -54,17 +55,15 @@ class CryptoSparkLineChart extends StatelessWidget {
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
-            symbol: "\$", decimalDigits: tokenDecimalsToDisplay)
-        .format(currentPrice);
+      symbol: "\$",
+      decimalDigits: tokenDecimalsToDisplay,
+    ).format(currentPrice);
 
     return ListTile(
       leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
       title: AutoSizeText(
         title,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Colors.grey,
-        ),
+        style: const TextStyle(fontSize: 16, color: Colors.grey),
         maxLines: 1,
       ),
       onTap: onTap,
@@ -106,14 +105,18 @@ class CryptoSparkLineChart extends StatelessWidget {
                     ),
                   ],
                   titlesData: const FlTitlesData(
-                    leftTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
                   gridData: const FlGridData(show: false),
                   borderData: FlBorderData(show: false),

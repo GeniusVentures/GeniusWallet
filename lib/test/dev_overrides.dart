@@ -22,10 +22,13 @@ void byPassSGNUSConnecton(GeniusApi geniusApi) {
 
   debugPrint('\x1B[37m** Manually skipping SGNUS connection\x1B[0m');
 
-  geniusApi.getSGNUSController().updateConnection(const SGNUSConnection(
+  geniusApi.getSGNUSController().updateConnection(
+    const SGNUSConnection(
       sgnusAddress: "0x67890-Bypass",
       walletAddress: "0x12345-Bypass",
-      isConnected: true));
+      isConnected: true,
+    ),
+  );
 }
 
 void byPassWalletCreation(GeniusApi geniusApi) {
@@ -48,8 +51,9 @@ void addFakeSGNUSTransactions(SGNUSTransactionsController txController) {
   }
 
   debugPrint('\x1B[37m** Adding fake transactions\x1B[0m');
-  txController
-      .setTransactions(List.generate(20, (_) => getFakeTransaction(true)));
+  txController.setTransactions(
+    List.generate(20, (_) => getFakeTransaction(true)),
+  );
 }
 
 void addFakeWalletCubitTransactions(TransactionsCubit cubit) {
@@ -68,7 +72,9 @@ void addFakeWalletTransactions() {
 
   debugPrint('\x1B[37m** Adding fake Wallet transactions\x1B[0m');
   TransactionStorageService().addTransaction(
-      '0x6084a30B8CFe3fd27b0672b8fE740B9a8541403e', getFakeTransaction(false));
+    '0x6084a30B8CFe3fd27b0672b8fE740B9a8541403e',
+    getFakeTransaction(false),
+  );
 }
 
 Transaction getFakeTransaction(bool isSgnus) {
@@ -83,9 +89,7 @@ Transaction getFakeTransaction(bool isSgnus) {
   return Transaction(
     hash: "0x${now.millisecondsSinceEpoch}",
     fromAddress: "0xFromMocked",
-    recipients: [
-      TransferRecipients(amount: "0.5", toAddr: "0xToMocked"),
-    ],
+    recipients: [TransferRecipients(amount: "0.5", toAddr: "0xToMocked")],
     coinSymbol: "ETH",
     fees: "0.001",
     transactionDirection: randomDirection,

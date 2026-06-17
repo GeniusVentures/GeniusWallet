@@ -37,7 +37,7 @@ class GnusCubit extends Cubit<GnusState> {
   final WalletDetailsCubit walletDetailsCubit;
 
   GnusCubit(this.coinService, this.walletDetailsCubit)
-      : super(const GnusState());
+    : super(const GnusState());
 
   Future<Coin?> fetchGnusBalance() async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
@@ -46,8 +46,12 @@ class GnusCubit extends Cubit<GnusState> {
     final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
 
     if (network == null || walletAddress == null) {
-      emit(state.copyWith(
-          isLoading: false, errorMessage: 'Invalid network or wallet address'));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Invalid network or wallet address',
+        ),
+      );
       return null;
     }
 

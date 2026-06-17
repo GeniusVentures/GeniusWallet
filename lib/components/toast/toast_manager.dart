@@ -110,13 +110,9 @@ class _AnimatedToastState extends State<_AnimatedToast>
       vsync: this,
     );
 
-    _slide = Tween<Offset>(
-      begin: const Offset(1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.fastOutSlowIn,
-    ));
+    _slide = Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn),
+    );
 
     widget.onControllerReady(_controller);
     _controller.forward();

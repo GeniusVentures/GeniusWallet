@@ -46,14 +46,17 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
           (entry[0] ~/ 1000): (entry[1] as num).toDouble(),
       };
 
-      final newCacheEntry =
-          HistoricalPriceCacheEntry.fromIntMap(historicalPrices, now);
+      final newCacheEntry = HistoricalPriceCacheEntry.fromIntMap(
+        historicalPrices,
+        now,
+      );
       await box.put(coinId, newCacheEntry);
 
       return historicalPrices;
     } else {
       debugPrint(
-          'Historical - API error (${response.statusCode}): ${response.body}');
+        'Historical - API error (${response.statusCode}): ${response.body}',
+      );
 
       if (cacheEntry != null) {
         return cacheEntry.toIntMap();
@@ -87,8 +90,9 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   final Map<String, CoinGeckoMarketData> staleData = {};
   final List<String> staleCoinIds = [];
 
-  final Box<CoinGeckoMarketData> marketBox =
-      Hive.box<CoinGeckoMarketData>(marketDataBox);
+  final Box<CoinGeckoMarketData> marketBox = Hive.box<CoinGeckoMarketData>(
+    marketDataBox,
+  );
   final Box<String> timestampsBox = Hive.box<String>(marketTimestampsBox);
 
   // 🔹 Look for valid cache entries
@@ -112,8 +116,9 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   // Determine which coins need fetching
   final List<String> missingCoinIds = allCoinIds.where((id) {
     final String? timestampStr = timestampsBox.get(id);
-    final DateTime? cacheTime =
-        timestampStr != null ? DateTime.tryParse(timestampStr) : null;
+    final DateTime? cacheTime = timestampStr != null
+        ? DateTime.tryParse(timestampStr)
+        : null;
     return cacheTime == null ||
         DateTime.now().difference(cacheTime) >= cacheDuration;
   }).toList();
@@ -153,10 +158,7 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
         }
       }
 
-      return {
-        ...cachedData,
-        ...newMarketData,
-      };
+      return {...cachedData, ...newMarketData};
     } else {
       debugPrint('Failed to fetch market data: ${response.body}');
     }
@@ -185,7 +187,8 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
 
   // If cache is missing or expired, fetch new data
   final url = Uri.parse(
-      "https://api.coingecko.com/api/v3/coins/list?include_platform=true");
+    "https://api.coingecko.com/api/v3/coins/list?include_platform=true",
+  );
 
   try {
     final response = await http.get(url);
@@ -194,17 +197,21 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
       final coins = json.decode(response.body) as List<dynamic>;
 
       final coinList = coins
-          .map((coin) => CoinGeckoCoin(
-                id: coin['id'] ?? '',
-                symbol: coin['symbol'] ?? '',
-                name: coin['name'] ?? '',
-              ))
+          .map(
+            (coin) => CoinGeckoCoin(
+              id: coin['id'] ?? '',
+              symbol: coin['symbol'] ?? '',
+              name: coin['name'] ?? '',
+            ),
+          )
           .toList();
 
       // Cache the new list and expiry time
       await box.put(coinListBoxKey, coinList);
       await box.put(
-          cacheExpiryKey, DateTime.now().add(cacheDuration).toIso8601String());
+        cacheExpiryKey,
+        DateTime.now().add(cacheDuration).toIso8601String(),
+      );
 
       return coinList;
     } else {
@@ -237,8 +244,9 @@ Future<List<CoinGeckoCoin>> searchCoinsByName(
 
   // If maxResults is provided, return a limited subset
   if (maxResults != null && maxResults > 0) {
-    final endIndex =
-        matchingCoins.length < maxResults ? matchingCoins.length : maxResults;
+    final endIndex = matchingCoins.length < maxResults
+        ? matchingCoins.length
+        : maxResults;
 
     return matchingCoins.sublist(0, endIndex);
   }
@@ -255,10 +263,11 @@ class CoinBalance {
   CoinBalance({required this.coinId, required this.balance});
 }
 
-Future<String?> fetchCoinPricesSum(
-    {required List<String> coinIds,
-    required List<CoinBalance> coinBalances,
-    required GeniusApi geniusApi}) async {
+Future<String?> fetchCoinPricesSum({
+  required List<String> coinIds,
+  required List<CoinBalance> coinBalances,
+  required GeniusApi geniusApi,
+}) async {
   final marketData = await fetchCoinsMarketData(coinIds: coinIds);
 
   if (marketData.isEmpty) {
@@ -266,8 +275,9 @@ Future<String?> fetchCoinPricesSum(
     return null;
   }
 
-  Map<String, double> coinPrices =
-      marketData.map((key, value) => MapEntry(key, value.currentPrice));
+  Map<String, double> coinPrices = marketData.map(
+    (key, value) => MapEntry(key, value.currentPrice),
+  );
 
   double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
 
@@ -278,7 +288,9 @@ Future<String?> fetchCoinPricesSum(
 
 /// 🏦 **Helper Function: Calculates Total Balance**
 double calculateTotalBalance(
-    List<CoinBalance> coinBalances, Map<String, double> coinPrices) {
+  List<CoinBalance> coinBalances,
+  Map<String, double> coinPrices,
+) {
   return coinBalances.fold(0, (sum, element) {
     final coinPrice = coinPrices[element.coinId] ?? 0.0;
     return sum + (coinPrice * element.balance);

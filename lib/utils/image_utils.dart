@@ -36,10 +36,7 @@ Widget _defaultIcon(double size) {
   return Container(
     height: size,
     width: size,
-    decoration: const BoxDecoration(
-      shape: BoxShape.circle,
-      color: Colors.grey,
-    ),
+    decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.grey),
     child: const Icon(Icons.image_not_supported, color: Colors.white),
   );
 }

@@ -20,16 +20,15 @@ class OrdersCubit extends Cubit<OrdersState> {
         status: '',
       );
 
-      emit(state.copyWith(
-        status: OrdersStatus.success,
-        orders: orders,
-        filteredOrders: orders.orders,
-      ));
+      emit(
+        state.copyWith(
+          status: OrdersStatus.success,
+          orders: orders,
+          filteredOrders: orders.orders,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: OrdersStatus.error,
-        error: e.toString(),
-      ));
+      emit(state.copyWith(status: OrdersStatus.error, error: e.toString()));
     }
   }
 
