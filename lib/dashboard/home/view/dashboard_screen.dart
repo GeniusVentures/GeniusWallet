@@ -149,18 +149,18 @@ class ResponsiveDashboardView extends StatelessWidget {
             constraints: const BoxConstraints(maxHeight: 300),
             child: const _OverviewContributionsRow(),
           ),
-          Expanded(
+          const Expanded(
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     children: [
-                      const Expanded(child: ChartDashboardView()),
-                      const Expanded(child: MarketsDashboardView()),
+                      Expanded(child: ChartDashboardView()),
+                      Expanded(child: MarketsDashboardView()),
                     ],
                   ),
                 ),
-                const Expanded(child: TransactionsDashboardView()),
+                Expanded(child: TransactionsDashboardView()),
               ],
             ),
           ),

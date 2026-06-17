@@ -15,8 +15,8 @@ class PinScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -48,8 +48,8 @@ class PinScreen extends StatelessWidget {
                 return const SizedBox();
               },
             ),
-            SizedBox(
-              width: 250,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 250),
               child: BlocBuilder<PinCubit, PinState>(
                 builder: (context, state) {
                   return FilledButton(

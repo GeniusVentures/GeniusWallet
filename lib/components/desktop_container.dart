@@ -69,13 +69,11 @@ class DesktopContainer extends StatelessWidget {
                         const SizedBox(width: 16),
                         // Search Bar
                         const Flexible(
-                          child: SizedBox(
-                            child: SearchBar(
-                              hintText: 'Search ...',
-                              trailing: [
-                                Icon(Icons.search, color: Colors.grey),
-                              ],
-                            ),
+                          child: SearchBar(
+                            hintText: 'Search ...',
+                            trailing: [
+                              Icon(Icons.search, color: Colors.grey),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 16),

@@ -84,10 +84,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(data));
   }
 
-  // ────────────────────────────────────────────────────────────
-  // Log Config
-  // ────────────────────────────────────────────────────────────
-
   Future<void> _loadLogConfig() async {
     setState(() => _logLoading = true);
     final json = await _readSdkJson('log_config.json');
@@ -115,10 +111,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ────────────────────────────────────────────────────────────
-  // Network Config
-  // ────────────────────────────────────────────────────────────
-
   Future<void> _loadNetworkConfig() async {
     setState(() => _networkLoading = true);
     final json = await _readSdkJson('network_config.json');
@@ -139,10 +131,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ────────────────────────────────────────────────────────────
-  // CRDT Config
-  // ────────────────────────────────────────────────────────────
-
   Future<void> _loadCrdtConfig() async {
     setState(() => _crdtLoading = true);
     _crdtConfig = await _readSdkJson('crdt_config.json');
@@ -158,10 +146,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() => _crdtStatus = 'Error: $e');
     }
   }
-
-  // ────────────────────────────────────────────────────────────
-  // UI
-  // ────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -187,18 +171,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── Log Config Section ──
-
   Widget _buildLogSection() {
     return _buildSectionCard(
       title: 'Log Config',
       icon: Icons.terminal,
       status: _logStatus,
       loading: _logLoading,
-      action: _buildApplyButton(
-        label: 'Apply Log Changes',
+      action: FilledButton.icon(
+        label: Text('Apply Log Changes'),
+        icon: Icon(Icons.play_arrow),
         onPressed: _applyLogConfig,
-        isPrimary: true,
       ),
       child: _loggerLevels.isEmpty
           ? const Padding(
@@ -245,16 +227,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── Network Config Section ──
-
   Widget _buildNetworkSection() {
     return _buildSectionCard(
       title: 'Network Config',
       icon: Icons.lan,
       status: _networkStatus,
       loading: _networkLoading,
-      action: _buildApplyButton(
-        label: 'Save Network Overrides',
+      action: OutlinedButton.icon(
+        icon: Icon(Icons.save),
+        label: Text('Save Network Overrides'),
         onPressed: _saveNetworkConfig,
       ),
       child: _configFieldsTable(
@@ -272,16 +253,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── CRDT Config Section ──
-
   Widget _buildCrdtSection() {
     return _buildSectionCard(
       title: 'CRDT Config',
       icon: Icons.backup,
       status: _crdtStatus,
       loading: _crdtLoading,
-      action: _buildApplyButton(
-        label: 'Save CRDT Overrides',
+      action: OutlinedButton.icon(
+        icon: Icon(Icons.save),
+        label: Text('Save CRDT Overrides'),
         onPressed: _saveCrdtConfig,
       ),
       child: _configFieldsTable(
@@ -363,24 +343,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildApplyButton({
-    required String label,
-    required VoidCallback onPressed,
-    bool isPrimary = false,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(isPrimary ? Icons.play_arrow : Icons.save, size: 18),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isPrimary
-            ? Colors.green
-            : Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-      ),
-    );
-  }
-
   /// Builds a table of config fields with smart editors per type.
   Widget _configFieldsTable({
     required Map<String, dynamic> config,
@@ -396,6 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Column(
+      spacing: 8,
       children: config.entries.map((entry) {
         final label = keyLabels[entry.key] ?? entry.key;
         if (boolKeys.contains(entry.key)) {
@@ -407,43 +370,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             contentPadding: EdgeInsets.zero,
           );
         }
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Text(label, style: const TextStyle(fontSize: 13)),
-              ),
-              Expanded(
-                flex: 3,
-                child: TextFormField(
-                  initialValue: entry.value.toString(),
-                  keyboardType: numberKeys.contains(entry.key)
-                      ? TextInputType.number
-                      : TextInputType.text,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(),
+        return Row(
+          children: [
+            Expanded(
+              child: Text(label),
+            ),
+            Expanded(
+              child: TextFormField(
+                initialValue: entry.value.toString(),
+                keyboardType: numberKeys.contains(entry.key)
+                    ? TextInputType.number
+                    : TextInputType.text,
+                style: const TextStyle(fontFamily: 'JetBrainsMono'),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
                   ),
-                  onChanged: (v) {
-                    if (numberKeys.contains(entry.key)) {
-                      final parsed = int.tryParse(v);
-                      if (parsed != null)
-                        setState(() => config[entry.key] = parsed);
-                    } else {
-                      setState(() => config[entry.key] = v);
-                    }
-                  },
                 ),
+                onChanged: (v) {
+                  if (numberKeys.contains(entry.key)) {
+                    final parsed = int.tryParse(v);
+                    if (parsed != null) {
+                      setState(() => config[entry.key] = parsed);
+                    }
+                  } else {
+                    setState(() => config[entry.key] = v);
+                  }
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         );
       }).toList(),
     );

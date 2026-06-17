@@ -19,8 +19,9 @@ class Web3 {
   Web3({this.geniusApi});
 
   // Should be the same accross most chains
-  final multiCallContractAddress =
-      EthereumAddress.fromHex("0xca11bde05977b3631167028862be2a173976ca11");
+  final multiCallContractAddress = EthereumAddress.fromHex(
+    "0xca11bde05977b3631167028862be2a173976ca11",
+  );
 
   static final bridgeOutAbi = ContractAbi.fromJson('''
     [
@@ -66,34 +67,41 @@ class Web3 {
     ]''';
 
     final multicallContract = DeployedContract(
-        ContractAbi.fromJson(multicallAbi, "Multicall"),
-        multiCallContractAddress);
+      ContractAbi.fromJson(multicallAbi, "Multicall"),
+      multiCallContractAddress,
+    );
 
-    final tokenContract =
-        DeployedContract(abi, EthereumAddress.fromHex(contractAddress));
+    final tokenContract = DeployedContract(
+      abi,
+      EthereumAddress.fromHex(contractAddress),
+    );
 
     final List<List<dynamic>> calls = [
       [
         EthereumAddress.fromHex(contractAddress),
-        _encodeFunctionCall(tokenContract, "symbol", [])
+        _encodeFunctionCall(tokenContract, "symbol", []),
       ],
       [
         EthereumAddress.fromHex(contractAddress),
-        _encodeFunctionCall(tokenContract, "decimals", [])
+        _encodeFunctionCall(tokenContract, "decimals", []),
       ],
       [
         EthereumAddress.fromHex(contractAddress),
-        _encodeFunctionCall(tokenContract, "name", [])
+        _encodeFunctionCall(tokenContract, "name", []),
       ],
       [
         EthereumAddress.fromHex(contractAddress),
-        _encodeFunctionCall(tokenContract, "balanceOf",
-            [EthereumAddress.fromHex(walletAddress)])
+        _encodeFunctionCall(tokenContract, "balanceOf", [
+          EthereumAddress.fromHex(walletAddress),
+        ]),
       ],
     ];
 
-    final List<dynamic> results =
-        await _executeMulticall(client, multicallContract, calls);
+    final List<dynamic> results = await _executeMulticall(
+      client,
+      multicallContract,
+      calls,
+    );
 
     if (results.length < 4) {
       debugPrint("⚠️ Multicall returned incomplete results: $results");
@@ -118,16 +126,23 @@ class Web3 {
 
   /// **Encodes Function Call for Multicall**
   Uint8List _encodeFunctionCall(
-      DeployedContract contract, String functionName, List<dynamic> params) {
+    DeployedContract contract,
+    String functionName,
+    List<dynamic> params,
+  ) {
     final function = contract.function(functionName);
     return function.encodeCall(params);
   }
 
   /// **Executes Multicall Request**
-  Future<List<dynamic>> _executeMulticall(Web3Client client,
-      DeployedContract multicallContract, List<List<dynamic>> calls) async {
-    final ContractFunction aggregateFunction =
-        multicallContract.function("aggregate");
+  Future<List<dynamic>> _executeMulticall(
+    Web3Client client,
+    DeployedContract multicallContract,
+    List<List<dynamic>> calls,
+  ) async {
+    final ContractFunction aggregateFunction = multicallContract.function(
+      "aggregate",
+    );
 
     final List<dynamic> response = await client.call(
       contract: multicallContract,
@@ -148,8 +163,10 @@ class Web3 {
       if (data is Uint8List) {
         return utf8
             .decode(data)
-            .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'),
-                '') // Remove non-debugPrintable characters
+            .replaceAll(
+              RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'),
+              '',
+            ) // Remove non-debugPrintable characters
             .trim();
       }
       return data.toString();
@@ -177,8 +194,9 @@ class Web3 {
     try {
       if (data is Uint8List) {
         return BigInt.parse(
-            data.map((e) => e.toRadixString(16).padLeft(2, '0')).join(),
-            radix: 16);
+          data.map((e) => e.toRadixString(16).padLeft(2, '0')).join(),
+          radix: 16,
+        );
       }
       return BigInt.tryParse(data.toString()) ?? BigInt.zero;
     } catch (e) {
@@ -187,10 +205,11 @@ class Web3 {
     }
   }
 
-  Future<double> balanceOf(
-      {required String address,
-      required String contractAddress,
-      required String rpcUrl}) async {
+  Future<double> balanceOf({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
@@ -202,14 +221,19 @@ class Web3 {
 
     try {
       final tokenBalance = await client.call(
-          contract: contract,
-          function: balanceFunction,
-          params: [EthereumAddress.fromHex(address)]);
+        contract: contract,
+        function: balanceFunction,
+        params: [EthereumAddress.fromHex(address)],
+      );
 
-      final tokenDecimals = await client
-          .call(contract: contract, function: decimalsFunction, params: []);
+      final tokenDecimals = await client.call(
+        contract: contract,
+        function: decimalsFunction,
+        params: [],
+      );
 
-      final balanceWithDecimals = BigInt.parse(tokenBalance.first.toString()) /
+      final balanceWithDecimals =
+          BigInt.parse(tokenBalance.first.toString()) /
           BigInt.from(10).pow(int.parse(tokenDecimals.first.toString()));
 
       await client.dispose();
@@ -220,8 +244,10 @@ class Web3 {
     }
   }
 
-  Future<String> symbol(
-      {required String contractAddress, required String rpcUrl}) async {
+  Future<String> symbol({
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
@@ -230,8 +256,11 @@ class Web3 {
     final symbol = contract.function('symbol');
 
     try {
-      final tokenSymbol =
-          await client.call(contract: contract, function: symbol, params: []);
+      final tokenSymbol = await client.call(
+        contract: contract,
+        function: symbol,
+        params: [],
+      );
 
       await client.dispose();
       return tokenSymbol.first;
@@ -241,8 +270,10 @@ class Web3 {
     }
   }
 
-  Future<String> decimals(
-      {required String contractAddress, required String rpcUrl}) async {
+  Future<String> decimals({
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
@@ -251,8 +282,11 @@ class Web3 {
     final decimals = contract.function('decimals');
 
     try {
-      final tokenDecimals =
-          await client.call(contract: contract, function: decimals, params: []);
+      final tokenDecimals = await client.call(
+        contract: contract,
+        function: decimals,
+        params: [],
+      );
 
       await client.dispose();
       return tokenDecimals.first;
@@ -262,8 +296,10 @@ class Web3 {
     }
   }
 
-  Future<String> name(
-      {required String contractAddress, required String rpcUrl}) async {
+  Future<String> name({
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
@@ -272,8 +308,11 @@ class Web3 {
     final name = contract.function('name');
 
     try {
-      final tokenName =
-          await client.call(contract: contract, function: name, params: []);
+      final tokenName = await client.call(
+        contract: contract,
+        function: name,
+        params: [],
+      );
 
       await client.dispose();
       return tokenName.first;
@@ -283,8 +322,10 @@ class Web3 {
     }
   }
 
-  Future<double> getBalance(
-      {required String rpcUrl, required String address}) async {
+  Future<double> getBalance({
+    required String rpcUrl,
+    required String address,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
 
     try {
@@ -316,10 +357,7 @@ class Web3 {
 
     try {
       // Contract Setup
-      final bridgeContract = DeployedContract(
-        bridgeOutAbi,
-        contractAddr,
-      );
+      final bridgeContract = DeployedContract(bridgeOutAbi, contractAddr);
       final contract = DeployedContract(abi, contractAddr);
       final bridgeOutFunction = bridgeContract.function('bridgeOut');
       final decimalsFunction = contract.function('decimals');
@@ -334,20 +372,19 @@ class Web3 {
       // Convert Amount to BigInt
       final double amount = double.parse(amountToBurn);
       final burnAmountConverted = BigInt.from(
-          amount * pow(10, int.parse(tokenDecimals.first.toString())));
+        amount * pow(10, int.parse(tokenDecimals.first.toString())),
+      );
 
       // Estimate Gas Price and Gas Limit
       final gasPrice = await client.getGasPrice();
       final gasLimit = await client.estimateGas(
         sender: ownAddress,
         to: contractAddr,
-        data: bridgeOutFunction.encodeCall(
-          [
-            burnAmountConverted,
-            BigInt.from(hardCodedTokenIdForNow),
-            BigInt.from(destinationChainId)
-          ],
-        ),
+        data: bridgeOutFunction.encodeCall([
+          burnAmountConverted,
+          BigInt.from(hardCodedTokenIdForNow),
+          BigInt.from(destinationChainId),
+        ]),
       );
 
       final hasFundsResponse = await hasEnoughFundsForGas(
@@ -384,13 +421,14 @@ class Web3 {
     }
   }
 
-  Future<ApiResponse<String>> executeBridgeOutTransaction(
-      {required String contractAddress,
-      required String rpcUrl,
-      required StoredKeyWallet wallet,
-      required String amountToBurn,
-      required int sourceChainId,
-      required int destinationChainId}) async {
+  Future<ApiResponse<String>> executeBridgeOutTransaction({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet wallet,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+  }) async {
     final client = Web3Client(rpcUrl, Client());
 
     try {
@@ -404,8 +442,10 @@ class Web3 {
       );
 
       if (!transactionResponse.isSuccess || transactionResponse.data == null) {
-        return ApiResponse.error(transactionResponse.errorMessage ??
-            'Not enough balance to pay for gas fees');
+        return ApiResponse.error(
+          transactionResponse.errorMessage ??
+              'Not enough balance to pay for gas fees',
+        );
       }
 
       // Get Private Key
@@ -446,7 +486,8 @@ class Web3 {
 
     if (!transactionResponse.isSuccess) {
       return ApiResponse.error(
-          transactionResponse.errorMessage ?? "Error bridging");
+        transactionResponse.errorMessage ?? "Error bridging",
+      );
     }
 
     return ApiResponse.success(transactionResponse.data?.gasPrice);
@@ -491,8 +532,10 @@ class Web3 {
           .wallet("")!
           .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
     } else {
-      final maybePK = wallet.storedKey
-          .privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0));
+      final maybePK = wallet.storedKey.privateKey(
+        TWCoinType.TWCoinTypeEthereum,
+        Uint8List(0),
+      );
       if (maybePK == null) {
         return '';
       }
@@ -518,8 +561,9 @@ class Web3 {
       final value = parseHexToBigInt(tx['value'] ?? '0x0');
       final gasLimit = parseHexToBigInt(tx['gas'] ?? tx['gasLimit'] ?? '0x0');
       final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas'] ?? '0x0');
-      final maxPriorityFee =
-          parseHexToBigInt(tx['maxPriorityFeePerGas'] ?? '0x0');
+      final maxPriorityFee = parseHexToBigInt(
+        tx['maxPriorityFeePerGas'] ?? '0x0',
+      );
       final data = tx['data'] != null ? hexToBytes(tx['data']) : Uint8List(0);
 
       final transaction = Transaction(

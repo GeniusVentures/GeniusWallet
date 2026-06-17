@@ -21,8 +21,8 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
   Widget build(BuildContext context) {
     context.read<NewWalletBloc>().add(LoadRecoveryPhrase());
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 16.0,
@@ -35,8 +35,8 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
               "Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.",
             ),
             _buildWordsGridWithCopyAndToggle(),
-            SizedBox(
-              width: 300,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
               child: FilledButton(
                 onPressed: () {
                   context.read<NewWalletBloc>().add(RecoveryPhraseContinue());

@@ -331,9 +331,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                             key: ValueKey(
                               "qr-${DateTime.now().millisecondsSinceEpoch}",
                             ),
-                            child: SizedBox(
-                              width: 250,
-                              height: 250,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 250,
+                                maxHeight: 250,
+                              ),
                               child: QrImageView(
                                 backgroundColor: Colors.white,
                                 data: wcUri,

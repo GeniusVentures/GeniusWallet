@@ -10,8 +10,8 @@ class BackupPhraseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small * 0.75,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 0.75),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 20.0,
@@ -35,8 +35,8 @@ class BackupPhraseScreen extends StatelessWidget {
             ),
             BlocBuilder<NewWalletBloc, NewWalletState>(
               builder: (context, state) {
-                return SizedBox(
-                  width: 250,
+                return ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 250),
                   child: FilledButton(
                     onPressed: state.acceptedWarning
                         ? () {

@@ -18,8 +18,8 @@ class LegalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small * 2 / 3,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 2 / 3),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 20.0,

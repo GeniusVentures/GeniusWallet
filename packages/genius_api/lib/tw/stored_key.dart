@@ -16,14 +16,24 @@ class StoredKey {
   StoredKey._(this.nativehandle);
 
   static StoredKey? importHDWallet(
-      String mnemonic, String name, String password, TWCoinType coin) {
+    String mnemonic,
+    String name,
+    String password,
+    TWCoinType coin,
+  ) {
     final twMnemonic = StringUtil.toTWString(mnemonic);
     final twName = StringUtil.toTWString(name);
     final twPassword = Uint8List.fromList(password.codeUnits);
-    final twPasswordData = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(twPassword.toPointerUint8(), twPassword.length);
+    final twPasswordData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      twPassword.toPointerUint8(),
+      twPassword.length,
+    );
     final twStoredKey = ffiBridgePrebuilt.tw_lib.TWStoredKeyImportHDWallet(
-        twMnemonic.cast(), twName.cast(), twPasswordData, coin);
+      twMnemonic.cast(),
+      twName.cast(),
+      twPasswordData,
+      coin,
+    );
     StringUtil.delete(twMnemonic);
     StringUtil.delete(twName);
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPasswordData);
@@ -34,15 +44,27 @@ class StoredKey {
   }
 
   static StoredKey? importPrivateKey(
-      Uint8List privateKeyData, String name, String password, TWCoinType coin) {
+    Uint8List privateKeyData,
+    String name,
+    String password,
+    TWCoinType coin,
+  ) {
     final twName = StringUtil.toTWString(name);
     final twPassword = Uint8List.fromList(password.codeUnits);
-    final twPasswordData = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(twPassword.toPointerUint8(), twPassword.length);
+    final twPasswordData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      twPassword.toPointerUint8(),
+      twPassword.length,
+    );
     final twPk = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
-        privateKeyData.toPointerUint8(), privateKeyData.length);
-    final twStoredKey = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyImportPrivateKey(twPk, twName.cast(), twPasswordData, coin);
+      privateKeyData.toPointerUint8(),
+      privateKeyData.length,
+    );
+    final twStoredKey = ffiBridgePrebuilt.tw_lib.TWStoredKeyImportPrivateKey(
+      twPk,
+      twName.cast(),
+      twPasswordData,
+      coin,
+    );
     StringUtil.delete(twName);
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPasswordData);
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPk);
@@ -53,8 +75,9 @@ class StoredKey {
   }
 
   String? exportJson() {
-    final data =
-        ffiBridgePrebuilt.tw_lib.TWStoredKeyExportJSON(nativehandle.cast());
+    final data = ffiBridgePrebuilt.tw_lib.TWStoredKeyExportJSON(
+      nativehandle.cast(),
+    );
     if (data.address == 0) {
       return null;
     }
@@ -76,10 +99,11 @@ class StoredKey {
 
   static StoredKey? importJson(String json) {
     final codeUnits = Uint8List.fromList(json.codeUnits);
-    final twJson = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(codeUnits.toPointerUint8(), codeUnits.length);
-    final twStoredKey =
-        ffiBridgePrebuilt.tw_lib.TWStoredKeyImportJSON(twJson);
+    final twJson = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      codeUnits.toPointerUint8(),
+      codeUnits.length,
+    );
+    final twStoredKey = ffiBridgePrebuilt.tw_lib.TWStoredKeyImportJSON(twJson);
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twJson);
     if (twStoredKey.address == 0) {
       return null;
@@ -88,25 +112,27 @@ class StoredKey {
   }
 
   String identifier() {
-    final twIdentifier =
-        ffiBridgePrebuilt.tw_lib.TWStoredKeyIdentifier(nativehandle.cast());
+    final twIdentifier = ffiBridgePrebuilt.tw_lib.TWStoredKeyIdentifier(
+      nativehandle.cast(),
+    );
     return StringUtil.toDartString(twIdentifier.cast());
   }
 
   String name() {
-    final twName =
-        ffiBridgePrebuilt.tw_lib.TWStoredKeyName(nativehandle.cast());
+    final twName = ffiBridgePrebuilt.tw_lib.TWStoredKeyName(
+      nativehandle.cast(),
+    );
     return StringUtil.toDartString(twName.cast());
   }
 
   bool isMnemonic() {
-    return ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyIsMnemonic(nativehandle.cast());
+    return ffiBridgePrebuilt.tw_lib.TWStoredKeyIsMnemonic(nativehandle.cast());
   }
 
   int accountCount() {
-    return ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyAccountCount(nativehandle.cast());
+    return ffiBridgePrebuilt.tw_lib.TWStoredKeyAccountCount(
+      nativehandle.cast(),
+    );
   }
 
   void delete() {
@@ -114,36 +140,51 @@ class StoredKey {
   }
 
   Account account(int index) {
-    return Account(ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyAccount(nativehandle.cast(), index)
-        .cast());
+    return Account(
+      ffiBridgePrebuilt.tw_lib
+          .TWStoredKeyAccount(nativehandle.cast(), index)
+          .cast(),
+    );
   }
 
   Account accountForCoin(TWCoinType coin, HDWallet hdWallet) {
-    return Account(ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyAccountForCoin(
-            nativehandle.cast(), coin, hdWallet.getNativeHandle().cast())
-        .cast());
+    return Account(
+      ffiBridgePrebuilt.tw_lib
+          .TWStoredKeyAccountForCoin(
+            nativehandle.cast(),
+            coin,
+            hdWallet.getNativeHandle().cast(),
+          )
+          .cast(),
+    );
   }
 
   void removeAccountForCoin(TWCoinType coin) {
-    ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyRemoveAccountForCoin(nativehandle.cast(), coin);
+    ffiBridgePrebuilt.tw_lib.TWStoredKeyRemoveAccountForCoin(
+      nativehandle.cast(),
+      coin,
+    );
   }
 
-  void addAccount(String address, TWCoinType coin, String derivationPath,
-      String publicKey, String extendedPublicKey) {
+  void addAccount(
+    String address,
+    TWCoinType coin,
+    String derivationPath,
+    String publicKey,
+    String extendedPublicKey,
+  ) {
     final twAddress = StringUtil.toTWString(address);
     final twDerivationPath = StringUtil.toTWString(derivationPath);
     final twExtendedPublicKey = StringUtil.toTWString(extendedPublicKey);
     final twPublicKey = StringUtil.toTWString(publicKey);
     ffiBridgePrebuilt.tw_lib.TWStoredKeyAddAccount(
-        nativehandle.cast(),
-        twAddress.cast(),
-        coin,
-        twDerivationPath.cast(),
-        twPublicKey.cast(),
-        twExtendedPublicKey.cast());
+      nativehandle.cast(),
+      twAddress.cast(),
+      coin,
+      twDerivationPath.cast(),
+      twPublicKey.cast(),
+      twExtendedPublicKey.cast(),
+    );
     StringUtil.delete(twAddress);
     StringUtil.delete(twDerivationPath);
     StringUtil.delete(twPublicKey);
@@ -152,17 +193,23 @@ class StoredKey {
 
   bool store(String path) {
     final twPath = StringUtil.toTWString(path);
-    final twIsStore = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyStore(nativehandle.cast(), twPath.cast());
+    final twIsStore = ffiBridgePrebuilt.tw_lib.TWStoredKeyStore(
+      nativehandle.cast(),
+      twPath.cast(),
+    );
     StringUtil.delete(twPath);
     return twIsStore;
   }
 
   Uint8List? decryptPrivateKey(Uint8List password) {
-    final twPassword = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(password.toPointerUint8(), password.length);
-    final twpivateKey = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyDecryptPrivateKey(nativehandle.cast(), twPassword);
+    final twPassword = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      password.toPointerUint8(),
+      password.length,
+    );
+    final twpivateKey = ffiBridgePrebuilt.tw_lib.TWStoredKeyDecryptPrivateKey(
+      nativehandle.cast(),
+      twPassword,
+    );
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPassword);
     if (twpivateKey.address == 0) {
       return null;
@@ -173,10 +220,14 @@ class StoredKey {
   }
 
   String? decryptMnemonic(Uint8List password) {
-    final twPassword = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(password.toPointerUint8(), password.length);
-    final twMnemonic = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyDecryptMnemonic(nativehandle.cast(), twPassword);
+    final twPassword = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      password.toPointerUint8(),
+      password.length,
+    );
+    final twMnemonic = ffiBridgePrebuilt.tw_lib.TWStoredKeyDecryptMnemonic(
+      nativehandle.cast(),
+      twPassword,
+    );
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPassword);
     if (twMnemonic.address == 0) {
       return null;
@@ -185,10 +236,15 @@ class StoredKey {
   }
 
   PrivateKey? privateKey(TWCoinType coin, Uint8List password) {
-    final twPassword = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(password.toPointerUint8(), password.length);
-    final twprivateKey = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyPrivateKey(nativehandle.cast(), coin, twPassword);
+    final twPassword = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      password.toPointerUint8(),
+      password.length,
+    );
+    final twprivateKey = ffiBridgePrebuilt.tw_lib.TWStoredKeyPrivateKey(
+      nativehandle.cast(),
+      coin,
+      twPassword,
+    );
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPassword);
     if (twprivateKey.address == 0) {
       return null;
@@ -198,10 +254,14 @@ class StoredKey {
 
   HDWallet? wallet(String password) {
     final twPassword = Uint8List.fromList(password.codeUnits);
-    final twPasswordData = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(twPassword.toPointerUint8(), twPassword.length);
-    final twwallet = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyWallet(nativehandle.cast(), twPasswordData);
+    final twPasswordData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      twPassword.toPointerUint8(),
+      twPassword.length,
+    );
+    final twwallet = ffiBridgePrebuilt.tw_lib.TWStoredKeyWallet(
+      nativehandle.cast(),
+      twPasswordData,
+    );
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPasswordData);
     if (twwallet.address == 0) {
       return null;
@@ -211,10 +271,14 @@ class StoredKey {
 
   bool fixAddresses(String password) {
     final twPassword = Uint8List.fromList(password.codeUnits);
-    final twPasswordData = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(twPassword.toPointerUint8(), twPassword.length);
-    final twIsOk = ffiBridgePrebuilt.tw_lib
-        .TWStoredKeyFixAddresses(nativehandle.cast(), twPasswordData);
+    final twPasswordData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      twPassword.toPointerUint8(),
+      twPassword.length,
+    );
+    final twIsOk = ffiBridgePrebuilt.tw_lib.TWStoredKeyFixAddresses(
+      nativehandle.cast(),
+      twPasswordData,
+    );
     ffiBridgePrebuilt.tw_lib.TWDataDelete(twPasswordData);
     return twIsOk;
   }

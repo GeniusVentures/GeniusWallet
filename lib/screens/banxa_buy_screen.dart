@@ -112,8 +112,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
                       padding: EdgeInsetsGeometry.all(20.0),
-                      child: SizedBox(
-                        width: width,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: width),
                         child: Column(
                           spacing: 20.0,
                           children: [

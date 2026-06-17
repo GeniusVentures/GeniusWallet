@@ -3,12 +3,14 @@ publish_to: none
 version: 2.0.0
 
 environment:
-  sdk: ">=3.10.0"
+  sdk: "^3.10.0"
 
 dev_dependencies:
   ffigen: ^20.1.1
   build_runner: ^2.8.0
   freezed: ^3.2.3
+  json_serializable: ^6.8.0
+  hive_ce_generator: ^1.10.0
 
 dependencies:
   flutter:

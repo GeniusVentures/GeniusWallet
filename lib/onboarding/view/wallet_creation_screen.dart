@@ -12,8 +12,8 @@ class WalletCreationScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlue,
       body: Center(
-        child: SizedBox(
-          width: GeniusBreakpoints.small * 2 / 3,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 2 / 3),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -23,23 +23,23 @@ class WalletCreationScreen extends StatelessWidget {
                 'assets/images/logo_and_title.png',
                 package: 'genius_wallet',
               ),
-              SizedBox(
-                height: 50,
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 50),
                 child: OutlinedButton(
                   onPressed: () => context.push('/import_existing_wallet'),
                   child: const Text('I already have a wallet'),
                 ),
               ),
-              SizedBox(
-                height: 50,
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 50),
                 child: FilledButton(
                   onPressed: () => context.push('/create_wallet'),
                   child: const Text("Create new wallet"),
                 ),
               ),
               if (includeBackButton)
-                SizedBox(
-                  height: 50,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 50),
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('Cancel'),

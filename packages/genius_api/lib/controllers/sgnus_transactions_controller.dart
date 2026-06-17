@@ -13,17 +13,20 @@ class SGNUSTransactionsController {
   }
 
   void addTransaction(Transaction transaction) {
-    _transactions
-        .add(transaction); // Will use freezed's equality implementation
-    _controller
-        .add(List.unmodifiable(_transactions.toList().reversed.toList()));
+    _transactions.add(
+      transaction,
+    ); // Will use freezed's equality implementation
+    _controller.add(
+      List.unmodifiable(_transactions.toList().reversed.toList()),
+    );
   }
 
   void setTransactions(List<Transaction> newTxs) {
     _transactions.clear();
     _transactions.addAll(newTxs);
-    _controller
-        .add(List.unmodifiable(_transactions.toList().reversed.toList()));
+    _controller.add(
+      List.unmodifiable(_transactions.toList().reversed.toList()),
+    );
   }
 
   void clear() {

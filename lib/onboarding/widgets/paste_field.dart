@@ -49,8 +49,8 @@ class PasteField extends StatelessWidget {
           ],
         ),
         if (additionalWidget != null) additionalWidget!,
-        SizedBox(
-          width: MediaQuery.sizeOf(context).width,
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width),
           child: Text(subtitle, textAlign: TextAlign.left),
         ),
       ],

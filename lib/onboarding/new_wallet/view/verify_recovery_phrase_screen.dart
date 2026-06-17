@@ -84,8 +84,8 @@ class _VerifyRecoveryPhraseScreenState
           return KeyEventResult.ignored;
         },
         child: Center(
-          child: SizedBox(
-            width: GeniusBreakpoints.small,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -99,8 +99,8 @@ class _VerifyRecoveryPhraseScreenState
                     "Tap the words to put them next to each other in the correct order",
                   ),
                   _InputAndWords(key: _inputAndWordsKey),
-                  SizedBox(
-                    width: 300,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 300),
                     child: FilledButton(
                       onPressed: _triggerContinue,
                       child: const Text("Continue"),

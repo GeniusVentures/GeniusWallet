@@ -80,8 +80,8 @@ class SubmitJobScreen extends StatelessWidget {
             children: [
               Align(
                 alignment: AlignmentGeometry.topCenter,
-                child: SizedBox(
-                  width: GeniusBreakpoints.large,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: GeniusBreakpoints.large),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(

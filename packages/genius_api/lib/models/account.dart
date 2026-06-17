@@ -4,11 +4,12 @@ part 'account.freezed.dart';
 part 'account.g.dart';
 
 @unfreezed
-class Account with _$Account {
-  factory Account(
-      {String? name,
-      double? balance,
-      DateTime? lastBalanceRetrievalDate}) = _Account;
+abstract class Account with _$Account {
+  factory Account({
+    String? name,
+    double? balance,
+    DateTime? lastBalanceRetrievalDate,
+  }) = _Account;
 
   factory Account.fromJson(Map<String, Object?> json) =>
       _$AccountFromJson(json);

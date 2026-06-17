@@ -210,7 +210,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       appBar: AppBar(title: const Text('Send Feedback')),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small),
             child: Column(
@@ -241,7 +241,6 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                     labelText: 'Message',
                     hintText:
                         'Describe the issue or share your feedback here...',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),

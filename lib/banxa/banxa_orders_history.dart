@@ -172,8 +172,8 @@ class _OrdersPageState extends State<OrdersPage> {
                       }).toList(),
                       requestFocusOnTap: false,
                     ),
-                    SizedBox(
-                      width: 300.0,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 300.0),
                       child: OutlinedButton(
                         onPressed: () => _pickDateRange(context),
                         child: const Text("Pick Date Range"),
