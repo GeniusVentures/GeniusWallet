@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:io';
-import 'dart:typed_data';
 
 class SubmitLogsScreen extends StatefulWidget {
-  const SubmitLogsScreen({Key? key}) : super(key: key);
+  const SubmitLogsScreen({super.key});
 
   @override
   State<SubmitLogsScreen> createState() => _SubmitLogsScreenState();
@@ -211,59 +211,63 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.feedback_outlined,
-                size: 64,
-                color: Colors.greenAccent,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Send feedback to the team',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Type your message below. SDK logs are attached automatically when available.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: _feedbackController,
-                minLines: 4,
-                maxLines: 8,
-                textInputAction: TextInputAction.newline,
-                decoration: const InputDecoration(
-                  labelText: 'Message',
-                  hintText: 'Describe the issue or share your feedback here...',
-                  border: OutlineInputBorder(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.feedback_outlined,
+                  size: 64,
+                  color: Colors.greenAccent,
                 ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : _submitFeedback,
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send),
-                label: Text(_isSubmitting ? 'Sending...' : 'Send Feedback'),
-              ),
-              const SizedBox(height: 16),
-              Text(_statusMessage, textAlign: TextAlign.center),
-              if (_lastEventId != null) ...[
+                const SizedBox(height: 24),
+                const Text(
+                  'Send feedback to the team',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _copyEventId,
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy Event ID'),
+                const Text(
+                  'Type your message below. SDK logs are attached automatically when available.',
+                  textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _feedbackController,
+                  minLines: 4,
+                  maxLines: 8,
+                  textInputAction: TextInputAction.newline,
+                  decoration: const InputDecoration(
+                    labelText: 'Message',
+                    hintText:
+                        'Describe the issue or share your feedback here...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _isSubmitting ? null : _submitFeedback,
+                  icon: _isSubmitting
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send),
+                  label: Text(_isSubmitting ? 'Sending...' : 'Send Feedback'),
+                ),
+                const SizedBox(height: 16),
+                Text(_statusMessage, textAlign: TextAlign.center),
+                if (_lastEventId != null) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _copyEventId,
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Copy Event ID'),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

@@ -186,33 +186,18 @@ jobs:
           sudo update-alternatives --set cc $(which clang)
           sudo update-alternatives --set c++ $(which clang++)
 
+          sudo apt install -y jq
+
           # Linux desktop builds run in the Debian bullseye container.
           # Keep package origin consistent there to avoid mixed base/backports versions.
           if [ "${{ matrix.target }}" = "Linux" ]; then
-            sudo apt install -y -t bullseye-backports \
-              ninja-build \
-              libvulkan-dev \
-              libzstd-dev \
-              libsecret-1-dev \
-              lld
-
-            sudo apt install -y -t bullseye-backports \
-              libgtk-3-dev \
-              jq
+            sudo apt install -y lld
 
             CLANG_BIN_DIR="$(dirname "$(readlink -f "$(which clang)")")"
             LLD_PATH="$(command -v ld.lld || true)"
             if [ -n "$LLD_PATH" ] && [ ! -x "$CLANG_BIN_DIR/ld.lld" ]; then
               sudo ln -sf "$LLD_PATH" "$CLANG_BIN_DIR/ld.lld"
             fi
-          else
-            # Android/Linux-host jobs are not containerized and should use host repos.
-            sudo apt install -y \
-              ninja-build \
-              libvulkan-dev \
-              libzstd-dev \
-              libsecret-1-dev \
-              jq
           fi
 
           if [ "${{ runner.environment }}" = "self-hosted" ] && [ -z "${{ matrix.container }}" ] && [ -n "${RUNNER_TOOL_CACHE:-}" ]; then

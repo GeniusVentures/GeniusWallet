@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 /// SPD log levels exposed in dropdown order (most verbose → silent).
 const _spdlogLevels = [
@@ -165,23 +166,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLogSection(),
-            const SizedBox(height: 24),
-            _buildNetworkSection(),
-            const SizedBox(height: 24),
-            _buildCrdtSection(),
-            const SizedBox(height: 32),
-          ],
+      appBar: AppBar(title: const Text('Settings')),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 24.0,
+              children: [
+                _buildLogSection(),
+                _buildNetworkSection(),
+                _buildCrdtSection(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -223,7 +223,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             flex: 3,
             child: Text(
               entry.key,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              style: const TextStyle(fontFamily: 'JetBrainsMono'),
             ),
           ),
           Expanded(

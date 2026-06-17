@@ -192,23 +192,6 @@ if(SGNS_STACKTRACE_BACKTRACE)
     endif()
 endif()
 
-option(SGNS_ENABLE_RELEASE_SYMBOLS "Build Release with debug symbols for symbolication" ON)
-
-if(SGNS_ENABLE_RELEASE_SYMBOLS AND CMAKE_CXX_COMPILER_ID MATCHES "^(AppleClang|Clang|GNU)$")
-    add_compile_options(
-        "$<$<CONFIG:Release>:-gline-tables-only>"
-        "$<$<CONFIG:RelWithDebInfo>:-g>"
-    )
-endif()
-
-if(SGNS_ENABLE_RELEASE_SYMBOLS)
-    if(CMAKE_OBJCOPY)
-        set(SGNS_OBJCOPY_EXECUTABLE "${CMAKE_OBJCOPY}")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
-        find_program(SGNS_OBJCOPY_EXECUTABLE NAMES llvm-objcopy objcopy REQUIRED)
-    endif()
-endif()
-
 find_package(Boost REQUIRED COMPONENTS container date_time filesystem random regex system thread log log_setup program_options unit_test_framework json context coroutine)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -415,6 +398,24 @@ set(GeniusSDK_DIR "${GENIUSSDK_BUILD_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
 find_package(GeniusSDK CONFIG REQUIRED)
 include_directories(${GeniusSDK_INCLUDE_DIR})
 set(BUILD_SHARED_LIBS ON)
+
+option(SGNS_ENABLE_RELEASE_SYMBOLS "Build Release with debug symbols for symbolication" ON)
+
+if(SGNS_ENABLE_RELEASE_SYMBOLS AND CMAKE_CXX_COMPILER_ID MATCHES "^(AppleClang|Clang|GNU)$")
+    add_compile_options(
+        "$<$<CONFIG:Release>:-gline-tables-only>"
+        "$<$<CONFIG:RelWithDebInfo>:-g>"
+    )
+endif()
+
+if(SGNS_ENABLE_RELEASE_SYMBOLS)
+    if(CMAKE_OBJCOPY)
+        set(SGNS_OBJCOPY_EXECUTABLE "${CMAKE_OBJCOPY}")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+        find_program(SGNS_OBJCOPY_EXECUTABLE NAMES llvm-objcopy objcopy REQUIRED)
+    endif()
+endif()
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
@@ -458,13 +459,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 COMMAND ${DSYMUTIL_EXECUTABLE} $<TARGET_FILE:GeniusWallet> -o $<TARGET_FILE:GeniusWallet>.dSYM
                 COMMENT "Generating dSYM for GeniusWallet"
             )
-            if(NOT CMAKE_INSTALL_LIBDIR)
-                set(CMAKE_INSTALL_LIBDIR lib)
-            endif()
-            install(DIRECTORY $<TARGET_FILE:GeniusWallet>.dSYM
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                OPTIONAL
-            )
         endif()
     elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android") AND SGNS_ENABLE_RELEASE_SYMBOLS)
         add_custom_command(TARGET GeniusWallet POST_BUILD
@@ -476,14 +470,13 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
             VERBATIM
         )
     endif()
-    #Do this in 2 until osx linking is fixed for multiple.
+
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
     )
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         sgns::GeniusSDK
     )
-
     target_link_libraries(GeniusWallet PRIVATE
         wallet_core_rs
         TrezorCrypto
