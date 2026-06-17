@@ -14,10 +14,17 @@ if(NOT CMAKE_SKIP_THIRD_PARTY)
   message("CMAKE ARGS: $ENV{CMAKE_ARGUMENTS}")
 # Parse CMAKE_ARGUMENTS environment variable if present
 if(DEFINED ENV{CMAKE_ARGUMENTS})
+    # Strip surrounding double-quotes from the value (e.g. from 'set VAR="..."' in batch files)
+    set(CMAKE_ARGUMENTS_RAW "$ENV{CMAKE_ARGUMENTS}")
+    string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    if(CMAKE_ARGUMENTS_RAW MATCHES "^\".*\"$")
+        string(LENGTH "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_LEN)
+        math(EXPR CMAKE_ARGUMENTS_END "${CMAKE_ARGUMENTS_LEN} - 2")
+        string(SUBSTRING "${CMAKE_ARGUMENTS_RAW}" 1 "${CMAKE_ARGUMENTS_END}" CMAKE_ARGUMENTS_RAW)
+        string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    endif()
     # Split the arguments string into a list
-    string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
-    
-    # Process each argument
+    string(REPLACE " " ";" CMAKE_ARG_LIST "${CMAKE_ARGUMENTS_RAW}")
     foreach(ARG IN LISTS CMAKE_ARG_LIST)
         # Check if it's a -D argument (variable definition)
         if(ARG MATCHES "^-D(.+)=(.+)$")

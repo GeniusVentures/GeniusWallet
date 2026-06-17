@@ -120,6 +120,17 @@ class NativeLibrary {
   late final _GeniusSDKShutdown =
       _GeniusSDKShutdownPtr.asFunction<int Function()>();
 
+  /// @brief Reloads log level overrides from log_config.json at runtime.
+  void GeniusSDKLoadLogConfig() {
+    return _GeniusSDKLoadLogConfig();
+  }
+
+  late final _GeniusSDKLoadLogConfigPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>(
+          'GeniusSDKLoadLogConfig');
+  late final _GeniusSDKLoadLogConfig =
+      _GeniusSDKLoadLogConfigPtr.asFunction<void Function()>();
+
   /// @brief Retrieves the current balance for a specific token.
   /// @param[in] token_id  Token identifier to query.
   /// @return The balance amount as a `uint64_t` value (in Minion Tokens).
@@ -383,6 +394,9 @@ class NativeLibrary {
   late final _GeniusSDKGetCostGNUS = _GeniusSDKGetCostGNUSPtr.asFunction<
       GeniusTokenValue Function(ffi.Pointer<ffi.Char>)>();
 
+  /// @brief Submits data for processing based on the given JSON data.
+  /// @param[in] jsondata The JSON data to be processed.
+  /// @return A `GeniusNodeReturnValue_t` indicating the result of the operation.
   int GeniusSDKProcess(
     ffi.Pointer<ffi.Char> jsondata,
   ) {
@@ -397,6 +411,23 @@ class NativeLibrary {
               ffi.Pointer<ffi.Char>)>>('GeniusSDKProcess');
   late final _GeniusSDKProcess =
       _GeniusSDKProcessPtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
+
+  /// @brief Checks the validity of a job based on the given JSON data.
+  /// @param[in] jsondata The JSON data to be processed.
+  /// @return `true` if the job is valid, `false` otherwise.
+  bool GeniusSDKCheckJobValidity(
+    ffi.Pointer<ffi.Char> jsondata,
+  ) {
+    return _GeniusSDKCheckJobValidity(
+      jsondata,
+    );
+  }
+
+  late final _GeniusSDKCheckJobValidityPtr =
+      _lookup<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<ffi.Char>)>>(
+          'GeniusSDKCheckJobValidity');
+  late final _GeniusSDKCheckJobValidity = _GeniusSDKCheckJobValidityPtr
+      .asFunction<bool Function(ffi.Pointer<ffi.Char>)>();
 
   /// @brief       Retrieves the current state of the Transaction Manager.
   /// @return      The current state as a @ref GeniusTransactionManagerState enum value.
@@ -440,8 +471,8 @@ class NativeLibrary {
   late final _GeniusSDKGetTransactionStatus = _GeniusSDKGetTransactionStatusPtr
       .asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
-  /// @brief       Retrieves the current processing status.
-  /// @return      The current processing status info including state and progress percentage.
+  /// @brief       Retrieves the current processing status with progress information.
+  /// @return      A @ref GeniusProcessingStatusInfo struct containing the processing status and percentage.
   GeniusProcessingStatusInfo GeniusSDKGetProcessingStatus() {
     return _GeniusSDKGetProcessingStatus();
   }
@@ -449,8 +480,8 @@ class NativeLibrary {
   late final _GeniusSDKGetProcessingStatusPtr =
       _lookup<ffi.NativeFunction<GeniusProcessingStatusInfo Function()>>(
           'GeniusSDKGetProcessingStatus');
-  late final _GeniusSDKGetProcessingStatus =
-      _GeniusSDKGetProcessingStatusPtr.asFunction<GeniusProcessingStatusInfo Function()>();
+  late final _GeniusSDKGetProcessingStatus = _GeniusSDKGetProcessingStatusPtr
+      .asFunction<GeniusProcessingStatusInfo Function()>();
 }
 
 typedef int_least8_t = ffi.Int8;
@@ -694,17 +725,6 @@ final class GeniusTokenID extends ffi.Struct {
   external ffi.Array<ffi.UnsignedChar> data;
 }
 
-/// @brief Contains processing status information including progress percentage.
-final class GeniusProcessingStatusInfo extends ffi.Struct {
-  /// < Current processing state
-  @ffi.Int32()
-  external int status;
-
-  /// < Progress percentage from 0.0 to 100.0
-  @ffi.Float()
-  external double percentage;
-}
-
 typedef PayAmount_t = ffi.Uint64;
 typedef DartPayAmount_t = int;
 typedef GeniusNodeReturnValue_t = ffi.Int32;
@@ -855,6 +875,17 @@ enum GeniusProcessingStatus {
       };
 }
 
+/// @brief Represents the current processing status with progress information.
+final class GeniusProcessingStatusInfo extends ffi.Struct {
+  /// < Current processing state
+  @GeniusProcessingStatus_t()
+  external int status;
+
+  /// < Progress percentage from 0.0 to 100.0
+  @ffi.Float()
+  external double percentage;
+}
+
 const int __WORDSIZE = 64;
 
 const int __has_safe_buffers = 1;
@@ -896,6 +927,8 @@ const int _DARWIN_FEATURE_ONLY_UNIX_CONFORMANCE = 1;
 const int _DARWIN_FEATURE_UNIX_CONFORMANCE = 3;
 
 const int __has_ptrcheck = 0;
+
+const int __has_bounds_safety_attributes = 0;
 
 const int __DARWIN_NULL = 0;
 

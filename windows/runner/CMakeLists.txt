@@ -4,7 +4,11 @@ include(../../cmake/CommonOverrideFlags.cmake)
 include(../../cmake/Utilities.cmake)
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
-    set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+    if(CMAKE_BUILD_TYPE)
+        set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+    else()
+        set(ARCH_OUTPUT_DIR /build/Windows/${BUILD_TYPE_SEARCH})
+    endif()
     set(ARCH_OUTPUT_DIR_REL /build/Windows/Release)
     set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_OUTPUT_DIR_REL})
 

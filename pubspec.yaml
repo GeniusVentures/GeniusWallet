@@ -192,3 +192,4 @@ flutter:
     - assets/dev_config.json
     - assets/network_config.json
     - assets/crdt_config.json
+    - assets/log_config.json
