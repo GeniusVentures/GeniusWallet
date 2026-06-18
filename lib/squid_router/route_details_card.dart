@@ -11,14 +11,15 @@ class RouteDetailsCard extends StatelessWidget {
   final SquidTokenInfo? toToken;
   final String slippage;
 
-  const RouteDetailsCard(
-      {super.key,
-      required this.route,
-      required this.fromAmount,
-      required this.toAmount,
-      required this.fromToken,
-      required this.toToken,
-      required this.slippage});
+  const RouteDetailsCard({
+    super.key,
+    required this.route,
+    required this.fromAmount,
+    required this.toAmount,
+    required this.fromToken,
+    required this.toToken,
+    required this.slippage,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +57,14 @@ class RouteDetailsCard extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14)),
-              Text(value,
-                  style: const TextStyle(color: Colors.white, fontSize: 14)),
+              Text(
+                label,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              Text(
+                value,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
             ],
           ),
         ),

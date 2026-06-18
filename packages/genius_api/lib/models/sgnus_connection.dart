@@ -4,7 +4,7 @@ part 'sgnus_connection.freezed.dart';
 part 'sgnus_connection.g.dart';
 
 @freezed
-class SGNUSConnection with _$SGNUSConnection {
+abstract class SGNUSConnection with _$SGNUSConnection {
   const factory SGNUSConnection({
     required String sgnusAddress,
     required String walletAddress,
@@ -16,6 +16,9 @@ class SGNUSConnection with _$SGNUSConnection {
 
   factory SGNUSConnection.empty() {
     return SGNUSConnection(
-        sgnusAddress: "", walletAddress: "", isConnected: false);
+      sgnusAddress: "",
+      walletAddress: "",
+      isConnected: false,
+    );
   }
 }

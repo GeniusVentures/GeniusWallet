@@ -63,78 +63,58 @@ class BridgeScreenState extends State<BridgeScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Bridge"),
-        ),
-        body: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-            builder: (context, state) {
+      appBar: AppBar(title: const Text("Bridge")),
+      body: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+        builder: (context, state) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(GeniusWalletConsts.borderRadiusCard),
-                ),
-              ),
-              padding: const EdgeInsetsDirectional.symmetric(
-                vertical: 128,
-                horizontal: 24,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 550),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // From Token Input
-                      _buildDropdown<Coin>(
-                          cs: cs,
-                          availableItems: fromToken != null
-                              ? List.from([fromToken!])
-                              : List.empty(),
-                          onItemChanged: (Coin newCoin) {
-                            setState(() {
-                              fromToken = newCoin; // Update the selected coin
-                            });
-                          },
-                          displayText: (Coin coin) => coin.symbol ?? '',
-                          displayIcon: (Coin coin) => Image.asset(
-                                coin.iconPath ?? "",
-                                height: 36,
-                                width: 36,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const SizedBox(height: 36, width: 36);
-                                },
-                              ),
-                          label: 'You Pay',
-                          selectedItem: fromToken,
-                          onAmountChanged: (value) async {
-                            // Cancel any existing debounce timer
-                            if (_debounce?.isActive ?? false) {
-                              _debounce!.cancel();
-                            }
+            padding: const EdgeInsets.all(16.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // From Token Input
+                    _buildDropdown<Coin>(
+                      cs: cs,
+                      availableItems: fromToken != null
+                          ? List.from([fromToken!])
+                          : List.empty(),
+                      onItemChanged: (Coin newCoin) {
+                        setState(() {
+                          fromToken = newCoin; // Update the selected coin
+                        });
+                      },
+                      displayText: (Coin coin) => coin.symbol ?? '',
+                      displayIcon: (Coin coin) => Image.asset(
+                        coin.iconPath ?? "",
+                        height: 36,
+                        width: 36,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const SizedBox(height: 36, width: 36);
+                        },
+                      ),
+                      label: 'You Pay',
+                      selectedItem: fromToken,
+                      onAmountChanged: (value) async {
+                        // Cancel any existing debounce timer
+                        if (_debounce?.isActive ?? false) {
+                          _debounce!.cancel();
+                        }
 
-                            // Start a new debounce timer
-                            _debounce = Timer(const Duration(milliseconds: 300),
-                                () async {
-                              // If an API call is already in progress, do nothing
-                              if (_isApiCallInProgress) return;
+                        // Start a new debounce timer
+                        _debounce = Timer(
+                          const Duration(milliseconds: 300),
+                          () async {
+                            // If an API call is already in progress, do nothing
+                            if (_isApiCallInProgress) return;
 
-                              // Validate input immediately
-                              try {
-                                if ((double.parse(value)) >
-                                        (fromToken?.balance ?? 0) ||
-                                    fromToken?.balance == null) {
-                                  // Not enough balance or invalid balance
-                                  setState(() {
-                                    transactionCost = null;
-                                    toAmountController.text = '';
-                                    isError = true;
-                                  });
-                                  return;
-                                }
-                              } catch (e) {
-                                // Input wasn't a proper double
+                            // Validate input immediately
+                            try {
+                              if ((double.parse(value)) >
+                                      (fromToken?.balance ?? 0) ||
+                                  fromToken?.balance == null) {
+                                // Not enough balance or invalid balance
                                 setState(() {
                                   transactionCost = null;
                                   toAmountController.text = '';
@@ -142,147 +122,162 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 });
                                 return;
                               }
+                            } catch (e) {
+                              // Input wasn't a proper double
+                              setState(() {
+                                transactionCost = null;
+                                toAmountController.text = '';
+                                isError = true;
+                              });
+                              return;
+                            }
 
-                              // Set API call in progress
-                              _isApiCallInProgress = true;
+                            // Set API call in progress
+                            _isApiCallInProgress = true;
 
-                              // Make the API call
-                              final api = context.read<GeniusApi>();
-                              final gasCostResponse =
-                                  await api.getBrigeOutGasCost(
-                                sourceChainId:
-                                    state.selectedNetwork?.chainId ?? 0,
-                                contractAddress: fromToken?.address ?? "",
-                                rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                                address: state.selectedWallet?.address ?? "",
-                                amountToBurn: value,
-                                destinationChainId: toNetwork?.chainId ?? 0,
-                              );
-
-                              // Reset API call progress
-                              _isApiCallInProgress = false;
-
-                              // Handle API response
-                              if (gasCostResponse.isSuccess) {
-                                setState(() {
-                                  toAmountController.text = value;
-                                  transactionCost = gasCostResponse.data;
-                                  isError = false;
-                                });
-                              } else {
-                                setState(() {
-                                  transactionCost = null;
-                                  toAmountController.text = '';
-                                  isError = true;
-                                });
-                              }
-                            });
-                          },
-                          controller: fromAmountController),
-                      const SizedBox(height: 30),
-                      // To Token Input
-                      _buildDropdown<Network>(
-                        cs: cs,
-                        availableItems: availableBridgeNetworks ?? List.empty(),
-                        onItemChanged: (Network newNetwork) {
-                          setState(() {
-                            toNetwork = newNetwork; // Update the selected coin
-                          });
-                        },
-                        displayText: (Network network) => network.name ?? '',
-                        displayIcon: (Network network) => Image.asset(
-                          network.iconPath ?? "",
-                          height: 36,
-                          width: 36,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox(height: 36, width: 36);
-                          },
-                        ),
-                        label: 'You Receive',
-                        selectedItem: toNetwork,
-                        onAmountChanged: null, // Disable manual input for "To"
-                        controller: toAmountController,
-                      ),
-                      const SizedBox(height: 24),
-                      // Swap Button
-
-                      TextButton(
-                        onPressed: fromAmountController.text.isEmpty || isError
-                            ? null
-                            : () async {
-                                final api = context.read<GeniusApi>();
-                                final bridgeTokensResponse =
-                                    await api.bridgeOut(
-                                        sourceChainId:
-                                            state.selectedNetwork?.chainId ?? 0,
-                                        contractAddress:
-                                            fromToken?.address ?? "",
-                                        rpcUrl:
-                                            state.selectedNetwork?.rpcUrl ?? "",
-                                        address:
-                                            state.selectedWallet?.address ?? "",
-                                        amountToBurn: fromAmountController.text,
-                                        destinationChainId:
-                                            toNetwork?.chainId ?? 0,
-                                        shouldMintTokens: true);
-
-                                if (!context.mounted) return;
-
-                                ToastManager.instance.showToast(
-                                  context: context,
-                                  title: bridgeTokensResponse.isSuccess
-                                      ? 'Success'
-                                      : 'Error',
-                                  message: bridgeTokensResponse.isSuccess
-                                      ? 'Bridge transaction completed.'
-                                      : 'Bridge transaction failed.',
-                                  type: bridgeTokensResponse.isSuccess
-                                      ? ToastType.success
-                                      : ToastType.error,
+                            // Make the API call
+                            final api = context.read<GeniusApi>();
+                            final gasCostResponse = await api
+                                .getBrigeOutGasCost(
+                                  sourceChainId:
+                                      state.selectedNetwork?.chainId ?? 0,
+                                  contractAddress: fromToken?.address ?? "",
+                                  rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                                  address:
+                                      state.selectedWallet?.address ?? "",
+                                  amountToBurn: value,
+                                  destinationChainId: toNetwork?.chainId ?? 0,
                                 );
 
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    backgroundColor: cs.surface,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 18, vertical: 20),
-                                    actionsAlignment: MainAxisAlignment.center,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            12)), // Rounded corners
-                                    title: Center(
-                                      child: Text(
-                                        bridgeTokensResponse.isSuccess
-                                            ? 'Bridge Success!'
-                                            : 'Bridge Failed!',
-                                        style: TextStyle(
-                                          color: bridgeTokensResponse.isSuccess
-                                              ? cs.primary
-                                              : cs.error,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                            // Reset API call progress
+                            _isApiCallInProgress = false;
+
+                            // Handle API response
+                            if (gasCostResponse.isSuccess) {
+                              setState(() {
+                                toAmountController.text = value;
+                                transactionCost = gasCostResponse.data;
+                                isError = false;
+                              });
+                            } else {
+                              setState(() {
+                                transactionCost = null;
+                                toAmountController.text = '';
+                                isError = true;
+                              });
+                            }
+                          },
+                        );
+                      },
+                      controller: fromAmountController,
+                    ),
+                    const SizedBox(height: 30),
+                    // To Token Input
+                    _buildDropdown<Network>(
+                      cs: cs,
+                      availableItems: availableBridgeNetworks ?? List.empty(),
+                      onItemChanged: (Network newNetwork) {
+                        setState(() {
+                          toNetwork = newNetwork; // Update the selected coin
+                        });
+                      },
+                      displayText: (Network network) => network.name ?? '',
+                      displayIcon: (Network network) => Image.asset(
+                        network.iconPath ?? "",
+                        height: 36,
+                        width: 36,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const SizedBox(height: 36, width: 36);
+                        },
+                      ),
+                      label: 'You Receive',
+                      selectedItem: toNetwork,
+                      onAmountChanged: null, // Disable manual input for "To"
+                      controller: toAmountController,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Swap Button
+                    TextButton(
+                      onPressed: fromAmountController.text.isEmpty || isError
+                          ? null
+                          : () async {
+                              final api = context.read<GeniusApi>();
+                              final bridgeTokensResponse = await api
+                                  .bridgeOut(
+                                    sourceChainId:
+                                        state.selectedNetwork?.chainId ?? 0,
+                                    contractAddress: fromToken?.address ?? "",
+                                    rpcUrl:
+                                        state.selectedNetwork?.rpcUrl ?? "",
+                                    address:
+                                        state.selectedWallet?.address ?? "",
+                                    amountToBurn: fromAmountController.text,
+                                    destinationChainId:
+                                        toNetwork?.chainId ?? 0,
+                                    shouldMintTokens: true,
+                                  );
+
+                              if (!context.mounted) return;
+
+                              ToastManager.instance.showToast(
+                                context: context,
+                                title: bridgeTokensResponse.isSuccess
+                                    ? 'Success'
+                                    : 'Error',
+                                message: bridgeTokensResponse.isSuccess
+                                    ? 'Bridge transaction completed.'
+                                    : 'Bridge transaction failed.',
+                                type: bridgeTokensResponse.isSuccess
+                                    ? ToastType.success
+                                    : ToastType.error,
+                              );
+
+                              showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  backgroundColor: cs.surface,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 20,
+                                  ),
+                                  actionsAlignment: MainAxisAlignment.center,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ), // Rounded corners
+                                  title: Center(
+                                    child: Text(
+                                      bridgeTokensResponse.isSuccess
+                                          ? 'Bridge Success!'
+                                          : 'Bridge Failed!',
+                                      style: TextStyle(
+                                        color: bridgeTokensResponse.isSuccess
+                                            ? cs.primary
+                                            : cs.error,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    content: SizedBox(
-                                        width:
-                                            GeniusBreakpoints.useDesktopLayout(
-                                                    context)
-                                                ? 500
-                                                : MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    .85,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: bridgeTokensResponse
-                                                  .isSuccess
-                                              ? [
-                                                  const SizedBox(height: 16),
-                                                  Row(children: [
-                                                    Expanded(
-                                                        child: Row(
+                                  ),
+                                  content: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          GeniusBreakpoints.useDesktopLayout(
+                                            context,
+                                          )
+                                          ? 500
+                                          : MediaQuery.of(context).size.width *
+                                                .85,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: bridgeTokensResponse.isSuccess
+                                          ? [
+                                              const SizedBox(height: 16),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Row(
                                                       mainAxisAlignment:
                                                           MainAxisAlignment
                                                               .spaceBetween,
@@ -298,10 +293,12 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                     .start,
                                                             children: [
                                                               _cryptoIcon(
-                                                                  fromToken
-                                                                      ?.iconPath),
+                                                                fromToken
+                                                                    ?.iconPath,
+                                                              ),
                                                               const SizedBox(
-                                                                  width: 6),
+                                                                width: 6,
+                                                              ),
                                                               Expanded(
                                                                 // Allows text to wrap properly
                                                                 child: Column(
@@ -314,33 +311,30 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       maxLines:
                                                                           1,
                                                                       overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
+                                                                          TextOverflow.ellipsis,
                                                                       softWrap:
                                                                           true, // Allows wrapping if needed
                                                                       style: const TextStyle(
-                                                                          fontSize:
-                                                                              18,
-                                                                          fontWeight:
-                                                                              FontWeight.bold),
+                                                                        fontSize:
+                                                                            18,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                      ),
                                                                     ),
                                                                     Text(
-                                                                      fromToken
-                                                                              ?.networkSymbol ??
+                                                                      fromToken?.networkSymbol ??
                                                                           "",
                                                                       maxLines:
                                                                           2, // Allows wrapping on small screens
                                                                       overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
+                                                                          TextOverflow.ellipsis,
                                                                       softWrap:
                                                                           true,
-                                                                      style:
-                                                                          TextStyle(
+                                                                      style: TextStyle(
                                                                         fontSize:
                                                                             14,
-                                                                        color: cs
-                                                                            .onSurfaceVariant,
+                                                                        color:
+                                                                            cs.onSurfaceVariant,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -351,14 +345,14 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                         ),
 
                                                         const Expanded(
-                                                            child: Icon(
-                                                                Icons
-                                                                    .arrow_forward,
-                                                                color: Colors
-                                                                    .white70,
-                                                                size:
-                                                                    30)), // Arrow Icon
-
+                                                          child: Icon(
+                                                            Icons
+                                                                .arrow_forward,
+                                                            color: Colors
+                                                                .white70,
+                                                            size: 30,
+                                                          ),
+                                                        ), // Arrow Icon
                                                         // To Token Section (Icon + Amount + Network Name)
                                                         Expanded(
                                                           child: Row(
@@ -367,10 +361,12 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                     .start,
                                                             children: [
                                                               _cryptoIcon(
-                                                                  toNetwork
-                                                                      ?.iconPath),
+                                                                toNetwork
+                                                                    ?.iconPath,
+                                                              ),
                                                               const SizedBox(
-                                                                  width: 6),
+                                                                width: 6,
+                                                              ),
                                                               Expanded(
                                                                 // Allows text to wrap properly
                                                                 child: Column(
@@ -383,33 +379,30 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       maxLines:
                                                                           1,
                                                                       overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
+                                                                          TextOverflow.ellipsis,
                                                                       softWrap:
                                                                           true, // Allows wrapping
                                                                       style: const TextStyle(
-                                                                          fontSize:
-                                                                              18,
-                                                                          fontWeight:
-                                                                              FontWeight.bold),
+                                                                        fontSize:
+                                                                            18,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                      ),
                                                                     ),
                                                                     Text(
-                                                                      toNetwork
-                                                                              ?.name ??
+                                                                      toNetwork?.name ??
                                                                           "",
                                                                       maxLines:
                                                                           2, // Allows wrapping on small screens
                                                                       overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
+                                                                          TextOverflow.ellipsis,
                                                                       softWrap:
                                                                           true,
-                                                                      style:
-                                                                          TextStyle(
+                                                                      style: TextStyle(
                                                                         fontSize:
                                                                             14,
-                                                                        color: cs
-                                                                            .onSurfaceVariant,
+                                                                        color:
+                                                                            cs.onSurfaceVariant,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -419,133 +412,158 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                           ),
                                                         ),
                                                       ],
-                                                    ))
-                                                  ]),
-                                                  const SizedBox(height: 64),
-
-                                                  /// **Transaction Hash**
-                                                  const Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                      'Transaction Hash:',
-                                                      style: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold),
                                                     ),
                                                   ),
-                                                  const SizedBox(height: 8),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            12),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.black26,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: SelectableText(
-                                                            bridgeTokensResponse
-                                                                    .data ??
-                                                                "No Hash Available",
-                                                            style: const TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500),
-                                                          ),
-                                                        ),
-                                                        IconButton(
-                                                          icon: const Icon(
-                                                              Icons.copy,
-                                                              color: Colors
-                                                                  .white70),
-                                                          onPressed: () {
-                                                            Clipboard.setData(
-                                                              ClipboardData(
-                                                                  text: bridgeTokensResponse
-                                                                          .data ??
-                                                                      ""),
-                                                            );
-                                                            showAppSnackBar(
-                                                                context,
-                                                                "Transaction Hash Copied!");
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ]
-                                              : [
-                                                  const SizedBox(height: 12),
-                                                  Text(
-                                                    bridgeTokensResponse
-                                                            .errorMessage ??
-                                                        "Failed to bridge tokens",
-                                                    style: const TextStyle(
-                                                        fontSize: 16),
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  const SizedBox(height: 16),
                                                 ],
-                                        )),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          // for now return to the coins screen
-                                          GoRouter.of(context).pop();
-                                        },
-                                        child: const Text(
-                                          'Close',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
+                                              ),
+                                              const SizedBox(height: 64),
+
+                                              /// **Transaction Hash**
+                                              const Align(
+                                                alignment:
+                                                    Alignment.centerLeft,
+                                                child: Text(
+                                                  'Transaction Hash:',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Container(
+                                                padding: const EdgeInsets.all(
+                                                  12,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black26,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        8,
+                                                      ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: SelectableText(
+                                                        bridgeTokensResponse
+                                                                .data ??
+                                                            "No Hash Available",
+                                                        style:
+                                                            const TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                        Icons.copy,
+                                                        color: Colors.white70,
+                                                      ),
+                                                      onPressed: () {
+                                                        Clipboard.setData(
+                                                          ClipboardData(
+                                                            text:
+                                                                bridgeTokensResponse
+                                                                    .data ??
+                                                                "",
+                                                          ),
+                                                        );
+                                                        showAppSnackBar(
+                                                          context,
+                                                          "Transaction Hash Copied!",
+                                                        );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ]
+                                          : [
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                bridgeTokensResponse
+                                                        .errorMessage ??
+                                                    "Failed to bridge tokens",
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        // for now return to the coins screen
+                                        GoRouter.of(context).pop();
+                                      },
+                                      child: const Text(
+                                        'Close',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
-                        style: ElevatedButton.styleFrom(
-                          disabledBackgroundColor: cs.surface,
-                          fixedSize: const Size(600, 60),
-                          backgroundColor: cs.surface,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 64,
-                            vertical: 20,
-                          ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        disabledBackgroundColor: cs.surface,
+                        fixedSize: const Size(600, 60),
+                        backgroundColor: cs.surface,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 64,
+                          vertical: 20,
                         ),
-                        child: const Text('Bridge'),
                       ),
-                      const SizedBox(height: 16),
-                      Row(children: [
-                        Text("Estimated Gas Cost:   ",
-                            style: TextStyle(color: cs.onSurfaceVariant)),
+                      child: const Text('Bridge'),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
                         Text(
-                            "${transactionCost == null ? 0 : transactionCost.toString()}")
-                      ])
-                    ],
-                  ),
+                          "Estimated Gas Cost:   ",
+                          style: TextStyle(color: cs.onSurfaceVariant),
+                        ),
+                        Text(
+                          "${transactionCost == null ? 0 : transactionCost.toString()}",
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
           );
-        }));
+        },
+      ),
+    );
   }
 
   Widget _cryptoIcon(String? iconPath) {
     return iconPath != null && iconPath.isNotEmpty
-        ? Image.asset(iconPath, width: 28, height: 28,
-            errorBuilder: (_, __, ___) {
-            return const Icon(Icons.currency_bitcoin,
-                color: Colors.white70, size: 28);
-          })
+        ? Image.asset(
+            iconPath,
+            width: 28,
+            height: 28,
+            errorBuilder: (_, _, _) {
+              return const Icon(
+                Icons.currency_bitcoin,
+                color: Colors.white70,
+                size: 28,
+              );
+            },
+          )
         : const Icon(Icons.currency_bitcoin, color: Colors.white70, size: 28);
   }
 
@@ -596,8 +614,10 @@ class BridgeScreenState extends State<BridgeScreen> {
                       style: TextStyle(color: Colors.white),
                     ),
                     dropdownColor: cs.surface,
-                    icon:
-                        const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white,
+                    ),
                     items: availableItems.map((T item) {
                       return DropdownMenuItem<T>(
                         value: item,
@@ -632,17 +652,16 @@ class BridgeScreenState extends State<BridgeScreen> {
               // TextField for numerical input
               Flexible(
                 flex: 2, // Adjust flex values for proportional sizing
-                child: SizedBox(
-                  height: 48, // Consistent height for inputs
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 48), // Consistent height for inputs
                   child: TextField(
                     controller: controller, // Persistent controller
                     style: const TextStyle(fontSize: 16),
                     textAlign: TextAlign.right,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      DecimalTextInputFormatter(),
-                    ],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [DecimalTextInputFormatter()],
                     onChanged: onAmountChanged,
                     readOnly: onAmountChanged == null, // Disable for read-only
                     decoration: InputDecoration(
@@ -668,9 +687,10 @@ class BridgeScreenState extends State<BridgeScreen> {
               child: Text(
                 "${selectedItem.balance == 0 ? 0 : selectedItem.balance.toString()} ${selectedItem.symbol}",
                 style: TextStyle(
-                    fontSize: 14,
-                    letterSpacing: 0.5,
-                    color: cs.onSurfaceVariant),
+                  fontSize: 14,
+                  letterSpacing: 0.5,
+                  color: cs.onSurfaceVariant,
+                ),
               ),
             ),
         ],
@@ -684,7 +704,9 @@ class DecimalTextInputFormatter extends TextInputFormatter {
 
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final text = newValue.text;
 
     // Allow empty input

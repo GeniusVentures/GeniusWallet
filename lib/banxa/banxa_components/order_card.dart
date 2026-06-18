@@ -55,7 +55,9 @@ class OrderCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: const BorderSide(
-            color: GeniusWalletColors.lightGreenSecondary, width: 1.5),
+          color: GeniusWalletColors.lightGreenSecondary,
+          width: 1.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -70,11 +72,15 @@ class OrderCard extends StatelessWidget {
                 Text(
                   "Order #${_shortId(order.id)}",
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
@@ -106,7 +112,8 @@ class OrderCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Text('Complete Payment'),
                   )
@@ -117,7 +124,8 @@ class OrderCard extends StatelessWidget {
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Text('Retry Order'),
                   )
@@ -127,7 +135,9 @@ class OrderCard extends StatelessWidget {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     textStyle: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w500),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   onPressed: onSeeDetails,
                   child: const Text('See Details'),

@@ -13,9 +13,7 @@ class TestBuyButtons extends StatelessWidget {
           tooltip: "Test Buy Success Drawer",
           icon: const Icon(Icons.shopping_cart, color: Colors.green),
           onPressed: () {
-            BuySuccessDrawer.show(
-              context,
-            );
+            BuySuccessDrawer.show(context);
           },
         ),
         IconButton(

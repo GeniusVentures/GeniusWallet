@@ -90,10 +90,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       // Navigate to token info screen
       context.push(
         '/token-info',
-        extra: {
-          "marketData": marketData,
-          "coin": coin,
-        },
+        extra: {"marketData": marketData, "coin": coin},
       );
 
       // Trigger the callback if provided (e.g., close drawer)
@@ -128,8 +125,10 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
             fillColor: Colors.grey[900], // Very dark background for input
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
@@ -139,10 +138,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(5),
-              borderSide: const BorderSide(
-                color: Colors.white38,
-                width: 1.4,
-              ),
+              borderSide: const BorderSide(color: Colors.white38, width: 1.4),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -152,21 +148,18 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
               ),
             ),
             suffixIcon: _isSearching
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Loading(),
-                  )
+                ? const Padding(padding: EdgeInsets.all(12.0), child: Loading())
                 : (_controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white),
-                        onPressed: () {
-                          _controller.clear();
-                          setState(() {
-                            _searchResults = [];
-                          });
-                        },
-                      )
-                    : const Icon(Icons.search, color: Colors.white38)),
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.white),
+                          onPressed: () {
+                            _controller.clear();
+                            setState(() {
+                              _searchResults = [];
+                            });
+                          },
+                        )
+                      : const Icon(Icons.search, color: Colors.white38)),
           ),
         ),
 

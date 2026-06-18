@@ -16,11 +16,11 @@ class OrdersState {
   });
 
   factory OrdersState.initial() => OrdersState(
-        status: OrdersStatus.initial,
-        orders: null,
-        filteredOrders: null,
-        error: '',
-      );
+    status: OrdersStatus.initial,
+    orders: null,
+    filteredOrders: null,
+    error: '',
+  );
 
   OrdersState copyWith({
     OrdersStatus? status,

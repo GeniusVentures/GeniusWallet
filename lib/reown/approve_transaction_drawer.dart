@@ -13,24 +13,26 @@ class ApproveTransactionDrawer {
     return ResponsiveDrawer.show<bool>(
       context: context,
       title: "Transaction Request",
-      child: ListView(children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(
-                        GeniusWalletConsts.borderRadiusButton),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
+      child: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.borderRadiusButton,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
                           borderRadius: BorderRadius.circular(999),
                           child: Image.network(
                             iconUrl ?? "",
@@ -40,26 +42,30 @@ class ApproveTransactionDrawer {
                             errorBuilder: (context, error, stackTrace) {
                               return const SizedBox.shrink();
                             },
-                          )),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          dappUrl,
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 16),
-                          overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            dappUrl,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Flexible(fit: FlexFit.loose, child: content),
-            ],
+                const SizedBox(height: 12),
+                Flexible(fit: FlexFit.loose, child: content),
+              ],
+            ),
           ),
-        )
-      ]),
+        ],
+      ),
       footer: Row(
         children: [
           Expanded(
@@ -79,8 +85,10 @@ class ApproveTransactionDrawer {
                 backgroundColor: Colors.greenAccent,
                 side: const BorderSide(color: Colors.greenAccent),
               ),
-              child:
-                  const Text("Approve", style: TextStyle(color: Colors.black)),
+              child: const Text(
+                "Approve",
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ),
         ],

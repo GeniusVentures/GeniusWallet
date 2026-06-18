@@ -4,14 +4,19 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
+import 'package:window_manager/window_manager.dart';
 
 class WebViewWindows extends StatefulWidget {
   final String url;
   final bool? includeBackButton;
 
-  const WebViewWindows(
-      {super.key, required this.url, this.includeBackButton = false});
+  const WebViewWindows({
+    super.key,
+    required this.url,
+    this.includeBackButton = false,
+  });
 
   @override
   State<WebViewWindows> createState() => _WebViewWindowsState();
@@ -21,6 +26,10 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   final WebviewController _controller = WebviewController();
   final TextEditingController _urlController = TextEditingController();
   StreamSubscription<String>? _urlSubscription;
+  Timer? _clipboardPoller;
+  bool _isClipboardPairing = false;
+  String? _lastHandledWalletConnectUri;
+  bool _resourcesDisposed = false;
   final List<String> history = [];
   int currentHistoryIndex = -1;
   List<String> openTabs = [];
@@ -29,19 +38,46 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   @override
   void initState() {
     super.initState();
+    WindowsWebViewShutdown.instance.register(_disposeWebViewResources);
+    unawaited(windowManager.setPreventClose(true));
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
-    Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _clipboardPoller = Timer.periodic(const Duration(seconds: 2), (
+      timer,
+    ) async {
+      if (!mounted) {
+        return;
+      }
       final clipboard = await Clipboard.getData('text/plain');
       final text = clipboard?.text ?? '';
       if (text.startsWith('wc:')) {
-        debugPrint('📋 WalletConnect URI from clipboard: $text');
-        WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
-        // Clear the clipboard after processing to avoid repeated connections
-        await Clipboard.setData(const ClipboardData(text: ''));
+        await _pairWalletConnectFromClipboard(text);
       }
     });
+  }
+
+  Future<void> _pairWalletConnectFromClipboard(String text) async {
+    if (_isClipboardPairing || _resourcesDisposed) {
+      return;
+    }
+    if (_lastHandledWalletConnectUri == text) {
+      return;
+    }
+
+    _isClipboardPairing = true;
+    try {
+      await WalletKitInstance().initOnce();
+      debugPrint('📋 WalletConnect URI from clipboard: $text');
+      await WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
+      _lastHandledWalletConnectUri = text;
+      // Clear the clipboard after processing to avoid repeated connections.
+      await Clipboard.setData(const ClipboardData(text: ''));
+    } catch (e) {
+      debugPrint('❌ Clipboard WalletConnect pair failed: $e');
+    } finally {
+      _isClipboardPairing = false;
+    }
   }
 
   Future<void> _initializeWebView() async {
@@ -115,68 +151,85 @@ class _WebViewWindowsState extends State<WebViewWindows> {
 
   @override
   void dispose() {
-    _urlSubscription?.cancel();
+    WindowsWebViewShutdown.instance.unregister(_disposeWebViewResources);
+    if (!WindowsWebViewShutdown.instance.hasActiveWebViews) {
+      unawaited(windowManager.setPreventClose(false));
+    }
+    unawaited(_disposeWebViewResources());
     super.dispose();
+  }
+
+  Future<void> _disposeWebViewResources() async {
+    if (_resourcesDisposed) {
+      return;
+    }
+
+    _resourcesDisposed = true;
+    _clipboardPoller?.cancel();
+    _clipboardPoller = null;
+    await _urlSubscription?.cancel();
+    _urlSubscription = null;
+    _urlController.dispose();
+    await _controller.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final includeBackButton = widget.includeBackButton ?? false;
     return Scaffold(
-        backgroundColor: GeniusWalletColors.deepBlueCardColor,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Container(
-                height: 70,
-                color: GeniusWalletColors.deepBlueCardColor,
-                padding: const EdgeInsets.only(left: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (includeBackButton)
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(Icons.cancel,
-                            size: 20, color: Colors.white),
+      backgroundColor: GeniusWalletColors.deepBlueCardColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              height: 70,
+              color: GeniusWalletColors.deepBlueCardColor,
+              padding: const EdgeInsets.only(left: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (includeBackButton)
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(
+                        Icons.cancel,
+                        size: 20,
+                        color: Colors.white,
                       ),
-                    Flexible(child: _buildSearchBar()),
-                  ],
-                ),
+                    ),
+                  Flexible(child: _buildSearchBar()),
+                ],
               ),
+            ),
 
-              const SizedBox(height: 4),
+            const SizedBox(height: 4),
 
-              // Webview or loader
-              Expanded(
-                child: _controller.value.isInitialized
-                    ? Container(
-                        decoration: const BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(child: Webview(_controller)),
-                      )
-                    : const Center(
-                        child: Loading(),
+            // Webview or loader
+            Expanded(
+              child: _controller.value.isInitialized
+                  ? Container(
+                      decoration: const BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
-              ),
-            ],
-          ),
-        ));
+                      child: ClipRRect(child: Webview(_controller)),
+                    )
+                  : const Center(child: Loading()),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.only(
-        left: 8,
-        right: 16,
-      ),
+      padding: const EdgeInsets.only(left: 8, right: 16),
       decoration: BoxDecoration(
         color: GeniusWalletColors.deepBlueCardColor,
         borderRadius: BorderRadius.circular(20),

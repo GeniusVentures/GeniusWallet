@@ -10,15 +10,16 @@ class SendTransactionDetails extends StatelessWidget {
   final String priorityFee;
   final String? receiveTokenSymbol;
 
-  const SendTransactionDetails(
-      {super.key,
-      required this.fromAddress,
-      required this.toAddress,
-      required this.amount,
-      required this.totalGasFee,
-      required this.maxFeePerGas,
-      required this.priorityFee,
-      this.receiveTokenSymbol});
+  const SendTransactionDetails({
+    super.key,
+    required this.fromAddress,
+    required this.toAddress,
+    required this.amount,
+    required this.totalGasFee,
+    required this.maxFeePerGas,
+    required this.priorityFee,
+    this.receiveTokenSymbol,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +45,15 @@ class SendTransactionDetails extends StatelessWidget {
               const SizedBox(height: 12),
               const Text(
                 "Estimated changes",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: GeniusWalletColors.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
@@ -108,8 +108,10 @@ class SendTransactionDetails extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
         Text(value, style: const TextStyle(color: Colors.white, fontSize: 14)),
       ],
     );

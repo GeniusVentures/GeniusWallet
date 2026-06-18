@@ -26,7 +26,4 @@ abstract class GeniusBreakpoints {
       !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 }
 
-enum Platforms {
-  mobile,
-  desktop,
-}
+enum Platforms { mobile, desktop }

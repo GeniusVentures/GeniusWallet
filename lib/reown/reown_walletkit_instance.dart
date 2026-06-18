@@ -3,6 +3,7 @@ import 'package:reown_walletkit/reown_walletkit.dart';
 class WalletKitInstance {
   static final WalletKitInstance _instance = WalletKitInstance._internal();
   late final ReownWalletKit walletKit;
+  Future<void>? _initFuture;
 
   factory WalletKitInstance() => _instance;
 
@@ -16,5 +17,16 @@ class WalletKitInstance {
         icons: ['https://example.com/logo.png'],
       ),
     );
+  }
+
+  Future<void> initOnce() {
+    final inFlight = _initFuture;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = walletKit.init();
+    _initFuture = future;
+    return future;
   }
 }

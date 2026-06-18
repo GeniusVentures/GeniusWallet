@@ -20,6 +20,7 @@ import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
+import 'package:genius_wallet/logs/submit_logs_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
@@ -27,6 +28,7 @@ import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 import 'package:genius_wallet/screens/order_details_page.dart';
 import 'package:genius_wallet/screens/splash.dart';
 import 'package:genius_wallet/services/coins_service.dart';
+import 'package:genius_wallet/settings/settings_screen.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
@@ -43,9 +45,7 @@ final toastManager = ToastManager.instance;
 
 final geniusWalletRouter = GoRouter(
   navigatorKey: navigatorKey,
-  observers: [
-    ToastNavigatorObserver(toastManager),
-  ],
+  observers: [ToastNavigatorObserver(toastManager)],
   redirect: (context, state) {
     final appBloc = context.read<AppBloc>();
 
@@ -187,9 +187,7 @@ final geniusWalletRouter = GoRouter(
       builder: (context, state) {
         return BlocProvider.value(
           value: context.read<WalletDetailsCubit>(),
-          child: NetworkStatusPage(
-            geniusApi: context.read<GeniusApi>(),
-          ),
+          child: NetworkStatusPage(geniusApi: context.read<GeniusApi>()),
         );
       },
     ),
@@ -211,10 +209,7 @@ final geniusWalletRouter = GoRouter(
           path: '/transactions',
           builder: (_, __) => const TransactionsScreen(),
         ),
-        GoRoute(
-          path: '/swap',
-          builder: (_, __) => const SwapScreen(),
-        ),
+        GoRoute(path: '/swap', builder: (_, __) => const SwapScreen()),
         if (!Platform.isLinux)
           GoRoute(
             path: '/web',
@@ -223,17 +218,15 @@ final geniusWalletRouter = GoRouter(
                   ? state.extra as WebViewExtras
                   : WebViewExtras();
               return WebViewScreen(
-                  url: extras.url, includeBackButton: extras.includeBackButton);
+                url: extras.url,
+                includeBackButton: extras.includeBackButton,
+              );
             }),
           ),
-        GoRoute(
-          path: '/markets',
-          builder: (_, __) => const MarketsScreen(),
-        ),
-        GoRoute(
-          path: '/news',
-          builder: (_, __) => const CryptoNewsScreen(),
-        ),
+        GoRoute(path: '/markets', builder: (_, __) => const MarketsScreen()),
+        GoRoute(path: '/news', builder: (_, __) => const CryptoNewsScreen()),
+        GoRoute(path: '/logs', builder: (_, __) => const SubmitLogsScreen()),
+        GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
       ],
     ),
     GoRoute(
@@ -256,9 +249,10 @@ final geniusWalletRouter = GoRouter(
         }
 
         return TokenInfoScreen(
-            walletDetailsCubit: context.read<WalletDetailsCubit>(),
-            isGnusWalletConnected: extra["isGnusWalletConnected"],
-            marketData: marketData);
+          walletDetailsCubit: context.read<WalletDetailsCubit>(),
+          isGnusWalletConnected: extra["isGnusWalletConnected"],
+          marketData: marketData,
+        );
       },
     ),
     GoRoute(
@@ -277,9 +271,10 @@ final geniusWalletRouter = GoRouter(
         final walletCubit = context.read<WalletDetailsCubit>();
         return BlocProvider(
           create: (context) => SubmitJobCubit(
-              geniusApi: context.read<GeniusApi>(),
-              gnusCubit: GnusCubit(CoinService(), walletCubit),
-              walletDetailsCubit: walletCubit),
+            geniusApi: context.read<GeniusApi>(),
+            gnusCubit: GnusCubit(CoinService(), walletCubit),
+            walletDetailsCubit: walletCubit,
+          ),
           child: const SubmitJobScreen(),
         );
       },

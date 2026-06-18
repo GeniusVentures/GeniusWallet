@@ -7,11 +7,7 @@ class PollingState {
   final OrderStatus? order;
   final String message;
 
-  const PollingState({
-    required this.status,
-    this.order,
-    this.message = '',
-  });
+  const PollingState({required this.status, this.order, this.message = ''});
 
   PollingState copyWith({
     PollingStatus? status,

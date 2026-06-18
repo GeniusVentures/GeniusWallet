@@ -133,22 +133,23 @@ class Transaction {
   @HiveField(16)
   final String? toSymbol;
 
-  Transaction(
-      {required this.hash,
-      required this.fromAddress,
-      required this.recipients,
-      required this.timeStamp,
-      required this.transactionDirection,
-      required this.fees,
-      required this.coinSymbol,
-      required this.transactionStatus,
-      this.isSGNUS,
-      this.type,
-      this.fromIconUrl,
-      this.fromAmount,
-      this.toIconUrl,
-      this.toAmount,
-      this.exchangeRate,
-      this.fromSymbol,
-      this.toSymbol});
+  Transaction({
+    required this.hash,
+    required this.fromAddress,
+    required this.recipients,
+    required this.timeStamp,
+    required this.transactionDirection,
+    required this.fees,
+    required this.coinSymbol,
+    required this.transactionStatus,
+    this.isSGNUS,
+    this.type,
+    this.fromIconUrl,
+    this.fromAmount,
+    this.toIconUrl,
+    this.toAmount,
+    this.exchangeRate,
+    this.fromSymbol,
+    this.toSymbol,
+  });
 }

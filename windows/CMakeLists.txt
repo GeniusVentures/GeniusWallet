@@ -5,8 +5,16 @@ project(genius_wallet LANGUAGES CXX)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
 if(DEFINED ENV{CMAKE_ARGUMENTS})
+    set(CMAKE_ARGUMENTS_RAW "$ENV{CMAKE_ARGUMENTS}")
+    string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    if(CMAKE_ARGUMENTS_RAW MATCHES "^\".*\"$")
+        string(LENGTH "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_LEN)
+        math(EXPR CMAKE_ARGUMENTS_END "${CMAKE_ARGUMENTS_LEN} - 2")
+        string(SUBSTRING "${CMAKE_ARGUMENTS_RAW}" 1 "${CMAKE_ARGUMENTS_END}" CMAKE_ARGUMENTS_RAW)
+        string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    endif()
     # Split the arguments string into a list
-    string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
+    string(REPLACE " " ";" CMAKE_ARG_LIST "${CMAKE_ARGUMENTS_RAW}")
 
     # Process each argument
     foreach(ARG IN LISTS CMAKE_ARG_LIST)

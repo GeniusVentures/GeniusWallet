@@ -2,6 +2,13 @@
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES C CXX)
 
+# Use a local install prefix for Linux app bundles so plugin subprojects do not
+# attempt to install into /usr/local during build/install steps.
+set(BUILD_BUNDLE_DIR "${PROJECT_BINARY_DIR}/bundle")
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+    set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "Install path prefix." FORCE)
+endif()
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "genius_wallet")
@@ -32,8 +39,16 @@ endif()
 set(BUILD_TYPE_SEARCH ${CMAKE_BUILD_TYPE})
 # Parse CMAKE_ARGUMENTS environment variable if present
 if(DEFINED ENV{CMAKE_ARGUMENTS})
+    set(CMAKE_ARGUMENTS_RAW "$ENV{CMAKE_ARGUMENTS}")
+    string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    if(CMAKE_ARGUMENTS_RAW MATCHES "^\".*\"$")
+        string(LENGTH "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_LEN)
+        math(EXPR CMAKE_ARGUMENTS_END "${CMAKE_ARGUMENTS_LEN} - 2")
+        string(SUBSTRING "${CMAKE_ARGUMENTS_RAW}" 1 "${CMAKE_ARGUMENTS_END}" CMAKE_ARGUMENTS_RAW)
+        string(STRIP "${CMAKE_ARGUMENTS_RAW}" CMAKE_ARGUMENTS_RAW)
+    endif()
     # Split the arguments string into a list
-    string(REPLACE " " ";" CMAKE_ARG_LIST "$ENV{CMAKE_ARGUMENTS}")
+    string(REPLACE " " ";" CMAKE_ARG_LIST "${CMAKE_ARGUMENTS_RAW}")
 
     # Process each argument
     foreach(ARG IN LISTS CMAKE_ARG_LIST)
@@ -165,11 +180,6 @@ include(flutter/generated_plugins.cmake)
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build
 # directory.
-set(BUILD_BUNDLE_DIR "${PROJECT_BINARY_DIR}/bundle")
-
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
-endif()
 
 # Start with a clean build bundle directory every time.
 install(CODE "
@@ -190,13 +200,23 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
 
 if(NOT CMAKE_SKIP_THIRD_PARTY)
     install(TARGETS GeniusWallet DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+    if(SGNS_ENABLE_RELEASE_SYMBOLS)
+        install(FILES "$<TARGET_FILE:GeniusWallet>.debug" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+            COMPONENT Runtime OPTIONAL)
+    endif()
 endif()
 
 
 foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
-    install(FILES "${bundled_library}"
-        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-        COMPONENT Runtime)
+    if("${bundled_library}" MATCHES "(^|/|:)crashpad_handler($|[^A-Za-z0-9_])")
+        install(PROGRAMS "${bundled_library}"
+            DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+            COMPONENT Runtime)
+    else()
+        install(FILES "${bundled_library}"
+            DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+            COMPONENT Runtime)
+    endif()
 endforeach(bundled_library)
 
 # Fully re-copy the assets directory on each build to avoid having stale files

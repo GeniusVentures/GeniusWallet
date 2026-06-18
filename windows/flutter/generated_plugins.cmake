@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_windows
   permission_handler_windows
   screen_retriever_windows
+  sentry_flutter
   url_launcher_windows
   webview_windows
   window_manager

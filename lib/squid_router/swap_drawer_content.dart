@@ -53,7 +53,9 @@ class SwapDrawerContent extends StatelessWidget {
                     color: GeniusWalletColors.deepBlueCardColor,
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: GeniusWalletColors.deepBlueTertiary, width: 1),
+                      color: GeniusWalletColors.deepBlueTertiary,
+                      width: 1,
+                    ),
                     image: DecorationImage(
                       image: NetworkImage(toIconUrl),
                       fit: BoxFit.cover,

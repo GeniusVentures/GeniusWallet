@@ -86,7 +86,8 @@ class _BanxaPaymentWebViewState extends State<BanxaPaymentWebView> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                    'Complete your payment in the browser, then return here.'),
+                  'Complete your payment in the browser, then return here.',
+                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () => _openInBrowser(),

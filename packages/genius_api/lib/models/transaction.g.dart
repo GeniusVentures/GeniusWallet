@@ -8,7 +8,7 @@ part of 'transaction.dart';
 
 class TransferRecipientsAdapter extends TypeAdapter<TransferRecipients> {
   @override
-  final int typeId = 7;
+  final typeId = 7;
 
   @override
   TransferRecipients read(BinaryReader reader) {
@@ -45,7 +45,7 @@ class TransferRecipientsAdapter extends TypeAdapter<TransferRecipients> {
 
 class TransactionAdapter extends TypeAdapter<Transaction> {
   @override
-  final int typeId = 8;
+  final typeId = 8;
 
   @override
   Transaction read(BinaryReader reader) {
@@ -127,7 +127,7 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
 
 class TransactionDirectionAdapter extends TypeAdapter<TransactionDirection> {
   @override
-  final int typeId = 4;
+  final typeId = 4;
 
   @override
   TransactionDirection read(BinaryReader reader) {
@@ -146,10 +146,8 @@ class TransactionDirectionAdapter extends TypeAdapter<TransactionDirection> {
     switch (obj) {
       case TransactionDirection.sent:
         writer.writeByte(0);
-        break;
       case TransactionDirection.received:
         writer.writeByte(1);
-        break;
     }
   }
 
@@ -166,7 +164,7 @@ class TransactionDirectionAdapter extends TypeAdapter<TransactionDirection> {
 
 class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
   @override
-  final int typeId = 5;
+  final typeId = 5;
 
   @override
   TransactionStatus read(BinaryReader reader) {
@@ -189,16 +187,12 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
     switch (obj) {
       case TransactionStatus.pending:
         writer.writeByte(0);
-        break;
       case TransactionStatus.cancelled:
         writer.writeByte(1);
-        break;
       case TransactionStatus.completed:
         writer.writeByte(2);
-        break;
       case TransactionStatus.failed:
         writer.writeByte(3);
-        break;
     }
   }
 
@@ -215,7 +209,7 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
 
 class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
   @override
-  final int typeId = 6;
+  final typeId = 6;
 
   @override
   TransactionType read(BinaryReader reader) {
@@ -244,25 +238,18 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
     switch (obj) {
       case TransactionType.transfer:
         writer.writeByte(0);
-        break;
       case TransactionType.mint:
         writer.writeByte(1);
-        break;
       case TransactionType.escrow:
         writer.writeByte(2);
-        break;
       case TransactionType.process:
         writer.writeByte(3);
-        break;
       case TransactionType.escrowRelease:
         writer.writeByte(4);
-        break;
       case TransactionType.purchase:
         writer.writeByte(5);
-        break;
       case TransactionType.swap:
         writer.writeByte(6);
-        break;
     }
   }
 

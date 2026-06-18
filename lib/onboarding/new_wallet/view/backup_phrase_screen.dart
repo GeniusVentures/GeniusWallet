@@ -10,47 +10,50 @@ class BackupPhraseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small * 0.75,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 0.75),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 20.0,
           children: [
-            Text("Wallet Backup",
-                style: Theme.of(context).textTheme.headlineLarge),
             Text(
-                'In the next step you will see 12 words that allow you to recover a wallet.'),
+              "Wallet Backup",
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            Text(
+              'In the next step you will see 12 words that allow you to recover a wallet.',
+            ),
             CheckboxListTile(
               value: context.watch<NewWalletBloc>().state.acceptedWarning,
               onChanged: (value) {
                 context.read<NewWalletBloc>().add(ToggleCheckbox());
               },
               title: Text(
-                  'I understand that if I lose my recovery words, I will not be able to access my wallet.'),
+                'I understand that if I lose my recovery words, I will not be able to access my wallet.',
+              ),
               controlAffinity: ListTileControlAffinity.leading,
             ),
             BlocBuilder<NewWalletBloc, NewWalletState>(
-                builder: (context, state) {
-              return SizedBox(
-                width: 250,
-                child: FilledButton(
-                  onPressed: state.acceptedWarning
-                      ? () {
-                          context.read<NewWalletBloc>().add(
-                                AgreementAccepted(
-                                  userExists: context
-                                          .read<AppBloc>()
-                                          .state
-                                          .userStatus ==
-                                      UserStatus.exists,
-                                ),
-                              );
-                        }
-                      : null,
-                  child: Text("Continue"),
-                ),
-              );
-            })
+              builder: (context, state) {
+                return ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 250),
+                  child: FilledButton(
+                    onPressed: state.acceptedWarning
+                        ? () {
+                            context.read<NewWalletBloc>().add(
+                              AgreementAccepted(
+                                userExists:
+                                    context.read<AppBloc>().state.userStatus ==
+                                    UserStatus.exists,
+                              ),
+                            );
+                          }
+                        : null,
+                    child: Text("Continue"),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

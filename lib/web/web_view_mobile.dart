@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -31,13 +32,31 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   final TextEditingController _urlController = TextEditingController();
 
+  Future<bool> _safeRunJavaScript(
+    WebViewController controller,
+    String script, {
+    required String context,
+  }) async {
+    try {
+      await controller.runJavaScript(script);
+      return true;
+    } on PlatformException catch (e) {
+      // WKWebView may reject JS evaluation during in-flight navigation.
+      debugPrint('[DEBUG] JS eval failed ($context): ${e.message ?? e.code}');
+      return false;
+    } catch (e) {
+      debugPrint('[DEBUG] JS eval failed ($context): $e');
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _addNewTab(widget.url);
   }
 
-  void forceDarkModeAndRemoveBanner(int tabIndex) {
+  Future<void> forceDarkModeAndRemoveBanner(int tabIndex) async {
     const js = '''
       (() => {
         try {
@@ -87,7 +106,14 @@ class WebViewMobileState extends State<WebViewMobile> {
         } catch (e) {}
       })();
     ''';
-    _controllers[tabIndex].runJavaScript(js);
+    if (tabIndex < 0 || tabIndex >= _controllers.length) {
+      return;
+    }
+    await _safeRunJavaScript(
+      _controllers[tabIndex],
+      js,
+      context: 'forceDarkModeAndRemoveBanner',
+    );
   }
 
   void _addNewTab(String url) {
@@ -107,11 +133,11 @@ class WebViewMobileState extends State<WebViewMobile> {
                 url.contains('uniswap.org') &&
                 loadedUrl == 'about:blank') {
               print('[DEBUG] Injecting localStorage for Uniswap (about:blank)');
-              await controller!.runJavaScript('''
+              await _safeRunJavaScript(controller!, '''
               localStorage.setItem("interface_color_theme", "\\"Dark\\"");
               localStorage.setItem("uni-theme", "\\"dark\\"");
               document.title = "DARK MODE SET";
-            ''');
+            ''', context: 'uniswap-about-blank-theme');
               await Future.delayed(const Duration(milliseconds: 80));
               controller.loadRequest(Uri.parse(url));
               return;
@@ -121,24 +147,26 @@ class WebViewMobileState extends State<WebViewMobile> {
             if (!Platform.isMacOS && loadedUrl.contains('uniswap.org')) {
               if (!retried) {
                 print(
-                    '[DEBUG] Uniswap loaded, attempting one retry for dark mode.');
+                  '[DEBUG] Uniswap loaded, attempting one retry for dark mode.',
+                );
                 retried = true;
                 await Future.delayed(const Duration(milliseconds: 350));
-                await controller!.runJavaScript('''
+                await _safeRunJavaScript(controller!, '''
                 if (!document.body.classList.contains('dark')) {
                   localStorage.setItem("interface_color_theme", "\\"Dark\\"");
                   localStorage.setItem("uni-theme", "\\"dark\\"");
                   window.dispatchEvent(new Event('storage'));
                   setTimeout(() => { window.location.reload(); }, 100);
                 }
-              ''');
+              ''', context: 'uniswap-retry-theme');
               } else {
                 print('[DEBUG] Already retried dark mode once. Not repeating.');
               }
             } else {
               print(
-                  '[DEBUG] Non-Uniswap or macOS, injecting generic dark mode.');
-              forceDarkModeAndRemoveBanner(_currentTabIndex);
+                '[DEBUG] Non-Uniswap or macOS, injecting generic dark mode.',
+              );
+              await forceDarkModeAndRemoveBanner(_currentTabIndex);
             }
             WidgetsBinding.instance.addPostFrameCallback((_) {
               print('[DEBUG] Capturing screenshot');
@@ -150,7 +178,8 @@ class WebViewMobileState extends State<WebViewMobile> {
 
     if (!Platform.isMacOS && url.contains('uniswap.org')) {
       print(
-          '[DEBUG] Loading about:blank before Uniswap for reliable dark theme');
+        '[DEBUG] Loading about:blank before Uniswap for reliable dark theme',
+      );
       controller.loadRequest(Uri.parse('about:blank'));
     } else {
       controller.loadRequest(Uri.parse(url));
@@ -408,10 +437,10 @@ class WebViewMobileState extends State<WebViewMobile> {
                               height: 22,
                               errorBuilder: (context, error, stackTrace) =>
                                   const Icon(
-                                Icons.language,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                                    Icons.language,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(

@@ -64,6 +64,16 @@ final List<_TabDestination> _allDestinations = [
     icon: FontAwesomeIcons.globe.data,
     visible: !Platform.isLinux,
   ),
+  const _TabDestination(
+    path: '/logs',
+    label: 'Feedback',
+    icon: Icons.feedback_outlined,
+  ),
+  const _TabDestination(
+    path: '/settings',
+    label: 'Settings',
+    icon: Icons.settings,
+  ),
 ];
 
 List<_TabDestination> get _visibleDestinations =>
@@ -108,12 +118,14 @@ class _MobileTabBar extends StatelessWidget {
       currentIndex: selected,
       onTap: (index) => context.go(destinations[index].path),
       items: destinations
-          .map((d) => BottomNavigationBarItem(
-                icon: Icon(d.icon),
-                activeIcon: Icon(d.icon),
-                label: d.label,
-                tooltip: d.label,
-              ))
+          .map(
+            (d) => BottomNavigationBarItem(
+              icon: Icon(d.icon),
+              activeIcon: Icon(d.icon),
+              label: d.label,
+              tooltip: d.label,
+            ),
+          )
           .toList(),
     );
   }
@@ -130,7 +142,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final destinations = _visibleDestinations;
     final selected = _currentIndex(context);
-    final hideLabels = MediaQuery.sizeOf(context).width < GeniusBreakpoints.xl;
+    final hideLabels = MediaQuery.sizeOf(context).width < GeniusBreakpoints.xxl;
 
     return ColoredBox(
       color: GeniusWalletColors.deepBlueCardColor,
@@ -161,11 +173,14 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                       child: InkWell(
                         onTap: () => context.go(dest.path),
                         borderRadius: BorderRadius.circular(
-                            GeniusWalletConsts.borderRadiusCard),
+                          GeniusWalletConsts.borderRadiusCard,
+                        ),
                         mouseCursor: SystemMouseCursors.click,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 6.0, horizontal: 12.0),
+                            vertical: 6.0,
+                            horizontal: 12.0,
+                          ),
                           child: Ink(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -183,7 +198,9 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                       Text(
                                         dest.label,
                                         style: TextStyle(
-                                            fontSize: 14, color: color),
+                                          fontSize: 14,
+                                          color: color,
+                                        ),
                                       ),
                                     ],
                                   ],
@@ -213,17 +230,17 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
               Row(
-                spacing: 4.0,
                 children: [
                   ..._buildActionRowWidgets(context),
                   ElevatedButton(
-                      child: const Text(
-                        "Buy GNUS",
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      onPressed: () async {
-                        context.push('/buy');
-                      }),
+                    child: const Text(
+                      "Buy GNUS",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    onPressed: () async {
+                      context.push('/buy');
+                    },
+                  ),
                 ],
               ),
             ],
@@ -240,27 +257,25 @@ class MobileOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AppBloc, AppState>(builder: (context, state) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("Genius Wallet"),
-          actions: [
-            Flexible(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ..._buildActionRowWidgets(context),
-                  ],
+    return BlocBuilder<AppBloc, AppState>(
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("Genius Wallet"),
+            actions: [
+              Flexible(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: [..._buildActionRowWidgets(context)]),
                 ),
               ),
-            ),
-          ],
-        ),
-        body: child,
-        bottomNavigationBar: const _MobileTabBar(),
-      );
-    });
+            ],
+          ),
+          body: child,
+          bottomNavigationBar: const _MobileTabBar(),
+        );
+      },
+    );
   }
 }
 

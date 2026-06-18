@@ -70,7 +70,8 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
         ),
       )
       ..loadRequest(
-          Uri.parse(BanxaApiService.banxaKycUrl)); // Use the banxaKycUrl
+        Uri.parse(BanxaApiService.banxaKycUrl),
+      ); // Use the banxaKycUrl
     debugPrint("WebView initialized and loading KYC URL...");
   }
 
@@ -123,11 +124,7 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
         children: [
           WebViewWidget(controller: _controller),
           if (_isLoading)
-            const Center(
-              child: Loading(
-                text: "Loading Banxa KYC...",
-              ),
-            ),
+            const Center(child: Loading(text: "Loading Banxa KYC...")),
         ],
       ),
     );

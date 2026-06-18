@@ -31,21 +31,28 @@ class SwapField extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
-        padding:
-            const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 32),
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 32,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Flexible(
                   child: TextField(
                     style: const TextStyle(color: Colors.white),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       hintText: "0.0",
                       hintStyle: TextStyle(color: Colors.white30),
@@ -70,7 +77,11 @@ class SwapField extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.only(
-                            left: 4, right: 8, top: 2, bottom: 2),
+                          left: 4,
+                          right: 8,
+                          top: 2,
+                          bottom: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: GeniusWalletColors.deepBlue,
                           borderRadius: BorderRadius.circular(40),
@@ -91,8 +102,11 @@ class SwapField extends StatelessWidget {
                                       height: 32,
                                       color: Colors.grey[700],
                                       alignment: Alignment.center,
-                                      child: const Icon(Icons.broken_image,
-                                          color: Colors.white70, size: 16),
+                                      child: const Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white70,
+                                        size: 16,
+                                      ),
                                     );
                                   },
                                 ),
@@ -106,8 +120,11 @@ class SwapField extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.keyboard_arrow_down,
-                                color: Colors.white, size: 14),
+                            const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                              size: 14,
+                            ),
                           ],
                         ),
                       ),
@@ -119,7 +136,9 @@ class SwapField extends StatelessWidget {
                             ? "${selectedToken!.balance!.formattedBalance} ${selectedToken!.balance!.symbol}"
                             : "",
                         style: const TextStyle(
-                            color: Colors.white54, fontSize: 12),
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],

@@ -10,24 +10,17 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 class PinScreen extends StatelessWidget {
   final String title;
   final Function(String) onCompleted;
-  const PinScreen({
-    super.key,
-    required this.title,
-    required this.onCompleted,
-  });
+  const PinScreen({super.key, required this.title, required this.onCompleted});
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
+            Text(title, style: Theme.of(context).textTheme.headlineLarge),
             MaterialPinField(
               length: GeniusWalletConsts.pinCount,
               theme: MaterialPinTheme(
@@ -42,19 +35,21 @@ class PinScreen extends StatelessWidget {
               pinController: context.watch<PinCubit>().state.pinController,
               inputFormatters: [Formatters.allowIntegers],
             ),
-            BlocBuilder<PinCubit, PinState>(builder: (context, state) {
-              if (state.displayIncorrectPin) {
-                return Text(
-                  'Incorrect PIN',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                  ),
-                );
-              }
-              return const SizedBox();
-            }),
-            SizedBox(
-              width: 250,
+            BlocBuilder<PinCubit, PinState>(
+              builder: (context, state) {
+                if (state.displayIncorrectPin) {
+                  return Text(
+                    'Incorrect PIN',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                    ),
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 250),
               child: BlocBuilder<PinCubit, PinState>(
                 builder: (context, state) {
                   return FilledButton(

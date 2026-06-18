@@ -4,6 +4,37 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def secureStorageAarName = "securestorage-release.aar"
+def secureStorageAarDest = file("$projectDir/libs/${secureStorageAarName}")
+def secureStorageAarDependency = files(secureStorageAarDest) {
+    builtBy("syncSecureStorageAar")
+}
+
+def secureStorageAarCandidates = [
+    file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/arm64-v8a/GeniusSDK/lib/${secureStorageAarName}"),
+    file("$rootProject.projectDir/../../GeniusSDK/build/Android/Release/armeabi-v7a/GeniusSDK/lib/${secureStorageAarName}"),
+]
+
+tasks.register("syncSecureStorageAar") {
+    doLast {
+        def sourceAar = secureStorageAarCandidates.find { it.exists() }
+
+        if (sourceAar == null) {
+            def searched = secureStorageAarCandidates.collect { "  - ${it.absolutePath}" }.join("\n")
+            throw new GradleException("Could not locate ${secureStorageAarName}. Searched:\n${searched}")
+        }
+
+        secureStorageAarDest.parentFile.mkdirs()
+        copy {
+            from sourceAar
+            into secureStorageAarDest.parentFile
+            rename { secureStorageAarName }
+        }
+
+        logger.lifecycle("Using ${secureStorageAarName} from: ${sourceAar.absolutePath}")
+    }
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -70,6 +101,9 @@ android {
                     argList.addAll(cmakeArgs.split(" "))
                 }
 
+                // Ensure AGP/CMake only configures supported wallet ABIs.
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
+
                 // Always enable verbose makefile output
                 argList.add("-DCMAKE_VERBOSE_MAKEFILE=ON")
 
@@ -113,6 +147,17 @@ android {
             path "CMakeLists.txt"
         }
     }
+}
+
+tasks.configureEach { task ->
+    // Ensure AAR exists before native libs merge resolves runtime classpath.
+    if (task.name ==~ /merge.*NativeLibs/) {
+        task.dependsOn("syncSecureStorageAar")
+    }
+}
+
+dependencies {
+    runtimeOnly secureStorageAarDependency
 }
 
 flutter {

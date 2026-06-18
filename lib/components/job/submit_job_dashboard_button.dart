@@ -31,9 +31,7 @@ class SubmitJobDashboardButton extends StatelessWidget {
         await context.push('/submit_job');
         walletDetailsCubit.getCoins(); // Refresh after returning
       },
-      label: Text(
-        'Create Processing Job',
-      ),
+      label: Text('Create Processing Job'),
       icon: Icon(Icons.create, size: 16, color: Colors.greenAccent),
     );
   }

@@ -25,9 +25,7 @@ class PasteField extends StatelessWidget {
           children: [
             TextFormField(
               controller: controller,
-              decoration: InputDecoration(
-                hintText: hintText,
-              ),
+              decoration: InputDecoration(hintText: hintText),
               minLines: 4,
               maxLines: 10,
             ),
@@ -36,11 +34,12 @@ class PasteField extends StatelessWidget {
               right: 10,
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey)),
+                  side: BorderSide(color: Colors.grey),
+                ),
                 onPressed: () async {
                   final textValue =
                       (await Clipboard.getData(Clipboard.kTextPlain))?.text ??
-                          "";
+                      "";
                   controller.text = textValue;
                 },
                 icon: const Icon(Icons.content_copy),
@@ -50,12 +49,10 @@ class PasteField extends StatelessWidget {
           ],
         ),
         if (additionalWidget != null) additionalWidget!,
-        SizedBox(
-            width: MediaQuery.sizeOf(context).width,
-            child: Text(
-              subtitle,
-              textAlign: TextAlign.left,
-            )),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width),
+          child: Text(subtitle, textAlign: TextAlign.left),
+        ),
       ],
     );
   }

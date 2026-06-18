@@ -13,43 +13,46 @@ class SubmitJobState {
   final bool isFilePickerOpen;
   final bool isBridgingTokens;
 
-  const SubmitJobState(
-      {this.txHash = '',
-      this.uploadedFileName = '',
-      this.uploadedJson = const {},
-      this.jobCost = 0,
-      this.jobGasCost = '0.00 Gwei',
-      this.gnusTokenDetails = const Token(),
-      this.gnusBalance = 0,
-      this.filePickerError = const FilePickerError(''),
-      this.processErrorMessage = '',
-      this.isFilePickerOpen = false,
-      this.isBridgingTokens = false});
+  const SubmitJobState({
+    this.txHash = '',
+    this.uploadedFileName = '',
+    this.uploadedJson = const {},
+    this.jobCost = 0,
+    this.jobGasCost = '0.00 Gwei',
+    this.gnusTokenDetails = const Token(),
+    this.gnusBalance = 0,
+    this.filePickerError = const FilePickerError(''),
+    this.processErrorMessage = '',
+    this.isFilePickerOpen = false,
+    this.isBridgingTokens = false,
+  });
 
-  SubmitJobState copyWith(
-      {String? txHash,
-      String? uploadedFileName,
-      Map<String, dynamic>? uploadedJson,
-      int? jobCost,
-      String? jobGasCost,
-      Token? gnusTokenDetails,
-      double? gnusBalance,
-      FilePickerError? filePickerError,
-      String? processErrorMessage,
-      bool? isFilePickerOpen,
-      bool? isBridgingTokens}) {
+  SubmitJobState copyWith({
+    String? txHash,
+    String? uploadedFileName,
+    Map<String, dynamic>? uploadedJson,
+    int? jobCost,
+    String? jobGasCost,
+    Token? gnusTokenDetails,
+    double? gnusBalance,
+    FilePickerError? filePickerError,
+    String? processErrorMessage,
+    bool? isFilePickerOpen,
+    bool? isBridgingTokens,
+  }) {
     return SubmitJobState(
-        txHash: txHash ?? this.txHash,
-        uploadedFileName: uploadedFileName ?? this.uploadedFileName,
-        uploadedJson: uploadedJson ?? this.uploadedJson,
-        jobCost: jobCost ?? this.jobCost,
-        jobGasCost: jobGasCost ?? this.jobGasCost,
-        gnusTokenDetails: gnusTokenDetails ?? this.gnusTokenDetails,
-        gnusBalance: gnusBalance ?? this.gnusBalance,
-        filePickerError: filePickerError ?? this.filePickerError,
-        processErrorMessage: processErrorMessage ?? this.processErrorMessage,
-        isFilePickerOpen: isFilePickerOpen ?? this.isFilePickerOpen,
-        isBridgingTokens: isBridgingTokens ?? this.isBridgingTokens);
+      txHash: txHash ?? this.txHash,
+      uploadedFileName: uploadedFileName ?? this.uploadedFileName,
+      uploadedJson: uploadedJson ?? this.uploadedJson,
+      jobCost: jobCost ?? this.jobCost,
+      jobGasCost: jobGasCost ?? this.jobGasCost,
+      gnusTokenDetails: gnusTokenDetails ?? this.gnusTokenDetails,
+      gnusBalance: gnusBalance ?? this.gnusBalance,
+      filePickerError: filePickerError ?? this.filePickerError,
+      processErrorMessage: processErrorMessage ?? this.processErrorMessage,
+      isFilePickerOpen: isFilePickerOpen ?? this.isFilePickerOpen,
+      isBridgingTokens: isBridgingTokens ?? this.isBridgingTokens,
+    );
   }
 }
 

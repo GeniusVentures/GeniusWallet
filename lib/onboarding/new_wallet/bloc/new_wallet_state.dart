@@ -49,15 +49,15 @@ class NewWalletState extends Equatable {
 
   @override
   List<Object?> get props => [
-        currentStep,
-        recoveryPhraseStatus,
-        recoveryWords,
-        shuffledWords,
-        selectedWords,
-        verificationStatus,
-        acceptedWarning,
-        walletSaveStatus,
-      ];
+    currentStep,
+    recoveryPhraseStatus,
+    recoveryWords,
+    shuffledWords,
+    selectedWords,
+    verificationStatus,
+    acceptedWarning,
+    walletSaveStatus,
+  ];
 }
 
 enum NewWalletStep {
@@ -69,16 +69,6 @@ enum NewWalletStep {
 }
 
 /// Indicates the loading status of the screen
-enum NewWalletStatus {
-  initial,
-  loading,
-  loaded,
-  error,
-}
+enum NewWalletStatus { initial, loading, loaded, error }
 
-enum VerificationStatus {
-  intial,
-  inProgress,
-  passed,
-  failed,
-}
+enum VerificationStatus { intial, inProgress, passed, failed }

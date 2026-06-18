@@ -17,17 +17,19 @@ class SwapSuccessDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Success",
-      child: ListView(children: [
-        SwapDrawerContent(
-          fromAmount: fromAmount,
-          toAmount: toAmount,
-          fromIconUrl: fromIconUrl,
-          toIconUrl: toIconUrl,
-          fromSymbol: fromSymbol,
-          toSymbol: toSymbol,
-          chain: chain,
-        ),
-      ]),
+      child: ListView(
+        children: [
+          SwapDrawerContent(
+            fromAmount: fromAmount,
+            toAmount: toAmount,
+            fromIconUrl: fromIconUrl,
+            toIconUrl: toIconUrl,
+            fromSymbol: fromSymbol,
+            toSymbol: toSymbol,
+            chain: chain,
+          ),
+        ],
+      ),
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) {
@@ -41,10 +43,7 @@ class SwapSuccessDrawer {
           side: const BorderSide(color: Colors.greenAccent),
           minimumSize: const Size.fromHeight(48),
         ),
-        child: const Text(
-          "Done",
-          style: TextStyle(color: Colors.greenAccent),
-        ),
+        child: const Text("Done", style: TextStyle(color: Colors.greenAccent)),
       ),
     );
   }

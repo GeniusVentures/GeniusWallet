@@ -76,10 +76,12 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
 
-        final jobCost =
-            geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
+        final jobCost = geniusApi.requestGeniusSDKCost(
+          jobJson: jsonEncode(jsonData),
+        );
 
-        final isGasFetchable = jsonData != null &&
+        final isGasFetchable =
+            jsonData != null &&
             state.gnusTokenDetails.address != null &&
             jobCost != 0;
 
@@ -91,11 +93,13 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         // Get gas cost associated with uploaded job
         await getBridgeOutGasCost(jobCost);
 
-        emit(state.copyWith(
-          uploadedFileName: result.files.single.name,
-          uploadedJson: jsonData,
-          jobCost: jobCost,
-        ));
+        emit(
+          state.copyWith(
+            uploadedFileName: result.files.single.name,
+            uploadedJson: jsonData,
+            jobCost: jobCost,
+          ),
+        );
       } else {
         setFilePickerError('No file selected.');
       }
@@ -106,7 +110,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       setFilePickerError('Failed to pick file: ${e.runtimeType}');
     } finally {
       emit(
-          state.copyWith(isFilePickerOpen: false)); // Indicate picker is closed
+        state.copyWith(isFilePickerOpen: false),
+      ); // Indicate picker is closed
     }
   }
 
@@ -124,7 +129,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         walletAddress == null ||
         rpcUrl == null) {
       setFilePickerError(
-          'Missing required data for bridge gas estimation. Please select a wallet and network.');
+        'Missing required data for bridge gas estimation. Please select a wallet and network.',
+      );
       return;
     }
 
@@ -164,10 +170,14 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         rpcUrl == null ||
         state.jobCost == 0 ||
         uploadedJson.isEmpty) {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           isBridgingTokens: false,
           filePickerError: const FilePickerError(
-              'Missing required data. Please select a wallet and network.')));
+            'Missing required data. Please select a wallet and network.',
+          ),
+        ),
+      );
       return;
     }
 
@@ -183,20 +193,27 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final txHash = resp.data;
 
     if (!resp.isSuccess || txHash == null) {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           isBridgingTokens: false,
-          processErrorMessage: 'Bridge transaction failed. Please try again.'));
+          processErrorMessage: 'Bridge transaction failed. Please try again.',
+        ),
+      );
 
       return;
     }
 
     // process the job
-    final processResult =
-        geniusApi.requestGeniusSDKProcess(jobJson: jsonEncode(uploadedJson));
+    final processResult = geniusApi.requestGeniusSDKProcess(
+      jobJson: jsonEncode(uploadedJson),
+    );
     if (processResult != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           isBridgingTokens: false,
-          processErrorMessage: _processErrorMessage(processResult)));
+          processErrorMessage: _processErrorMessage(processResult),
+        ),
+      );
       return;
     }
 
@@ -213,20 +230,21 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   void resetState() {
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         jobCost: 0,
         uploadedJson: {},
         uploadedFileName: '',
         jobGasCost: '',
         txHash: '',
         filePickerError: null,
-        processErrorMessage: ''));
+        processErrorMessage: '',
+      ),
+    );
   }
 
   void setFilePickerError(String errorMessage) {
-    emit(state.copyWith(
-      filePickerError: FilePickerError(errorMessage),
-    ));
+    emit(state.copyWith(filePickerError: FilePickerError(errorMessage)));
   }
 
   void resetFilePickerError() {

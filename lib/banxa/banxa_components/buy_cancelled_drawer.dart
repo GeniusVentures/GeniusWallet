@@ -7,9 +7,7 @@ class BuyCancelledDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Cancelled",
-      child: ListView(children: const [
-        BuyCancelledDrawerContent(),
-      ]),
+      child: ListView(children: const [BuyCancelledDrawerContent()]),
       footer: OutlinedButton(
         onPressed: () {},
         style: OutlinedButton.styleFrom(
@@ -19,10 +17,7 @@ class BuyCancelledDrawer {
           side: const BorderSide(color: Colors.redAccent),
           minimumSize: const Size.fromHeight(48),
         ),
-        child: const Text(
-          "Close",
-          style: TextStyle(color: Colors.redAccent),
-        ),
+        child: const Text("Close", style: TextStyle(color: Colors.redAccent)),
       ),
     );
   }

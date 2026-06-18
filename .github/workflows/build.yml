@@ -21,6 +21,14 @@ on:
         description: "Release tag"
         required: false
         type: string
+      build_name:
+        description: "Override Flutter build-name (e.g. 3.5.2)"
+        required: false
+        type: string
+      build_number:
+        description: "Override Flutter build-number (e.g. 142)"
+        required: false
+        type: string
       distribution_type:
         description: "Distribution type for macOS"
         required: false
@@ -168,6 +176,8 @@ jobs:
 
       - name: Configure Linux host
         if: ${{ runner.os == 'Linux'}}
+        env:
+          TAR_OPTIONS: --no-same-owner
         run: |
           sudo apt update
 
@@ -178,8 +188,11 @@ jobs:
 
           sudo apt install -y jq
 
+          # Linux desktop builds run in the Debian bullseye container.
+          # Keep package origin consistent there to avoid mixed base/backports versions.
           if [ "${{ matrix.target }}" = "Linux" ]; then
             sudo apt install -y lld
+
             CLANG_BIN_DIR="$(dirname "$(readlink -f "$(which clang)")")"
             LLD_PATH="$(command -v ld.lld || true)"
             if [ -n "$LLD_PATH" ] && [ ! -x "$CLANG_BIN_DIR/ld.lld" ]; then
@@ -193,11 +206,14 @@ jobs:
           fi
 
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+          # Persist tar ownership behavior for all subsequent Linux steps.
+          echo "TAR_OPTIONS=--no-same-owner" >> $GITHUB_ENV
 
       - name: Configure Windows host
         if: ${{ runner.os == 'Windows'}}
         run: |
           choco install ccache -A
+          git config --system core.longpaths true
 
       - name: Configure macOS host
         if: ${{ runner.os == 'macOS' }}
@@ -217,6 +233,20 @@ jobs:
           fi
 
           echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Clean stale Flutter toolcache (self-hosted Linux)
+        if: ${{ runner.os == 'Linux' && runner.environment == 'self-hosted' }}
+        run: |
+          TOOLCACHE_ROOT="${RUNNER_TOOL_CACHE:-${ACTIONS_RUNNER_TOOL_CACHE:-/__w/_tool}}/flutter"
+          echo "Checking Flutter toolcache at: $TOOLCACHE_ROOT"
+
+          if [ -d "$TOOLCACHE_ROOT" ]; then
+            # Clear Flutter toolcache so flutter-action can do a clean install.
+            rm -rf "$TOOLCACHE_ROOT" || sudo rm -rf "$TOOLCACHE_ROOT"
+          fi
+
+          mkdir -p "$TOOLCACHE_ROOT" || sudo mkdir -p "$TOOLCACHE_ROOT"
+          sudo chown -R "$(id -u):$(id -g)" "$TOOLCACHE_ROOT" || true
 
       - name: Setup Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
@@ -502,6 +532,10 @@ jobs:
             FLUTTER_BUILD_PLATFORM="ipa"
             # extra args needed only when building with flutter build ipa or macos - we're using proper code signing now
             EXTRA_ARGS="--export-options-plist=${{ matrix.flutter-platform }}/Runner/ExportOptions.plist"
+          elif [ "${{ matrix.flutter-platform }}" = "apk" ]; then
+            FLUTTER_BUILD_PLATFORM="apk"
+            # Force Android builds to supported ARM ABIs only.
+            EXTRA_ARGS="--target-platform android-arm,android-arm64"
           else
             FLUTTER_BUILD_PLATFORM="${{ matrix.flutter-platform }}"
           fi
@@ -509,9 +543,20 @@ jobs:
             EXTRA_ARGS="--target-platform android-arm,android-arm64"
           fi
 
+          FLUTTER_VERSION_ARGS=""
+          if ${{github.event_name == 'workflow_dispatch'}}; then
+            if [ '${{ github.event.inputs.build_name }}' ]; then
+              FLUTTER_VERSION_ARGS="$FLUTTER_VERSION_ARGS --build-name ${{ github.event.inputs.build_name }}"
+            fi
+            if [ '${{ github.event.inputs.build_number }}' ]; then
+              FLUTTER_VERSION_ARGS="$FLUTTER_VERSION_ARGS --build-number ${{ github.event.inputs.build_number }}"
+            fi
+          fi
+
           echo "CMAKE_ARGUMENTS=$CMAKE_ARGS" >> $GITHUB_ENV
           echo "EXTRA_ARGS=$EXTRA_ARGS" >> $GITHUB_ENV
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_ARGS=$FLUTTER_VERSION_ARGS" >> $GITHUB_ENV
 
       - name: Build Flutter
         shell: bash
@@ -520,18 +565,165 @@ jobs:
             # Windows requires a different approach for CMAKE arguments
             set CMAKE_ARGUMENTS=$env:CMAKE_ARGUMENTS
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              flutter build windows --debug
+              flutter build windows --debug ${FLUTTER_VERSION_ARGS}
             else
-              flutter build windows --release
+              flutter build windows --release ${FLUTTER_VERSION_ARGS}
             fi
           else
             # Other platforms respect CMAKE_ARGUMENTS environment variable
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS}
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS}
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} --verbose
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --verbose
             fi
           fi
+
+      - name: Install Sentry CLI (Linux)
+        if: ${{ runner.os == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          set -euo pipefail
+
+          if command -v sentry-cli >/dev/null 2>&1; then
+            echo "sentry-cli is already installed; skipping install."
+            sentry-cli --version || true
+          else
+            curl -sL https://sentry.io/get-cli/ | sh
+          fi
+
+          if [ -d "$HOME/.local/bin" ]; then
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+        shell: bash
+
+      - name: Install Sentry CLI (macOS)
+        if: ${{ runner.os == 'macOS' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          set -euo pipefail
+          brew install getsentry/tools/sentry-cli
+        shell: bash
+
+      - name: Install Sentry CLI (Windows)
+        if: ${{ runner.os == 'Windows' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # winget may return a non-zero exit code when package is already installed and no update exists.
+          winget install --exact --id Sentry.sentry-cli --silent --accept-source-agreements --accept-package-agreements
+          if ($LASTEXITCODE -ne 0) {
+            winget list --exact --id Sentry.sentry-cli | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to install Sentry CLI via winget."
+            }
+            Write-Output "Sentry CLI is already installed; continuing."
+          }
+
+          $sentryCommand = Get-Command sentry.exe -ErrorAction SilentlyContinue
+          if (-not $sentryCommand) {
+            $packageRoots = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Directory -Filter "Sentry.sentry-cli*" -ErrorAction SilentlyContinue
+            foreach ($root in $packageRoots) {
+              $exe = Get-ChildItem $root.FullName -Recurse -Filter "sentry.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($exe) {
+                $exeDir = Split-Path -Path $exe.FullName -Parent
+                Add-Content -Path $env:GITHUB_PATH -Value $exeDir
+                $env:PATH = "$exeDir;$env:PATH"
+                Write-Output "Added Sentry CLI path: $exeDir"
+                break
+              }
+            }
+          }
+
+          if (-not (Get-Command sentry.exe -ErrorAction SilentlyContinue)) {
+            throw "sentry.exe not found after winget install."
+          }
+        shell: powershell
+
+      - name: Upload debug symbols to Sentry
+        if: ${{ github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true' }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SENTRY_AUTH_TOKEN:-}" ] || [ -z "${SENTRY_ORG:-}" ] || [ -z "${SENTRY_PROJECT:-}" ]; then
+            echo "Sentry secrets are not fully configured; skipping debug symbol upload."
+            exit 0
+          fi
+
+          SENTRY_CMD=""
+          if command -v sentry-cli >/dev/null 2>&1; then
+            SENTRY_CMD="sentry-cli"
+          elif command -v sentry >/dev/null 2>&1; then
+            SENTRY_CMD="sentry"
+          elif command -v sentry.exe >/dev/null 2>&1; then
+            SENTRY_CMD="sentry.exe"
+          fi
+
+          if [ -z "$SENTRY_CMD" ]; then
+            echo "Sentry CLI executable not found in PATH."
+            exit 1
+          fi
+
+          declare -a SYMBOL_PATHS=()
+
+          add_file_matches() {
+            local root="$1"
+            local pattern="$2"
+            if [ -d "$root" ]; then
+              while IFS= read -r path; do
+                SYMBOL_PATHS+=("$path")
+              done < <(find "$root" -type f -name "$pattern" 2>/dev/null)
+            fi
+          }
+
+          add_dir_matches() {
+            local root="$1"
+            local pattern="$2"
+            if [ -d "$root" ]; then
+              while IFS= read -r path; do
+                SYMBOL_PATHS+=("$path")
+              done < <(find "$root" -type d -name "$pattern" 2>/dev/null)
+            fi
+          }
+
+          case "${{ matrix.target }}" in
+            "Android")
+              add_file_matches "build/app" "*.so"
+              add_file_matches "build" "*.debug"
+              ;;
+            "iOS")
+              add_dir_matches "build/ios" "*.dSYM"
+              add_dir_matches "ios/native/build" "*.dSYM"
+              ;;
+            "OSX")
+              add_dir_matches "build/macos" "*.dSYM"
+              add_dir_matches "macos/native/build" "*.dSYM"
+              add_file_matches "build/macos" "*.debug"
+              ;;
+            "Linux")
+              add_file_matches "build/linux" "*.debug"
+              add_file_matches "build/linux" "GeniusWallet"
+              ;;
+            "Windows")
+              add_file_matches "build/windows" "*.pdb"
+              add_file_matches "build/windows" "*.dll"
+              add_file_matches "build/windows" "*.exe"
+              ;;
+          esac
+
+          if [ ${#SYMBOL_PATHS[@]} -eq 0 ]; then
+            echo "No debug symbol files found for ${{ matrix.target }}."
+            exit 0
+          fi
+
+          echo "Uploading ${#SYMBOL_PATHS[@]} symbol path(s) to Sentry for ${{ matrix.target }}..."
+          "$SENTRY_CMD" debug-files upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --include-sources \
+            "${SYMBOL_PATHS[@]}"
+        shell: bash
 
       - name: Sign and package macOS app
         if: ${{ matrix.target == 'OSX' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
@@ -819,6 +1011,23 @@ jobs:
             BASE_NAME=${{matrix.target}}-${{matrix.build-type}}
           fi
 
+          FILTERED_ARTIFACTS_DIR="_artifacts_pkg/artifacts"
+          rm -rf "$FILTERED_ARTIFACTS_DIR"
+          mkdir -p "$FILTERED_ARTIFACTS_DIR"
+
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -a \
+              --exclude='*.pdb' \
+              --exclude='*.debug' \
+              --exclude='*.dSYM' \
+              --exclude='*.dSYM/***' \
+              artifacts/ "$FILTERED_ARTIFACTS_DIR/"
+          else
+            cp -r artifacts/. "$FILTERED_ARTIFACTS_DIR/"
+            find "$FILTERED_ARTIFACTS_DIR" -type f \( -name "*.pdb" -o -name "*.debug" \) -delete
+            find "$FILTERED_ARTIFACTS_DIR" -type d -name "*.dSYM" -prune -exec rm -rf {} +
+          fi
+
           # Android APKs and iOS IPAs don't need compression - upload directly
           if [ "${{ matrix.target }}" = "Android" ]; then
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
@@ -847,10 +1056,10 @@ jobs:
           elif [ "${{ matrix.target }}" = "Windows" ]; then
             ARTIFACT_NAME=${BASE_NAME}.zip
             # Use PowerShell to create zip on Windows
-            powershell -Command "Compress-Archive -Path 'artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
+            powershell -Command "Compress-Archive -Path '_artifacts_pkg/artifacts/*' -DestinationPath '${ARTIFACT_NAME}' -Force"
           else
             ARTIFACT_NAME=${BASE_NAME}.tar.gz
-            tar -czvf ${ARTIFACT_NAME} artifacts/
+            tar -czvf ${ARTIFACT_NAME} -C "_artifacts_pkg" artifacts
           fi
 
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
@@ -929,16 +1138,6 @@ jobs:
           fi
 
           echo "Upload step using RELEASE_TAG: $RELEASE_TAG"
-
-          # Verify release exists before uploading
-          echo "Verifying release exists..."
-          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "ERROR: Release $RELEASE_TAG not found!"
-            echo "Available releases:"
-            gh release list || true
-            exit 1
-          fi
-
           # Upload artifacts
           if [ "${{ matrix.target }}" = "OSX" ]; then
             # Upload macOS packages individually

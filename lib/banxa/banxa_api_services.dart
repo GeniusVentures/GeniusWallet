@@ -18,10 +18,10 @@ class BanxaApiService {
   static const String banxaKycUrl = 'https://$_partnerCode.banxa-sandbox.com';
 
   static Map<String, String> get _headers => {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'x-api-key': _apiKey,
-      };
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'x-api-key': _apiKey,
+  };
 
   static String generateHmacSignature(String message) {
     var key = utf8.encode(_apiKey);
@@ -34,9 +34,11 @@ class BanxaApiService {
   }
 
   static Future<BanxaKycResponse?> submitKYC(
-      Map<String, dynamic> kycData) async {
-    final url =
-        Uri.parse('https://$_partnerCode.banxa-sandbox.com/api/identities');
+    Map<String, dynamic> kycData,
+  ) async {
+    final url = Uri.parse(
+      'https://$_partnerCode.banxa-sandbox.com/api/identities',
+    );
 
     try {
       final response = await http.post(
@@ -83,7 +85,8 @@ class BanxaApiService {
     if ((fiatAmount == null || fiatAmount.isEmpty) &&
         (cryptoAmount == null || cryptoAmount.isEmpty)) {
       throw ArgumentError(
-          'Either fiatAmount or cryptoAmount must be provided.');
+        'Either fiatAmount or cryptoAmount must be provided.',
+      );
     }
 
     final queryParams = <String, String>{
@@ -98,8 +101,9 @@ class BanxaApiService {
       if (discountCode != null) 'discountCode': discountCode,
     };
 
-    final uri = Uri.parse('$_baseUrl/quotes/$orderType')
-        .replace(queryParameters: queryParams);
+    final uri = Uri.parse(
+      '$_baseUrl/quotes/$orderType',
+    ).replace(queryParameters: queryParams);
 
     final response = await http.get(uri, headers: _headers);
 
@@ -108,7 +112,8 @@ class BanxaApiService {
       return Quote.fromJson(jsonMap);
     } else {
       throw Exception(
-          'Failed to fetch quote (${response.statusCode}): ${response.body}');
+        'Failed to fetch quote (${response.statusCode}): ${response.body}',
+      );
     }
   }
 
@@ -190,7 +195,8 @@ class BanxaApiService {
         return OrderStatus.fromJson(data);
       } else {
         throw Exception(
-            'Failed to fetch order status (${response.statusCode})');
+          'Failed to fetch order status (${response.statusCode})',
+        );
       }
     } catch (e) {
       rethrow;
@@ -245,24 +251,17 @@ class BanxaApiService {
     int limit = 100,
     String? externalCustomerId,
   }) async {
-    final uri = Uri.https(
-      'api.banxa.com',
-      '/$_partnerCode/v2/orders',
-      {
-        'start': startDateUtc,
-        'end': endDateUtc,
-        if (status.isNotEmpty) 'status': status,
-        'limit': limit.toString(),
-        'externalCustomerId': externalCustomerId ?? 'your-cust-id'
-      },
-    );
+    final uri = Uri.https('api.banxa.com', '/$_partnerCode/v2/orders', {
+      'start': startDateUtc,
+      'end': endDateUtc,
+      if (status.isNotEmpty) 'status': status,
+      'limit': limit.toString(),
+      'externalCustomerId': externalCustomerId ?? 'your-cust-id',
+    });
 
     final response = await http.get(
       uri,
-      headers: {
-        'Accept': 'application/json',
-        'x-api-key': _apiKey,
-      },
+      headers: {'Accept': 'application/json', 'x-api-key': _apiKey},
     );
 
     if (response.statusCode == 200) {
@@ -270,7 +269,8 @@ class BanxaApiService {
       return OrdersResponse.fromJson(data);
     } else {
       print(
-          'Failed to fetch orders: ${response.statusCode} - ${response.body}');
+        'Failed to fetch orders: ${response.statusCode} - ${response.body}',
+      );
       throw Exception('Failed to fetch orders: ${response.statusCode}');
     }
   }

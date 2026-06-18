@@ -303,7 +303,7 @@ include_directories(${gnus_upnp_INCLUDE_DIR})
 set(nlohmann_json_DIR "${THIRDPARTY_BUILD_DIR}/json/share/cmake/nlohmann_json")
 find_package(nlohmann_json CONFIG REQUIRED)
 
-if(LINUX)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(PkgConfig)
     pkg_check_modules(LIBSECRET REQUIRED IMPORTED_TARGET libsecret-1>=0.18.4)
 endif()
@@ -398,6 +398,24 @@ set(GeniusSDK_DIR "${GENIUSSDK_BUILD_DIR}/GeniusSDK/lib/cmake/GeniusSDK/")
 find_package(GeniusSDK CONFIG REQUIRED)
 include_directories(${GeniusSDK_INCLUDE_DIR})
 set(BUILD_SHARED_LIBS ON)
+
+option(SGNS_ENABLE_RELEASE_SYMBOLS "Build Release with debug symbols for symbolication" ON)
+
+if(SGNS_ENABLE_RELEASE_SYMBOLS AND CMAKE_CXX_COMPILER_ID MATCHES "^(AppleClang|Clang|GNU)$")
+    add_compile_options(
+        "$<$<CONFIG:Release>:-gline-tables-only>"
+        "$<$<CONFIG:RelWithDebInfo>:-g>"
+    )
+endif()
+
+if(SGNS_ENABLE_RELEASE_SYMBOLS)
+    if(CMAKE_OBJCOPY)
+        set(SGNS_OBJCOPY_EXECUTABLE "${CMAKE_OBJCOPY}")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+        find_program(SGNS_OBJCOPY_EXECUTABLE NAMES llvm-objcopy objcopy REQUIRED)
+    endif()
+endif()
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_library(
         GeniusWallet
@@ -435,15 +453,30 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 "-framework UIKit"
                 "-framework Security")
         endif()
+        if(SGNS_ENABLE_RELEASE_SYMBOLS)
+            find_program(DSYMUTIL_EXECUTABLE dsymutil REQUIRED)
+            add_custom_command(TARGET GeniusWallet POST_BUILD
+                COMMAND ${DSYMUTIL_EXECUTABLE} $<TARGET_FILE:GeniusWallet> -o $<TARGET_FILE:GeniusWallet>.dSYM
+                COMMENT "Generating dSYM for GeniusWallet"
+            )
+        endif()
+    elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android") AND SGNS_ENABLE_RELEASE_SYMBOLS)
+        add_custom_command(TARGET GeniusWallet POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E chdir $<TARGET_FILE_DIR:GeniusWallet>
+                ${SGNS_OBJCOPY_EXECUTABLE} --only-keep-debug $<TARGET_FILE_NAME:GeniusWallet> $<TARGET_FILE_NAME:GeniusWallet>.debug
+            COMMAND ${CMAKE_COMMAND} -E chdir $<TARGET_FILE_DIR:GeniusWallet>
+                ${SGNS_OBJCOPY_EXECUTABLE} --strip-debug --add-gnu-debuglink=$<TARGET_FILE_NAME:GeniusWallet>.debug $<TARGET_FILE_NAME:GeniusWallet>
+            COMMENT "Generating detached debug symbols for GeniusWallet"
+            VERBATIM
+        )
     endif()
-    #Do this in 2 until osx linking is fixed for multiple.
+
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         TrustWalletCore
     )
     TARGET_LINK_LIBRARIES_WHOLE_ARCHIVE_W_TYPE(GeniusWallet PRIVATE
         sgns::GeniusSDK
     )
-
     target_link_libraries(GeniusWallet PRIVATE
         wallet_core_rs
         TrezorCrypto

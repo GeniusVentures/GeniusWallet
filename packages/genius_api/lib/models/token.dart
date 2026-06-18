@@ -4,13 +4,14 @@ part 'token.freezed.dart';
 part 'token.g.dart';
 
 @freezed
-class Token with _$Token {
-  const factory Token(
-      {String? address,
-      String? iconPath,
-      String? name,
-      String? coinGeckoId,
-      String? id}) = _Token;
+abstract class Token with _$Token {
+  const factory Token({
+    String? address,
+    String? iconPath,
+    String? name,
+    String? coinGeckoId,
+    String? id,
+  }) = _Token;
 
   factory Token.fromJson(Map<String, Object?> json) => _$TokenFromJson(json);
 }

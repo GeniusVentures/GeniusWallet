@@ -63,8 +63,11 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             p.errorMessage != c.errorMessage || p.step != c.step,
         listener: (context, state) async {
           if (state.errorMessage.isNotEmpty) {
-            showAppSnackBar(context, state.errorMessage,
-                backgroundColor: Colors.red);
+            showAppSnackBar(
+              context,
+              state.errorMessage,
+              backgroundColor: Colors.red,
+            );
 
             context.read<MakeOrderCubit>().clearError();
           }
@@ -92,15 +95,14 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             );
           }
 
-          final isBootLoading = state.step == MakeOrderStep.loadingCurrencies &&
+          final isBootLoading =
+              state.step == MakeOrderStep.loadingCurrencies &&
               state.fiats.isEmpty &&
               state.cryptos.isEmpty;
 
           final width = GeniusBreakpoints.small * 2 / 3;
           return Scaffold(
-            appBar: AppBar(
-              title: Text('Buy Crypto'),
-            ),
+            appBar: AppBar(title: Text('Buy Crypto')),
             body: Stack(
               children: [
                 if (isBootLoading)
@@ -110,8 +112,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
                       padding: EdgeInsetsGeometry.all(20.0),
-                      child: SizedBox(
-                        width: width,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: width),
                         child: Column(
                           spacing: 20.0,
                           children: [
@@ -128,14 +130,14 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               }).toList(),
                               onSelected:
                                   state.step == MakeOrderStep.loadingCurrencies
-                                      ? null
-                                      : (val) {
-                                          if (val != null) {
-                                            context
-                                                .read<MakeOrderCubit>()
-                                                .selectFiat(val);
-                                          }
-                                        },
+                                  ? null
+                                  : (val) {
+                                      if (val != null) {
+                                        context
+                                            .read<MakeOrderCubit>()
+                                            .selectFiat(val);
+                                      }
+                                    },
                             ),
                             DropdownMenu<CryptoCurrency>(
                               key: ValueKey(state.selectedCrypto),
@@ -150,22 +152,23 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               }).toList(),
                               onSelected:
                                   state.step == MakeOrderStep.loadingCurrencies
-                                      ? null
-                                      : (val) {
-                                          if (val != null) {
-                                            context
-                                                .read<MakeOrderCubit>()
-                                                .selectCrypto(val);
-                                          }
-                                        },
+                                  ? null
+                                  : (val) {
+                                      if (val != null) {
+                                        context
+                                            .read<MakeOrderCubit>()
+                                            .selectCrypto(val);
+                                      }
+                                    },
                             ),
                             DropdownMenu<PaymentMethod>(
                               key: ValueKey(state.selectedPaymentMethod),
                               initialSelection: state.selectedPaymentMethod,
                               label: const Text('Payment Method'),
                               width: width,
-                              dropdownMenuEntries:
-                                  state.paymentMethods.map((m) {
+                              dropdownMenuEntries: state.paymentMethods.map((
+                                m,
+                              ) {
                                 return DropdownMenuEntry<PaymentMethod>(
                                   value: m,
                                   label: m.name,
@@ -173,20 +176,21 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               }).toList(),
                               onSelected:
                                   state.step == MakeOrderStep.loadingCurrencies
-                                      ? null
-                                      : (val) {
-                                          if (val != null) {
-                                            context
-                                                .read<MakeOrderCubit>()
-                                                .selectPaymentMethod(val);
-                                          }
-                                        },
+                                  ? null
+                                  : (val) {
+                                      if (val != null) {
+                                        context
+                                            .read<MakeOrderCubit>()
+                                            .selectPaymentMethod(val);
+                                      }
+                                    },
                             ),
                             TextField(
                               controller: _amountController,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                      decimal: true),
+                                    decimal: true,
+                                  ),
                               onChanged: (v) => context
                                   .read<MakeOrderCubit>()
                                   .setAmountText(v),
@@ -200,8 +204,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                   child: ElevatedButton(
                                     onPressed: state.canGetQuote
                                         ? () => context
-                                            .read<MakeOrderCubit>()
-                                            .getQuote()
+                                              .read<MakeOrderCubit>()
+                                              .getQuote()
                                         : null,
                                     child: const Text('Get Quote'),
                                   ),
@@ -238,15 +242,18 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                          'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}'),
+                                        'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}',
+                                      ),
                                       Wrap(
                                         spacing: 12,
                                         runSpacing: 4,
                                         children: [
                                           Text(
-                                              'Gateway: ${state.quote!.processingFee} ${state.fiatCode}'),
+                                            'Gateway: ${state.quote!.processingFee} ${state.fiatCode}',
+                                          ),
                                           Text(
-                                              'Network: ${state.quote!.networkFee} ${state.fiatCode}'),
+                                            'Network: ${state.quote!.networkFee} ${state.fiatCode}',
+                                          ),
                                         ],
                                       ),
                                     ],
@@ -265,8 +272,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                             InkWell(
                               onTap: state.canCreateOrder
                                   ? () async {
-                                      final accepted =
-                                          await showDisclaimerDialog(
+                                      final accepted = await showDisclaimerDialog(
                                         context,
                                         title: "Payment Disclaimer",
                                         message:
@@ -303,20 +309,22 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                     }
                                   : null,
                               borderRadius: BorderRadius.circular(
-                                  GeniusWalletConsts.borderRadiusButton),
+                                GeniusWalletConsts.borderRadiusButton,
+                              ),
                               child: Ink(
                                 decoration: BoxDecoration(
                                   gradient: state.canCreateOrder
                                       ? GeniusWalletGradient
-                                          .greenBlueGreenGradient
+                                            .greenBlueGreenGradient
                                       : LinearGradient(
                                           colors: [
                                             Colors.grey.shade500,
-                                            Colors.grey.shade600
+                                            Colors.grey.shade600,
                                           ],
                                         ),
                                   borderRadius: BorderRadius.circular(
-                                      GeniusWalletConsts.borderRadiusButton),
+                                    GeniusWalletConsts.borderRadiusButton,
+                                  ),
                                 ),
                                 child: Container(
                                   height: 48,
@@ -342,11 +350,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                 if (state.showOverlay || isBootLoading)
                   Container(
                     color: Colors.black45,
-                    child: Center(
-                      child: Loading(
-                        text: state.loadingMessage,
-                      ),
-                    ),
+                    child: Center(child: Loading(text: state.loadingMessage)),
                   ),
               ],
             ),

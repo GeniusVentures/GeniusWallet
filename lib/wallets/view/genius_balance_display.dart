@@ -10,12 +10,13 @@ class GeniusBalanceDisplay extends StatefulWidget {
   final bool? isShowSuffix;
   final Color? fontColor;
 
-  const GeniusBalanceDisplay(
-      {super.key,
-      required this.useMinions,
-      this.fontSize,
-      this.isShowSuffix,
-      this.fontColor});
+  const GeniusBalanceDisplay({
+    super.key,
+    required this.useMinions,
+    this.fontSize,
+    this.isShowSuffix,
+    this.fontColor,
+  });
 
   @override
   State<GeniusBalanceDisplay> createState() => _GeniusBalanceDisplayState();
@@ -53,8 +54,10 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
   }
 
   void _startPolling() {
-    _timer =
-        Timer.periodic(const Duration(seconds: 10), (_) => _fetchBalance());
+    _timer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _fetchBalance(),
+    );
   }
 
   @override
@@ -89,8 +92,8 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
               fontWeight: FontWeight.w500,
               color: widget.fontColor ?? Colors.grey,
             ),
-          )
-        ]
+          ),
+        ],
       ],
     );
   }

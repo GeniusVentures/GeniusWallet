@@ -53,14 +53,13 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   Future<void> _fetchHistoricalData() async {
-    final historicalPrices =
-        await fetchHistoricalPrices(widget.coinGeckoCoinId);
+    final historicalPrices = await fetchHistoricalPrices(
+      widget.coinGeckoCoinId,
+    );
 
     if (historicalPrices.isNotEmpty) {
       final historicalData = historicalPrices.entries
-          .map(
-            (entry) => FlSpot(entry.key.toDouble(), entry.value),
-          )
+          .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
           .toList();
 
       setState(() {
@@ -80,8 +79,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   void _startLiveUpdates() {
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-      final coinPrices =
-          await fetchCoinsMarketData(coinIds: [widget.coinGeckoCoinId]);
+      final coinPrices = await fetchCoinsMarketData(
+        coinIds: [widget.coinGeckoCoinId],
+      );
 
       if (coinPrices.isNotEmpty) {
         final newPrice =
@@ -231,7 +231,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: fillColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
@@ -258,7 +260,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                           LineChartData(
                             clipData: const FlClipData.all(),
                             minX: _viewMinX ?? 0,
-                            maxX: _viewMaxX ??
+                            maxX:
+                                _viewMaxX ??
                                 (_priceData.isNotEmpty ? _priceData.last.x : 1),
                             minY:
                                 _priceData.map((e) => e.y).reduce(min) * 0.999,
@@ -288,13 +291,17 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                             borderData: FlBorderData(show: false),
                             titlesData: const FlTitlesData(
                               leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                               rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                               topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                               bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                             ),
                             lineTouchData: LineTouchData(
                               enabled: true,
@@ -319,8 +326,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                                     return LineTooltipItem(
                                       '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
                                       const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     );
                                   }).toList();
                                 },
@@ -333,26 +341,36 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                            icon:
-                                const Icon(Icons.zoom_in, color: Colors.white),
+                            icon: const Icon(
+                              Icons.zoom_in,
+                              color: Colors.white,
+                            ),
                             onPressed: _zoomIn,
                             tooltip: "Zoom In",
                           ),
                           IconButton(
-                            icon:
-                                const Icon(Icons.zoom_out, color: Colors.white),
+                            icon: const Icon(
+                              Icons.zoom_out,
+                              color: Colors.white,
+                            ),
                             onPressed: _zoomOut,
                             tooltip: "Zoom Out",
                           ),
                           IconButton(
-                            icon: const Icon(Icons.arrow_back_ios,
-                                color: Colors.white, size: 18),
+                            icon: const Icon(
+                              Icons.arrow_back_ios,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                             onPressed: _panLeft,
                             tooltip: "Pan Left",
                           ),
                           IconButton(
-                            icon: const Icon(Icons.arrow_forward_ios,
-                                color: Colors.white, size: 18),
+                            icon: const Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                             onPressed: _panRight,
                             tooltip: "Pan Right",
                           ),
@@ -363,9 +381,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                 )
               else
                 const Expanded(
-                  child: Center(
-                    child: PulsingSkeleton(width: double.infinity),
-                  ),
+                  child: Center(child: PulsingSkeleton(width: double.infinity)),
                 ),
             ],
           );

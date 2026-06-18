@@ -15,8 +15,11 @@ final _dateFormat = DateFormat("MMMM d, y 'at' h:mm a");
 String _capitalizeStatus(TransactionStatus status) =>
     status.name[0].toUpperCase() + status.name.substring(1);
 
-Widget _buildRow(String label, String value,
-    {Color valueColor = Colors.white}) {
+Widget _buildRow(
+  String label,
+  String value, {
+  Color valueColor = Colors.white,
+}) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
@@ -92,10 +95,9 @@ class TransactionEscrowReleaseItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Card(
-        color: cs.surfaceContainerHigh,
-        child: ListTile(
-          title: Text("Completed job"),
-        ));
+      color: cs.surfaceContainerHigh,
+      child: ListTile(title: Text("Completed job")),
+    );
   }
 }
 
@@ -115,24 +117,28 @@ class TransactionItem extends StatelessWidget {
     final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
 
     return Card(
-        color: cs.surfaceContainerHigh,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ListTile(
-          leading:
-              _buildCoinIconWithBadge(tx.coinSymbol, arrowBgColor, arrowIcon),
-          title: Row(
-            children: [
-              Text(label),
-              Text(
-                " • ${tx.coinSymbol}",
-                style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
-              )
-            ],
-          ),
-          onTap: () => _showTransactionDetails(context),
-          subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
-          trailing: _buildAmountTrailing(amount, cs.onSurfaceVariant),
-        ));
+      color: cs.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: _buildCoinIconWithBadge(
+          tx.coinSymbol,
+          arrowBgColor,
+          arrowIcon,
+        ),
+        title: Row(
+          children: [
+            Text(label),
+            Text(
+              " • ${tx.coinSymbol}",
+              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
+        onTap: () => _showTransactionDetails(context),
+        subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
+        trailing: _buildAmountTrailing(amount, cs.onSurfaceVariant),
+      ),
+    );
   }
 
   Widget _buildAmountTrailing(String amount, Color feeColor) {
@@ -140,11 +146,10 @@ class TransactionItem extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(amount,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            )),
+        Text(
+          amount,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         Text(
           "Fee: ${tx.fees} ${tx.coinSymbol}",
           style: TextStyle(fontSize: 12, color: feeColor),
@@ -166,31 +171,43 @@ class TransactionItem extends StatelessWidget {
     ResponsiveDrawer.show(
       context: context,
       title: label,
-      child: ListView(children: [
-        const SizedBox(height: 16),
-        Center(
-          child: _buildCoinIconWithBadge(tx.coinSymbol, arrowBgColor, arrowIcon,
-              size: 60, badgeSize: 24),
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: Text(
-            amountText,
-            style: const TextStyle(
-                fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+      child: ListView(
+        children: [
+          const SizedBox(height: 16),
+          Center(
+            child: _buildCoinIconWithBadge(
+              tx.coinSymbol,
+              arrowBgColor,
+              arrowIcon,
+              size: 60,
+              badgeSize: 24,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        _buildDetailsCard([
-          _buildRow("Date", _dateFormat.format(tx.timeStamp)),
-          _buildRow("Status", _capitalizeStatus(tx.transactionStatus)),
-          _buildRow(isSent ? "To" : "From",
-              WalletUtils.getAddressForDisplay(address)),
-          _buildRow("Network", tx.coinSymbol),
-          _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
-          _buildRow("Hash", WalletUtils.getAddressForDisplay(tx.hash)),
-        ]),
-      ]),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              amountText,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildDetailsCard([
+            _buildRow("Date", _dateFormat.format(tx.timeStamp)),
+            _buildRow("Status", _capitalizeStatus(tx.transactionStatus)),
+            _buildRow(
+              isSent ? "To" : "From",
+              WalletUtils.getAddressForDisplay(address),
+            ),
+            _buildRow("Network", tx.coinSymbol),
+            _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
+            _buildRow("Hash", WalletUtils.getAddressForDisplay(tx.hash)),
+          ]),
+        ],
+      ),
       footer: ElevatedButton.icon(
         onPressed: () {
           final url = getExplorerUrl(tx.coinSymbol, tx.hash);
@@ -205,8 +222,9 @@ class TransactionItem extends StatelessWidget {
           backgroundColor: Colors.lightBlueAccent,
           foregroundColor: cs.surfaceDim,
           minimumSize: const Size.fromHeight(48),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );
@@ -234,16 +252,20 @@ class TransactionPurchasedItem extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: () => _showPurchaseTransactionDetails(context, tx),
-        leading:
-            _buildCoinIconWithBadge(tx.coinSymbol, arrowBgColor, arrowIcon),
+        leading: _buildCoinIconWithBadge(
+          tx.coinSymbol,
+          arrowBgColor,
+          arrowIcon,
+        ),
         title: Row(
           children: [
             Text(
               isFailed ? "Buy - Failed" : "Buy",
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: isFailed ? Colors.redAccent : Colors.white),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isFailed ? Colors.redAccent : Colors.white,
+              ),
             ),
             Text(
               " • ${tx.coinSymbol}",
@@ -256,25 +278,38 @@ class TransactionPurchasedItem extends StatelessWidget {
           style: const TextStyle(fontSize: 12, color: Colors.white60),
         ),
         trailing: _buildAmountTrailing(
-            amountColor, amount, isFailed, cs.onSurfaceVariant),
+          amountColor,
+          amount,
+          isFailed,
+          cs.onSurfaceVariant,
+        ),
       ),
     );
   }
 
   Widget _buildAmountTrailing(
-      Color amountColor, String amount, bool isFailed, Color feeColor) {
+    Color amountColor,
+    String amount,
+    bool isFailed,
+    Color feeColor,
+  ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Text(amount,
-            style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w600, color: amountColor)),
+        Text(
+          amount,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: amountColor,
+          ),
+        ),
         Text(
           isFailed
               ? currencyFormatter.format(0)
               : "Spent: ${currencyFormatter.format(double.tryParse(tx.fees) ?? 0)}",
           style: TextStyle(fontSize: 12, color: feeColor),
-        )
+        ),
       ],
     );
   }
@@ -287,39 +322,49 @@ class TransactionPurchasedItem extends StatelessWidget {
         : "+ \$${double.tryParse(tx.recipients.first.amount)?.toStringAsFixed(2) ?? '0.00'}";
 
     ResponsiveDrawer.show(
-        context: context,
-        title: isFailed ? "Buy - Failed" : "Buy",
-        child: ListView(
-          children: [
-            const SizedBox(height: 16),
-            Center(
-              child: _buildCoinIconWithBadge(
-                  tx.coinSymbol, arrowBgColor, Icons.attach_money,
-                  size: 50, badgeSize: 20),
+      context: context,
+      title: isFailed ? "Buy - Failed" : "Buy",
+      child: ListView(
+        children: [
+          const SizedBox(height: 16),
+          Center(
+            child: _buildCoinIconWithBadge(
+              tx.coinSymbol,
+              arrowBgColor,
+              Icons.attach_money,
+              size: 50,
+              badgeSize: 20,
             ),
-            const SizedBox(height: 12),
-            Center(
-              child: Text(
-                amountText,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: isFailed ? Colors.redAccent : Colors.white,
-                ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              amountText,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: isFailed ? Colors.redAccent : Colors.white,
               ),
             ),
-            const SizedBox(height: 16),
-            _buildDetailsCard([
-              _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
-              _buildRow("Status", _capitalizeStatus(tx.transactionStatus),
-                  valueColor: isFailed ? Colors.redAccent : Colors.white),
-              _buildRow("To",
-                  WalletUtils.getAddressForDisplay(tx.recipients.first.toAddr)),
-              _buildRow("Network", tx.coinSymbol),
-              _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
-            ]),
-          ],
-        ));
+          ),
+          const SizedBox(height: 16),
+          _buildDetailsCard([
+            _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
+            _buildRow(
+              "Status",
+              _capitalizeStatus(tx.transactionStatus),
+              valueColor: isFailed ? Colors.redAccent : Colors.white,
+            ),
+            _buildRow(
+              "To",
+              WalletUtils.getAddressForDisplay(tx.recipients.first.toAddr),
+            ),
+            _buildRow("Network", tx.coinSymbol),
+            _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
+          ]),
+        ],
+      ),
+    );
   }
 }
 
@@ -346,21 +391,30 @@ class TransactionSwappedItem extends StatelessWidget {
         title: Text(
           "Swapped${isFailed ? ' - Failed' : ''}",
           style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: isFailed ? Colors.redAccent : Colors.white),
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: isFailed ? Colors.redAccent : Colors.white,
+          ),
         ),
         subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
         leading: _buildOverlappedIcons(fromIcon, toIcon, cs.surface),
         onTap: () => _showSwapTransactionDetails(context),
         trailing: _buildSwapAmounts(
-            fromAmount, fromSymbol, toAmount, toSymbol, isFailed),
+          fromAmount,
+          fromSymbol,
+          toAmount,
+          toSymbol,
+          isFailed,
+        ),
       ),
     );
   }
 
   Widget _buildOverlappedIcons(
-      String? fromIconUrl, String? toIconUrl, Color cardColor) {
+    String? fromIconUrl,
+    String? toIconUrl,
+    Color cardColor,
+  ) {
     return SizedBox(
       width: 40,
       height: 40,
@@ -387,10 +441,7 @@ class TransactionSwappedItem extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: cardColor,
-                      width: 1,
-                    ),
+                    border: Border.all(color: cardColor, width: 1),
                   ),
                 ),
               ),
@@ -400,8 +451,13 @@ class TransactionSwappedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildSwapAmounts(String fromAmount, String fromSymbol,
-      String toAmount, String toSymbol, bool isFailed) {
+  Widget _buildSwapAmounts(
+    String fromAmount,
+    String fromSymbol,
+    String toAmount,
+    String toSymbol,
+    bool isFailed,
+  ) {
     if (isFailed) {
       return Text(
         "0 $toSymbol",
@@ -425,10 +481,7 @@ class TransactionSwappedItem extends StatelessWidget {
             color: Colors.greenAccent,
           ),
         ),
-        Text(
-          "- $fromAmount $fromSymbol",
-          style: const TextStyle(fontSize: 14),
-        ),
+        Text("- $fromAmount $fromSymbol", style: const TextStyle(fontSize: 14)),
       ],
     );
   }
@@ -444,68 +497,69 @@ class TransactionSwappedItem extends StatelessWidget {
     final toAmount = tx.toAmount ?? "0";
 
     ResponsiveDrawer.show(
-        context: context,
-        title: isFailed ? "Swap - Failed" : "Swap",
-        child: ListView(
-          children: [
-            const SizedBox(height: 16),
-            Center(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  if (fromIcon != null)
-                    CircleAvatar(
+      context: context,
+      title: isFailed ? "Swap - Failed" : "Swap",
+      child: ListView(
+        children: [
+          const SizedBox(height: 16),
+          Center(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                if (fromIcon != null)
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(fromIcon),
+                    backgroundColor: cs.surface,
+                  ),
+                if (toIcon != null)
+                  Positioned(
+                    left: 38,
+                    top: 18,
+                    child: CircleAvatar(
                       radius: 30,
-                      backgroundImage: NetworkImage(fromIcon),
+                      backgroundImage: NetworkImage(toIcon),
                       backgroundColor: cs.surface,
-                    ),
-                  if (toIcon != null)
-                    Positioned(
-                      left: 38,
-                      top: 18,
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundImage: NetworkImage(toIcon),
-                        backgroundColor: cs.surface,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: cs.surface,
-                              width: 2,
-                            ),
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: cs.surface, width: 2),
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 30),
-            Center(
-              child: Text(
-                isFailed
-                    ? "Swap Failed"
-                    : "$fromAmount $fromSymbol → $toAmount $toSymbol",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isFailed ? Colors.redAccent : Colors.white,
-                ),
-                textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 30),
+          Center(
+            child: Text(
+              isFailed
+                  ? "Swap Failed"
+                  : "$fromAmount $fromSymbol → $toAmount $toSymbol",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isFailed ? Colors.redAccent : Colors.white,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            _buildDetailsCard([
-              _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
-              _buildRow("Status", _capitalizeStatus(tx.transactionStatus),
-                  valueColor: isFailed ? Colors.redAccent : Colors.white),
-              _buildRow("From", "$fromAmount $fromSymbol"),
-              _buildRow("To", "$toAmount $toSymbol"),
-              _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
-              _buildRow("Tx Hash", tx.hash),
-            ]),
-          ],
-        ));
+          ),
+          const SizedBox(height: 24),
+          _buildDetailsCard([
+            _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
+            _buildRow(
+              "Status",
+              _capitalizeStatus(tx.transactionStatus),
+              valueColor: isFailed ? Colors.redAccent : Colors.white,
+            ),
+            _buildRow("From", "$fromAmount $fromSymbol"),
+            _buildRow("To", "$toAmount $toSymbol"),
+            _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
+            _buildRow("Tx Hash", tx.hash),
+          ]),
+        ],
+      ),
+    );
   }
 }

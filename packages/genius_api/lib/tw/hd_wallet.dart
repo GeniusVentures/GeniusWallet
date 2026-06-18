@@ -32,8 +32,11 @@ class HDWallet {
     }
   }
 
-  HDWallet.createWithMnemonic(String mnemonic,
-      {String passphrase = "", String walletName = ""}) {
+  HDWallet.createWithMnemonic(
+    String mnemonic, {
+    String passphrase = "",
+    String walletName = "",
+  }) {
     if (!MnemonicImpl.isValid(mnemonic)) {
       throw Exception(["mnemonic is invalid"]);
     }
@@ -41,7 +44,9 @@ class HDWallet {
     final mnemonicTWString = StringUtil.toTWString(mnemonic);
     nativehandle = ffiBridgePrebuilt.tw_lib
         .TWHDWalletCreateWithMnemonic(
-            mnemonicTWString.cast(), passphraseTWString.cast())
+          mnemonicTWString.cast(),
+          passphraseTWString.cast(),
+        )
         .cast();
     StringUtil.delete(passphraseTWString);
     StringUtil.delete(mnemonicTWString);
@@ -52,8 +57,10 @@ class HDWallet {
   }
 
   HDWallet.createWithData(Uint8List bytes, {String passphrase = ""}) {
-    final data = ffiBridgePrebuilt.tw_lib
-        .TWDataCreateWithBytes(bytes.toPointerUint8(), bytes.length);
+    final data = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+      bytes.toPointerUint8(),
+      bytes.length,
+    );
     final passphraseTWString = StringUtil.toTWString(passphrase);
     nativehandle = ffiBridgePrebuilt.tw_lib
         .TWHDWalletCreateWithEntropy(data, passphraseTWString.cast())
@@ -66,16 +73,27 @@ class HDWallet {
   }
 
   String getAddressForCoin(TWCoinType coinType) {
-    final address = ffiBridgePrebuilt.tw_lib
-        .TWHDWalletGetAddressForCoin(nativehandle.cast(), coinType);
+    final address = ffiBridgePrebuilt.tw_lib.TWHDWalletGetAddressForCoin(
+      nativehandle.cast(),
+      coinType,
+    );
     return StringUtil.toDartString(address.cast());
   }
 
   PrivateKey getDerivedKey(
-      TWCoinType coinType, int account, int change, int address) {
+    TWCoinType coinType,
+    int account,
+    int change,
+    int address,
+  ) {
     final pointer = ffiBridgePrebuilt.tw_lib
         .TWHDWalletGetDerivedKey(
-            nativehandle.cast(), coinType, account, change, address)
+          nativehandle.cast(),
+          coinType,
+          account,
+          change,
+          address,
+        )
         .cast<Void>();
     return PrivateKey.pointer(pointer);
   }
@@ -95,7 +113,10 @@ class HDWallet {
     final twDerivationPath = StringUtil.toTWString(derivationPath);
     final pointer = ffiBridgePrebuilt.tw_lib
         .TWHDWalletGetKey(
-            nativehandle.cast(), coinType, twDerivationPath.cast())
+          nativehandle.cast(),
+          coinType,
+          twDerivationPath.cast(),
+        )
         .cast<Void>();
     StringUtil.delete(twDerivationPath);
     return PrivateKey.pointer(pointer);
@@ -113,24 +134,29 @@ class HDWallet {
   }
 
   Uint8List seed() {
-    final data =
-        ffiBridgePrebuilt.tw_lib.TWHDWalletSeed(nativehandle.cast());
+    final data = ffiBridgePrebuilt.tw_lib.TWHDWalletSeed(nativehandle.cast());
     return ffiBridgePrebuilt.tw_lib
         .TWDataBytes(data)
         .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(data));
   }
 
   String mnemonic() {
-    return StringUtil.toDartString(ffiBridgePrebuilt.tw_lib
-        .TWHDWalletMnemonic(nativehandle.cast())
-        .cast());
+    return StringUtil.toDartString(
+      ffiBridgePrebuilt.tw_lib.TWHDWalletMnemonic(nativehandle.cast()).cast(),
+    );
   }
 
   String getExtendedPublicKey(
-      TWPurpose purpose, TWCoinType coinType, TWHDVersion twHdVersion) {
-    final publicKey = ffiBridgePrebuilt.tw_lib
-        .TWHDWalletGetExtendedPublicKey(
-            nativehandle.cast(), purpose, coinType, twHdVersion);
+    TWPurpose purpose,
+    TWCoinType coinType,
+    TWHDVersion twHdVersion,
+  ) {
+    final publicKey = ffiBridgePrebuilt.tw_lib.TWHDWalletGetExtendedPublicKey(
+      nativehandle.cast(),
+      purpose,
+      coinType,
+      twHdVersion,
+    );
     return StringUtil.toDartString(publicKey.cast());
   }
 

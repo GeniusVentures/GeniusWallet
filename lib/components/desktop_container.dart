@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:go_router/go_router.dart';
 
 class DesktopContainer extends StatelessWidget {
@@ -70,16 +69,11 @@ class DesktopContainer extends StatelessWidget {
                         const SizedBox(width: 16),
                         // Search Bar
                         const Flexible(
-                          child: SizedBox(
-                            child: SearchBar(
-                              hintText: 'Search ...',
-                              trailing: [
-                                Icon(
-                                  Icons.search,
-                                  color: Colors.grey,
-                                ),
-                              ],
-                            ),
+                          child: SearchBar(
+                            hintText: 'Search ...',
+                            trailing: [
+                              Icon(Icons.search, color: Colors.grey),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -141,32 +135,30 @@ class HeaderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Flexible(
-        child: TextButton.icon(
-      onPressed: route != null ? () => context.push(route!) : null,
-      style: ButtonStyle(
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(20)),
-        backgroundColor: WidgetStateProperty.resolveWith((states) {
-          return color;
-        }),
-        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: isAddBorder!
-                ? BorderSide(width: 1, color: textColor ?? Colors.red)
-                : BorderSide.none,
+      child: TextButton.icon(
+        onPressed: route != null ? () => context.push(route!) : null,
+        style: ButtonStyle(
+          padding: const WidgetStatePropertyAll(EdgeInsets.all(20)),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            return color;
+          }),
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: isAddBorder!
+                  ? BorderSide(width: 1, color: textColor ?? Colors.red)
+                  : BorderSide.none,
+            ),
           ),
         ),
+        label: AutoSizeText(
+          text ?? 'Button',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: textColor),
+        ),
+        icon: Icon(icon, color: textColor),
       ),
-      label: AutoSizeText(
-        text ?? 'Button',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: textColor),
-      ),
-      icon: Icon(
-        icon,
-        color: textColor,
-      ),
-    ));
+    );
   }
 }

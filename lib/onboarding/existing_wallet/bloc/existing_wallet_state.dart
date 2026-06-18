@@ -44,9 +44,4 @@ enum ImportWalletStep {
   confirmPin,
 }
 
-enum ExistingWalletStatus {
-  initial,
-  loading,
-  success,
-  error,
-}
+enum ExistingWalletStatus { initial, loading, success, error }

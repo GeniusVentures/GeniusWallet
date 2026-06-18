@@ -12,17 +12,18 @@ class SelectWalletTypeScreen extends StatelessWidget {
     /// TODO: Support for other networks - fetch these dynamically?
     final List<SupportedWallet> supportedNetworks = [
       SupportedWallet(
-          name: 'Ethereum',
-          image: 'assets/images/ethereum_icon.png',
-          coinType: TWCoinType.TWCoinTypeEthereum),
+        name: 'Ethereum',
+        image: 'assets/images/ethereum_icon.png',
+        coinType: TWCoinType.TWCoinTypeEthereum,
+      ),
       // SupportedWallet(name: 'XRP', image: 'assets/images/xrp_icon.png', coinType: TWCoinType.TWCoinTypeXRP)
       // SupportedWallet(name: 'Stellar', image: 'assets/images/stellar_icon.png', coinType: TWCoinType.TWCoinTypeStellar)
       // SupportedWallet(name: 'Tron', image: 'assets/images/tron_icon.png', coinType: TWCoinType.TWCoinTypeTron)
     ];
 
     return Center(
-      child: SizedBox(
-        width: GeniusBreakpoints.small * 2 / 3,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 2 / 3),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 20.0,
@@ -42,8 +43,10 @@ class SelectWalletTypeScreen extends StatelessWidget {
                 return Card(
                   clipBehavior: Clip.hardEdge,
                   child: ListTile(
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 20.0,
+                    ),
                     leading: Image.asset(
                       network.image,
                       package: 'genius_wallet',
@@ -55,10 +58,11 @@ class SelectWalletTypeScreen extends StatelessWidget {
                     trailing: Icon(Icons.chevron_right),
                     onTap: () {
                       context.read<ExistingWalletBloc>().add(
-                            ImportWalletSelected(
-                                walletName: supportedNetworks[index].name,
-                                coinType: supportedNetworks[index].coinType),
-                          );
+                        ImportWalletSelected(
+                          walletName: supportedNetworks[index].name,
+                          coinType: supportedNetworks[index].coinType,
+                        ),
+                      );
                     },
                   ),
                 );
@@ -76,6 +80,9 @@ class SupportedWallet {
   final String image;
   final TWCoinType coinType;
 
-  SupportedWallet(
-      {required this.name, required this.image, required this.coinType});
+  SupportedWallet({
+    required this.name,
+    required this.image,
+    required this.coinType,
+  });
 }

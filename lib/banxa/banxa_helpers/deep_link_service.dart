@@ -16,12 +16,9 @@ class DeepLinkService {
   StreamSubscription<Uri>? _sub;
 
   void startListening(GlobalKey<NavigatorState> navigatorKey) {
-    _sub = _appLinks.uriLinkStream.listen(
-      (Uri? uri) {
-        if (uri != null) _handleUri(uri, navigatorKey);
-      },
-      onError: (err) => debugPrint("DeepLink error: $err"),
-    );
+    _sub = _appLinks.uriLinkStream.listen((Uri? uri) {
+      if (uri != null) _handleUri(uri, navigatorKey);
+    }, onError: (err) => debugPrint("DeepLink error: $err"));
   }
 
   void _handleUri(Uri uri, GlobalKey<NavigatorState> navigatorKey) {

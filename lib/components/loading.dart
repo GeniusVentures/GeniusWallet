@@ -8,16 +8,17 @@ class Loading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(spacing: 16, mainAxisSize: MainAxisSize.min, children: [
-      LoadingAnimationWidget.flickr(
-        leftDotColor: GeniusWalletColors.lightGreenPrimary,
-        rightDotColor: Colors.blue,
-        size: 50,
-      ),
-      if (text != null)
-        Text(
-          text!,
-        )
-    ]);
+    return Row(
+      spacing: 16,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LoadingAnimationWidget.flickr(
+          leftDotColor: GeniusWalletColors.lightGreenPrimary,
+          rightDotColor: Colors.blue,
+          size: 50,
+        ),
+        if (text != null) Text(text!),
+      ],
+    );
   }
 }

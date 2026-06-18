@@ -21,8 +21,10 @@ class CheckoutQrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qrSize =
-        math.max(160.0, math.min(320.0, MediaQuery.sizeOf(context).width - 64));
+    final qrSize = math.max(
+      160.0,
+      math.min(320.0, MediaQuery.sizeOf(context).width - 64),
+    );
 
     return BlocBuilder<PollingCubit, PollingState>(
       builder: (context, state) {
@@ -90,7 +92,8 @@ class CheckoutQrPage extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: () async {
                           await Clipboard.setData(
-                              ClipboardData(text: checkoutUrl));
+                            ClipboardData(text: checkoutUrl),
+                          );
                           if (context.mounted) {
                             showAppSnackBar(context, 'Link copied');
                           }

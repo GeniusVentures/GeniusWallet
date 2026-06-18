@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -34,24 +35,21 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
   void _startInitPolling() {
     _initTimer?.cancel();
     if (_initComplete || _geniusApi == null) return;
-    _initTimer = Timer.periodic(
-      const Duration(seconds: 3),
-      (_) {
-        if (!mounted) return;
-        try {
-          final status = _geniusApi!.getInitializationStatus();
-          setState(() {
-            _initPercentage = status.percentage;
-            if (status.percentage >= 1.0) {
-              _initComplete = true;
-              _initTimer?.cancel();
-            }
-          });
-        } catch (_) {
-          // Ignore polling errors and try again next tick.
-        }
-      },
-    );
+    _initTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      try {
+        final status = _geniusApi!.getInitializationStatus();
+        setState(() {
+          _initPercentage = status.percentage;
+          if (status.percentage >= 1.0) {
+            _initComplete = true;
+            _initTimer?.cancel();
+          }
+        });
+      } catch (_) {
+        // Ignore polling errors and try again next tick.
+      }
+    });
   }
 
   @override
@@ -66,9 +64,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
       stream: _geniusApi!.getSGNUSConnectionStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(
-            child: Text('No connection data available'),
-          );
+          return const Center(child: Text('No connection data available'));
         }
 
         final connection = snapshot.data!;
@@ -76,7 +72,8 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
         Widget icon;
         String label;
 
-        if (_initComplete || (_initPercentage != null && _initPercentage! >= 1.0)) {
+        if (_initComplete ||
+            (_initPercentage != null && _initPercentage! >= 1.0)) {
           icon = const CheckmarkAnimation();
           label = 'SGNUS Connection';
         } else if (_initPercentage != null) {
@@ -110,9 +107,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
 }
 
 class SGNUSConnectionStatusWidget extends StatelessWidget {
-  const SGNUSConnectionStatusWidget({
-    super.key,
-  });
+  const SGNUSConnectionStatusWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -131,12 +126,19 @@ class SGNUSConnectionStatusWidget extends StatelessWidget {
               const Loading(text: "processing"),
               const SizedBox(width: 8),
             ],
-            Text(
-              statusText,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: isProcessing ? Colors.white : Colors.white70,
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 60),
+              child: AutoSizeText(
+                statusText,
+                maxLines: 1,
+                minFontSize: 10,
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isProcessing ? Colors.white : Colors.white70,
+                ),
               ),
             ),
           ],

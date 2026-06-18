@@ -61,14 +61,15 @@ class CopyButtonState extends State<CopyButton> {
             ),
             const SizedBox(width: 8), // Space between icon & text
             Flexible(
-                child: AutoSizeText(
-              _copied ? "Copied!" : widget.buttonText,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              child: AutoSizeText(
+                _copied ? "Copied!" : widget.buttonText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),

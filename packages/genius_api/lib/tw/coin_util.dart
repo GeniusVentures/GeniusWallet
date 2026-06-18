@@ -6,8 +6,10 @@ class CoinUtil {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
 
   static String getSymbol(TWCoinType coinType) {
-    return StringUtil.toDartString(ffiBridgePrebuilt.tw_lib
-        .TWCoinTypeConfigurationGetSymbol(coinType)
-        .cast());
+    return StringUtil.toDartString(
+      ffiBridgePrebuilt.tw_lib
+          .TWCoinTypeConfigurationGetSymbol(coinType)
+          .cast(),
+    );
   }
 }

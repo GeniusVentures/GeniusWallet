@@ -2,6 +2,7 @@ import 'dart:ffi' as ffi;
 
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -30,7 +31,8 @@ import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+    show MethodChannel, PlatformException, rootBundle;
 import 'package:rxdart/rxdart.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -61,7 +63,9 @@ void _selectGeniusAccountIsolate(List<Object> args) {
 
   final dylib = loadGeniusSDKLibrary();
   if (dylib == null) {
-    sendPort.send(GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index);
+    sendPort.send(
+      GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index,
+    );
     return;
   }
   final lib = NativeLibrary(dylib);
@@ -77,6 +81,7 @@ void _selectGeniusAccountIsolate(List<Object> args) {
 class GeniusInitStatus {
   /// Initialization progress from 0.0 to 1.0.
   final double percentage;
+
   /// Human-readable status message.
   final String message;
 
@@ -84,6 +89,10 @@ class GeniusInitStatus {
 }
 
 class GeniusApi {
+  static const MethodChannel _platformChannel = MethodChannel(
+    'ai.gnus.genius_wallet/platform',
+  );
+
   final LocalWalletStorage _secureStorage;
   final _ffiBridgePrebuilt = FFIBridgePrebuilt();
   final _sgnusConnectionController = SGNUSConnectionController();
@@ -93,9 +102,26 @@ class GeniusApi {
   late final String _basePath;
   bool _isSdkInitialized = false;
 
-  GeniusApi({
-    required LocalWalletStorage secureStorage,
-  }) : _secureStorage = secureStorage;
+  static const String _overridesDirName = 'overrides';
+
+  static const Set<String> _networkConfigOverrideKeys = {
+    'pubsub_port',
+    'pubsub_bind_address',
+    'upnp_enabled',
+    'high_water',
+    'low_water',
+  };
+
+  bool get isSdkInitialized => _isSdkInitialized;
+
+  String get jsonFilePath => _basePath;
+
+  String get overridesDirPath => '$_basePath$_overridesDirName';
+
+  Set<String> get networkConfigOverrideKeys => _networkConfigOverrideKeys;
+
+  GeniusApi({required LocalWalletStorage secureStorage})
+    : _secureStorage = secureStorage;
 
   Future<void> requestPermissions() async {
     try {
@@ -174,17 +200,22 @@ class GeniusApi {
       return;
     }
 
+    await _initializeAndroidKeyStore();
+
     PrivateKey privateKey;
 
     if (storedKey.isMnemonic()) {
-      privateKey =
-          storedKey.wallet("")!.getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
+      privateKey = storedKey
+          .wallet("")!
+          .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
     } else {
-      privateKey =
-          storedKey.privateKey(TWCoinType.TWCoinTypeEthereum, Uint8List(0))!;
+      privateKey = storedKey.privateKey(
+        TWCoinType.TWCoinTypeEthereum,
+        Uint8List(0),
+      )!;
     }
 
-    _basePath = '${(await copyJsonToWritableDirectory()).path}/';
+    _basePath = await prepareConfigFiles();
     final basePathPtr = _basePath.toNativeUtf8();
 
     final privateKeyAsStr = privateKey
@@ -193,7 +224,13 @@ class GeniusApi {
         .join();
     final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
     final retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithKey(
-        basePathPtr.cast(), privateKeyAsPtr.cast(), true, true, 41001, false);
+      basePathPtr.cast(),
+      privateKeyAsPtr.cast(),
+      true,
+      true,
+      41001,
+      false,
+    );
 
     malloc.free(privateKeyAsPtr);
     malloc.free(basePathPtr);
@@ -206,15 +243,33 @@ class GeniusApi {
     var rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
     _address = rawAddress.address.toDartString(131);
 
-    getSGNUSController().updateConnection(SGNUSConnection(
+    getSGNUSController().updateConnection(
+      SGNUSConnection(
         sgnusAddress: _address,
-        walletAddress: storedKey
+        walletAddress:
+            storedKey
                 .wallet("")
                 ?.getAddressForCoin(TWCoinType.TWCoinTypeEthereum) ??
             "",
-        isConnected: true));
+        isConnected: true,
+      ),
+    );
 
     _isSdkInitialized = true;
+  }
+
+  Future<void> _initializeAndroidKeyStore() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+
+    try {
+      await _platformChannel.invokeMethod<bool>('initializeAndroidKeyStore');
+    } on PlatformException catch (e) {
+      throw StateError(
+        'Failed to initialize Android KeyStoreHelper: ${e.message}',
+      );
+    }
   }
 
   Future<void> _registerWallet(StoredKey storedKey) async {
@@ -223,27 +278,123 @@ class GeniusApi {
     await loadStoredWallets();
   }
 
-  Future<Directory> copyJsonToWritableDirectory() async {
+  Future<Directory> _ensureOverridesDir(Directory appDocsDir) async {
+    final overridesDir = Directory('${appDocsDir.path}/$_overridesDirName');
+    if (!await overridesDir.exists()) {
+      await overridesDir.create(recursive: true);
+    }
+    return overridesDir;
+  }
+
+  Future<Map<String, dynamic>> _loadUserOverrides(
+    Directory overridesDir,
+    String fileName,
+  ) async {
+    final file = File('${overridesDir.path}/$fileName');
+    if (!await file.exists()) {
+      return {};
+    }
+
+    try {
+      final content = await file.readAsString();
+      final decoded = jsonDecode(content);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      debugPrint('User overrides $fileName is not a JSON object, ignoring');
+    } catch (e) {
+      debugPrint('Failed to parse user overrides $fileName: $e');
+    }
+    return {};
+  }
+
+  Map<String, dynamic> _applyOverrides(
+    Map<String, dynamic> defaults,
+    Map<String, dynamic> overrides, {
+    Set<String>? whitelist,
+  }) {
+    final merged = Map<String, dynamic>.from(defaults);
+    for (final entry in overrides.entries) {
+      if (whitelist != null && !whitelist.contains(entry.key)) {
+        debugPrint('Skipping non-whitelisted override key: ${entry.key}');
+        continue;
+      }
+
+      if (entry.value is Map<String, dynamic> &&
+          merged[entry.key] is Map<String, dynamic>) {
+        merged[entry.key] = _applyOverrides(
+          merged[entry.key] as Map<String, dynamic>,
+          entry.value as Map<String, dynamic>,
+        );
+      } else {
+        merged[entry.key] = entry.value;
+      }
+    }
+    return merged;
+  }
+
+  Future<String> prepareConfigFiles() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       debugPrint('Base path directory: ${directory.path}');
 
-      final jsonString = await rootBundle.loadString('assets/dev_config.json');
-      debugPrint('Loaded dev config: $jsonString');
+      final overridesDir = await _ensureOverridesDir(directory);
+      for (final fileName in [
+        'network_config.json',
+        'crdt_config.json',
+        'log_config.json',
+      ]) {
+        final overrideFile = File('${overridesDir.path}/$fileName');
+        if (!await overrideFile.exists()) {
+          await overrideFile.writeAsString('{}');
+        }
+      }
 
-      final filePath = '${directory.path}/dev_config.json';
-      final file = File(filePath);
-      await file.writeAsString(jsonString);
-      debugPrint('File written to: $filePath');
+      final devConfig = await rootBundle.loadString('assets/dev_config.json');
+      await File('${directory.path}/dev_config.json').writeAsString(devConfig);
 
-      final writtenFileContent = await file.readAsString();
-      debugPrint('Content of the written file: $writtenFileContent');
+      await _writeMergedConfig(
+        directory: directory,
+        overridesDir: overridesDir,
+        fileName: 'network_config.json',
+        whitelist: _networkConfigOverrideKeys,
+      );
+      await _writeMergedConfig(
+        directory: directory,
+        overridesDir: overridesDir,
+        fileName: 'crdt_config.json',
+      );
+      await _writeMergedConfig(
+        directory: directory,
+        overridesDir: overridesDir,
+        fileName: 'log_config.json',
+      );
 
-      return directory;
+      return '${directory.path}/';
     } catch (e) {
-      debugPrint('Error in copyJsonToWritableDirectory: $e');
+      debugPrint('Error in prepareConfigFiles: $e');
       rethrow;
     }
+  }
+
+  Future<void> _writeMergedConfig({
+    required Directory directory,
+    required Directory overridesDir,
+    required String fileName,
+    Set<String>? whitelist,
+  }) async {
+    final defaultsJson = await rootBundle.loadString('assets/$fileName');
+    final defaults = jsonDecode(defaultsJson) as Map<String, dynamic>;
+    final overrides = await _loadUserOverrides(overridesDir, fileName);
+    final merged = _applyOverrides(defaults, overrides, whitelist: whitelist);
+    await File('${directory.path}/$fileName').writeAsString(jsonEncode(merged));
+  }
+
+  void reloadLogConfig() {
+    if (!_isSdkInitialized) {
+      return;
+    }
+    _ffiBridgePrebuilt.sgns_lib.GeniusSDKLoadLogConfig();
   }
 
   Future<double> getGasFees() async {
@@ -271,7 +422,11 @@ class GeniusApi {
   }
 
   GeniusNodeReturnValue mintTokens(
-      int amount, String transactionHash, String chainId, String tokenId) {
+    int amount,
+    String transactionHash,
+    String chainId,
+    String tokenId,
+  ) {
     final Pointer<Utf8> transhash = transactionHash.toNativeUtf8();
     final Pointer<Utf8> chainid = chainId.toNativeUtf8();
 
@@ -279,16 +434,21 @@ class GeniusApi {
     final tokenIdData = calloc<GeniusTokenID>();
 
     // Parse hex string token_id and fill the data array
-    String cleanTokenId =
-        tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+    String cleanTokenId = tokenId.startsWith('0x')
+        ? tokenId.substring(2)
+        : tokenId;
 
     for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
       String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
       tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
     }
 
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKMint(amount,
-        transhash as Pointer<Char>, chainid as Pointer<Char>, tokenIdData.ref);
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKMint(
+      amount,
+      transhash as Pointer<Char>,
+      chainid as Pointer<Char>,
+      tokenIdData.ref,
+    );
 
     calloc.free(tokenIdData);
     malloc.free(transhash);
@@ -367,10 +527,15 @@ class GeniusApi {
   Future<void> saveWallet(HDWallet wallet) async {
     String mnemonic = wallet.mnemonic();
     String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
-    String walletName = wallet.name ??
+    String walletName =
+        wallet.name ??
         "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}";
     StoredKey? storedKey = StoredKey.importHDWallet(
-        mnemonic, walletName, "", TWCoinType.TWCoinTypeEthereum);
+      mnemonic,
+      walletName,
+      "",
+      TWCoinType.TWCoinTypeEthereum,
+    );
 
     if (storedKey == null) {
       return;
@@ -389,12 +554,18 @@ class GeniusApi {
   }) async {
     if (securityType == SecurityType.passphrase) {
       return await importWalletFromMnemonic(
-          securityValue, walletName, coinType);
+        securityValue,
+        walletName,
+        coinType,
+      );
     }
 
     if (securityType == SecurityType.privateKey) {
       return await importWalletFromPrivateKey(
-          securityValue, walletName, coinType);
+        securityValue,
+        walletName,
+        coinType,
+      );
     }
 
     if (securityType == SecurityType.address) {
@@ -403,14 +574,22 @@ class GeniusApi {
 
     if (securityType == SecurityType.keystore) {
       return await importWalletFromKeyStore(
-          securityValue, password, walletName, coinType);
+        securityValue,
+        password,
+        walletName,
+        coinType,
+      );
     }
 
     return false;
   }
 
-  Future<bool> importWalletFromKeyStore(String json, String? password,
-      String walletName, TWCoinType coinType) async {
+  Future<bool> importWalletFromKeyStore(
+    String json,
+    String? password,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
     StoredKey? storedKey = StoredKey.importJson(json);
 
     if (storedKey == null) {
@@ -418,11 +597,15 @@ class GeniusApi {
     }
 
     final mnemonic = storedKey.decryptMnemonic(
-        Uint8List.fromList(password?.codeUnits ?? List.empty()));
+      Uint8List.fromList(password?.codeUnits ?? List.empty()),
+    );
 
-    final pk = hex.encode(storedKey.decryptPrivateKey(
-            Uint8List.fromList(password?.codeUnits ?? List.empty())) ??
-        List.empty());
+    final pk = hex.encode(
+      storedKey.decryptPrivateKey(
+            Uint8List.fromList(password?.codeUnits ?? List.empty()),
+          ) ??
+          List.empty(),
+    );
 
     if (mnemonic == null || pk == "") {
       return false;
@@ -439,13 +622,16 @@ class GeniusApi {
       return false;
     }
 
-    await _secureStorage.saveWatchedWallet(Wallet(
+    await _secureStorage.saveWatchedWallet(
+      Wallet(
         balance: 0,
         walletName: walletName,
         currencySymbol: CoinUtil.getSymbol(coinType),
         coinType: coinType,
         walletType: WalletType.tracking,
-        address: address));
+        address: address,
+      ),
+    );
 
     await loadStoredWallets();
 
@@ -453,9 +639,16 @@ class GeniusApi {
   }
 
   Future<bool> importWalletFromMnemonic(
-      String mnemonic, String walletName, TWCoinType coinType) async {
-    StoredKey? storedKey =
-        StoredKey.importHDWallet(mnemonic, walletName, "", coinType);
+    String mnemonic,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
+    StoredKey? storedKey = StoredKey.importHDWallet(
+      mnemonic,
+      walletName,
+      "",
+      coinType,
+    );
 
     if (storedKey == null) {
       return false;
@@ -467,10 +660,17 @@ class GeniusApi {
   }
 
   Future<bool> importWalletFromPrivateKey(
-      String privateKey, String walletName, TWCoinType coinType) async {
+    String privateKey,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
     final privateKeyData = Uint8List.fromList(hex.decode(privateKey));
-    StoredKey? storedKey =
-        StoredKey.importPrivateKey(privateKeyData, walletName, "", coinType);
+    StoredKey? storedKey = StoredKey.importPrivateKey(
+      privateKeyData,
+      walletName,
+      "",
+      coinType,
+    );
 
     if (storedKey == null) {
       return false;
@@ -500,8 +700,9 @@ class GeniusApi {
 
     if (tokenId != null) {
       // Parse provided token ID
-      String cleanTokenId =
-          tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      String cleanTokenId = tokenId.startsWith('0x')
+          ? tokenId.substring(2)
+          : tokenId;
 
       // Pad odd-length hex strings with a leading zero
       if (cleanTokenId.length.isOdd) {
@@ -516,8 +717,9 @@ class GeniusApi {
       }
     }
 
-    final balance =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalance(tokenIdData.ref);
+    final balance = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalance(
+      tokenIdData.ref,
+    );
     calloc.free(tokenIdData);
     return balance.toString();
   }
@@ -526,8 +728,8 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return "0";
     }
-    GeniusTokenValue tokenValue =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalanceGNUS();
+    GeniusTokenValue tokenValue = _ffiBridgePrebuilt.sgns_lib
+        .GeniusSDKGetBalanceGNUS();
     return tokenValue.value.toDartString(22);
   }
 
@@ -564,12 +766,13 @@ class GeniusApi {
       return;
     }
 
-    var transactions =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetOutTransactions();
+    var transactions = _ffiBridgePrebuilt.sgns_lib
+        .GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
-      var buffer =
-          transactions.ptr[i].ptr.asTypedList(transactions.ptr[i].size);
+      var buffer = transactions.ptr[i].ptr.asTypedList(
+        transactions.ptr[i].size,
+      );
       var header = DAGWrapper.fromBuffer(buffer).dagStruct;
 
       var fromAddress = String.fromCharCodes(header.sourceAddr);
@@ -581,8 +784,12 @@ class GeniusApi {
       if (header.type == "escrow") {
         rawRecipients = EscrowTx.fromBuffer(buffer).utxoParams.outputs;
       } else if (header.type == "mint") {
-        recipients.add(TransferRecipients(
-            amount: MintTx.fromBuffer(buffer).amount.toString(), toAddr: ""));
+        recipients.add(
+          TransferRecipients(
+            amount: MintTx.fromBuffer(buffer).amount.toString(),
+            toAddr: "",
+          ),
+        );
       } else if (header.type == "process") {
         // No recipients in this kind of transaction
       } else if (header.type == "transfer") {
@@ -590,26 +797,32 @@ class GeniusApi {
       }
 
       if (rawRecipients != null) {
-        recipients.addAll(rawRecipients.map((output) => TransferRecipients(
-            toAddr: output.destAddr
-                .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-                .join(),
-            amount: output.encryptedAmount.toString())));
+        recipients.addAll(
+          rawRecipients.map(
+            (output) => TransferRecipients(
+              toAddr: output.destAddr
+                  .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+                  .join(),
+              amount: output.encryptedAmount.toString(),
+            ),
+          ),
+        );
       }
 
       Transaction trans = Transaction(
-          hash: String.fromCharCodes(header.dataHash),
-          fromAddress: fromAddress,
-          recipients: recipients,
-          timeStamp: parseTimestamp(header.timestamp.toInt()),
-          transactionDirection: _address == fromAddress
-              ? TransactionDirection.sent
-              : TransactionDirection.received,
-          fees: '0',
-          coinSymbol: 'minions',
-          transactionStatus: TransactionStatus.completed,
-          isSGNUS: true,
-          type: TransactionType.fromString(header.type));
+        hash: String.fromCharCodes(header.dataHash),
+        fromAddress: fromAddress,
+        recipients: recipients,
+        timeStamp: parseTimestamp(header.timestamp.toInt()),
+        transactionDirection: _address == fromAddress
+            ? TransactionDirection.sent
+            : TransactionDirection.received,
+        fees: '0',
+        coinSymbol: 'minions',
+        transactionStatus: TransactionStatus.completed,
+        isSGNUS: true,
+        type: TransactionType.fromString(header.type),
+      );
 
       return trans;
     });
@@ -622,8 +835,11 @@ class GeniusApi {
     getSGNUSTransactionsController().setTransactions(ret);
   }
 
-  GeniusNodeReturnValue transferTokens(int amount, String address,
-      {String? tokenId}) {
+  GeniusNodeReturnValue transferTokens(
+    int amount,
+    String address, {
+    String? tokenId,
+  }) {
     final convertedAddress = calloc<GeniusAddress>();
     final tokenIdData = calloc<GeniusTokenID>();
 
@@ -640,8 +856,9 @@ class GeniusApi {
       }
     } else {
       // Parse provided token ID
-      String cleanTokenId =
-          tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      String cleanTokenId = tokenId.startsWith('0x')
+          ? tokenId.substring(2)
+          : tokenId;
 
       for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
         String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -649,8 +866,11 @@ class GeniusApi {
       }
     }
 
-    final ret = _ffiBridgePrebuilt.sgns_lib
-        .GeniusSDKTransfer(amount, convertedAddress, tokenIdData.ref);
+    final ret = _ffiBridgePrebuilt.sgns_lib.GeniusSDKTransfer(
+      amount,
+      convertedAddress,
+      tokenIdData.ref,
+    );
 
     calloc.free(convertedAddress);
     calloc.free(tokenIdData);
@@ -702,8 +922,9 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKSelectGeniusAccount(addressPtr);
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKSelectGeniusAccount(
+      addressPtr,
+    );
     malloc.free(addressPtr);
     return _mapNodeReturnValue(result);
   }
@@ -713,13 +934,16 @@ class GeniusApi {
   ///
   /// Prefer this over the synchronous version in UI-driven code paths.
   Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
-      String publicAddress) async {
+    String publicAddress,
+  ) async {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final receivePort = ReceivePort();
-    await Isolate.spawn(
-        _selectGeniusAccountIsolate, [receivePort.sendPort, publicAddress]);
+    await Isolate.spawn(_selectGeniusAccountIsolate, [
+      receivePort.sendPort,
+      publicAddress,
+    ]);
     final result = await receivePort.first as int;
     receivePort.close();
     return _mapNodeReturnValue(result);
@@ -731,8 +955,9 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final mnemonicPtr = mnemonic.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgns_lib
-        .GeniusSDKAddAccountWithMnemonic(mnemonicPtr);
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKAddAccountWithMnemonic(
+      mnemonicPtr,
+    );
     malloc.free(mnemonicPtr);
     return _mapNodeReturnValue(result);
   }
@@ -743,8 +968,8 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final keyPtr = privateKey.toNativeUtf8().cast<Char>();
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKAddAccountWithPrivateKey(keyPtr);
+    final result = _ffiBridgePrebuilt.sgns_lib
+        .GeniusSDKAddAccountWithPrivateKey(keyPtr);
     malloc.free(keyPtr);
     return _mapNodeReturnValue(result);
   }
@@ -756,8 +981,9 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKDeleteAccount(addressPtr);
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKDeleteAccount(
+      addressPtr,
+    );
     malloc.free(addressPtr);
     return _mapNodeReturnValue(result);
   }
@@ -769,8 +995,9 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKSetPayoutAddress(addressPtr);
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKSetPayoutAddress(
+      addressPtr,
+    );
     malloc.free(addressPtr);
     return _mapNodeReturnValue(result);
   }
@@ -799,8 +1026,9 @@ class GeniusApi {
       }
     } else {
       // Parse provided token ID
-      String cleanTokenId =
-          tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId;
+      String cleanTokenId = tokenId.startsWith('0x')
+          ? tokenId.substring(2)
+          : tokenId;
 
       for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
         String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -808,8 +1036,10 @@ class GeniusApi {
       }
     }
 
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKPayDev(amount, tokenIdData.ref);
+    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKPayDev(
+      amount,
+      tokenIdData.ref,
+    );
     calloc.free(tokenIdData);
 
     return _mapNodeReturnValue(result);
@@ -824,14 +1054,15 @@ class GeniusApi {
     }
   }
 
-  Future<ApiResponse<String>> bridgeOut(
-      {required String contractAddress,
-      required String rpcUrl,
-      required String address,
-      required String amountToBurn,
-      required int sourceChainId,
-      required int destinationChainId,
-      bool shouldMintTokens = false}) async {
+  Future<ApiResponse<String>> bridgeOut({
+    required String contractAddress,
+    required String rpcUrl,
+    required String address,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+    bool shouldMintTokens = false,
+  }) async {
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
@@ -839,12 +1070,13 @@ class GeniusApi {
     }
 
     final resp = await Web3(geniusApi: this).executeBridgeOutTransaction(
-        contractAddress: contractAddress,
-        rpcUrl: rpcUrl,
-        amountToBurn: amountToBurn,
-        sourceChainId: sourceChainId,
-        destinationChainId: destinationChainId,
-        wallet: wallet);
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      amountToBurn: amountToBurn,
+      sourceChainId: sourceChainId,
+      destinationChainId: destinationChainId,
+      wallet: wallet,
+    );
 
     if (shouldMintTokens && resp.isSuccess && resp.data != null) {
       final hardCodedTokenIdForNow = 0;
@@ -860,13 +1092,14 @@ class GeniusApi {
     return resp;
   }
 
-  Future<ApiResponse<String>> getBrigeOutGasCost(
-      {required String contractAddress,
-      required String rpcUrl,
-      required String address,
-      required String amountToBurn,
-      required int sourceChainId,
-      required int destinationChainId}) async {
+  Future<ApiResponse<String>> getBrigeOutGasCost({
+    required String contractAddress,
+    required String rpcUrl,
+    required String address,
+    required String amountToBurn,
+    required int sourceChainId,
+    required int destinationChainId,
+  }) async {
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
@@ -875,15 +1108,17 @@ class GeniusApi {
 
     final web3 = Web3(geniusApi: this);
     final gasResponse = await web3.getBrigeOutGasCost(
-        contractAddress: contractAddress,
-        rpcUrl: rpcUrl,
-        amountToBurn: amountToBurn,
-        destinationChainId: destinationChainId,
-        wallet: wallet);
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      amountToBurn: amountToBurn,
+      destinationChainId: destinationChainId,
+      wallet: wallet,
+    );
 
     if (!gasResponse.isSuccess) {
       return ApiResponse.error(
-          gasResponse.errorMessage ?? "Failed to retrieve gas costs");
+        gasResponse.errorMessage ?? "Failed to retrieve gas costs",
+      );
     }
 
     final gasPriceInGwei = web3.getGasPriceInGwei(gasResponse.data);
@@ -904,7 +1139,11 @@ class GeniusApi {
     final privateKey = getDevPrivateKey() ?? web3.getPrivateKeyStr(wallet);
 
     final resp = await web3.signAndSendTransaction(
-        tx: tx, rpcUrl: rpcUrl, chainId: sourceChainId, privateKey: privateKey);
+      tx: tx,
+      rpcUrl: rpcUrl,
+      chainId: sourceChainId,
+      privateKey: privateKey,
+    );
 
     return resp;
   }
@@ -916,16 +1155,16 @@ class GeniusApi {
 
   /// Returns the current SDK initialization status.
   GeniusInitStatus getInitializationStatus() {
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetInitializationStatus();
+    final result = _ffiBridgePrebuilt.sgns_lib
+        .GeniusSDKGetInitializationStatus();
     final message = result.message.cast<Utf8>().toDartString();
     _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(result.message.cast<ffi.Void>());
     return GeniusInitStatus(percentage: result.percentage, message: message);
   }
 
   GeniusTransactionManagerState getTransactionManagerState() {
-    final result =
-        _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetTransactionManagerState();
+    final result = _ffiBridgePrebuilt.sgns_lib
+        .GeniusSDKGetTransactionManagerState();
     return _mapTransactionManagerState(result);
   }
 

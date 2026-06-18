@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
 project(runner LANGUAGES CXX)
 
-set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+if(CMAKE_BUILD_TYPE)
+    set(ARCH_OUTPUT_DIR /build/Windows/${CMAKE_BUILD_TYPE})
+else()
+    set(ARCH_OUTPUT_DIR /build/Windows/${BUILD_TYPE_SEARCH})
+endif()
 set(ARCH_RELEASE_OUTPUT_DIR /build/Windows/Release)
 
 if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.20) # v142 toolset
@@ -24,6 +28,31 @@ add_executable(${BINARY_NAME} WIN32
     "Runner.rc"
     "runner.exe.manifest"
 )
+
+if(MSVC)
+    target_compile_options(${BINARY_NAME} PRIVATE
+        $<$<CONFIG:Release>:/Zi>
+        $<$<CONFIG:Profile>:/Zi>
+    )
+
+    target_link_options(${BINARY_NAME} PRIVATE
+        $<$<CONFIG:Release>:/DEBUG:FULL>
+        $<$<CONFIG:Profile>:/DEBUG:FULL>
+        $<$<CONFIG:Release>:/INCREMENTAL:NO>
+        $<$<CONFIG:Profile>:/INCREMENTAL:NO>
+        $<$<CONFIG:Release>:/OPT:REF>
+        $<$<CONFIG:Profile>:/OPT:REF>
+        $<$<CONFIG:Release>:/OPT:ICF>
+        $<$<CONFIG:Profile>:/OPT:ICF>
+    )
+
+    set_target_properties(${BINARY_NAME} PROPERTIES
+        COMPILE_PDB_NAME "${BINARY_NAME}"
+        COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>"
+        PDB_NAME "${BINARY_NAME}"
+        PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runner/$<CONFIG>"
+    )
+endif()
 
 include(../../cmake/CommonBuildParameters.cmake)
 

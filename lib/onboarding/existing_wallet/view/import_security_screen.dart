@@ -19,19 +19,13 @@ class ImportSecurityScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabControllers = {
-      'phrase': {
-        'pasteField': TextEditingController(),
-      },
-      'privatekey': {
-        'pasteField': TextEditingController(),
-      },
+      'phrase': {'pasteField': TextEditingController()},
+      'privatekey': {'pasteField': TextEditingController()},
       'keystore': {
         'pasteField': TextEditingController(),
         'passwordField': TextEditingController(),
       },
-      'address': {
-        'pasteField': TextEditingController(),
-      },
+      'address': {'pasteField': TextEditingController()},
     };
 
     final walletNameController = TextEditingController();
@@ -56,105 +50,114 @@ class ImportSecurityScreen extends StatelessWidget {
             length: tabControllers.length,
             child: Form(
               key: formKey,
-              child: LayoutBuilder(builder: (context, constraints) {
-                return Center(
-                  child: SizedBox(
-                    width: GeniusBreakpoints.small * 0.8,
-                    child: Column(
-                      spacing: 24.0,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Import $walletType Wallet',
-                            style: Theme.of(context).textTheme.headlineLarge),
-                        TextFormField(
-                          decoration: InputDecoration(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 0.8),
+                      child: Column(
+                        spacing: 24.0,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Import $walletType Wallet',
+                            style: Theme.of(context).textTheme.headlineLarge,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
                               hintText: "Enter wallet name",
-                              label: Text("Name")),
-                          controller: walletNameController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a wallet name';
-                            }
-                            return null;
-                          },
-                        ),
-                        TabBar(
-                          tabAlignment: TabAlignment.center,
-                          isScrollable: true,
-                          tabs: [
-                            Tab(text: 'Phrase'),
-                            Tab(text: 'Private Key'),
-                            Tab(text: 'Keystore'),
-                            Tab(text: 'Address'),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 260,
-                          child: TabBarView(
-                            children: [
-                              PasteField(
-                                hintText: 'Wallet Mnemonic Phrase',
-                                subtitle:
-                                    'Typically 12 (sometimes 24) words separated by single spaces.',
-                                controller:
-                                    tabControllers['phrase']!['pasteField']!,
-                              ),
-                              PasteField(
-                                hintText: "Wallet Private Key",
-                                controller: tabControllers['privatekey']![
-                                    'pasteField']!,
-                                subtitle:
-                                    'Typically 64 alphanumeric characters.',
-                              ),
-                              KeystoreTabView(
-                                passwordController: tabControllers['keystore']![
-                                    'passwordField']!,
-                                pasteFieldController:
-                                    tabControllers['keystore']!['pasteField']!,
-                              ),
-                              PasteField(
-                                height: 150,
-                                hintText: 'Wallet Address',
-                                controller:
-                                    tabControllers['address']!['pasteField']!,
-                                subtitle:
-                                    'You can “watch” any public address without divulging your private key. This let’s you view balances and transactions, but not send transactions.',
-                              ),
+                              label: Text("Name"),
+                            ),
+                            controller: walletNameController,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a wallet name';
+                              }
+                              return null;
+                            },
+                          ),
+                          TabBar(
+                            tabAlignment: TabAlignment.center,
+                            isScrollable: true,
+                            tabs: [
+                              Tab(text: 'Phrase'),
+                              Tab(text: 'Private Key'),
+                              Tab(text: 'Keystore'),
+                              Tab(text: 'Address'),
                             ],
                           ),
-                        ),
-                        FilledButton(
+                          SizedBox(
+                            height: 260,
+                            child: TabBarView(
+                              children: [
+                                PasteField(
+                                  hintText: 'Wallet Mnemonic Phrase',
+                                  subtitle:
+                                      'Typically 12 (sometimes 24) words separated by single spaces.',
+                                  controller:
+                                      tabControllers['phrase']!['pasteField']!,
+                                ),
+                                PasteField(
+                                  hintText: "Wallet Private Key",
+                                  controller:
+                                      tabControllers['privatekey']!['pasteField']!,
+                                  subtitle:
+                                      'Typically 64 alphanumeric characters.',
+                                ),
+                                KeystoreTabView(
+                                  passwordController:
+                                      tabControllers['keystore']!['passwordField']!,
+                                  pasteFieldController:
+                                      tabControllers['keystore']!['pasteField']!,
+                                ),
+                                PasteField(
+                                  height: 150,
+                                  hintText: 'Wallet Address',
+                                  controller:
+                                      tabControllers['address']!['pasteField']!,
+                                  subtitle:
+                                      'You can “watch” any public address without divulging your private key. This let’s you view balances and transactions, but not send transactions.',
+                                ),
+                              ],
+                            ),
+                          ),
+                          FilledButton(
                             onPressed: () {
                               if (!formKey.currentState!.validate()) {
                                 return;
                               }
 
-                              final selectedIndex =
-                                  DefaultTabController.of(context).index;
+                              final selectedIndex = DefaultTabController.of(
+                                context,
+                              ).index;
 
                               final selectedEntry = tabControllers.entries
                                   .toList()[selectedIndex];
 
                               context.read<ExistingWalletBloc>().add(
-                                    WalletSecurityEntered(
-                                      coinType: coinType,
-                                      walletName: walletNameController.text,
-                                      walletType: walletType,
-                                      securityType: getSecurityTypeFromTab(
-                                          selectedEntry.key),
-                                      pasteFieldText: selectedEntry
-                                          .value['pasteField']!.text,
-                                      password: selectedEntry
-                                          .value['passwordField']?.text,
-                                    ),
-                                  );
+                                WalletSecurityEntered(
+                                  coinType: coinType,
+                                  walletName: walletNameController.text,
+                                  walletType: walletType,
+                                  securityType: getSecurityTypeFromTab(
+                                    selectedEntry.key,
+                                  ),
+                                  pasteFieldText:
+                                      selectedEntry.value['pasteField']!.text,
+                                  password: selectedEntry
+                                      .value['passwordField']
+                                      ?.text,
+                                ),
+                              );
                             },
-                            child: Text("Import"))
-                      ],
+                            child: Text("Import"),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -165,10 +168,7 @@ class ImportSecurityScreen extends StatelessWidget {
                 child: AlertDialog(
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Loading(),
-                      Text('Importing wallet'),
-                    ],
+                    children: [Loading(), Text('Importing wallet')],
                   ),
                 ),
               );
@@ -198,9 +198,7 @@ class KeystoreTabView extends StatelessWidget {
       additionalWidget: TextFormField(
         controller: passwordController,
         obscureText: true,
-        decoration: const InputDecoration(
-          hintText: 'Password',
-        ),
+        decoration: const InputDecoration(hintText: 'Password'),
       ),
       subtitle:
           'Several lines of text beginning with “{...}” plus the password you used to encrypt it',

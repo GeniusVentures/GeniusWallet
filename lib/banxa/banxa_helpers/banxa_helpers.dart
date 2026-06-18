@@ -16,25 +16,31 @@ class BanxaHelpers {
     final s = status?.toLowerCase();
     if (s == 'cancel') {
       return BannerInfo(
-          Colors.amber.shade100, 'Checkout cancelled. Verifying order status…');
+        Colors.amber.shade100,
+        'Checkout cancelled. Verifying order status…',
+      );
     } else if (s == 'failure' || s == 'failed') {
       return BannerInfo(
-          Colors.red.shade100, 'Payment failed. Verifying order status…');
+        Colors.red.shade100,
+        'Payment failed. Verifying order status…',
+      );
     } else if (s == 'success' || s == 'completed') {
       return BannerInfo(
-          Colors.green.shade100, 'Payment completed. Fetching final details…');
+        Colors.green.shade100,
+        'Payment completed. Fetching final details…',
+      );
     }
     return null;
   }
 
   static List<String> getOrderStatuses() => [
-        "",
-        "pendingPayment",
-        "completed",
-        "declined",
-        "inProgress",
-        "expired",
-      ];
+    "",
+    "pendingPayment",
+    "completed",
+    "declined",
+    "inProgress",
+    "expired",
+  ];
 
   static String getOrderStatusLabel(String status) {
     switch (status) {
@@ -59,8 +65,8 @@ class BanxaHelpers {
   }
 
   static Map<String, dynamic> buildOrderDetailsExtra(Order order) => {
-        'orderId': order.id,
-        'checkoutUrl': order.orderStatusUrl,
-        'redirectUrl': BanxaApiService.redirectUrl,
-      };
+    'orderId': order.id,
+    'checkoutUrl': order.orderStatusUrl,
+    'redirectUrl': BanxaApiService.redirectUrl,
+  };
 }

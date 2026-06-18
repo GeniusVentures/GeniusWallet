@@ -1,0 +1,6 @@
+{
+  "backup_enabled": true,
+  "backup_interval_minutes": 15,
+  "backup_keep_count": 12,
+  "backup_auto_restore_on_repair_failure": true
+}

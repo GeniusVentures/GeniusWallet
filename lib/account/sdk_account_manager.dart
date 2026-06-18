@@ -79,8 +79,10 @@ class SDKAccountManagerButton extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Text(
                   'Select the account the SDK uses for processing:',
                   style: TextStyle(
@@ -93,8 +95,10 @@ class SDKAccountManagerButton extends StatelessWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemBuilder: (context, i) => _buildAccountRow(
-                      context, accounts[i],
-                      isSelected: accounts[i] == selected),
+                    context,
+                    accounts[i],
+                    isSelected: accounts[i] == selected,
+                  ),
                   itemCount: accounts.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 6),
@@ -113,20 +117,14 @@ class SDKAccountManagerButton extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _showAddWithMnemonicDialog(context),
                 icon: const Icon(Icons.text_fields, size: 18),
-                label: const AutoSizeText(
-                  'Add with mnemonic',
-                  maxLines: 1,
-                ),
+                label: const AutoSizeText('Add with mnemonic', maxLines: 1),
               ),
             ),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _showAddWithPrivateKeyDialog(context),
                 icon: const Icon(Icons.key, size: 18),
-                label: const AutoSizeText(
-                  'Add with private key',
-                  maxLines: 1,
-                ),
+                label: const AutoSizeText('Add with private key', maxLines: 1),
               ),
             ),
           ],
@@ -140,10 +138,12 @@ class SDKAccountManagerButton extends StatelessWidget {
     String address, {
     required bool isSelected,
   }) {
-    final textColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.white;
-    final subColor =
-        isSelected ? GeniusWalletColors.deepBlueTertiary : Colors.grey;
+    final textColor = isSelected
+        ? GeniusWalletColors.deepBlueTertiary
+        : Colors.white;
+    final subColor = isSelected
+        ? GeniusWalletColors.deepBlueTertiary
+        : Colors.grey;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -153,8 +153,11 @@ class SDKAccountManagerButton extends StatelessWidget {
         onTap: () {
           if (!isSelected) {
             context.read<AppBloc>().add(SelectSDKAccount(address));
-            showAppSnackBar(context, 'SDK account selected',
-                duration: const Duration(seconds: 1));
+            showAppSnackBar(
+              context,
+              'SDK account selected',
+              duration: const Duration(seconds: 1),
+            );
           }
         },
         leading: Icon(
@@ -178,14 +181,20 @@ class SDKAccountManagerButton extends StatelessWidget {
             : null,
         trailing: isSelected
             ? IconButton(
-                icon: const Icon(Icons.edit_location_alt,
-                    size: 20, color: Colors.orangeAccent),
+                icon: const Icon(
+                  Icons.edit_location_alt,
+                  size: 20,
+                  color: Colors.orangeAccent,
+                ),
                 tooltip: 'Set payout address',
                 onPressed: () => _showSetPayoutAddressDialog(context),
               )
             : IconButton(
-                icon: const Icon(Icons.delete_outline,
-                    size: 20, color: Colors.redAccent),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.redAccent,
+                ),
                 tooltip: 'Delete account',
                 onPressed: () =>
                     _confirmDeleteSDKAccount(context, address, isSelected),
@@ -235,8 +244,11 @@ class SDKAccountManagerButton extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       context.read<AppBloc>().add(DeleteSDKAccount(address));
-      showAppSnackBar(context, 'SDK account deleted',
-          duration: const Duration(seconds: 1));
+      showAppSnackBar(
+        context,
+        'SDK account deleted',
+        duration: const Duration(seconds: 1),
+      );
     }
   }
 
@@ -273,8 +285,11 @@ class SDKAccountManagerButton extends StatelessWidget {
       await Future.delayed(const Duration(milliseconds: 500));
       if (context.mounted) {
         bloc.add(RefreshSDKAccounts());
-        showAppSnackBar(context, 'Account added successfully',
-            duration: const Duration(seconds: 1));
+        showAppSnackBar(
+          context,
+          'Account added successfully',
+          duration: const Duration(seconds: 1),
+        );
       }
     }
   }
@@ -311,8 +326,11 @@ class SDKAccountManagerButton extends StatelessWidget {
       await Future.delayed(const Duration(milliseconds: 500));
       if (context.mounted) {
         bloc.add(RefreshSDKAccounts());
-        showAppSnackBar(context, 'Account added successfully',
-            duration: const Duration(seconds: 1));
+        showAppSnackBar(
+          context,
+          'Account added successfully',
+          duration: const Duration(seconds: 1),
+        );
       }
     }
   }
@@ -346,12 +364,17 @@ class SDKAccountManagerButton extends StatelessWidget {
       context.read<AppBloc>().add(SetSDKPayoutAddress(payoutAddress));
       final result = context.read<AppBloc>().state.setPayoutAddressResult;
       if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-        showAppSnackBar(context, 'Payout address set successfully',
-            duration: const Duration(seconds: 1));
+        showAppSnackBar(
+          context,
+          'Payout address set successfully',
+          duration: const Duration(seconds: 1),
+        );
       } else {
         showAppSnackBar(
-            context, 'Failed to set payout address: ${result?.name}',
-            duration: const Duration(seconds: 3));
+          context,
+          'Failed to set payout address: ${result?.name}',
+          duration: const Duration(seconds: 3),
+        );
       }
     }
   }

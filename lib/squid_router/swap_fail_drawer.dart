@@ -17,18 +17,20 @@ class SwapFailDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Failed",
-      child: ListView(children: [
-        SwapDrawerContent(
-          fromAmount: fromAmount,
-          toAmount: toAmount,
-          fromIconUrl: fromIconUrl,
-          toIconUrl: toIconUrl,
-          fromSymbol: fromSymbol,
-          toSymbol: toSymbol,
-          chain: chain,
-          isSuccess: false,
-        ),
-      ]),
+      child: ListView(
+        children: [
+          SwapDrawerContent(
+            fromAmount: fromAmount,
+            toAmount: toAmount,
+            fromIconUrl: fromIconUrl,
+            toIconUrl: toIconUrl,
+            fromSymbol: fromSymbol,
+            toSymbol: toSymbol,
+            chain: chain,
+            isSuccess: false,
+          ),
+        ],
+      ),
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) onClose();
@@ -40,10 +42,7 @@ class SwapFailDrawer {
           side: const BorderSide(color: Colors.redAccent),
           minimumSize: const Size.fromHeight(48),
         ),
-        child: const Text(
-          "Dismiss",
-          style: TextStyle(color: Colors.redAccent),
-        ),
+        child: const Text("Dismiss", style: TextStyle(color: Colors.redAccent)),
       ),
     );
   }

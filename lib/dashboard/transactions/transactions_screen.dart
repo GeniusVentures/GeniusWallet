@@ -11,37 +11,27 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          height: screenHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: Column(
-            children: [
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<WalletDetailsCubit>().getCoins();
-                  },
-                  child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                    builder: (context, walletState) {
-                      final selectedWallet = walletState.selectedWallet;
-                      final isSgnusWallet =
-                          selectedWallet?.walletType == WalletType.sgnus;
+        child: RefreshIndicator(
+          onRefresh: () async {
+            context.read<WalletDetailsCubit>().getCoins();
+          },
+          child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+            builder: (context, walletState) {
+              final selectedWallet = walletState.selectedWallet;
+              final isSgnusWallet =
+                  selectedWallet?.walletType == WalletType.sgnus;
 
-                      return Container(
-                          padding: const EdgeInsets.only(
-                              left: 12, right: 12, bottom: 8),
-                          child: isSgnusWallet
-                              ? const SgnusTransactionsScreen()
-                              : const TransactionsStream());
-                    },
-                  ),
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: isSgnusWallet
+                      ? const SgnusTransactionsScreen()
+                      : const TransactionsStream(),
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),

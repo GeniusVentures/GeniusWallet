@@ -9,10 +9,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class CreatePinScreen extends StatelessWidget {
   final void Function(String) onCompleted;
-  const CreatePinScreen({
-    super.key,
-    required this.onCompleted,
-  });
+  const CreatePinScreen({super.key, required this.onCompleted});
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +24,7 @@ class CreatePinScreen extends StatelessWidget {
             context.read<PinCubit>().pinConfirmFailed();
           }
         },
-        child: PinScreen(
-          title: "Create a PIN",
-          onCompleted: onCompleted,
-        ),
+        child: PinScreen(title: "Create a PIN", onCompleted: onCompleted),
       ),
     );
   }

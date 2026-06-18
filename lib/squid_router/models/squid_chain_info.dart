@@ -30,8 +30,9 @@ class SquidChainInfo {
       chainId: json['chainId'],
       nativeCurrency: NativeCurrency.fromJson(json['nativeCurrency']),
       blockExplorerUrls: List<String>.from(json['blockExplorerUrls']),
-      chainNativeContracts:
-          ChainNativeContracts.fromJson(json['chainNativeContracts']),
+      chainNativeContracts: ChainNativeContracts.fromJson(
+        json['chainNativeContracts'],
+      ),
       axelarContracts: AxelarContracts.fromJson(json['axelarContracts']),
     );
   }
@@ -87,10 +88,7 @@ class AxelarContracts {
   final String gateway;
   final String forecallable;
 
-  AxelarContracts({
-    required this.gateway,
-    required this.forecallable,
-  });
+  AxelarContracts({required this.gateway, required this.forecallable});
 
   factory AxelarContracts.fromJson(Map<String, dynamic> json) {
     return AxelarContracts(

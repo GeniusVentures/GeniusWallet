@@ -9,16 +9,12 @@ class RecoveryPhraseContinue extends NewWalletEvent {}
 class RecoveryWordTapped extends NewWalletEvent {
   final String wordTapped;
 
-  RecoveryWordTapped({
-    required this.wordTapped,
-  });
+  RecoveryWordTapped({required this.wordTapped});
 }
 
 class RecoveryWordAssign extends NewWalletEvent {
   final List<String> recoverywords;
-  RecoveryWordAssign({
-    required this.recoverywords,
-  });
+  RecoveryWordAssign({required this.recoverywords});
 }
 
 /// Event thrown when the user acknowledges the recovery phrase they received

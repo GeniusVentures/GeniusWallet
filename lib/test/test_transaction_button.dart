@@ -9,8 +9,9 @@ class TestTransactionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final txController =
-        context.read<GeniusApi>().getSGNUSTransactionsController();
+    final txController = context
+        .read<GeniusApi>()
+        .getSGNUSTransactionsController();
 
     return IconButton(
       tooltip: "Add SGNUS Test Transaction",

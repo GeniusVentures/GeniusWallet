@@ -80,11 +80,13 @@ class _MarketsScreenState extends State<MarketsScreen> {
                       ResponsiveDrawer.show<void>(
                         context: context,
                         title: "Search Coins",
-                        child: ListView(children: [
-                          MarketSearchBar(
-                            onCoinPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ]),
+                        child: ListView(
+                          children: [
+                            MarketSearchBar(
+                              onCoinPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -110,7 +112,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
                   }
                   _cachedCoinIds = coins.map((coin) => coin.id).toList();
                   return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
-                    future: _marketDataFuture ??
+                    future:
+                        _marketDataFuture ??
                         (_marketDataFuture = fetchCoinsMarketData(
                           coinIds: _cachedCoinIds!,
                         )),
@@ -133,58 +136,59 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
                       return Expanded(
                         child: GridView.builder(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: getCrossAxisCount(context),
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              mainAxisExtent: 80,
-                            ),
-                            itemCount: coins.length,
-                            itemBuilder: (context, index) {
-                              final coin = coins[index];
-                              final data = marketData[coin.id] ??
-                                  marketData[coin.symbol.toLowerCase()];
+                          padding: const EdgeInsets.only(bottom: 16),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: getCrossAxisCount(context),
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                mainAxisExtent: 80,
+                              ),
+                          itemCount: coins.length,
+                          itemBuilder: (context, index) {
+                            final coin = coins[index];
+                            final data =
+                                marketData[coin.id] ??
+                                marketData[coin.symbol.toLowerCase()];
 
-                              if (data == null) {
-                                return Container(
-                                  color: Colors.red,
-                                  child: Center(
-                                    child: Text(
-                                      '${coin.symbol}\n${coin.id}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
+                            if (data == null) {
+                              return Container(
+                                color: Colors.red,
+                                child: Center(
+                                  child: Text(
+                                    '${coin.symbol}\n${coin.id}',
+                                    style: const TextStyle(color: Colors.white),
                                   ),
-                                );
-                              }
-
-                              return Card(
-                                clipBehavior: Clip.hardEdge,
-                                child: CryptoSparkLineChart(
-                                  onTap: () {
-                                    context.push(
-                                      '/token-info',
-                                      extra: {
-                                        "isGnusWalletConnected": false,
-                                        "marketData": data,
-                                        "coin": coin,
-                                      },
-                                    );
-                                  },
-                                  title: coin.name,
-                                  iconPath: data.imageUrl,
-                                  currentPrice: data.currentPrice,
-                                  high24h: data.high24h,
-                                  low24h: data.low24h,
-                                  priceChangePercent:
-                                      data.priceChangePercentage24h,
-                                  iconSize: 32,
-                                  sparkline: data.sparkline,
                                 ),
                               );
-                            }),
+                            }
+
+                            return Card(
+                              clipBehavior: Clip.hardEdge,
+                              child: CryptoSparkLineChart(
+                                onTap: () {
+                                  context.push(
+                                    '/token-info',
+                                    extra: {
+                                      "isGnusWalletConnected": false,
+                                      "marketData": data,
+                                      "coin": coin,
+                                    },
+                                  );
+                                },
+                                title: coin.name,
+                                iconPath: data.imageUrl,
+                                currentPrice: data.currentPrice,
+                                high24h: data.high24h,
+                                low24h: data.low24h,
+                                priceChangePercent:
+                                    data.priceChangePercentage24h,
+                                iconSize: 32,
+                                sparkline: data.sparkline,
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   );

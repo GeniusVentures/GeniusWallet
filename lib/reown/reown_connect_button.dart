@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,13 +11,10 @@ import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
-import 'dart:io';
 
 final List<String> supportedMethods = [
   'eth_sendTransaction', // For sending, approvals, swaps
@@ -29,12 +27,13 @@ class ReownConnectButton extends StatefulWidget {
   final GeniusApi geniusApi;
   final WalletDetailsCubit walletDetailsCubit;
   final TransactionsCubit transactionsCubit;
-  const ReownConnectButton(
-      {super.key,
-      required this.walletAddress,
-      required this.geniusApi,
-      required this.walletDetailsCubit,
-      required this.transactionsCubit});
+  const ReownConnectButton({
+    super.key,
+    required this.walletAddress,
+    required this.geniusApi,
+    required this.walletDetailsCubit,
+    required this.transactionsCubit,
+  });
 
   @override
   State<ReownConnectButton> createState() => _ReownConnectButtonState();
@@ -44,11 +43,17 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   ReownWalletKit get walletKit => WalletKitInstance().walletKit;
   SessionData? _session;
   bool _isConnecting = false;
+  bool _isDisconnecting = false;
+  bool _didManualPair = false;
   bool _hasError = false;
   bool _timedOut = false;
   bool _isInitialized = false;
   Completer<void>? _initCompleter;
   final TextEditingController _uriController = TextEditingController();
+  bool _listenersAttached = false;
+  void Function()? _sessionRequestDisposer;
+  late final void Function(SessionConnect?) _sessionConnectHandler;
+  late final void Function(SessionProposalEvent?) _sessionProposalHandler;
 
   bool get _isDesktopOrIot {
     try {
@@ -62,6 +67,18 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   void initState() {
     super.initState();
     _initializeWalletKit();
+  }
+
+  @override
+  void dispose() {
+    if (_listenersAttached) {
+      walletKit.onSessionConnect.unsubscribe(_sessionConnectHandler);
+      walletKit.onSessionProposal.unsubscribe(_sessionProposalHandler);
+      _sessionRequestDisposer?.call();
+      _listenersAttached = false;
+    }
+    _uriController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeWalletKit() async {
@@ -79,40 +96,53 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         debugPrint("🔄 Session restored: ${restored.peer.metadata.name}");
       }
 
-      // Listen for incoming requests
-      handleDappRequests(
-          walletKit: walletKit,
-          geniusApi: widget.geniusApi,
-          walletDetailsCubit: widget.walletDetailsCubit,
-          transactionsCubit: widget.transactionsCubit);
+      _attachWalletKitListeners();
+    } catch (e) {
+      debugPrint("❌ WalletKit initialization failed: $e");
+    }
+  }
 
-      walletKit.onSessionConnect.subscribe((event) {
-        if (!mounted) return;
+  void _attachWalletKitListeners() {
+    if (_listenersAttached) {
+      return;
+    }
 
-        setState(() {
-          _session = event.session;
-          _isConnecting = false;
-          _hasError = false;
-          _timedOut = false;
-        });
-        debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
+    _sessionRequestDisposer = handleDappRequests(
+      walletKit: walletKit,
+      geniusApi: widget.geniusApi,
+      walletDetailsCubit: widget.walletDetailsCubit,
+      transactionsCubit: widget.transactionsCubit,
+    );
+
+    _sessionConnectHandler = (event) {
+      if (!mounted || event == null) return;
+
+      setState(() {
+        _session = event.session;
+        _isConnecting = false;
+        _hasError = false;
+        _timedOut = false;
       });
+      debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
+    };
+    walletKit.onSessionConnect.subscribe(_sessionConnectHandler);
 
-      walletKit.onSessionProposal.subscribe((event) async {
-        final metadata = event.params.proposer.metadata;
-        final dappName = metadata.name;
-        final dappDescription = metadata.description;
-        final dappUrl = metadata.url;
-        final dappIcon =
-            metadata.icons.isNotEmpty ? metadata.icons.first : null;
+    _sessionProposalHandler = (event) async {
+      if (event == null) return;
 
-        if (!mounted) return;
+      final metadata = event.params.proposer.metadata;
+      final dappName = metadata.name;
+      final dappDescription = metadata.description;
+      final dappUrl = metadata.url;
+      final dappIcon = metadata.icons.isNotEmpty ? metadata.icons.first : null;
 
-        setState(() {});
+      if (!mounted) return;
 
-        debugPrint(
-            "🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
+      setState(() {});
 
+      debugPrint("🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
+
+      try {
         final bool? approved = await ApproveDappConnectionDrawer.show(
           context: navigatorKey.currentContext!,
           dappName: dappName,
@@ -147,10 +177,12 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             ),
           },
         );
-      });
-    } catch (e) {
-      debugPrint("❌ WalletKit initialization failed: $e");
-    }
+      } catch (e) {
+        debugPrint('❌ Session proposal handling failed: $e');
+      }
+    };
+    walletKit.onSessionProposal.subscribe(_sessionProposalHandler);
+    _listenersAttached = true;
   }
 
   Future<void> maybeInitWalletKit() async {
@@ -161,7 +193,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
     _initCompleter = Completer<void>();
     try {
-      await walletKit.init();
+      await WalletKitInstance().initOnce();
       _isInitialized = true;
       debugPrint("✅ WalletKit initialized");
     } catch (e) {
@@ -172,10 +204,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   }
 
   Future<void> _connect() async {
+    if (_isDisconnecting) {
+      return;
+    }
+
     setState(() {
       _isConnecting = true;
       _hasError = false;
       _timedOut = false;
+      _didManualPair = false;
     });
 
     await maybeInitWalletKit();
@@ -206,164 +243,175 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       if (!mounted) return;
 
       await showDialog<void>(
-          context: context,
-          builder: (ctx) => StatefulBuilder(
-                builder: (ctx, setInnerState) => AlertDialog(
-                  backgroundColor: GeniusWalletColors.deepBlueTertiary,
-                  title: Row(mainAxisSize: MainAxisSize.min, children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        'assets/images/crypto/wallet-connect.png',
-                        height: 30,
-                        width: 30,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      "Wallet Connect",
-                    ),
-                  ]),
-                  content: ConstrainedBox(
-                    constraints: BoxConstraints(
-                        minWidth: GeniusBreakpoints.small * 1 / 2),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 8,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          switchInCurve: Curves.easeIn,
-                          switchOutCurve: Curves.easeOut,
-                          child: showManualInput
-                              ? KeyedSubtree(
-                                  key: ValueKey(
-                                      "manual-${DateTime.now().millisecondsSinceEpoch}"),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Row(
-                                        spacing: 8,
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
-                                              controller: _uriController,
-                                              decoration: InputDecoration(
-                                                hintText: "wc:...",
-                                                errorText: manualInputError,
-                                              ),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.paste,
-                                              color: GeniusWalletColors
-                                                  .lightGreenPrimary,
-                                            ),
-                                            tooltip: "Paste from clipboard",
-                                            onPressed: () async {
-                                              final data =
-                                                  await Clipboard.getData(
-                                                      Clipboard.kTextPlain);
-                                              if (data?.text != null &&
-                                                  data!.text!
-                                                      .trim()
-                                                      .isNotEmpty) {
-                                                setInnerState(() {
-                                                  _uriController.text =
-                                                      data.text!.trim();
-                                                  manualInputError = null;
-                                                });
-                                              } else {
-                                                setInnerState(() {
-                                                  manualInputError =
-                                                      "Clipboard is empty or has no text.";
-                                                });
-                                              }
-                                            },
-                                          ),
-                                        ],
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setInnerState) => AlertDialog(
+            backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    'assets/images/crypto/wallet-connect.png',
+                    height: 30,
+                    width: 30,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text("Wallet Connect"),
+              ],
+            ),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: GeniusBreakpoints.small * 1 / 2,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 8,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeIn,
+                    switchOutCurve: Curves.easeOut,
+                    child: showManualInput
+                        ? KeyedSubtree(
+                            key: ValueKey(
+                              "manual-${DateTime.now().millisecondsSinceEpoch}",
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  spacing: 8,
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _uriController,
+                                        decoration: InputDecoration(
+                                          hintText: "wc:...",
+                                          errorText: manualInputError,
+                                        ),
                                       ),
-                                    ],
-                                  ))
-                              : KeyedSubtree(
-                                  key: ValueKey(
-                                      "qr-${DateTime.now().millisecondsSinceEpoch}"),
-                                  child: SizedBox(
-                                    width: 250,
-                                    height: 250,
-                                    child: QrImageView(
-                                      backgroundColor: Colors.white,
-                                      data: wcUri,
-                                      version: QrVersions.auto,
                                     ),
-                                  ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.paste,
+                                        color: GeniusWalletColors
+                                            .lightGreenPrimary,
+                                      ),
+                                      tooltip: "Paste from clipboard",
+                                      onPressed: () async {
+                                        final data = await Clipboard.getData(
+                                          Clipboard.kTextPlain,
+                                        );
+                                        if (data?.text != null &&
+                                            data!.text!.trim().isNotEmpty) {
+                                          setInnerState(() {
+                                            _uriController.text = data.text!
+                                                .trim();
+                                            manualInputError = null;
+                                          });
+                                        } else {
+                                          setInnerState(() {
+                                            manualInputError =
+                                                "Clipboard is empty or has no text.";
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            setInnerState(
-                                () => showManualInput = !showManualInput);
-                          },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            backgroundColor: Colors.transparent,
+                              ],
+                            ),
+                          )
+                        : KeyedSubtree(
+                            key: ValueKey(
+                              "qr-${DateTime.now().millisecondsSinceEpoch}",
+                            ),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 250,
+                                maxHeight: 250,
+                              ),
+                              child: QrImageView(
+                                backgroundColor: Colors.white,
+                                data: wcUri,
+                                version: QrVersions.auto,
+                              ),
+                            ),
                           ),
-                          icon: const Icon(
-                            Icons.link,
-                            color: GeniusWalletColors.lightGreenPrimary,
-                          ),
-                          label: Text(
-                            showManualInput
-                                ? "Show QR Code"
-                                : "Enter URI Manually",
-                          ),
-                        ),
-                      ],
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      setInnerState(() => showManualInput = !showManualInput);
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      backgroundColor: Colors.transparent,
+                    ),
+                    icon: const Icon(
+                      Icons.link,
+                      color: GeniusWalletColors.lightGreenPrimary,
+                    ),
+                    label: Text(
+                      showManualInput ? "Show QR Code" : "Enter URI Manually",
                     ),
                   ),
-                  actions: [
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        setState(() => _isConnecting = false);
-                      },
-                      child: const Text("Cancel"),
-                    ),
-                    if (showManualInput)
-                      FilledButton(
-                        onPressed: () async {
-                          final input = _uriController.text.trim();
+                ],
+              ),
+            ),
+            actions: [
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() => _isConnecting = false);
+                },
+                child: const Text("Cancel"),
+              ),
+              if (showManualInput)
+                FilledButton(
+                  onPressed: () async {
+                    final input = _uriController.text.trim();
 
-                          if (!input.startsWith('wc:') ||
-                              !input.contains('@')) {
-                            setInnerState(() {
-                              manualInputError =
-                                  '❌ Invalid WalletConnect URI format.';
-                            });
-                            debugPrint('❌ Invalid format: $input');
-                            return;
-                          }
+                    if (!input.startsWith('wc:') || !input.contains('@')) {
+                      setInnerState(() {
+                        manualInputError =
+                            '❌ Invalid WalletConnect URI format.';
+                      });
+                      debugPrint('❌ Invalid format: $input');
+                      return;
+                    }
 
-                          try {
-                            await walletKit.pair(uri: Uri.parse(input));
-                            Navigator.of(context).pop();
-                          } catch (e) {
-                            setInnerState(() {
-                              manualInputError = '❌ URI Connect Failed: $e';
-                            });
-                            debugPrint('❌ WalletKit pair failed: $e');
-                          }
-                        },
-                        child: const Text("Connect"),
-                      ),
-                  ],
+                    try {
+                      final paired = await _tryPair(Uri.parse(input));
+                      if (!paired) {
+                        setInnerState(() {
+                          manualInputError =
+                              '❌ Failed to start WalletConnect session.';
+                        });
+                        return;
+                      }
+                      _didManualPair = true;
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      setInnerState(() {
+                        manualInputError = '❌ URI Connect Failed: $e';
+                      });
+                      debugPrint('❌ WalletKit pair failed: $e');
+                    }
+                  },
+                  child: const Text("Connect"),
                 ),
-              ));
+            ],
+          ),
+        ),
+      );
 
       if (_session == null) {
         setState(() {
@@ -390,7 +438,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       });
 
       // Call pairing to start the process
-      await walletKit.pair(uri: Uri.parse(wcUri));
+      if (!_didManualPair) {
+        await _tryPair(Uri.parse(wcUri));
+      }
     } catch (e) {
       setState(() {
         _isConnecting = false;
@@ -400,16 +450,44 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
   }
 
+  Future<bool> _tryPair(Uri uri) async {
+    try {
+      await walletKit.pair(uri: uri);
+      return true;
+    } catch (e) {
+      debugPrint('❌ WalletKit pair failed: $e');
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _hasError = true;
+        });
+      }
+      return false;
+    }
+  }
+
   Future<void> _disconnect() async {
-    if (_session != null) {
+    if (_session == null || _isDisconnecting) {
+      return;
+    }
+
+    _isDisconnecting = true;
+    try {
       await walletKit.disconnectSession(
         topic: _session!.topic,
         reason: Errors.getSdkError(Errors.USER_DISCONNECTED).toSignError(),
       );
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _session = null;
         _hasError = false;
       });
+    } catch (e) {
+      debugPrint('❌ Disconnect failed: $e');
+    } finally {
+      _isDisconnecting = false;
     }
   }
 
@@ -458,30 +536,29 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
 
     final btn = TextButton(
-        style: TextButton.styleFrom(
-          backgroundColor: backgroundColor,
-        ),
-        onPressed: () {
-          if (_isConnecting) return;
+      style: TextButton.styleFrom(backgroundColor: backgroundColor),
+      onPressed: () {
+        if (_isConnecting || _isDisconnecting) return;
 
-          if (isConnected) {
-            _disconnect();
-          } else {
-            _connect();
-          }
-        },
-        child: Row(spacing: 6, children: [
+        if (isConnected) {
+          _disconnect();
+        } else {
+          _connect();
+        }
+      },
+      child: Row(
+        spacing: 6,
+        children: [
           AnimatedRotation(
             duration: const Duration(milliseconds: 600),
             turns: _isConnecting ? 1 : 0,
             child: Icon(icon, color: iconColor, size: 20),
           ),
           if (!isMobile)
-            Text(
-              text,
-              style: TextStyle(fontSize: 14, color: textColor),
-            )
-        ]));
+            Text(text, style: TextStyle(fontSize: 14, color: textColor)),
+        ],
+      ),
+    );
 
     return isMobile ? Tooltip(message: text, child: btn) : btn;
   }
