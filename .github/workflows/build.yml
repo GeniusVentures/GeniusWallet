@@ -70,37 +70,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [Android, iOS, OSX, Linux, Windows]
+        target: [OSX]
+        # target: [Android, iOS, OSX, Linux, Windows]
         build-type: [Release]
         abi: [""]
         include:
-          - target: Linux
-            host: sg-ubuntu-linux
-            flutter-platform: linux
-            abi: x86_64
-            build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
-          - target: Linux
-            host: sg-arm-linux
-            flutter-platform: linux
-            abi: aarch64
-            build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
-          - target: Windows
-            host: SG-WIN11
-            flutter-platform: windows
+          # - target: Linux
+          #   host: sg-ubuntu-linux
+          #   flutter-platform: linux
+          #   abi: x86_64
+          #   build-type: Release
+          #   container: ghcr.io/geniusventures/debian-bullseye:latest
+          # - target: Linux
+          #   host: sg-arm-linux
+          #   flutter-platform: linux
+          #   abi: aarch64
+          #   build-type: Release
+          #   container: ghcr.io/geniusventures/debian-bullseye:latest
+          # - target: Windows
+          #   host: SG-WIN11
+          #   flutter-platform: windows
           - target: OSX
             host: macos-latest
             flutter-platform: macos
-          - target: Android
-            host: sg-ubuntu-linux
-            flutter-platform: apk
-          - target: iOS
-            host: macos-latest
-            flutter-platform: ios
-        exclude:
-          - target: Linux
-            abi: ""
+          # - target: Android
+          #   host: sg-ubuntu-linux
+          #   flutter-platform: apk
+          # - target: iOS
+          #   host: macos-latest
+          #   flutter-platform: ios
+        # exclude:
+        #   - target: Linux
+        #     abi: ""
     steps:
       - name: Configure Git Bash on Windows
         if: ${{ runner.environment == 'self-hosted' && matrix.target == 'Windows' }}
