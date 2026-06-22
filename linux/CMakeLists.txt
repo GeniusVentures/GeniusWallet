@@ -15,7 +15,7 @@ set(BINARY_NAME "genius_wallet")
 
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.genius_wallet")
+set(APPLICATION_ID "ai.gnus.genius_wallet")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

@@ -69,15 +69,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final wallets = await api.getWallets().first;
 
     _baseWallets = wallets;
-    _startSgnusConnectionListener();
-
-    final mergedWallets = await _mergeSgnusWallet();
-    final sdkState = _getSDKAccountState();
 
     if (_baseWallets.isEmpty) {
+      final sdkState = _getSDKAccountState();
       emit(
         state.copyWith(
-          wallets: mergedWallets,
+          wallets: [],
           subscribeToWalletStatus: AppStatus.loaded,
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
@@ -85,6 +82,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       );
       return;
     }
+
+    _startSgnusConnectionListener();
+
+    final mergedWallets = await _mergeSgnusWallet();
+    final sdkState = _getSDKAccountState();
 
     final walletBox = Hive.box(walletBoxName);
     final selectedWalletAddress = walletBox.get(selectedWalletKey) as String?;
