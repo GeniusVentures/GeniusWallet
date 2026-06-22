@@ -377,6 +377,10 @@ jobs:
           cp $DEVELOPER_ID_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $DEVELOPER_ID_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
 
+          # Export paths so the signing step can access them
+          echo "APP_STORE_PP_PATH=$APP_STORE_PP_PATH" >> $GITHUB_ENV
+          echo "DEVELOPER_ID_PP_PATH=$DEVELOPER_ID_PP_PATH" >> $GITHUB_ENV
+
           echo "Finished importing certificates and provisioning profiles"
         shell: bash
 
@@ -745,12 +749,24 @@ jobs:
             local cert_name="$1"
             local app_name="$2"
             local output_dir="$3"
+            local pp_path="$4"
             
             echo "Signing app with identity: $cert_name"
             
             # Copy app to output directory
             mkdir -p "$output_dir"
             cp -R "Genius Wallet.app" "$output_dir/$app_name"
+
+            # Replace the embedded provisioning profile with the correct one.
+            # The flutter build may have embedded a different profile (e.g. a
+            # device-restricted App Store profile). Xcode's archive→export does
+            # this swap automatically; we must do it manually when re-signing.
+            if [ -n "$pp_path" ] && [ -f "$pp_path" ]; then
+              echo "Replacing embedded provisioning profile with: $pp_path"
+              cp "$pp_path" "$output_dir/$app_name/Contents/embedded.provisionprofile"
+            else
+              echo "WARNING: No provisioning profile provided for $output_dir — embedded profile will not be replaced"
+            fi
             
             # Use the project's entitlements file for Release builds
             local entitlements_path="../../../../../macos/Runner/Release.entitlements"
@@ -897,14 +913,14 @@ jobs:
           # Build App Store version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
             echo "Building App Store version..."
-            sign_app "Apple Distribution: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store"
+            sign_app "Apple Distribution: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store" "$APP_STORE_PP_PATH"
             create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
           fi
 
           # Build Developer ID version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
             echo "Building Developer ID version..."
-            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id"
+            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id" "$DEVELOPER_ID_PP_PATH"
             
             # Notarize the app first
             notarize "developer_id/Genius Wallet.app"
