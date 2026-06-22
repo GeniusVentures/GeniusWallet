@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -145,6 +146,8 @@ class SDKAccountManagerButton extends StatelessWidget {
         ? GeniusWalletColors.deepBlueTertiary
         : Colors.grey;
 
+    final mnemonic = context.read<AppBloc>().api.getSelectedAccountMnemonic();
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
@@ -180,14 +183,31 @@ class SDKAccountManagerButton extends StatelessWidget {
               )
             : null,
         trailing: isSelected
-            ? IconButton(
-                icon: const Icon(
-                  Icons.edit_location_alt,
-                  size: 20,
-                  color: Colors.orangeAccent,
+            ? MenuAnchor(
+                builder: (context, controller, child) => IconButton(
+                  icon: Icon(Icons.more_vert, size: 20, color: textColor),
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
                 ),
-                tooltip: 'Set payout address',
-                onPressed: () => _showSetPayoutAddressDialog(context),
+                menuChildren: [
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.edit_location_alt),
+                    child: Text('Set payout address'),
+                    onPressed: () => _showSetPayoutAddressDialog(context),
+                  ),
+                  if (mnemonic != null) MenuItemButton(
+                    leadingIcon: const Icon(Icons.numbers),
+                    child: Text("Copy mnemonic"),
+                    onPressed: () => {
+                      Clipboard.setData(ClipboardData(text: mnemonic))
+                    },
+                  ),
+                ],
               )
             : IconButton(
                 icon: const Icon(

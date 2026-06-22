@@ -83,7 +83,7 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                       child: Text(
                         '${(index + 1).toString().padLeft(2, '0')}. ${_isVisible ? words[index].padRight(8) : '••••••'}',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontFamily: "JetBrainsMono",
                         ),
                       ),

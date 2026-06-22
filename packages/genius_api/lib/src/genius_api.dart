@@ -22,7 +22,6 @@ import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
-import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -202,37 +201,47 @@ class GeniusApi {
 
     await _initializeAndroidKeyStore();
 
-    PrivateKey privateKey;
-
-    if (storedKey.isMnemonic()) {
-      privateKey = storedKey
-          .wallet("")!
-          .getKeyForCoin(TWCoinType.TWCoinTypeEthereum);
-    } else {
-      privateKey = storedKey.privateKey(
-        TWCoinType.TWCoinTypeEthereum,
-        Uint8List(0),
-      )!;
-    }
-
     _basePath = await prepareConfigFiles();
     final basePathPtr = _basePath.toNativeUtf8();
 
-    final privateKeyAsStr = privateKey
-        .data()
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-        .join();
-    final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-    final retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithKey(
-      basePathPtr.cast(),
-      privateKeyAsPtr.cast(),
-      true,
-      true,
-      41001,
-      false,
-    );
-
-    malloc.free(privateKeyAsPtr);
+    ffi.Pointer<ffi.Char> retVal;
+    if (storedKey.isMnemonic()) {
+      final mnemonic = storedKey.decryptMnemonic(Uint8List(0));
+      if (mnemonic == null) {
+        debugPrint("Error: failed to decrypt mnemonic");
+        malloc.free(basePathPtr);
+        return;
+      }
+      final mnemonicPtr = mnemonic.toNativeUtf8();
+      retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithMnemonic(
+        basePathPtr.cast(),
+        mnemonicPtr.cast(),
+        true,
+        true,
+        41001,
+        false,
+      );
+      malloc.free(mnemonicPtr);
+    } else {
+      final privateKey = storedKey.privateKey(
+        TWCoinType.TWCoinTypeEthereum,
+        Uint8List(0),
+      )!;
+      final privateKeyAsStr = privateKey
+          .data()
+          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+          .join();
+      final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
+      retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithKey(
+        basePathPtr.cast(),
+        privateKeyAsPtr.cast(),
+        true,
+        true,
+        41001,
+        false,
+      );
+      malloc.free(privateKeyAsPtr);
+    }
     malloc.free(basePathPtr);
 
     if (retVal == nullptr) {
@@ -273,8 +282,34 @@ class GeniusApi {
   }
 
   Future<void> _registerWallet(StoredKey storedKey) async {
+    final wasAlreadyInitialized = _isSdkInitialized;
+
     await _secureStorage.saveStoredKey(storedKey);
     await _initSDK(storedKey);
+
+    // If the SDK was already initialized, _initSDK returned early and did
+    // NOT register this account on the SDK side. Register it now.
+    if (wasAlreadyInitialized) {
+      if (storedKey.isMnemonic()) {
+        final mnemonic = storedKey.decryptMnemonic(Uint8List(0));
+        if (mnemonic != null) {
+          addAccountWithMnemonic(mnemonic);
+        }
+      } else {
+        final privateKey = storedKey.privateKey(
+          TWCoinType.TWCoinTypeEthereum,
+          Uint8List(0),
+        );
+        if (privateKey != null) {
+          final privateKeyAsStr = privateKey
+              .data()
+              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+              .join();
+          addAccountWithPrivateKey(privateKeyAsStr);
+        }
+      }
+    }
+
     await loadStoredWallets();
   }
 
@@ -1010,6 +1045,19 @@ class GeniusApi {
     }
     final rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
     return rawAddress.address.toDartString(131);
+  }
+
+  String? getSelectedAccountMnemonic() {
+    if (!_isSdkInitialized) {
+      return null;
+    }
+    final rawMnemonic = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetMnemonic();
+    if (rawMnemonic.address == 0) {
+      return null;
+    }
+    final mnemonic = rawMnemonic.cast<Utf8>().toDartString();
+    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(rawMnemonic.cast());
+    return mnemonic;
   }
 
   GeniusNodeReturnValue payDev(int amount, {String? tokenId}) {

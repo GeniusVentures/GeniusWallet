@@ -19,17 +19,11 @@ class PinScreen extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          spacing: 12,
           children: [
             Text(title, style: Theme.of(context).textTheme.headlineLarge),
             MaterialPinField(
               length: GeniusWalletConsts.pinCount,
-              theme: MaterialPinTheme(
-                borderColor: Colors.white,
-                focusedBorderColor: Colors.white,
-                filledBorderColor: Colors.white,
-                disabledBorderColor: Colors.white,
-                cursorColor: Colors.white,
-              ),
               obscureText: true,
               onChanged: context.read<PinCubit>().desktopOnChanged,
               pinController: context.watch<PinCubit>().state.pinController,
