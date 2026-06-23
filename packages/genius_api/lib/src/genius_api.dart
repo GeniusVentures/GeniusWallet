@@ -1052,11 +1052,12 @@ class GeniusApi {
       return null;
     }
     final rawMnemonic = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetMnemonic();
-    if (rawMnemonic.address == 0) {
+    if (rawMnemonic.mnemonic[0] == 0) {
       return null;
     }
-    final mnemonic = rawMnemonic.cast<Utf8>().toDartString();
-    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(rawMnemonic.cast());
+    final mnemonic = rawMnemonic.mnemonic.toDartString(
+      GENIUS_SDK_MAX_MNEMONIC_SIZE,
+    );
     return mnemonic;
   }
 

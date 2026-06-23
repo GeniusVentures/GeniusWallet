@@ -153,55 +153,6 @@ class NativeLibrary {
         )
       >();
 
-  /// @brief     Inits the SDK with a randomly generated mnemonic (no private key required).
-  /// @param[in] base_path    Base path for node data storage. Must contain a `dev_config.json` file.
-  /// @param[in] autodht      Whether to auto-discover DHT peers.
-  /// @param[in] process      Whether to enable processing.
-  /// @param[in] baseport     Base network port for the node.
-  /// @param[in] is_full_node Whether to run as a full node.
-  /// @return A @ref GeniusMnemonicAndInitPath struct containing the initialization path
-  /// (statically allocated, do not free) and the generated mnemonic phrase
-  /// (heap allocated, must be freed with @ref GeniusSDKFree). Returns null
-  /// `initialization_path` on failure (mnemonic may still be populated).
-  GeniusMnemonicAndInitPath GeniusSDKInitWithRandomMnemonic(
-    ffi.Pointer<ffi.Char> base_path,
-    bool autodht,
-    bool process,
-    int baseport,
-    bool is_full_node,
-  ) {
-    return _GeniusSDKInitWithRandomMnemonic(
-      base_path,
-      autodht,
-      process,
-      baseport,
-      is_full_node,
-    );
-  }
-
-  late final _GeniusSDKInitWithRandomMnemonicPtr =
-      _lookup<
-        ffi.NativeFunction<
-          GeniusMnemonicAndInitPath Function(
-            ffi.Pointer<ffi.Char>,
-            ffi.Bool,
-            ffi.Bool,
-            ffi.Uint16,
-            ffi.Bool,
-          )
-        >
-      >('GeniusSDKInitWithRandomMnemonic');
-  late final _GeniusSDKInitWithRandomMnemonic =
-      _GeniusSDKInitWithRandomMnemonicPtr.asFunction<
-        GeniusMnemonicAndInitPath Function(
-          ffi.Pointer<ffi.Char>,
-          bool,
-          bool,
-          int,
-          bool,
-        )
-      >();
-
   /// @brief Inits the SDK with an explicit developer config JSON string and an ethereum private key.
   /// @param[in] base_path       Base path for node data storage.
   /// @param[in] dev_config      Developer configuration as a JSON string (overrides dev_config.json).
@@ -599,16 +550,16 @@ class NativeLibrary {
   /// @return A heap-allocated null-terminated mnemonic string, or `nullptr` if
   /// the SDK is not initialized or the account has no mnemonic.
   /// Must be freed with @ref GeniusSDKFree.
-  ffi.Pointer<ffi.Char> GeniusSDKGetMnemonic() {
+  GeniusMnemonic GeniusSDKGetMnemonic() {
     return _GeniusSDKGetMnemonic();
   }
 
   late final _GeniusSDKGetMnemonicPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+      _lookup<ffi.NativeFunction<GeniusMnemonic Function()>>(
         'GeniusSDKGetMnemonic',
       );
   late final _GeniusSDKGetMnemonic =
-      _GeniusSDKGetMnemonicPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+      _GeniusSDKGetMnemonicPtr.asFunction<GeniusMnemonic Function()>();
 
   /// @brief Retrieves all incoming transactions.
   /// @return A @ref GeniusMatrix containing the incoming transactions.
@@ -1267,6 +1218,11 @@ final class GeniusStatusInfo extends ffi.Struct {
   external ffi.Pointer<ffi.Char> message;
 }
 
+final class GeniusMnemonic extends ffi.Struct {
+  @ffi.Array.multi([216])
+  external ffi.Array<ffi.Char> mnemonic;
+}
+
 /// @brief Return type for account creation that includes both a status code and
 /// the generated mnemonic phrase.
 final class GeniusMnemonicAndStatus extends ffi.Struct {
@@ -1274,8 +1230,9 @@ final class GeniusMnemonicAndStatus extends ffi.Struct {
   @GeniusProcessingStatus_t()
   external int status;
 
-  /// < Null terminated string, needs to be freed with @ref GeniusSDKFree
-  external ffi.Pointer<ffi.Char> mnemonic;
+  /// < Null terminated string
+  @ffi.Array.multi([216])
+  external ffi.Array<ffi.Char> mnemonic;
 }
 
 /// @brief Return type for SDK initialization with a random mnemonic, bundling
@@ -1284,8 +1241,8 @@ final class GeniusMnemonicAndInitPath extends ffi.Struct {
   /// < Statically allocated, do not call free
   external ffi.Pointer<ffi.Char> initialization_path;
 
-  /// < Heap allocated, needs to be freed with @ref GeniusSDKFree
-  external ffi.Pointer<ffi.Char> mnemonic;
+  @ffi.Array.multi([216])
+  external ffi.Array<ffi.Char> mnemonic;
 }
 
 const int _STDINT_H = 1;
@@ -1523,3 +1480,5 @@ const int true$ = 1;
 const int false$ = 0;
 
 const int GENIUS_SDK_ADDRESS_SIZE = 130;
+
+const int GENIUS_SDK_MAX_MNEMONIC_SIZE = 216;
