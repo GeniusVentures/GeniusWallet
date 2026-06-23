@@ -170,7 +170,7 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             itemCount: _searchResults.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final coin = _searchResults[index];
               return SlidingDrawerButton(

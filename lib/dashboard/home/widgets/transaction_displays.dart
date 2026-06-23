@@ -64,7 +64,7 @@ Widget _buildCoinIconWithBadge(
           child: Image.asset(
             'assets/images/crypto/${coinSymbol.toLowerCase()}.png',
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
           ),
         ),
         Positioned(
