@@ -70,38 +70,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [OSX]
-        # target: [Android, iOS, OSX, Linux, Windows]
+        target: [Android, iOS, OSX, Linux, Windows]
         build-type: [Release]
         abi: [""]
         include:
-          # - target: Linux
-          #   host: sg-ubuntu-linux
-          #   flutter-platform: linux
-          #   abi: x86_64
-          #   build-type: Release
-          #   container: ghcr.io/geniusventures/debian-bullseye:latest
-          # - target: Linux
-          #   host: sg-arm-linux
-          #   flutter-platform: linux
-          #   abi: aarch64
-          #   build-type: Release
-          #   container: ghcr.io/geniusventures/debian-bullseye:latest
-          # - target: Windows
-          #   host: SG-WIN11
-          #   flutter-platform: windows
+          - target: Linux
+            host: sg-ubuntu-linux
+            flutter-platform: linux
+            abi: x86_64
+            build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
+          - target: Linux
+            host: sg-arm-linux
+            flutter-platform: linux
+            abi: aarch64
+            build-type: Release
+            container: ghcr.io/geniusventures/debian-bullseye:latest
+          - target: Windows
+            host: SG-WIN11
+            flutter-platform: windows
           - target: OSX
             host: macos-latest
             flutter-platform: macos
-          # - target: Android
-          #   host: sg-ubuntu-linux
-          #   flutter-platform: apk
-          # - target: iOS
-          #   host: macos-latest
-          #   flutter-platform: ios
-        # exclude:
-        #   - target: Linux
-        #     abi: ""
+          - target: Android
+            host: sg-ubuntu-linux
+            flutter-platform: apk
+          - target: iOS
+            host: macos-latest
+            flutter-platform: ios
+        exclude:
+          - target: Linux
+            abi: ""
     steps:
       - name: Configure Git Bash on Windows
         if: ${{ runner.environment == 'self-hosted' && matrix.target == 'Windows' }}
@@ -322,12 +321,14 @@ jobs:
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
+          # Save original keychain list so the signing step can restore it later.
+          # We intentionally do NOT trap here — the temp keychain must survive
+          # into the flutter build step (Xcode needs the signing certs).
+          ORIGINAL_KEYCHAINS=$(security list-keychains -d user | tr -d '"' | tr '\n' ' ')
+          echo "ORIGINAL_KEYCHAINS=$ORIGINAL_KEYCHAINS" >> $GITHUB_ENV
+
           # Clean up old keychain from previous run (self-hosted runners reuse $RUNNER_TEMP)
-          if [ -f "$KEYCHAIN_PATH" ]; then
-            echo "Cleaning up existing keychain: $KEYCHAIN_PATH"
-            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
-            rm -f "$KEYCHAIN_PATH" 2>/dev/null || true
-          fi
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -350,7 +351,10 @@ jobs:
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychains -d user -s $KEYCHAIN_PATH
+          # Append the temp keychain to the existing search list (don't replace).
+          # The flutter build step needs the signing certs visible; the signing
+          # step will later make the temp keychain the sole one for safety.
+          security list-keychains -d user -s "$ORIGINAL_KEYCHAINS $KEYCHAIN_PATH"
           
           echo "=== Keychain search list after configuration ==="
           security list-keychains -d user
@@ -725,8 +729,12 @@ jobs:
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
           
-          # Re-ensure temp keychain is the only one in search list
+          # Make the temp keychain the sole one for signing (so we never
+          # accidentally pick a cert from the login keychain).
+          # Trap-restore the original list on exit and delete the temp
+          # keychain so nothing leaks on self-hosted runners.
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          trap "security list-keychains -d user -s $ORIGINAL_KEYCHAINS; security delete-keychain '$KEYCHAIN_PATH' 2>/dev/null || true" EXIT
           security list-keychains -d user -s $KEYCHAIN_PATH
           
           echo "=== Keychain search list at signing step ==="
