@@ -94,11 +94,11 @@ class BanxaApiService {
       'crypto': crypto,
       'blockchain': blockchain,
       'fiat': fiat,
-      if (fiatAmount != null) 'fiatAmount': fiatAmount,
-      if (cryptoAmount != null) 'cryptoAmount': cryptoAmount,
-      if (externalCustomerId != null) 'externalCustomerId': externalCustomerId,
-      if (ipAddress != null) 'ipAddress': ipAddress,
-      if (discountCode != null) 'discountCode': discountCode,
+      'fiatAmount': ?fiatAmount,
+      'cryptoAmount': ?cryptoAmount,
+      'externalCustomerId': ?externalCustomerId,
+      'ipAddress': ?ipAddress,
+      'discountCode': ?discountCode,
     };
 
     final uri = Uri.parse(
@@ -160,11 +160,11 @@ class BanxaApiService {
       'paymentMethodId': paymentMethodId,
       'redirectUrl': redirectUrl,
       'cryptoAmount': cryptoAmount,
-      if (fiatAmount != null) 'fiatAmount': fiatAmount,
-      if (externalCustomerId != null) 'externalCustomerId': externalCustomerId,
+      'fiatAmount': ?fiatAmount,
+      'externalCustomerId': ?externalCustomerId,
       'externalOrderId': extOrderId,
-      if (metadata != null) 'metadata': metadata,
-      if (subPartnerId != null) 'subPartnerId': subPartnerId,
+      'metadata': ?metadata,
+      'subPartnerId': ?subPartnerId,
     };
 
     final response = await http.post(

@@ -349,7 +349,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
           : Image.asset(
               'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
     );
   }

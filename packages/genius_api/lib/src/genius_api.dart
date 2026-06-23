@@ -1044,7 +1044,7 @@ class GeniusApi {
       return null;
     }
     final rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
-    return rawAddress.address.toDartString(131);
+    return rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE);
   }
 
   String? getSelectedAccountMnemonic() {

@@ -203,13 +203,13 @@ final geniusWalletRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/dashboard',
-          builder: (_, __) => const DashboardScreen(),
+          builder: (_, _) => const DashboardScreen(),
         ),
         GoRoute(
           path: '/transactions',
-          builder: (_, __) => const TransactionsScreen(),
+          builder: (_, _) => const TransactionsScreen(),
         ),
-        GoRoute(path: '/swap', builder: (_, __) => const SwapScreen()),
+        GoRoute(path: '/swap', builder: (_, _) => const SwapScreen()),
         if (!Platform.isLinux)
           GoRoute(
             path: '/web',
@@ -223,10 +223,10 @@ final geniusWalletRouter = GoRouter(
               );
             }),
           ),
-        GoRoute(path: '/markets', builder: (_, __) => const MarketsScreen()),
-        GoRoute(path: '/news', builder: (_, __) => const CryptoNewsScreen()),
-        GoRoute(path: '/logs', builder: (_, __) => const SubmitLogsScreen()),
-        GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+        GoRoute(path: '/markets', builder: (_, _) => const MarketsScreen()),
+        GoRoute(path: '/news', builder: (_, _) => const CryptoNewsScreen()),
+        GoRoute(path: '/logs', builder: (_, _) => const SubmitLogsScreen()),
+        GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
       ],
     ),
     GoRoute(
