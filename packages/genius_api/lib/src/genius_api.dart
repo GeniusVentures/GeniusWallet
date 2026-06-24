@@ -388,6 +388,9 @@ class GeniusApi {
       final devConfig = await rootBundle.loadString('assets/dev_config.json');
       await File('${directory.path}/dev_config.json').writeAsString(devConfig);
 
+      final sgnsConfig = await rootBundle.loadString('assets/sgns_config.json');
+      await File('${directory.path}/sgns_config.json').writeAsString(sgnsConfig);
+
       await _writeMergedConfig(
         directory: directory,
         overridesDir: overridesDir,

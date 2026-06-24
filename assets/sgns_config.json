@@ -1,0 +1,8 @@
+{
+    "net_id": 144,
+    "subnet_id": 0,
+    "bootstrap_fullnodes": [
+        "/dns4/sg-fullnode-1.gnus.ai/tcp/40102/ipfs/12D3KooWRqFHPFz6YptGnt4wLEGsNuWuv5TLN7rdQ9CFJcbHCWZC"
+    ],
+    "authorized_full_node": "8a33bdf1445a68736429d1773be8682362753a0efc6fb9d8b3e8dffe3b74fc91e26b203fd521547a5219eddf1d3ac51fd17a7646c9bca5ef065da131add4e5a2"
+}
