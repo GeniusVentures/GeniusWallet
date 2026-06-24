@@ -192,6 +192,7 @@ flutter:
     - assets/network_config.json
     - assets/crdt_config.json
     - assets/log_config.json
+    - assets/sgns_config.json
   fonts:
     - family: JetBrainsMono
       fonts:
