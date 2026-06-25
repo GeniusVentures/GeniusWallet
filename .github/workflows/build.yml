@@ -351,10 +351,10 @@ jobs:
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          # Append the temp keychain to the existing search list (don't replace).
-          # The flutter build step needs the signing certs visible; the signing
-          # step will later make the temp keychain the sole one for safety.
-          security list-keychains -d user -s "$ORIGINAL_KEYCHAINS $KEYCHAIN_PATH"
+          # Make the temp keychain the only one so Xcode finds the signing certs
+          # during flutter build (the pbxproj specifies identities like
+          # "Apple Distribution" / "iOS Distribution").
+          security list-keychains -d user -s $KEYCHAIN_PATH
           
           echo "=== Keychain search list after configuration ==="
           security list-keychains -d user
