@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// SPD log levels exposed in dropdown order (most verbose → silent).
 const _spdlogLevels = [
@@ -24,6 +25,10 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  // ── Version info state ──
+  String _versionName = '';
+  String _buildNumber = '';
+
   // ── Log config state ──
   Map<String, String> _loggerLevels = {};
   bool _logLoading = true;
@@ -50,11 +55,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadAllConfigs() async {
+    _loadVersionInfo();
     await Future.wait([
       _loadLogConfig(),
       _loadNetworkConfig(),
       _loadCrdtConfig(),
     ]);
+  }
+
+  Future<void> _loadVersionInfo() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      setState(() {
+        _versionName = info.version;
+        _buildNumber = info.buildNumber;
+      });
+    } catch (_) {
+      setState(() {
+        _versionName = 'unknown';
+        _buildNumber = 'unknown';
+      });
+    }
   }
 
   /// Reads a merged config file from the SDK directory.
@@ -173,6 +194,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildVersionSection(),
+            const SizedBox(height: 24),
             _buildLogSection(),
             const SizedBox(height: 24),
             _buildNetworkSection(),
@@ -181,6 +204,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  // ── Version Info Section ──
+
+  Widget _buildVersionSection() {
+    return Card(
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.info_outline, size: 20),
+                SizedBox(width: 8),
+                Text('Version Info',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const Divider(),
+            _buildVersionRow('Version Name', _versionName),
+            const SizedBox(height: 4),
+            _buildVersionRow('Build Number', _buildNumber),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVersionRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(label, style: const TextStyle(fontSize: 14)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(value,
+                style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500)),
+          ),
+        ],
       ),
     );
   }
