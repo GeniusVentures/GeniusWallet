@@ -24,6 +24,10 @@ const List<GWCurrencyOption> gwCurrencies = [
 /// Display-only for now: the chosen symbol is shown (e.g. on the home hero
 /// balance) but values are NOT FX-converted — wiring real rates is a backend
 /// follow-up (see HANDOFF.md §6).
+///
+/// WIRE-7 (see WIRING.md): add a USD->code rate source and convert every
+/// displayed USD value (hero balance, asset rows, Buy amount) — not just the
+/// symbol. `GWCurrency` carries only code/symbol/label today.
 class GWCurrency extends ValueNotifier<String> {
   GWCurrency._() : super('USD');
 

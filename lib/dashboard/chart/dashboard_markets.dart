@@ -95,6 +95,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                             '/token-info',
                             extra: {
                               "isGnusWalletConnected": false,
+                              // WIRE-11 (see WIRING.md): placeholder — wire real security info + history.
                               "securityInfo": "Coming Soon",
                               "transactionHistory": ["Coming Soon"],
                               "marketData": data

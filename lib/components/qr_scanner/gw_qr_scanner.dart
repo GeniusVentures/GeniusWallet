@@ -7,17 +7,38 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 /// Extracts a bare wallet address from a scanned QR payload.
 ///
 /// Address QRs come in several shapes — plain (`0xAbC…`, `bc1q…`), EIP-681
-/// (`ethereum:0xAbC…@1?value=…`, incl. the `pay-` form), BIP-21
+/// (`ethereum:0xAbC…@1?value=…`, incl. the `pay-` form), the EIP-681 ERC-20
+/// transfer form (`ethereum:0xTOKEN/transfer?address=0xPAYEE&uint256=…`), BIP-21
 /// (`bitcoin:bc1q…?amount=…`) and other `<scheme>:<address>` URIs. This strips
 /// the scheme, the EIP-681 chain id (`@1`) / function path (`/transfer`) and
-/// any query params, returning just the address. Plain payloads pass through
-/// trimmed.
+/// any query params, returning just the recipient. For the transfer form the
+/// recipient is the `address` query param (the leading value is the TOKEN
+/// CONTRACT, not the payee). Plain payloads pass through trimmed.
+///
+/// NOTE: this only normalizes the payload — it does NOT validate that the
+/// result is a well-formed address for the selected network. The caller must
+/// validate before using it as a real send recipient (see send_screen.dart).
 String extractWalletAddress(String raw) {
   var s = raw.trim();
   // A URI scheme starts with a letter — a plain `0x…` address never matches.
   final scheme = RegExp(r'^[a-zA-Z][a-zA-Z0-9+.-]*:').firstMatch(s);
   if (scheme != null) s = s.substring(scheme.end);
   if (s.startsWith('pay-')) s = s.substring(4);
+  // EIP-681 ERC-20 transfer: the real payee is the `address` query param, not
+  // the leading token contract. Prefer it when present.
+  // Only the EIP-681 function-call form (`<token>/<fn>?address=…`) carries the
+  // payee in a query param; a plain `<addr>?…` has no path slash, so its
+  // leading value already IS the recipient.
+  final qIndex = s.indexOf('?');
+  if (qIndex >= 0 && s.substring(0, qIndex).contains('/')) {
+    for (final pair in s.substring(qIndex + 1).split('&')) {
+      final eq = pair.indexOf('=');
+      if (eq > 0 && pair.substring(0, eq) == 'address') {
+        final payee = pair.substring(eq + 1).trim();
+        if (payee.isNotEmpty) return Uri.decodeComponent(payee);
+      }
+    }
+  }
   for (final cut in ['@', '?', '/']) {
     final i = s.indexOf(cut);
     if (i >= 0) s = s.substring(0, i);
@@ -115,7 +136,39 @@ class _GWQrScannerState extends State<GWQrScanner> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+            // Permission denied / no camera / unavailable: show a recovery
+            // message instead of a blank black screen.
+            errorBuilder: (context, error, child) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(GeniusWalletConsts.space24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.no_photography_outlined,
+                        color: Colors.white70, size: 48),
+                    const SizedBox(height: GeniusWalletConsts.space8),
+                    Text(
+                      'Camera unavailable',
+                      textAlign: TextAlign.center,
+                      style: GeniusWalletTypography.bodyMd.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: GeniusWalletConsts.space8),
+                    Text(
+                      'Grant camera access in Settings, then reopen the '
+                      'scanner. You can also paste the address manually.',
+                      textAlign: TextAlign.center,
+                      style: GeniusWalletTypography.bodyMd
+                          .copyWith(color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           // Reticle.
           Center(
             child: Container(

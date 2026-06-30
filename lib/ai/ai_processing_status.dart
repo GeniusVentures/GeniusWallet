@@ -21,6 +21,9 @@ class AiProcessingStatus extends ValueNotifier<int> {
   Timer? _demoTimer;
 
   /// Set the current AI-processing progress (clamped to 0–100).
+  ///
+  /// WIRE-10 (see WIRING.md): call this from real SGNUS job events (submit-job
+  /// flow) to drive the FAB; production sits at 0% until wired.
   void set(int percent) => value = percent.clamp(0, 100);
 
   /// Demo sweep for the UI-only build — no-op outside mock (`WALLET_PK`).
