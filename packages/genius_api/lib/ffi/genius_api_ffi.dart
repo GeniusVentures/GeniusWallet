@@ -862,6 +862,44 @@ class NativeLibrary {
       _GeniusSDKGetProcessingStatusPtr.asFunction<
         GeniusProcessingStatusInfo Function()
       >();
+
+  /// @brief       Returns the task IDs of jobs submitted by the active account.
+  /// @param[in]   limit  Maximum number of task IDs to return.
+  /// @param[in]   offset Number of task IDs to skip from the end of the list.
+  /// @return      A null-terminated string containing newline-separated task IDs,
+  /// or null if the SDK is not initialized. Must be freed with GeniusSDKFree().
+  ffi.Pointer<ffi.Char> GeniusSDKGetMyTaskIds(int limit, int offset) {
+    return _GeniusSDKGetMyTaskIds(limit, offset);
+  }
+
+  late final _GeniusSDKGetMyTaskIdsPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Uint64, ffi.Uint64)
+        >
+      >('GeniusSDKGetMyTaskIds');
+  late final _GeniusSDKGetMyTaskIds =
+      _GeniusSDKGetMyTaskIdsPtr.asFunction<
+        ffi.Pointer<ffi.Char> Function(int, int)
+      >();
+
+  /// @brief       Retrieves the completed result for a specific task.
+  /// @param[in]   task_id A null-terminated string representing the task ID (ipfs_block_id).
+  /// @return      A GeniusArray containing the serialized protobuf bytes of TaskResult,
+  /// or {0, nullptr} if the task is not found or SDK is not initialized.
+  /// On success, the ptr field must be freed with GeniusSDKFree().
+  GeniusArray GeniusSDKGetTaskResult(ffi.Pointer<ffi.Char> task_id) {
+    return _GeniusSDKGetTaskResult(task_id);
+  }
+
+  late final _GeniusSDKGetTaskResultPtr =
+      _lookup<ffi.NativeFunction<GeniusArray Function(ffi.Pointer<ffi.Char>)>>(
+        'GeniusSDKGetTaskResult',
+      );
+  late final _GeniusSDKGetTaskResult =
+      _GeniusSDKGetTaskResultPtr.asFunction<
+        GeniusArray Function(ffi.Pointer<ffi.Char>)
+      >();
 }
 
 typedef __u_char = ffi.UnsignedChar;
@@ -1295,8 +1333,6 @@ const int __GLIBC_USE_DEPRECATED_GETS = 0;
 
 const int __GLIBC_USE_DEPRECATED_SCANF = 0;
 
-const int __GLIBC_USE_C2X_STRTOL = 1;
-
 const int _STDC_PREDEF_H = 1;
 
 const int __STDC_IEC_559__ = 1;
@@ -1313,7 +1349,7 @@ const int __GNU_LIBRARY__ = 6;
 
 const int __GLIBC__ = 2;
 
-const int __GLIBC_MINOR__ = 39;
+const int __GLIBC_MINOR__ = 35;
 
 const int _SYS_CDEFS_H = 1;
 
@@ -1368,8 +1404,6 @@ const int __WCHAR_MIN = -2147483648;
 const int _BITS_STDINT_INTN_H = 1;
 
 const int _BITS_STDINT_UINTN_H = 1;
-
-const int _BITS_STDINT_LEAST_H = 1;
 
 const int INT8_MIN = -128;
 
@@ -1473,11 +1507,11 @@ const int WINT_MIN = 0;
 
 const int WINT_MAX = 4294967295;
 
-const int __bool_true_false_are_defined = 1;
-
 const int true$ = 1;
 
 const int false$ = 0;
+
+const int __bool_true_false_are_defined = 1;
 
 const int GENIUS_SDK_ADDRESS_SIZE = 130;
 
