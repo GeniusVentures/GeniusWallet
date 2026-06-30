@@ -29,15 +29,12 @@ class GWCheckbox extends StatelessWidget {
   Widget build(BuildContext context) {
     final disabled = !enabled || onChanged == null;
 
-    final box = SizedBox(
-      width: 24,
-      height: 24,
-      child: Checkbox(
+    // A natural Checkbox keeps Flutter's padded ~48px tap target (touch floor);
+    // the visible box stays ~18px (was capped to 24 + shrinkWrap → 24px tap).
+    final box = Checkbox(
         value: value,
         tristate: tristate,
         onChanged: disabled ? null : onChanged,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
         side: BorderSide(
           color: disabled
               ? GeniusWalletColors.borderSubtle
@@ -58,8 +55,7 @@ class GWCheckbox extends StatelessWidget {
           return Colors.transparent;
         }),
         checkColor: GeniusWalletColors.textPrimary,
-      ),
-    );
+      );
 
     if (label == null && description == null) return box;
 

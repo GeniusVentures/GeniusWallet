@@ -8,6 +8,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/utils/formatters.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -55,6 +56,8 @@ class _BuyScreenState extends State<BuyScreen> {
             (coins.isNotEmpty ? coins.first : null);
         // Accept a decimal comma — iOS/Android number pads show "," in
         // German/EU locales, and double.tryParse only knows the dot.
+        // WIRE-4 (see WIRING.md): replace with locale-aware amount parsing —
+        // `replaceAll(',', '.')` mis-reads grouped input ("1,000" -> 1.0).
         final amount =
             double.tryParse(_amount.text.trim().replaceAll(',', '.')) ?? 0;
         final valid = amount > 0 && coin != null;
@@ -119,13 +122,20 @@ class _BuyScreenState extends State<BuyScreen> {
                                       keyboardType:
                                           const TextInputType.numberWithOptions(
                                               decimal: true),
+                                      inputFormatters: [
+                                        SingleDecimalSeparatorFormatter()
+                                      ],
                                       style: GeniusWalletTypography
                                           .numericHeadline
                                           .copyWith(fontSize: 28),
                                       cursorColor:
                                           GeniusWalletColors.brandPrimary,
                                       decoration: InputDecoration(
-                                        isCollapsed: true,
+                                        // Taller tap/focus box (>=48) for touch.
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                vertical:
+                                                    GeniusWalletConsts.space4),
                                         border: InputBorder.none,
                                         hintText: '0',
                                         hintStyle: GeniusWalletTypography
@@ -153,7 +163,7 @@ class _BuyScreenState extends State<BuyScreen> {
                                       },
                                     ),
                                     const SizedBox(
-                                        width: GeniusWalletConsts.space4),
+                                        width: GeniusWalletConsts.space6),
                                   ],
                                 ],
                               ),
@@ -287,6 +297,8 @@ class _BuyScreenState extends State<BuyScreen> {
         _SummaryRow('Token', '${coin.name ?? coin.symbol}'),
         _SummaryRow('You pay', '$symbol${amount.toStringAsFixed(2)}'),
         const _SummaryRow('Payment method', 'Credit / Debit Card'),
+        // WIRE-6 (see WIRING.md): fetch + show the real on-ramp (Banxa) quote
+        // here instead of the static "Shown at checkout" placeholder.
         const _SummaryRow('Quote', 'Shown at checkout'),
         const SizedBox(height: GeniusWalletConsts.space8),
         GWButton(
@@ -295,6 +307,11 @@ class _BuyScreenState extends State<BuyScreen> {
           size: GWButtonSize.lg,
           expand: true,
           onPressed: () {
+            // WIRE-5 (see WIRING.md): this is a DEMO — it does NOT buy. Hand off
+            // to the existing Banxa checkout (lib/banxa/banaxa_buy_screen.dart /
+            // the /buy route + checkoutUrl WebView), passing `coin`, the parsed
+            // amount and GWCurrency.code as the fiat. Also swap the token picker
+            // to the on-ramp's purchasable-token catalogue.
             Navigator.of(context).pop(); // close review sheet
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

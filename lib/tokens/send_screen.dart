@@ -11,6 +11,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/tokens/address_book.dart';
+import 'package:genius_wallet/utils/formatters.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -66,9 +67,13 @@ class _SendScreenState extends State<SendScreen> {
         final balance = coin?.balance ?? 0;
         // Accept a decimal comma — iOS/Android number pads show "," in
         // German/EU locales, and double.tryParse only knows the dot.
+        // WIRE-4 (see WIRING.md): replace with locale-aware amount parsing —
+        // `replaceAll(',', '.')` mis-reads grouped input ("1,000" -> 1.0).
         final amount =
             double.tryParse(_amount.text.trim().replaceAll(',', '.')) ?? 0;
         final overBalance = amount > balance;
+        // WIRE-3 (see WIRING.md): `length >= 6` is a placeholder — add real
+        // per-network recipient-address validation before WIRE-2 broadcasts.
         final valid =
             _recipient.text.trim().length >= 6 && amount > 0 && !overBalance;
 
@@ -129,7 +134,7 @@ class _SendScreenState extends State<SendScreen> {
                               IconButton(
                                 tooltip: 'Scan QR code',
                                 icon: const Icon(Icons.qr_code_scanner_rounded,
-                                    size: 18,
+                                    size: 22,
                                     color: GeniusWalletColors.textSecondary),
                                 onPressed: () async {
                                   final scanned = await GWQrScanner.show(
@@ -151,7 +156,7 @@ class _SendScreenState extends State<SendScreen> {
                               IconButton(
                                 tooltip: 'Address book',
                                 icon: const Icon(Icons.contacts_outlined,
-                                    size: 18,
+                                    size: 22,
                                     color: GeniusWalletColors.textSecondary),
                                 onPressed: () async {
                                   final picked = await showAddressBookPicker(
@@ -167,7 +172,7 @@ class _SendScreenState extends State<SendScreen> {
                               IconButton(
                                 tooltip: 'Paste',
                                 icon: const Icon(Icons.content_paste_rounded,
-                                    size: 18,
+                                    size: 22,
                                     color: GeniusWalletColors.textSecondary),
                                 onPressed: () async {
                                   final data =
@@ -207,13 +212,20 @@ class _SendScreenState extends State<SendScreen> {
                                       keyboardType:
                                           const TextInputType.numberWithOptions(
                                               decimal: true),
+                                      inputFormatters: [
+                                        SingleDecimalSeparatorFormatter()
+                                      ],
                                       style: GeniusWalletTypography
                                           .numericHeadline
                                           .copyWith(fontSize: 28),
                                       cursorColor:
                                           GeniusWalletColors.brandPrimary,
                                       decoration: InputDecoration(
-                                        isCollapsed: true,
+                                        // Taller tap/focus box (>=48) for touch.
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                vertical:
+                                                    GeniusWalletConsts.space4),
                                         border: InputBorder.none,
                                         hintText: '0',
                                         hintStyle: GeniusWalletTypography
@@ -333,6 +345,11 @@ class _SendScreenState extends State<SendScreen> {
           size: GWButtonSize.lg,
           expand: true,
           onPressed: () {
+            // WIRE-2 (see WIRING.md): this is a DEMO — it does NOT broadcast.
+            // Replace with GeniusApi.signAndSendTransaction(tx/rpcUrl/address/
+            // sourceChainId) (packages/genius_api/lib/src/genius_api.dart:820),
+            // built from `coin`, the parsed amount and `_recipient`. Only show
+            // success + navigate after a real tx hash returns.
             Navigator.of(context).pop(); // close review sheet
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

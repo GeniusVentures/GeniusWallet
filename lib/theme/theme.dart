@@ -27,7 +27,9 @@ ThemeData getThemeData() {
         )
       : ColorScheme.dark(
           primary: GeniusWalletColors.brandPrimary,
-          onPrimary: GeniusWalletColors.textPrimary,
+          // textOnBrand (near-black), matching the light scheme — white on the
+          // bright brand fill failed WCAG AA for Material widgets in dark mode.
+          onPrimary: GeniusWalletColors.textOnBrand,
           secondary: GeniusWalletColors.brandSecondary,
           onSecondary: GeniusWalletColors.textOnBrand,
           tertiary: GeniusWalletColors.brandTertiary,

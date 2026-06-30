@@ -66,7 +66,7 @@ class GWButton extends StatelessWidget {
   double get _height {
     switch (size) {
       case GWButtonSize.sm:
-        return 36;
+        return 44; // was 36 — touch floor (iOS 44)
       case GWButtonSize.md:
         return 48;
       case GWButtonSize.lg:
@@ -102,7 +102,9 @@ class GWButton extends StatelessWidget {
       case GWButtonVariant.primary:
         return _Palette(
           background: GeniusWalletColors.brandPrimary,
-          foreground: GeniusWalletColors.textPrimary,
+          // Near-black on the bright cyan fill — white failed WCAG AA in dark
+          // mode (~1.9:1). textOnBrand is the system's on-brand-fill color.
+          foreground: GeniusWalletColors.textOnBrand,
           border: null,
         );
       case GWButtonVariant.secondary:
@@ -141,7 +143,8 @@ class GWButton extends StatelessWidget {
       case GWButtonVariant.gradient:
         return _Palette(
           background: GeniusWalletColors.gradientBlue,
-          foreground: GeniusWalletColors.textPrimary,
+          // Near-black on the bright CTA gradient (white failed WCAG AA).
+          foreground: GeniusWalletColors.textOnBrand,
           border: null,
           gradient: GeniusWalletGradient.brandCta,
         );

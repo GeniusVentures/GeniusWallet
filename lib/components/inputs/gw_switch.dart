@@ -36,7 +36,7 @@ class GWSwitch extends StatelessWidget {
       trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
         (states) => GeniusWalletColors.borderSubtle,
       ),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      // Keep Flutter's padded 48px min tap target (was shrinkWrap → ~30-40px).
     );
 
     if (label == null && description == null) return toggle;
