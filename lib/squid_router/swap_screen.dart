@@ -2,10 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
+import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
@@ -15,7 +13,6 @@ import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -390,105 +387,34 @@ class _SwapScreenState extends State<SwapScreen> {
                                 ),
                                 onPressed: swapParams == null
                                     ? null
-                                    : () async {
+                                    : () {
+                                        // WIRE-1 (see WIRING.md) — DEMO ONLY.
+                                        // Squid swap execution is not wired yet:
+                                        // the real call belongs where the
+                                        // `invoke Squid API` TODO was). Until then we
+                                        // must NOT fabricate or persist a transaction;
+                                        // show an honest "(demo)" notice, matching the
+                                        // Send/Buy confirms. To restore the real flow:
+                                        // invoke Squid, and only on a real success
+                                        // (real tx hash) call SwapSuccessDrawer.show +
+                                        // TransactionsCubit.addTransaction +
+                                        // TransactionStorageService.addTransaction.
+                                        // See REVIEW_FINDINGS.md §B1.
                                         final params = swapParams!;
-
                                         debugPrint(
-                                            'Swapping with params: ${params.toJson()}');
-                                        // TODO: invoke Squid API
-
-                                        final walletState = context
-                                            .read<WalletDetailsCubit>()
-                                            .state;
-                                        final walletAddress =
-                                            walletState.selectedWallet?.address;
-                                        final walletNetwork =
-                                            walletState.selectedNetwork?.symbol;
-                                        final transactionsCubit =
-                                            context.read<TransactionsCubit>();
-
-                                        // TODO: record transaction...
-                                        // IF SUCCESSS ...
-                                        final transaction = Transaction(
-                                            hash: "",
-                                            fromAddress: walletAddress!,
-                                            recipients: [
-                                              TransferRecipients(
-                                                toAddr: walletAddress,
-                                                amount: toAmount,
-                                              )
-                                            ],
-                                            timeStamp: DateTime.now(),
-                                            transactionDirection:
-                                                TransactionDirection.received,
-                                            fees: fromAmount,
-                                            coinSymbol: walletNetwork!,
-                                            transactionStatus:
-                                                TransactionStatus.completed,
-                                            type: TransactionType.swap,
-                                            toAmount: toAmount,
-                                            toIconUrl: toToken?.logoURI,
-                                            fromSymbol: fromToken?.symbol,
-                                            toSymbol: toToken?.symbol,
-                                            fromAmount: fromAmount,
-                                            fromIconUrl: fromToken?.logoURI);
-
-                                        SwapSuccessDrawer.show(context,
-                                            fromAmount: fromAmount,
-                                            toAmount: toAmount,
-                                            fromIconUrl:
-                                                fromToken?.logoURI ?? '',
-                                            toIconUrl: toToken?.logoURI ?? '',
-                                            fromSymbol: fromToken?.symbol ?? '',
-                                            toSymbol: toToken?.symbol ?? '',
-                                            chain: walletNetwork, onClose: () {
-                                          Navigator.of(context).pop();
-                                        });
-                                        // if fail
-                                        // SwapFailDrawer.show(
-                                        //   context,
-                                        //   fromAmount: fromAmount,
-                                        //   toAmount: toAmount,
-                                        //   fromIconUrl: fromToken?.logoURI ?? '',
-                                        //   toIconUrl: toToken?.logoURI ?? '',
-                                        //   fromSymbol: fromToken?.symbol ?? '',
-                                        //   toSymbol: toToken?.symbol ?? '',
-                                        //   chain: walletNetwork,
-                                        //   onClose: () {
-                                        //Navigator.of(context).pop();
-                                        // );
-
-                                        //  final transaction = Transaction(
-                                        //     hash: "",
-                                        //     fromAddress: walletAddress!,
-                                        //     recipients: [
-                                        //       TransferRecipients(
-                                        //         toAddr: walletAddress,
-                                        //         amount: toAmount,
-                                        //       )
-                                        //     ],
-                                        //     timeStamp: DateTime.now(),
-                                        //     transactionDirection:
-                                        //         TransactionDirection.received,
-                                        //     fees: fromAmount,
-                                        //     coinSymbol: walletNetwork!,
-                                        //     transactionStatus:
-                                        //         TransactionStatus.failed,
-                                        //     type: TransactionType.swap,
-                                        //     toAmount: toAmount,
-                                        //     toIconUrl: toToken?.logoURI,
-                                        //     fromSymbol: fromToken?.symbol,
-                                        //     toSymbol: toToken?.symbol,
-                                        //     fromAmount: fromAmount,
-                                        //     fromIconUrl: fromToken?.logoURI);
-
-                                        transactionsCubit
-                                            .addTransaction(transaction);
-
-                                        // save to hive
-                                        await TransactionStorageService()
-                                            .addTransaction(
-                                                walletAddress, transaction);
+                                            'Swap (demo) params: ${params.toJson()}');
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                                'Swap submitted (demo)'),
+                                            backgroundColor:
+                                                GeniusWalletColors.surfaceMenu,
+                                          ),
+                                        );
+                                        if (context.mounted) {
+                                          context.go('/dashboard');
+                                        }
                                       },
                                 child: Text("Swap",
                                     style: TextStyle(

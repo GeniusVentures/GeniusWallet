@@ -5,6 +5,10 @@ import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 
+/// WIRE-1 (see WIRING.md): every method here returns hardcoded `mock*` data —
+/// `fetchTokens`/`fetchBalances`/`getRoute` (the quote/rate is fabricated).
+/// Restore the real Squid HTTP calls (commented below each return) before
+/// exposing Swap.
 class SquidTokenService {
   static const _baseUrl = 'https://api.squidrouter.com/v1';
   static const _testNetBaseUrl = 'https://testnet.api.squidrouter.com/v1';
