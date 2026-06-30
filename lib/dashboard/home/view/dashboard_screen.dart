@@ -146,7 +146,8 @@ class _HeroBalance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mock 24h delta — wire to real data later.
+    // WIRE-9 (see WIRING.md): mock 24h delta — replace `balance * 0.024` with a
+    // real 24h price-change source (per-asset change, aggregated).
     final delta = balance * 0.024;
     final positive = delta >= 0;
     return Padding(
@@ -374,7 +375,7 @@ class _Tabs extends StatelessWidget {
         GeniusWalletConsts.space4,
       ),
       child: Container(
-        height: 36,
+        height: 48, // was 36 — Material touch target for the Assets/NFTs tabs
         // Recessed track — sits a layer below the canvas in both modes, so
         // the raised thumb reads as a physical slider.
         decoration: BoxDecoration(
@@ -512,8 +513,9 @@ class _AssetSearch extends StatelessWidget {
 class _NftsSliver extends StatelessWidget {
   const _NftsSliver();
 
-  // Placeholder collectibles so the NFT grid is reviewable in the redesign —
-  // wire to real NFT data later.
+  // Placeholder collectibles so the NFT grid is reviewable in the redesign.
+  // WIRE-8 (see WIRING.md): replace `_items` with a real NFT source (cubit/
+  // provider) and render the NFT image instead of the gradient placeholder.
   static const _items = <_Nft>[
     _Nft('Genius Mind #1024', 'Genius Originals'),
     _Nft('Aurora Key #07', 'Aurora Keys'),
@@ -657,6 +659,7 @@ class _CoinRow extends StatelessWidget {
         context.read<WalletDetailsCubit>().selectCoin(coin);
         context.push('/token-info', extra: {
           "isGnusWalletConnected": false,
+          // WIRE-11 (see WIRING.md): placeholder — wire real security info + history.
           "securityInfo": "Coming Soon",
           "transactionHistory": ["Coming Soon"],
           "marketData": null,

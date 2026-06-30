@@ -100,7 +100,7 @@ class _ViewState extends State<View> {
       selectedBorderColor: GeniusWalletColors.textPrimary,
       fillColor: GeniusWalletColors.textPrimary10,
       selectedColor: GeniusWalletColors.textPrimary,
-      constraints: const BoxConstraints(minHeight: 40, minWidth: 110),
+      constraints: const BoxConstraints(minHeight: 48, minWidth: 110),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,

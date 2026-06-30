@@ -29,13 +29,13 @@ class _TokenFlipButtonState extends State<TokenFlipButton> {
       turns: _rotationTurns,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      child: FloatingActionButton(
+      child: FloatingActionButton.small(
         // Inline flip control — opt out of the default FAB Hero so it isn't
         // lifted into the navigation overlay and left lingering over the
-        // previous screen during a route transition.
+        // previous screen during a route transition. `.small` renders a 48px
+        // disc (was mini: true / 40px) so the visual matches its tap target.
         heroTag: null,
         onPressed: _handlePress,
-        mini: true,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(40),
         ),

@@ -83,23 +83,27 @@ class GeniusWalletTypography {
         fontWeight: FontWeight.w400,
       );
 
+  // Default body bumped 14->16 for touchscreen legibility (web scale was too
+  // small on phones). bodyLg (16) and bodyMd now coincide; re-differentiate
+  // later if a distinct dense-body size is needed.
   static TextStyle get bodyMd => _inter(
-        fontSize: 14,
-        height: 20 / 14,
+        fontSize: 16,
+        height: 24 / 16,
         fontWeight: FontWeight.w400,
       );
 
   static TextStyle get bodySm => _inter(
-        fontSize: 13,
-        height: 18 / 13,
+        fontSize: 14,
+        height: 20 / 14,
         fontWeight: FontWeight.w400,
         color: GeniusWalletColors.textSecondary,
       );
 
   // --- Label -----------------------------------------------------------------
+  // Floor raised 12->13: 12px read too small on a touchscreen.
   static TextStyle get labelMd => _inter(
-        fontSize: 12,
-        height: 16 / 12,
+        fontSize: 13,
+        height: 18 / 13,
         fontWeight: FontWeight.w500,
       );
 

@@ -112,7 +112,7 @@ class _NavTile extends StatelessWidget {
               item.label,
               style: GeniusWalletTypography.labelMd.copyWith(
                 color: color,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
