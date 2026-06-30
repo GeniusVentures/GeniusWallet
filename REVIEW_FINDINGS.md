@@ -9,12 +9,17 @@ integration-seam information a developer needs but the handoff does not contain.
 
 | | |
 |---|---|
-| **Branch / HEAD** | `ui-redesign-3.514` @ `1b83a67` |
+| **Branch / HEAD** | `ui-redesign-3.514` @ `254a480` (review was at `1b83a67`) |
 | **Base (merge-base)** | `0495436` on `dev_logsubmissions` |
-| **Reviewed** | 2026-06-29 |
+| **Reviewed** | 2026-06-29 · post-review fixes applied 2026-06-30 |
 | **Method** | `flutter analyze` (pinned 3.32.5) + multi-agent code/doc audit, each finding adversarially verified against the source |
-| **Analyzer result** | 11 errors (ALL pre-existing codegen in `lib/tokeninfo/` + its test) + 327 warnings; **0 new errors/warnings from the redesign** — confirms `HANDOFF.md` §7 |
+| **Analyzer result** | 11 errors (ALL pre-existing codegen in `lib/tokeninfo/` + its test) + 327 warnings; **0 new** from the redesign or the post-review fixes — confirms `HANDOFF.md` §7 |
 | **`flutter test`** | **RED — does not compile** (see §C5) |
+
+> **Post-review fixes** (commits `a0c6825` `75d2ba2` `bc8dd7a` `254a480`, see `CHANGELOG.md`) have
+> since landed and closed several items below — marked ✅ in place: Swap (§B1), EIP-681 (§C2), SDK
+> floor (§E2), QR error UI (§E3), button contrast (§E4 first half), plus a touch-legibility &
+> tap-target pass (§F). **Still open:** §C1, §C2 (validation), §C3–C6, §A1, §E1.
 
 Severity legend: 🔴 **blocker** (ships a bug / loses funds / actively misleads) · 🟠 **high** (will cost the dev real time or break the rebase) · 🟡 **medium** · ⚪ **low / polish**
 
@@ -24,7 +29,7 @@ Severity legend: 🔴 **blocker** (ships a bug / loses funds / actively misleads
 
 1. ✅ ~~**Swap confirm fabricates and persists a fake "completed" transaction in production**~~ — **FIXED** in this branch (now an honest "(demo)" notice, no persistence). Real Squid wiring still pending. (§B1)
 2. 🔴 **`WALLET_PK` is the *real* signing key**, not a mock — any build carrying it signs/broadcasts. (§C1)
-3. 🔴 **Send has no recipient-address validation** and the QR parser mis-reads EIP-681 transfer URIs — fund-loss the moment Send is wired to a real broadcast. (§C2)
+3. 🔴 **Send has no recipient-address validation** — fund-loss the moment Send is wired to a real broadcast. (The EIP-681 QR mis-parse half is now ✅ fixed.) (§C2)
 4. 🟠 **`HANDOFF.md` §8 rebase guidance is now false** — the rebase is *not* conflict-free. (§A1)
 5. 🟠 **`flutter test` does not compile** and there is zero coverage of any new screen. (§C5)
 
@@ -138,16 +143,19 @@ Any build that bakes in or passes `WALLET_PK` will **sign and broadcast with it*
 user's actual wallet. `HANDOFF.md` §6/§9 recommend `WALLET_PK` as the QA bypass without this warning.
 **Action:** document it as a debug-only override; never set it in a release/CI artifact.
 
-### C2. 🔴 No recipient validation + EIP-681 mis-parse (fund-loss once Send broadcasts)
-- `lib/tokens/send_screen.dart:73` gates validity on `_recipient.text.trim().length >= 6` only —
-  **no** `0x[0-9a-fA-F]{40}` / checksum / network check. A malformed or truncated address passes.
-- `extractWalletAddress` (`lib/components/qr_scanner/gw_qr_scanner.dart:15-26`) strips the scheme
-  then cuts at the first of `@ ? /`. For a standard EIP-681 token-transfer QR
-  `ethereum:0xTOKEN/transfer?address=0xPAYEE&uint256=N` it returns **`0xTOKEN` (the contract)**,
-  not `0xPAYEE` — silently the wrong recipient. It also performs no validation of the result.
+### C2. 🔴 No recipient validation (EIP-681 mis-parse now ✅ fixed)
+- 🔴 **STILL OPEN:** `lib/tokens/send_screen.dart:77-78` gates validity on
+  `_recipient.text.trim().length >= 6` only — **no** `0x[0-9a-fA-F]{40}` / checksum / network check.
+  A malformed or truncated address passes.
+- ✅ **FIXED:** `extractWalletAddress` (`lib/components/qr_scanner/gw_qr_scanner.dart:21-47`) now
+  detects the EIP-681 transfer form (`ethereum:0xTOKEN/transfer?address=0xPAYEE&…`) and returns the
+  `?address=` payee, not the token contract.
+- ⚠️ **Partial (decimal comma):** the amount fields now use `SingleDecimalSeparatorFormatter`
+  (`lib/utils/formatters.dart`) which blocks junk + a second separator — but a lone grouping comma
+  (`"1,000"` → `1.0`, an under-send) still passes; full locale-aware parsing is WIRE-4.
 
-**Action:** add real address validation (and EIP-681 `?address=` handling) **before** wiring the
-§E1 broadcast. These are latent today only because Send is a demo.
+**Action:** add real per-network address validation **before** wiring the §E1 broadcast. The parser
+normalizes the scanned QR but does NOT validate — that's still the dev's job.
 
 ### C3. 🟠 Sentry sends PII with no scrubbing; raw SDK logs uploaded
 `lib/main.dart:83` sets `options.sendDefaultPii = true` with `tracesSampleRate = 1.0`; the
@@ -211,18 +219,15 @@ add smoke tests for the money screens before shipping.
 - ⚪ **E1 — Inter fetched from Google's CDN at runtime** (`lib/theme/genius_wallet_typography.dart:28`,
   `GoogleFonts.inter`) — no bundled fallback, no `allowRuntimeFetching = false`. For an
   offline-first, privacy-sensitive wallet, bundle the Inter `.ttf` and disable runtime fetching.
-- 🟡 **E2 — `pubspec.yaml:6` `environment.sdk: ">=3.0.0"`** understates the real toolchain (the
-  branch builds on Flutter 3.4x / Dart 3.9+, and `mobile_scanner 5.2.3` itself needs Dart ≥3.4).
-  Bump the floor and pin the real Flutter/Dart minimums (ideally an `.fvmrc` / CI matrix).
-- 🟡 **E3 — QR scanner has no permission-denied/error UI** (`lib/components/qr_scanner/gw_qr_scanner.dart:118`,
-  `MobileScanner` with no `errorBuilder`) → blank black screen on denied/unavailable camera. Add an
-  `errorBuilder` with a message + Settings deep-link.
-- 🟡 **E4 — `GWButton` filled variants** render white text on bright brand fills in the default dark
-  mode (`lib/components/buttons/gw_button.dart:104-105,143-144`), ~1.9–3.3:1 — fails WCAG AA on
-  **every** money CTA. The design system already defines `textOnBrand` (#000B18) for exactly this;
-  switch filled-on-bright foregrounds to it. (`textSecondary` likewise fails AA on the light
-  canvas; the DESIGN_SYSTEM §8 contrast figures predate the v1.3 black/white canvases and should be
-  recomputed.)
+- ✅ **E2 — SDK floor — FIXED.** `pubspec.yaml:6` is now `sdk: ">=3.4.0 <4.0.0"` with
+  `flutter: ">=3.22.0"` (matches `mobile_scanner 5.2.3`). Residual ⚪: add an `.fvmrc` / CI matrix.
+- ✅ **E3 — QR error UI — FIXED.** `lib/components/qr_scanner/gw_qr_scanner.dart` now passes an
+  `errorBuilder` rendering a "Camera unavailable" recovery message. Residual ⚪: it tells the user to
+  open Settings but doesn't deep-link.
+- ✅ **E4 — Button contrast — FIXED (first half).** `GWButton` `primary`/`gradient` foreground and
+  the dark `ColorScheme.onPrimary` now use `textOnBrand` (#000B18) instead of white. Residual 🟡:
+  `textSecondary` still fails AA on the light canvas; the DESIGN_SYSTEM §8 contrast figures predate
+  the v1.3 black/white canvases and should be recomputed.
 
 ---
 
@@ -239,6 +244,9 @@ add smoke tests for the money screens before shipping.
 - **Native deps** (`mobile_scanner 5.2.3`, `google_fonts`, `shimmer`) satisfy the repo's
   `minSdkVersion 29` / iOS 13 targets; the texture asset is present and declared.
 - The **stub hacks are uncommitted** and nothing harmful was committed (confirms §9).
+- **Touch & a11y hardened** (commits `bc8dd7a`/`254a480`, see `CHANGELOG.md`): the type scale and
+  sub-48 controls were enlarged to the 44/48 touch floor, and filled-button contrast now passes AA
+  — these are no longer outstanding.
 
 ---
 
@@ -255,6 +263,6 @@ add smoke tests for the money screens before shipping.
 | 7 | Wire Send/Buy/Currency to the real seams (D1–D3) | 🟠 | D |
 | 8 | iOS/macOS camera permission (incl. the dead pbxproj key) | 🟡 | A3 |
 | 9 | splash 2 s watchdog; refresh §1/§8 metrics | 🟡 | A2, A4 |
-| 10 | Fonts/SDK-floor/QR-error-UI/button-contrast polish | 🟡/⚪ | E |
+| 10 | ✅ SDK-floor / QR-error-UI / button-contrast done (see `CHANGELOG.md`); residual: Inter fonts (E1), textSecondary contrast | ⚪ | E |
 
 *Each item above is backed by a verified file:line in this document.*

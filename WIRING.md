@@ -26,6 +26,13 @@ per-chain choice, not just a call) · 💰 touches money — validate before shi
   contract.
 - ✅ **QR scanner shows a recovery UI** on denied/unavailable camera instead of a blank black
   screen (`errorBuilder` added).
+- ✅ **Touch & legibility pass** (commits `bc8dd7a`/`254a480`, see `CHANGELOG.md`): type scale bumped
+  (bodyMd 14→16, etc.); `GWButton.sm` 36→44, Assets/NFTs tabs + ToggleButtons + flip-FAB → 48;
+  `GWSwitch`/`GWCheckbox` keep the 48px tap target.
+- ✅ **Button contrast** — filled brand CTAs + dark `onPrimary` now use `textOnBrand` (white failed AA).
+- ✅ **Amount-input guard** — `SingleDecimalSeparatorFormatter` on both amount fields blocks junk + a
+  second separator (the lone-grouping-comma case is still WIRE-4 below).
+- ✅ **pubspec SDK floor** bumped to `>=3.4.0` / Flutter `>=3.22.0`.
 
 ---
 
@@ -62,10 +69,11 @@ per-chain choice, not just a call) · 💰 touches money — validate before shi
 ### ⚖️💰 WIRE-4 — Locale-aware amount parsing
 - **Where:** `lib/tokens/send_screen.dart` (~L70) **and** `lib/tokens/buy_screen.dart` (~L59) —
   both `double.tryParse(text.replaceAll(',', '.'))`.
-- **Now:** `replaceAll(',', '.')` mis-reads grouped input: **`"1,000"` → `1.0`** (1000× under-send),
-  silently passing the `amount > 0` check.
-- **Do:** use locale-aware parsing (`intl` `NumberFormat`) or restrict the field with
-  `inputFormatters` so grouping separators can't be entered. Decision: which locale / input rules.
+- **Now:** `SingleDecimalSeparatorFormatter` (`lib/utils/formatters.dart`) already blocks junk + a
+  second separator on both fields. Residual: `replaceAll(',', '.')` still mis-reads a lone grouping
+  comma — **`"1,000"` → `1.0`** (1000× under-send) — which passes the `amount > 0` check.
+- **Do:** finish with locale-aware parsing (`intl` `NumberFormat`) so a single grouping comma is
+  disambiguated. Decision: which locale / input rules.
   Consider a shared helper in `lib/utils/formatters.dart` used by both screens.
 
 ### 🔌💰 WIRE-5 — Buy checkout (Banxa)

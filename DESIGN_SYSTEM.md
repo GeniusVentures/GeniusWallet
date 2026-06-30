@@ -199,9 +199,9 @@ The palette is built from three brand hues plus a layered surface stack and a sm
 | `title/lg` | 18 px | 24 px (1.333) | 600 | — | `--font-size-lg: 1.75rem` | Subsection |
 | `title/md` | 16 px | 22 px (1.375) | 500 | — | `--font-size-base: 1.125rem` | Card titles |
 | `body/lg` | 16 px | 24 px (1.5) | 400 | — | `text-base` | Long-form body |
-| `body/md` | 14 px | 20 px (1.428) | 400 | — | `text-sm` | Default body |
-| `body/sm` | 13 px | 18 px (1.385) | 400 | — | between `text-sm` & `text-xs` | Captions (uses `text/secondary` by default) |
-| `label/md` | 12 px | 16 px (1.333) | 500 | — | `text-xs` | Labels, badges |
+| `body/md` | 16 px | 24 px (1.5) | 400 | — | `text-base` | Default body (bumped 14→16 for touch, v1.4; now equals `body/lg`) |
+| `body/sm` | 14 px | 20 px (1.428) | 400 | — | `text-sm` | Captions (uses `text/secondary` by default) |
+| `label/md` | 13 px | 18 px (1.385) | 500 | — | ≈ `text-xs` | Labels, badges |
 | `numeric/display` | 32 px | 40 px | 700 | -0.4 | — | Balances (tabular figures) |
 | `numeric/headline` | 24 px | 32 px | 600 | — | — | Large amounts (tabular) |
 | `numeric/body` | 14 px | 20 px | 500 | — | — | Inline amounts, addresses (tabular) |
@@ -215,7 +215,7 @@ The palette is built from three brand hues plus a layered surface stack and a sm
 **Sanctioned off-scale exceptions** (deliberate, do not "fix" to a token):
 
 - **Hero balance numerics — 48 px / 56 px.** The primary balance figure on the home and wallet-detail screens (`GeniusBalanceDisplay`, desktop containers) is an oversized focal display number, not type-scale text. It sits above `numeric/display` (32 px) on purpose.
-- **Compact nav label — 11 px.** `gw_bottom_nav` overrides `label/md` down to 11 px so five tab labels fit without wrapping; this is a fixed-bar fit constraint, not a heading.
+- **Compact nav label — 12 px.** `gw_bottom_nav` overrides `label/md` down to 12 px so five tab labels fit without wrapping; this is a fixed-bar fit constraint, not a heading.
 
 Everything else stays on the scale — inline amounts/body snap to the nearest rung (`14`/`16`/`20`), never `15`/`22`.
 
@@ -352,9 +352,11 @@ The unified button primitive. Use this for **every** new button.
 
 | Size | Height | Padding | Typography |
 |------|--------|---------|------------|
-| `sm` | 36 px | `space6` h, `space4` v | `body/sm` 600 |
+| `sm` | 44 px | `space6` h, `space4` v | `body/sm` 600 |
 | `md` (default) | 48 px | `space8` h, `space6` v | `body/md` 600 |
 | `lg` | 56 px | `space10` h, `space8` v | `title/md` 600 |
+
+Filled brand variants (`primary`, `gradient`) render their label/icon in `text/on-brand` (#000B18) — **never white** — on the bright brand fill, to satisfy WCAG AA (white scored ~1.75 : 1). `destructive` keeps white on `status/error` (conventional, passes for bold labels).
 
 States: `default`, `hover`, `pressed`, `disabled`, `loading`, `expanded`. Loading replaces the label with a `GWSpinner`.
 
@@ -680,9 +682,9 @@ Before publishing any new marketing asset (page, ad, post, deck, email):
 
 ## 8. Accessibility
 
-- **Contrast:** `text/primary` on `surface/base` ≈ 11.7 : 1 (passes AAA). `text/secondary` on `surface/base` ≈ 4.7 : 1 (passes AA). Verify any new color pairing with a contrast checker before adopting.
+- **Contrast:** `text/primary` on `surface/base` ≈ 11.7 : 1 (passes AAA). `text/secondary` on `surface/base` ≈ 4.7 : 1 (passes AA — figure predates the v1.3 black/white canvases; recompute before relying on it). On bright brand fills use `text/on-brand` (#000B18) — ~11 : 1 on `brand/primary` (#14C8FF); **white fails** (~1.75 : 1). Verify any new color pairing with a contrast checker before adopting.
 - **Focus:** all interactive elements must show a 2 px `brand/primary` ring on keyboard focus. The Flutter theme handles this for native widgets; new custom widgets must wrap with `Focus` and render the ring explicitly.
-- **Touch targets:** minimum 44 × 44 px (iOS HIG) / 48 × 48 dp (Material). `GWButton.sm` is 36 px height — only allow it inside a 44 px+ tappable container.
+- **Touch targets:** minimum 44 × 44 px (iOS HIG) / 48 × 48 dp (Material). `GWButton.sm` is now 44 px (meets the iOS floor); `md`/`lg` are 48/56. `GWSwitch`/`GWCheckbox` keep Flutter's padded 48 px tap target (no `shrinkWrap`); segmented tabs/toggles are ≥ 48.
 - **Semantics:** every actionable widget needs a `Semantics(label, button: true)` wrapper. The `GWButton` and `ActionButton` primitives do this for you. Custom `InkWell` instances need it added manually.
 - **Text scaling:** components must respect `MediaQuery.textScaleFactor` (and the corresponding browser `rem` scaling). Don't lock font sizes in pixels in containers — let the layout reflow.
 - **Motion sensitivity:** auto-playing animations (the brand glow pulse, hero wash) must be disabled when `MediaQuery.disableAnimations` is true on Flutter, or `prefers-reduced-motion: reduce` matches on web.
@@ -743,6 +745,13 @@ Mark the legacy alias in `genius_wallet_colors.dart` (existing pattern: see the 
 ---
 
 ## Migration notes
+
+### v1.4 — Touch legibility & tap targets (2026-06)
+
+A touchscreen-readability + touch-target pass:
+- **Type scale bumped** for phone legibility: `body/md` 14→16 (now the default body, equals `body/lg`), `body/sm` 13→14, `label/md` 12→13, compact nav label 11→12.
+- **Tap targets** raised to the 44/48 floor: `GWButton.sm` 36→44; Assets/NFTs segmented tabs 36→48; the GNUS/Minions `ToggleButtons` 40→48; the swap token-flip FAB 40→48 (`mini`→`.small`); `GWSwitch`/`GWCheckbox` dropped `shrinkWrap`/compact so they keep Flutter's 48 px tap target.
+- **Contrast:** filled brand `GWButton` variants (`primary`/`gradient`) and dark `ColorScheme.onPrimary` now use `text/on-brand` instead of white (white failed WCAG AA on the bright fill).
 
 ### v1.3 — Appearance modes: black & white canvases (2026-06)
 
