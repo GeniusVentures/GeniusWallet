@@ -58,12 +58,111 @@ permissions:
   contents: write
   packages: read
 jobs:
+  resolve-runners:
+    runs-on: ubuntu-latest
+    outputs:
+      linux_x64: ${{ steps.pick.outputs.linux_x64 }}
+      linux_arm: ${{ steps.pick.outputs.linux_arm }}
+      windows: ${{ steps.pick.outputs.windows }}
+      mac: ${{ steps.pick.outputs.mac }}
+    steps:
+      - name: Check self-hosted runner availability
+        id: pick
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ORG="${REPO%%/*}"
+          repo_err="$(mktemp)"
+          org_err="$(mktemp)"
+
+          # Some org-scoped runners may not show up via the repo endpoint for this token.
+          # Query both scopes and merge the results.
+          if repo_data="$(gh api "/repos/$REPO/actions/runners" --paginate 2>"$repo_err")"; then
+            echo "Repository runner API query succeeded for $REPO"
+          else
+            echo "Repository runner API query failed for $REPO; continuing with empty repo runner set"
+            repo_data='{"runners":[]}'
+          fi
+
+          if org_data="$(gh api "/orgs/$ORG/actions/runners" --paginate 2>"$org_err")"; then
+            echo "Organization runner API query succeeded for $ORG"
+          else
+            echo "Organization runner API query failed for $ORG; continuing with empty org runner set"
+            org_data='{"runners":[]}'
+          fi
+
+          data="$(jq -n --argjson repo "$repo_data" --argjson org "$org_data" '{runners: (($repo.runners // []) + ($org.runners // []) | unique_by(.id))}')"
+
+          repo_count="$(echo "$repo_data" | jq -r '(.runners // []) | length')"
+          org_count="$(echo "$org_data" | jq -r '(.runners // []) | length')"
+          merged_count="$(echo "$data" | jq -r '(.runners // []) | length')"
+
+          echo "Runner counts: repo=$repo_count org=$org_count merged=$merged_count"
+          if [ "$org_count" -eq 0 ] && [ -s "$org_err" ]; then
+            echo "Org endpoint error output:"
+            cat "$org_err"
+          fi
+
+          echo "Discovered self-hosted runners for $REPO (repo+org merged):"
+          echo "$data" | jq -r '.runners[]? | "- \(.name) | status=\(.status) | busy=\(.busy) | labels=\([.labels[].name] | join(", "))"'
+
+          {
+            echo "## Runner availability"
+            echo
+            echo "Repository: $REPO"
+            echo "Organization: $ORG"
+            echo "Counts: repo=$repo_count org=$org_count merged=$merged_count"
+            echo
+            echo "Discovered runners (repo+org merged):"
+            echo "$data" | jq -r '.runners[]? | "- \(.name) | status=\(.status) | busy=\(.busy) | labels=\([.labels[].name] | join(", "))"'
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Define JSON arrays using single quotes so real double-quotes are preserved.
+          SH_LINUX_X64='["self-hosted","sg-ubuntu-linux"]'
+          SH_LINUX_ARM='["self-hosted","sg-arm-linux"]'
+          SH_WINDOWS='["self-hosted","SG-WIN11"]'
+          SH_MAC='["self-hosted","gv-OSX-Large"]'
+          FB_LINUX='["ubuntu-latest"]'
+          FB_LINUX_ARM='["ubuntu-24.04-arm"]'
+          FB_WINDOWS='["windows-latest"]'
+          FB_MAC='["macos-latest"]'
+
+          # Returns the self-hosted label array if at least one matching runner
+          # is online and not busy, otherwise returns the GitHub-hosted fallback.
+          # Match either runner name or label/tag text, case-insensitively.
+          pick_runner() {
+            local label="$1" self_hosted="$2" fallback="$3"
+            if echo "$data" | jq -e --arg L "$label" \
+              '.runners[]
+               | select(.status=="online" and (.busy|not))
+               | select((.name | ascii_downcase) == ($L | ascii_downcase)
+                 or any(.labels[]; (.name | ascii_downcase) == ($L | ascii_downcase)))' \
+              >/dev/null 2>&1; then
+              echo "Selector '$label' matched an available self-hosted runner" >&2
+              echo "- $label: self-hosted" >> "$GITHUB_STEP_SUMMARY"
+              echo "$self_hosted"
+            else
+              echo "Selector '$label' did not match an available self-hosted runner" >&2
+              echo "- $label: fallback" >> "$GITHUB_STEP_SUMMARY"
+              echo "$fallback"
+            fi
+          }
+
+          echo "linux_x64=$(pick_runner 'sg-ubuntu-linux' "$SH_LINUX_X64" "$FB_LINUX")"   >> "$GITHUB_OUTPUT"
+          echo "linux_arm=$(pick_runner 'sg-arm-linux'    "$SH_LINUX_ARM" "$FB_LINUX_ARM")" >> "$GITHUB_OUTPUT"
+          echo "windows=$(pick_runner   'SG-WIN11'        "$SH_WINDOWS"   "$FB_WINDOWS")" >> "$GITHUB_OUTPUT"
+          # GeniusWallet unconditionally uses macOS-latest for now; keep pick_runner ready for future.
+          echo "mac=$FB_MAC"     >> "$GITHUB_OUTPUT"
+
   build:
+    needs: resolve-runners
     env:
       GRPC_BUILD_ENABLE_CCACHE: "ON"
       GH_TOKEN: ${{ secrets.GNUS_TOKEN_1 }}
       RELEASE_TAG_INPUT: ${{ github.event.inputs.tag }}
-    runs-on: ${{matrix.host}}
+    runs-on: ${{ fromJson(needs.resolve-runners.outputs[matrix.runner_key]) }}
     container:
       image: ${{matrix.container}}
       credentials:
@@ -77,28 +176,28 @@ jobs:
         abi: [""]
         include:
           - target: Linux
-            host: sg-ubuntu-linux
+            runner_key: linux_x64
             flutter-platform: linux
             abi: x86_64
             build-type: Release
             container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Linux
-            host: sg-arm-linux
+            runner_key: linux_arm
             flutter-platform: linux
             abi: aarch64
             build-type: Release
             container: ghcr.io/geniusventures/debian-bullseye:latest
           - target: Windows
-            host: SG-WIN11
+            runner_key: windows
             flutter-platform: windows
           - target: OSX
-            host: macos-latest
+            runner_key: mac
             flutter-platform: macos
           - target: Android
-            host: sg-ubuntu-linux
+            runner_key: linux_x64
             flutter-platform: apk
           - target: iOS
-            host: macos-latest
+            runner_key: mac
             flutter-platform: ios
         exclude:
           - target: Linux
