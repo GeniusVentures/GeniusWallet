@@ -392,22 +392,34 @@ jobs:
           # Create the android directory if it doesn't exist
           mkdir -p android/app
 
-          # Decode and save the debug keystore to android/app/ directory
-          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
-
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storeFile=keystore.jks" >> android/key.properties
+          if [ "${{ matrix.build-type }}" = "Release" ]; then
+            # Release keystore for APK + AAB (Google Play & direct distribution)
+            echo "Configuring RELEASE keystore..."
+            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
+            echo "storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" > android/key.properties
+            echo "keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}" >> android/key.properties
+            echo "keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}" >> android/key.properties
+            echo "storeFile=release-keystore.jks" >> android/key.properties
+            KEYSTORE_FILE="android/app/release-keystore.jks"
+          else
+            # Debug keystore for local/dev testing
+            echo "Configuring DEBUG keystore..."
+            echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+            echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+            echo "storeFile=keystore.jks" >> android/key.properties
+            KEYSTORE_FILE="android/app/keystore.jks"
+          fi
 
           echo "Android keystore configured"
           echo "Key properties created:"
           cat android/key.properties
 
           # Verify the keystore file was created
-          if [ -f "android/app/keystore.jks" ]; then
-            echo "Keystore file created successfully at: android/app/keystore.jks"
-            ls -la android/app/keystore.jks
+          if [ -f "${KEYSTORE_FILE}" ]; then
+            echo "Keystore file created successfully at: ${KEYSTORE_FILE}"
+            ls -la "${KEYSTORE_FILE}"
           else
             echo "ERROR: Keystore file not found!"
             exit 1
@@ -577,6 +589,15 @@ jobs:
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --verbose
             fi
           fi
+
+      - name: Build Android App Bundle (AAB)
+        if: ${{ matrix.target == 'Android' && matrix.build-type == 'Release' }}
+        shell: bash
+        run: |
+          echo "Building Android App Bundle (AAB) for Google Play..."
+          CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build appbundle --release --target-platform android-arm,android-arm64 ${FLUTTER_VERSION_ARGS}
+          echo "AAB built at: build/app/outputs/bundle/release/app-release.aab"
+          ls -la build/app/outputs/bundle/release/
 
       - name: Install Sentry CLI (Linux)
         if: ${{ runner.os == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
@@ -946,6 +967,11 @@ jobs:
                 cp build/app/outputs/flutter-apk/app-debug.apk artifacts/
               else
                 cp build/app/outputs/flutter-apk/app-release.apk artifacts/
+                # Also copy the AAB for Google Play
+                if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
+                  cp build/app/outputs/bundle/release/app-release.aab artifacts/
+                  echo "AAB copied to artifacts/"
+                fi
               fi
               ;;
             "iOS")
@@ -1036,6 +1062,12 @@ jobs:
             else
               ARTIFACT_NAME=${BASE_NAME}.apk
               cp artifacts/app-release.apk ${ARTIFACT_NAME}
+              # Also prepare AAB for Google Play
+              if [ -f "artifacts/app-release.aab" ]; then
+                ARTIFACT_NAME_AAB=${BASE_NAME}.aab
+                cp artifacts/app-release.aab ${ARTIFACT_NAME_AAB}
+                echo "ARTIFACT_NAME_AAB=${ARTIFACT_NAME_AAB}" >> $GITHUB_ENV
+              fi
             fi
           elif [ "${{ matrix.target }}" = "iOS" ]; then
             # Check if we have an IPA file
@@ -1163,5 +1195,10 @@ jobs:
           else
             echo "Uploading ${ARTIFACT_NAME}"
             gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+            # Also upload AAB for Android if it exists
+            if [ -n "${ARTIFACT_NAME_AAB:-}" ] && [ -f "${ARTIFACT_NAME_AAB}" ]; then
+              echo "Uploading AAB: ${ARTIFACT_NAME_AAB}"
+              gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME_AAB}"
+            fi
           fi
         shell: bash
