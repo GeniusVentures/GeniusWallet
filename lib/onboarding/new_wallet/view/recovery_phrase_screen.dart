@@ -80,11 +80,15 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                         border: Border.all(color: Colors.grey, width: 1.0),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        '${(index + 1).toString().padLeft(2, '0')}. ${_isVisible ? words[index].padRight(8) : '••••••'}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontFamily: "JetBrainsMono",
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${(index + 1).toString().padLeft(2, '0')}. ${_isVisible ? words[index] : '••••••'}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontFamily: "JetBrainsMono",
+                          ),
                         ),
                       ),
                     );
