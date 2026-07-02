@@ -128,7 +128,7 @@ jobs:
           SH_MAC='["self-hosted","gv-OSX-Large"]'
           FB_LINUX='["ubuntu-latest"]'
           FB_LINUX_ARM='["ubuntu-24.04-arm"]'
-          FB_WINDOWS='["windows-latest"]'
+          FB_WINDOWS='["windows-2022"]'
           FB_MAC='["macos-latest"]'
 
           # Returns the self-hosted label array if at least one matching runner
