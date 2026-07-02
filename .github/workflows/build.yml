@@ -518,14 +518,32 @@ jobs:
           mkdir -p android/app
 
           if [ "${{ matrix.build-type }}" = "Release" ]; then
-            # Release keystore for APK + AAB (Google Play & direct distribution)
-            echo "Configuring RELEASE keystore..."
+            # ---- Decode both keystores (release + upload) ----
             echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
+            echo "${{ secrets.UPLOAD_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+
+            # Verify release keystore
+            if [ -f "android/app/release-keystore.jks" ]; then
+              echo "Release keystore OK: $(wc -c < android/app/release-keystore.jks) bytes"
+            else
+              echo "ERROR: Release keystore not found!"
+              exit 1
+            fi
+
+            # Verify upload keystore
+            if [ -f "android/app/upload-keystore.jks" ]; then
+              echo "Upload keystore OK: $(wc -c < android/app/upload-keystore.jks) bytes"
+            else
+              echo "ERROR: Upload keystore not found!"
+              exit 1
+            fi
+
+            # Set key.properties to RELEASE key first (for APK build)
+            echo "Setting key.properties for RELEASE (APK)..."
             echo "storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" > android/key.properties
             echo "keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}" >> android/key.properties
             echo "keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}" >> android/key.properties
             echo "storeFile=release-keystore.jks" >> android/key.properties
-            KEYSTORE_FILE="android/app/release-keystore.jks"
           else
             # Debug keystore for local/dev testing
             echo "Configuring DEBUG keystore..."
@@ -534,21 +552,18 @@ jobs:
             echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
             echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
             echo "storeFile=keystore.jks" >> android/key.properties
-            KEYSTORE_FILE="android/app/keystore.jks"
+
+            if [ -f "android/app/keystore.jks" ]; then
+              echo "Debug keystore OK"
+            else
+              echo "ERROR: Debug keystore not found!"
+              exit 1
+            fi
           fi
 
           echo "Android keystore configured"
-          echo "Key properties created:"
+          echo "Key properties:"
           cat android/key.properties
-
-          # Verify the keystore file was created
-          if [ -f "${KEYSTORE_FILE}" ]; then
-            echo "Keystore file created successfully at: ${KEYSTORE_FILE}"
-            ls -la "${KEYSTORE_FILE}"
-          else
-            echo "ERROR: Keystore file not found!"
-            exit 1
-          fi
 
       - name: Configure Gradle memory
         if: ${{ matrix.target == 'Android' }}
@@ -719,6 +734,13 @@ jobs:
         if: ${{ matrix.target == 'Android' && matrix.build-type == 'Release' }}
         shell: bash
         run: |
+          # Swap key.properties to UPLOAD key for AAB (Google re-signs with release key)
+          echo "Swapping key.properties to UPLOAD key (for AAB)..."
+          echo "storePassword=${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.UPLOAD_KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+
           echo "Building Android App Bundle (AAB) for Google Play..."
           CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build appbundle --release --target-platform android-arm,android-arm64 ${FLUTTER_VERSION_ARGS}
           echo "AAB built at: build/app/outputs/bundle/release/app-release.aab"
