@@ -442,12 +442,14 @@ jobs:
           echo -n "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$DEVELOPER_ID_PROVISION_BASE64" | base64 --decode -o $DEVELOPER_ID_PP_PATH
 
+          # Save original keychain list so the signing step can restore it later.
+          # We intentionally do NOT trap here — the temp keychain must survive
+          # into the flutter build step (Xcode needs the signing certs).
+          ORIGINAL_KEYCHAINS=$(security list-keychains -d user | tr -d '"' | tr '\n' ' ')
+          echo "ORIGINAL_KEYCHAINS=$ORIGINAL_KEYCHAINS" >> $GITHUB_ENV
+
           # Clean up old keychain from previous run (self-hosted runners reuse $RUNNER_TEMP)
-          if [ -f "$KEYCHAIN_PATH" ]; then
-            echo "Cleaning up existing keychain: $KEYCHAIN_PATH"
-            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
-            rm -f "$KEYCHAIN_PATH" 2>/dev/null || true
-          fi
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -470,6 +472,9 @@ jobs:
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          # Make the temp keychain the only one so Xcode finds the signing certs
+          # during flutter build (the pbxproj specifies identities like
+          # "Apple Distribution" / "iOS Distribution").
           security list-keychains -d user -s $KEYCHAIN_PATH
 
           echo "=== Keychain search list after configuration ==="
@@ -497,6 +502,10 @@ jobs:
           # Developer ID profile
           cp $DEVELOPER_ID_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
           cp $DEVELOPER_ID_PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+
+          # Export paths so the signing step can access them
+          echo "APP_STORE_PP_PATH=$APP_STORE_PP_PATH" >> $GITHUB_ENV
+          echo "DEVELOPER_ID_PP_PATH=$DEVELOPER_ID_PP_PATH" >> $GITHUB_ENV
 
           echo "Finished importing certificates and provisioning profiles"
         shell: bash
@@ -872,8 +881,12 @@ jobs:
         run: |
           cd build/macos/Build/Products/${{matrix.build-type}}
 
-          # Re-ensure temp keychain is the only one in search list
+          # Make the temp keychain the sole one for signing (so we never
+          # accidentally pick a cert from the login keychain).
+          # Trap-restore the original list on exit and delete the temp
+          # keychain so nothing leaks on self-hosted runners.
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          trap "security list-keychains -d user -s $ORIGINAL_KEYCHAINS; security delete-keychain '$KEYCHAIN_PATH' 2>/dev/null || true" EXIT
           security list-keychains -d user -s $KEYCHAIN_PATH
 
           echo "=== Keychain search list at signing step ==="
@@ -897,12 +910,24 @@ jobs:
             local cert_name="$1"
             local app_name="$2"
             local output_dir="$3"
+            local pp_path="$4"
 
             echo "Signing app with identity: $cert_name"
 
             # Copy app to output directory
             mkdir -p "$output_dir"
             cp -R "Genius Wallet.app" "$output_dir/$app_name"
+
+            # Replace the embedded provisioning profile with the correct one.
+            # The flutter build may have embedded a different profile (e.g. a
+            # device-restricted App Store profile). Xcode's archive→export does
+            # this swap automatically; we must do it manually when re-signing.
+            if [ -n "$pp_path" ] && [ -f "$pp_path" ]; then
+              echo "Replacing embedded provisioning profile with: $pp_path"
+              cp "$pp_path" "$output_dir/$app_name/Contents/embedded.provisionprofile"
+            else
+              echo "WARNING: No provisioning profile provided for $output_dir — embedded profile will not be replaced"
+            fi
 
             # Use the project's entitlements file for Release builds
             local entitlements_path="../../../../../macos/Runner/Release.entitlements"
@@ -1049,14 +1074,14 @@ jobs:
           # Build App Store version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "testflight" ]; then
             echo "Building App Store version..."
-            sign_app "Apple Distribution: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store"
+            sign_app "Apple Distribution: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "app_store" "$APP_STORE_PP_PATH"
             create_pkg "app_store/Genius Wallet.app" "Genius Wallet_AppStore.pkg" "3rd Party Mac Developer Installer: Genius Ventures, Inc (WY) (P7T32QQX5V)"
           fi
 
           # Build Developer ID version
           if [ "$DISTRIBUTION_TYPE" = "both" ] || [ "$DISTRIBUTION_TYPE" = "developer-id" ]; then
             echo "Building Developer ID version..."
-            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id"
+            sign_app "Developer ID Application: Genius Ventures, Inc (WY) (P7T32QQX5V)" "Genius Wallet.app" "developer_id" "$DEVELOPER_ID_PP_PATH"
 
             # Notarize the app first
             notarize "developer_id/Genius Wallet.app"
