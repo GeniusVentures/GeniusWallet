@@ -459,7 +459,11 @@ jobs:
 
           # import certificates to keychain
           security import $DEV_DISTRIBUTION_SIGNER_CERT_PATH -P "$DEV_DISTRIBUTION_SIGNER_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -P "$DEV_DISTRIBUTION_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+
+          # Installer certificates are not codesigning identities — they are
+          # X.509 certificates (.cer) with no private key, used by productsign.
+          # Import without -f pkcs12 or -P.
+          security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
 
           # Import Developer ID certificates - handle different formats
           if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
