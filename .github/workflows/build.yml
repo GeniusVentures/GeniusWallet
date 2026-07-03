@@ -423,7 +423,7 @@ jobs:
           # create variables
           DEV_DISTRIBUTION_SIGNER_CERT_PATH=$RUNNER_TEMP/signer_certificate.p12
           DEV_DISTRIBUTION_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.cer
-          DEVELOPER_ID_APP_CERT_PATH=$RUNNER_TEMP/developer_id_app.cer
+          DEVELOPER_ID_APP_CERT_PATH=$RUNNER_TEMP/developer_id_app.p12
           DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
 
           MP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
@@ -466,13 +466,8 @@ jobs:
           security import $DEV_DISTRIBUTION_INSTALLER_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
 
           # Import Developer ID certificates - handle different formats
-          if [[ "$DEVELOPER_ID_APP_CERT_PATH" == *.cer ]]; then
-            # .cer file doesn't need password
-            security import $DEVELOPER_ID_APP_CERT_PATH -A -t cert -k $KEYCHAIN_PATH
-          else
             # .p12 file needs password
-            security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          fi
+          security import $DEVELOPER_ID_APP_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$DEVELOPER_ID_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
