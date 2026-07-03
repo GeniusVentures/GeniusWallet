@@ -257,15 +257,19 @@ class _InputAndWordsState extends State<_InputAndWords> {
                             ),
                     ),
                     alignment: Alignment.center,
-                    child: Text(
-                      isEmpty
-                          ? (userInputWords[index].isEmpty
-                                ? (isHighlighted ? '???' : '---')
-                                : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index].padRight(8)}')
-                          : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index].padRight(8)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'JetBrainsMono',
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        isEmpty
+                            ? (userInputWords[index].isEmpty
+                                  ? (isHighlighted ? '???' : '---')
+                                  : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}')
+                            : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'JetBrainsMono',
+                        ),
                       ),
                     ),
                   ),
