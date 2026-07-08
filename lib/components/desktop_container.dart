@@ -71,9 +71,7 @@ class DesktopContainer extends StatelessWidget {
                         const Flexible(
                           child: SearchBar(
                             hintText: 'Search ...',
-                            trailing: [
-                              Icon(Icons.search, color: Colors.grey),
-                            ],
+                            trailing: [Icon(Icons.search, color: Colors.grey)],
                           ),
                         ),
                         const SizedBox(width: 16),

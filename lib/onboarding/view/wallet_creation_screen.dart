@@ -13,7 +13,9 @@ class WalletCreationScreen extends StatelessWidget {
       backgroundColor: GeniusWalletColors.deepBlue,
       body: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 2 / 3),
+          constraints: BoxConstraints(
+            maxWidth: GeniusBreakpoints.small * 2 / 3,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,

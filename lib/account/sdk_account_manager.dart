@@ -7,8 +7,10 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 /// A widget that shows the currently selected SDK account and opens a drawer
 /// for managing SDK accounts (select, add, delete).
@@ -200,13 +202,46 @@ class SDKAccountManagerButton extends StatelessWidget {
                     child: Text('Set payout address'),
                     onPressed: () => _showSetPayoutAddressDialog(context),
                   ),
-                  if (mnemonic != null) MenuItemButton(
-                    leadingIcon: const Icon(Icons.numbers),
-                    child: Text("Copy mnemonic"),
-                    onPressed: () => {
-                      Clipboard.setData(ClipboardData(text: mnemonic))
-                    },
-                  ),
+                  if (mnemonic != null) ...[
+                    MenuItemButton(
+                      leadingIcon: const Icon(Icons.numbers),
+                      child: Text("Copy mnemonic"),
+                      onPressed: () => {
+                        Clipboard.setData(ClipboardData(text: mnemonic)),
+                      },
+                    ),
+                    MenuItemButton(
+                      leadingIcon: const Icon(Icons.qr_code),
+                      child: Text("View mnemonic's QR"),
+                      onPressed: () async => {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            contentPadding: EdgeInsetsGeometry.all(16),
+                            content: SizedBox(
+                              width: GeniusBreakpoints.small * 0.5,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    GeniusWalletConsts.borderRadiusCard,
+                                  ),
+                                  color: Colors.white,
+                                ),
+                                padding: EdgeInsets.all(4),
+                                child: QrImageView(data: mnemonic),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                child: const Text('Cancel'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      },
+                    ),
+                  ],
                 ],
               )
             : IconButton(

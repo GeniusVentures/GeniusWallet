@@ -54,7 +54,9 @@ class ImportSecurityScreen extends StatelessWidget {
                 builder: (context, constraints) {
                   return Center(
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 0.8),
+                      constraints: BoxConstraints(
+                        maxWidth: GeniusBreakpoints.small * 0.8,
+                      ),
                       child: Column(
                         spacing: 24.0,
                         mainAxisSize: MainAxisSize.min,

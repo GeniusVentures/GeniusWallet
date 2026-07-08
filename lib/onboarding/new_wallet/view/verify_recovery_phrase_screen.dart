@@ -85,7 +85,9 @@ class _VerifyRecoveryPhraseScreenState
         },
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
+            constraints: const BoxConstraints(
+              maxWidth: GeniusBreakpoints.small,
+            ),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,

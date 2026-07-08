@@ -135,7 +135,9 @@ class _AnimatedToastState extends State<_AnimatedToast>
       child: Align(
         alignment: isMobile ? Alignment.center : Alignment.topRight,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 600),
+          constraints: BoxConstraints(
+            maxWidth: isMobile ? double.infinity : 600,
+          ),
           child: SlideTransition(
             position: _slide,
             child: ToastWidget(
