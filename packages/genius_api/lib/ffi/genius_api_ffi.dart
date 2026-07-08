@@ -18,22 +18,16 @@ class NativeLibrary {
     ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) lookup,
   ) : _lookup = lookup;
 
-  /// @brief Inits the SDK with saved settings (no private key — uses existing wallet).
+  /// @brief Inits the SDK with saved settings (no private key - uses existing wallet).
   /// If no account exists, creates with a random mnemonic.
-  /// @param[in] base_path    Base path for node data storage. Must contain a `dev_config.json` file.
-  /// @param[in] autodht      Whether to auto-discover DHT peers.
-  /// @param[in] process      Whether to enable processing.
-  /// @param[in] baseport     Base network port for the node.
-  /// @param[in] is_full_node Whether to run as a full node.
+  /// @param[in] base_path  Base path for node data storage.
+  /// @param[in] dev_config Developer configuration JSON string (Address, Cut, TokenValue, TokenID).
   /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInit(
     ffi.Pointer<ffi.Char> base_path,
-    bool autodht,
-    bool process,
-    int baseport,
-    bool is_full_node,
+    ffi.Pointer<ffi.Char> dev_config,
   ) {
-    return _GeniusSDKInit(base_path, autodht, process, baseport, is_full_node);
+    return _GeniusSDKInit(base_path, dev_config);
   }
 
   late final _GeniusSDKInitPtr =
@@ -41,10 +35,7 @@ class NativeLibrary {
         ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(
             ffi.Pointer<ffi.Char>,
-            ffi.Bool,
-            ffi.Bool,
-            ffi.Uint16,
-            ffi.Bool,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('GeniusSDKInit');
@@ -52,37 +43,21 @@ class NativeLibrary {
       _GeniusSDKInitPtr.asFunction<
         ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
-          bool,
-          bool,
-          int,
-          bool,
+          ffi.Pointer<ffi.Char>,
         )
       >();
 
   /// @brief Inits the SDK with an ethereum private key.
-  /// @param[in] base_path       Base path for node data storage. Must contain a `dev_config.json` file.
+  /// @param[in] base_path       Base path for node data storage.
+  /// @param[in] dev_config      Developer configuration JSON string.
   /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix.
-  /// @param[in] autodht         Whether to auto-discover DHT peers.
-  /// @param[in] process         Whether to enable processing.
-  /// @param[in] baseport        Base network port for the node.
-  /// @param[in] is_full_node    Whether to run as a full node.
   /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInitWithKey(
     ffi.Pointer<ffi.Char> base_path,
+    ffi.Pointer<ffi.Char> dev_config,
     ffi.Pointer<ffi.Char> eth_private_key,
-    bool autodht,
-    bool process,
-    int baseport,
-    bool is_full_node,
   ) {
-    return _GeniusSDKInitWithKey(
-      base_path,
-      eth_private_key,
-      autodht,
-      process,
-      baseport,
-      is_full_node,
-    );
+    return _GeniusSDKInitWithKey(base_path, dev_config, eth_private_key);
   }
 
   late final _GeniusSDKInitWithKeyPtr =
@@ -91,10 +66,7 @@ class NativeLibrary {
           ffi.Pointer<ffi.Char> Function(
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
-            ffi.Bool,
-            ffi.Bool,
-            ffi.Uint16,
-            ffi.Bool,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('GeniusSDKInitWithKey');
@@ -103,29 +75,21 @@ class NativeLibrary {
         ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
-          bool,
-          bool,
-          int,
-          bool,
+          ffi.Pointer<ffi.Char>,
         )
       >();
 
+  /// @brief Inits the SDK with a BIP39 mnemonic recovery phrase.
+  /// @param[in] base_path  Base path for node data storage.
+  /// @param[in] dev_config Developer configuration JSON string.
+  /// @param[in] mnemonic   BIP39 mnemonic recovery phrase.
+  /// @returns Initialization path in case of success, null on failure.
   ffi.Pointer<ffi.Char> GeniusSDKInitWithMnemonic(
     ffi.Pointer<ffi.Char> base_path,
+    ffi.Pointer<ffi.Char> dev_config,
     ffi.Pointer<ffi.Char> mnemonic,
-    bool autodht,
-    bool process,
-    int baseport,
-    bool is_full_node,
   ) {
-    return _GeniusSDKInitWithMnemonic(
-      base_path,
-      mnemonic,
-      autodht,
-      process,
-      baseport,
-      is_full_node,
-    );
+    return _GeniusSDKInitWithMnemonic(base_path, dev_config, mnemonic);
   }
 
   late final _GeniusSDKInitWithMnemonicPtr =
@@ -134,10 +98,7 @@ class NativeLibrary {
           ffi.Pointer<ffi.Char> Function(
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
-            ffi.Bool,
-            ffi.Bool,
-            ffi.Uint16,
-            ffi.Bool,
+            ffi.Pointer<ffi.Char>,
           )
         >
       >('GeniusSDKInitWithMnemonic');
@@ -146,99 +107,7 @@ class NativeLibrary {
         ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Char>,
-          bool,
-          bool,
-          int,
-          bool,
-        )
-      >();
-
-  /// @brief Inits the SDK with an explicit developer config JSON string and an ethereum private key.
-  /// @param[in] base_path       Base path for node data storage.
-  /// @param[in] dev_config      Developer configuration as a JSON string (overrides dev_config.json).
-  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix.
-  /// @param[in] autodht         Whether to auto-discover DHT peers.
-  /// @param[in] process         Whether to enable processing.
-  /// @param[in] baseport        Base network port for the node.
-  /// @param[in] is_full_node    Whether to run as a full node.
-  /// @returns Initialization path in case of success, null on failure.
-  ffi.Pointer<ffi.Char> GeniusSDKInitWithKeyAndDevConfig(
-    ffi.Pointer<ffi.Char> base_path,
-    ffi.Pointer<ffi.Char> dev_config,
-    ffi.Pointer<ffi.Char> eth_private_key,
-    bool autodht,
-    bool process,
-    int baseport,
-    bool is_full_node,
-  ) {
-    return _GeniusSDKInitWithKeyAndDevConfig(
-      base_path,
-      dev_config,
-      eth_private_key,
-      autodht,
-      process,
-      baseport,
-      is_full_node,
-    );
-  }
-
-  late final _GeniusSDKInitWithKeyAndDevConfigPtr =
-      _lookup<
-        ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-            ffi.Pointer<ffi.Char>,
-            ffi.Pointer<ffi.Char>,
-            ffi.Pointer<ffi.Char>,
-            ffi.Bool,
-            ffi.Bool,
-            ffi.Uint16,
-            ffi.Bool,
-          )
-        >
-      >('GeniusSDKInitWithKeyAndDevConfig');
-  late final _GeniusSDKInitWithKeyAndDevConfig =
-      _GeniusSDKInitWithKeyAndDevConfigPtr.asFunction<
-        ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          bool,
-          bool,
-          int,
-          bool,
-        )
-      >();
-
-  /// @brief Inits the SDK with minimal configuration (convenience wrapper).
-  /// @details Equivalent to calling GeniusSDKInitWithKey() with autodht=true, process=true, is_full_node=false.
-  /// @param[in] base_path       Base path for node data storage.
-  /// @param[in] eth_private_key Valid HEX ethereum key, supports '0x' prefix.
-  /// @param[in] baseport        Base network port for the node.
-  /// @returns Initialization path in case of success, null on failure.
-  ffi.Pointer<ffi.Char> GeniusSDKInitMinimal(
-    ffi.Pointer<ffi.Char> base_path,
-    ffi.Pointer<ffi.Char> eth_private_key,
-    int baseport,
-  ) {
-    return _GeniusSDKInitMinimal(base_path, eth_private_key, baseport);
-  }
-
-  late final _GeniusSDKInitMinimalPtr =
-      _lookup<
-        ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(
-            ffi.Pointer<ffi.Char>,
-            ffi.Pointer<ffi.Char>,
-            ffi.Uint16,
-          )
-        >
-      >('GeniusSDKInitMinimal');
-  late final _GeniusSDKInitMinimal =
-      _GeniusSDKInitMinimalPtr.asFunction<
-        ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          int,
         )
       >();
 
@@ -1333,6 +1202,8 @@ const int __GLIBC_USE_DEPRECATED_GETS = 0;
 
 const int __GLIBC_USE_DEPRECATED_SCANF = 0;
 
+const int __GLIBC_USE_C2X_STRTOL = 1;
+
 const int _STDC_PREDEF_H = 1;
 
 const int __STDC_IEC_559__ = 1;
@@ -1349,7 +1220,7 @@ const int __GNU_LIBRARY__ = 6;
 
 const int __GLIBC__ = 2;
 
-const int __GLIBC_MINOR__ = 35;
+const int __GLIBC_MINOR__ = 39;
 
 const int _SYS_CDEFS_H = 1;
 
@@ -1404,6 +1275,8 @@ const int __WCHAR_MIN = -2147483648;
 const int _BITS_STDINT_INTN_H = 1;
 
 const int _BITS_STDINT_UINTN_H = 1;
+
+const int _BITS_STDINT_LEAST_H = 1;
 
 const int INT8_MIN = -128;
 
@@ -1507,11 +1380,11 @@ const int WINT_MIN = 0;
 
 const int WINT_MAX = 4294967295;
 
+const int __bool_true_false_are_defined = 1;
+
 const int true$ = 1;
 
 const int false$ = 0;
-
-const int __bool_true_false_are_defined = 1;
 
 const int GENIUS_SDK_ADDRESS_SIZE = 130;
 
