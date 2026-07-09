@@ -1,6 +1,6 @@
 {
     "net_id": 144,
-    "is_processor": true,
+    "node_type": "Light",
     "subnet_id": 0,
     "bootstrap_fullnodes": [
         "/dns4/sg-fullnode-1.gnus.ai/tcp/40102/ipfs/12D3KooWRqFHPFz6YptGnt4wLEGsNuWuv5TLN7rdQ9CFJcbHCWZC"
