@@ -201,10 +201,7 @@ final geniusWalletRouter = GoRouter(
         }
       },
       routes: [
-        GoRoute(
-          path: '/dashboard',
-          builder: (_, _) => const DashboardScreen(),
-        ),
+        GoRoute(path: '/dashboard', builder: (_, _) => const DashboardScreen()),
         GoRoute(
           path: '/transactions',
           builder: (_, _) => const TransactionsScreen(),

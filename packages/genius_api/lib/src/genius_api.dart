@@ -204,22 +204,23 @@ class GeniusApi {
     _basePath = await prepareConfigFiles();
     final basePathPtr = _basePath.toNativeUtf8();
 
+    final devConfig = await rootBundle.loadString('assets/dev_config.json');
+    final devConfigPtr = devConfig.toNativeUtf8();
+
     ffi.Pointer<ffi.Char> retVal;
     if (storedKey.isMnemonic()) {
       final mnemonic = storedKey.decryptMnemonic(Uint8List(0));
       if (mnemonic == null) {
         debugPrint("Error: failed to decrypt mnemonic");
         malloc.free(basePathPtr);
+        malloc.free(devConfigPtr);
         return;
       }
       final mnemonicPtr = mnemonic.toNativeUtf8();
       retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithMnemonic(
         basePathPtr.cast(),
+        devConfigPtr.cast(),
         mnemonicPtr.cast(),
-        true,
-        true,
-        41001,
-        false,
       );
       malloc.free(mnemonicPtr);
     } else {
@@ -234,15 +235,13 @@ class GeniusApi {
       final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
       retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithKey(
         basePathPtr.cast(),
+        devConfigPtr.cast(),
         privateKeyAsPtr.cast(),
-        true,
-        true,
-        41001,
-        false,
       );
       malloc.free(privateKeyAsPtr);
     }
     malloc.free(basePathPtr);
+    malloc.free(devConfigPtr);
 
     if (retVal == nullptr) {
       debugPrint("Error: failed to init SDK");
@@ -313,14 +312,6 @@ class GeniusApi {
     await loadStoredWallets();
   }
 
-  Future<Directory> _ensureOverridesDir(Directory appDocsDir) async {
-    final overridesDir = Directory('${appDocsDir.path}/$_overridesDirName');
-    if (!await overridesDir.exists()) {
-      await overridesDir.create(recursive: true);
-    }
-    return overridesDir;
-  }
-
   Future<Map<String, dynamic>> _loadUserOverrides(
     Directory overridesDir,
     String fileName,
@@ -373,7 +364,11 @@ class GeniusApi {
       final directory = await getApplicationDocumentsDirectory();
       debugPrint('Base path directory: ${directory.path}');
 
-      final overridesDir = await _ensureOverridesDir(directory);
+      final overridesDir = Directory('${directory.path}/$_overridesDirName');
+      if (!await overridesDir.exists()) {
+        await overridesDir.create(recursive: true);
+      }
+
       for (final fileName in [
         'network_config.json',
         'crdt_config.json',
@@ -389,7 +384,9 @@ class GeniusApi {
       await File('${directory.path}/dev_config.json').writeAsString(devConfig);
 
       final sgnsConfig = await rootBundle.loadString('assets/sgns_config.json');
-      await File('${directory.path}/sgns_config.json').writeAsString(sgnsConfig);
+      await File(
+        '${directory.path}/sgns_config.json',
+      ).writeAsString(sgnsConfig);
 
       await _writeMergedConfig(
         directory: directory,

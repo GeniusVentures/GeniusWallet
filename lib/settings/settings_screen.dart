@@ -372,9 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
         return Row(
           children: [
-            Expanded(
-              child: Text(label),
-            ),
+            Expanded(child: Text(label)),
             Expanded(
               child: TextFormField(
                 initialValue: entry.value.toString(),

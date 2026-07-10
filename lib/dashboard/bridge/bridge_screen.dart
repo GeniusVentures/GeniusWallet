@@ -69,7 +69,9 @@ class BridgeScreenState extends State<BridgeScreen> {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+              constraints: const BoxConstraints(
+                maxWidth: GeniusBreakpoints.medium,
+              ),
               child: Card(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,8 +145,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                       state.selectedNetwork?.chainId ?? 0,
                                   contractAddress: fromToken?.address ?? "",
                                   rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                                  address:
-                                      state.selectedWallet?.address ?? "",
+                                  address: state.selectedWallet?.address ?? "",
                                   amountToBurn: value,
                                   destinationChainId: toNetwork?.chainId ?? 0,
                                 );
@@ -203,20 +204,16 @@ class BridgeScreenState extends State<BridgeScreen> {
                           ? null
                           : () async {
                               final api = context.read<GeniusApi>();
-                              final bridgeTokensResponse = await api
-                                  .bridgeOut(
-                                    sourceChainId:
-                                        state.selectedNetwork?.chainId ?? 0,
-                                    contractAddress: fromToken?.address ?? "",
-                                    rpcUrl:
-                                        state.selectedNetwork?.rpcUrl ?? "",
-                                    address:
-                                        state.selectedWallet?.address ?? "",
-                                    amountToBurn: fromAmountController.text,
-                                    destinationChainId:
-                                        toNetwork?.chainId ?? 0,
-                                    shouldMintTokens: true,
-                                  );
+                              final bridgeTokensResponse = await api.bridgeOut(
+                                sourceChainId:
+                                    state.selectedNetwork?.chainId ?? 0,
+                                contractAddress: fromToken?.address ?? "",
+                                rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                                address: state.selectedWallet?.address ?? "",
+                                amountToBurn: fromAmountController.text,
+                                destinationChainId: toNetwork?.chainId ?? 0,
+                                shouldMintTokens: true,
+                              );
 
                               if (!context.mounted) return;
 
@@ -311,7 +308,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       maxLines:
                                                                           1,
                                                                       overflow:
-                                                                          TextOverflow.ellipsis,
+                                                                          TextOverflow
+                                                                              .ellipsis,
                                                                       softWrap:
                                                                           true, // Allows wrapping if needed
                                                                       style: const TextStyle(
@@ -322,19 +320,21 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       ),
                                                                     ),
                                                                     Text(
-                                                                      fromToken?.networkSymbol ??
+                                                                      fromToken
+                                                                              ?.networkSymbol ??
                                                                           "",
                                                                       maxLines:
                                                                           2, // Allows wrapping on small screens
                                                                       overflow:
-                                                                          TextOverflow.ellipsis,
+                                                                          TextOverflow
+                                                                              .ellipsis,
                                                                       softWrap:
                                                                           true,
                                                                       style: TextStyle(
                                                                         fontSize:
                                                                             14,
-                                                                        color:
-                                                                            cs.onSurfaceVariant,
+                                                                        color: cs
+                                                                            .onSurfaceVariant,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -346,10 +346,9 @@ class BridgeScreenState extends State<BridgeScreen> {
 
                                                         const Expanded(
                                                           child: Icon(
-                                                            Icons
-                                                                .arrow_forward,
-                                                            color: Colors
-                                                                .white70,
+                                                            Icons.arrow_forward,
+                                                            color:
+                                                                Colors.white70,
                                                             size: 30,
                                                           ),
                                                         ), // Arrow Icon
@@ -379,7 +378,8 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       maxLines:
                                                                           1,
                                                                       overflow:
-                                                                          TextOverflow.ellipsis,
+                                                                          TextOverflow
+                                                                              .ellipsis,
                                                                       softWrap:
                                                                           true, // Allows wrapping
                                                                       style: const TextStyle(
@@ -390,19 +390,21 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                                       ),
                                                                     ),
                                                                     Text(
-                                                                      toNetwork?.name ??
+                                                                      toNetwork
+                                                                              ?.name ??
                                                                           "",
                                                                       maxLines:
                                                                           2, // Allows wrapping on small screens
                                                                       overflow:
-                                                                          TextOverflow.ellipsis,
+                                                                          TextOverflow
+                                                                              .ellipsis,
                                                                       softWrap:
                                                                           true,
                                                                       style: TextStyle(
                                                                         fontSize:
                                                                             14,
-                                                                        color:
-                                                                            cs.onSurfaceVariant,
+                                                                        color: cs
+                                                                            .onSurfaceVariant,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -420,14 +422,12 @@ class BridgeScreenState extends State<BridgeScreen> {
 
                                               /// **Transaction Hash**
                                               const Align(
-                                                alignment:
-                                                    Alignment.centerLeft,
+                                                alignment: Alignment.centerLeft,
                                                 child: Text(
                                                   'Transaction Hash:',
                                                   style: TextStyle(
                                                     fontSize: 14,
-                                                    fontWeight:
-                                                        FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                               ),
@@ -439,9 +439,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                 decoration: BoxDecoration(
                                                   color: Colors.black26,
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                        8,
-                                                      ),
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Row(
                                                   children: [
@@ -450,13 +448,11 @@ class BridgeScreenState extends State<BridgeScreen> {
                                                         bridgeTokensResponse
                                                                 .data ??
                                                             "No Hash Available",
-                                                        style:
-                                                            const TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                            ),
+                                                        style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
                                                       ),
                                                     ),
                                                     IconButton(
@@ -653,7 +649,9 @@ class BridgeScreenState extends State<BridgeScreen> {
               Flexible(
                 flex: 2, // Adjust flex values for proportional sizing
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 48), // Consistent height for inputs
+                  constraints: const BoxConstraints(
+                    maxHeight: 48,
+                  ), // Consistent height for inputs
                   child: TextField(
                     controller: controller, // Persistent controller
                     style: const TextStyle(fontSize: 16),

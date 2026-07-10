@@ -135,6 +135,7 @@ ThemeData getThemeData() {
         ),
       ),
     ),
+    dialogTheme: DialogThemeData(actionsPadding: EdgeInsets.all(12)),
     inputDecorationTheme: InputDecorationTheme(
       contentPadding: EdgeInsets.all(20),
       enabledBorder: OutlineInputBorder(
