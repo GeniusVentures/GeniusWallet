@@ -1,80 +1,121 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
-import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/web/web_utils.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'news_card.dart';
 
 class CryptoNewsScreen extends StatefulWidget {
-  const CryptoNewsScreen({super.key});
+  const CryptoNewsScreen({Key? key}) : super(key: key);
 
   @override
   State<CryptoNewsScreen> createState() => _CryptoNewsScreenState();
 }
 
 class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
-  late final Future<List<NewsArticle>> _newsFuture;
+  late Future<List<NewsArticle>> _newsFuture;
+  final Random _random = Random();
+
+  // Precomputed layout data
+  final List<_CardLayoutData> _layoutData = [];
 
   @override
   void initState() {
     super.initState();
-    _newsFuture = fetchCoinTelegraphNews();
+    _newsFuture = fetchCoinTelegraphNews().then((articles) {
+      _generateLayoutData(articles.length);
+      return articles;
+    });
   }
 
-  void _retryNews() {
-    setState(() {
-      _newsFuture = fetchCoinTelegraphNews();
-    });
+  void _generateLayoutData(int itemCount) {
+    _layoutData.clear();
+    for (int i = 0; i < itemCount; i++) {
+      final type = _random.nextInt(3);
+      _layoutData.add(_CardLayoutData(type: type, height: 350));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
+    return Scaffold(
+      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      body: SafeArea(
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: GeniusWalletConsts.space4),
               Text(
                 'Crypto News',
-                style: Theme.of(context).textTheme.displaySmall,
+                style: TextStyle(
+                  color: GeniusWalletColors.textPrimary,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: GeniusWalletConsts.space12),
               Expanded(
                 child: FutureStateWidget<List<NewsArticle>>(
                   future: _newsFuture,
-                  onRetry: _retryNews,
                   error: const Center(child: Text('Failed to load news.')),
                   onData: (articles) {
                     if (articles.isEmpty) {
                       return const Center(child: Text('No news found.'));
                     }
-                    return RefreshIndicator(
-                      onRefresh: () async => _retryNews(),
-                      child: SingleChildScrollView(
-                        child: StaggeredGrid.extent(
-                          maxCrossAxisExtent: 300,
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isMobile = constraints.maxWidth <= 800;
+                        final columns =
+                            getResponsiveColumnCount(constraints.maxWidth);
+
+                        if (_layoutData.length != articles.length) {
+                          _generateLayoutData(articles.length);
+                        }
+
+                        return MasonryGridView.count(
+                          crossAxisCount: columns,
                           mainAxisSpacing: 8,
                           crossAxisSpacing: 8,
-                          children: List.generate(articles.length, (index) {
-                            final crossAxisCellCount = index % 5 == 0 ? 2 : 1;
-                            return StaggeredGridTile.extent(
-                              crossAxisCellCount: crossAxisCellCount,
-                              mainAxisExtent: 220,
-                              child: _NewsCard(article: articles[index]),
-                            );
-                          }),
-                        ),
-                      ),
+                          itemCount: articles.length,
+                          itemBuilder: (context, index) {
+                            final article = articles[index];
+                            final layout = _layoutData[index];
+
+                            Widget card;
+
+                            if (isMobile) {
+                              card = NewsCard(article: article);
+                              return card;
+                            } else {
+                              switch (layout.type) {
+                                case 0:
+                                case 1:
+                                case 2:
+                                  card = NewsCard(article: article);
+                                  break;
+                                default:
+                                  card = NewsCard(article: article);
+                              }
+                              return AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: card,
+                              );
+                            }
+                          },
+                        );
+                      },
                     );
                   },
                 ),
               ),
+              const SizedBox(height: GeniusWalletConsts.space8)
             ],
           ),
         ),
@@ -83,121 +124,25 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
   }
 }
 
-class _NewsCard extends StatefulWidget {
-  final NewsArticle article;
-
-  const _NewsCard({required this.article});
-
-  @override
-  State<_NewsCard> createState() => _NewsCardState();
-}
-
-class _NewsCardState extends State<_NewsCard> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => launchWebSite(context, widget.article.link),
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Background image
-              CachedNetworkImage(
-                imageUrl: widget.article.imageUrl ?? '',
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey.shade800,
-                  child: const Center(child: Loading()),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey.shade800,
-                  child: const Icon(Icons.error, color: Colors.red),
-                ),
-              ),
-              // Gradient overlay for text readability
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _TextOverlay(article: widget.article),
-              ),
-              // Hover overlay
-              if (_isHovered)
-                Container(
-                  color: Colors.black87,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
-                    children: [
-                      Text(
-                        widget.article.title.trim(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        widget.article.pubDate,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
+int getResponsiveColumnCount(double width) {
+  if (width < 400) {
+    return 1;
+  } else if (width < 800) {
+    return 2;
+  } else if (width < 900) {
+    return 3;
+  } else if (width < 1200) {
+    return 4;
+  } else if (width < 1500) {
+    return 5;
+  } else {
+    return 6;
   }
 }
 
-class _TextOverlay extends StatelessWidget {
-  final NewsArticle article;
+class _CardLayoutData {
+  final int type;
+  final double height;
 
-  const _TextOverlay({required this.article});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.black54, Colors.black],
-        ),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: 4.0,
-        children: [
-          Text(
-            article.title.trim(),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            article.pubDate,
-            style: const TextStyle(color: Colors.white60, fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
+  _CardLayoutData({required this.type, required this.height});
 }

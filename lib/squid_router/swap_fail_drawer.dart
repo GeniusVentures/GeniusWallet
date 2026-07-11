@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/squid_router/swap_drawer_content.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class SwapFailDrawer {
   static void show(
@@ -17,20 +18,18 @@ class SwapFailDrawer {
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Failed",
-      child: ListView(
-        children: [
-          SwapDrawerContent(
-            fromAmount: fromAmount,
-            toAmount: toAmount,
-            fromIconUrl: fromIconUrl,
-            toIconUrl: toIconUrl,
-            fromSymbol: fromSymbol,
-            toSymbol: toSymbol,
-            chain: chain,
-            isSuccess: false,
-          ),
-        ],
-      ),
+      children: [
+        SwapDrawerContent(
+          fromAmount: fromAmount,
+          toAmount: toAmount,
+          fromIconUrl: fromIconUrl,
+          toIconUrl: toIconUrl,
+          fromSymbol: fromSymbol,
+          toSymbol: toSymbol,
+          chain: chain,
+          isSuccess: false,
+        ),
+      ],
       footer: OutlinedButton(
         onPressed: () {
           if (onClose != null) onClose();
@@ -39,10 +38,13 @@ class SwapFailDrawer {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          side: const BorderSide(color: Colors.redAccent),
+          side: const BorderSide(color: GeniusWalletColors.statusError),
           minimumSize: const Size.fromHeight(48),
         ),
-        child: const Text("Dismiss", style: TextStyle(color: Colors.redAccent)),
+        child: const Text(
+          "Dismiss",
+          style: TextStyle(color: GeniusWalletColors.statusError),
+        ),
       ),
     );
   }

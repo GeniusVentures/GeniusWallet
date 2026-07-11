@@ -5,6 +5,10 @@ import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 
+/// WIRE-1 (see WIRING.md): every method here returns hardcoded `mock*` data —
+/// `fetchTokens`/`fetchBalances`/`getRoute` (the quote/rate is fabricated).
+/// Restore the real Squid HTTP calls (commented below each return) before
+/// exposing Swap.
 class SquidTokenService {
   static const _baseUrl = 'https://api.squidrouter.com/v1';
   static const _testNetBaseUrl = 'https://testnet.api.squidrouter.com/v1';
@@ -82,11 +86,11 @@ class SquidTokenService {
     // return SquidRouteResponse.fromJson(data);
   }
 
-  // TODO: Add chains, update main chains dropdown to also use this.. remove the chains hardcoded in assets/networks.json
-  //   const getChains = async () => {
-  //     const result = await axios.get('https://testnet.api.squidrouter.com/v1/chains');
-  //     return result.data;
-  //   }
+// TODO: Add chains, update main chains dropdown to also use this.. remove the chains hardcoded in assets/networks.json
+//   const getChains = async () => {
+//     const result = await axios.get('https://testnet.api.squidrouter.com/v1/chains');
+//     return result.data;
+//   }
 }
 
 final mockSquidRoute = SquidRouteResponse(
@@ -196,7 +200,7 @@ final List<SquidBalance> mockSquidBalances = [
     address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     symbol: 'DAI',
     decimals: 18,
-  ),
+  )
 ];
 
 final mockTokens = [

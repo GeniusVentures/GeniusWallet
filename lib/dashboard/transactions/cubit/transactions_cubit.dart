@@ -5,15 +5,24 @@ import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 class TransactionsCubit extends Cubit<List<Transaction>> {
   final Set<Transaction> _transactions = {};
 
-  TransactionsCubit({List<Transaction> initial = const []}) : super(initial) {
+  TransactionsCubit({List<Transaction> initial = const []})
+      : super(_sortInitial(initial)) {
     _transactions.addAll(initial);
-    emit(_sorted());
+  }
+
+  // Sort the seed list up front (passed to super) rather than emitting from the
+  // constructor. A ctor emit fires synchronously and can land mid-frame when
+  // this cubit is created during the first build (e.g. the router redirect
+  // reads AppBloc, which creates this) -> "!_dirty" red-screen on cold start.
+  static List<Transaction> _sortInitial(List<Transaction> initial) {
+    final list = initial.toSet().toList();
+    list.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+    return list;
   }
 
   Future<void> loadInitial(String walletAddress) async {
-    final txs = await TransactionStorageService().getTransactions(
-      walletAddress,
-    );
+    final txs =
+        await TransactionStorageService().getTransactions(walletAddress);
     _transactions.addAll(txs);
     emit(_sorted());
   }

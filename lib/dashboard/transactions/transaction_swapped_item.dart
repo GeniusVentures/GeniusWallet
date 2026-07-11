@@ -1,0 +1,247 @@
+import 'package:flutter/material.dart';
+import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+
+final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+class TransactionSwappedItem extends StatelessWidget {
+  final Transaction tx;
+
+  const TransactionSwappedItem({super.key, required this.tx});
+
+  @override
+  Widget build(BuildContext context) {
+    final isFailed = tx.transactionStatus == TransactionStatus.failed;
+    final fromSymbol = tx.fromSymbol ?? "";
+    final toSymbol = tx.toSymbol ?? "";
+    final fromIcon = tx.fromIconUrl; // Assuming these exist on your model
+    final toIcon = tx.toIconUrl;
+    final fromAmount = tx.fromAmount ?? "0";
+    final toAmount = tx.toAmount ?? "0";
+
+    return Card(
+      color: GeniusWalletColors.deepBlueMenu,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        title: Text(
+          "Swapped${isFailed ? ' - Failed' : ''}",
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: isFailed
+                  ? GeniusWalletColors.statusError
+                  : GeniusWalletColors.textPrimary),
+        ),
+        subtitle: Text(
+          timeago.format(tx.timeStamp.toLocal()),
+        ),
+        leading: _buildOverlappedIcons(fromIcon, toIcon, isFailed),
+        onTap: () {
+          _showSwapTransactionDetails(context);
+        },
+        trailing: _buildSwapAmounts(
+            fromAmount, fromSymbol, toAmount, toSymbol, isFailed),
+      ),
+    );
+  }
+
+  Widget _buildOverlappedIcons(
+      String? fromIconUrl, String? toIconUrl, bool isFailed) {
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (fromIconUrl != null)
+            Positioned(
+              left: 0,
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundImage: NetworkImage(fromIconUrl),
+              ),
+            ),
+          if (toIconUrl != null)
+            Positioned(
+              left: 10,
+              top: 10,
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundImage: NetworkImage(toIconUrl),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: GeniusWalletColors.deepBlueCardColor,
+                      width: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwapAmounts(String fromAmount, String fromSymbol,
+      String toAmount, String toSymbol, bool isFailed) {
+    if (isFailed) {
+      return Text(
+        "0 $toSymbol",
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: GeniusWalletColors.statusError,
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          "+ $toAmount $toSymbol",
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: GeniusWalletColors.brandGreen,
+          ),
+        ),
+        Text(
+          "- $fromAmount $fromSymbol",
+          style: GeniusWalletTypography.numericBody,
+        ),
+      ],
+    );
+  }
+
+  void _showSwapTransactionDetails(BuildContext context) {
+    final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
+    final fromSymbol = tx.fromSymbol ?? "";
+    final toSymbol = tx.toSymbol ?? "";
+    final fromIcon = tx.fromIconUrl;
+    final toIcon = tx.toIconUrl;
+    final fromAmount = tx.fromAmount ?? "0";
+    final toAmount = tx.toAmount ?? "0";
+
+    ResponsiveDrawer.show(
+      context: context,
+      title: isFailed ? "Swap - Failed" : "Swap",
+      children: [
+        const SizedBox(height: GeniusWalletConsts.space8),
+        Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (fromIcon != null)
+                CircleAvatar(
+                  radius: 30,
+                  backgroundImage: NetworkImage(fromIcon),
+                  backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                ),
+              if (toIcon != null)
+                Positioned(
+                  left: 38,
+                  top: 18,
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(toIcon),
+                    backgroundColor: GeniusWalletColors.deepBlueCardColor,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: GeniusWalletColors.deepBlueCardColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 30),
+        Center(
+          child: Text(
+            isFailed
+                ? "Swap Failed"
+                : "$fromAmount $fromSymbol → $toAmount $toSymbol",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isFailed
+                  ? GeniusWalletColors.statusError
+                  : GeniusWalletColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: GeniusWalletConsts.space12),
+        Card(
+          color: GeniusWalletColors.deepBlueMenu,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+            child: Column(
+              children: [
+                _buildRow(
+                    "Date",
+                    DateFormat("MMMM d, y 'at' h:mm a")
+                        .format(tx.timeStamp.toLocal())),
+                _buildRow(
+                    "Status",
+                    tx.transactionStatus.name[0].toUpperCase() +
+                        tx.transactionStatus.name.substring(1),
+                    valueColor: isFailed
+                        ? GeniusWalletColors.statusError
+                        : GeniusWalletColors.textPrimary),
+                _buildRow("From", "$fromAmount $fromSymbol"),
+                _buildRow("To", "$toAmount $toSymbol"),
+                _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
+                _buildRow("Tx Hash", tx.hash),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: TextStyle(color: GeniusWalletColors.textPrimary70)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  color: valueColor ?? GeniusWalletColors.textPrimary),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

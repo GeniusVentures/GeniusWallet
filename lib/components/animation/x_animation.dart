@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class XAnimation extends StatefulWidget {
-  const XAnimation({super.key});
+  const XAnimation({Key? key}) : super(key: key);
 
   @override
   XAnimationState createState() => XAnimationState();
@@ -47,7 +48,7 @@ class XPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.red
+      ..color = GeniusWalletColors.statusError
       ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.square;

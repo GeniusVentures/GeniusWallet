@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SwapDrawerContent extends StatelessWidget {
   final String fromAmount;
@@ -41,6 +43,7 @@ class SwapDrawerContent extends StatelessWidget {
                     width: 40,
                     height: 40,
                     fit: BoxFit.cover,
+                    excludeFromSemantics: true,
                   ),
                 ),
               ),
@@ -53,9 +56,7 @@ class SwapDrawerContent extends StatelessWidget {
                     color: GeniusWalletColors.deepBlueCardColor,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: GeniusWalletColors.deepBlueTertiary,
-                      width: 1,
-                    ),
+                        color: GeniusWalletColors.deepBlueTertiary, width: 1),
                     image: DecorationImage(
                       image: NetworkImage(toIconUrl),
                       fit: BoxFit.cover,
@@ -66,26 +67,27 @@ class SwapDrawerContent extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: GeniusWalletConsts.space10),
         Text(
           "$fromAmount $fromSymbol → $toAmount $toSymbol",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: isSuccess ? Colors.white : Colors.red,
+          style: GeniusWalletTypography.titleMd.copyWith(
+            color: isSuccess
+                ? GeniusWalletColors.textPrimary
+                : GeniusWalletColors.statusError,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: GeniusWalletConsts.space4),
         Text(
           "Swap on $chain",
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: GeniusWalletTypography.bodyMd
+              .copyWith(color: GeniusWalletColors.textSecondary),
         ),
         if (!isSuccess)
           const Padding(
-            padding: EdgeInsets.only(top: 12),
+            padding: EdgeInsets.only(top: GeniusWalletConsts.space6),
             child: Text(
               "Your swap could not be completed.",
-              style: TextStyle(color: Colors.redAccent),
+              style: TextStyle(color: GeniusWalletColors.statusError),
               textAlign: TextAlign.center,
             ),
           ),

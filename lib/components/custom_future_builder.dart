@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
+import 'package:genius_wallet/components/feedback/gw_loading_state.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 
 class FutureStateWidget<T> extends StatelessWidget {
@@ -8,15 +10,25 @@ class FutureStateWidget<T> extends StatelessWidget {
   final Widget? loading;
   final Widget? error;
   final VoidCallback? onRetry;
+  final String? errorTitle;
+  final String? errorMessage;
+  final bool Function(T data)? isEmpty;
+  final Widget? emptyState;
+  final bool showErrorSnackBar;
 
   const FutureStateWidget({
-    super.key,
+    Key? key,
     required this.future,
     required this.onData,
     this.loading,
     this.error,
     this.onRetry,
-  });
+    this.errorTitle,
+    this.errorMessage,
+    this.isEmpty,
+    this.emptyState,
+    this.showErrorSnackBar = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,29 +36,27 @@ class FutureStateWidget<T> extends StatelessWidget {
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return loading ?? const Center(child: Loading());
+          return loading ?? const GWLoadingState();
         } else if (snapshot.hasError) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showAppSnackBar(context, 'Error: ${snapshot.error}');
-          });
-
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                error ?? const Icon(Icons.error, color: Colors.red, size: 48),
-                if (onRetry != null) ...[
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: onRetry,
-                    child: const Text("Retry"),
-                  ),
-                ],
-              ],
-            ),
-          );
+          if (showErrorSnackBar) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              showAppSnackBar(context, 'Error: ${snapshot.error}');
+            });
+          }
+          return error ??
+              GWErrorState(
+                title: errorTitle ?? 'Something went wrong',
+                message: errorMessage ?? snapshot.error?.toString(),
+                onRetry: onRetry,
+              );
         } else if (snapshot.hasData) {
-          return onData(snapshot.data as T);
+          final data = snapshot.data as T;
+          if (isEmpty != null && isEmpty!(data)) {
+            return emptyState ??
+                const GWEmptyState(title: 'Nothing to show yet');
+          }
+          return onData(data);
         }
         return const SizedBox.shrink();
       },

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class ToastWidget extends StatelessWidget {
   final String title;
@@ -8,36 +13,25 @@ class ToastWidget extends StatelessWidget {
   final VoidCallback onDismiss;
 
   const ToastWidget({
-    super.key,
+    Key? key,
     required this.title,
     required this.message,
     required this.type,
     required this.onDismiss,
-  });
+  }) : super(key: key);
 
-  Color _getBackgroundColor() {
+  Color _accent() {
     switch (type) {
       case ToastType.success:
-        return Colors.green.shade50;
+        return GeniusWalletColors.statusSuccess;
       case ToastType.error:
-        return Colors.red.shade50;
+        return GeniusWalletColors.statusError;
       case ToastType.warning:
-        return Colors.yellow.shade50;
+        return GeniusWalletColors.statusWarning;
     }
   }
 
-  Color _getBorderColor() {
-    switch (type) {
-      case ToastType.success:
-        return Colors.green.shade400;
-      case ToastType.error:
-        return Colors.red.shade400;
-      case ToastType.warning:
-        return Colors.yellow.shade400;
-    }
-  }
-
-  IconData _getIcon() {
+  IconData _icon() {
     switch (type) {
       case ToastType.success:
         return Icons.check_circle_outline_outlined;
@@ -50,49 +44,43 @@ class ToastWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = _accent();
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       decoration: BoxDecoration(
-        color: _getBackgroundColor(),
-        border: Border.all(color: _getBorderColor(), width: 2),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
-        ],
+        gradient: GWDecorations.surfaceSheen,
+        border: Border.all(color: accent, width: 2),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+        boxShadow: GeniusWalletElevation.card,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_getIcon(), color: _getBorderColor(), size: 36),
-          const SizedBox(width: 12),
+          Icon(_icon(), color: accent, size: 28),
+          const SizedBox(width: GeniusWalletConsts.space6),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
+                Text(title, style: GeniusWalletTypography.titleMd),
+                const SizedBox(height: GeniusWalletConsts.space2),
                 SelectableText(
                   message,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: GeniusWalletTypography.bodySm.copyWith(
+                    color: GeniusWalletColors.textPrimary,
+                  ),
                 ),
               ],
             ),
           ),
           GestureDetector(
             onTap: onDismiss,
-            child: Container(
-              padding: const EdgeInsets.all(4), // Padding inside the square
-              child: const Icon(
+            child: const Padding(
+              padding: EdgeInsets.all(GeniusWalletConsts.space2),
+              child: Icon(
                 Icons.close,
-                color: Colors.black, // Icon color
-                size: 20, // Icon size
+                color: GeniusWalletColors.textSecondary,
+                size: 20,
               ),
             ),
           ),

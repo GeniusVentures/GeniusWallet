@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,84 +15,74 @@ class SwapResultDrawer {
   }) async {
     final message = isSuccess ? "Swap Success" : "Swap Failed";
     final icon = isSuccess ? Icons.check_circle : Icons.error;
-    final iconColor = isSuccess ? Colors.greenAccent : Colors.redAccent;
-    final explorerUrl = (txHash.isNotEmpty)
-        ? getExplorerUrl(coinSymbol, txHash)
-        : '';
+    final iconColor = isSuccess
+        ? GeniusWalletColors.brandGreen
+        : GeniusWalletColors.statusError;
+    final explorerUrl =
+        (txHash.isNotEmpty) ? getExplorerUrl(coinSymbol, txHash) : '';
 
     await ResponsiveDrawer.show(
       context: context,
       title: message,
-      child: ListView(
-        children: [
-          const SizedBox(height: 24),
-          Icon(icon, size: 64, color: iconColor),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: iconColor,
+      children: [
+        const SizedBox(height: GeniusWalletConsts.space12),
+        Icon(icon, size: 64, color: iconColor),
+        const SizedBox(height: GeniusWalletConsts.space8),
+        Text(
+          message,
+          style: TextStyle(
+              fontSize: 24, fontWeight: FontWeight.bold, color: iconColor),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: GeniusWalletConsts.space12),
+        if (txHash.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+            decoration: BoxDecoration(
+              color: GeniusWalletColors.deepBlueMenu,
+              borderRadius: BorderRadius.circular(12),
+              border:
+                  Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
             ),
-            textAlign: TextAlign.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Transaction Hash:",
+                    style: TextStyle(color: GeniusWalletColors.textPrimary70)),
+                const SizedBox(height: GeniusWalletConsts.space2),
+                SelectableText(txHash,
+                    style: TextStyle(color: GeniusWalletColors.textPrimary)),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          if (txHash.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: GeniusWalletColors.deepBlueMenu,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Transaction Hash:",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 4),
-                  SelectableText(
-                    txHash,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
+      ],
       footer: Column(
         children: [
           ElevatedButton(
             onPressed: () => context.push("/transactions"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent,
+              backgroundColor: GeniusWalletColors.brandGreen,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
               minimumSize: const Size.fromHeight(48),
             ),
-            child: const Text(
+            child: Text(
               "Go to Transactions",
               style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: GeniusWalletConsts.space6),
           if (explorerUrl.isNotEmpty)
             OutlinedButton(
               onPressed: () => launchWebSite(context, explorerUrl),
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                side: const BorderSide(color: Colors.greenAccent),
+                    borderRadius: BorderRadius.circular(10)),
+                side: const BorderSide(color: GeniusWalletColors.brandGreen),
                 minimumSize: const Size.fromHeight(48),
               ),
-              child: const Text(
-                "View on Explorer",
-                style: TextStyle(color: Colors.greenAccent),
-              ),
+              child: const Text("View on Explorer",
+                  style: TextStyle(color: GeniusWalletColors.brandGreen)),
             ),
         ],
       ),

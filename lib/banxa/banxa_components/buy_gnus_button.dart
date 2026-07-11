@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:go_router/go_router.dart';
+
+class BuyGnusButton extends StatelessWidget {
+  final String walletAddress;
+  final String userEmail;
+
+  const BuyGnusButton({
+    super.key,
+    required this.walletAddress,
+    required this.userEmail,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+        // icon: const Icon(
+        //   Icons.attach_money,
+        //   color: GeniusWalletColors.lightGreenPrimary,
+        // ),
+        label: Text(
+          "Buy GNUS",
+          style: GeniusWalletTypography.bodyMd,
+        ),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space8, vertical: 10),
+          overlayColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          backgroundColor: Colors.transparent,
+         
+        ),
+        onPressed: () async {
+         
+
+        
+            context.push('/buy');
+          
+        });
+  }
+}

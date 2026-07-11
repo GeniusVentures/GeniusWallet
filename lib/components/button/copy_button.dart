@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class CopyButton extends StatefulWidget {
   final String textToCopy;
@@ -9,11 +10,11 @@ class CopyButton extends StatefulWidget {
   final double? width;
 
   const CopyButton({
-    super.key,
+    Key? key,
     required this.textToCopy,
     this.buttonText = "Copy",
     this.width, // Default button text
-  });
+  }) : super(key: key);
 
   @override
   CopyButtonState createState() => CopyButtonState();
@@ -46,7 +47,8 @@ class CopyButtonState extends State<CopyButton> {
         onPressed: _copyToClipboard,
         style: ElevatedButton.styleFrom(
           backgroundColor: GeniusWalletColors.deepBlueCardColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding:
+              const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -57,19 +59,19 @@ class CopyButtonState extends State<CopyButton> {
             Icon(
               _copied ? Icons.check : Icons.content_copy, // Change icon on copy
               size: 20,
-              color: Colors.white,
+              color: GeniusWalletColors.textPrimary,
             ),
-            const SizedBox(width: 8), // Space between icon & text
+            const SizedBox(
+                width: GeniusWalletConsts.space4), // Space between icon & text
             Flexible(
-              child: AutoSizeText(
-                _copied ? "Copied!" : widget.buttonText,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                child: AutoSizeText(
+              _copied ? "Copied!" : widget.buttonText,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: GeniusWalletColors.textPrimary,
               ),
-            ),
+            )),
           ],
         ),
       ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SwapSettingsDrawer {
   static void show(
@@ -8,42 +11,38 @@ class SwapSettingsDrawer {
     required double initialSlippage,
     required ValueChanged<double> onSlippageChanged,
   }) {
-    final TextEditingController slippageController = TextEditingController(
-      text: initialSlippage.toString(),
-    );
+    final TextEditingController slippageController =
+        TextEditingController(text: initialSlippage.toString());
 
     ResponsiveDrawer.show<void>(
       context: context,
       title: "Swap Settings",
-      child: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Slippage Tolerance (%)",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Slippage Tolerance (%)",
+                  style: GeniusWalletTypography.titleMd,
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: slippageController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: "Enter slippage",
-                    border: OutlineInputBorder(),
-                  ),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space4),
+              TextField(
+                controller: slippageController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  hintText: "Enter slippage",
+                  border: OutlineInputBorder(),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
       footer: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
@@ -74,7 +73,7 @@ class SwapSettingsDrawer {
               child: const Text(
                 "Apply",
                 style: TextStyle(
-                  color: Colors.black,
+                  color: GeniusWalletColors.textOnBrand,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),

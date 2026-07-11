@@ -1,5 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SlidingDrawerButton extends StatelessWidget {
   final String label;
@@ -8,12 +10,12 @@ class SlidingDrawerButton extends StatelessWidget {
   final Color? color; // Configurable color for both text and icon
 
   const SlidingDrawerButton({
-    super.key,
+    Key? key,
     required this.label,
     this.onPressed,
     this.color, // Color is now required for customization
     this.icon,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +23,10 @@ class SlidingDrawerButton extends StatelessWidget {
       onPressed: onPressed,
       style: TextButton.styleFrom(
         padding: const EdgeInsets.only(
-          top: 24,
-          bottom: 24,
-          left: 24,
-          right: 24,
-        ),
+            top: GeniusWalletConsts.space12,
+            bottom: GeniusWalletConsts.space12,
+            left: GeniusWalletConsts.space12,
+            right: GeniusWalletConsts.space12),
         backgroundColor: Colors.transparent,
       ),
       child: Row(
@@ -36,18 +37,16 @@ class SlidingDrawerButton extends StatelessWidget {
           else
             const SizedBox(width: 18), // Placeholder to keep spacing consistent
 
-          const SizedBox(width: 16), // Space between icon and text
+          const SizedBox(width: GeniusWalletConsts.space8), // Space between icon and text
 
           Flexible(
-            child: AutoSizeText(
-              label,
-              maxLines: 2,
-              style: TextStyle(
-                fontSize: 16,
-                color: color, // Apply the custom color
-              ),
+              child: AutoSizeText(
+            label,
+            maxLines: 2,
+            style: GeniusWalletTypography.bodyLg.copyWith(
+              color: color, // Apply the custom color
             ),
-          ),
+          )),
         ],
       ),
     );

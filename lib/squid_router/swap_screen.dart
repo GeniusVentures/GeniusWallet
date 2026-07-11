@@ -2,12 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/components/toast/toast_manager.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
@@ -17,9 +13,10 @@ import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
@@ -34,6 +31,7 @@ class _SwapScreenState extends State<SwapScreen> {
   SquidTokenInfo? fromToken;
   SquidTokenInfo? toToken;
   bool isLoading = true;
+  bool _loadError = false;
   String fromAmount = '';
   String toAmount = '';
   Timer? _debounce;
@@ -64,35 +62,32 @@ class _SwapScreenState extends State<SwapScreen> {
 
       final result = await SquidTokenService.fetchTokens();
       final balances = await SquidTokenService.fetchBalances(
-        chainIds: ["$chainId"],
-        walletAddress: walletAddress!,
-      );
+          chainIds: ["$chainId"], walletAddress: walletAddress!);
 
       // Merge balances into tokens
       for (final token in result) {
         final matchingBalance = balances.cast<SquidBalance?>().firstWhere(
-          (b) =>
-              b!.symbol.toLowerCase() == token.symbol.toLowerCase() &&
-              b.chainId.toLowerCase() ==
-                  token.chainId.toString().toLowerCase() &&
-              b.address.toLowerCase() == token.address.toLowerCase(),
-          orElse: () => null,
-        );
+              (b) =>
+                  b!.symbol.toLowerCase() == token.symbol.toLowerCase() &&
+                  b.chainId.toLowerCase() ==
+                      token.chainId.toString().toLowerCase() &&
+                  b.address.toLowerCase() == token.address.toLowerCase(),
+              orElse: () => null,
+            );
         token.balance = matchingBalance;
       }
 
       setState(() {
         tokens = result;
         isLoading = false;
+        _loadError = false;
       });
     } catch (e) {
-      setState(() => isLoading = false);
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          'Failed to load tokens. Check your connection and try again.',
-        );
-      }
+      setState(() {
+        isLoading = false;
+        _loadError = true;
+      });
+      debugPrint('Token or balance fetch failed: $e');
     }
   }
 
@@ -132,15 +127,14 @@ class _SwapScreenState extends State<SwapScreen> {
     if (fromAddress == null || toAddress == null) return null;
 
     return SquidSwapParams(
-      fromChain: fromToken!.chainId,
-      fromToken: fromToken!.address,
-      fromAmount: fromAmount,
-      toChain: toToken!.chainId,
-      toToken: toToken!.address,
-      fromAddress: fromAddress,
-      toAddress: toAddress,
-      slippage: slippage,
-    );
+        fromChain: fromToken!.chainId,
+        fromToken: fromToken!.address,
+        fromAmount: fromAmount,
+        toChain: toToken!.chainId,
+        toToken: toToken!.address,
+        fromAddress: fromAddress,
+        toAddress: toAddress,
+        slippage: slippage);
   }
 
   Future<void> _fetchRoute() async {
@@ -151,22 +145,15 @@ class _SwapScreenState extends State<SwapScreen> {
 
     try {
       final route = await SquidTokenService.getRoute(params);
-      final formatted = formatTokenAmount(
-        BigInt.parse(route.toAmount),
-        toToken!.decimals,
-      );
+      final formatted =
+          formatTokenAmount(BigInt.parse(route.toAmount), toToken!.decimals);
       setState(() {
         toAmount = formatted;
         toAmountController.text = formatted;
         fetchedRoute = route;
       });
     } catch (e) {
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          'Failed to fetch route. Check your input and try again.',
-        );
-      }
+      debugPrint("Route fetch failed: $e");
     }
   }
 
@@ -179,7 +166,9 @@ class _SwapScreenState extends State<SwapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GWCanvasBackground(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: BlocListener<WalletDetailsCubit, WalletDetailsState>(
         // If wallet or network changes
         listenWhen: (previous, current) =>
@@ -205,236 +194,240 @@ class _SwapScreenState extends State<SwapScreen> {
         },
         child: _buildSwapContent(context),
       ),
-    );
+    ));
   }
 
   Widget _buildSwapContent(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(body: Center(child: Loading()));
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(child: Loading()),
+      );
+    }
+
+    if (_loadError && tokens.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline,
+                  color: GeniusWalletColors.textSecondary, size: 32),
+              const SizedBox(height: GeniusWalletConsts.space4),
+              const Text(
+                "Couldn't load tokens",
+                style: TextStyle(color: GeniusWalletColors.textSecondary),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space4),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    isLoading = true;
+                    _loadError = false;
+                  });
+                  _loadTokens();
+                },
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      // Invisible widget to balance the settings icon on the right
-                      const SizedBox(width: 24), // Same width as the Icon
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            "Swap",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.tune,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          SwapSettingsDrawer.show(
-                            context,
-                            initialSlippage: slippage,
-                            onSlippageChanged: (value) {
-                              setState(() {
-                                slippage = value;
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SwapField(
-                  label: "You Pay",
-                  controller: fromAmountController,
-                  onChanged: (val) {
-                    setState(() => fromAmount = val);
-                    _debouncedFetchRoute();
-                  },
-                  selectedToken: fromToken,
-                  isSelectingFrom: true,
-                  // filter out the selected toToken, and the token that is already selected
-                  tokens: tokens
-                      .where(
-                        (t) =>
-                            (toToken == null ||
-                                t.address.toLowerCase() !=
-                                    toToken!.address.toLowerCase() ||
-                                t.chainId != toToken!.chainId) &&
-                            (fromToken == null ||
-                                t.address.toLowerCase() !=
-                                    fromToken!.address.toLowerCase() ||
-                                t.chainId != fromToken!.chainId),
-                      )
-                      .toList(),
-                  onTokenSelected: (token) {
-                    setState(() => fromToken = token);
-                    _debouncedFetchRoute();
-                  },
-                ),
-                SwapField(
-                  label: "You Receive",
-                  controller: toAmountController,
-                  onChanged: (val) => setState(() => toAmount = val),
-                  selectedToken: toToken,
-                  isSelectingFrom: false,
-                  // filter out the selected fromToken, and the token that is already selected
-                  tokens: tokens
-                      .where(
-                        (t) =>
-                            (fromToken == null ||
-                                t.address.toLowerCase() !=
-                                    fromToken!.address.toLowerCase() ||
-                                t.chainId != fromToken!.chainId) &&
-                            (toToken == null ||
-                                t.address.toLowerCase() !=
-                                    toToken!.address.toLowerCase() ||
-                                t.chainId != toToken!.chainId),
-                      )
-                      .toList(),
-                  onTokenSelected: (token) {
-                    setState(() => toToken = token);
-                    _debouncedFetchRoute();
-                  },
-                ),
-                // Flip Button
-                Transform.translate(
-                  offset: const Offset(0, -170),
-                  child: TokenFlipButton(onFlip: _flipTokens),
-                ),
-                if (fetchedRoute != null)
-                  if (fetchedRoute != null)
-                    RouteDetailsCard(
-                      route: fetchedRoute!,
-                      fromAmount: fromAmountController.text,
-                      toAmount: toAmountController.text,
-                      fromToken: fromToken,
-                      toToken: toToken,
-                      slippage: slippage.toString(),
-                    ),
-                if (canSwap)
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.greenAccent,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            onPressed: swapParams == null
-                                ? null
-                                : () async {
-                                    final params = swapParams!;
-
-                                    debugPrint(
-                                      'Swapping with params: ${params.toJson()}',
-                                    );
-                                    // TODO: invoke Squid API
-
-                                    final walletState = context
-                                        .read<WalletDetailsCubit>()
-                                        .state;
-                                    final walletAddress =
-                                        walletState.selectedWallet?.address;
-                                    final walletNetwork =
-                                        walletState.selectedNetwork?.symbol;
-                                    final transactionsCubit = context
-                                        .read<TransactionsCubit>();
-
-                                    // TODO: record transaction...
-                                    // IF SUCCESSS ...
-                                    final transaction = Transaction(
-                                      hash: "",
-                                      fromAddress: walletAddress!,
-                                      recipients: [
-                                        TransferRecipients(
-                                          toAddr: walletAddress,
-                                          amount: toAmount,
-                                        ),
-                                      ],
-                                      timeStamp: DateTime.now(),
-                                      transactionDirection:
-                                          TransactionDirection.received,
-                                      fees: fromAmount,
-                                      coinSymbol: walletNetwork!,
-                                      transactionStatus:
-                                          TransactionStatus.completed,
-                                      type: TransactionType.swap,
-                                      toAmount: toAmount,
-                                      toIconUrl: toToken?.logoURI,
-                                      fromSymbol: fromToken?.symbol,
-                                      toSymbol: toToken?.symbol,
-                                      fromAmount: fromAmount,
-                                      fromIconUrl: fromToken?.logoURI,
-                                    );
-
-                                    ToastManager.instance.showToast(
-                                      context: context,
-                                      title: 'Swap Submitted',
-                                      message:
-                                          'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
-                                      type: ToastType.success,
-                                    );
-
-                                    SwapSuccessDrawer.show(
-                                      context,
-                                      fromAmount: fromAmount,
-                                      toAmount: toAmount,
-                                      fromIconUrl: fromToken?.logoURI ?? '',
-                                      toIconUrl: toToken?.logoURI ?? '',
-                                      fromSymbol: fromToken?.symbol ?? '',
-                                      toSymbol: toToken?.symbol ?? '',
-                                      chain: walletNetwork,
-                                      onClose: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    );
-                                    transactionsCubit.addTransaction(
-                                      transaction,
-                                    );
-
-                                    // save to hive
-                                    await TransactionStorageService()
-                                        .addTransaction(
-                                          walletAddress,
-                                          transaction,
-                                        );
-                                  },
-                            child: const Text(
-                              "Swap",
-                              style: TextStyle(
-                                color: GeniusWalletColors.deepBlueTertiary,
-                                fontWeight: FontWeight.w500,
+      backgroundColor: Colors.transparent,
+      // SafeArea: this screen has no AppBar — without it the back/settings
+      // header sits under the status bar / Dynamic Island on notched phones.
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Column(
+                  children: [
+                    const SizedBox(height: GeniusWalletConsts.space12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: GeniusWalletConsts.space10),
+                      child: Row(
+                        children: [
+                          // Back button when this screen was pushed (e.g. from the
+                          // global Swap FAB / action pills); falls back to a
+                          // spacer that balances the settings icon otherwise.
+                          Navigator.of(context).canPop()
+                              ? IconButton(
+                                  tooltip: 'Back',
+                                  icon: Icon(
+                                    Icons.arrow_back,
+                                    color: GeniusWalletColors.textPrimary,
+                                    size: 24,
+                                  ),
+                                  onPressed: () =>
+                                      Navigator.of(context).maybePop(),
+                                )
+                              : const SizedBox(
+                                  width: GeniusWalletConsts.space12),
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                "Swap",
+                                style: TextStyle(
+                                  color: GeniusWalletColors.textPrimary,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-              ],
-            ),
+                          IconButton(
+                            tooltip: 'Settings',
+                            icon: Icon(
+                              Icons.tune,
+                              color: GeniusWalletColors.textPrimary,
+                              size: 24,
+                            ),
+                            onPressed: () {
+                              SwapSettingsDrawer.show(
+                                context,
+                                initialSlippage: slippage,
+                                onSlippageChanged: (value) {
+                                  setState(() {
+                                    slippage = value;
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: GeniusWalletConsts.space8),
+                    SwapField(
+                      label: "You Pay",
+                      controller: fromAmountController,
+                      onChanged: (val) {
+                        setState(() => fromAmount = val);
+                        _debouncedFetchRoute();
+                      },
+                      selectedToken: fromToken,
+                      isSelectingFrom: true,
+                      // filter out the selected toToken, and the token that is already selected
+                      tokens: tokens
+                          .where((t) =>
+                              (toToken == null ||
+                                  t.address.toLowerCase() !=
+                                      toToken!.address.toLowerCase() ||
+                                  t.chainId != toToken!.chainId) &&
+                              (fromToken == null ||
+                                  t.address.toLowerCase() !=
+                                      fromToken!.address.toLowerCase() ||
+                                  t.chainId != fromToken!.chainId))
+                          .toList(),
+                      onTokenSelected: (token) {
+                        setState(() => fromToken = token);
+                        _debouncedFetchRoute();
+                      },
+                    ),
+                    SwapField(
+                      label: "You Receive",
+                      controller: toAmountController,
+                      onChanged: (val) => setState(() => toAmount = val),
+                      selectedToken: toToken,
+                      isSelectingFrom: false,
+                      // filter out the selected fromToken, and the token that is already selected
+                      tokens: tokens
+                          .where((t) =>
+                              (fromToken == null ||
+                                  t.address.toLowerCase() !=
+                                      fromToken!.address.toLowerCase() ||
+                                  t.chainId != fromToken!.chainId) &&
+                              (toToken == null ||
+                                  t.address.toLowerCase() !=
+                                      toToken!.address.toLowerCase() ||
+                                  t.chainId != toToken!.chainId))
+                          .toList(),
+                      onTokenSelected: (token) {
+                        setState(() => toToken = token);
+                        _debouncedFetchRoute();
+                      },
+                    ),
+                    // Flip Button
+                    Transform.translate(
+                      offset: const Offset(0, -170),
+                      child: TokenFlipButton(
+                        onFlip: _flipTokens,
+                      ),
+                    ),
+                    if (fetchedRoute != null)
+                      RouteDetailsCard(
+                        route: fetchedRoute!,
+                        fromAmount: fromAmountController.text,
+                        toAmount: toAmountController.text,
+                        fromToken: fromToken,
+                        toToken: toToken,
+                        slippage: slippage.toString(),
+                      ),
+                    if (canSwap)
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Padding(
+                            padding:
+                                const EdgeInsets.all(GeniusWalletConsts.space8),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      GeniusWalletColors.brandGreen,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: GeniusWalletConsts.space8),
+                                ),
+                                onPressed: swapParams == null
+                                    ? null
+                                    : () {
+                                        // WIRE-1 (see WIRING.md) — DEMO ONLY.
+                                        // Squid swap execution is not wired yet:
+                                        // the real call belongs where the
+                                        // `invoke Squid API` TODO was). Until then we
+                                        // must NOT fabricate or persist a transaction;
+                                        // show an honest "(demo)" notice, matching the
+                                        // Send/Buy confirms. To restore the real flow:
+                                        // invoke Squid, and only on a real success
+                                        // (real tx hash) call SwapSuccessDrawer.show +
+                                        // TransactionsCubit.addTransaction +
+                                        // TransactionStorageService.addTransaction.
+                                        // See REVIEW_FINDINGS.md §B1.
+                                        final params = swapParams!;
+                                        debugPrint(
+                                            'Swap (demo) params: ${params.toJson()}');
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                                'Swap submitted (demo)'),
+                                            backgroundColor:
+                                                GeniusWalletColors.surfaceMenu,
+                                          ),
+                                        );
+                                        if (context.mounted) {
+                                          context.go('/dashboard');
+                                        }
+                                      },
+                                child: Text("Swap",
+                                    style: TextStyle(
+                                        color:
+                                            GeniusWalletColors.deepBlueTertiary,
+                                        fontWeight: FontWeight.w500)),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                )),
           ),
         ),
       ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/banxa/banxa_model.dart';
+import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_in_row.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
 class OrderCard extends StatelessWidget {
@@ -13,23 +16,23 @@ class OrderCard extends StatelessWidget {
     this.onSeeDetails,
     this.onCompletePayment,
     this.onRetryOrder,
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   String get fiat => "${order.fiatAmount} ${order.fiat}";
   String get crypto => "${order.cryptoAmount} ${order.crypto.id}";
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
-        return Colors.green;
+        return GeniusWalletColors.statusSuccess;
       case 'pendingpayment':
       case 'pending':
-        return Colors.orange;
+        return GeniusWalletColors.statusWarning;
       case 'declined':
       case 'cancelled':
-        return Colors.red;
+        return GeniusWalletColors.statusError;
       default:
-        return Colors.grey;
+        return GeniusWalletColors.textSecondary;
     }
   }
 
@@ -51,58 +54,53 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(order.status);
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space2,
+          vertical: GeniusWalletConsts.space4),
+      color: GeniusWalletColors.surfaceElevated,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(
-          color: GeniusWalletColors.lightGreenSecondary,
-          width: 1.5,
-        ),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+        side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(GeniusWalletConsts.space8),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          spacing: 2.0,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Row
+            // Top row: order ID + status chip (§6.6 status chip pattern).
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "Order #${_shortId(order.id)}",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: GeniusWalletTypography.titleMd,
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
+                      horizontal: GeniusWalletConsts.space4,
+                      vertical: GeniusWalletConsts.space2),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    color: statusColor.withAlpha(31), // ~12% per §6.6
+                    borderRadius:
+                        BorderRadius.circular(GeniusWalletConsts.radiusSm),
                   ),
                   child: Text(
                     order.status.toUpperCase(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: statusColor,
-                    ),
+                    style: GeniusWalletTypography.labelMd
+                        .copyWith(color: statusColor),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: GeniusWalletConsts.space6),
             OrderInfoRow(label: "Fiat:", value: fiat),
             OrderInfoRow(label: "Crypto:", value: crypto),
             OrderInfoRow(label: "Payment:", value: order.paymentMethodName),
-            const Divider(height: 20),
+            const Divider(height: GeniusWalletConsts.space10),
             OrderInfoRow(label: "Created:", value: formatDate(order.createdAt)),
             OrderInfoRow(label: "Updated:", value: formatDate(order.updatedAt)),
-            const SizedBox(height: 10),
+            const SizedBox(height: GeniusWalletConsts.space4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -110,10 +108,10 @@ class OrderCard extends StatelessWidget {
                   ElevatedButton(
                     onPressed: onCompletePayment,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
+                      backgroundColor: GeniusWalletColors.statusWarning,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                          borderRadius: BorderRadius.circular(
+                              GeniusWalletConsts.radiusSm)),
                     ),
                     child: const Text('Complete Payment'),
                   )
@@ -121,23 +119,25 @@ class OrderCard extends StatelessWidget {
                   OutlinedButton(
                     onPressed: onRetryOrder,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: GeniusWalletColors.statusError,
+                      side: const BorderSide(
+                          color: GeniusWalletColors.statusError),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                          borderRadius: BorderRadius.circular(
+                              GeniusWalletConsts.radiusSm)),
                     ),
                     child: const Text('Retry Order'),
                   )
                 else
                   const SizedBox.shrink(),
-                const SizedBox(width: 8),
+                const SizedBox(width: GeniusWalletConsts.space4),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    fixedSize: const Size(120, 44),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: GeniusWalletConsts.space6),
+                    textStyle: GeniusWalletTypography.bodyMd
+                        .copyWith(fontWeight: FontWeight.w500),
                   ),
                   onPressed: onSeeDetails,
                   child: const Text('See Details'),
@@ -147,23 +147,6 @@ class OrderCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class OrderInfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const OrderInfoRow({required this.label, required this.value, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(color: Colors.grey[700])),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
-      ],
     );
   }
 }

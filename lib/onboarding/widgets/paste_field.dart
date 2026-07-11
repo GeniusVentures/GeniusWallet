@@ -1,5 +1,11 @@
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class PasteField extends StatelessWidget {
   final String hintText;
@@ -19,41 +25,65 @@ class PasteField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 16.0,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Stack(
-          children: [
-            TextFormField(
-              controller: controller,
-              decoration: InputDecoration(hintText: hintText),
-              minLines: 4,
-              maxLines: 10,
-            ),
-            Positioned(
-              bottom: 10,
-              right: 10,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.grey),
-                ),
-                onPressed: () async {
-                  final textValue =
-                      (await Clipboard.getData(Clipboard.kTextPlain))?.text ??
-                      "";
-                  controller.text = textValue;
-                },
-                icon: const Icon(Icons.content_copy),
-                label: const Text("Paste"),
-              ),
-            ),
-          ],
-        ),
-        ?additionalWidget,
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.sizeOf(context).width,
+        Container(
+          decoration: BoxDecoration(
+            gradient: GWDecorations.surfaceSheen,
+            border: Border.all(color: GeniusWalletColors.borderSubtle),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
           ),
-          child: Text(subtitle, textAlign: TextAlign.left),
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: height,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+                child: TextFormField(
+                  controller: controller,
+                  style: GeniusWalletTypography.bodyLg,
+                  cursorColor: GeniusWalletColors.brandPrimary,
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    border: InputBorder.none,
+                    hintText: hintText,
+                    hintStyle: GeniusWalletTypography.bodyLg.copyWith(
+                      color: GeniusWalletColors.textSecondary,
+                    ),
+                  ),
+                  minLines: 10,
+                  maxLines: 10,
+                ),
+              ),
+              Positioned(
+                bottom: GeniusWalletConsts.space4,
+                right: GeniusWalletConsts.space4,
+                child: GWButton(
+                  label: GeniusWalletText.btnPaste,
+                  leading: const Icon(Icons.content_copy),
+                  variant: GWButtonVariant.secondary,
+                  size: GWButtonSize.sm,
+                  onPressed: () async {
+                    final textValue = await FlutterClipboard.paste();
+                    controller.text = textValue;
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (additionalWidget != null) ...[
+          const SizedBox(height: GeniusWalletConsts.space10),
+          additionalWidget!,
+        ],
+        const SizedBox(height: GeniusWalletConsts.space10),
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Text(
+            subtitle,
+            textAlign: TextAlign.left,
+            style: GeniusWalletTypography.bodySm,
+          ),
         ),
       ],
     );

@@ -1,130 +1,114 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
-import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_filters.dart';
+import 'package:genius_wallet/dashboard/transactions/transaction_escrow_release_item.dart';
+import 'package:genius_wallet/dashboard/transactions/transaction_item.dart';
+import 'package:genius_wallet/dashboard/transactions/transaction_purchased_item.dart';
+import 'package:genius_wallet/dashboard/transactions/transaction_swapped_item.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:intl/intl.dart';
 
 final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-
-enum Filters {
-  all("All"),
-  sent("Sent"),
-  received("Received"),
-  escrow("Escrow"),
-  mint("Mint");
-
-  final String label;
-  const Filters(this.label);
-
-  bool matches(Transaction tx) => switch (this) {
-    all => true,
-    sent => tx.transactionDirection == TransactionDirection.sent,
-    received => tx.transactionDirection == TransactionDirection.received,
-    mint => tx.type == TransactionType.mint,
-    escrow => {
-      TransactionType.escrow,
-      TransactionType.escrowRelease,
-    }.contains(tx.type),
-  };
-}
 
 class TransactionsSlimView extends StatefulWidget {
   final List<Transaction> transactions;
   final bool? isShowOnlySGNUSTransactions;
 
-  const TransactionsSlimView({
-    super.key,
-    required this.transactions,
-    this.isShowOnlySGNUSTransactions,
-  });
+  const TransactionsSlimView(
+      {super.key,
+      required this.transactions,
+      this.isShowOnlySGNUSTransactions});
 
   @override
-  State<TransactionsSlimView> createState() => _TransactionsSlimViewState();
+  TransactionsSlimViewState createState() => TransactionsSlimViewState();
 }
 
-class _TransactionsSlimViewState extends State<TransactionsSlimView>
+class TransactionsSlimViewState extends State<TransactionsSlimView>
     with WidgetsBindingObserver {
-  Filters selectedFilter = Filters.all;
-
-  List<Transaction> get filteredTransactions => widget.transactions.where((tx) {
-    final matchesFilter = selectedFilter.matches(tx);
-    final matchesSGNUS =
-        !(widget.isShowOnlySGNUSTransactions ?? false) || (tx.isSGNUS ?? false);
-
-    return matchesFilter && matchesSGNUS;
-  }).toList();
+  String? selectedFilter = 'All';
 
   @override
-  void didChangeMetrics() => setState(() {});
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    setState(() {});
+  }
+
+  void handleFilterSelected(String filter) {
+    setState(() {
+      selectedFilter = filter;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final txs = filteredTransactions;
-    final textScale = MediaQuery.textScalerOf(context).scale;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final filteredTransactions = List<Transaction>.from(widget.transactions);
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 16.0,
-        children: [
-          Text(
-            'Transactions',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          SegmentedButton<Filters>(
-            segments: Filters.values
-                .where((f) => f != Filters.all)
-                .map(
-                  (filter) => ButtonSegment<Filters>(
-                    value: filter,
-                    label: Text(filter.label),
-                  ),
+    filteredTransactions.retainWhere((transaction) {
+      if (selectedFilter == 'All') return true;
+      if (selectedFilter == 'Escrow' &&
+          (transaction.type == TransactionType.escrow ||
+              transaction.type == TransactionType.escrowRelease)) {
+        return true;
+      }
+      if (selectedFilter == 'Mint' &&
+          transaction.type == TransactionType.mint) {
+        return true;
+      }
+      if (selectedFilter == 'Received' &&
+          transaction.transactionDirection == TransactionDirection.received) {
+        return true;
+      }
+      if (selectedFilter == 'Sent' &&
+          transaction.transactionDirection == TransactionDirection.sent) {
+        return true;
+      }
+      return false;
+    });
+
+    if (widget.isShowOnlySGNUSTransactions ?? false) {
+      filteredTransactions
+          .retainWhere((transaction) => transaction.isSGNUS ?? false);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TransactionFilters(onFilterSelected: handleFilterSelected),
+        const SizedBox(height: GeniusWalletConsts.space10),
+        Expanded(
+          child: filteredTransactions.isEmpty
+              ? GWEmptyState(
+                  icon: Icons.receipt_long_outlined,
+                  title: selectedFilter == 'All'
+                      ? 'No transactions yet'
+                      : 'No $selectedFilter transactions',
+                  message: 'Your sends, receives and swaps will appear here.',
                 )
-                .toList(),
-            selected: selectedFilter == Filters.all
-                ? <Filters>{}
-                : {selectedFilter},
-            emptySelectionAllowed: true,
-            showSelectedIcon: false,
-            onSelectionChanged: (Set<Filters> newSelection) {
-              setState(
-                () => selectedFilter = newSelection.isEmpty
-                    ? Filters.all
-                    : newSelection.first,
-              );
-            },
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: txs.length,
-              itemBuilder: (_, i) => switch (txs[i].type) {
-                TransactionType.purchase => TransactionPurchasedItem(
-                  tx: txs[i],
-                ),
-                TransactionType.escrowRelease => TransactionEscrowReleaseItem(
-                  tx: txs[i],
-                ),
-                TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
-                _ => TransactionItem(tx: txs[i]),
-              },
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: AutoSizeText(
-              "Transactions: ${txs.length}",
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: textScale(16),
-                color: cs.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
+              : _buildTransactionsView(filteredTransactions, textScaleFactor),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionsView(
+      List<Transaction> transactions, double textScaleFactor) {
+    return ListView.builder(
+      // Scroll-only clearance so the last row isn't hidden behind the
+      // floating Swap/AI FABs (mirrors the markets grid).
+      padding: const EdgeInsets.only(bottom: 90),
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        final tx = transactions[index];
+
+        return switch (tx.type) {
+          TransactionType.purchase => TransactionPurchasedItem(tx: tx),
+          TransactionType.escrowRelease => TransactionEscrowReleaseItem(tx: tx),
+          TransactionType.swap => TransactionSwappedItem(tx: tx),
+          _ => TransactionItem(tx: tx),
+        };
+      },
     );
   }
 }

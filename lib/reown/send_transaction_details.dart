@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class SendTransactionDetails extends StatelessWidget {
   final String fromAddress;
@@ -10,66 +13,68 @@ class SendTransactionDetails extends StatelessWidget {
   final String priorityFee;
   final String? receiveTokenSymbol;
 
-  const SendTransactionDetails({
-    super.key,
-    required this.fromAddress,
-    required this.toAddress,
-    required this.amount,
-    required this.totalGasFee,
-    required this.maxFeePerGas,
-    required this.priorityFee,
-    this.receiveTokenSymbol,
-  });
+  const SendTransactionDetails(
+      {super.key,
+      required this.fromAddress,
+      required this.toAddress,
+      required this.amount,
+      required this.totalGasFee,
+      required this.maxFeePerGas,
+      required this.priorityFee,
+      this.receiveTokenSymbol});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
+        const SizedBox(height: GeniusWalletConsts.space12),
         _labeledBox(label: "From", value: fromAddress),
-        const SizedBox(height: 12),
+        const SizedBox(height: GeniusWalletConsts.space6),
         _labeledBox(label: "To", value: toAddress),
-        const SizedBox(height: 24),
+        const SizedBox(height: GeniusWalletConsts.space12),
         Center(
           child: Column(
             children: [
               Text(
                 amount,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: GeniusWalletColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
+              const SizedBox(height: GeniusWalletConsts.space6),
+              Text(
                 "Estimated changes",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: GeniusWalletColors.gray500,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: GeniusWalletConsts.space4),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
+                    vertical: GeniusWalletConsts.space6,
+                    horizontal: GeniusWalletConsts.space8),
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  gradient: GWDecorations.surfaceSheen,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: GeniusWalletColors.borderSubtle, width: 1),
                 ),
                 child: Column(
                   children: [
                     _fieldRow("You send", "$amount ETH"),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: GeniusWalletConsts.space4),
                     if (receiveTokenSymbol != null) ...[
                       _fieldRow("You receive", receiveTokenSymbol!),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: GeniusWalletConsts.space10),
                     ],
                     _fieldRow("Gas Fee", "$totalGasFee ETH"),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: GeniusWalletConsts.space2),
                     _fieldRow("Max Fee Per Gas", "$maxFeePerGas ETH"),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: GeniusWalletConsts.space2),
                     _fieldRow("Priority Fee", "$priorityFee ETH"),
                   ],
                 ),
@@ -85,18 +90,20 @@ class SendTransactionDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        const SizedBox(height: 4),
+        Text(label,
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.gray500)),
+        const SizedBox(height: GeniusWalletConsts.space2),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(GeniusWalletConsts.space6),
           width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade700),
+            border: Border.all(color: GeniusWalletColors.gray600),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: GeniusWalletColors.textPrimary),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -108,11 +115,12 @@ class SendTransactionDetails extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14)),
+        Text(label,
+            style: GeniusWalletTypography.bodyMd
+                .copyWith(color: GeniusWalletColors.textPrimary70)),
+        Text(value,
+            style: GeniusWalletTypography.numericBody
+                .copyWith(color: GeniusWalletColors.textPrimary)),
       ],
     );
   }

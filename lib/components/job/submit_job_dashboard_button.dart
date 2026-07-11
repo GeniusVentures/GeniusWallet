@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,12 +11,12 @@ class SubmitJobDashboardButton extends StatelessWidget {
   final Function()? onPressed;
 
   const SubmitJobDashboardButton({
-    super.key,
+    Key? key,
     required this.walletAddress,
     required this.gnusConnectedWalletAddress,
     required this.walletDetailsCubit,
     this.onPressed,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,14 +27,35 @@ class SubmitJobDashboardButton extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return TextButton.icon(
-      onPressed: () async {
-        onPressed?.call();
-        await context.push('/submit_job');
-        walletDetailsCubit.getCoins(); // Refresh after returning
-      },
-      label: Text('Create Processing Job'),
-      icon: Icon(Icons.create, size: 16, color: Colors.greenAccent),
+    return SizedBox(
+      height: 36,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        onPressed: () async {
+          onPressed?.call();
+          await context.push('/submit_job');
+          walletDetailsCubit.getCoins(); // Refresh after returning
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.create,
+                size: 16, color: GeniusWalletColors.brandGreen),
+            const SizedBox(width: 6),
+            Text(
+              'Create Processing Job',
+              style: GeniusWalletTypography.bodySm
+                  .copyWith(color: GeniusWalletColors.textPrimary),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

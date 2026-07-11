@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class RouteDetailsCard extends StatelessWidget {
   final SquidRouteResponse route;
@@ -11,15 +13,14 @@ class RouteDetailsCard extends StatelessWidget {
   final SquidTokenInfo? toToken;
   final String slippage;
 
-  const RouteDetailsCard({
-    super.key,
-    required this.route,
-    required this.fromAmount,
-    required this.toAmount,
-    required this.fromToken,
-    required this.toToken,
-    required this.slippage,
-  });
+  const RouteDetailsCard(
+      {super.key,
+      required this.route,
+      required this.fromAmount,
+      required this.toAmount,
+      required this.fromToken,
+      required this.toToken,
+      required this.slippage});
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +35,12 @@ class RouteDetailsCard extends StatelessWidget {
 
     return Card(
       color: GeniusWalletColors.deepBlueCardColor,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space8,
+          vertical: GeniusWalletConsts.space4),
+      shape: RoundedRectangleBorder(
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -53,23 +58,23 @@ class RouteDetailsCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space10,
+              vertical: GeniusWalletConsts.space6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              Text(
-                value,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
+              Text(label,
+                  style: GeniusWalletTypography.bodyMd
+                      .copyWith(color: GeniusWalletColors.textPrimary70)),
+              Text(value,
+                  style: GeniusWalletTypography.numericBody
+                      .copyWith(color: GeniusWalletColors.textPrimary)),
             ],
           ),
         ),
         if (showDivider)
-          const Divider(
+          Divider(
             height: 1,
             thickness: 1,
             color: GeniusWalletColors.deepBlueTertiary,

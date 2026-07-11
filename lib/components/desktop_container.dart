@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:go_router/go_router.dart';
 
 class DesktopContainer extends StatelessWidget {
@@ -11,11 +12,11 @@ class DesktopContainer extends StatelessWidget {
   final bool? isIncludeBackButton;
 
   const DesktopContainer({
-    super.key,
+    Key? key,
     this.child = const SizedBox(),
     this.title,
     this.isIncludeBackButton = false,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,7 @@ class DesktopContainer extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding,
-              vertical: 40,
+              vertical: GeniusWalletConsts.space20,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,6 +45,7 @@ class DesktopContainer extends StatelessWidget {
                         // Back Button
                         if (isIncludeBackButton!)
                           IconButton(
+                            tooltip: 'Back',
                             onPressed: () {
                               if (context.canPop()) {
                                 context.pop();
@@ -66,31 +68,38 @@ class DesktopContainer extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: GeniusWalletConsts.space8),
                         // Search Bar
                         const Flexible(
-                          child: SearchBar(
-                            hintText: 'Search ...',
-                            trailing: [Icon(Icons.search, color: Colors.grey)],
+                          child: SizedBox(
+                            child: SearchBar(
+                              hintText: 'Search ...',
+                              trailing: [
+                                Icon(
+                                  Icons.search,
+                                  color: GeniusWalletColors.gray500,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: GeniusWalletConsts.space8),
                         // Buttons
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             HeaderButton(
                               color: GeniusWalletColors.deepBlueTertiary,
-                              text: "Support",
+                              text: GeniusWalletText.btnSupport,
                               textColor: GeniusWalletColors.lightGreenPrimary,
                               icon: Icons.question_mark_outlined,
                               isAddBorder: true,
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: GeniusWalletConsts.space6),
                             HeaderButton(
-                              color: Colors.grey.shade900,
+                              color: GeniusWalletColors.gray900,
                               text: 'Genius 1',
-                              textColor: Colors.white,
+                              textColor: GeniusWalletColors.textPrimary,
                               icon: Icons.person,
                             ),
                           ],
@@ -99,7 +108,7 @@ class DesktopContainer extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: GeniusWalletConsts.space20),
                 child,
               ],
             ),
@@ -120,7 +129,7 @@ class HeaderButton extends StatelessWidget {
   final String? route;
 
   const HeaderButton({
-    super.key,
+    Key? key,
     this.child = const SizedBox(),
     this.text,
     this.textColor,
@@ -128,35 +137,40 @@ class HeaderButton extends StatelessWidget {
     this.isAddBorder = false,
     this.route,
     this.icon,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Flexible(
-      child: TextButton.icon(
-        onPressed: route != null ? () => context.push(route!) : null,
-        style: ButtonStyle(
-          padding: const WidgetStatePropertyAll(EdgeInsets.all(20)),
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            return color;
-          }),
-          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-              side: isAddBorder!
-                  ? BorderSide(width: 1, color: textColor ?? Colors.red)
-                  : BorderSide.none,
-            ),
+        child: TextButton.icon(
+      onPressed: route != null ? () => context.push(route!) : null,
+      style: ButtonStyle(
+        padding: const WidgetStatePropertyAll(
+            EdgeInsets.all(GeniusWalletConsts.space10)),
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          return color;
+        }),
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: isAddBorder!
+                ? BorderSide(
+                    width: 1,
+                    color: textColor ?? GeniusWalletColors.statusError)
+                : BorderSide.none,
           ),
         ),
-        label: AutoSizeText(
-          text ?? 'Button',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: textColor),
-        ),
-        icon: Icon(icon, color: textColor),
       ),
-    );
+      label: AutoSizeText(
+        text ?? 'Button',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: textColor),
+      ),
+      icon: Icon(
+        icon,
+        color: textColor,
+      ),
+    ));
   }
 }

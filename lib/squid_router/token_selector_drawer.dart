@@ -3,6 +3,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class TokenSelectorDrawer extends StatefulWidget {
   final List<SquidTokenInfo> tokens;
@@ -25,15 +26,13 @@ class TokenSelectorDrawer extends StatefulWidget {
     ResponsiveDrawer.show<void>(
       context: context,
       title: title,
-      child: ListView(
-        children: [
-          TokenSelectorDrawer(
-            tokens: tokens,
-            onTokenSelected: onTokenSelected,
-            title: title,
-          ),
-        ],
-      ),
+      children: [
+        TokenSelectorDrawer(
+          tokens: tokens,
+          onTokenSelected: onTokenSelected,
+          title: title,
+        ),
+      ],
     );
   }
 
@@ -63,20 +62,28 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
       children: [
         TextField(
           onChanged: (val) => setState(() => _query = val),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: GeniusWalletColors.textPrimary),
           decoration: InputDecoration(
             hintText: "Search Tokens...",
-            hintStyle: const TextStyle(color: Colors.white54),
-            prefixIcon: const Icon(Icons.search, color: Colors.white54),
+            hintStyle: TextStyle(color: GeniusWalletColors.textPrimary54),
+            prefixIcon:
+                Icon(Icons.search, color: GeniusWalletColors.textPrimary54),
             filled: true,
-            fillColor: Colors.black54,
+            fillColor: GeniusWalletColors.surfaceSunken,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: GeniusWalletConsts.space12),
+        if (filtered.isEmpty && _query.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                vertical: GeniusWalletConsts.space16),
+            child: Text('No tokens found',
+                style: TextStyle(color: GeniusWalletColors.textPrimary70)),
+          ),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -86,51 +93,43 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
             return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shape: RoundedRectangleBorder(
+                side: BorderSide(
+                    color: GeniusWalletColors.borderSubtle, width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
+                    horizontal: GeniusWalletConsts.space8,
+                    vertical: GeniusWalletConsts.space2),
                 leading: ClipOval(
                   child: Image.network(
                     token.logoURI,
                     width: 36,
                     height: 36,
                     fit: BoxFit.cover,
+                    semanticLabel: token.name,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         width: 36,
                         height: 36,
-                        color: Colors.grey[700],
+                        color: GeniusWalletColors.surfaceSunken,
                         alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.white70,
-                          size: 16,
-                        ),
+                        child: Icon(Icons.broken_image,
+                            color: GeniusWalletColors.textPrimary70, size: 16),
                       );
                     },
                   ),
                 ),
-                title: Text(
-                  token.name,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                subtitle: Row(
-                  children: [
-                    if (token.balance != null)
-                      Text(
-                        '${token.balance!.formattedBalance} ',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    Text(
-                      token.symbol,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
+                title: Text(token.name,
+                    style: TextStyle(color: GeniusWalletColors.textPrimary)),
+                subtitle: Row(children: [
+                  if (token.balance != null)
+                    Text('${token.balance!.formattedBalance} ',
+                        style:
+                            const TextStyle(color: GeniusWalletColors.gray500)),
+                  Text(token.symbol,
+                      style: const TextStyle(color: GeniusWalletColors.gray500))
+                ]),
                 onTap: () {
                   Navigator.of(context).pop();
                   widget.onTokenSelected(token);

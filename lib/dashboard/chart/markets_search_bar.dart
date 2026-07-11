@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -11,7 +12,7 @@ import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 class MarketSearchBar extends StatefulWidget {
   final VoidCallback? onCoinPressed;
 
-  const MarketSearchBar({super.key, this.onCoinPressed});
+  const MarketSearchBar({Key? key, this.onCoinPressed}) : super(key: key);
 
   @override
   State<MarketSearchBar> createState() => _MarketSearchBarState();
@@ -90,7 +91,12 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
       // Navigate to token info screen
       context.push(
         '/token-info',
-        extra: {"marketData": marketData, "coin": coin},
+        extra: {
+          "securityInfo": "Coming Soon",
+          "transactionHistory": ["Coming Soon"],
+          "marketData": marketData,
+          "coin": coin,
+        },
       );
 
       // Trigger the callback if provided (e.g., close drawer)
@@ -118,59 +124,71 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
         // Replace SearchBar with this TextField for custom style
         TextField(
           controller: _controller,
-          style: const TextStyle(color: Colors.white), // White input text
+          style: TextStyle(color: GeniusWalletColors.textPrimary),
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Search Coins...',
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            // Themed tokens — the hardcoded Material greys here did not flip
+            // with appearance (near-black fill broke in light mode).
+            hintStyle: const TextStyle(color: GeniusWalletColors.textSecondary),
             filled: true,
-            fillColor: Colors.grey[900], // Very dark background for input
+            fillColor: GeniusWalletColors.surfaceElevated,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+                horizontal: GeniusWalletConsts.space8, vertical: 14),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.white24, // Subtle dark border
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+              borderSide: BorderSide(
+                color: GeniusWalletColors.textPrimary24,
                 width: 1.4,
               ),
             ),
+            // Was 5px — a stray corner radius vs the 12px on the other two
+            // border states; unified to radiusMd.
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: const BorderSide(color: Colors.white38, width: 1.4),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+              borderSide: BorderSide(
+                color: GeniusWalletColors.textPrimary38,
+                width: 1.4,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
               borderSide: const BorderSide(
-                color: GeniusWalletColors.lightGreenPrimary,
+                color: GeniusWalletColors.brandSecondary,
                 width: 2,
               ),
             ),
             suffixIcon: _isSearching
-                ? const Padding(padding: EdgeInsets.all(12.0), child: Loading())
+                ? const Padding(
+                    padding: EdgeInsets.all(GeniusWalletConsts.space6),
+                    child: Loading(),
+                  )
                 : (_controller.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.white),
-                          onPressed: () {
-                            _controller.clear();
-                            setState(() {
-                              _searchResults = [];
-                            });
-                          },
-                        )
-                      : const Icon(Icons.search, color: Colors.white38)),
+                    ? IconButton(
+                        tooltip: 'Close',
+                        icon: Icon(Icons.clear,
+                            color: GeniusWalletColors.textPrimary),
+                        onPressed: () {
+                          _controller.clear();
+                          setState(() {
+                            _searchResults = [];
+                          });
+                        },
+                      )
+                    : Icon(Icons.search,
+                        color: GeniusWalletColors.textPrimary38)),
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: GeniusWalletConsts.space4),
 
         if (_searchResults.isNotEmpty)
           ListView.separated(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             itemCount: _searchResults.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) =>
+                const SizedBox(height: GeniusWalletConsts.space4),
             itemBuilder: (context, index) {
               final coin = _searchResults[index];
               return SlidingDrawerButton(
@@ -178,6 +196,13 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
                 onPressed: () => _onCoinTap(coin),
               );
             },
+          )
+        else if (_controller.text.isNotEmpty && !_isSearching)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                vertical: GeniusWalletConsts.space12),
+            child: Text('No coins found',
+                style: TextStyle(color: GeniusWalletColors.textPrimary70)),
           ),
       ],
     );

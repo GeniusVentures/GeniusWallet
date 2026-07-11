@@ -6,18 +6,19 @@ import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
-import 'package:genius_wallet/reown/utilities.dart';
+import 'package:genius_wallet/reown/utilites.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 
-void Function() handleDappRequests({
-  required ReownWalletKit walletKit,
-  required GeniusApi geniusApi,
-  required WalletDetailsCubit walletDetailsCubit,
-  required TransactionsCubit transactionsCubit,
-}) {
+void Function() handleDappRequests(
+    {required ReownWalletKit walletKit,
+    required GeniusApi geniusApi,
+    required WalletDetailsCubit walletDetailsCubit,
+    required TransactionsCubit transactionsCubit}) {
   final Set<int> pendingRequestIds = {};
 
   Future<void> onSessionRequest(SessionRequestEvent? event) async {
@@ -75,29 +76,28 @@ void Function() handleDappRequests({
             children: [
               if (dappUrl.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    dappUrl,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
+                  padding:
+                      const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+                  child: Text(dappUrl,
+                      style: const TextStyle(
+                          color: GeniusWalletColors.gray500, fontSize: 12)),
                 ),
-              Text(
-                "Method: $method",
-                style: const TextStyle(color: Colors.white),
-              ),
-              const SizedBox(height: 12),
-              const Text("Params:", style: TextStyle(color: Colors.grey)),
+              Text("Method: $method",
+                  style: TextStyle(color: GeniusWalletColors.textPrimary)),
+              const SizedBox(height: GeniusWalletConsts.space6),
+              const Text("Params:",
+                  style: TextStyle(color: GeniusWalletColors.gray500)),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  gradient: GWDecorations.surfaceSheen,
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: GeniusWalletColors.borderSubtle, width: 1),
                 ),
-                child: Text(
-                  event.params.toString(),
-                  style: const TextStyle(color: Colors.white70),
-                ),
+                child: Text(event.params.toString(),
+                    style: TextStyle(color: GeniusWalletColors.textPrimary70)),
               ),
             ],
           ),
@@ -141,11 +141,10 @@ void Function() handleDappRequests({
         // TODO: CONFIRM NETWORK ON SWAP MATCHES NETWORK SELECTED IN WALLET
 
         final result = await geniusApi.signAndSendTransaction(
-          tx: tx,
-          sourceChainId: chainId,
-          rpcUrl: rpcUrl,
-          address: walletAddress,
-        );
+            tx: tx,
+            sourceChainId: chainId,
+            rpcUrl: rpcUrl,
+            address: walletAddress);
 
         if (result.isSuccess) {
           final txHash = result.data;
@@ -186,10 +185,8 @@ void Function() handleDappRequests({
           // stream to ui
           transactionsCubit.addTransaction(txModel);
           // save to hive
-          await TransactionStorageService().addTransaction(
-            walletAddress,
-            txModel,
-          );
+          await TransactionStorageService()
+              .addTransaction(walletAddress, txModel);
         } else {
           await walletKit.respondSessionRequest(
             topic: topic,

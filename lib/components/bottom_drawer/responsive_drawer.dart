@@ -1,115 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/components/bottom_drawer/bottom_drawer.dart';
 
 class ResponsiveDrawer {
+  static const double _desktopBreakpoint = 800;
+
   static Future<T?> show<T>({
     required BuildContext context,
-    required Widget child,
-    String? title,
-    List<Widget>? actions,
+    required String title,
+    required List<Widget> children,
     Widget? footer,
-    double desktopWidth = 420,
-    bool useRootNavigator = true,
-    bool isDismissible = true,
-    bool enableDrag = true,
+    VoidCallback? onClose,
   }) {
-    final isDesktop =
-        MediaQuery.sizeOf(context).width >= GeniusBreakpoints.medium;
+    final isDesktop = MediaQuery.of(context).size.width >= _desktopBreakpoint;
 
-    final content = _ResponsiveDrawerScaffold(
-      title: title,
-      actions: actions,
-      footer: footer,
-      child: child,
-    );
-
-    if (isDesktop) {
-      return showDialog<T>(
-        context: context,
-        barrierDismissible: isDismissible,
-        barrierColor: Colors.black54,
-        useRootNavigator: useRootNavigator,
-        builder: (_) {
-          return Align(
-            alignment: Alignment.centerRight,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: desktopWidth,
-                height: double.infinity,
-                decoration: const BoxDecoration(
+    final Future<T?> future = isDesktop
+        ? showDialog<T>(
+            context: context,
+            barrierColor: Colors.black87,
+            builder: (context) {
+              return Align(
+                alignment: Alignment.centerRight,
+                child: Material(
                   color: GeniusWalletColors.deepBlueTertiary,
-                  borderRadius: BorderRadius.horizontal(
-                    left: Radius.circular(28),
+                  child: SizedBox(
+                    width: 400,
+                    height: double.infinity,
+                    child: BottomDrawer(
+                      title: title,
+                      footer: footer,
+                      children: children,
+                    ),
                   ),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: content,
-              ),
+              );
+            },
+          )
+        : showModalBottomSheet<T>(
+            backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            enableDrag: false,
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
+            builder: (context) {
+              // Lift the sheet above the keyboard — isScrollControlled alone
+              // does NOT inset for it, so text fields in drawers (address
+              // book, WC paste, token search, slippage) would be covered.
+              return Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom),
+                child: BottomDrawer(
+                  title: title,
+                  footer: footer,
+                  children: children,
+                ),
+              );
+            },
           );
-        },
-      );
-    }
 
-    return showModalBottomSheet<T>(
-      context: context,
-      useRootNavigator: useRootNavigator,
-      isDismissible: isDismissible,
-      enableDrag: enableDrag,
-      useSafeArea: true,
-      isScrollControlled: true,
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (_) => content,
-    );
-  }
-}
-
-class _ResponsiveDrawerScaffold extends StatelessWidget {
-  final Widget child;
-  final String? title;
-  final List<Widget>? actions;
-  final Widget? footer;
-
-  const _ResponsiveDrawerScaffold({
-    required this.child,
-    this.title,
-    this.actions,
-    this.footer,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
-
-      // Native Material app bar
-      appBar: title != null
-          ? AppBar(
-              automaticallyImplyLeading: false,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              centerTitle: true,
-              title: Text(title!),
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: Navigator.of(context).pop,
-              ),
-              actions: actions,
-            )
-          : null,
-
-      // Content decides its own scrolling
-      body: child,
-
-      // Native Material footer area
-      bottomNavigationBar: footer != null
-          ? SafeArea(top: false, child: footer!)
-          : null,
-    );
+    return future.whenComplete(() {
+      if (onClose != null) {
+        onClose();
+      }
+    });
   }
 }

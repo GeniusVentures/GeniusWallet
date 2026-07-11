@@ -9,23 +9,23 @@ class ActionButton extends StatefulWidget {
   final IconData icon;
   final String text;
   final VoidCallback? onPressed;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color iconColor;
   final Color textColor;
   final ActionButtonAnimation animation;
   final String? semanticLabel;
 
   const ActionButton({
-    super.key,
+    Key? key,
     required this.icon,
     required this.text,
     this.onPressed,
-    this.backgroundColor = GeniusWalletColors.deepBlueCardColor,
+    this.backgroundColor,
     this.iconColor = GeniusWalletColors.lightGreenSecondary,
-    this.textColor = Colors.grey,
+    this.textColor = GeniusWalletColors.gray500,
     this.animation = ActionButtonAnimation.none,
     this.semanticLabel,
-  });
+  }) : super(key: key);
 
   @override
   State<ActionButton> createState() => _ActionButtonState();
@@ -72,12 +72,15 @@ class _ActionButtonState extends State<ActionButton>
         builder: (context, constraints) {
           final iconWidget = Icon(
             widget.icon,
-            size: constraints.maxWidth * 0.45,
+            size: constraints.maxWidth * 0.42,
             color: widget.iconColor,
           );
 
           final animatedIcon = widget.animation == ActionButtonAnimation.rotate
-              ? RotationTransition(turns: _controller, child: iconWidget)
+              ? RotationTransition(
+                  turns: _controller,
+                  child: iconWidget,
+                )
               : iconWidget;
 
           // 🟢 Semantics wrapper for accessibility
@@ -88,16 +91,17 @@ class _ActionButtonState extends State<ActionButton>
             child: ElevatedButton(
               onPressed: widget.onPressed,
               style: ElevatedButton.styleFrom(
-                fixedSize: Size(
-                  constraints.maxWidth * 0.25,
-                  constraints.maxWidth,
-                ),
+                padding: const EdgeInsets.all(0),
+                fixedSize:
+                    Size(constraints.maxWidth * 0.25, constraints.maxWidth),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     GeniusWalletConsts.borderRadiusCard,
                   ),
                 ),
-                backgroundColor: widget.backgroundColor,
+                disabledBackgroundColor: GeniusWalletColors.deepBlueCardColor,
+                backgroundColor: widget.backgroundColor ??
+                    GeniusWalletColors.deepBlueCardColor,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -7,10 +7,11 @@ import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/tokens/convert_section.dart';
+import 'package:genius_wallet/tokens/market_data_info.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/action_button.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -18,27 +19,110 @@ import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:go_router/go_router.dart';
 
 class TokenInfoScreen extends StatelessWidget {
+  final String securityInfo;
   final bool? isGnusWalletConnected;
+  final List<String> transactionHistory;
   final CoinGeckoMarketData? marketData;
-  final WalletDetailsCubit walletDetailsCubit;
+  final WalletDetailsCubit? walletDetailsCubit; // Optional cubit
 
   const TokenInfoScreen({
-    super.key,
-    required this.walletDetailsCubit,
+    Key? key,
+    required this.securityInfo,
+    required this.transactionHistory,
     this.marketData,
     this.isGnusWalletConnected,
-  });
+    this.walletDetailsCubit, // Allow null
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (walletDetailsCubit == null) {
+      // If no cubit is provided, return UI without wallet-dependent features
+      return _buildScreenWithoutCubit(context);
+    }
+
     return BlocProvider.value(
-      value: walletDetailsCubit,
+      value: walletDetailsCubit!,
       child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
           return _buildScreenWithCubit(context, state);
         },
       ),
     );
+  }
+
+  /// **Screen when WalletDetailsCubit is NOT available**
+  Widget _buildScreenWithoutCubit(BuildContext context) {
+    return GWCanvasBackground(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: Text(marketData?.name ?? ''),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isDesktop = constraints.maxWidth > 750;
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(GeniusWalletConsts.space12),
+              child: isDesktop
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: constraints.maxWidth < 1000
+                              ? 1
+                              : constraints.maxWidth < 1500
+                                  ? 2
+                                  : 3,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 50),
+                              _buildGraphSection(marketData, null),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: GeniusWalletConsts.space16),
+                        Expanded(
+                          flex: 1,
+                          child: _buildActionSection(
+                            marketData,
+                            null,
+                            null,
+                            null,
+                            context,
+                            null,
+                            null,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _buildGraphSection(marketData, null),
+                        const SizedBox(height: GeniusWalletConsts.space12),
+                        _buildActionSection(
+                          marketData,
+                          null,
+                          null,
+                          null,
+                          context,
+                          null,
+                          null,
+                        ),
+                      ],
+                    ),
+            ),
+          );
+        },
+      ),
+    ));
   }
 
   /// **Screen when WalletDetailsCubit is available**
@@ -48,43 +132,80 @@ class TokenInfoScreen extends StatelessWidget {
     final selectedNetwork = state.selectedNetwork;
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
 
-    final isGnusBridgeEnabled =
-        (isGnusWalletConnected ?? false) &&
+    final isGnusBridgeEnabled = (isGnusWalletConnected ?? false) &&
         selectedCoin?.symbol?.toLowerCase() == 'gnus';
 
-    return Scaffold(
-      appBar: AppBar(),
+    return GWCanvasBackground(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: Text(selectedCoin?.name ?? marketData?.name ?? ''),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          bool isDesktop = constraints.maxWidth > GeniusBreakpoints.large;
+          bool isDesktop = constraints.maxWidth > 750;
+
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            primary: true,
-            child: isDesktop
-                ? Row(
-                    spacing: 20,
-                    children: [
-                      if (marketData != null)
+            child: Padding(
+              padding: const EdgeInsets.all(GeniusWalletConsts.space12),
+              child: isDesktop
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Expanded(
-                          flex: 2,
-                          child: SizedBox(
-                            height: constraints.maxHeight - 40,
-                            child: _buildGraphSection(
-                              marketData!,
-                              _buildStaticActions(
-                                selectedCoin,
-                                context,
-                                selectedWallet,
-                                selectedNetwork,
-                                isGnusBridgeEnabled,
-                                walletDetailsCubit,
-                              ),
-                            ),
+                          flex: constraints.maxWidth < 1000
+                              ? 1
+                              : constraints.maxWidth < 1500
+                                  ? 2
+                                  : 3,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 50),
+                              _buildGraphSection(
+                                  marketData,
+                                  _buildStaticActions(
+                                      selectedCoin,
+                                      context,
+                                      selectedWallet,
+                                      selectedNetwork,
+                                      isGnusBridgeEnabled,
+                                      walletDetailsCubit)),
+                            ],
                           ),
                         ),
-                      Expanded(
-                        flex: 1,
-                        child: _buildActionSection(
+                        const SizedBox(width: GeniusWalletConsts.space16),
+                        Expanded(
+                          flex: 1,
+                          child: _buildActionSection(
+                            marketData,
+                            selectedCoin,
+                            selectedNetwork,
+                            walletDetailsCubit,
+                            context,
+                            selectedWallet,
+                            isGnusBridgeEnabled,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _buildGraphSection(marketData, null),
+                        const SizedBox(height: GeniusWalletConsts.space10),
+                        _buildStaticActions(
+                            selectedCoin,
+                            context,
+                            selectedWallet,
+                            selectedNetwork,
+                            isGnusBridgeEnabled,
+                            walletDetailsCubit),
+                        const SizedBox(height: GeniusWalletConsts.space12),
+                        _buildActionSection(
                           marketData,
                           selectedCoin,
                           selectedNetwork,
@@ -93,115 +214,152 @@ class TokenInfoScreen extends StatelessWidget {
                           selectedWallet,
                           isGnusBridgeEnabled,
                         ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    spacing: 20,
-                    children: [
-                      if (marketData != null)
-                        _buildGraphSection(marketData!, null),
-                      _buildStaticActions(
-                        selectedCoin,
-                        context,
-                        selectedWallet,
-                        selectedNetwork,
-                        isGnusBridgeEnabled,
-                        walletDetailsCubit,
-                      ),
-                      _buildActionSection(
-                        marketData,
-                        selectedCoin,
-                        selectedNetwork,
-                        walletDetailsCubit,
-                        context,
-                        selectedWallet,
-                        isGnusBridgeEnabled,
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+            ),
           );
         },
       ),
-    );
+    ));
   }
 
-  Widget _buildGraphSection(CoinGeckoMarketData marketData, Widget? child) {
-    return CryptoLiveChart(
-      coinGeckoCoinId: marketData.id,
-      tokenSymbol: marketData.symbol,
-      child: child,
-    );
-  }
-
-  Widget _buildStaticActions(
-    selectedCoin,
-    context,
-    selectedWallet,
-    selectedNetwork,
-    bool isGnusBridgeEnabled,
-    walletDetailsCubit,
-  ) {
-    return SizedBox(
-      width: 400,
-      child: Row(
-        spacing: 8,
-        children: [
-          ActionButton(
-            text: "Receive",
-            icon: Icons.qr_code,
-            onPressed: () {
-              ResponsiveDrawer.show<void>(
-                context: context,
-                title: "Receive ${selectedCoin?.name}",
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: GeniusBreakpoints.small * 0.5,
-                      child: CryptoAddressQR(
-                        iconPath: selectedCoin?.iconPath,
-                        address: selectedWallet?.address ?? "",
-                        network: selectedNetwork?.name ?? "",
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          const ActionButton(text: "Send", icon: Icons.send),
-          const ActionButton(text: "Swap", icon: Icons.swap_horiz),
-          ActionButton(
-            text: "More",
-            icon: Icons.more_horiz,
-            onPressed: isGnusBridgeEnabled
-                ? () {
-                    ResponsiveDrawer.show<void>(
-                      context: context,
-                      title: "More Options",
-                      child: SlidingDrawerButton(
-                        onPressed: selectedCoin?.balance == 0
-                            ? null
-                            : () async {
-                                Navigator.of(context).pop();
-                                await GoRouter.of(
-                                  context,
-                                ).push('/bridge', extra: walletDetailsCubit);
-                                walletDetailsCubit.getCoins();
-                              },
-                        label: "Bridge Tokens",
-                      ),
-                    );
-                  }
-                : null,
-          ),
-        ],
+  /// **Security Section**
+  Widget _buildSecuritySection() {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+        child: Text(
+          "Security",
+          style: TextStyle(color: GeniusWalletColors.textPrimary80),
+        ),
+      ),
+      subtitle: Card(
+        margin: EdgeInsets.zero,
+        color: GeniusWalletColors.deepBlueCardColor,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: ListTile(title: Text(securityInfo)),
       ),
     );
   }
 
+  /// **Activity Section**
+  Widget _buildActivitySection() {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+        child: Text(
+          "Activity",
+          style: TextStyle(color: GeniusWalletColors.textPrimary80),
+        ),
+      ),
+      subtitle: Card(
+        margin: EdgeInsets.zero,
+        color: GeniusWalletColors.deepBlueCardColor,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: transactionHistory.isEmpty
+              ? const [ListTile(title: Text('No activity yet'))]
+              : transactionHistory
+                  .map((tx) => ListTile(title: Text(tx)))
+                  .toList(),
+        ),
+      ),
+    );
+  }
+
+  /// **Graph Section**
+  Widget _buildGraphSection(CoinGeckoMarketData? marketData, Widget? child) {
+    if (marketData == null) {
+      return const SizedBox();
+    }
+    return CryptoLiveChart(
+      coinGeckoCoinId: marketData.id,
+      tokenSymbol: marketData.symbol,
+      child: child != null ? SizedBox(width: 400, child: child) : null,
+    );
+  }
+
+  /// **Action Buttons**
+  Widget _buildStaticActions(selectedCoin, context, selectedWallet,
+      selectedNetwork, isGnusBridgeEnabled, walletDetailsCubit) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ActionButton(
+          text: "Receive",
+          icon: Icons.qr_code,
+          onPressed: () {
+            ResponsiveDrawer.show<void>(
+              context: context,
+              title: "Receive ${selectedCoin?.name}",
+              children: [
+                Container(
+                  margin: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * .15),
+                  alignment: Alignment.center,
+                  child: CryptoAddressQR(
+                    iconPath: selectedCoin?.iconPath,
+                    address: selectedWallet?.address ?? "",
+                    network: selectedNetwork?.name ?? "",
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(width: GeniusWalletConsts.space4),
+        ActionButton(
+          text: "Send",
+          icon: Icons.send,
+          onPressed: () => GoRouter.of(context).push('/send'),
+        ),
+        const SizedBox(width: GeniusWalletConsts.space4),
+        ActionButton(
+          text: "Swap",
+          icon: Icons.swap_horiz,
+          onPressed: () => GoRouter.of(context).push('/swap'),
+        ),
+        const SizedBox(width: GeniusWalletConsts.space4),
+        ActionButton(
+          text: "More",
+          icon: Icons.more_horiz,
+          onPressed: () {
+            ResponsiveDrawer.show<void>(
+              context: context,
+              title: "More Options",
+              children: [
+                if (isGnusBridgeEnabled)
+                  SlidingDrawerButton(
+                    onPressed: selectedCoin?.balance == 0
+                        ? null
+                        : () async {
+                            Navigator.of(context).pop(); // Close drawer
+                            await GoRouter.of(context)
+                                .push('/bridge', extra: walletDetailsCubit);
+                            walletDetailsCubit
+                                .getCoins(); // Refresh after return
+                          },
+                    label: "Bridge Tokens",
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  /// **Details Section**
   Widget _buildActionSection(
     CoinGeckoMarketData? marketData,
     Coin? selectedCoin,
@@ -212,9 +370,10 @@ class TokenInfoScreen extends StatelessWidget {
     bool? isGnusBridgeEnabled,
   ) {
     return Column(
-      spacing: 16,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _MarketDataInfo(
+        // **Market Data Info**
+        MarketDataInfo(
           topSlot: CoinCardRow(
             iconPath: marketData?.imageUrl ?? "",
             balance: selectedCoin?.balance,
@@ -226,241 +385,14 @@ class TokenInfoScreen extends StatelessWidget {
           address: selectedCoin?.address,
           network: selectedNetwork?.name,
         ),
-        _ConvertSection(tokenPrice: marketData?.currentPrice ?? 0.0),
+
+        const SizedBox(height: GeniusWalletConsts.space8),
+        ConvertSection(tokenPrice: marketData?.currentPrice ?? 0.0),
+        const SizedBox(height: GeniusWalletConsts.space8),
+        _buildSecuritySection(),
+        const SizedBox(height: GeniusWalletConsts.space8),
+        _buildActivitySection(),
       ],
     );
-  }
-}
-
-class _ConvertSection extends StatefulWidget {
-  final double tokenPrice;
-
-  const _ConvertSection({required this.tokenPrice});
-
-  @override
-  State<_ConvertSection> createState() => _ConvertSectionState();
-}
-
-class _ConvertSectionState extends State<_ConvertSection> {
-  late TextEditingController _tokenAmountController;
-  late TextEditingController _tokenPriceController;
-
-  double _totalValue = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _tokenPriceController = TextEditingController(
-      text: widget.tokenPrice.toString(),
-    );
-    _tokenAmountController = TextEditingController(text: "1");
-    _calculateTotalValue();
-  }
-
-  void _calculateTotalValue() {
-    final double tokenAmount =
-        double.tryParse(_tokenAmountController.text) ?? 0;
-    final double tokenPrice = double.tryParse(_tokenPriceController.text) ?? 0;
-
-    setState(() {
-      _totalValue = tokenAmount * tokenPrice;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
-      children: [
-        Text("Convert", style: Theme.of(context).textTheme.titleMedium),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              spacing: 16,
-              children: [
-                TextField(
-                  controller: _tokenPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(labelText: "Token Price"),
-                  onChanged: (_) => _calculateTotalValue(),
-                ),
-                TextField(
-                  controller: _tokenAmountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(labelText: "Token Amount"),
-                  onChanged: (_) => _calculateTotalValue(),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "Total: ${NumberFormat.currency(locale: "en_US", symbol: "\$").format(_totalValue)}",
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MarketDataInfo extends StatelessWidget {
-  final CoinGeckoMarketData? marketData;
-  final String? address;
-  final String? network;
-  final Widget? topSlot;
-
-  const _MarketDataInfo({
-    this.marketData,
-    this.network,
-    this.address,
-    this.topSlot,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final infoTiles = <Widget>[
-      if (network != null)
-        ListTile(
-          dense: true,
-          leading: Icon(Icons.bubble_chart, color: cs.primary),
-          title: const Text("Network"),
-          trailing: Text(
-            network!,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
-      if (address != null)
-        ListTile(
-          dense: true,
-          leading: Icon(Icons.link, color: cs.primary),
-          title: const Text("Address"),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: address!));
-                  showAppSnackBar(context, 'Address copied to clipboard');
-                },
-                tooltip: "Copy address",
-                icon: Icon(Icons.copy, size: 18, color: cs.primary),
-              ),
-              Text(
-                address!.length > 12
-                    ? "${address!.substring(0, 6)}...${address!.substring(address!.length - 6)}"
-                    : address!,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-        ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.pie_chart, color: Colors.amber[300]),
-        title: const Text("Market Cap"),
-        trailing: Text(
-          _formatCompactCurrency(marketData?.marketCap),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.sync, color: Colors.lightBlue[300]),
-        title: const Text("Circulating Supply"),
-        trailing: Text(
-          _formatCompactDecimal(marketData?.circulatingSupply),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.storage, color: Colors.orange[300]),
-        title: const Text("Total Supply"),
-        trailing: Text(
-          _formatCompactDecimal(marketData?.totalSupply),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.bar_chart, color: Colors.red[300]),
-        title: const Text("Volume"),
-        trailing: Text(
-          _formatCompactCurrency(marketData?.totalVolume),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
-      children: [
-        Text("Info", style: Theme.of(context).textTheme.titleMedium),
-        Card(
-          color: cs.surface,
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.only(bottom: 8, left: 8),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.white,
-                    backgroundImage: marketData?.imageUrl != null
-                        ? NetworkImage(marketData!.imageUrl)
-                        : null,
-                    child: marketData?.imageUrl == null
-                        ? Icon(
-                            Icons.token,
-                            color: cs.onSurfaceVariant,
-                            size: 32,
-                          )
-                        : null,
-                  ),
-                  title: Text(marketData?.name ?? "Unknown Token", maxLines: 2),
-                  subtitle: Text(
-                    (marketData?.symbol ?? "").toUpperCase(),
-                    style: TextStyle(color: cs.onSurfaceVariant),
-                  ),
-                ),
-                Column(
-                  children: [
-                    for (int i = 0; i < infoTiles.length; i++) ...[
-                      Divider(height: 1),
-                      infoTiles[i],
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatCompactCurrency(double? number) {
-    if (number == 0 || number == null) return "N/A";
-    return NumberFormat.compactSimpleCurrency().format(number);
-  }
-
-  String _formatCompactDecimal(double? number) {
-    if (number == 0 || number == null) return "N/A";
-    return NumberFormat.compact().format(number);
   }
 }

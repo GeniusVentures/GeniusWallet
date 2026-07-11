@@ -5,11 +5,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
-import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,13 +21,13 @@ class CoinsScreen extends StatefulWidget {
   final bool? isUseDivider;
   final bool? isGnusWalletConnected;
 
-  const CoinsScreen({
-    super.key,
-    this.onCoinSelected,
-    this.filterCoins,
-    this.isGnusWalletConnected,
-    this.isUseDivider,
-  });
+  const CoinsScreen(
+      {Key? key,
+      this.onCoinSelected,
+      this.filterCoins,
+      this.isGnusWalletConnected,
+      this.isUseDivider})
+      : super(key: key);
 
   @override
   CoinsScreenState createState() => CoinsScreenState();
@@ -40,8 +42,8 @@ class CoinsScreenState extends State<CoinsScreen> {
   void initState() {
     super.initState();
 
-    // periodically fetch market data to keep wallet balance up to date
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+    // periodically fetch market data every 20 seconds to keep wallet balance up to date
+    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
       final state = context.read<WalletDetailsCubit>().state;
       if (state.coinsStatus == WalletStatus.successful &&
           state.coins.isNotEmpty) {
@@ -107,6 +109,7 @@ class CoinsScreenState extends State<CoinsScreen> {
 
     final formattedTotal = totalValue.toStringAsFixed(2);
 
+    // ✅ Set it in the cubit
     context.read<WalletDetailsCubit>().setSelectedWalletBalance(formattedTotal);
   }
 
@@ -130,36 +133,45 @@ class CoinsScreenState extends State<CoinsScreen> {
           final walletCubit = context.read<WalletDetailsCubit>();
 
           if (state.coinsStatus == WalletStatus.loading) {
-            return const Card(
+            return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
-              child: Center(child: Loading()),
+              shape: RoundedRectangleBorder(
+                side: BorderSide(
+                    color: GeniusWalletColors.borderSubtle, width: 1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Center(
+                child: Loading(),
+              ),
             );
           }
 
           if (state.coins.isEmpty) {
-            return const Card(
+            return Card(
               color: GeniusWalletColors.deepBlueCardColor,
               shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(
+                    color: GeniusWalletColors.borderSubtle, width: 1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: AutoSizeText(
                 'No Coins Detected',
-                style: TextStyle(
-                  fontSize: 24,
-                  color: GeniusWalletColors.btnTextDisabled,
-                ),
+                style: GeniusWalletTypography.headlineLg
+                    .copyWith(color: GeniusWalletColors.btnTextDisabled),
               ),
             );
           }
 
           final filteredCoins = state.coins
-              .where(
-                (coin) =>
-                    widget.filterCoins?.contains(coin) == false ||
-                    widget.filterCoins == null,
-              )
+              .where((coin) =>
+                  widget.filterCoins?.contains(coin) == false ||
+                  widget.filterCoins == null)
               .toList();
 
           return SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space8),
             child: Column(
               children: [
                 for (int i = 0; i < filteredCoins.length; i++) ...[
@@ -175,8 +187,10 @@ class CoinsScreenState extends State<CoinsScreen> {
                           extra: {
                             "isGnusWalletConnected":
                                 widget.isGnusWalletConnected,
+                            "securityInfo": "Coming Soon",
+                            "transactionHistory": ["Coming Soon"],
                             "marketData":
-                                _marketData[coin.symbol?.toLowerCase()],
+                                _marketData[coin.symbol?.toLowerCase()]
                           },
                         );
                       }
@@ -189,8 +203,15 @@ class CoinsScreenState extends State<CoinsScreen> {
                         _marketData[filteredCoins[i].symbol?.toLowerCase()],
                   ),
                   if ((widget.isUseDivider ?? false) &&
-                      i < filteredCoins.length - 1)
-                    const Divider(),
+                      i != filteredCoins.length - 1)
+                    Divider(
+                      thickness: 2.0,
+                      color: GeniusWalletColors.deepBlueTertiary,
+                      height: 1,
+                    ),
+                  if (!(widget.isUseDivider ?? false) &&
+                      i != filteredCoins.length - 1)
+                    const SizedBox(height: GeniusWalletConsts.space4),
                 ],
               ],
             ),

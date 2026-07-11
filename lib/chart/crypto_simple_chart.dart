@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
 class CryptoSparkLineChart extends StatelessWidget {
@@ -13,8 +15,7 @@ class CryptoSparkLineChart extends StatelessWidget {
   final double currentPrice;
   final double priceChangePercent;
   final List<double>? sparkline;
-  final double iconSize;
-  final void Function()? onTap;
+  final double? iconSize;
 
   const CryptoSparkLineChart({
     super.key,
@@ -24,20 +25,19 @@ class CryptoSparkLineChart extends StatelessWidget {
     required this.currentPrice,
     required this.priceChangePercent,
     this.sparkline,
-    this.iconSize = 28,
+    this.iconSize,
     this.iconPath,
-    this.onTap,
   });
 
   /// Soft muted green/red colors
   static const Color _mutedGreen = GeniusWalletColors.mutedGreen;
-  static const Color _mutedRed = Colors.red;
+  static const Color _mutedRed = GeniusWalletColors.mutedRed;
 
   Color get priceColor => priceChangePercent > 0
       ? _mutedGreen
       : priceChangePercent < 0
-      ? _mutedRed
-      : Colors.grey[500]!;
+          ? _mutedRed
+          : Colors.grey[500]!;
 
   List<FlSpot> getSparklineChartData() {
     if (sparkline == null || sparkline!.isEmpty) {
@@ -55,32 +55,46 @@ class CryptoSparkLineChart extends StatelessWidget {
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
-      symbol: "\$",
-      decimalDigits: tokenDecimalsToDisplay,
-    ).format(currentPrice);
+            locale: "en_US",
+            symbol: "\$",
+            decimalDigits: tokenDecimalsToDisplay)
+        .format(currentPrice);
 
-    return ListTile(
-      leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
-      title: AutoSizeText(
-        title,
-        style: const TextStyle(fontSize: 16, color: Colors.grey),
-        maxLines: 1,
-      ),
-      onTap: onTap,
-      subtitle: Text(
-        formattedPrice,
-        style: TextStyle(
-          fontSize: 14,
-          color: currentPrice == 0 ? Colors.grey[600] : Colors.white,
+    // Manually-centered Row (replaces a ListTile, whose internal title/subtitle
+    // metrics left more space above the content than below it).
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        buildTokenIcon(iconPath: iconPath ?? "", size: iconSize ?? 28),
+        const SizedBox(width: GeniusWalletConsts.space6),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AutoSizeText(
+                title,
+                style: GeniusWalletTypography.bodyLg.copyWith(
+                  color: GeniusWalletColors.gray500,
+                ),
+                maxLines: 1,
+              ),
+              Text(
+                formattedPrice,
+                style: GeniusWalletTypography.numericBody.copyWith(
+                  color: currentPrice == 0
+                      ? Colors.grey[600]
+                      : GeniusWalletColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      titleAlignment: ListTileTitleAlignment.center,
-      trailing: SizedBox(
-        height: 44,
-        child: Column(
+        const SizedBox(width: GeniusWalletConsts.space4),
+        Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 5.0,
           children: [
             Text(
               "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
@@ -90,8 +104,9 @@ class CryptoSparkLineChart extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            const SizedBox(height: 5),
             SizedBox(
-              width: 80,
+              width: 70,
               height: 15,
               child: LineChart(
                 LineChartData(
@@ -105,18 +120,14 @@ class CryptoSparkLineChart extends StatelessWidget {
                     ),
                   ],
                   titlesData: const FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+                    leftTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
                   gridData: const FlGridData(show: false),
                   borderData: FlBorderData(show: false),
@@ -126,7 +137,7 @@ class CryptoSparkLineChart extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

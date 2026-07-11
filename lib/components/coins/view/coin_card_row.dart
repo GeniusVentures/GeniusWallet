@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:intl/intl.dart';
 
 class CoinCardRow extends StatelessWidget {
@@ -14,75 +18,128 @@ class CoinCardRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CoinCardRow({
-    super.key,
+    Key? key,
     required this.iconPath,
     required this.name,
     this.balance,
     required this.symbol,
     this.marketData,
     this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final NumberFormat currencyFormatter = NumberFormat.currency(symbol: "\$");
+    final NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: "en_US", symbol: "\$");
 
     double totalValue = (marketData?.currentPrice ?? 0.0) * (balance ?? 0.0);
     double gainLoss =
         totalValue * ((marketData?.priceChangePercentage24h ?? 0.0) / 100);
 
     Color changeColor = (balance ?? 0) > 0
-        ? (gainLoss >= 0 ? cs.primary : cs.error)
-        : cs.onSurfaceVariant;
+        ? (gainLoss >= 0
+            ? GeniusWalletColors.lightGreenPrimary
+            : GeniusWalletColors.statusError)
+        : GeniusWalletColors.gray500;
 
     final bool noBalance = (balance ?? 0.0) == 0.0;
 
-    return ListTile(
+    return InkWell(
       onTap: onTap,
-      leading: buildTokenIcon(iconPath: iconPath, size: 38),
-      title: Text(name),
-      subtitle: AutoSizeText(
-        noBalance
-            ? "No balance yet"
-            : "${WalletUtils.truncateToDecimals(balance.toString())} $symbol",
-        maxLines: 1,
-        minFontSize: 10,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontStyle: noBalance ? FontStyle.italic : FontStyle.normal,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+            vertical: GeniusWalletConsts.space8),
+        decoration: BoxDecoration(
+          gradient: GWDecorations.surfaceSheen,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
         ),
-      ),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!noBalance)
-            AutoSizeText(
-              currencyFormatter.format(totalValue),
-              maxLines: 1,
-              minFontSize: 12,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.white,
+        child: Row(
+          children: [
+            // Icon
+            buildTokenIcon(iconPath: iconPath, size: 38),
+            const SizedBox(width: GeniusWalletConsts.space6),
+
+            // Name & Balance Column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Coin Name
+                  AutoSizeText(
+                    name,
+                    maxLines: 1,
+                    minFontSize: 12,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: GeniusWalletColors.textPrimary,
+                    ),
+                  ),
+                  // Balance & Symbol or Placeholder
+                  AutoSizeText(
+                    noBalance
+                        ? "No balance yet"
+                        : "${WalletUtils.truncateToDecimals(balance.toString())} $symbol",
+                    maxLines: 1,
+                    minFontSize: 10,
+                    overflow: TextOverflow.ellipsis,
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: noBalance
+                          ? GeniusWalletColors.gray500
+                          : GeniusWalletColors.gray500,
+                      fontStyle:
+                          noBalance ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                ],
               ),
             ),
-          if (!noBalance)
-            AutoSizeText(
-              currencyFormatter.format(gainLoss),
-              maxLines: 1,
-              minFontSize: 10,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: changeColor,
-              ),
+
+            const SizedBox(width: GeniusWalletConsts.space6),
+
+            // Right Column - Price & Gain/Loss (Always right-aligned)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Total Value in USD or nothing if no balance
+                AutoSizeText(
+                  noBalance ? "" : currencyFormatter.format(totalValue),
+                  maxLines: 1,
+                  minFontSize: 12,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: GeniusWalletColors.textPrimary,
+                  ),
+                ),
+                // 24h Gain/Loss
+                if (!noBalance)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AutoSizeText(
+                        currencyFormatter.format(gainLoss),
+                        maxLines: 1,
+                        minFontSize: 10,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: changeColor,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

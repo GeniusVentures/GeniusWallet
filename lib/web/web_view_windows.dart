@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'package:window_manager/window_manager.dart';
@@ -12,14 +15,12 @@ class WebViewWindows extends StatefulWidget {
   final String url;
   final bool? includeBackButton;
 
-  const WebViewWindows({
-    super.key,
-    required this.url,
-    this.includeBackButton = false,
-  });
+  const WebViewWindows(
+      {Key? key, required this.url, this.includeBackButton = false})
+      : super(key: key);
 
   @override
-  State<WebViewWindows> createState() => _WebViewWindowsState();
+  _WebViewWindowsState createState() => _WebViewWindowsState();
 }
 
 class _WebViewWindowsState extends State<WebViewWindows> {
@@ -43,9 +44,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
-    _clipboardPoller = Timer.periodic(const Duration(seconds: 2), (
-      timer,
-    ) async {
+    _clipboardPoller =
+        Timer.periodic(const Duration(seconds: 2), (timer) async {
       if (!mounted) {
         return;
       }
@@ -177,62 +177,64 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   Widget build(BuildContext context) {
     final includeBackButton = widget.includeBackButton ?? false;
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueCardColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              height: 70,
-              color: GeniusWalletColors.deepBlueCardColor,
-              padding: const EdgeInsets.only(left: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (includeBackButton)
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(
-                        Icons.cancel,
-                        size: 20,
-                        color: Colors.white,
+        backgroundColor: GeniusWalletColors.deepBlueCardColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                height: 70,
+                color: GeniusWalletColors.deepBlueCardColor,
+                padding: const EdgeInsets.only(left: GeniusWalletConsts.space4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (includeBackButton)
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Icon(Icons.cancel,
+                            size: 20, color: GeniusWalletColors.textPrimary),
                       ),
-                    ),
-                  Flexible(child: _buildSearchBar()),
-                ],
+                    Flexible(child: _buildSearchBar()),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 4),
+              const SizedBox(height: GeniusWalletConsts.space2),
 
-            // Webview or loader
-            Expanded(
-              child: _controller.value.isInitialized
-                  ? Container(
-                      decoration: const BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ],
+              // Webview or loader
+              Expanded(
+                child: _controller.value.isInitialized
+                    ? Container(
+                        decoration: const BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(child: Webview(_controller)),
+                      )
+                    : const Center(
+                        child: Loading(),
                       ),
-                      child: ClipRRect(child: Webview(_controller)),
-                    )
-                  : const Center(child: Loading()),
-            ),
-          ],
-        ),
-      ),
-    );
+              ),
+            ],
+          ),
+        ));
   }
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.only(left: 8, right: 16),
+      padding: const EdgeInsets.only(
+        left: GeniusWalletConsts.space4,
+        right: GeniusWalletConsts.space8,
+      ),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
+        gradient: GWDecorations.surfaceSheen,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -244,14 +246,14 @@ class _WebViewWindowsState extends State<WebViewWindows> {
             canGoForward() ? goForward : null,
           ),
           _buildIconButton(Icons.refresh, _controller.reload),
-          const SizedBox(width: 8),
+          const SizedBox(width: GeniusWalletConsts.space4),
           Expanded(
             child: TextField(
               controller: _urlController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: GeniusWalletColors.textPrimary),
               decoration: InputDecoration(
                 hintText: "Enter URL...",
-                hintStyle: const TextStyle(color: Colors.white70),
+                hintStyle: TextStyle(color: GeniusWalletColors.textPrimary70),
                 filled: true,
                 fillColor: GeniusWalletColors.deepBlueTertiary,
                 border: OutlineInputBorder(
@@ -274,8 +276,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       color: GeniusWalletColors.lightGreenPrimary,
       iconSize: 24,
       onPressed: onPressed,
-      hoverColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.3),
-      splashColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.5),
+      hoverColor: GeniusWalletColors.deepBlueCardColor.withAlpha(77),
+      splashColor: GeniusWalletColors.deepBlueCardColor.withAlpha(128),
     );
   }
 
@@ -295,14 +297,15 @@ class _WebViewWindowsState extends State<WebViewWindows> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16),
+                Padding(
+                  padding: const EdgeInsets.all(GeniusWalletConsts.space8),
                   child: Text(
                     "History",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    style: GeniusWalletTypography.titleLg
+                        .copyWith(color: GeniusWalletColors.textPrimary),
                   ),
                 ),
-                const Divider(color: Colors.white54),
+                Divider(color: GeniusWalletColors.textPrimary54),
                 Expanded(
                   child: ListView.builder(
                     itemCount: history.length,
@@ -316,7 +319,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                           style: TextStyle(
                             color: index == currentTabIndex
                                 ? GeniusWalletColors.lightGreenPrimary
-                                : Colors.white,
+                                : GeniusWalletColors.textPrimary,
                           ),
                         ),
                         onTap: () {

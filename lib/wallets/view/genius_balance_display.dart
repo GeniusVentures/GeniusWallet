@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:provider/provider.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class GeniusBalanceDisplay extends StatefulWidget {
   final bool useMinions;
@@ -10,13 +12,12 @@ class GeniusBalanceDisplay extends StatefulWidget {
   final bool? isShowSuffix;
   final Color? fontColor;
 
-  const GeniusBalanceDisplay({
-    super.key,
-    required this.useMinions,
-    this.fontSize,
-    this.isShowSuffix,
-    this.fontColor,
-  });
+  const GeniusBalanceDisplay(
+      {super.key,
+      required this.useMinions,
+      this.fontSize,
+      this.isShowSuffix,
+      this.fontColor});
 
   @override
   State<GeniusBalanceDisplay> createState() => _GeniusBalanceDisplayState();
@@ -50,14 +51,14 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
         : context.read<GeniusApi>().getSGNUSBalance();
     if (mounted) {
       setState(() => _balance = newBalance);
+      // debugPrint(
+      //     '🅱️ Fetched New ${widget.useMinions ? 'Minions' : 'Gnus'} Balance: $_balance');
     }
   }
 
   void _startPolling() {
-    _timer = Timer.periodic(
-      const Duration(seconds: 10),
-      (_) => _fetchBalance(),
-    );
+    _timer =
+        Timer.periodic(const Duration(seconds: 10), (_) => _fetchBalance());
   }
 
   @override
@@ -69,6 +70,9 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       mainAxisSize: MainAxisSize.min,
       children: [
         Flexible(
@@ -77,23 +81,23 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
             style: TextStyle(
               fontSize: widget.fontSize ?? 48,
               fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? Colors.white,
+              color: widget.fontColor ?? GeniusWalletColors.textPrimary,
             ),
             maxLines: 1,
           ),
         ),
         if (widget.isShowSuffix ?? false) ...[
-          const SizedBox(width: 4),
+          const SizedBox(width: GeniusWalletConsts.space2),
           AutoSizeText(
             widget.useMinions ? "min" : "gnus",
             maxLines: 1,
             style: TextStyle(
               fontSize: widget.fontSize ?? 16,
               fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? Colors.grey,
+              color: widget.fontColor ?? GeniusWalletColors.gray500,
             ),
-          ),
-        ],
+          )
+        ]
       ],
     );
   }
