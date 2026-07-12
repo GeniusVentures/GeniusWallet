@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/dev/mock_mode.dart';
@@ -10,9 +9,9 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:go_router/go_router.dart';
 
-class LandingScreen extends StatelessWidget {
-  final bool isIncludeBackButton;
-  const LandingScreen({super.key, required this.isIncludeBackButton});
+class WalletCreationScreen extends StatelessWidget {
+  final bool includeBackButton;
+  const WalletCreationScreen({super.key, required this.includeBackButton});
 
   static const double _maxButtonWidth = 450;
 
@@ -22,8 +21,8 @@ class LandingScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: GWMeshBackground(
         intensity: 0.7,
-        child: AppScreenView(
-        body: Padding(
+        child: SafeArea(
+        child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: GeniusWalletConsts.space20,
           ),
@@ -109,7 +108,7 @@ class LandingScreen extends StatelessWidget {
                             onPressed: () => context.push('/create_wallet'),
                           ),
                         ),
-                        if (isIncludeBackButton) ...[
+                        if (includeBackButton) ...[
                           const SizedBox(height: GeniusWalletConsts.space4),
                           GWButton(
                             label: 'Cancel',

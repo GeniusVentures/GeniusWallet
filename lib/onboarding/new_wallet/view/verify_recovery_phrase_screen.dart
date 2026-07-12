@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flow_builder/flow_builder.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,13 +7,10 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
-import 'package:genius_wallet/components/desktop_body_container.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:flutter/services.dart';
 
-import '../../../components/app_screen_view.dart';
 import '../../../components/registration_header.g.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {
@@ -30,14 +26,7 @@ class VerifyRecoveryPhraseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<NewWalletBloc, NewWalletState>(
       listener: (context, state) {
-        if (state.verificationStatus == VerificationStatus.passed) {
-          final newWalletBloc = context.read<NewWalletBloc>();
-          newWalletBloc.add(
-            AddWallet(wallet: newWalletBloc.wallet),
-          );
-
-          context.flow<NewWalletState>().complete();
-        } else if (state.verificationStatus == VerificationStatus.failed) {
+        if (state.verificationStatus == VerificationStatus.failed) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Verification failed. Please try again.')));
         }
@@ -141,32 +130,42 @@ class _VerifyRecoveryPhraseViewDesktopState
         }
         return KeyEventResult.ignored;
       },
-      child: AppScreenWithHeaderDesktop(
-        title: '',
-        subtitle: '',
-        body: Center(
-          child: DesktopBodyContainer(
-            title: widget.title,
-            subText: widget.subtitle,
-            width: 700,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: 700,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 700),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 50),
-                  _InputAndWords(key: _inputAndWordsKey),
-                  const SizedBox(height: 0),
+                  Text(
+                    widget.title,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(widget.subtitle),
+                  const SizedBox(height: 20),
                   SizedBox(
-                    height: 50,
-                    child: MaterialButton(
-                      onPressed: _triggerContinue,
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          return IsactiveTrue(constraints);
-                        },
-                      ),
+                    width: MediaQuery.of(context).size.width,
+                    height: 700,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 50),
+                        _InputAndWords(key: _inputAndWordsKey),
+                        const SizedBox(height: 0),
+                        SizedBox(
+                          height: 50,
+                          child: MaterialButton(
+                            onPressed: _triggerContinue,
+                            child: LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                return IsactiveTrue(constraints);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -711,45 +710,54 @@ class _VerifyRecoveryPhraseViewMobileState
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenView(
-      body: Column(
+    return SafeArea(
+      child: Column(
         children: [
-          // Fixed header - works well on mobile
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: 180,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return RegistrationHeader(
-                  constraints,
-                  ovrTitle: 'Verify Your Recovery Phrase',
-                  ovrSubtitle: 'Tap the words to put them next to each other in the correct order',
-                );
-              },
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Fixed header - works well on mobile
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 180,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return RegistrationHeader(
+                          constraints,
+                          ovrTitle: 'Verify Your Recovery Phrase',
+                          ovrSubtitle:
+                              'Tap the words to put them next to each other in the correct order',
+                        );
+                      },
+                    ),
+                  ),
+                  // Expanded middle section - takes remaining space
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: GeniusWalletConsts.space10),
+                    child: _InputAndWords(key: _inputAndWordsKey),
+                  ),
+                ],
+              ),
             ),
           ),
-          // Expanded middle section - takes remaining space
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space10),
-            child: _InputAndWords(key: _inputAndWordsKey),
+            padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space10),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 50,
+              child: MaterialButton(
+                onPressed: _triggerContinue,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return IsactiveTrue(constraints);
+                  },
+                ),
+              ),
+            ),
           ),
         ],
-      ),
-      footer: Padding(
-        padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space10),
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          height: 50,
-          child: MaterialButton(
-            onPressed: _triggerContinue,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return IsactiveTrue(constraints);
-              },
-            ),
-          ),
-        ),
       ),
     );
   }

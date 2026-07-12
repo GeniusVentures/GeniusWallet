@@ -63,7 +63,8 @@ class SDKAccountManagerButton extends StatelessWidget {
     await ResponsiveDrawer.show(
       context: context,
       title: 'SDK Accounts',
-      child: BlocBuilder<AppBloc, AppState>(
+      children: [
+        BlocBuilder<AppBloc, AppState>(
         builder: (context, state) {
           final accounts = state.sdkAccounts;
           final selected = state.selectedSDKAccount;
@@ -79,6 +80,7 @@ class SDKAccountManagerButton extends StatelessWidget {
           }
 
           return Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
@@ -94,23 +96,24 @@ class SDKAccountManagerButton extends StatelessWidget {
                   ),
                 ),
               ),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemBuilder: (context, i) => _buildAccountRow(
-                    context,
-                    accounts[i],
-                    isSelected: accounts[i] == selected,
-                  ),
-                  itemCount: accounts.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 6),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                itemBuilder: (context, i) => _buildAccountRow(
+                  context,
+                  accounts[i],
+                  isSelected: accounts[i] == selected,
                 ),
+                itemCount: accounts.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 6),
               ),
             ],
           );
         },
       ),
+      ],
       footer: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(

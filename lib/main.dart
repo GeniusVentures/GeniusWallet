@@ -7,7 +7,6 @@ import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/bloc/overlay/navigation_overlay_cubit.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/browser/services/browser_storage.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -138,7 +137,7 @@ Future<void> main() async {
       // SDK initialization moved to AppBloc to show splash screen during init
       // Dev mode bypasses still happen here for initial setup
       try {
-        if ((await secureStorage.getWallets().first).isEmpty) {
+        if ((await geniusApi.getWallets().first).isEmpty) {
           byPassSGNUSConnecton(geniusApi);
           byPassWalletCreation(secureStorage);
           addFakeSGNUSTransactions(geniusApi.getSGNUSTransactionsController());
@@ -305,9 +304,6 @@ class MyApp extends StatelessWidget {
                   Provider.of<NetworkProvider>(context, listen: false),
             ),
           ),
-          BlocProvider(
-            create: (context) => NavigationOverlayCubit(),
-          )
         ],
         // Rebuild AND remount the app when the appearance (dark/light) or the
         // display currency changes. The colour tokens are plain static getters

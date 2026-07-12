@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/app_screen_view.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -30,8 +29,8 @@ class _ViewState extends State<View> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
-          child: AppScreenView(
-            body: Padding(
+          child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: GeniusWalletConsts.space10),
               child: Column(

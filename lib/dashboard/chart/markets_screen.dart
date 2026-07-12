@@ -56,7 +56,7 @@ class MarketsScreen extends StatelessWidget {
                 const SizedBox(width: GeniusWalletConsts.space10),
                 IconButton(
                   tooltip: 'Search',
-                  icon: const Icon(FontAwesomeIcons.magnifyingGlass),
+                  icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
                   onPressed: () {
                     ResponsiveDrawer.show<void>(
                       context: context,

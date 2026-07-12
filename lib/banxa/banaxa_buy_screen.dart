@@ -10,7 +10,6 @@ import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_components/quote_card.dart';
 import 'package:genius_wallet/banxa/handle_banaxa_drawer.dart';
-import 'package:genius_wallet/components/custom_drop_down.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
@@ -122,14 +121,20 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                     child: ListView(
                       children: [
                         // FIAT Dropdown
-                       // FIAT Dropdown
-                        AppDropdown<FiatCurrency>(
-                          label: 'Fiat',
-                          items: state.fiats,
-                          selected: state.selectedFiat,
-                          display: (f) =>
-                              compact ? f.code : '${f.name} (${f.code})',
-                          onChanged:
+                        DropdownMenu<FiatCurrency>(
+                          key: ValueKey(state.selectedFiat),
+                          initialSelection: state.selectedFiat,
+                          label: Text('Fiat', style: labelStyle),
+                          expandedInsets: EdgeInsets.zero,
+                          dropdownMenuEntries: state.fiats.map((f) {
+                            return DropdownMenuEntry<FiatCurrency>(
+                              value: f,
+                              label: compact
+                                  ? f.code
+                                  : '${f.name} (${f.code})',
+                            );
+                          }).toList(),
+                          onSelected:
                               state.step == MakeOrderStep.loadingCurrencies
                                   ? null
                                   : (val) {
@@ -139,19 +144,27 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             .selectFiat(val);
                                       }
                                     },
-                          labelStyle: labelStyle,
-                          compact: compact,
                         ),
                         const SizedBox(height: GeniusWalletConsts.space6),
 
-// Crypto Dropdown
-                        AppDropdown<CryptoCurrency>(
-                          label: compact ? 'Crypto' : 'Crypto Currency',
-                          items: state.cryptos,
-                          selected: state.selectedCrypto,
-                          display: (c) =>
-                              compact ? c.code : '${c.name} (${c.code})',
-                          onChanged:
+                        // Crypto Dropdown
+                        DropdownMenu<CryptoCurrency>(
+                          key: ValueKey(state.selectedCrypto),
+                          initialSelection: state.selectedCrypto,
+                          label: Text(
+                            compact ? 'Crypto' : 'Crypto Currency',
+                            style: labelStyle,
+                          ),
+                          expandedInsets: EdgeInsets.zero,
+                          dropdownMenuEntries: state.cryptos.map((c) {
+                            return DropdownMenuEntry<CryptoCurrency>(
+                              value: c,
+                              label: compact
+                                  ? c.code
+                                  : '${c.name} (${c.code})',
+                            );
+                          }).toList(),
+                          onSelected:
                               state.step == MakeOrderStep.loadingCurrencies
                                   ? null
                                   : (val) {
@@ -161,19 +174,27 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             .selectCrypto(val);
                                       }
                                     },
-                          labelStyle: labelStyle,
-                          compact: compact,
                         ),
                         const SizedBox(height: GeniusWalletConsts.space6),
 
-// Payment Method Dropdown
-                        AppDropdown<PaymentMethod>(
-                          label: compact ? 'Method' : 'Payment Method',
-                          items: state.paymentMethods,
-                          selected: state.selectedPaymentMethod,
-                          display: (m) =>
-                              compact ? _shortMethodName(m.name) : m.name,
-                          onChanged:
+                        // Payment Method Dropdown
+                        DropdownMenu<PaymentMethod>(
+                          key: ValueKey(state.selectedPaymentMethod),
+                          initialSelection: state.selectedPaymentMethod,
+                          label: Text(
+                            compact ? 'Method' : 'Payment Method',
+                            style: labelStyle,
+                          ),
+                          expandedInsets: EdgeInsets.zero,
+                          dropdownMenuEntries: state.paymentMethods.map((m) {
+                            return DropdownMenuEntry<PaymentMethod>(
+                              value: m,
+                              label: compact
+                                  ? _shortMethodName(m.name)
+                                  : m.name,
+                            );
+                          }).toList(),
+                          onSelected:
                               state.step == MakeOrderStep.loadingCurrencies
                                   ? null
                                   : (val) {
@@ -183,8 +204,6 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             .selectPaymentMethod(val);
                                       }
                                     },
-                          labelStyle: labelStyle,
-                          compact: compact,
                         ),
                         const SizedBox(height: GeniusWalletConsts.space6),
 

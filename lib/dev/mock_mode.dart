@@ -28,9 +28,9 @@ class MockMode {
       force: true,
     );
 
-    // Refire SubscribeToWallets so AppBloc picks up the freshly-added wallet
+    // Refire LoadWallets so AppBloc picks up the freshly-added wallet
     // and wires WalletDetailsCubit + TransactionsCubit through `loadInitial`.
-    appBloc.add(SubscribeToWallets());
+    appBloc.add(LoadWallets());
 
     // Wait until the bloc has the wallet loaded — gives downstream cubits a
     // chance to settle before the dashboard tries to render against them.

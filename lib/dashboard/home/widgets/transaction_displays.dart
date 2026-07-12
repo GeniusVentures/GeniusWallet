@@ -171,8 +171,7 @@ class TransactionItem extends StatelessWidget {
     ResponsiveDrawer.show(
       context: context,
       title: label,
-      child: ListView(
-        children: [
+      children: [
           const SizedBox(height: 16),
           Center(
             child: _buildCoinIconWithBadge(
@@ -207,7 +206,6 @@ class TransactionItem extends StatelessWidget {
             _buildRow("Hash", WalletUtils.getAddressForDisplay(tx.hash)),
           ]),
         ],
-      ),
       footer: ElevatedButton.icon(
         onPressed: () {
           final url = getExplorerUrl(tx.coinSymbol, tx.hash);
@@ -324,8 +322,7 @@ class TransactionPurchasedItem extends StatelessWidget {
     ResponsiveDrawer.show(
       context: context,
       title: isFailed ? "Buy - Failed" : "Buy",
-      child: ListView(
-        children: [
+      children: [
           const SizedBox(height: 16),
           Center(
             child: _buildCoinIconWithBadge(
@@ -363,7 +360,6 @@ class TransactionPurchasedItem extends StatelessWidget {
             _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
           ]),
         ],
-      ),
     );
   }
 }
@@ -499,8 +495,7 @@ class TransactionSwappedItem extends StatelessWidget {
     ResponsiveDrawer.show(
       context: context,
       title: isFailed ? "Swap - Failed" : "Swap",
-      child: ListView(
-        children: [
+      children: [
           const SizedBox(height: 16),
           Center(
             child: Stack(
@@ -559,7 +554,6 @@ class TransactionSwappedItem extends StatelessWidget {
             _buildRow("Tx Hash", tx.hash),
           ]),
         ],
-      ),
     );
   }
 }

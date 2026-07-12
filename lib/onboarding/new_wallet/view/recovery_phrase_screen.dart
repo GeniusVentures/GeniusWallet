@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/components/app_screen_view.dart';
-import 'package:genius_wallet/components/app_screen_with_header_desktop.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -71,38 +69,39 @@ class _RecoveryPhraseViewDesktopState
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenWithHeaderDesktop(
-      title: '',
-      subtitle: '',
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Your Recovery Phrase',
-              style: TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: GeniusWalletConsts.space10),
-            Text(
-              'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.',
-              style: GeniusWalletTypography.bodyLg,
-            ),
-            const SizedBox(height: 60),
-            const _WordsGridWithCopyAndToggle(), // grid with recovery words
-            const SizedBox(height: 30),
-            SizedBox(
-              height: 50,
-              width: 640,
-              child: MaterialButton(
-                onPressed: _triggerContinue,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    return IsactiveTrue(constraints);
-                  },
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Your Recovery Phrase',
+                style: Theme.of(context).textTheme.headlineLarge,
+              ),
+              const SizedBox(height: GeniusWalletConsts.space10),
+              Text(
+                'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.',
+                style: GeniusWalletTypography.bodyLg,
+              ),
+              const SizedBox(height: 60),
+              const _WordsGridWithCopyAndToggle(), // grid with recovery words
+              const SizedBox(height: 30),
+              SizedBox(
+                height: 50,
+                width: 640,
+                child: MaterialButton(
+                  onPressed: _triggerContinue,
+                  child: LayoutBuilder(
+                    builder:
+                        (BuildContext context, BoxConstraints constraints) {
+                      return IsactiveTrue(constraints);
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -251,42 +250,55 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScreenView(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SafeArea(
+      child: Column(
         children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: 280,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return RegistrationHeader(
-                  constraints,
-                  ovrTitle: 'Your Recovery Phrase',
-                  ovrSubtitle: 'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.',
-                );
-              },
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 280,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return RegistrationHeader(
+                          constraints,
+                          ovrTitle: 'Your Recovery Phrase',
+                          ovrSubtitle:
+                              'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.',
+                        );
+                      },
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.only(top: 0),
+                    margin: const EdgeInsets.only(
+                        bottom: GeniusWalletConsts.space10),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: const _WordsAndCopy(),
+                  ),
+                ],
+              ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.only(top: 0),
-            margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space10),
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: const _WordsAndCopy(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 50),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * .8,
+              height: 50,
+              child: MaterialButton(
+                onPressed: () {
+                  context.read<NewWalletBloc>().add(RecoveryPhraseContinue());
+                },
+                child: LayoutBuilder(builder: (context, constraints) {
+                  return IsactiveTrue(constraints);
+                }),
+              ),
+            ),
           ),
         ],
-      ),
-      footer: SizedBox(
-        width: MediaQuery.of(context).size.width * .8,
-        height: 50,
-        child: MaterialButton(
-          onPressed: () {
-            context.read<NewWalletBloc>().add(RecoveryPhraseContinue());
-          },
-          child: LayoutBuilder(builder: (context, constraints) {
-            return IsactiveTrue(constraints);
-          }),
-        ),
       ),
     );
   }
