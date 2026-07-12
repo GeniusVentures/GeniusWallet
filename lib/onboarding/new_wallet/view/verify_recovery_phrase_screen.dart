@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 
 import '../../../components/app_screen_view.dart';
 import '../../../components/registration_header.g.dart';
-import '../../../theme/genius_wallet_text.dart';
 
 class VerifyRecoveryPhraseScreen extends StatelessWidget {
   static const title = 'Verify Your Recovery Phrase';
@@ -723,8 +722,8 @@ class _VerifyRecoveryPhraseViewMobileState
               builder: (context, constraints) {
                 return RegistrationHeader(
                   constraints,
-                  ovrTitle: GeniusWalletText.titleverifyRecovery,
-                  ovrSubtitle: GeniusWalletText.subtitleverifyRecovery,
+                  ovrTitle: 'Verify Your Recovery Phrase',
+                  ovrSubtitle: 'Tap the words to put them next to each other in the correct order',
                 );
               },
             ),

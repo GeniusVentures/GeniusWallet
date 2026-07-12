@@ -51,6 +51,9 @@ dependencies:
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
   rxdart: ^0.27.7
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+  mobile_scanner: ^5.2.3
 
 dev_dependencies:
   flutter_test:

@@ -14,7 +14,6 @@ import 'package:genius_wallet/onboarding/view/keystore_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/phrase_tab_view.dart';
 import 'package:genius_wallet/onboarding/view/private_key_tab_view.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 
@@ -230,7 +229,7 @@ class _ImportSecurityBody extends StatelessWidget {
             child: Text(
               'Name',
               style: TextStyle(
-                fontSize: GeniusWalletFontSize.medium,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),

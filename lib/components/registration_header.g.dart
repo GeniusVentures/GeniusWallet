@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/genius_back_button.g.dart';
@@ -71,10 +69,10 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                 child: SizedBox(
                     width: widget.constraints.maxWidth * 0.6053333333333333,
                     child: AutoSizeText(
-                      widget.ovrTitle ?? GeniusWalletText.titleWalletBackup,
+                      widget.ovrTitle ?? 'Wallet Backup',
                       maxLines: 1,
                       style: TextStyle(
-                        fontSize: GeniusWalletFontSize.title,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.13750000298023224,
                         color: GeniusWalletColors.textPrimary,

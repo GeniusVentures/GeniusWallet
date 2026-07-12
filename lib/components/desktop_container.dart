@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:go_router/go_router.dart';
 
 class DesktopContainer extends StatelessWidget {
@@ -90,7 +89,7 @@ class DesktopContainer extends StatelessWidget {
                           children: [
                             HeaderButton(
                               color: GeniusWalletColors.deepBlueTertiary,
-                              text: GeniusWalletText.btnSupport,
+                              text: 'Support',
                               textColor: GeniusWalletColors.lightGreenPrimary,
                               icon: Icons.question_mark_outlined,
                               isAddBorder: true,

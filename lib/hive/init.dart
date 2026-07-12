@@ -4,7 +4,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/hive/models/historical_price_cache_entry.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 /// Hive is used to cache api responses / online and offline
 Future<void> initHive() async {

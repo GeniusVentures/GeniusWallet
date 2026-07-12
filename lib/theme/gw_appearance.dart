@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 enum GWAppearanceMode { dark, light }
 

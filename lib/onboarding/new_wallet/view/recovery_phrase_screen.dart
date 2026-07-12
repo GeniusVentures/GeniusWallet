@@ -9,8 +9,6 @@ import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/recovery_words.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.g.dart';
 import 'package:genius_wallet/components/registration_header.g.dart';
@@ -81,12 +79,12 @@ class _RecoveryPhraseViewDesktopState
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              GeniusWalletText.titleRecovery,
+              'Your Recovery Phrase',
               style: TextStyle(fontSize: 48, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: GeniusWalletConsts.space10),
             Text(
-              GeniusWalletText.helpRecoveryPhrase,
+              'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.',
               style: GeniusWalletTypography.bodyLg,
             ),
             const SizedBox(height: 60),
@@ -264,8 +262,8 @@ class _RecoveryPhraseViewMobile extends StatelessWidget {
               builder: (context, constraints) {
                 return RegistrationHeader(
                   constraints,
-                  ovrTitle: GeniusWalletText.titleRecovery,
-                  ovrSubtitle: GeniusWalletText.helpRecoveryPhrase,
+                  ovrTitle: 'Your Recovery Phrase',
+                  ovrSubtitle: 'Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.',
                 );
               },
             ),
@@ -339,11 +337,11 @@ class _WordsAndCopyState extends State<_WordsAndCopy> {
           ),
           icon: Icon(Icons.content_copy,
               color: GeniusWalletColors.textPrimary,
-              size: GeniusWalletFontSize.base),
+              size: 14),
           label: Text(
-            ' ${GeniusWalletText.btnCopy}',
+            ' ${'Copy'}',
             style: TextStyle(
-                fontSize: GeniusWalletFontSize.medium,
+                fontSize: 16,
                 color: GeniusWalletColors.textPrimary),
           ),
         ),

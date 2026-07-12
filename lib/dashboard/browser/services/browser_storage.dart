@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 /// Hive-backed browser persistence: recently visited URLs (capped) and a
 /// user-curated favorites list of name+url pairs. A [ChangeNotifier] so the

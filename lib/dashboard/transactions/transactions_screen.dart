@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/dashboard/transactions/transactions_scren.dart';
+import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';

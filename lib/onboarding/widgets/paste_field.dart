@@ -4,7 +4,6 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
-import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
 class PasteField extends StatelessWidget {
@@ -59,7 +58,7 @@ class PasteField extends StatelessWidget {
                 bottom: GeniusWalletConsts.space4,
                 right: GeniusWalletConsts.space4,
                 child: GWButton(
-                  label: GeniusWalletText.btnPaste,
+                  label: 'Paste',
                   leading: const Icon(Icons.content_copy),
                   variant: GWButtonVariant.secondary,
                   size: GWButtonSize.sm,

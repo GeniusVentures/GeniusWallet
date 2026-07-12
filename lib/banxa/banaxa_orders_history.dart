@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/banxa/banaxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_card.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_filter.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
