@@ -3,17 +3,21 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_gnus_button.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/overlay/gw_bottom_nav.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
+import 'package:genius_wallet/preferences/preferences_button.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -22,12 +26,14 @@ class _TabDestination {
   final String path;
   final String label;
   final IconData icon;
+  final IconData activeIcon;
   final bool visible;
 
   const _TabDestination({
     required this.path,
     required this.label,
     required this.icon,
+    required this.activeIcon,
     this.visible = true,
   });
 }
@@ -36,43 +42,51 @@ final List<_TabDestination> _allDestinations = [
   const _TabDestination(
     path: '/dashboard',
     label: 'Dashboard',
-    icon: Icons.dashboard,
+    icon: Icons.home_outlined,
+    activeIcon: Icons.home_rounded,
   ),
-  _TabDestination(
+  const _TabDestination(
     path: '/transactions',
     label: 'Transactions',
-    icon: FontAwesomeIcons.clock.data,
+    icon: Icons.receipt_long_outlined,
+    activeIcon: Icons.receipt_long_rounded,
   ),
   const _TabDestination(
     path: '/swap',
     label: 'Swap',
     icon: Icons.swap_horiz_outlined,
+    activeIcon: Icons.swap_horiz_rounded,
   ),
   const _TabDestination(
     path: '/markets',
     label: 'Markets',
-    icon: Icons.stacked_line_chart,
+    icon: Icons.stacked_line_chart_rounded,
+    activeIcon: Icons.stacked_line_chart_rounded,
   ),
   const _TabDestination(
     path: '/news',
     label: 'News',
-    icon: Icons.library_books,
+    icon: Icons.library_books_outlined,
+    activeIcon: Icons.library_books,
   ),
   _TabDestination(
-    path: '/web',
+    path: '/browser',
     label: 'Web',
-    icon: FontAwesomeIcons.globe.data,
+    icon: Icons.explore_outlined,
+    activeIcon: Icons.explore_rounded,
     visible: !Platform.isLinux,
   ),
   const _TabDestination(
     path: '/logs',
     label: 'Feedback',
     icon: Icons.feedback_outlined,
+    activeIcon: Icons.feedback_rounded,
   ),
   const _TabDestination(
     path: '/settings',
     label: 'Settings',
-    icon: Icons.settings,
+    icon: Icons.settings_outlined,
+    activeIcon: Icons.settings,
   ),
 ];
 
@@ -92,6 +106,7 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
   final walletDetailsCubit = context.read<WalletDetailsCubit>();
   return [
     if (kDebugMode) const DevToolsWidget(),
+    const PreferencesButton(),
     const NetworkDropdownSelector(),
     const SDKAccountManagerButton(),
     AccountDropdownSelector(),
@@ -105,31 +120,6 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
 }
 
 const _kIconSize = 16.0;
-
-class _MobileTabBar extends StatelessWidget {
-  const _MobileTabBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final destinations = _visibleDestinations;
-    final selected = _currentIndex(context);
-
-    return BottomNavigationBar(
-      currentIndex: selected,
-      onTap: (index) => context.go(destinations[index].path),
-      items: destinations
-          .map(
-            (d) => BottomNavigationBarItem(
-              icon: Icon(d.icon),
-              activeIcon: Icon(d.icon),
-              label: d.label,
-              tooltip: d.label,
-            ),
-          )
-          .toList(),
-    );
-  }
-}
 
 class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
   const _DesktopTopBar();
@@ -149,7 +139,9 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
       child: SizedBox(
         height: GeniusWalletConsts.appBarHeight,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -160,13 +152,14 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                     'assets/images/geniusappbarlogo.png',
                     height: 30,
                     package: 'genius_wallet',
+                    semanticLabel: 'Genius Wallet logo',
                   ),
                   ...destinations.indexed.map((entry) {
                     final (index, dest) = entry;
                     final isSelected = index == selected;
                     final color = isSelected
-                        ? Colors.greenAccent
-                        : Colors.white.withValues(alpha: 0.6);
+                        ? GeniusWalletColors.brandGreen
+                        : GeniusWalletColors.textPrimary60;
 
                     final tabButton = Material(
                       color: Colors.transparent,
@@ -178,8 +171,8 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                         mouseCursor: SystemMouseCursors.click,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 6.0,
-                            horizontal: 12.0,
+                            vertical: GeniusWalletConsts.space6 / 2,
+                            horizontal: GeniusWalletConsts.space6,
                           ),
                           child: Ink(
                             child: Column(
@@ -190,17 +183,15 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                   spacing: 6,
                                   children: [
                                     Icon(
-                                      dest.icon,
+                                      isSelected ? dest.activeIcon : dest.icon,
                                       size: _kIconSize,
                                       color: color,
                                     ),
                                     if (!hideLabels) ...[
                                       Text(
                                         dest.label,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: color,
-                                        ),
+                                        style: GeniusWalletTypography.bodyMd
+                                            .copyWith(color: color),
                                       ),
                                     ],
                                   ],
@@ -211,7 +202,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                   width: hideLabels ? 20 : 60,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.greenAccent
+                                        ? GeniusWalletColors.brandGreen
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -232,14 +223,14 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
               Row(
                 children: [
                   ..._buildActionRowWidgets(context),
-                  ElevatedButton(
-                    child: const Text(
-                      "Buy GNUS",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    onPressed: () async {
-                      context.push('/buy');
-                    },
+                  BuyGnusButton(
+                    userEmail: '',
+                    walletAddress: context
+                            .read<WalletDetailsCubit>()
+                            .state
+                            .selectedWallet
+                            ?.address ??
+                        '',
                   ),
                 ],
               ),
@@ -257,9 +248,11 @@ class MobileOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final destinations = _visibleDestinations;
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
         return Scaffold(
+          backgroundColor: GeniusWalletColors.surfaceBase,
           appBar: AppBar(
             title: const Text("Genius Wallet"),
             actions: [
@@ -271,8 +264,18 @@ class MobileOverlay extends StatelessWidget {
               ),
             ],
           ),
-          body: child,
-          bottomNavigationBar: const _MobileTabBar(),
+          body: GWCanvasBackground(child: child),
+          bottomNavigationBar: GWBottomNav(
+            destinations: destinations
+                .map((d) => GWNavDestination(
+                      path: d.path,
+                      label: d.label,
+                      icon: d.icon,
+                      activeIcon: d.activeIcon,
+                    ))
+                .toList(),
+            selectedIndex: _currentIndex(context),
+          ),
         );
       },
     );
@@ -286,12 +289,14 @@ class DesktopOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      backgroundColor: GeniusWalletColors.surfaceBase,
       appBar: const _DesktopTopBar(),
-      body: BlocBuilder<AppBloc, AppState>(
-        builder: (context, state) {
-          return child;
-        },
+      body: GWCanvasBackground(
+        child: BlocBuilder<AppBloc, AppState>(
+          builder: (context, state) {
+            return child;
+          },
+        ),
       ),
     );
   }
