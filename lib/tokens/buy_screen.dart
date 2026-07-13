@@ -308,7 +308,7 @@ class _BuyScreenState extends State<BuyScreen> {
           expand: true,
           onPressed: () {
             // WIRE-5 (see WIRING.md): this is a DEMO — it does NOT buy. Hand off
-            // to the existing Banxa checkout (lib/banxa/banaxa_buy_screen.dart /
+            // to the existing Banxa checkout (lib/screens/banxa_buy_screen.dart /
             // the /buy route + checkoutUrl WebView), passing `coin`, the parsed
             // amount and GWCurrency.code as the fiat. Also swap the token picker
             // to the on-ramp's purchasable-token catalogue.
