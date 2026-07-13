@@ -11,9 +11,11 @@ import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/banxa/banxa_components/quote_card.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 class BanxaBuyScreen extends StatefulWidget {
@@ -66,7 +68,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             showAppSnackBar(
               context,
               state.errorMessage,
-              backgroundColor: Colors.red,
+              backgroundColor: GeniusWalletColors.statusError,
             );
 
             context.read<MakeOrderCubit>().clearError();
@@ -234,32 +236,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               ],
                             ),
                             if (state.hasQuote)
-                              Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}',
-                                      ),
-                                      Wrap(
-                                        spacing: 12,
-                                        runSpacing: 4,
-                                        children: [
-                                          Text(
-                                            'Gateway: ${state.quote!.processingFee} ${state.fiatCode}',
-                                          ),
-                                          Text(
-                                            'Network: ${state.quote!.networkFee} ${state.fiatCode}',
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              QuoteCard(state: state, compact: false),
                             TextField(
                               controller: _walletController,
                               onChanged: (v) => context
@@ -281,7 +258,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
                                             "Banxa's Terms of Use and Privacy & Cookies Policy.",
                                         confirmText: "Continue",
-                                        activeColor: Colors.blue,
+                                        activeColor:
+                                            GeniusWalletColors.brandPrimary,
                                       );
 
                                       if (!accepted) {
@@ -309,21 +287,20 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                     }
                                   : null,
                               borderRadius: BorderRadius.circular(
-                                GeniusWalletConsts.borderRadiusButton,
+                                GeniusWalletConsts.radiusMd,
                               ),
                               child: Ink(
                                 decoration: BoxDecoration(
                                   gradient: state.canCreateOrder
-                                      ? GeniusWalletGradient
-                                            .greenBlueGreenGradient
-                                      : LinearGradient(
+                                      ? GeniusWalletGradient.brandCta
+                                      : const LinearGradient(
                                           colors: [
-                                            Colors.grey.shade500,
-                                            Colors.grey.shade600,
+                                            GeniusWalletColors.textSecondary,
+                                            GeniusWalletColors.textDisabled,
                                           ],
                                         ),
                                   borderRadius: BorderRadius.circular(
-                                    GeniusWalletConsts.borderRadiusButton,
+                                    GeniusWalletConsts.radiusMd,
                                   ),
                                 ),
                                 child: Container(
@@ -331,13 +308,14 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                   alignment: Alignment.center,
                                   child: Text(
                                     'Create Order',
-                                    style: TextStyle(
-                                      color: state.canCreateOrder
-                                          ? GeniusWalletColors.deepBlue
-                                          : Colors.black.withValues(alpha: 0.4),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
+                                    style: GeniusWalletTypography.titleMd
+                                        .copyWith(
+                                          color: state.canCreateOrder
+                                              ? GeniusWalletColors.textOnBrand
+                                              : GeniusWalletColors.textOnBrand
+                                                    .withAlpha(102),
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
                                 ),
                               ),
@@ -349,7 +327,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                   ),
                 if (state.showOverlay || isBootLoading)
                   Container(
-                    color: Colors.black45,
+                    color: GeniusWalletColors.surfaceOverlay,
                     child: Center(child: Loading(text: state.loadingMessage)),
                   ),
               ],
