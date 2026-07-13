@@ -15,6 +15,7 @@ import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
+import 'package:genius_wallet/dashboard/browser/view/browser_screen.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
@@ -222,6 +223,11 @@ final geniusWalletRouter = GoRouter(
                 includeBackButton: extras.includeBackButton,
               );
             }),
+          ),
+        if (!Platform.isLinux)
+          GoRoute(
+            path: '/browser',
+            builder: (_, _) => const BrowserScreen(),
           ),
         GoRoute(path: '/markets', builder: (_, _) => const MarketsScreen()),
         GoRoute(path: '/news', builder: (_, _) => const CryptoNewsScreen()),
