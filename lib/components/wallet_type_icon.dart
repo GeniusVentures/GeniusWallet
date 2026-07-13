@@ -14,23 +14,23 @@ class WalletTypeIcon extends StatelessWidget {
         return const SizedBox();
       }
       if (walletType == WalletType.mnemonic) {
-        return const Icon(
+        return Icon(
           semanticLabel: 'account',
-          FontAwesomeIcons.user,
+          FontAwesomeIcons.user.data,
           size: 20,
         );
       }
 
       if (walletType == WalletType.tracking) {
-        return const Icon(
+        return Icon(
           semanticLabel: 'watching',
-          FontAwesomeIcons.eye,
+          FontAwesomeIcons.eye.data,
           size: 20,
         );
       }
-      return const Icon(
+      return Icon(
         semanticLabel: 'wallet',
-        FontAwesomeIcons.wallet,
+        FontAwesomeIcons.wallet.data,
         size: 20,
       );
     }();
