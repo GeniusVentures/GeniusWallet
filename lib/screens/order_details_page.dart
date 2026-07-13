@@ -6,6 +6,8 @@ import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:go_router/go_router.dart';
 
 class OrderDetailsPage extends StatefulWidget {
@@ -71,8 +73,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: GeniusWalletColors.statusWarning,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+          ),
         ),
         child: const Text('Complete Payment'),
       );
@@ -91,9 +95,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           );
         },
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red,
-          side: const BorderSide(color: Colors.red),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          foregroundColor: GeniusWalletColors.statusError,
+          side: const BorderSide(color: GeniusWalletColors.statusError),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+          ),
         ),
         child: const Text('Retry Order'),
       );
@@ -113,6 +119,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ? null
             : IconButton(
                 icon: const Icon(Icons.arrow_back),
+                tooltip: 'Back',
                 onPressed: () {
                   context.go('/buy');
                 },
