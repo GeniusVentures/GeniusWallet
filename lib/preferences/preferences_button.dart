@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
-import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/preferences/gw_currency.dart';
-import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:provider/provider.dart';
 
 /// Top-bar entry point for app preferences.
 ///
-/// Network selection moved here from the top bar. Appearance toggles the
-/// dark (black) / light (white) canvas. The Currency row is a static
-/// placeholder for now (see HANDOFF.md §6).
+/// Appearance toggles the dark (black) / light (white) canvas. The Currency
+/// row changes the displayed symbol only — FX conversion is unwired (WIRE-7).
 class PreferencesButton extends StatelessWidget {
   const PreferencesButton({super.key});
 
@@ -62,46 +57,10 @@ class _PreferencesSheet extends StatefulWidget {
 class _PreferencesSheetState extends State<_PreferencesSheet> {
   @override
   Widget build(BuildContext context) {
-    final networks = context.watch<NetworkProvider>().networks;
-    final current = networks.isEmpty
-        ? null
-        : resolveSelectedNetwork(
-            networks,
-            fallback: context.read<WalletDetailsCubit>().state.selectedNetwork,
-          );
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _PrefRow(
-          leading: current?.iconPath != null && current!.iconPath!.isNotEmpty
-              ? Image.asset(
-                  current.iconPath!,
-                  width: 22,
-                  height: 22,
-                  semanticLabel: current.name,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.hub_outlined,
-                    size: 20,
-                    color: GeniusWalletColors.textSecondary,
-                  ),
-                )
-              : const Icon(
-                  Icons.hub_outlined,
-                  size: 20,
-                  color: GeniusWalletColors.textSecondary,
-                ),
-          title: 'Network',
-          value: current?.name ?? 'Unavailable',
-          showChevron: networks.isNotEmpty,
-          onTap: networks.isEmpty
-              ? null
-              : () async {
-                  final picked = await showNetworkPicker(context);
-                  if (picked != null && mounted) setState(() {});
-                },
-        ),
         _PrefRow(
           leading: const Icon(
             Icons.payments_outlined,
