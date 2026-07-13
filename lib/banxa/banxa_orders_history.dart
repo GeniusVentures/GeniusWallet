@@ -195,17 +195,17 @@ class _OrdersPageState extends State<OrdersPage> {
                       "Total Orders: ${orders.length}",
                       style: GeniusWalletTypography.titleMd,
                     ),
-                    orders.isEmpty
-                        ? GWEmptyState(
-                            icon: Icons.receipt_long_rounded,
-                            title: 'No orders yet',
-                            message:
-                                "You haven't created any Banxa orders. Start a buy to see it here.",
-                            actionLabel: 'New Order',
-                            onAction: () => context.push('/createOrder'),
-                          )
-                        : Expanded(
-                            child: LayoutBuilder(
+                    Expanded(
+                      child: orders.isEmpty
+                          ? GWEmptyState(
+                              icon: Icons.receipt_long_rounded,
+                              title: 'No orders yet',
+                              message:
+                                  "You haven't created any Banxa orders. Start a buy to see it here.",
+                              actionLabel: 'New Order',
+                              onAction: () => context.push('/createOrder'),
+                            )
+                          : LayoutBuilder(
                               builder: (context, constraints) {
                                 final crossAxisCount = max(
                                   (constraints.maxWidth / (294.0)).floor(),
@@ -235,7 +235,7 @@ class _OrdersPageState extends State<OrdersPage> {
                                 );
                               },
                             ),
-                          ),
+                    ),
                   ],
                 ),
               ),

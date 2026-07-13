@@ -25,8 +25,10 @@ class GWNavDestination {
 /// Visuals are the redesign's `GWBottomNav` (surface sheen, subtle top border,
 /// cyan `brandPrimary` on the selected item). The layout is a themed
 /// [BottomNavigationBar] rather than the redesign's Row-of-Expanded tiles: the
-/// redesign shipped 4 destinations, develop's shell has 8, and 8 labelled
-/// Expanded tiles do not fit.
+/// redesign shipped 4 destinations, develop's shell has 8. Tiles stay at
+/// fixed positions ([BottomNavigationBarType.fixed]) but only the selected
+/// item shows its label — 8 simultaneous labels don't fit on a phone-width
+/// screen.
 class GWBottomNav extends StatelessWidget {
   const GWBottomNav({
     super.key,
@@ -52,6 +54,7 @@ class GWBottomNav extends StatelessWidget {
           currentIndex: selectedIndex,
           onTap: (index) => context.go(destinations[index].path),
           type: BottomNavigationBarType.fixed,
+          showUnselectedLabels: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
           iconSize: 22,

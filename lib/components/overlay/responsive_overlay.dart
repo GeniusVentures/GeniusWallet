@@ -99,6 +99,13 @@ int _currentIndex(BuildContext context) {
   for (var i = 0; i < visible.length; i++) {
     if (location.startsWith(visible[i].path)) return i;
   }
+  // '/web' is the WebView renderer pushed *by* the '/browser' tab (the dApp
+  // launcher) — it has no destination of its own, so alias it to '/browser'
+  // so the nav doesn't fall through to Dashboard while a web page is open.
+  if (location.startsWith('/web')) {
+    final browserIndex = visible.indexWhere((d) => d.path == '/browser');
+    if (browserIndex != -1) return browserIndex;
+  }
   return 0;
 }
 

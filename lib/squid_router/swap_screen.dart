@@ -16,7 +16,6 @@ import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
@@ -166,8 +165,7 @@ class _SwapScreenState extends State<SwapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GWCanvasBackground(
-        child: Scaffold(
+    return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocListener<WalletDetailsCubit, WalletDetailsState>(
         // If wallet or network changes
@@ -194,7 +192,7 @@ class _SwapScreenState extends State<SwapScreen> {
         },
         child: _buildSwapContent(context),
       ),
-    ));
+    );
   }
 
   Widget _buildSwapContent(BuildContext context) {
