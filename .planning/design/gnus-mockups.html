@@ -1,0 +1,499 @@
+<title>GNUS Wallet — UI Redesign Mockups</title>
+<style>
+  :root{
+    --cyan:#14C8FF; --cyan-strong:#0AAEE6; --mint:#2BF5B4; --mint-strong:#0AD89C;
+    --mint-bright:#5BFFD0; --purple:#C28FFF; --on-brand:#000B18;
+    --grad: linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+    --err:#FF4D4D; --ok:#0AD89C; --warn:#FFC42E;
+    --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --stage:#0a0b0e; --stage-panel:#111318; --stage-line:rgba(255,255,255,.09); --stage-ink:#e8eaee; --stage-mut:#8a8f9d;
+    --canvas-top:#14171E; --canvas-mid:#0B0D12; --canvas-bot:#07090D;
+    --surface:#0C0E14; --sheen-top:#181B24; --menu:#171A21; --sunken:#06080C;
+    --ink:#ffffff; --mut:#8A8F9D; --ink-38:rgba(255,255,255,.38); --ink-54:rgba(255,255,255,.54);
+    --ink-70:rgba(255,255,255,.70); --ink-80:rgba(255,255,255,.80);
+    --hair:rgba(255,255,255,.12); --hair-2:rgba(255,255,255,.24);
+    --toplite:rgba(255,255,255,.10); --grain:.05;
+  }
+  /* light overrides — via toggle (data-theme) and OS preference */
+  :root[data-theme="light"]{
+    --stage:#e9ebef; --stage-panel:#ffffff; --stage-line:rgba(16,19,26,.10); --stage-ink:#10131a; --stage-mut:#5b606b;
+    --canvas-top:#E3E6EB; --canvas-mid:#DCE0E6; --canvas-bot:#D3D7DE;
+    --surface:#FFFFFF; --sheen-top:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+    --ink:#10131A; --mut:#8A8F9D; --ink-38:rgba(16,19,26,.38); --ink-54:rgba(16,19,26,.54);
+    --ink-70:rgba(16,19,26,.70); --ink-80:rgba(16,19,26,.80);
+    --hair:rgba(16,19,26,.12); --hair-2:rgba(16,19,26,.24);
+    --toplite:rgba(255,255,255,0); --grain:0;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --stage:#e9ebef; --stage-panel:#ffffff; --stage-line:rgba(16,19,26,.10); --stage-ink:#10131a; --stage-mut:#5b606b;
+      --canvas-top:#E3E6EB; --canvas-mid:#DCE0E6; --canvas-bot:#D3D7DE;
+      --surface:#FFFFFF; --sheen-top:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+      --ink:#10131A; --mut:#8A8F9D; --ink-38:rgba(16,19,26,.38); --ink-54:rgba(16,19,26,.54);
+      --ink-70:rgba(16,19,26,.70); --ink-80:rgba(16,19,26,.80);
+      --hair:rgba(16,19,26,.12); --hair-2:rgba(16,19,26,.24);
+      --toplite:rgba(255,255,255,0); --grain:0;
+    }
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0}
+  .wrap{font-family:var(--font); background:var(--stage); color:var(--stage-ink);
+    min-height:100vh; padding:40px 24px 72px; -webkit-font-smoothing:antialiased;}
+  .head{max-width:1240px; margin:0 auto 28px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:20px 32px;}
+  .head h1{font-size:clamp(22px,3.4vw,34px); font-weight:700; letter-spacing:-.5px; margin:0; text-wrap:balance;}
+  .head p{margin:6px 0 0; color:var(--stage-mut); font-size:14px; max-width:56ch; line-height:1.5;}
+  .head .spacer{flex:1 1 120px}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .chip{font-size:11.5px; letter-spacing:.3px; color:var(--stage-mut); border:1px solid var(--stage-line);
+    padding:5px 10px; border-radius:999px; background:var(--stage-panel); white-space:nowrap}
+  .chip b{color:var(--stage-ink); font-weight:600}
+  .toggle{display:inline-flex; border:1px solid var(--stage-line); border-radius:999px; overflow:hidden; background:var(--stage-panel)}
+  .toggle button{font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:.2px; padding:8px 16px; border:0;
+    background:transparent; color:var(--stage-mut); cursor:pointer}
+  .toggle button[aria-pressed="true"]{background:var(--grad); color:#001018}
+  .toggle button:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+
+  .rail{max-width:1240px; margin:0 auto; display:flex; flex-wrap:wrap; gap:34px 26px; justify-content:center}
+  .slot{display:flex; flex-direction:column; align-items:center; gap:12px}
+  .slot .cap{text-align:center}
+  .slot .cap .t{font-size:14px; font-weight:600; letter-spacing:.2px}
+  .slot .cap .r{font-size:11.5px; color:var(--stage-mut); font-family:var(--font); margin-top:2px}
+
+  .phone{width:300px; height:632px; border-radius:44px; padding:9px;
+    background:linear-gradient(160deg,#2b2e36,#0d0f14);
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.04);}
+  :root[data-theme="light"] .phone{background:linear-gradient(160deg,#c9ccd3,#8b8f98)}
+  .screen{position:relative; width:100%; height:100%; border-radius:36px; overflow:hidden;
+    background:linear-gradient(180deg,var(--canvas-top),var(--canvas-mid) 42%,var(--canvas-bot));
+    color:var(--ink); font-size:13px; line-height:1.35; isolation:isolate;}
+  .screen::before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background:radial-gradient(120% 60% at 50% -8%, var(--toplite), transparent 60%);}
+  .screen::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:var(--grain);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .sb{position:relative; z-index:2; display:flex; justify-content:space-between; align-items:center;
+    padding:14px 20px 4px; font-size:12px; font-weight:600; letter-spacing:.3px;}
+  .sb .dots{display:flex; gap:4px; align-items:center; color:var(--ink)}
+  .notch{position:absolute; top:12px; left:50%; transform:translateX(-50%); width:88px; height:24px;
+    background:#000; border-radius:999px; z-index:3}
+  :root[data-theme="light"] .notch{background:#0a0a0a}
+  .view{position:relative; z-index:2; height:calc(100% - 34px); overflow:hidden; padding:0 0 4px}
+
+  .card{background:linear-gradient(180deg,var(--sheen-top),var(--surface)); border:1px solid var(--hair);
+    border-radius:15px; box-shadow:0 4px 16px rgba(0,0,0,.35);}
+  :root[data-theme="light"] .card{box-shadow:0 6px 18px rgba(16,19,26,.08)}
+  .lbl{font-size:11px; font-weight:500; letter-spacing:.4px; color:var(--mut)}
+  .mut{color:var(--mut)}
+  .num{font-variant-numeric:tabular-nums}
+  .cta{height:38px; border-radius:12px; background:var(--grad); color:var(--on-brand);
+    font-weight:600; font-size:13.5px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 18px -6px rgba(10,174,230,.6);}
+  .row{display:flex; align-items:center}
+  .ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .appbar{position:relative; z-index:2; display:flex; align-items:center; gap:10px; padding:6px 16px 8px}
+  .appbar .bk{width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .appbar .ttl{font-size:17px; font-weight:600; letter-spacing:-.2px}
+  .scr-pad{padding:4px 16px 16px}
+
+  .topbar{display:flex; align-items:center; gap:10px; padding:2px 16px 6px}
+  .pill48{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+    background:var(--surface); border:1px solid var(--hair); color:var(--ink)}
+  .acct{flex:1; text-align:center; font-size:13px; font-weight:600; color:var(--ink); display:flex; gap:6px; align-items:center; justify-content:center}
+  .acct .dot{width:16px;height:16px;border-radius:999px;background:var(--grad)}
+  .connect{color:var(--cyan)}
+  .hero{position:relative; text-align:center; padding:18px 12px 14px}
+  .hero .glow{position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); width:210px; height:70px;
+    background:radial-gradient(60% 90% at 30% 50%, rgba(20,200,255,.28), transparent 70%),
+               radial-gradient(60% 90% at 70% 50%, rgba(43,245,180,.26), transparent 70%);
+    filter:blur(6px); z-index:0}
+  .hero .bal{position:relative; z-index:1; font-size:44px; font-weight:700; letter-spacing:-1.5px; font-variant-numeric:tabular-nums}
+  .hero .delta{position:relative; z-index:1; margin-top:6px; font-size:12.5px; font-weight:600; color:var(--mint-strong); display:inline-flex; gap:6px; align-items:center}
+  .hero .delta .mut{color:var(--mut); font-weight:500}
+  .actions{display:flex; justify-content:space-between; padding:6px 18px 12px}
+  .act{display:flex; flex-direction:column; align-items:center; gap:6px; width:58px}
+  .act .c{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,var(--sheen-top),var(--surface)); border:1px solid var(--hair); color:var(--cyan); box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  .act.buy .c{background:var(--grad); color:var(--on-brand); border:0; box-shadow:0 4px 14px rgba(0,0,0,.3), 0 0 16px rgba(20,200,255,.35)}
+  .act .cap2{font-size:11.5px; color:var(--mut)}
+  .segwrap{padding:8px 16px 8px}
+  .seg{height:42px; border-radius:999px; background:var(--sunken); border:1px solid var(--hair);
+    display:flex; padding:3px; gap:0}
+  .seg .s{flex:1; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:500; color:var(--mut)}
+  .seg .s.on{background:linear-gradient(180deg,var(--sheen-top),var(--surface)); border:1px solid var(--hair); color:var(--ink); font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,.3)}
+  .search{margin:0 16px 10px; height:38px; border-radius:12px; background:var(--surface); border:1px solid var(--hair);
+    display:flex; align-items:center; gap:8px; padding:0 12px; color:var(--mut); font-size:12.5px; box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .assets{margin:0 16px; padding:4px 0; border-radius:16px}
+  .coin{display:flex; align-items:center; gap:12px; padding:9px 12px}
+  .coin+.coin{border-top:1px solid var(--hair)}
+  .coin .av{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#001018}
+  .coin .nm{flex:1}
+  .coin .nm .a{font-size:14px;font-weight:500}
+  .coin .nm .b{font-size:12px;color:var(--mut)}
+  .coin .amt{font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:500}
+  .fabL,.fabR{position:absolute; bottom:66px; width:52px; height:52px; border-radius:999px; z-index:5;
+    display:flex; align-items:center; justify-content:center}
+  .fabR{right:16px; background:var(--grad); color:var(--on-brand);
+    box-shadow:0 8px 20px -6px rgba(10,174,230,.6), 0 0 18px rgba(43,245,180,.35)}
+  .fabL{left:16px; background:radial-gradient(circle at 50% 40%, #2a1840, #1a1030); border:1px solid rgba(194,143,255,.45); color:var(--purple)}
+  .fabL .ring{position:absolute; inset:-3px; border-radius:999px; background:conic-gradient(var(--purple) 63%, transparent 0)}
+  .fabL .in{position:absolute; inset:3px; border-radius:999px; background:radial-gradient(circle at 50% 40%, #241536, #140c24); display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff}
+  .fabL .pct{font-size:10px; font-weight:700; letter-spacing:-.3px}
+  .bnav{position:absolute; bottom:0; left:0; right:0; height:56px; z-index:4; display:flex;
+    background:linear-gradient(180deg,rgba(12,14,20,.4),var(--menu)); border-top:1px solid var(--hair); backdrop-filter:blur(8px)}
+  .bnav .t{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:9.5px; color:var(--mut)}
+  .bnav .t.on{color:var(--cyan)}
+  .bnav .t svg{width:20px;height:20px}
+
+  .nftg{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:4px 16px 16px}
+  .nft{border-radius:16px; overflow:hidden; border:1px solid var(--hair); background:var(--surface)}
+  .nft .art{height:96px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.72)}
+  .nft .m{padding:8px 10px}
+  .nft .m .a{font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .nft .m .b{font-size:11px; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+  .field{padding:12px; margin-top:8px}
+  .selrow{display:flex; align-items:center; gap:12px}
+  .selrow .ti{width:34px;height:34px;border-radius:999px;background:var(--menu);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--cyan);border:1px solid var(--hair)}
+  .amtcard{padding:12px 14px; margin-top:8px; display:flex; align-items:center; gap:10px}
+  .amtcard .big{flex:1; font-size:28px; font-weight:600; letter-spacing:-.5px; font-variant-numeric:tabular-nums; color:var(--ink-38)}
+  .amtcard .big.on{color:var(--ink)}
+  .maxb{height:34px; padding:0 12px; border-radius:10px; background:var(--surface); border:1px solid var(--hair); color:var(--ink); font-size:12.5px; font-weight:600; display:flex; align-items:center}
+  .recip{margin-top:8px; padding:0 10px; height:52px; display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--hair); border-radius:15px; color:var(--mut)}
+  .recip .in{flex:1; font-size:13.5px}
+  .recip .sic{display:flex; gap:2px}
+  .recip .sic span{width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+  .feerow{margin-top:12px; padding:11px 14px; display:flex; align-items:center; gap:8px}
+  .feerow .v{margin-left:auto; font-variant-numeric:tabular-nums; color:var(--ink); font-weight:500}
+  .chipsrow{display:flex; gap:10px; margin-top:12px}
+  .qchip{height:34px; flex:1; border-radius:10px; background:var(--surface); border:1px solid var(--hair); color:var(--ink); font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center}
+  .pmtile{margin-top:8px; padding:12px; display:flex; align-items:center; gap:12px}
+  .pmtile .ci{width:34px;height:34px;border-radius:999px;background:rgba(20,200,255,.12);display:flex;align-items:center;justify-content:center;color:var(--cyan)}
+  .pmtile .col{flex:1}
+  .pmtile .col .a{font-size:14px;font-weight:500}
+  .pmtile .col .b{font-size:12px;color:var(--mut)}
+  .helper{margin-top:12px; text-align:center; font-size:12px; color:var(--mut)}
+
+  .swaphead{display:flex; align-items:center; padding:14px 18px 6px}
+  .swaphead .ttl{flex:1; text-align:center; font-size:20px; font-weight:500}
+  .swaphead .ic{width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .sfield{margin:8px 16px; padding:14px 14px 16px; border-radius:16px; background:var(--surface); border:1px solid var(--hair); box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  .sfield .lb{font-size:13px; color:var(--ink-70)}
+  .sfield .r{display:flex; align-items:flex-end; justify-content:space-between; margin-top:8px}
+  .sfield .val{font-size:26px; font-weight:500; font-variant-numeric:tabular-nums}
+  .sfield .val.dim{color:var(--ink-38)}
+  .tokpill{display:inline-flex; align-items:center; gap:7px; height:38px; padding:0 8px 0 4px; border-radius:999px; background:var(--canvas-mid); border:1px solid var(--hair); font-weight:600; font-size:13px}
+  .tokpill .lg{width:26px;height:26px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#001018}
+  .sfield .bal{text-align:right; margin-top:8px; font-size:12px; color:var(--ink-54)}
+  .flip{position:relative; height:0}
+  .flip .d{position:absolute; left:50%; top:-24px; transform:translateX(-50%); width:46px;height:46px;border-radius:50%;
+    background:var(--mint); color:var(--sunken); display:flex; align-items:center; justify-content:center; z-index:6;
+    box-shadow:0 0 18px rgba(43,245,180,.5), 0 6px 14px rgba(0,0,0,.4)}
+  .route{margin:8px 16px; border-radius:16px; background:var(--surface); border:1px solid var(--hair)}
+  .route .rr{display:flex; justify-content:space-between; padding:11px 18px; font-size:13px; color:var(--ink-70)}
+  .route .rr+.rr{border-top:1px solid var(--hair)}
+  .route .rr .v{color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums}
+  .swapbtn{margin:10px 16px 0; height:46px; border-radius:14px; background:var(--mint); color:var(--sunken); font-weight:600; font-size:15px; display:flex; align-items:center; justify-content:center}
+
+  .price{text-align:center; position:relative; padding:8px 12px 2px}
+  .price .glow{position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); width:220px;height:64px;
+    background:radial-gradient(60% 90% at 50% 50%, rgba(20,200,255,.22), transparent 70%); filter:blur(8px); z-index:0}
+  .price .p{position:relative; z-index:1; font-size:40px; font-weight:700; letter-spacing:-1px; font-variant-numeric:tabular-nums}
+  .price .ch{position:relative; z-index:1; margin-top:4px; display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700}
+  .price .ch .pill{background:rgba(43,245,180,.2); color:var(--mint); border-radius:6px; padding:3px 8px; font-size:12px}
+  .chart{height:118px; margin:6px 4px 2px; position:relative}
+  .zoom{display:flex; justify-content:center; gap:18px; color:var(--ink); padding:4px 0 8px; opacity:.85}
+  .zoom svg{width:18px;height:18px}
+  .tdact{display:flex; gap:10px; padding:4px 16px 14px}
+  .tdact .b{flex:1; aspect-ratio:1/.92; border-radius:15px; background:var(--surface); border:1px solid var(--hair);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; color:var(--mut); font-size:11.5px; font-weight:500}
+  .tdact .b svg{width:22px;height:22px; color:var(--mint-strong)}
+  .sect{padding:2px 16px 0}
+  .sect .h{font-size:15px; font-weight:700; color:var(--mut); margin:12px 2px 8px}
+  .info{border-radius:12px; overflow:hidden}
+  .info .hd{display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--hair)}
+  .info .hd .av{width:40px;height:40px;border-radius:999px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#001018;font-weight:800;font-size:15px}
+  .info .hd .a{font-size:16px;font-weight:700}
+  .info .hd .b{font-size:12px;color:var(--mut);letter-spacing:.4px}
+  .irow{display:flex; align-items:center; gap:10px; padding:10px 14px; font-size:13px}
+  .irow+.irow{border-top:1px solid var(--hair)}
+  .irow svg{width:16px;height:16px;color:var(--mint-strong)}
+  .irow .k{color:var(--mut)}
+  .irow .v{margin-left:auto; font-weight:700; font-variant-numeric:tabular-nums}
+  .soon{padding:13px 14px; color:var(--ink-80); font-size:13.5px}
+
+  .legend{max-width:1240px; margin:44px auto 0; border-top:1px solid var(--stage-line); padding-top:26px}
+  .legend h2{font-size:13px; letter-spacing:1.4px; text-transform:uppercase; color:var(--stage-mut); font-weight:600; margin:0 0 16px}
+  .legrid{display:flex; flex-wrap:wrap; gap:26px 40px}
+  .legcol{min-width:180px}
+  .sw{display:flex; align-items:center; gap:9px; margin:7px 0; font-size:12.5px; color:var(--stage-mut)}
+  .sw i{width:22px;height:22px;border-radius:6px; border:1px solid var(--stage-line); flex:none}
+  .sw b{color:var(--stage-ink); font-weight:600; font-variant-numeric:tabular-nums}
+  .tset div{color:var(--stage-ink); margin:8px 0; line-height:1.1}
+  .foot{max-width:1240px; margin:26px auto 0; color:var(--stage-mut); font-size:12px; line-height:1.6}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1>GNUS Wallet — UI Redesign</h1>
+      <p>High-fidelity mockups of the five key screens on branch <code>ui-redesign-3.514</code>, reconstructed 1:1 from <code>DESIGN_SYSTEM.md</code> and the Flutter screen code. Toggle the wallet appearance to see both canvases.</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="chips">
+      <span class="chip">Design system <b>v1.4</b></span>
+      <span class="chip">Values shown are <b>demo/mock</b></span>
+      <div class="toggle" role="group" aria-label="Wallet appearance">
+        <button id="tDark" aria-pressed="true">Dark</button>
+        <button id="tLight" aria-pressed="false">Light</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="rail">
+
+    <!-- DASHBOARD -->
+    <div class="slot">
+      <div class="phone"><div class="screen"><div class="notch"></div>
+        <div class="sb"><span>9:41</span><span class="dots">▪▪▪ ▪ ◗</span></div>
+        <div class="view">
+          <div class="topbar">
+            <div class="pill48"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="2" fill="currentColor" stroke="none"/></svg></div>
+            <div class="acct"><span class="dot"></span>Main Wallet</div>
+            <div class="pill48 connect"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v.01M17 20h.01M20 17v4"/></svg></div>
+          </div>
+          <div class="hero">
+            <div class="lbl" style="letter-spacing:.5px">Total balance</div>
+            <div style="position:relative;height:56px;display:flex;align-items:center;justify-content:center;margin-top:4px">
+              <div class="glow"></div>
+              <div class="bal">$12,480.55</div>
+            </div>
+            <div class="delta"><svg class="ico" style="width:14px;height:14px;stroke:var(--mint-strong)" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>+$299.53<span class="mut">24h</span></div>
+          </div>
+          <div class="actions">
+            <div class="act"><div class="c"><svg class="ico" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div><span class="cap2">Send</span></div>
+            <div class="act"><div class="c"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div><span class="cap2">Receive</span></div>
+            <div class="act"><div class="c"><svg class="ico" viewBox="0 0 24 24"><path d="M7 16H3l4-4M3 16l4 4M17 8h4l-4-4M21 8l-4 4"/></svg></div><span class="cap2">Bridge</span></div>
+            <div class="act buy"><div class="c"><svg class="ico" viewBox="0 0 24 24" style="stroke:var(--on-brand)"><path d="M12 5v14M5 12h14"/></svg></div><span class="cap2">Buy</span></div>
+          </div>
+          <div class="segwrap"><div class="seg"><div class="s on">Assets</div><div class="s">NFTs</div></div></div>
+          <div class="search"><svg class="ico" style="width:16px;height:16px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>Filter your assets</div>
+          <div class="assets card">
+            <div class="coin"><div class="av" style="background:#f7931a">₿</div><div class="nm"><div class="a">Bitcoin</div><div class="b">BTC</div></div><div class="amt">0.14210</div></div>
+            <div class="coin"><div class="av" style="background:#627eea;color:#fff">Ξ</div><div class="nm"><div class="a">Ethereum</div><div class="b">ETH</div></div><div class="amt">1.2450</div></div>
+            <div class="coin"><div class="av" style="background:var(--grad)">G</div><div class="nm"><div class="a">Genius Tokens</div><div class="b">GNUS</div></div><div class="amt">3,120.00</div></div>
+            <div class="coin"><div class="av" style="background:#2775ca;color:#fff">$</div><div class="nm"><div class="a">USD Coin</div><div class="b">USDC</div></div><div class="amt">642.10</div></div>
+          </div>
+          <div class="fabL"><div class="ring"></div><div class="in"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--purple)" stroke-width="1.6"><path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-1 5 3 3 0 0 0 2 5 3 3 0 0 0 5 1 3 3 0 0 0 5-1 3 3 0 0 0 2-5 3 3 0 0 0-1-5 3 3 0 0 0-3-3 3 3 0 0 0-3 1 3 3 0 0 0-3-1Z"/></svg><span class="pct">63%</span></div></div>
+          <div class="fabR"><svg class="ico" style="stroke:var(--on-brand)" viewBox="0 0 24 24"><path d="M7 10l3-3 3 3M10 7v10M17 14l-3 3-3-3M14 17V7"/></svg></div>
+          <div class="bnav">
+            <div class="t on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V9m5 10V5m5 14v-7m5 7V11"/></svg>Markets</div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h11l3 3v13l-2-1.3L15 21l-2-1.3L11 21l-2-1.3L7 21l-2-1.3V3z"/><path d="M8 8h7M8 12h7M8 16h4"/></svg>Activity</div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z" fill="currentColor" stroke="none"/></svg>Discover</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><div class="t">Dashboard / Home</div><div class="r">/dashboard</div></div>
+    </div>
+
+    <!-- SEND -->
+    <div class="slot">
+      <div class="phone"><div class="screen"><div class="notch"></div>
+        <div class="sb"><span>9:41</span><span class="dots">▪▪▪ ▪ ◗</span></div>
+        <div class="view">
+          <div class="appbar"><div class="bk"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div><div class="ttl">Send</div></div>
+          <div class="scr-pad">
+            <div class="lbl">ASSET</div>
+            <div class="card field selrow">
+              <div class="ti" style="background:#627eea;color:#fff">Ξ</div>
+              <div style="flex:1"><div style="font-size:15px;font-weight:500">Ethereum</div><div style="font-size:12px" class="mut">Balance: 1.2450 ETH</div></div>
+              <svg class="ico" style="color:var(--mut)" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="lbl" style="margin-top:20px">RECIPIENT</div>
+            <div class="recip">
+              <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+              <div class="in mut">0x8f3c…A21D</div>
+              <div class="sic">
+                <span><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3"/><rect x="8" y="8" width="8" height="8"/></svg></span>
+                <span><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M4 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="10" cy="8" r="3"/><path d="M18 6v6M15 9h6"/></svg></span>
+                <span><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24"><rect x="7" y="4" width="10" height="16" rx="2"/><path d="M9 4h6"/></svg></span>
+              </div>
+            </div>
+            <div class="lbl" style="margin-top:20px">AMOUNT</div>
+            <div class="card amtcard"><div class="big on num">0.75</div><div class="maxb">Max</div><div style="font-weight:600;color:var(--mut)">ETH</div></div>
+            <div class="card feerow"><svg class="ico" style="width:18px;height:18px;color:var(--mut)" viewBox="0 0 24 24"><rect x="4" y="3" width="10" height="18" rx="2"/><path d="M14 8h3a2 2 0 0 1 2 2v6a1.5 1.5 0 0 1-3 0v-4h-2"/></svg><span class="mut">Network fee · Ethereum</span><span class="v num">≈ $0.00</span></div>
+            <div class="cta" style="margin-top:24px;height:46px">Review</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><div class="t">Send</div><div class="r">SendScreen → /dashboard</div></div>
+    </div>
+
+    <!-- BUY -->
+    <div class="slot">
+      <div class="phone"><div class="screen"><div class="notch"></div>
+        <div class="sb"><span>9:41</span><span class="dots">▪▪▪ ▪ ◗</span></div>
+        <div class="view">
+          <div class="appbar"><div class="bk"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div><div class="ttl">Buy</div></div>
+          <div class="scr-pad">
+            <div class="lbl">YOU PAY</div>
+            <div class="card field">
+              <div class="amtcard" style="padding:2px 0 0"><div style="font-size:28px;font-weight:600;color:var(--mut)">$</div><div class="big on num" style="margin-left:8px">100</div></div>
+              <div class="chipsrow"><div class="qchip">$50</div><div class="qchip">$100</div><div class="qchip">$250</div></div>
+            </div>
+            <div class="lbl" style="margin-top:20px">YOU RECEIVE</div>
+            <div class="card field selrow">
+              <div class="ti" style="background:var(--grad)">G</div>
+              <div style="flex:1"><div style="font-size:15px;font-weight:500">Genius Tokens</div><div style="font-size:12px" class="mut">GNUS</div></div>
+              <svg class="ico" style="color:var(--mut)" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="lbl" style="margin-top:20px">PAYMENT METHOD</div>
+            <div class="card pmtile">
+              <div class="ci"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+              <div class="col"><div class="a">Credit / Debit Card</div><div class="b">Visa · Mastercard</div></div>
+              <svg class="ico" style="color:var(--cyan)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>
+            </div>
+            <div class="helper">Final quote and fees are shown at checkout.</div>
+            <div class="cta" style="margin-top:24px;height:46px">Buy now</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><div class="t">Buy</div><div class="r">/buy · on-ramp (demo)</div></div>
+    </div>
+
+    <!-- SWAP -->
+    <div class="slot">
+      <div class="phone"><div class="screen"><div class="notch"></div>
+        <div class="sb"><span>9:41</span><span class="dots">▪▪▪ ▪ ◗</span></div>
+        <div class="view">
+          <div class="swaphead"><div class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div><div class="ttl">Swap</div><div class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></div></div>
+          <div class="sfield">
+            <div class="lb">You Pay</div>
+            <div class="r"><div class="val">1.0</div><div class="tokpill"><span class="lg" style="background:#627eea;color:#fff">Ξ</span>ETH<svg class="ico" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div></div>
+            <div class="bal">1.245 ETH</div>
+          </div>
+          <div class="flip"><div class="d"><svg class="ico" viewBox="0 0 24 24" style="stroke:var(--sunken)"><path d="M7 10l3-3 3 3M10 7v10M17 14l-3 3-3-3M14 17V7"/></svg></div></div>
+          <div class="sfield" style="margin-top:16px">
+            <div class="lb">You Receive</div>
+            <div class="r"><div class="val dim">0.995</div><div class="tokpill"><span class="lg" style="background:#2775ca;color:#fff">$</span>USDC<svg class="ico" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div></div>
+            <div class="bal">642.10 USDC</div>
+          </div>
+          <div class="route">
+            <div class="rr">Pricing<span class="v">1 ETH ~ 0.995 USDC</span></div>
+            <div class="rr">Slippage<span class="v">0.5</span></div>
+            <div class="rr">Price Impact<span class="v">0.51%</span></div>
+            <div class="rr">Fees<span class="v">$0.42</span></div>
+          </div>
+          <div class="swapbtn">Swap</div>
+        </div>
+      </div></div>
+      <div class="cap"><div class="t">Swap</div><div class="r">Squid · honest demo</div></div>
+    </div>
+
+    <!-- TOKEN DETAIL -->
+    <div class="slot">
+      <div class="phone"><div class="screen"><div class="notch"></div>
+        <div class="sb"><span>9:41</span><span class="dots">▪▪▪ ▪ ◗</span></div>
+        <div class="view" style="overflow-y:auto">
+          <div class="appbar"><div class="bk"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div><div class="ttl">Bitcoin</div></div>
+          <div class="price">
+            <div class="glow"></div>
+            <div class="p">$64,238.19</div>
+            <div class="ch">+$412.55<span class="pill">+0.65%</span></div>
+          </div>
+          <div class="chart">
+            <svg viewBox="0 0 300 118" width="100%" height="100%" preserveAspectRatio="none">
+              <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#2BF5B4" stop-opacity=".28"/><stop offset="1" stop-color="#2BF5B4" stop-opacity="0"/></linearGradient></defs>
+              <path d="M0,86 C24,80 40,58 64,64 C92,71 104,40 132,44 C158,48 168,74 196,66 C222,58 236,28 264,34 C282,38 292,26 300,22 L300,118 L0,118 Z" fill="url(#fill)"/>
+              <path d="M0,86 C24,80 40,58 64,64 C92,71 104,40 132,44 C158,48 168,74 196,66 C222,58 236,28 264,34 C282,38 292,26 300,22" fill="none" stroke="var(--ink)" stroke-width="2.2"/>
+            </svg>
+          </div>
+          <div class="zoom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3-3M8 11h6M11 8v6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3-3M8 11h6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+          <div class="tdact">
+            <div class="b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M14 3h7v7M3 14v7h7"/></svg>Receive</div>
+            <div class="b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Send</div>
+            <div class="b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 10l3-3 3 3M10 7v10M17 14l-3 3-3-3M14 17V7"/></svg>Swap</div>
+            <div class="b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>More</div>
+          </div>
+          <div class="sect">
+            <div class="h">Info</div>
+            <div class="card info">
+              <div class="hd"><div class="av">₿</div><div><div class="a">Bitcoin</div><div class="b">BTC</div></div></div>
+              <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg><span class="k">Network</span><span class="v">Bitcoin</span></div>
+              <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg><span class="k">Address</span><span class="v" style="font-weight:600">bc1q…kx8f</span></div>
+              <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg><span class="k">Market Cap</span><span class="v">$1.27T</span></div>
+              <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/></svg><span class="k">Circulating</span><span class="v">19.78M</span></div>
+              <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span class="k">Total Supply</span><span class="v">21.00M</span></div>
+              <div class="irow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V9m5 10V5m5 14v-7m5 7V11"/></svg><span class="k">Volume</span><span class="v">$32.4B</span></div>
+            </div>
+            <div class="h">Convert</div>
+            <div class="card" style="padding:10px 14px">
+              <div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--hair)"><span class="mut" style="font-size:12.5px">Token Price</span><span class="num" style="font-weight:600">64,238.19</span></div>
+              <div class="row" style="justify-content:space-between;padding:8px 0"><span class="mut" style="font-size:12.5px">Token Amount</span><span class="num" style="font-weight:600">1</span></div>
+              <div class="num" style="text-align:right;font-weight:700;font-size:15px;margin-top:6px">Total: $64,238.19</div>
+            </div>
+            <div class="h">Security</div>
+            <div class="card"><div class="soon">Coming Soon</div></div>
+            <div class="h">Activity</div>
+            <div class="card" style="margin-bottom:16px"><div class="soon">Coming Soon</div></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><div class="t">Token detail</div><div class="r">/token-info</div></div>
+    </div>
+
+  </div>
+
+  <section class="legend">
+    <h2>Design tokens — from <code>DESIGN_SYSTEM.md</code> · <code>lib/theme/</code></h2>
+    <div class="legrid">
+      <div class="legcol">
+        <div class="sw"><i style="background:#14C8FF"></i>Brand primary <b>#14C8FF</b></div>
+        <div class="sw"><i style="background:#2BF5B4"></i>Brand secondary <b>#2BF5B4</b></div>
+        <div class="sw"><i style="background:#C28FFF"></i>Tertiary (AI) <b>#C28FFF</b></div>
+        <div class="sw"><i style="background:linear-gradient(90deg,#0AD89C,#0AAEE6)"></i>CTA gradient <b>#0AD89C→#0AAEE6</b></div>
+      </div>
+      <div class="legcol">
+        <div class="sw"><i style="background:#0B0D12"></i>Canvas · dark <b>#0B0D12</b></div>
+        <div class="sw"><i style="background:#DCE0E6"></i>Canvas · light <b>#DCE0E6</b></div>
+        <div class="sw"><i style="background:#8A8F9D"></i>Text secondary <b>#8A8F9D</b></div>
+        <div class="sw"><i style="background:#000B18"></i>On-brand <b>#000B18</b></div>
+      </div>
+      <div class="legcol">
+        <div class="sw"><i style="background:#0AD89C"></i>Success <b>#0AD89C</b></div>
+        <div class="sw"><i style="background:#FF4D4D"></i>Error <b>#FF4D4D</b></div>
+        <div class="sw"><i style="background:#FFC42E"></i>Warning <b>#FFC42E</b></div>
+      </div>
+      <div class="legcol tset">
+        <div style="font-size:28px;font-weight:700;letter-spacing:-.6px">Display 32 / 700</div>
+        <div style="font-size:18px;font-weight:600">Title 18 / 600</div>
+        <div style="font-size:16px;font-weight:400">Body 16 / 400 — Inter</div>
+        <div style="font-size:13px;font-weight:500;color:var(--stage-mut);letter-spacing:.3px">LABEL 13 / 500</div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    Faithful reconstructions from the design system and Flutter screen code — not live device captures (the app needs the native SuperGenius/GeniusSDK stack to build). All figures are demo/mock values (e.g. the Swap quote and the 24h delta). Type approximates <b>Inter</b> via a system grotesque stack, since font CDNs are blocked in this sandbox — import the real Inter + the exact tokens into Figma from <code>gnus-tokens.json</code> (Tokens Studio format).
+  </p>
+</div>
+
+<script>
+  (function(){
+    var root=document.documentElement, d=document.getElementById('tDark'), l=document.getElementById('tLight');
+    function set(mode){ root.setAttribute('data-theme',mode);
+      d.setAttribute('aria-pressed', mode==='dark'); l.setAttribute('aria-pressed', mode==='light'); }
+    if(!root.getAttribute('data-theme')){
+      set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light':'dark');
+    } else { set(root.getAttribute('data-theme')); }
+    d.addEventListener('click',function(){set('dark')});
+    l.addEventListener('click',function(){set('light')});
+  })();
+</script>

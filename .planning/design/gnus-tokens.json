@@ -1,0 +1,117 @@
+{
+  "$description": "GNUS Wallet design tokens (ui-redesign-3.514). Tokens Studio for Figma format. Import via the Tokens Studio plugin: apply the 'core' set, then choose the 'light' or 'dark' theme set. Values mirror lib/theme/*.dart and DESIGN_SYSTEM.md (v1.4).",
+  "core": {
+    "color": {
+      "brand": {
+        "primary": { "value": "#14C8FF", "type": "color", "description": "cyan — primary brand" },
+        "primaryStrong": { "value": "#0AAEE6", "type": "color" },
+        "secondary": { "value": "#2BF5B4", "type": "color", "description": "mint — secondary brand" },
+        "secondaryStrong": { "value": "#0AD89C", "type": "color" },
+        "secondaryBright": { "value": "#5BFFD0", "type": "color" },
+        "tertiary": { "value": "#C28FFF", "type": "color", "description": "purple accent (AI)" },
+        "onBrand": { "value": "#000B18", "type": "color", "description": "text/icon on bright brand fills (WCAG AA)" }
+      },
+      "gradient": {
+        "ctaFrom": { "value": "#0AD89C", "type": "color", "description": "CTA gradient left (green)" },
+        "ctaTo": { "value": "#0AAEE6", "type": "color", "description": "CTA gradient right (blue)" },
+        "borderFrom": { "value": "#14C8FF", "type": "color" },
+        "borderTo": { "value": "#5BFFD0", "type": "color" }
+      },
+      "status": {
+        "success": { "value": "#0AD89C", "type": "color" },
+        "error": { "value": "#FF4D4D", "type": "color" },
+        "warning": { "value": "#FFC42E", "type": "color" },
+        "info": { "value": "#14C8FF", "type": "color" }
+      },
+      "textSecondary": { "value": "#8A8F9D", "type": "color", "description": "muted foreground — fixed in both modes" }
+    },
+    "spacing": {
+      "2": { "value": "4", "type": "spacing" },
+      "4": { "value": "8", "type": "spacing" },
+      "6": { "value": "12", "type": "spacing" },
+      "8": { "value": "16", "type": "spacing" },
+      "10": { "value": "20", "type": "spacing" },
+      "12": { "value": "24", "type": "spacing" },
+      "16": { "value": "32", "type": "spacing" },
+      "20": { "value": "40", "type": "spacing" },
+      "24": { "value": "48", "type": "spacing" },
+      "32": { "value": "64", "type": "spacing" }
+    },
+    "radius": {
+      "xs": { "value": "4", "type": "borderRadius" },
+      "sm": { "value": "8", "type": "borderRadius" },
+      "base": { "value": "10", "type": "borderRadius" },
+      "md": { "value": "12", "type": "borderRadius" },
+      "lg": { "value": "15", "type": "borderRadius" },
+      "2xl": { "value": "16", "type": "borderRadius" },
+      "xl": { "value": "24", "type": "borderRadius" },
+      "pill": { "value": "48", "type": "borderRadius" }
+    },
+    "font": {
+      "family": { "value": "Inter", "type": "fontFamilies" },
+      "weight": {
+        "regular": { "value": "400", "type": "fontWeights" },
+        "medium": { "value": "500", "type": "fontWeights" },
+        "semibold": { "value": "600", "type": "fontWeights" },
+        "bold": { "value": "700", "type": "fontWeights" }
+      }
+    },
+    "typography": {
+      "displayLg": { "value": { "fontFamily": "Inter", "fontWeight": "700", "fontSize": "32", "lineHeight": "40", "letterSpacing": "-0.4" }, "type": "typography" },
+      "displayMd": { "value": { "fontFamily": "Inter", "fontWeight": "700", "fontSize": "28", "lineHeight": "36", "letterSpacing": "-0.4" }, "type": "typography" },
+      "headlineLg": { "value": { "fontFamily": "Inter", "fontWeight": "600", "fontSize": "24", "lineHeight": "32", "letterSpacing": "-0.4" }, "type": "typography" },
+      "headlineMd": { "value": { "fontFamily": "Inter", "fontWeight": "600", "fontSize": "20", "lineHeight": "28", "letterSpacing": "0" }, "type": "typography" },
+      "titleLg": { "value": { "fontFamily": "Inter", "fontWeight": "600", "fontSize": "18", "lineHeight": "24", "letterSpacing": "0" }, "type": "typography" },
+      "titleMd": { "value": { "fontFamily": "Inter", "fontWeight": "500", "fontSize": "16", "lineHeight": "22", "letterSpacing": "0" }, "type": "typography" },
+      "bodyLg": { "value": { "fontFamily": "Inter", "fontWeight": "400", "fontSize": "16", "lineHeight": "24", "letterSpacing": "0" }, "type": "typography" },
+      "bodyMd": { "value": { "fontFamily": "Inter", "fontWeight": "400", "fontSize": "16", "lineHeight": "24", "letterSpacing": "0" }, "type": "typography", "description": "default body (v1.4: 14->16)" },
+      "bodySm": { "value": { "fontFamily": "Inter", "fontWeight": "400", "fontSize": "14", "lineHeight": "20", "letterSpacing": "0" }, "type": "typography", "description": "v1.4: 13->14" },
+      "labelMd": { "value": { "fontFamily": "Inter", "fontWeight": "500", "fontSize": "13", "lineHeight": "18", "letterSpacing": "0" }, "type": "typography", "description": "v1.4: 12->13" },
+      "numericDisplay": { "value": { "fontFamily": "Inter", "fontWeight": "700", "fontSize": "32", "lineHeight": "40", "letterSpacing": "-0.4" }, "type": "typography", "description": "tabular figures" },
+      "numericHeadline": { "value": { "fontFamily": "Inter", "fontWeight": "600", "fontSize": "24", "lineHeight": "32", "letterSpacing": "0" }, "type": "typography", "description": "tabular figures" },
+      "numericBody": { "value": { "fontFamily": "Inter", "fontWeight": "500", "fontSize": "14", "lineHeight": "20", "letterSpacing": "0" }, "type": "typography", "description": "tabular figures" }
+    },
+    "elevation": {
+      "card": { "value": { "x": "0", "y": "4", "blur": "16", "spread": "0", "color": "rgba(0,0,0,0.35)", "type": "dropShadow" }, "type": "boxShadow" },
+      "dialog": { "value": { "x": "0", "y": "8", "blur": "32", "spread": "0", "color": "rgba(0,0,0,0.45)", "type": "dropShadow" }, "type": "boxShadow" },
+      "glowBrand": { "value": { "x": "0", "y": "0", "blur": "24", "spread": "0", "color": "rgba(20,200,255,0.18)", "type": "dropShadow" }, "type": "boxShadow" }
+    }
+  },
+  "dark": {
+    "surface": {
+      "base": { "value": "#0B0D12", "type": "color", "description": "page canvas (true-black)" },
+      "elevated": { "value": "#0C0E14", "type": "color", "description": "card" },
+      "menu": { "value": "#171A21", "type": "color", "description": "sheet / menu" },
+      "sunken": { "value": "#06080C", "type": "color", "description": "deepest layer / recessed track" }
+    },
+    "text": {
+      "primary": { "value": "#FFFFFF", "type": "color" },
+      "secondary": { "value": "#8A8F9D", "type": "color" }
+    },
+    "border": {
+      "subtle": { "value": "rgba(255,255,255,0.12)", "type": "color" },
+      "strong": { "value": "rgba(255,255,255,0.24)", "type": "color" }
+    }
+  },
+  "light": {
+    "surface": {
+      "base": { "value": "#DCE0E6", "type": "color", "description": "page canvas (~15% gray so white cards separate)" },
+      "elevated": { "value": "#FFFFFF", "type": "color", "description": "card" },
+      "menu": { "value": "#EFF2F6", "type": "color", "description": "sheet / menu" },
+      "sunken": { "value": "#CFD4DB", "type": "color", "description": "deepest layer / recessed track" }
+    },
+    "text": {
+      "primary": { "value": "#10131A", "type": "color", "description": "ink" },
+      "secondary": { "value": "#8A8F9D", "type": "color" }
+    },
+    "border": {
+      "subtle": { "value": "rgba(16,19,26,0.12)", "type": "color" },
+      "strong": { "value": "rgba(16,19,26,0.24)", "type": "color" }
+    }
+  },
+  "$themes": [
+    { "id": "dark", "name": "Dark", "selectedTokenSets": { "core": "source", "dark": "enabled" } },
+    { "id": "light", "name": "Light", "selectedTokenSets": { "core": "source", "light": "enabled" } }
+  ],
+  "$metadata": { "tokenSetOrder": ["core", "dark", "light"] }
+}
