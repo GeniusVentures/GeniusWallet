@@ -1,6 +1,8 @@
 package ai.gnus.genius_wallet
 
+import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodCall
@@ -11,6 +13,13 @@ class MainActivity: FlutterActivity() {
 	companion object {
 		private const val CHANNEL = "ai.gnus.genius_wallet/platform"
 		private const val TAG = "GeniusWallet"
+	}
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		// Keep screen on while this activity is in the foreground —
+		// useful for long-running AI inference / CRDT processing.
+		window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 	}
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
