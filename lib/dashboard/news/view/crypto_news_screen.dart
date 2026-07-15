@@ -32,6 +32,17 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
     });
   }
 
+  // Re-run the news fetch (used by both the error-retry button and
+  // pull-to-refresh), regenerating layout data the same way initState does.
+  void _retryNews() {
+    setState(() {
+      _newsFuture = fetchCoinTelegraphNews().then((articles) {
+        _generateLayoutData(articles.length);
+        return articles;
+      });
+    });
+  }
+
   void _generateLayoutData(int itemCount) {
     _layoutData.clear();
     for (int i = 0; i < itemCount; i++) {
@@ -46,8 +57,9 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space6,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -64,58 +76,64 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
               Expanded(
                 child: FutureStateWidget<List<NewsArticle>>(
                   future: _newsFuture,
-                  error: const Center(child: Text('Failed to load news.')),
+                  // No custom `error:` override — falls through to the branded
+                  // GWErrorState(onRetry: onRetry) with a working retry button.
+                  onRetry: _retryNews,
                   onData: (articles) {
                     if (articles.isEmpty) {
                       return const Center(child: Text('No news found.'));
                     }
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isMobile = constraints.maxWidth <= 800;
-                        final columns =
-                            getResponsiveColumnCount(constraints.maxWidth);
+                    return RefreshIndicator(
+                      onRefresh: () async => _retryNews(),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isMobile = constraints.maxWidth <= 800;
+                          final columns = getResponsiveColumnCount(
+                            constraints.maxWidth,
+                          );
 
-                        if (_layoutData.length != articles.length) {
-                          _generateLayoutData(articles.length);
-                        }
+                          if (_layoutData.length != articles.length) {
+                            _generateLayoutData(articles.length);
+                          }
 
-                        return MasonryGridView.count(
-                          crossAxisCount: columns,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          itemCount: articles.length,
-                          itemBuilder: (context, index) {
-                            final article = articles[index];
-                            final layout = _layoutData[index];
+                          return MasonryGridView.count(
+                            crossAxisCount: columns,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            itemCount: articles.length,
+                            itemBuilder: (context, index) {
+                              final article = articles[index];
+                              final layout = _layoutData[index];
 
-                            Widget card;
+                              Widget card;
 
-                            if (isMobile) {
-                              card = NewsCard(article: article);
-                              return card;
-                            } else {
-                              switch (layout.type) {
-                                case 0:
-                                case 1:
-                                case 2:
-                                  card = NewsCard(article: article);
-                                  break;
-                                default:
-                                  card = NewsCard(article: article);
+                              if (isMobile) {
+                                card = NewsCard(article: article);
+                                return card;
+                              } else {
+                                switch (layout.type) {
+                                  case 0:
+                                  case 1:
+                                  case 2:
+                                    card = NewsCard(article: article);
+                                    break;
+                                  default:
+                                    card = NewsCard(article: article);
+                                }
+                                return AspectRatio(
+                                  aspectRatio: 16 / 9,
+                                  child: card,
+                                );
                               }
-                              return AspectRatio(
-                                aspectRatio: 16 / 9,
-                                child: card,
-                              );
-                            }
-                          },
-                        );
-                      },
+                            },
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
               ),
-              const SizedBox(height: GeniusWalletConsts.space8)
+              const SizedBox(height: GeniusWalletConsts.space8),
             ],
           ),
         ),

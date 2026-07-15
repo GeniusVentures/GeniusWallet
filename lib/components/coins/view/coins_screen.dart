@@ -21,13 +21,13 @@ class CoinsScreen extends StatefulWidget {
   final bool? isUseDivider;
   final bool? isGnusWalletConnected;
 
-  const CoinsScreen(
-      {Key? key,
-      this.onCoinSelected,
-      this.filterCoins,
-      this.isGnusWalletConnected,
-      this.isUseDivider})
-      : super(key: key);
+  const CoinsScreen({
+    Key? key,
+    this.onCoinSelected,
+    this.filterCoins,
+    this.isGnusWalletConnected,
+    this.isUseDivider,
+  }) : super(key: key);
 
   @override
   CoinsScreenState createState() => CoinsScreenState();
@@ -42,8 +42,13 @@ class CoinsScreenState extends State<CoinsScreen> {
   void initState() {
     super.initState();
 
-    // periodically fetch market data every 20 seconds to keep wallet balance up to date
-    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (timer) {
+    // Periodically fetch market data every minute to keep wallet balance up to
+    // date (reverted from 20s to cut CoinGecko rate-limit + battery pressure).
+    // ponytail: naive fixed-interval polling — refetches every tick regardless
+    // of whether the data actually changed. Ceiling: wasted calls/battery under
+    // idle. Upgrade path: exponential backoff after no-change responses, or
+    // switch to WebSocket/SSE if CoinGecko or the wallet backend exposes one.
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       final state = context.read<WalletDetailsCubit>().state;
       if (state.coinsStatus == WalletStatus.successful &&
           state.coins.isNotEmpty) {
@@ -138,12 +143,12 @@ class CoinsScreenState extends State<CoinsScreen> {
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 side: BorderSide(
-                    color: GeniusWalletColors.borderSubtle, width: 1),
+                  color: GeniusWalletColors.borderSubtle,
+                  width: 1,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Center(
-                child: Loading(),
-              ),
+              child: const Center(child: Loading()),
             );
           }
 
@@ -153,21 +158,26 @@ class CoinsScreenState extends State<CoinsScreen> {
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 side: BorderSide(
-                    color: GeniusWalletColors.borderSubtle, width: 1),
+                  color: GeniusWalletColors.borderSubtle,
+                  width: 1,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: AutoSizeText(
                 'No Coins Detected',
-                style: GeniusWalletTypography.headlineLg
-                    .copyWith(color: GeniusWalletColors.btnTextDisabled),
+                style: GeniusWalletTypography.headlineLg.copyWith(
+                  color: GeniusWalletColors.btnTextDisabled,
+                ),
               ),
             );
           }
 
           final filteredCoins = state.coins
-              .where((coin) =>
-                  widget.filterCoins?.contains(coin) == false ||
-                  widget.filterCoins == null)
+              .where(
+                (coin) =>
+                    widget.filterCoins?.contains(coin) == false ||
+                    widget.filterCoins == null,
+              )
               .toList();
 
           return SingleChildScrollView(
@@ -190,7 +200,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                             "securityInfo": "Coming Soon",
                             "transactionHistory": ["Coming Soon"],
                             "marketData":
-                                _marketData[coin.symbol?.toLowerCase()]
+                                _marketData[coin.symbol?.toLowerCase()],
                           },
                         );
                       }

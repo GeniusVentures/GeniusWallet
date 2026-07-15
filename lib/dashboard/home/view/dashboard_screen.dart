@@ -41,7 +41,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (!mounted) return;
       try {
         context.read<WalletDetailsCubit>().getCoins();
-      } catch (_) {/* mock mode */}
+      } catch (_) {
+        /* mock mode */
+      }
     });
   }
 
@@ -49,6 +51,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  // Pull-to-refresh: mirrors develop's OneColumnDashBoardView._onRefresh —
+  // re-loads wallets, then re-fetches coins when a wallet is selected.
+  Future<void> _onRefresh(BuildContext context) async {
+    context.read<AppBloc>().add(LoadWallets());
+    final walletCubit = context.read<WalletDetailsCubit>();
+    if (walletCubit.state.selectedWallet != null) {
+      walletCubit.getCoins();
+    }
   }
 
   List<Coin> _filterCoins(List<Coin> coins) {
@@ -76,43 +88,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 return Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 480),
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: _HeroBalance(
-                            balance: _resolveBalance(appState, walletState),
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _ActionRow(
-                            walletAddress: walletState.selectedWallet?.address,
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _Tabs(
-                            value: _tab,
-                            onChanged: (t) => setState(() => _tab = t),
-                          ),
-                        ),
-                        if (_tab == _DashboardTab.assets) ...[
+                    child: RefreshIndicator(
+                      onRefresh: () => _onRefresh(context),
+                      child: CustomScrollView(
+                        // AlwaysScrollable so the pull gesture registers even
+                        // when the asset list is short (Pitfall 3 in RESEARCH).
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
                           SliverToBoxAdapter(
-                            child: _AssetSearch(
-                              controller: _searchCtrl,
-                              onChanged: (v) => setState(() => _query = v),
+                            child: _HeroBalance(
+                              balance: _resolveBalance(appState, walletState),
                             ),
                           ),
-                          _AssetsSliver(
-                            coins: _filterCoins(walletState.coins),
-                            query: _query,
+                          SliverToBoxAdapter(
+                            child: _ActionRow(
+                              walletAddress:
+                                  walletState.selectedWallet?.address,
+                            ),
                           ),
-                        ] else
-                          const _NftsSliver(),
-                        // Clearance so the global Swap FAB (bottom-right)
-                        // doesn't cover the last list row.
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 96),
-                        ),
-                      ],
+                          SliverToBoxAdapter(
+                            child: _Tabs(
+                              value: _tab,
+                              onChanged: (t) => setState(() => _tab = t),
+                            ),
+                          ),
+                          if (_tab == _DashboardTab.assets) ...[
+                            SliverToBoxAdapter(
+                              child: _AssetSearch(
+                                controller: _searchCtrl,
+                                onChanged: (v) => setState(() => _query = v),
+                              ),
+                            ),
+                            _AssetsSliver(
+                              coins: _filterCoins(walletState.coins),
+                              query: _query,
+                            ),
+                          ] else
+                            const _NftsSliver(),
+                          // Clearance so the global Swap FAB (bottom-right)
+                          // doesn't cover the last list row.
+                          const SliverToBoxAdapter(child: SizedBox(height: 96)),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -456,13 +473,15 @@ class _AssetsSliver extends StatelessWidget {
       );
     }
     return SliverPadding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space6,
+      ),
       sliver: DecoratedSliver(
         decoration: GWDecorations.surface(radius: GeniusWalletConsts.radius2xl),
         sliver: SliverPadding(
-          padding:
-              const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space4),
+          padding: const EdgeInsets.symmetric(
+            vertical: GeniusWalletConsts.space4,
+          ),
           sliver: SliverList.separated(
             itemCount: coins.length,
             separatorBuilder: (_, __) => const _RowDivider(),
@@ -634,10 +653,7 @@ class _RowDivider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
         horizontal: GeniusWalletConsts.space6,
       ),
-      child: Container(
-        height: 1,
-        color: GeniusWalletColors.borderSubtle,
-      ),
+      child: Container(height: 1, color: GeniusWalletColors.borderSubtle),
     );
   }
 }
@@ -657,13 +673,16 @@ class _CoinRow extends StatelessWidget {
       // lists use) so a token opens consistently from anywhere.
       onTap: () {
         context.read<WalletDetailsCubit>().selectCoin(coin);
-        context.push('/token-info', extra: {
-          "isGnusWalletConnected": false,
-          // WIRE-11 (see WIRING.md): placeholder — wire real security info + history.
-          "securityInfo": "Coming Soon",
-          "transactionHistory": ["Coming Soon"],
-          "marketData": null,
-        });
+        context.push(
+          '/token-info',
+          extra: {
+            "isGnusWalletConnected": false,
+            // WIRE-11 (see WIRING.md): placeholder — wire real security info + history.
+            "securityInfo": "Coming Soon",
+            "transactionHistory": ["Coming Soon"],
+            "marketData": null,
+          },
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -690,10 +709,7 @@ class _CoinRow extends StatelessWidget {
                     style: GeniusWalletTypography.titleMd,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    symbol,
-                    style: GeniusWalletTypography.bodySm,
-                  ),
+                  Text(symbol, style: GeniusWalletTypography.bodySm),
                 ],
               ),
             ),

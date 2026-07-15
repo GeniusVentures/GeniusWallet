@@ -58,14 +58,13 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   Future<void> _fetchHistoricalData() async {
-    final historicalPrices = await fetchHistoricalPrices(widget.coinGeckoCoinId)
-        .catchError((Object _) => <int, double>{});
+    final historicalPrices = await fetchHistoricalPrices(
+      widget.coinGeckoCoinId,
+    ).catchError((Object _) => <int, double>{});
 
     if (historicalPrices.isNotEmpty) {
       final historicalData = historicalPrices.entries
-          .map(
-            (entry) => FlSpot(entry.key.toDouble(), entry.value),
-          )
+          .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
           .toList();
 
       setState(() {
@@ -73,10 +72,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
         _latestPrice = _priceData.last.y;
         _previousPrice = _priceData.first.y;
 
-        // Set initial zoom window (show last 30 points)
+        // Set initial zoom window (show last 50 points)
         final totalPoints = _priceData.length;
-        _viewMinX = totalPoints > 30
-            ? _priceData[totalPoints - 30].x
+        _viewMinX = totalPoints > 50
+            ? _priceData[totalPoints - 50].x
             : _priceData.first.x;
         _viewMaxX = _priceData.last.x;
         _hasError = false;
@@ -88,8 +87,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   void _startLiveUpdates() {
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-      final coinPrices =
-          await fetchCoinsMarketData(coinIds: [widget.coinGeckoCoinId]);
+      final coinPrices = await fetchCoinsMarketData(
+        coinIds: [widget.coinGeckoCoinId],
+      );
 
       if (coinPrices.isNotEmpty) {
         final newPrice =
@@ -101,7 +101,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   void _addNewPricePoint(double newPrice) {
     setState(() {
-      final newTime = _priceData.isEmpty ? 0 : _priceData.last.x + 60;
+      // Real wall-clock timestamp so _formatTime tooltips stay accurate even
+      // when the live-update timer is delayed (backgrounding, slow fetch).
+      final newTime = DateTime.now().millisecondsSinceEpoch / 1000.0;
       _priceData.add(FlSpot(newTime.toDouble(), newPrice));
       _latestPrice = newPrice;
 
@@ -109,10 +111,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       if (_priceData.length > 50) {
         _priceData.removeAt(0);
       }
-      // Move view window with new points (keep last 30 in view)
+      // Move view window with new points (keep last 50 in view)
       final totalPoints = _priceData.length;
-      _viewMinX = totalPoints > 30
-          ? _priceData[totalPoints - 30].x
+      _viewMinX = totalPoints > 50
+          ? _priceData[totalPoints - 50].x
           : _priceData.first.x;
       _viewMaxX = _priceData.last.x;
     });
@@ -240,8 +242,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                 const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: GeniusWalletConsts.space4,
-                      vertical: GeniusWalletConsts.space2),
+                    horizontal: GeniusWalletConsts.space4,
+                    vertical: GeniusWalletConsts.space2,
+                  ),
                   decoration: BoxDecoration(
                     color: fillColor.withAlpha(51),
                     borderRadius: BorderRadius.circular(6),
@@ -268,14 +271,16 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   children: [
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxHeight: widget.chartHeight ??
+                        maxHeight:
+                            widget.chartHeight ??
                             MediaQuery.of(context).size.height * 0.25,
                         minHeight: 120,
                       ),
                       child: LineChart(
                         LineChartData(
                           minX: _viewMinX ?? 0,
-                          maxX: _viewMaxX ??
+                          maxX:
+                              _viewMaxX ??
                               (_priceData.isNotEmpty ? _priceData.last.x : 1),
                           minY: _priceData.map((e) => e.y).reduce(min) * 0.99,
                           maxY: _priceData.map((e) => e.y).reduce(max) * 1.01,
@@ -304,13 +309,17 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                           borderData: FlBorderData(show: false),
                           titlesData: const FlTitlesData(
                             leftTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
                             rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
                             topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
                             bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
                           ),
                           lineTouchData: LineTouchData(
                             enabled: true,
@@ -335,8 +344,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                                   return LineTooltipItem(
                                     '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
                                     TextStyle(
-                                        color: GeniusWalletColors.textPrimary,
-                                        fontWeight: FontWeight.bold),
+                                      color: GeniusWalletColors.textPrimary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   );
                                 }).toList();
                               },
@@ -350,26 +360,36 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.zoom_in,
-                              color: GeniusWalletColors.textPrimary),
+                          icon: Icon(
+                            Icons.zoom_in,
+                            color: GeniusWalletColors.textPrimary,
+                          ),
                           onPressed: _zoomIn,
                           tooltip: "Zoom In",
                         ),
                         IconButton(
-                          icon: Icon(Icons.zoom_out,
-                              color: GeniusWalletColors.textPrimary),
+                          icon: Icon(
+                            Icons.zoom_out,
+                            color: GeniusWalletColors.textPrimary,
+                          ),
                           onPressed: _zoomOut,
                           tooltip: "Zoom Out",
                         ),
                         IconButton(
-                          icon: Icon(Icons.arrow_back_ios,
-                              color: GeniusWalletColors.textPrimary, size: 18),
+                          icon: Icon(
+                            Icons.arrow_back_ios,
+                            color: GeniusWalletColors.textPrimary,
+                            size: 18,
+                          ),
                           onPressed: _panLeft,
                           tooltip: "Pan Left",
                         ),
                         IconButton(
-                          icon: Icon(Icons.arrow_forward_ios,
-                              color: GeniusWalletColors.textPrimary, size: 18),
+                          icon: Icon(
+                            Icons.arrow_forward_ios,
+                            color: GeniusWalletColors.textPrimary,
+                            size: 18,
+                          ),
                           onPressed: _panRight,
                           tooltip: "Pan Right",
                         ),
@@ -378,44 +398,50 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   ],
                 )
               : _hasError
-                  ? SizedBox(
-                      height: widget.chartHeight ??
-                          MediaQuery.of(context).size.height * 0.25,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.show_chart_outlined,
-                                color: GeniusWalletColors.textSecondary,
-                                size: 28),
-                            const SizedBox(height: GeniusWalletConsts.space4),
-                            const Text(
-                              "Couldn't load chart",
-                              style: TextStyle(
-                                  color: GeniusWalletColors.textSecondary),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                setState(() => _hasError = false);
-                                _fetchHistoricalData();
-                              },
-                              child: const Text("Retry"),
-                            ),
-                          ],
+              ? SizedBox(
+                  height:
+                      widget.chartHeight ??
+                      MediaQuery.of(context).size.height * 0.25,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.show_chart_outlined,
+                          color: GeniusWalletColors.textSecondary,
+                          size: 28,
                         ),
-                      ),
-                    )
-                  : SizedBox(
-                      height: widget.chartHeight ??
-                          MediaQuery.of(context).size.height * 0.25,
-                      child: Center(
-                        child: PulsingSkeleton(
-                          height: widget.chartHeight ??
-                              MediaQuery.of(context).size.height * 0.25,
-                          width: double.infinity,
+                        const SizedBox(height: GeniusWalletConsts.space4),
+                        const Text(
+                          "Couldn't load chart",
+                          style: TextStyle(
+                            color: GeniusWalletColors.textSecondary,
+                          ),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _hasError = false);
+                            _fetchHistoricalData();
+                          },
+                          child: const Text("Retry"),
+                        ),
+                      ],
                     ),
+                  ),
+                )
+              : SizedBox(
+                  height:
+                      widget.chartHeight ??
+                      MediaQuery.of(context).size.height * 0.25,
+                  child: Center(
+                    child: PulsingSkeleton(
+                      height:
+                          widget.chartHeight ??
+                          MediaQuery.of(context).size.height * 0.25,
+                      width: double.infinity,
+                    ),
+                  ),
+                ),
         ],
       ),
     );
