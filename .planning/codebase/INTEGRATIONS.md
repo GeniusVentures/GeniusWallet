@@ -1,0 +1,257 @@
+# External Integrations
+
+**Analysis Date:** 2026-07-15
+
+## APIs & External Services
+
+**Fiat On-Ramp:**
+- Banxa - Fiat currency to crypto on-ramp service
+  - Endpoint: `https://api.banxa.com/gnus/v2`
+  - Sandbox: `https://gnus.banxa-sandbox.com`
+  - SDK/Client: Custom HTTP integration via `http` package
+  - Auth: API key + HMAC-SHA256 signature authentication
+  - Implementation: `lib/banxa/banxa_api_services.dart`
+    - Partner code: `gnus`
+    - API Key stored in code (needs env var migration)
+  - Features: KYC submission, order creation, payment processing
+  - Deep link support: `geniuswallet://banxa/callback`
+  - Components: `lib/banxa/` (models, services, UI, order history)
+
+**Cross-Chain Swaps:**
+- Squid Router - Cross-chain token swap aggregator
+  - Mainnet: `https://api.squidrouter.com/v1`
+  - Testnet: `https://testnet.api.squidrouter.com/v1`
+  - SDK/Client: Custom HTTP integration via `http` package
+  - Auth: No auth required (public API)
+  - Implementation: `lib/squid_router/squid_token_service.dart`
+  - Features:
+    - Token listing across chains
+    - Balance checking
+    - Route calculation
+    - Swap execution
+  - Components: `lib/squid_router/` (swap screen, models, token service)
+
+**Market Data:**
+- CoinGecko - Cryptocurrency price and market data
+  - Endpoint: `https://api.coingecko.com/api/v3`
+  - SDK/Client: Custom HTTP integration via `http` package
+  - Auth: No auth required (free tier)
+  - Implementation: `lib/services/coin_gecko/coin_gecko_api.dart`
+  - Caching: Hive cache with 3-minute TTL
+  - Features:
+    - Historical price data (1-day charts)
+    - Market data for multiple coins
+  - Storage: Cached in Hive boxes:
+    - `coinGeckoCacheBox` - Coin metadata
+    - `marketDataBox` - Market data
+    - `historicalPricesBox` - Historical prices with timestamps
+
+**Cryptocurrency News:**
+- CoinTelegraph - News aggregation
+  - Implementation: `lib/services/coin_telegraph/`
+  - Caching: Hive cache for news articles
+  - Storage: `coinTelegraphNewsBox`, `coinTelegraphTimestampBox`
+
+**Blockchain RPCs:**
+- DRPC (Distributed RPC) - Multi-chain RPC provider
+  - Used for: Ethereum, Polygon, BSC, Base mainnet
+  - Endpoint pattern: `https://{network}.drpc.org`
+  - Configuration: `assets/json/networks/networks.json`
+
+- Chainstack - RPC provider for testnet support
+  - Used for: Polygon Amoy (testnet), BSC Testnet, Base Sepolia
+  - Configuration: `assets/json/networks/networks.json`
+
+**Wallet Connection & dApp Support:**
+- Reown/WalletConnect (v2) - Universal wallet connection protocol
+  - SDK/Client: `reown_walletkit ^1.3.2`
+  - Project ID: `999123e54f32a21dbd087339746231b1`
+  - Implementation: `lib/reown/reown_walletkit_instance.dart`
+  - Wallet metadata:
+    - Name: `Gnus.ai Wallet`
+    - URL: `https://gnus.ai/`
+    - Description: `Gnus.ai wallet`
+  - Features:
+    - dApp connection approval
+    - Transaction signing for dApps
+    - Session management
+  - Components: `lib/reown/` (connection, transaction approval, utilities)
+
+**Blockchain Interaction:**
+- web3dart 3.0.0+ - EVM (Ethereum-compatible) blockchain interaction
+  - SDK/Client: `web3dart ^3.0.0`
+  - Implementation: `packages/genius_api/lib/web3/`
+  - Supports: Ethereum, Polygon, BSC, Base, Arbitrum, Optimism, and any EVM chain
+  - Features: Contract interaction, transaction signing, state queries
+
+**Native Blockchain SDK:**
+- GeniusSDK - Custom native SDK for blockchain operations
+  - Integration: Dart FFI in `packages/genius_api/`
+  - FFI Bindings: `packages/genius_api/lib/ffi/genius_api_ffi.dart`
+  - Native Bridge: `packages/genius_api/lib/src/genius_api.dart`
+  - SGNUS Connection: Custom protocol for Genius blockchain
+  - Configuration: `assets/sgns_config.json`
+  - Build: Windows CMake integration via `windows/CMakeLists.txt`
+  - Components:
+    - Controllers: `packages/genius_api/lib/controllers/`
+    - Models: `packages/genius_api/lib/models/`
+    - Extensions: `packages/genius_api/lib/extensions/`
+
+**Trust Wallet Integration:**
+- Trust Wallet Core FFI - Optional TrustWallet SDK binding
+  - Implementation: `packages/genius_api/lib/ffi/trust_wallet_api_ffi.dart`
+  - Status: Built but may not be actively used
+
+## Data Storage
+
+**Local Database:**
+- Hive (Encrypted, v2.19.3+) - NoSQL embedded database for caching
+  - Package: `hive_ce` (community edition with encryption)
+  - Flutter integration: `hive_ce_flutter 2.3.4`
+  - Storage location: `getApplicationDocumentsDirectory()/hive/`
+  - Boxes:
+    - `coinGeckoCacheBox` - CoinGecko coin metadata
+    - `marketDataBox` - Market data with timestamps
+    - `historicalPricesBox` - Price history (keyed by coin ID)
+    - `coinTelegraphNewsBox` - News articles
+    - `coinTelegraphTimestampBox` - News cache timestamps
+    - `walletBoxName` - Wallet data (address, keys, metadata)
+    - `networkBoxName` - Network configuration
+    - Transaction boxes (direction, status, type, recipients, transactions)
+  - Initialization: `lib/hive/init.dart` - `initHive()` function
+  - Type adapters auto-generated by `hive_ce_generator`
+
+**Secure Storage:**
+- flutter_secure_storage 9.2.4 - Platform-specific secure storage
+  - iOS: Keychain
+  - Android: Encrypted SharedPreferences / Keystore
+  - Windows/macOS/Linux: File-based with platform-specific encryption
+  - Wrapper: `packages/local_secure_storage/` package
+  - Used for: Private keys, seed phrases, sensitive credentials
+
+**File Storage:**
+- path_provider 2.1.6 - Access to application directories
+  - SDK logs: `getApplicationDocumentsDirectory()/sgnslog.log`, `sgnslog2.log`
+  - Sentry integration: Logs attached to error reports
+
+## Authentication & Identity
+
+**Wallet Authentication:**
+- Custom implementation - Private key/seed phrase based
+  - Storage: Secure storage via `local_secure_storage`
+  - Types: Imported wallets, generated wallets
+  - No OAuth/external auth provider used
+
+**dApp Authentication:**
+- WalletConnect (Reown) - dApp connection and signing
+  - Pairing via QR codes or URI schemes
+  - Transaction approval flow
+  - Session persistence
+
+## P2P & Networking
+
+**Bootstrap Nodes:**
+- IPFS bootstrap configuration in `assets/network_config.json`
+  - Multiple public IPFS nodes for p2p connectivity
+  - UPnP support enabled
+  - DHT (Distributed Hash Table) auto-discovery enabled
+  - Connection pooling: High water mark (300), low water mark (150)
+
+## Monitoring & Observability
+
+**Error Tracking:**
+- Sentry (9.0.0) - Error reporting and performance monitoring
+  - DSN: `https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944`
+  - Implementation: `lib/main.dart` - `SentryFlutter.init()`
+  - Configuration:
+    - Trace sampling: 100% (all requests)
+    - Send PII: Enabled (include user data in reports)
+    - SDK logs attached: SGNUS logs auto-attached to crash reports
+    - Filtering: Error and fatal level events sent automatically
+  - Features: Exception tracking, performance monitoring, source maps
+
+**Logs:**
+- Console logging: Flutter `debugPrint()` throughout codebase
+- File logging: SGNUS SDK generates `sgnslog.log`, `sgnslog2.log`
+- Sentry attachment: SDK logs automatically attached to error reports
+
+**Analytics:**
+- Not configured (no Google Analytics, Mixpanel, or similar detected)
+
+## CI/CD & Deployment
+
+**Hosting:**
+- Multiplatform releases (see INSTALL.md):
+  - Windows: zip with `genius_wallet.exe`
+  - macOS: `.pkg` installer
+  - Linux x86_64: Gzipped tarball
+  - Linux aarch64: Gzipped tarball
+  - iOS: TestFlight
+  - Android: APK releases
+  - Web: Not actively promoted
+
+**CI Pipeline:**
+- GitHub Actions (inferred from `.github/` directory and release structure)
+  - No public CI config visible in main repo (may be in separate workflows)
+
+**Build Orchestration:**
+- Flutter CLI (via `flutter build <target>`)
+- Windows native: CMake with C++ compilation
+- Code generation: `build_runner` for Dart code gen
+
+## Environment Configuration
+
+**Required Environment Variables:**
+- `CMAKE_ARGUMENTS` (Windows build) - Passed to CMake for native build configuration
+- Banxa API key (currently hardcoded - security concern)
+- Network RPC URLs (in JSON config, not env vars)
+
+**Configuration Files:**
+- `assets/network_config.json` - P2P and IPFS settings
+- `assets/json/networks/networks.json` - Supported blockchains and RPC endpoints
+- `assets/json/tokens/` - Token metadata and icons
+- `assets/sgns_config.json` - SGNUS protocol configuration
+- `assets/dev_config.json` - Development mode settings
+- `assets/log_config.json` - Logging levels
+- `assets/crdt_config.json` - CRDT replication settings
+
+**Secrets Location:**
+- Banxa API key: Hardcoded in `lib/banxa/banxa_api_services.dart` (LINE 14)
+- Sentry DSN: Hardcoded in `lib/main.dart` (LINE 72)
+- Reown Project ID: Hardcoded in `lib/reown/reown_walletkit_instance.dart` (LINE 12)
+- **SECURITY NOTE**: API keys and DSNs should be moved to environment variables or secure build configuration
+
+## Webhooks & Callbacks
+
+**Incoming:**
+- Deep link handler: `geniuswallet://banxa/callback` (Banxa order callback)
+  - Implementation: `lib/banxa/banxa_helpers/deep_link_service.dart`
+  - Uses: `app_links 7.0.0` for deep link detection
+
+**Outgoing:**
+- Transaction submission: Chain RPC calls via web3dart
+- Swap submission: HTTP POST to Squid Router API
+- KYC submission: HTTP POST to Banxa sandbox
+
+## API Rate Limits & Quotas
+
+**CoinGecko:**
+- Free tier: No API key required, standard rate limiting applies
+- Caching: 3-minute TTL in Hive to minimize requests
+
+**Squid Router:**
+- Public API, rate limits apply per IP
+- No API key authentication required
+
+**Banxa:**
+- Rate limiting depends on partner tier
+- API key authentication required
+
+**RPC Providers (DRPC, Chainstack):**
+- DRPC: Free tier available, rate limited
+- Chainstack: Free tier available, rate limited
+- Network requests cached where applicable
+
+---
+
+*Integration audit: 2026-07-15*
