@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,10 +23,49 @@ class SGNUSConnectionWidget extends StatefulWidget {
 }
 
 class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
+  Timer? _initTimer;
+  double? _initPercentage;
+  bool _initComplete = false;
+  GeniusApi? _geniusApi;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _geniusApi ??= context.read<GeniusApi>();
+    _startInitPolling();
+  }
+
+  void _startInitPolling() {
+    _initTimer?.cancel();
+    if (_initComplete || _geniusApi == null) return;
+    _initTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      try {
+        final status = _geniusApi!.getInitializationStatus();
+        setState(() {
+          _initPercentage = status.percentage;
+          if (status.percentage >= 1.0) {
+            _initComplete = true;
+            _initTimer?.cancel();
+          }
+        });
+      } catch (_) {
+        // Ignore polling errors and try again next tick.
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _initTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<SGNUSConnection>(
-      stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+      stream: (_geniusApi ?? context.read<GeniusApi>())
+          .getSGNUSConnectionStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -33,6 +74,30 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
         }
 
         final connection = snapshot.data!;
+
+        String label = 'SGNUS Connection ';
+        Widget statusIcon;
+        if (_initComplete ||
+            (_initPercentage != null && _initPercentage! >= 1.0)) {
+          statusIcon = const CheckmarkAnimation();
+        } else if (_initPercentage != null) {
+          statusIcon = SizedBox(
+            width: 25,
+            height: 25,
+            child: CircularProgressIndicator(
+              value: _initPercentage,
+              strokeWidth: 3.0,
+              color: GeniusWalletColors.statusSuccess,
+            ),
+          );
+          label =
+              'SGNUS Connection (${(_initPercentage! * 100).toStringAsFixed(1)}%) ';
+        } else {
+          statusIcon = connection.isConnected
+              ? const CheckmarkAnimation()
+              : const XAnimation();
+        }
+
         return GestureDetector(
           onTap: () => context.push('/network'),
           child: Column(
@@ -45,12 +110,11 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
                       child: AutoSizeText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    'SGNUS Connection ',
+                    label,
                     style: GeniusWalletTypography.bodyMd,
                   )),
                   const SizedBox(width: GeniusWalletConsts.space4),
-                  if (connection.isConnected) const CheckmarkAnimation(),
-                  if (!connection.isConnected) const XAnimation(),
+                  statusIcon,
                 ],
               ),
             ],
@@ -69,10 +133,49 @@ class SGNUSConnectionMobileWidget extends StatefulWidget {
 }
 
 class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
+  Timer? _initTimer;
+  double? _initPercentage;
+  bool _initComplete = false;
+  GeniusApi? _geniusApi;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _geniusApi ??= context.read<GeniusApi>();
+    _startInitPolling();
+  }
+
+  void _startInitPolling() {
+    _initTimer?.cancel();
+    if (_initComplete || _geniusApi == null) return;
+    _initTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      try {
+        final status = _geniusApi!.getInitializationStatus();
+        setState(() {
+          _initPercentage = status.percentage;
+          if (status.percentage >= 1.0) {
+            _initComplete = true;
+            _initTimer?.cancel();
+          }
+        });
+      } catch (_) {
+        // Ignore polling errors and try again next tick.
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _initTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<SGNUSConnection>(
-      stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
+      stream: (_geniusApi ?? context.read<GeniusApi>())
+          .getSGNUSConnectionStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -81,6 +184,30 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
         }
 
         final connection = snapshot.data!;
+
+        String label = 'SGNUS Connection ';
+        Widget statusIcon;
+        if (_initComplete ||
+            (_initPercentage != null && _initPercentage! >= 1.0)) {
+          statusIcon = const CheckmarkAnimation();
+        } else if (_initPercentage != null) {
+          statusIcon = SizedBox(
+            width: 25,
+            height: 25,
+            child: CircularProgressIndicator(
+              value: _initPercentage,
+              strokeWidth: 3.0,
+              color: GeniusWalletColors.statusSuccess,
+            ),
+          );
+          label =
+              'SGNUS Connection (${(_initPercentage! * 100).toStringAsFixed(1)}%) ';
+        } else {
+          statusIcon = connection.isConnected
+              ? const CheckmarkAnimation()
+              : const XAnimation();
+        }
+
         return GestureDetector(
           onTap: () => context.push('/network'),
           child: Column(
@@ -93,12 +220,11 @@ class SGNUSConnectionMobileState extends State<SGNUSConnectionMobileWidget> {
                       child: AutoSizeText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    'SGNUS Connection ',
+                    label,
                     style: GeniusWalletTypography.bodyMd,
                   )),
                   const SizedBox(width: GeniusWalletConsts.space4),
-                  if (connection.isConnected) const CheckmarkAnimation(),
-                  if (!connection.isConnected) const XAnimation(),
+                  statusIcon,
                 ],
               ),
             ],
