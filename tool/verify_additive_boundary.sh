@@ -112,6 +112,16 @@ check_pair() {
 
 echo "== Check 1: shadow import boundary =="
 
+# Plan 03-06 adds lib/components/splash.dart (the Splash shadow) as the 19th
+# legitimate importer of the CANONICAL Loading -- verbatim-porting the
+# reference's Splash would otherwise import the Loading SHADOW
+# (components/loading/loading.dart), which is outside that shadow's
+# allowlist (design_gallery_screen.dart only). Repointed to the canonical
+# file instead, whose Loading class has an identical `{String? text}`
+# constructor -- see 03-06-SUMMARY.md for the full deviation writeup. This is
+# a deliberate, reviewed addition to the exact-match list this check is
+# built to protect (a real new caller, not a silent path-swap of an existing
+# one) -- not a loosening of the guard.
 LOADING_CANONICAL_EXPECTED='lib/banxa/banxa_orders_history.dart
 lib/banxa/banxa_payment.dart
 lib/banxa/checkout_qr.dart
@@ -119,6 +129,7 @@ lib/banxa/user_kyc/kyc_registration.dart
 lib/components/coins/view/coins_screen.dart
 lib/components/custom_future_builder.dart
 lib/components/sgnus/sgnus_connection_widget.dart
+lib/components/splash.dart
 lib/dashboard/chart/markets_search_bar.dart
 lib/dashboard/news/view/crypto_news_screen.dart
 lib/onboarding/existing_wallet/view/import_security_screen.dart

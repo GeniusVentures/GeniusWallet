@@ -19,19 +19,29 @@ it gates every later plan in the phase), and it must be re-run by every plan tha
 
 | Shadow class | New path (a later plan in this phase adds it) | Canonical path (develop has today) | Canonical importers (verified on the working tree, 2026-07-16) | Why it matters |
 |---|---|---|---|---|
-| `Loading` | `lib/components/loading/loading.dart` | `lib/components/loading.dart` | **18 files** (see list below) | Both are `StatelessWidget` with an identical `{String? text}` constructor. Alex's uses Phase 2 tokens (`GeniusWalletColors.brandGreen`, `GeniusWalletConsts.space8`, `GeniusWalletTypography.headlineLg`); develop's uses raw values (`lightGreenPrimary`, a default `TextStyle`). A repointed import compiles cleanly and silently re-skins a loading state anywhere in the app. Detonates in Phases 5/6/9, not here. |
+| `Loading` | `lib/components/loading/loading.dart` | `lib/components/loading.dart` | **19 files** (see list below; updated by plan 03-06 -- see note) | Both are `StatelessWidget` with an identical `{String? text}` constructor. Alex's uses Phase 2 tokens (`GeniusWalletColors.brandGreen`, `GeniusWalletConsts.space8`, `GeniusWalletTypography.headlineLg`); develop's uses raw values (`lightGreenPrimary`, a default `TextStyle`). A repointed import compiles cleanly and silently re-skins a loading state anywhere in the app. Detonates in Phases 5/6/9, not here. |
 | `Splash` | `lib/components/splash.dart` | `lib/screens/splash.dart` | **1 file**: `lib/navigation/router.dart:30` | Develop's `Splash` is a `StatelessWidget`; Alex's is a `StatefulWidget`. The single importer is the **splash route** — i.e. the app's boot path. Alex deleted `screens/splash.dart` on his branch entirely (`git show origin/ui-redesign-3.514:lib/screens/splash.dart` fails — path does not exist there), so his source presents the shadow as a finished move. A later phase "finishing the move" would swap the startup screen without any diagnostic. |
 | `WalletsOverview`, `WalletsOverviewState` | `lib/components/wallets_overview.g.dart` | `lib/components/wallet_overview.dart` | **1 file**: `lib/dashboard/home/view/dashboard_screen.dart:19` | **The most dangerous of the three.** Filenames differ by one letter (`wallets_overview.g.dart` vs `wallet_overview.dart`). The shadow is a `.g.dart` file, so `flutter analyze` is configured blind to it (`analysis_options.yaml:5` excludes `lib/**/*.g.dart`). The canonical file is GAP-06 — Phase 5 will re-skin `wallet_overview.dart` on the dashboard, which is exactly the phase most likely to repoint the import while doing so. The shadow is orphaned dead code even on Alex's own source branch (no importer anywhere in `origin/ui-redesign-3.514`'s `lib/`) — it must never gain a real importer other than plan 03-04's compile canary. |
 
-**Loading's 18 canonical importers** (`grep -rl "package:genius_wallet/components/loading.dart" lib/`, sorted):
+**Loading's 19 canonical importers** (`grep -rl "package:genius_wallet/components/loading.dart" lib/`, sorted):
 `lib/banxa/banxa_orders_history.dart`, `lib/banxa/banxa_payment.dart`, `lib/banxa/checkout_qr.dart`,
 `lib/banxa/user_kyc/kyc_registration.dart`, `lib/components/coins/view/coins_screen.dart`,
 `lib/components/custom_future_builder.dart`, `lib/components/sgnus/sgnus_connection_widget.dart`,
-`lib/dashboard/chart/markets_search_bar.dart`, `lib/dashboard/news/view/crypto_news_screen.dart`,
+`lib/components/splash.dart`, `lib/dashboard/chart/markets_search_bar.dart`,
+`lib/dashboard/news/view/crypto_news_screen.dart`,
 `lib/onboarding/existing_wallet/view/import_security_screen.dart`,
 `lib/onboarding/new_wallet/view/recovery_phrase_screen.dart`, `lib/onboarding/routes/wallet_routes.dart`,
 `lib/screens/banxa_buy_screen.dart`, `lib/screens/loading_screen.dart`, `lib/screens/splash.dart`,
 `lib/squid_router/swap_screen.dart`, `lib/submit_job/view/submit_job_screen.dart`, `lib/web/web_view_windows.dart`.
+
+**Note (plan 03-06):** `lib/components/splash.dart` (the `Splash` shadow, this same table) is
+itself a NEW importer of the canonical `Loading`, added when the plan ported `Splash` verbatim.
+The reference source imports the `Loading` SHADOW there, which is disallowed (`Loading`'s shadow
+path's only permitted importer is `design_gallery_screen.dart`) — so the import was repointed to
+the canonical `Loading` instead, which declares an identical `{String? text}` constructor, making
+the `const Loading()` call site unchanged. `tool/verify_additive_boundary.sh`'s
+`LOADING_CANONICAL_EXPECTED` list and this document were updated in the same commit. See
+`03-06-SUMMARY.md` for the full deviation writeup.
 
 ## Derivation
 

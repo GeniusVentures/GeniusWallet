@@ -132,6 +132,9 @@ class GeniusWalletColors {
       _isLight ? const Color(0x1A10131A) : const Color(0x1AFFFFFF);
   static const Color textSecondary =
       Color(0xFF8A8F9D); // gnus.ai --muted-foreground
+  // Alias used by ported components (e.g. sgnus_wallet.dart) that reference
+  // the reference worktree's gray-scale naming instead of the semantic name.
+  static const Color gray500 = textSecondary;
   static const Color textTertiary = Color.fromARGB(255, 53, 54, 61);
   static const Color textDisabled = Color(0xFF2A2B31);
   static const Color textOnBrand = Color(0xFF000B18);
