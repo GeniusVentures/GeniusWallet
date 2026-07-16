@@ -13,6 +13,11 @@ class GeniusWalletColors {
   static const Color grayPrimary = Color.fromRGBO(21, 30, 41, 1);
 
   static const Color btnText = Color.fromRGBO(0, 9, 20, 1);
+  // Added in Phase 3 plan 03-04: continue_button/isactive_false.g.dart
+  // (DS-02) references GeniusWalletColors.btnDisabled, which Phase 2's port
+  // of this file omitted. Ported verbatim from the reference worktree's
+  // value at the equivalent position (between btnText and btnTextDisabled).
+  static const Color btnDisabled = Color.fromRGBO(188, 188, 188, 1);
   static const Color btnTextDisabled = Color.fromRGBO(101, 101, 101, 1);
 
   static const Color foundationError = Color(0xff920000);
