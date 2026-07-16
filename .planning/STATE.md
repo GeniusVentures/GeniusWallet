@@ -6,14 +6,14 @@ current_phase: 2
 current_phase_name: Design tokens & verification loop
 status: executing
 stopped_at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
-last_updated: "2026-07-16T14:57:16.181Z"
+last_updated: "2026-07-16T15:57:18.108Z"
 last_activity: 2026-07-16
 last_activity_desc: "Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped"
 progress:
   total_phases: 11
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 2 of 11 (Design tokens & verification loop)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-16 — Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped
@@ -54,6 +54,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 2]: Only responsive_overlay.dart's Dev row is gated this phase; wallet_creation_screen.dart onboarding buttons deferred to Phase 6 (they don't exist on develop today).
 - [Phase 02-design-tokens-verification-loop]: appBarHeight deferred to Phase 4: develop's 60 kept, design branch's 65 not ported (real visual change, still in live use by responsive_overlay.dart)
 - [Phase 02-design-tokens-verification-loop]: genius_wallet_colors.dart and genius_wallet_gradient.dart ported as pure insertions (0 deletions); genius_wallet_consts.dart's 6 legacy aliases re-pointed after per-alias value verification
+- [Phase 02-04]: All six remaining redesign theme files (motion, font-size, copy-text, elevation, typography, decorations) ported byte-identical, zero adaptation needed, zero collision — Grep-verified before planning that develop referenced none of these six class names anywhere in lib/ or packages/
+- [Phase 02-04]: GWCanvasBackground ported as a dormant class, instantiated nowhere in lib/ — References assets/images/textures/noise.png, an asset owned by DS-04/Phase 3, not bundled this phase
+- [Phase 02-04]: toMaterialTextTheme() ships but is not wired into theme.dart this phase — theme.dart is the 100%-collision file UI-SPEC section 1.1 excludes wholesale for the whole of Phase 2; wiring belongs to Phase 4's shell re-skin
 
 ### Pending Todos
 
@@ -84,7 +87,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T14:56:19.983Z
+Last session: 2026-07-16T15:56:20.536Z
 Stopped at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
 Resume file: None
 
@@ -95,3 +98,4 @@ Resume file: None
 | Phase 02-design-tokens-verification-loop P01 | 10min | 3 tasks | 5 files |
 | Phase 02 P02 | 15min | 2 tasks | 2 files |
 | Phase 02-design-tokens-verification-loop P03 | 25min | 3 tasks | 3 files |
+| Phase 02-design-tokens-verification-loop P04 | 20min | 3 tasks | 6 files |
