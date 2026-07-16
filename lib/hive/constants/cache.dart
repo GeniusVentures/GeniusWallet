@@ -17,3 +17,7 @@ const String selectedWalletKey = 'selected_wallet_address';
 const String networkBoxName = 'network';
 const String selectedNetworkKeyChainId = 'selected_network_chain_id';
 const String selectedNetworkKeyRpcUrl = 'selected_network_rpc_url';
+
+// preferences
+const String preferencesBoxName = 'preferences';
+const String appearanceModeKey = 'appearance_mode';
