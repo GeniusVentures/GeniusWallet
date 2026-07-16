@@ -145,7 +145,7 @@ Deferred to future milestones.
 | Restructuring any surface (moving/reordering items, changing IA, splitting/merging screens) | Product judgement with no owner in this milestone. Re-skin in place; record structural questions for product |
 | Big-bang merge of `origin/ui-redesign-3.514` | Rejected after analysis — 115 conflicts, structural collisions |
 | Whole-branch forward-port (`ui-redesign-3.514-develop`) | Superseded 2026-07-16 — compiled clean but dropped 37 develop behaviors; kept as read-only reference |
-| `origin/redesign-develop` (Jakub's branch) | Out of scope 2026-07-16 (user). It branches off the abandoned forward-port and its commit `3c43ca7` executes the old "Phase 2: Forward-port fidelity" (RFP-01/RFP-02) — a phase that no longer exists. Not merged, not reconciled, not mined. This milestone starts fresh from develop |
+| Other branches off the abandoned forward-port line | Out of scope — this milestone starts fresh from develop |
 | Re-architecting develop's structure | The port keeps develop's structure/logic and applies the skin on top |
 | Porting the redesign's `hive` (classic) usage | develop uses `hive_ce`; develop's data layer wins |
 | New feature milestones | Deferred until the port lands |
