@@ -31,7 +31,7 @@ to verify a slice — the forward-port compiled cleanly and still dropped 37 dev
 The design's 82 new files are mostly `gw_*` primitives. They are additive to develop (new files, no
 collisions), so they carry the lowest risk and everything else depends on them.
 
-- [ ] **DS-01**: Redesign theme tokens (colours, typography, spacing, decorations) live on `develop` and coexist with develop's existing theme without breaking un-ported screens
+- [x] **DS-01**: Redesign theme tokens (colours, typography, spacing, decorations) live on `develop` and coexist with develop's existing theme without breaking un-ported screens
 - [ ] **DS-02**: The `gw_*` component library is ported to `develop` (buttons, cards, inputs, feedback states, token/wallet rows, mesh background, icons)
 - [ ] **DS-03**: A developer can view every ported primitive in one place to confirm fidelity against the design (`/design_gallery`)
 - [ ] **DS-04**: Redesign assets referenced by the design system are declared and bundled (e.g. `assets/images/textures/`, whose omission broke the mesh background on the forward-port)
@@ -97,7 +97,7 @@ Deferred to future milestones.
 |-------------|-------|--------|
 | GSD-01 | Phase 1 — Adopt GSD | ✓ Complete (PR #207, `12fd40d`) |
 | BLD-01 | Phase 1 — Adopt GSD | ✓ Complete (`4395da7`) |
-| DS-01 | Phase 2 — Design tokens & verification loop | Pending |
+| DS-01 | Phase 2 — Design tokens & verification loop | Complete |
 | BLD-02 | Phase 2 — Design tokens & verification loop | Pending |
 | BLD-03 | Phase 2 — Design tokens & verification loop | Pending |
 | DS-02 | Phase 3 — gw_* component library | Pending |
@@ -125,9 +125,11 @@ Deferred to future milestones.
 - **BEH-02** spans three fix commits but *closes* in Phase 4, where the last of them lands.
   Phase 2 carries `f3fd16f` (dev gating → BLD-03), Phase 3 carries `d8db88c` (textures → DS-04),
   Phase 4 carries `7a63b4f` (`!_dirty` guard → NAV-02). See ROADMAP.md Overview.
+
 - **BEH-01** is enforced continuously — each phase confirms its own subset of the 37 findings
   non-regressed (per-phase assignment table in ROADMAP.md) — but *closes* in Phase 11, where the
   full set is signed off by a whole-app walk.
+
 - **BLD-02** (verify by running the app, not by analyze) is *established* in Phase 2 and is a
   standing condition of every later phase's success criteria; it is not re-mapped per phase.
 
@@ -135,6 +137,7 @@ Deferred to future milestones.
 
 - v1 requirements: **24 total** — corrected 2026-07-16; the previous "22" miscounted
   (1 GSD + 3 BLD + 4 DS + 2 NAV + 6 SCR + 6 GAP + 2 BEH = 24)
+
 - Complete: 2 (GSD-01, BLD-01 — Phase 1)
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases: 11 (1 complete, 10 remaining)

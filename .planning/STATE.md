@@ -1,12 +1,20 @@
 ---
-gsd_state_version: '1.0'
-status: planning
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 2
+current_phase_name: Design tokens & verification loop
+status: executing
+stopped_at: Roadmap re-scoped to the 11-phase incremental port; Phase 1 complete; ready to plan Phase 2
+last_updated: "2026-07-16T14:33:29.032Z"
+last_activity: 2026-07-16
+last_activity_desc: "Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped"
 progress:
   total_phases: 11
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 9
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 2
+  percent: 0
 ---
 
 # Project State
@@ -21,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 2 of 11 (Design tokens & verification loop)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
+Plan: 2 of 5 in current phase
+Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-16 — Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped
 
@@ -40,6 +48,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Screen areas were **not** compressed despite `granularity: standard` — merging them recreates the reconcile-everything-at-once failure this milestone exists to avoid
 - Keep `ui-redesign-3.514-develop` as read-only reference; port its 3 remaining fix commits with their components (BEH-02)
 - Interactive mode (config is committed to the shared repo)
+- [Phase 2]: google_fonts inserted next to go_router in pubspec.yaml (nearest alphabetical neighbor) rather than resorting the non-alphabetical dependency block
+- [Phase 2]: gw_appearance.dart ported verbatim except the Hive import (hive_ce_flutter instead of classic hive_flutter), matching develop's data layer
 
 ### Pending Todos
 
@@ -70,6 +80,12 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16
+Last session: 2026-07-16T14:33:29.025Z
 Stopped at: Roadmap re-scoped to the 11-phase incremental port; Phase 1 complete; ready to plan Phase 2
 Resume file: None
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 02-design-tokens-verification-loop P01 | 10min | 3 tasks | 5 files |
