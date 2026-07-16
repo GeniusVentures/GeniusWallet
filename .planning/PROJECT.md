@@ -26,16 +26,18 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 ### Active
 
-<!-- Current near-term scope. Kept thin per "minimal GSD infra" milestone. -->
+<!-- Current near-term scope: incremental redesign port onto develop. -->
 
-- [ ] Adopt GSD workflow for the project (this branch: `chore/adopt-gsd`)
-- [ ] Complete & harden the UI-redesign forward-port onto `develop` (branch `ui-redesign-3.514-develop`): remaining low-priority develop drops, `import_wallet_screen.dart` re-skin, visual/UAT pass on the nav shell, then merge to `develop`
+- [x] Adopt GSD workflow for the project — shipped on `develop` via PR #207 (`12fd40d`)
+- [ ] Port the redesign onto `develop` incrementally, layer by layer (branch `ui-redesign-port`): design tokens → `gw_*` primitives → nav shell → one screen area per phase, each independently verifiable and landable
+- [ ] Extend the design language to the features develop gained after the designer forked (Settings, SDK account manager, Banxa rework, select-wallet-type) — the redesign has no mockup for these
 
 ### Out of Scope
 
-- Broad new-feature milestones (staking, new chains, etc.) — deferred until GSD infra is in place and the redesign forward-port lands
-- Re-architecting develop's structure — the forward-port deliberately keeps develop's structure/logic and applies the redesign skin on top
-- Big-bang merge of `origin/ui-redesign-3.514` into develop — rejected after analysis (115 conflicts, structural collisions); the manual forward-port is the chosen path
+- Broad new-feature milestones (staking, new chains, etc.) — deferred until the redesign port lands
+- Re-architecting develop's structure — the port keeps develop's structure/logic and applies the redesign skin on top
+- Big-bang merge of `origin/ui-redesign-3.514` into develop — rejected after analysis (115 conflicts, structural collisions)
+- Whole-branch forward-port (`ui-redesign-3.514-develop`) — superseded; see Key Decisions. Kept as a read-only reference, not merged
 
 ## Context
 
@@ -55,7 +57,10 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Manual forward-port over merging `ui-redesign-3.514` | 7-agent analysis: merge yields 115 conflicts incl. structural modify/delete collisions; both paths need the same ~106 semantic calls, but the manual branch already made them and compiles | ✓ Good |
+| **Incremental component port over whole-branch forward-port** (2026-07-16) | The forward-port reached "0 analyze errors" but that proved little: a 24-agent audit then found 37 dropped develop behaviors (3 blockers — wallets vanished at startup, Banxa redirect left as a placeholder, WalletConnect dead on x64), and a second pass found more. Root cause is structural, not effort: the designer forked 2026-04-30, develop has +127 commits since, and **128 of the design's 172 files are files develop also changed** (74% overlap). One branch must reconcile all 128 at once with no way to verify incrementally. Porting layer-by-layer turns that into small, individually verifiable steps that each land on develop | — Pending |
+| Manual forward-port over merging `ui-redesign-3.514` | 7-agent analysis: merge yields 115 conflicts incl. structural modify/delete collisions; both paths need the same ~106 semantic calls, but the manual branch already made them and compiles | ✗ Superseded — the compile-clean signal masked 37 behavioral regressions; see above |
+| Keep `ui-redesign-3.514-develop` as reference, mine its fixes | It holds real value even though the approach failed: 4 verified fix commits and a 37-finding audit (`.planning/REVIEW_FINDINGS_REDESIGN.md`). Port each fix when its component lands rather than rediscovering the bugs | — Pending |
+| Fix Windows debug builds first (`4395da7`, cherry-picked to develop) | Debug builds were thought impossible (LNK1319 against `/MT`-only prebuilt native deps). Real cause was `_DEBUG` — not the runtime library — pulling in the debug CRT. Without hot reload, verifying a UI port is impractical; the first debug build immediately surfaced a startup crash that release had hidden for months | ✓ Good |
 | Isolate GSD `.planning/` on `chore/adopt-gsd` (own PR, off develop) | Keeps the redesign PR focused; `.planning/` is project infra for the whole team | — Pending |
 | Interactive mode (not YOLO) | GSD config is committed to the shared repo, so a conservative, approval-gated mode is safer for team-shared automation | — Pending |
 | Minimal first milestone (adopt infra only) | Establish a usable `.planning/` now; defer broad milestone planning until the forward-port lands | — Pending |
