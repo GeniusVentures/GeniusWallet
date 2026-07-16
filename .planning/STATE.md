@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Design tokens & verification loop
+current_phase: 3
+current_phase_name: GW Component Library
 status: executing
-stopped_at: Completed 02-05-PLAN.md (last plan of Phase 2). BLD-02 verification record written; criteria 1, 3 and second half of 4 OUTSTANDING pending human GUI walk (see 02-VERIFICATION.md).
-last_updated: "2026-07-16T16:15:51.747Z"
+stopped_at: Completed 03-01-PLAN.md (wave 1 of Phase 3). Dependencies, noise.png asset, and shadow-name guard landed; guard proven both directions on the real tree. Human must fully restart debug session (pubspec change) before any later plan's work is observable.
+last_updated: "2026-07-16T20:07:21.245Z"
 last_activity: 2026-07-16
-last_activity_desc: "Phase 2 complete: Alex's token vocabulary is on develop and provably invisible; debug-build verification loop established; dev tools gated"
+last_activity_desc: Phase 3 execution started
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 15
+  completed_plans: 6
   percent: 9
 ---
 
@@ -24,15 +24,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 2 — Design tokens & verification loop
+**Current focus:** Phase 3 — GW Component Library
 
 ## Current Position
 
-Phase: 2 of 11 (Design tokens & verification loop)
-Plan: 5 of 5 in current phase
+Phase: 3 (GW Component Library) — EXECUTING
+Plan: 2 of 10
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-16 — Phase 2 complete (5/5 criteria, human-verified): token vocabulary on develop with zero visual change; hot-reload verification loop established; dev tools gated behind GW_DEV_TOOLS
+Last activity: 2026-07-16 — Phase 3 execution started
 
 Progress: [█░░░░░░░░░] 9% (1 of 11 phases)
 
@@ -60,6 +60,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 02-design-tokens-verification-loop]: TokenProbeScreen wraps its body in ValueListenableBuilder on GWAppearance.instance so the appearance toggle actually rebuilds; setMode() alone persists but does not repaint
 - [Phase 02-design-tokens-verification-loop]: 02-VERIFICATION.md marks criteria 1 and 3 OUTSTANDING and criterion 4 PARTIAL rather than PASS -- an unearned PASS is the exact BLD-02 failure mode (37 regressions shipped analyze-clean)
 - [Phase 02-design-tokens-verification-loop]: Onboarding Mock button (ROADMAP criterion 4) recorded as an explicit Phase 6 deferral, not a pass -- it does not exist on develop today
+- [Phase 03-01]: mobile_scanner inserted after qr_flutter and shimmer after app_links in pubspec.yaml — Matched the reference worktree's relative ordering where the surrounding lines still align
+- [Phase 03-01]: Guard's Check 2 census uses ^(abstract )?class, not just ^class — Also catches abstract-class name collisions; verified identical 4-name result on today's tree, so no behavior gap
+- [Phase 03-01]: Shadow/canonical import matching uses full package:genius_wallet/... strings, not bare filename substrings — Codebase has zero relative imports anywhere under lib/ (verified), so the stricter match has no coverage gap
 
 ### Pending Todos
 
@@ -90,8 +93,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T16:15:51.739Z
-Stopped at: Completed 02-05-PLAN.md (last plan of Phase 2). BLD-02 verification record written; criteria 1, 3 and second half of 4 OUTSTANDING pending human GUI walk (see 02-VERIFICATION.md).
+Last session: 2026-07-16T20:07:21.238Z
+Stopped at: Completed 03-01-PLAN.md (wave 1 of Phase 3). Dependencies, noise.png asset, and shadow-name guard landed; guard proven both directions on the real tree. Human must fully restart debug session (pubspec change) before any later plan's work is observable.
 Resume file: None
 
 ## Performance Metrics
@@ -103,3 +106,4 @@ Resume file: None
 | Phase 02-design-tokens-verification-loop P03 | 25min | 3 tasks | 3 files |
 | Phase 02-design-tokens-verification-loop P04 | 20min | 3 tasks | 6 files |
 | Phase 02-design-tokens-verification-loop P05 | 7min | 3 tasks | 5 files |
+| Phase 03-gw-component-library P01 | 10min | 2 tasks | 7 files |
