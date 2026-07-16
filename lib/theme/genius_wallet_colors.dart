@@ -148,4 +148,18 @@ class GeniusWalletColors {
       Color(0xFFFF4D4D); // gnus.ai --destructive, vibrant v1.2
   static const Color statusWarning = Color(0xFFFFC42E);
   static const Color statusInfo = brandPrimary;
+
+  // ---------------------------------------------------------------------------
+  // Backwards-compatibility aliases — new names only (no develop token is
+  // reassigned here). Added in Phase 3 because gw_loading_state.dart and the
+  // loading/loading.dart shadow file (both DS-02) reference brandGreen, which
+  // Phase 2 did not port. Ported verbatim from the reference worktree's own
+  // "Backwards-compatibility aliases" block (genius_wallet_colors.dart).
+  // ---------------------------------------------------------------------------
+
+  // brandGreen → mint secondary (was Color.fromRGBO(0, 234, 174, 1))
+  static const Color brandGreen = brandSecondary;
+  static const Color brandGreenStrong = brandSecondaryStrong;
+  static Color brandGreenMuted = brandSecondaryMuted;
+  static Color brandGreenSubtle = brandSecondarySubtle;
 }
