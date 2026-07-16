@@ -135,9 +135,18 @@ Plans:
   3. The new token set resolves at runtime and flips correctly with light/dark appearance, demonstrable on a probe surface without touching an un-ported screen
   4. In a normal build the `Dev` header row and the onboarding `Mock` button are absent; with the opt-in dev flag on, both appear and `Mock` still injects its fake wallet + 20 fake transactions
   5. Form-field labels stay pinned above the field on every existing TextField (finding 36 — `floatingLabelBehavior: always` survives the theme rewrite)
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
 **Carries**: `f3fd16f` (dev-tools gating). **Findings**: 36.
+**Design contract**: `02-UI-SPEC.md` (approved 6/6 checker dimensions) — the coexistence mechanism
+(§1) governs the whole phase: additive-only, `theme.dart` untouched, `appBarHeight` excluded.
+
+Plans:
+- [ ] 02-01-PLAN.md — Appearance singleton, its Hive box, and the `google_fonts` dependency (DS-01)
+- [ ] 02-02-PLAN.md — Dev-tools gating: port `f3fd16f`'s `kShowDevTools` + its one live call site (BLD-03)
+- [ ] 02-03-PLAN.md — **The crux**: append the new tokens to the 3 colliding theme files without repointing a single existing symbol (DS-01)
+- [ ] 02-04-PLAN.md — Port the 6 remaining additive theme files: typography, elevation, motion, decorations, font sizes, copy (DS-01)
+- [ ] 02-05-PLAN.md — Token probe surface + route, then run and record the BLD-02 verification protocol (DS-01, BLD-02)
 
 ### Phase 3: gw_* component library
 **Goal**: Every redesign primitive exists on develop and can be inspected for fidelity before any screen depends on it
@@ -270,7 +279,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Adopt GSD | 1/1 | ✓ Complete | 2026-07-15 (PR #207) |
-| 2. Design tokens & verification loop | 0/TBD | Not started | - |
+| 2. Design tokens & verification loop | 0/5 | Planned | - |
 | 3. gw_* component library | 0/TBD | Not started | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
 | 5. Dashboard | 0/TBD | Not started | - |
