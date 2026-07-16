@@ -166,9 +166,28 @@ Plans:
   5. Every un-ported screen still renders and behaves as before — the library is additive and nothing consumes it yet
   6. `.planning/` records a treatment decision (extend the design language / keep develop's UI / defer) for each of the 12 develop features the design never saw, and every primitive those decisions call for exists in the gallery
 
-**Plans**: TBD
+**Plans**: 10 plans
 **UI hint**: yes
 **Carries**: `d8db88c` (assets/textures). **Findings**: 13, 15, 16, 25, 26.
+**Design contract**: `03-UI-SPEC.md` (approved 6/6 checker dimensions) — the additive-only mechanism
+(§1) governs the whole phase. Scope reconciles exactly against the diff: **60 additive − 9 nav-shell
+(Phase 4) − 1 `gw_ai_fab.dart` (WIRE-02) = 50 files**, distributed 12+6+14+9+9 across plans 03-02..03-06.
+**Planning found a hazard the UI-SPEC missed:** the `Loading` duplicate (§2.4) is one of **three**
+shadow-name pairs — `Splash` (boot path) and `WalletsOverview`/`WalletsOverviewState` (analyzer-blind
+`.g.dart` over GAP-06's file) also collide. See `03-SHADOW-NAMES.md` and `tool/verify_additive_boundary.sh`.
+
+Plans:
+
+- [ ] 03-01-PLAN.md — Dependencies, the `noise.png` texture asset (carries `d8db88c`), and the shadow-name guard (DS-04, DS-02)
+- [ ] 03-02-PLAN.md — Core primitives: icon API, buttons, cards, inputs, animated number — 12 files (DS-02)
+- [ ] 03-03-PLAN.md — Feedback states, mesh background, and the `Loading` shadow — 6 files (DS-02)
+- [ ] 03-04-PLAN.md — The 9 generated widgets, their custom siblings, and the compile canary — 14 files (DS-02)
+- [ ] 03-05-PLAN.md — Layout, screen wrappers, `BottomDrawer` chrome, overlays — 9 files (DS-02)
+- [ ] 03-06-PLAN.md — Specialist: QR scanner, dropdowns, SGNUS, and the `Splash` shadow — 9 files (DS-02)
+- [ ] 03-07-PLAN.md — Design gallery port, dev-gated route, and `GWCanvasBackground`'s first instantiation (DS-03, DS-04)
+- [ ] 03-08-PLAN.md — GAP-01: whole-app inventory and treatment decision (GAP-01)
+- [ ] 03-09-PLAN.md — Gallery extension: the missing primitives, light/dark, drawer + QR + error state (DS-03)
+- [ ] 03-10-PLAN.md — No-visual-change walk and the phase verification record (DS-02, DS-03, DS-04, GAP-01)
 
 ### Phase 4: Navigation shell & chrome
 
@@ -311,7 +330,7 @@ not a hard dependency chain. Each is independently landable on develop.
 |-------|----------------|--------|-----------|
 | 1. Adopt GSD | 1/1 | ✓ Complete | 2026-07-15 (PR #207) |
 | 2. Design tokens & verification loop | 2/5 | In Progress | - |
-| 3. gw_* component library | 0/TBD | Not started | - |
+| 3. gw_* component library | 0/10 | Planned | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
 | 5. Dashboard | 0/TBD | Not started | - |
 | 6. Onboarding | 0/TBD | Not started | - |
