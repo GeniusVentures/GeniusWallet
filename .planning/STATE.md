@@ -6,14 +6,14 @@ current_phase: 2
 current_phase_name: Design tokens & verification loop
 status: executing
 stopped_at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
-last_updated: "2026-07-16T14:36:42.848Z"
+last_updated: "2026-07-16T14:57:16.181Z"
 last_activity: 2026-07-16
 last_activity_desc: "Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped"
 progress:
   total_phases: 11
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 2 of 11 (Design tokens & verification loop)
-Plan: 2 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-16 — Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped
@@ -52,6 +52,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 2]: gw_appearance.dart ported verbatim except the Hive import (hive_ce_flutter instead of classic hive_flutter), matching develop's data layer
 - [Phase 2]: Ported f3fd16f's dev_flags.dart byte-for-byte, including its docstring, per UI-SPEC guidance.
 - [Phase 2]: Only responsive_overlay.dart's Dev row is gated this phase; wallet_creation_screen.dart onboarding buttons deferred to Phase 6 (they don't exist on develop today).
+- [Phase 02-design-tokens-verification-loop]: appBarHeight deferred to Phase 4: develop's 60 kept, design branch's 65 not ported (real visual change, still in live use by responsive_overlay.dart)
+- [Phase 02-design-tokens-verification-loop]: genius_wallet_colors.dart and genius_wallet_gradient.dart ported as pure insertions (0 deletions); genius_wallet_consts.dart's 6 legacy aliases re-pointed after per-alias value verification
 
 ### Pending Todos
 
@@ -82,7 +84,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T14:36:42.842Z
+Last session: 2026-07-16T14:56:19.983Z
 Stopped at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
 Resume file: None
 
@@ -92,3 +94,4 @@ Resume file: None
 |-------|------|----------|-------|
 | Phase 02-design-tokens-verification-loop P01 | 10min | 3 tasks | 5 files |
 | Phase 02 P02 | 15min | 2 tasks | 2 files |
+| Phase 02-design-tokens-verification-loop P03 | 25min | 3 tasks | 3 files |
