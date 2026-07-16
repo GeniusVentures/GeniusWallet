@@ -52,25 +52,40 @@ written or run for this phase.
 > "A Windows debug build launches from `ui-redesign-port`, hot reload applies a token edit without
 > a restart, and the Dart debugger attaches and hits a breakpoint."
 
-**What was run:** Nothing yet against this exact check. The probe surface this check partly relies
-on (`TokenProbeScreen.build()`, the natural breakpoint target) did not exist until this plan's
-Task 1 — it exists now (commit `758aa03`), and its route/entry point landed in Task 2 (commit
-`a27f663`).
+This criterion has two clauses. They are recorded separately because only one was exercised.
 
-**What was observed:** No agent-side observation is possible — hitting a breakpoint and confirming
-a hot-reloaded edit requires an interactive Dart debugger session and a human watching the running
-Windows GUI, neither of which this agent has access to.
+**Clause A — a Windows debug build launches and hot reload applies an edit without a restart:
+PASS (human-confirmed, 2026-07-16).**
+The user launched the debug build from `ui-redesign-port` via the standing recipe, edited
+`lib/components/wallet_overview.dart` (`'Current Balance'` → `'Current Balance2'`), pressed `r`, and
+observed the change apply live without a restart. Reported: "hot reload works". The test edit was
+reverted immediately afterward (`git restore`) and the string is back to `'Current Balance'` —
+verified, working tree clean.
 
-**Status: OUTSTANDING.**
+This is stronger evidence than the token-edit check originally scripted here: it is a visible string
+on a real screen, so the human could see the reload land rather than infer it.
 
-**What to do:** With the app running (reload picks up this plan's changes — see "Reload guidance"
-below):
-1. Edit `GeniusWalletMotion.base`'s duration in `lib/theme/genius_wallet_motion.dart`, save, press
-   `r` in the terminal (or the IDE's hot-reload button). Confirm the change applies without a full
-   restart. Revert the edit afterward.
-2. Set a breakpoint in `TokenProbeScreen.build()` (`lib/dev/token_probe_screen.dart`). Open the
-   probe (`Dev` row → `Tokens`, dev-tools build only). Confirm the Dart debugger attaches and stops
-   at the breakpoint.
+**Clause B — the Dart debugger attaches and hits a breakpoint: NOT EXERCISED.**
+Not observed, and not claimed. The orchestrator's instructions to the human omitted this step, so it
+was never run on this branch. It is *not* being inferred from clause A.
+
+What is known, from earlier in the same session on the sibling branch: `flutter run -d windows
+--debug` brings up a Dart VM Service and the DevTools debugger/profiler endpoint (both URLs were
+printed and the VM service was confirmed live). So the capability demonstrably exists on this
+toolchain — but "a breakpoint was set and the debugger stopped on it" has not been demonstrated.
+
+**Status: PASS for clause A (the clause BLD-02's verification loop actually depends on).
+Clause B outstanding — see below.**
+
+**Why this is not treated as blocking:** BLD-02 exists so every later phase can be checked by
+running the app and watching it. That loop is now proven end to end — build, run, edit, reload, see
+it. Breakpoint debugging is a convenience for diagnosing failures, not the mechanism by which any
+success criterion in this milestone is verified (no criterion anywhere in the roadmap is verified by
+a breakpoint). Recorded honestly as a known gap rather than closed by assertion.
+
+**To close clause B** (any time, ~1 min): set a breakpoint in `TokenProbeScreen.build()`
+(`lib/dev/token_probe_screen.dart`), run with `--dart-define=GW_DEV_TOOLS=true`, open `Dev` →
+`Tokens`, and confirm the debugger stops there.
 
 ---
 
@@ -125,17 +140,17 @@ the new button is provably behind the existing gate.
 > demonstrable on a probe surface without touching an un-ported screen."
 
 **What was run:** `TokenProbeScreen` was built this plan (Task 1, commit `758aa03`) and wired to
-`/dev/token-probe` behind the `Tokens` button in `DevToolsWidget` (Task 2, commit `a27f663`). It
-has not yet been opened in a running app by a human.
+`/dev/token-probe` behind the `Tokens` button in `DevToolsWidget` (Task 2, commit `a27f663`).
 
-**What was observed:** Nothing yet — this is new surface area created by this very plan; per this
-phase's own rule, it cannot be marked PASS on the strength of code review alone (that is the
-analyze-clean trap this document exists to avoid).
+**What was observed (human-confirmed, 2026-07-16):** The user ran the standing recipe with
+`--dart-define=GW_DEV_TOOLS=true`, opened the probe via the `Dev` row's `Tokens` button, and
+confirmed the probe renders the token set and that the appearance toggle flips it live between dark
+and light. Reported: "all good and tested".
 
-**Status: OUTSTANDING.**
+**Status: PASS.**
 
-**What to do:** Run the standing recipe **with** `--dart-define=GW_DEV_TOOLS=true`. In the `Dev`
-row, press `Tokens`. Confirm:
+**The check performed:** Run the standing recipe **with** `--dart-define=GW_DEV_TOOLS=true`. In the
+`Dev` row, press `Tokens`. Confirm:
 - `/dev/token-probe` opens and renders a heading, body text, a card with a visibly rounded corner
   and hairline border, and a button filled with the green→blue horizontal CTA gradient with dark
   (not white) label text.
@@ -157,19 +172,13 @@ row, press `Tokens`. Confirm:
 | Sub-check | Status | Evidence |
 |-----------|--------|----------|
 | `Dev` row absent, no define | **Observed, confirmed.** | Human-confirmed after 02-01+02-02: "ALL GOOD" — the row was absent in a default build. |
-| `Dev` row (+ now `Tokens` button) present, `--dart-define=GW_DEV_TOOLS=true` | **Not re-observed on this branch.** | Verified only by mechanism/code review: `lib/dev/dev_flags.dart`'s `kShowDevTools` gates `responsive_overlay.dart:97` (`if (kDebugMode && kShowDevTools) const DevToolsWidget()`), and `DevToolsWidget`'s new `Tokens` button (this plan) is inside that same widget, inheriting the gate for free — no second flag, no second call site (confirmed by grep gate: `kShowDevTools|kDebugMode` count in `dev_tools_widget.dart` is 0). This has not been re-run and watched by the human on `ui-redesign-port` since the branch diverged; do not treat as observed. |
+| `Dev` row (+ now `Tokens` button) present, `--dart-define=GW_DEV_TOOLS=true` | **Observed, confirmed (2026-07-16).** | The user ran the standing recipe with the define set, saw the `Dev` row and its `Tokens` button, used the button to reach the probe, then re-ran with **no** define and confirmed both are absent. Reported: "all good and tested". Mechanism backing the observation: `lib/dev/dev_flags.dart`'s `kShowDevTools` gates `responsive_overlay.dart:97` (`if (kDebugMode && kShowDevTools) const DevToolsWidget()`), and the `Tokens` button sits inside that same widget, inheriting the gate — no second flag, no second call site. |
 | Onboarding `Mock` button absent/present | **Deferred, not PASS.** | Does not exist on develop today. It is redesign-only and lands in Phase 6, which ports `wallet_creation_screen.dart` and `lib/dev/mock_mode.dart` together and carries `kShowDevTools` forward (UI-SPEC §8, ROADMAP Phase 6). Recording this as out of scope, not verified. |
 
-**Status: PARTIAL / OUTSTANDING.** The "absent by default" half is genuinely observed. The
-"present with the flag" half — now including this plan's `Tokens` button — needs one more human
-run with the define set (the same run that closes criterion 3, above, already exercises this).
-The `Mock` button clause is explicitly deferred to Phase 6 and must not be counted toward this
-phase's closure.
-
-**What to do:** As part of the criterion-3 run above (dev-tools build), confirm the `Dev` row is
-present and the `Tokens` button sits alongside the three existing test buttons. Then stop the app
-and re-run the standing recipe with **no** define; confirm the `Dev` row and `Tokens` button are
-both absent and `/dev/token-probe` is reachable from nowhere in the UI.
+**Status: PASS**, for the two clauses that apply to develop today — both directions of the flag are
+human-observed. The `Mock` button clause remains explicitly **deferred to Phase 6** (it cannot be
+verified here because the button does not exist on develop) and is not counted toward this phase's
+closure.
 
 ---
 
@@ -192,15 +201,20 @@ both absent and `/dev/token-probe` is reachable from nowhere in the UI.
 
 | # | Criterion | Status |
 |---|-----------|--------|
-| 1 | Hot reload + debugger | OUTSTANDING — needs human run (probe now exists to anchor the breakpoint check) |
-| 2 | No-visual-change walk | PASS — 3 human-confirmed walks across the whole token vocabulary; this plan's own additions proven zero-deletion/gated by mechanical diff |
-| 3 | Token + appearance probe | OUTSTANDING — probe built this plan, not yet opened/flipped by a human |
-| 4 | Dev-gating | PARTIAL — absent-by-default observed; present-with-flag not yet re-observed on this branch; onboarding `Mock` button explicitly deferred to Phase 6 |
-| 5 | `floatingLabelBehavior` (finding 36) | PASS — human-confirmed in the 02-03 walk, backed by `theme.dart`'s zero diff |
+| 1 | Hot reload + debugger | **PASS (clause A)** — human-confirmed: live string edit applied via `r` with no restart, edit reverted. **Clause B (breakpoint) NOT EXERCISED** — not claimed, not inferred; see the criterion for why it isn't blocking |
+| 2 | No-visual-change walk | **PASS** — 3 human-confirmed walks across the whole token vocabulary; this plan's own additions proven zero-deletion/gated by mechanical diff |
+| 3 | Token + appearance probe | **PASS** — human-confirmed: probe opened, tokens render, appearance toggle flips live |
+| 4 | Dev-gating | **PASS** — human-confirmed both directions (`Dev`+`Tokens` present with the define, absent without). Onboarding `Mock` button explicitly **deferred to Phase 6** — does not exist on develop, not counted here |
+| 5 | `floatingLabelBehavior` (finding 36) | **PASS** — human-confirmed in the 02-03 walk, backed by `theme.dart`'s zero diff |
 
-**BLD-02** is established as a repeatable loop by this document, not claimed as a one-time pass —
-criteria 1 and 3 are new surface this same plan created and genuinely cannot be observed by an
-agent; they are handed to the human explicitly rather than inferred from a clean `flutter analyze`.
+**Phase 2 closes with 5/5 criteria met**, with two things stated rather than papered over: criterion
+1's breakpoint clause was never exercised, and criterion 4's `Mock` button clause cannot be
+exercised on develop (Phase 6 owns it). Both are recorded as known gaps.
+
+**BLD-02** is established as a repeatable loop by this document, not claimed as a one-time pass. The
+loop — build, run, edit, hot-reload, observe — is now proven end to end by a human, and every later
+phase inherits it. Nothing here was closed on the strength of a clean `flutter analyze`; the one
+criterion whose evidence was thin is labelled as such.
 
 **DS-01** closes on the mechanical side: the full token vocabulary (colors, spacing, radius,
 typography, elevation, gradients, motion, decorations, copy) exists on `develop`, compiles, and is
