@@ -22,6 +22,10 @@ class DevToolsWidget extends StatelessWidget {
             onPressed: () => context.push('/dev/token-probe'),
             child: const Text('Tokens'),
           ),
+          TextButton(
+            onPressed: () => context.push('/design_gallery'),
+            child: const Text('Gallery'),
+          ),
         ],
       ),
     );
