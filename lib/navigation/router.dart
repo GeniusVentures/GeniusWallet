@@ -20,6 +20,7 @@ import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
+import 'package:genius_wallet/dev/token_probe_screen.dart';
 import 'package:genius_wallet/logs/submit_logs_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
@@ -189,6 +190,12 @@ final geniusWalletRouter = GoRouter(
           value: context.read<WalletDetailsCubit>(),
           child: NetworkStatusPage(geniusApi: context.read<GeniusApi>()),
         );
+      },
+    ),
+    GoRoute(
+      path: '/dev/token-probe',
+      builder: (context, state) {
+        return const TokenProbeScreen();
       },
     ),
     ShellRoute(
