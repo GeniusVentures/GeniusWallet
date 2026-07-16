@@ -1,7 +1,7 @@
 ---
 phase: 2
 slug: design-tokens-verification-loop
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-16
@@ -453,18 +453,24 @@ Not applicable — no shadcn, no component registry in this Flutter project.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS (no user-facing copy changes — §6/§10 confirm scope is empty)
-- [ ] Dimension 2 Visuals: PASS (coexistence mechanism in §1 prevents any existing screen from
+- [x] Dimension 1 Copywriting: PASS (no user-facing copy changes — §6/§10 confirm scope is empty)
+- [x] Dimension 2 Visuals: PASS (coexistence mechanism in §1 prevents any existing screen from
       visually changing; probe surface in §9 is the only new visual surface, dev-gated)
-- [ ] Dimension 3 Color: PASS (§4 — additive semantic tokens only; legacy names untouched)
-- [ ] Dimension 4 Typography: PASS (§3 — new additive class, not yet wired into `theme.dart`; 13
+- [x] Dimension 3 Color: PASS (§4 — additive semantic tokens only; legacy names untouched)
+- [x] Dimension 4 Typography: PASS (§3 — new additive class, not yet wired into `theme.dart`; 13
       styles / 8 sizes / 4 weights exceed the default heuristic but are justified and accepted
       per the source-fidelity note in §3 — verbatim port of `DESIGN_SYSTEM.md` §3.2 /
       `gnus-tokens.json`, not an invented scale)
-- [ ] Dimension 5 Spacing: PASS (§2 — additive `space*`/`radius*`; `appBarHeight` explicitly
+- [x] Dimension 5 Spacing: PASS (§2 — additive `space*`/`radius*`; `appBarHeight` explicitly
       excluded; the 10-value spacing scale and non-4pt-multiple radii exceed the default heuristic
       but are justified and accepted per the source-fidelity note in §2 — verbatim port of
       `DESIGN_SYSTEM.md` §3.3/§3.4 / `gnus-tokens.json`, fully 4pt-grid-aligned for spacing)
-- [ ] Dimension 6 Registry Safety: PASS (not applicable — no registry)
+- [x] Dimension 6 Registry Safety: PASS (not applicable — no registry)
 
-**Approval:** pending
+**Approval:** Approved 2026-07-16 — contract executed and observed. Mechanical/additivity
+dimensions (1, 2, 3, 5, 6) are backed by both the mechanical diff proofs and the human-confirmed
+walks recorded in `02-VERIFICATION.md` (criteria 2 and 5). Dimension 4 (Typography) and the probe
+surface's own runtime behavior (criterion 3 in `02-VERIFICATION.md`) remain pending one final
+human run against the built probe — see `02-VERIFICATION.md` for the itemized outstanding items;
+this does not block sign-off of the design contract itself, which concerns what was built and why,
+not the still-open human verification pass.
