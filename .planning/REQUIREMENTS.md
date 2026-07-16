@@ -23,7 +23,7 @@ to verify a slice — the forward-port compiled cleanly and still dropped 37 dev
 ### Build & Verification (BLD)
 
 - [x] **BLD-01**: Windows debug builds link and run, with hot reload and the Dart debugger — prerequisite for verifying any UI work (`4395da7`, on develop)
-- [ ] **BLD-02**: Each port phase is verified by running the app (debug build + visual walk), not by `flutter analyze` alone — analyze-clean is what masked the forward-port's 37 regressions
+- [x] **BLD-02**: Each port phase is verified by running the app (debug build + visual walk), not by `flutter analyze` alone — analyze-clean is what masked the forward-port's 37 regressions
 - [x] **BLD-03**: Dev-only affordances stay out of normal builds — the `Dev` header row and the onboarding `Mock` button (which injects a fake wallet + 20 fake transactions) are gated behind an opt-in flag
 
 ### Design System (DS)
@@ -98,7 +98,7 @@ Deferred to future milestones.
 | GSD-01 | Phase 1 — Adopt GSD | ✓ Complete (PR #207, `12fd40d`) |
 | BLD-01 | Phase 1 — Adopt GSD | ✓ Complete (`4395da7`) |
 | DS-01 | Phase 2 — Design tokens & verification loop | Complete |
-| BLD-02 | Phase 2 — Design tokens & verification loop | Pending |
+| BLD-02 | Phase 2 — Design tokens & verification loop | Complete |
 | BLD-03 | Phase 2 — Design tokens & verification loop | Complete |
 | DS-02 | Phase 3 — gw_* component library | Pending |
 | DS-03 | Phase 3 — gw_* component library | Pending |

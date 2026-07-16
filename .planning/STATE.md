@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Design tokens & verification loop
 status: executing
-stopped_at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
-last_updated: "2026-07-16T15:57:18.108Z"
+stopped_at: Completed 02-05-PLAN.md (last plan of Phase 2). BLD-02 verification record written; criteria 1, 3 and second half of 4 OUTSTANDING pending human GUI walk (see 02-VERIFICATION.md).
+last_updated: "2026-07-16T16:15:51.747Z"
 last_activity: 2026-07-16
 last_activity_desc: "Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped"
 progress:
   total_phases: 11
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 0
+  completed_plans: 5
+  percent: 9
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 2 of 11 (Design tokens & verification loop)
-Plan: 4 of 5 in current phase
+Plan: 5 of 5 in current phase
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-16 — Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped
@@ -57,6 +57,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 02-04]: All six remaining redesign theme files (motion, font-size, copy-text, elevation, typography, decorations) ported byte-identical, zero adaptation needed, zero collision — Grep-verified before planning that develop referenced none of these six class names anywhere in lib/ or packages/
 - [Phase 02-04]: GWCanvasBackground ported as a dormant class, instantiated nowhere in lib/ — References assets/images/textures/noise.png, an asset owned by DS-04/Phase 3, not bundled this phase
 - [Phase 02-04]: toMaterialTextTheme() ships but is not wired into theme.dart this phase — theme.dart is the 100%-collision file UI-SPEC section 1.1 excludes wholesale for the whole of Phase 2; wiring belongs to Phase 4's shell re-skin
+- [Phase 02-design-tokens-verification-loop]: TokenProbeScreen wraps its body in ValueListenableBuilder on GWAppearance.instance so the appearance toggle actually rebuilds; setMode() alone persists but does not repaint
+- [Phase 02-design-tokens-verification-loop]: 02-VERIFICATION.md marks criteria 1 and 3 OUTSTANDING and criterion 4 PARTIAL rather than PASS -- an unearned PASS is the exact BLD-02 failure mode (37 regressions shipped analyze-clean)
+- [Phase 02-design-tokens-verification-loop]: Onboarding Mock button (ROADMAP criterion 4) recorded as an explicit Phase 6 deferral, not a pass -- it does not exist on develop today
 
 ### Pending Todos
 
@@ -87,8 +90,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T15:56:20.536Z
-Stopped at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
+Last session: 2026-07-16T16:15:51.739Z
+Stopped at: Completed 02-05-PLAN.md (last plan of Phase 2). BLD-02 verification record written; criteria 1, 3 and second half of 4 OUTSTANDING pending human GUI walk (see 02-VERIFICATION.md).
 Resume file: None
 
 ## Performance Metrics
@@ -99,3 +102,4 @@ Resume file: None
 | Phase 02 P02 | 15min | 2 tasks | 2 files |
 | Phase 02-design-tokens-verification-loop P03 | 25min | 3 tasks | 3 files |
 | Phase 02-design-tokens-verification-loop P04 | 20min | 3 tasks | 6 files |
+| Phase 02-design-tokens-verification-loop P05 | 7min | 3 tasks | 5 files |
