@@ -146,6 +146,41 @@ header that consumes it (`responsive_overlay.dart`, Phase 4).
 
 Exceptions: none beyond `appBarHeight` above.
 
+### Justification (checker Dimension 5 — spacing/radius): accept source values, do not consolidate
+
+The checker blocked because the spacing values above (12px, 20px, 40px) fall outside its default
+"standard set" (4/8/16/24/32/48/64) and because `radiusBase`/`radiusLg` (10px/15px) aren't
+multiples of 4. Verified against source and resolved as **(b) — justify and accept**, not
+consolidate:
+
+- **Spacing is not invented — it's copied.** Every value in the table above is
+  `DESIGN_SYSTEM.md` §3.3's own token table verbatim: `space2`=4px … `space32`=64px, including
+  `space6`=12px, `space10`=20px, `space20`=40px, none of which the design system treats as
+  exceptions — they're core rungs of its own scale, called out with explicit "common use" roles
+  (`space10` = "Mobile horizontal page padding"; `space20` = "Desktop horizontal/vertical page
+  padding"). `gnus-tokens.json`'s `spacing` set mirrors the same 10 values 1:1 (Tokens Studio
+  export, migration v1.4). Consolidating them to the checker's 7-value subset would mean the ported
+  app pads mobile screens and desktop screens identically — a real, visible divergence from both
+  the design system and the marketing site it shares tokens with (`DESIGN_SYSTEM.md` §1 Principle 1:
+  "One palette, two surfaces... Tokens are identical").
+- **The grid constraint the checker cares about — 4pt alignment — is fully met.** 4, 8, 12, 16, 20,
+  24, 32, 40, 48, 64 are all exact multiples of 4 (`DESIGN_SYSTEM.md` §1 Principle 4: "4-pt grid.
+  All spacing is a multiple of 4"). The checker's "standard set" is a stricter *subset* of the 4pt
+  grid, not the grid rule itself — this system simply uses more rungs of the same grid than the
+  checker's default heuristic assumes. No value here breaks 4pt alignment.
+- **Radius is not spacing and doesn't participate in grid alignment.** `DESIGN_SYSTEM.md` §3.4
+  states the radius scale's base explicitly: "The base is **10 px**, matching the website's
+  `--radius: .625rem`" — `radiusBase`=10px and `radiusLg`=15px are direct, deliberate ports of a
+  rem-based web design token (`0.625rem` × 16 = 10px), not a grid-derived layout value. Confirmed
+  identical in `gnus-tokens.json` §`radius`: `"base": {"value": "10"}`, `"lg": {"value": "15"}`
+  (lines 43, 45) — both branches agree, so this isn't drift or an invented value, it's the one
+  number the adopted system specifies. Consolidating `radiusBase`/`radiusLg` to a 4pt-aligned value
+  (e.g. 8px/16px) would visibly change every card, modal, button and text-field corner from the
+  shape the marketing site already ships — again the opposite of this milestone's goal.
+- **Nothing here was invented.** Every spacing and radius value traces to a specific
+  `DESIGN_SYSTEM.md` §3.3/§3.4 row and its `gnus-tokens.json` mirror; none is a Phase-2-only
+  addition. Accepted as-is.
+
 ---
 
 ## 3. Typography
@@ -177,6 +212,42 @@ so porting the whole file wholesale carries zero coexistence risk. `theme.dart`'
 `textTheme: GeniusWalletTypography.toMaterialTextTheme()` wiring is **not** activated this phase
 (that line lives in the design's `theme.dart`, which §1 excludes) — the class exists and compiles,
 but nothing consumes it except the probe surface (§4) until a screen phase opts in.
+
+### Justification (checker Dimension 4 — typography): accept source values, do not consolidate
+
+The checker blocked on 8 unique sizes (13/14/16/18/20/24/28/32px) and 4 unique weights
+(400/500/600/700) against its default max-4-sizes/max-2-weights heuristic. Recount confirmed
+accurate against the table above — no correction needed, the checker counted right. Verified
+against source and resolved as **(b) — justify and accept**, not consolidate:
+
+- **The scale is not ours to choose — it's `DESIGN_SYSTEM.md` §3.2's own table, v1.0 Adopted,**
+  shared with the gnus.ai marketing site (`DESIGN_SYSTEM.md` §1 Principle 1: "Tokens are
+  identical — only the surface role flips"; Principle 2: "Never hardcode... If a token is missing,
+  add it here first"). `gnus-tokens.json`'s `typography` set mirrors all 13 styles verbatim
+  (lines 60–72), including the exact size/weight/line-height/tracking per style — both branches
+  agree, so nothing here is a Phase-2 invention. Consolidating to 4 sizes / 2 weights would produce
+  a type scale that is neither the marketing site's nor the designer's — a fabrication this
+  milestone exists specifically to avoid (see the port framing at the top of this document).
+- **13 named styles, not 13 arbitrary sizes.** The apparent "8 sizes" collapses to a smaller
+  effective set once duplication is accounted for: `bodyLg`/`bodyMd` are both 16px/400 (identical —
+  `DESIGN_SYSTEM.md` §3.2 notes body was "bumped 14→16... now equals `body/lg`" in v1.4), and
+  `displayLg`/`numericDisplay` share 32px/700, `headlineLg`/`numericHeadline` share 24px/600,
+  `bodySm`/`numericBody` share weight-differentiated variants at 14px. The numeric duplicates are
+  deliberate, not scale bloat.
+- **The numeric variants exist for a wallet-specific reason: tabular figures.** `numericDisplay`,
+  `numericHeadline`, `numericBody` are the same visual sizes as their proportional counterparts but
+  render with `FontFeature.tabularFigures()` so balances, addresses and amounts align column-wise
+  (`DESIGN_SYSTEM.md` §6.5 "Numbers & money": "Always wrap balances in `numeric/*` styles to get
+  tabular figures"; §3.2 rule: "Always use `numeric/*` styles when displaying balances, addresses,
+  percentages, or anything that should align column-wise"). Removing them to hit a weight/size cap
+  would mean crypto amounts in this wallet render with proportional (non-monospaced) digits —
+  a real usability regression for a financial app, not a cosmetic one.
+- **`DESIGN_SYSTEM.md` §3.2 itself treats "don't add new sizes" as the actual discipline** ("Don't
+  introduce new sizes. If a design needs a new size, add it to this table first... snap to the
+  nearest rung, never 15/22") — i.e. the adopted system already enforces a closed, deliberate scale;
+  it's just a 13-style scale, not a 4-style one. This phase ports that closed scale unchanged.
+- Nothing here was invented — every style traces to a specific `DESIGN_SYSTEM.md` §3.2 row and its
+  `gnus-tokens.json` mirror. Accepted as-is.
 
 ---
 
@@ -386,8 +457,14 @@ Not applicable — no shadcn, no component registry in this Flutter project.
 - [ ] Dimension 2 Visuals: PASS (coexistence mechanism in §1 prevents any existing screen from
       visually changing; probe surface in §9 is the only new visual surface, dev-gated)
 - [ ] Dimension 3 Color: PASS (§4 — additive semantic tokens only; legacy names untouched)
-- [ ] Dimension 4 Typography: PASS (§3 — new additive class, not yet wired into `theme.dart`)
-- [ ] Dimension 5 Spacing: PASS (§2 — additive `space*`/`radius*`; `appBarHeight` explicitly excluded)
+- [ ] Dimension 4 Typography: PASS (§3 — new additive class, not yet wired into `theme.dart`; 13
+      styles / 8 sizes / 4 weights exceed the default heuristic but are justified and accepted
+      per the source-fidelity note in §3 — verbatim port of `DESIGN_SYSTEM.md` §3.2 /
+      `gnus-tokens.json`, not an invented scale)
+- [ ] Dimension 5 Spacing: PASS (§2 — additive `space*`/`radius*`; `appBarHeight` explicitly
+      excluded; the 10-value spacing scale and non-4pt-multiple radii exceed the default heuristic
+      but are justified and accepted per the source-fidelity note in §2 — verbatim port of
+      `DESIGN_SYSTEM.md` §3.3/§3.4 / `gnus-tokens.json`, fully 4pt-grid-aligned for spacing)
 - [ ] Dimension 6 Registry Safety: PASS (not applicable — no registry)
 
 **Approval:** pending
