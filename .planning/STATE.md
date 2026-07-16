@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Design tokens & verification loop
 status: executing
-stopped_at: Roadmap re-scoped to the 11-phase incremental port; Phase 1 complete; ready to plan Phase 2
-last_updated: "2026-07-16T14:33:29.032Z"
+stopped_at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
+last_updated: "2026-07-16T14:36:42.848Z"
 last_activity: 2026-07-16
 last_activity_desc: "Re-scoped the milestone: Phase 1 marked complete (PR #207); old Phases 2–4 (whole-branch forward-port) and RFP-01..04 removed; 11-phase incremental port roadmap created, 24/24 requirements mapped"
 progress:
@@ -50,6 +50,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Interactive mode (config is committed to the shared repo)
 - [Phase 2]: google_fonts inserted next to go_router in pubspec.yaml (nearest alphabetical neighbor) rather than resorting the non-alphabetical dependency block
 - [Phase 2]: gw_appearance.dart ported verbatim except the Hive import (hive_ce_flutter instead of classic hive_flutter), matching develop's data layer
+- [Phase 2]: Ported f3fd16f's dev_flags.dart byte-for-byte, including its docstring, per UI-SPEC guidance.
+- [Phase 2]: Only responsive_overlay.dart's Dev row is gated this phase; wallet_creation_screen.dart onboarding buttons deferred to Phase 6 (they don't exist on develop today).
 
 ### Pending Todos
 
@@ -80,8 +82,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T14:33:29.025Z
-Stopped at: Roadmap re-scoped to the 11-phase incremental port; Phase 1 complete; ready to plan Phase 2
+Last session: 2026-07-16T14:36:42.842Z
+Stopped at: Completed 02-02-PLAN.md (BLD-03 dev-tools gating); runtime visual verification outstanding for human
 Resume file: None
 
 ## Performance Metrics
@@ -89,3 +91,4 @@ Resume file: None
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 02-design-tokens-verification-loop P01 | 10min | 3 tasks | 5 files |
+| Phase 02 P02 | 15min | 2 tasks | 2 files |

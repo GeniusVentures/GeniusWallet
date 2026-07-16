@@ -315,7 +315,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Adopt GSD | 1/1 | ✓ Complete | 2026-07-15 (PR #207) |
-| 2. Design tokens & verification loop | 0/5 | Planned | - |
+| 2. Design tokens & verification loop | 2/5 | In Progress | - |
 | 3. gw_* component library | 0/TBD | Not started | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
 | 5. Dashboard | 0/TBD | Not started | - |
