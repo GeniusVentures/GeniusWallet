@@ -151,18 +151,16 @@ class WalletInformationState extends State<WalletInformation> {
                 ResponsiveDrawer.show<void>(
                   context: context,
                   title: "Your ${state.selectedNetwork?.name} address",
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * .15),
-                      alignment: Alignment.center,
-                      child: CryptoAddressQR(
-                        iconPath: state.selectedNetwork?.iconPath,
-                        address: state.selectedWallet?.address ?? "",
-                        network: state.selectedNetwork?.name ?? "",
-                      ),
+                  child: Container(
+                    margin: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * .15),
+                    alignment: Alignment.center,
+                    child: CryptoAddressQR(
+                      iconPath: state.selectedNetwork?.iconPath,
+                      address: state.selectedWallet?.address ?? "",
+                      network: state.selectedNetwork?.name ?? "",
                     ),
-                  ],
+                  ),
                 );
               },
               text: 'Receive',
@@ -197,40 +195,44 @@ class WalletInformationState extends State<WalletInformation> {
                 ResponsiveDrawer.show<void>(
                   context: context,
                   title: "More Options",
-                  children: [
-                    StreamBuilder<SGNUSConnection>(
-                      stream: geniusApi.getSGNUSConnectionStream(),
-                      builder: (context, snapshot) {
-                        final connection = snapshot.data;
-                        return SubmitJobButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          walletDetailsCubit: walletDetailsCubit,
-                          walletAddress: state.selectedWallet?.address ?? "",
-                          gnusConnectedWalletAddress:
-                              connection?.walletAddress ?? "",
-                        );
-                      },
-                    ),
-                    SlidingDrawerButton(
-                      onPressed: () {
-                        geniusApi
-                            .deleteWallet(state.selectedWallet?.address ?? "");
-                        showAppSnackBar(context,
-                            'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!');
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      StreamBuilder<SGNUSConnection>(
+                        stream: geniusApi.getSGNUSConnectionStream(),
+                        builder: (context, snapshot) {
+                          final connection = snapshot.data;
+                          return SubmitJobButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            walletDetailsCubit: walletDetailsCubit,
+                            walletAddress: state.selectedWallet?.address ?? "",
+                            gnusConnectedWalletAddress:
+                                connection?.walletAddress ?? "",
+                          );
+                        },
+                      ),
+                      SlidingDrawerButton(
+                        onPressed: () {
+                          geniusApi.deleteWallet(
+                              state.selectedWallet?.address ?? "");
+                          showAppSnackBar(context,
+                              'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!');
 
-                        Navigator.of(context).pop();
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          // ignore: use_build_context_synchronously
-                          context.go('/dashboard');
-                        });
-                      },
-                      color: GeniusWalletColors.statusError,
-                      icon: FontAwesomeIcons.trash,
-                      label: "Delete Wallet",
-                    ),
-                  ],
+                          Navigator.of(context).pop();
+                          Future.delayed(const Duration(milliseconds: 100),
+                              () {
+                            // ignore: use_build_context_synchronously
+                            context.go('/dashboard');
+                          });
+                        },
+                        color: GeniusWalletColors.statusError,
+                        icon: FontAwesomeIcons.trash.data,
+                        label: "Delete Wallet",
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

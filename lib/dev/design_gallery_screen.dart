@@ -3,11 +3,13 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_gradient_border_card.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
+import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/components/inputs/gw_checkbox.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
+import 'package:genius_wallet/dev/generated_closure_canary.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -457,6 +459,62 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   onChanged: null,
                 ),
               ],
+            ),
+          ),
+          _Section(
+            title: 'Canvas background (noise texture)',
+            child: SizedBox(
+              height: 180,
+              child: ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(GeniusWalletConsts.radiusLg),
+                child: GWCanvasBackground(
+                  child: Center(
+                    child: Text(
+                      'GWCanvasBackground — first instantiation in this '
+                      'repo. Consumes assets/images/textures/noise.png '
+                      '(DS-04). The grain overlay only renders in dark '
+                      'mode — toggle appearance to compare.',
+                      textAlign: TextAlign.center,
+                      style: GeniusWalletTypography.bodySm.copyWith(
+                        color: GeniusWalletColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _Section(
+            title: 'Mesh background (procedural, no texture asset)',
+            child: SizedBox(
+              height: 180,
+              child: ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(GeniusWalletConsts.radiusLg),
+                child: GWMeshBackground(
+                  child: Center(
+                    child: Text(
+                      'GWMeshBackground — animated CustomPaint blobs, no '
+                      'asset dependency. Distinct from GWCanvasBackground '
+                      'above, which is the actual noise.png consumer.',
+                      textAlign: TextAlign.center,
+                      style: GeniusWalletTypography.bodySm.copyWith(
+                        color: GeniusWalletColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _Section(
+            title: 'Generated widget closure canary',
+            child: Text(
+              '${generatedClosureClasses.length} generated widgets in '
+              'closure (lib/dev/generated_closure_canary.dart) — compiled '
+              'by the Dart front-end via this import, never mounted.',
+              style: GeniusWalletTypography.bodyMd,
             ),
           ),
           const SizedBox(height: GeniusWalletConsts.space20),
