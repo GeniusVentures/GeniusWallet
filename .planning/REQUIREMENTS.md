@@ -29,7 +29,7 @@ The design's 82 new files are mostly `gw_*` primitives. They are additive to dev
 collisions), so they carry the lowest risk and everything else depends on them.
 
 - [x] **DS-01**: Redesign theme tokens (colours, typography, spacing, decorations) live on `develop` and coexist with develop's existing theme without breaking un-ported screens
-- [ ] **DS-02**: The `gw_*` component library is ported to `develop` (buttons, cards, inputs, feedback states, token/wallet rows, mesh background, icons)
+- [x] **DS-02**: The `gw_*` component library is ported to `develop` (buttons, cards, inputs, feedback states, token/wallet rows, mesh background, icons)
 - [ ] **DS-03**: A developer can view every ported primitive in one place to confirm fidelity against the design (`/design_gallery`)
 - [ ] **DS-04**: Redesign assets referenced by the design system are declared and bundled (e.g. `assets/images/textures/` — Flutter asset dir declarations are not recursive, so the mesh background silently fails without it)
 
@@ -157,7 +157,7 @@ Deferred to future milestones.
 | DS-01 | Phase 2 — Design tokens & verification loop | Complete |
 | BLD-02 | Phase 2 — Design tokens & verification loop | Complete |
 | BLD-03 | Phase 2 — Design tokens & verification loop | Complete |
-| DS-02 | Phase 3 — gw_* component library | Pending |
+| DS-02 | Phase 3 — gw_* component library | Complete |
 | DS-03 | Phase 3 — gw_* component library | Pending |
 | DS-04 | Phase 3 — gw_* component library | Pending |
 | GAP-01 | Phase 3 — gw_* component library | Pending |
