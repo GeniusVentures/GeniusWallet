@@ -9,6 +9,7 @@ import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
@@ -91,7 +92,9 @@ int _currentIndex(BuildContext context) {
 List<Widget> _buildActionRowWidgets(BuildContext context) {
   final walletDetailsCubit = context.read<WalletDetailsCubit>();
   return [
-    if (kDebugMode) const DevToolsWidget(),
+    // Dev test buttons (transaction / swap / buy). Opt-in — see [kShowDevTools];
+    // always-on in debug, they crowd and overflow the real action row.
+    if (kDebugMode && kShowDevTools) const DevToolsWidget(),
     const NetworkDropdownSelector(),
     const SDKAccountManagerButton(),
     AccountDropdownSelector(),
