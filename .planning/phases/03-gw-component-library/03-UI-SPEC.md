@@ -53,20 +53,21 @@ any currently-reachable screen (§1).
 
 This is not a restatement of intent — it is verified below by an exact three-way diff (not the
 approximate "82 additive files / 43 under `lib/components/`" estimate the orchestrator prompt
-carried in). Running
-`comm -23/-12/-13` between `lib/components/**` on `GeniusWallet-3514` (design source) and on this
-repo's current tree produced:
+carried in, which was measured against `ui-redesign-3.514-develop` — an incomplete port branch, not
+the design source). The authoritative diff is
+`git diff --diff-filter=A --name-only develop..origin/ui-redesign-3.514 -- lib/components/` (and
+`--diff-filter=M` / `--diff-filter=D` for the other two buckets), run against Alex's actual branch:
 
-- **58 additive files** under `lib/components/` (design-only, zero collision) — the authoritative
+- **60 additive files** under `lib/components/` (design-only, zero collision) — the authoritative
   set for this phase, itemized in §2.
 - **22 collision files** (exist on both, differ) — explicitly **not touched this phase**; several
   carry the behavior findings 13/15/16/25/26 target (§4).
 - **2 develop-only files** (`loading.dart`, `wallet_overview.dart`) untouched by the design branch
   — GAP-06 territory (Phase 5), not this phase's concern.
 
-### 1.2 What's excluded from the 58, and why
+### 1.2 What's excluded from the 60, and why
 
-Three groups of the 58 additive files are **excluded from this phase's port** despite being
+Three groups of the 60 additive files are **excluded from this phase's port** despite being
 design-source-additive, because landing them here would violate the additive-only rule in spirit
 (they wire into shell/app-level state, not a screen-independent primitive) or would pull in
 out-of-scope capability (WIRE-02):
@@ -77,20 +78,22 @@ out-of-scope capability (WIRE-02):
 | AI FAB (1 file) | `buttons/gw_ai_fab.dart` | Imports `package:genius_wallet/ai/ai_processing_status.dart` directly — `lib/ai/` is WIRE-02 out-of-scope (the AI FAB, in full, is an Alex-only feature develop does not have). Porting `GWAiFab` would require also porting or stubbing `lib/ai/`, which this milestone explicitly defers to product. **Excluded entirely**, not deferred to a phase — re-evaluate only if `lib/ai/` is ever scoped into a future milestone. |
 | `app_screen_with_header_desktop.dart`, `app_screen_with_header_mobile.dart` | 2 files | **Included, not excluded** — see §2.5. Called out here only because they carry "header chrome" in their name and could be mistaken for shell scope. Verified by caller trace: on the design branch they are imported exclusively by **onboarding** screens (`legal_screen.dart`, `backup_phrase_screen.dart`, `recovery_phrase_screen.dart`, `verify_recovery_phrase_screen.dart`, `import_security_screen.dart`, `import_wallet_screen.dart`) and `pin_screen.dart` — screen-level header wrappers, not app-shell chrome. They land as inspectable, unconsumed primitives per the same additive rule as everything else in §2. |
 
-**Net scope this phase: 47 files** (58 − 9 nav-shell − 1 AI FAB − the header-wrapper pair stays in,
-already counted in the 58). See §2 for the itemized 47.
+**Net scope this phase: 50 files** (60 − 9 nav-shell − 1 AI FAB = 50; the header-wrapper pair,
+`app_screen_with_header_desktop.dart`/`_mobile.dart`, stays in — it was already counted in the 60,
+not a separate subtraction). Reconciled exactly against the diff in §1.1: `60 total − 10 excluded =
+50 in scope`, every one of the 50 named in §2. See §2 for the itemized set.
 
 ### 1.3 Why "nothing may change visually" holds
 
 No collision file is edited. No new route is reachable from a normal build (the one new route,
 `/design_gallery`, is gated exactly like Phase 2's `/dev/token-probe` — see §5.2). No existing
-screen imports any of the 47 files (verified per-file in §2's caller-trace column, where relevant).
+screen imports any of the 50 files (verified per-file in §2's caller-trace column, where relevant).
 Walking the app top to bottom before and after this phase must show zero pixel difference — the
 same criterion Phase 2 established and the same verification discipline (§7).
 
 ---
 
-## 2. Component Inventory (DS-02) — the 47 files, what each is, and its verified caller set
+## 2. Component Inventory (DS-02) — the 50 files, what each is, and its verified caller set
 
 Organized by `DESIGN_SYSTEM.md` §5's own grouping. **File paths below are the verified actual
 paths** — `DESIGN_SYSTEM.md` §5.2/§5.4 documents two of these at stale locations (noted inline);
@@ -102,7 +105,7 @@ treat the paths in this table, not the prose in §5.2/§5.4, as ground truth for
 |---|---|---|---|
 | `GWButton` | `buttons/gw_button.dart` | 6 variants (`primary`, `secondary`, `tertiary`, `ghost`, `destructive`, `gradient`) + `.icon` constructor. 3 sizes (`sm` 44px / `md` 48px / `lg` 56px — all ≥44px per the touch-legibility pass in `ALEX-WIRING.md`). States: default/hover/pressed/disabled/loading/expand. Filled brand variants (`primary`, `gradient`) render label in `textOnBrand` (#000B18), **never white** — WCAG AA. Only one `gradient` variant per surface (design rule, not enforced in code — note for future screen phases). | None yet — unconsumed this phase |
 | `GWSwapFab` | `buttons/gw_swap_fab.dart` | Circular 56px FAB, `brandCta` gradient fill, swap glyph. Self-contained — no `lib/ai/` coupling (unlike `GWAiFab`, excluded §1.2). Its only current caller (`GlobalSwapFabHost`) is Phase-4 shell scope; the button itself is generally useful and safe to land now. | `overlay/global_swap_fab_host.dart` (excluded, §1.2) — button ported standalone, unwired |
-| `GWIcon` | `gw_icon.dart` | Unified icon API: `.material(IconData)` / presumably an `.svg(...)` constructor — collapses ad hoc `Icons.*` / `SvgPicture.asset` / `Image.asset` call sites into one. | None yet |
+| `GWIcon` | `gw_icon.dart` | Unified icon API — **three named constructors, all verified from source, not guessed:** `GWIcon.material(IconData icon, {size = 20, color, package, semanticLabel})` → `Icon`; `GWIcon.svg(String svgAsset, {size = 20, color, package = 'genius_wallet', semanticLabel})` → `SvgPicture.asset` (`color` applied via `ColorFilter.mode(color, BlendMode.srcIn)`); `GWIcon.png(String pngAsset, {size = 20, color, package = 'genius_wallet', semanticLabel})` → `Image.asset`. Collapses ad hoc `Icons.*` / `SvgPicture.asset` / `Image.asset` call sites into one API. | None yet |
 | `ActionButton` | *(collision — `action_button.dart` already exists on develop)* | Not touched this phase. Listed in `DESIGN_SYSTEM.md` §5.1 for completeness; already ported/skinned in whichever earlier state develop has it. | n/a |
 | `StringButton` | *(collision — `string_button.dart` already exists on develop)* | Not touched this phase. | n/a |
 
@@ -139,6 +142,7 @@ treat the paths in this table, not the prose in §5.2/§5.4, as ground truth for
 | `GWEmptyState` | `feedback/gw_empty_state.dart` | 72px icon-in-circle (`GWDecorations.surfaceSheen` bg, `borderSubtle`), `titleLg` heading, optional `bodyMd`/`textSecondary` message, optional secondary `GWButton` action. Default icon `Icons.inbox_outlined`. **Same doc-drift note** — actual path `feedback/`, not `loading/`. | None yet |
 | `GWErrorState` | `feedback/gw_error_state.dart` | Same 72px icon-in-circle pattern (`statusError` @12% bg), `titleLg` heading defaulting to `'Something went wrong'`, optional message, optional primary `GWButton` retry (`onRetry`/`retryLabel`, default `'Retry'`, leading refresh icon). **This is the component finding 15 is about** — see §4.2. Also ships `GWErrorBanner` (inline dismissible variant) in the same file. **Same doc-drift note** — actual path `feedback/`. | None yet |
 | `PulsingSketchton` | *(collision — `pulsing_skeleton.dart` already exists on develop)* | Not touched. | n/a |
+| `Loading` | `loading/loading.dart` | **Not a new component — a re-skinned duplicate of an existing one.** Develop already has `class Loading extends StatelessWidget` at the root path `lib/components/loading.dart` (collision file, deleted/moved on the design branch, untouched this phase — still resolves for its one current caller, `custom_future_builder.dart`'s `import 'package:genius_wallet/components/loading.dart'`). This additive file defines a **second class also literally named `Loading`**, at the new path `loading/loading.dart`, using Phase 2 tokens (`GeniusWalletColors.brandGreen`, `GeniusWalletConsts.space8`, `GeniusWalletTypography.headlineLg`) instead of develop's raw values (`lightGreenPrimary`, raw `16`, default `TextStyle`). No compile collision — different import paths, and nothing imports both in the same file — but port it as an explicitly flagged duplicate: do not let a later phase (or an executor skimming this table) assume this is a rename of the old one. The old `loading.dart`'s callers keep resolving to the old class until a phase deliberately migrates them to the new path. | None yet (new path unconsumed; old path still serves `custom_future_builder.dart`) |
 
 ### 2.5 Layout
 
@@ -198,9 +202,22 @@ phase's success criteria silently assume otherwise.
 | `wallet_preview.g.dart` | `sgnus/sgnus_wallet.dart` (this phase's own additive set) | `animation/checkmark_animation.dart` (collision, existing), `wallet_type_icon.dart` (this set), `utils/wallet_utils.dart` (already on develop) |
 | `wallets_overview.g.dart` | **None — orphaned even on the design branch itself.** No file anywhere in `GeniusWallet-3514`'s `lib/` imports `WalletsOverview`. | `WalletDetailsCubit`, `genius_balance_display.dart`, `sgnus_connection_widget.dart` — all resolvable, but there is no evidence any future phase needs this widget. Port it (zero risk, additive), flag it as dead code inherited from the source branch, and do not expect a screen phase to adopt it. |
 
+**The `custom/` siblings, precisely — 4 additive, not 5, and only 3 of those 4 pair with a
+`.g.dart` file:**
+
+| File | Pairs with | Status |
+|---|---|---|
+| `custom/isactive_false_custom.dart` | `continue_button/isactive_false.g.dart` | Additive, trivial pass-through wrapper |
+| `custom/isactive_true_custom.dart` | `continue_button/isactive_true.g.dart` | Additive, trivial pass-through wrapper |
+| `custom/genius_back_button_custom.dart` | `genius_back_button.g.dart` | Additive, uses `go_router` (already a dependency) |
+| `custom/wallet_address_custom.dart` | `wallet_information.g.dart` | **Not additive — a collision file, already on develop, untouched this phase.** `wallet_information.g.dart`'s dependency on it resolves against develop's existing copy, not a Phase 3 port. |
+| `custom/wallet_agreement_custom.dart` | **No `.g.dart` file — standalone, hand-written.** | **Additive, previously omitted from this inventory — corrected here.** Wraps a `CheckboxListTile` with a Terms-of-Service/Privacy-Policy acceptance row (default copy: `"I've read and accept the Terms of Service and Privacy Policy"`, overridable via `text`). Imports only `auto_size_text` and `flutter/material` — both trivial (`auto_size_text` is already in `pubspec.yaml`, no new dependency). Called by `legal_screen.dart` and `backup_phrase_screen.dart` (both onboarding, Phase 6) on the design branch. **Included, for the same reason the header-wrapper pair (§1.2) is included**: its only current caller lands in a later phase, but it is a screen-independent, dependency-closed primitive today — the same additive rule that includes `app_screen_with_header_desktop/mobile.dart` includes this file. Not excluding it for "its caller is Phase 6" would be inconsistent with that decision. |
+
 **Dependency closure: verified closed.** Every `package:genius_wallet/...` import across all 9
-`.g.dart` files and their 5 `custom/` siblings resolves to either (a) a file already on develop, or
-(b) another file within this same 47-file additive set. No missing file, no forward reference to a
+`.g.dart` files and their 4 additive `custom/` siblings (3 of which pair 1:1 with a `.g.dart`
+file; the 4th, `wallet_agreement_custom.dart`, is standalone) resolves to either (a) a file already
+on develop — including the one non-additive `custom/` dependency, `wallet_address_custom.dart` — or
+(b) another file within this same 50-file additive set. No missing file, no forward reference to a
 file this phase doesn't also land. Cross-package imports (`auto_size_text`, `flutter_svg`,
 `flutter_bloc`, `go_router`, `intl`) are all already in `pubspec.yaml`.
 
@@ -222,7 +239,7 @@ Two new dependencies, both required by files in §2, neither already present on 
 | `mobile_scanner` | `^5.2.3` | `qr_scanner/gw_qr_scanner.dart` |
 | `shimmer` | `^3.0.0` | `feedback/gw_loading_state.dart` |
 
-No other external package import across the 47-file set is new — `auto_size_text`, `flutter_bloc`,
+No other external package import across the 50-file set is new — `auto_size_text`, `flutter_bloc`,
 `flutter_svg`, `go_router`, `intl`, `loading_animation_widget` are all already in this repo's
 `pubspec.yaml` (verified by direct grep, not assumed).
 
@@ -440,7 +457,7 @@ app**, not just components. Method:
      items, changing order, merging/splitting, or adding capability. Record this as "deferred to
      product" with the specific structural question — do **not** decide it here or invent a layout.
 4. For every "mechanically re-skinnable" surface, name which `gw_*` primitive(s) from §2 it will
-   need. **Cross-check against this inventory (§2):** if a needed primitive is missing from the 47
+   need. **Cross-check against this inventory (§2):** if a needed primitive is missing from the 50
    ported this phase, that is a gap in DS-02's scope, not GAP-01's — flag it back into this
    document (or a follow-up) rather than silently deferring the surface.
 
@@ -534,7 +551,7 @@ Not applicable — no shadcn, no component registry in this Flutter project.
 
 - [ ] Dimension 1 Copywriting: pending — §9 scope is component defaults + dev labels only, no
       screen copy changes; verify nothing beyond that scope crept in
-- [ ] Dimension 2 Visuals: pending — §1–§2 establish additive-only + the 47-file inventory with
+- [ ] Dimension 2 Visuals: pending — §1–§2 establish additive-only + the 50-file inventory with
       exclusions justified (§1.2); verify against the executed plan, not just this contract
 - [ ] Dimension 3 Color: pending — §8, no new tokens, accent reservation list stated; verify no
       raw hex/color literal was introduced by the gallery additions
