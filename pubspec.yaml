@@ -33,6 +33,7 @@ dependencies:
   device_preview: ^1.2.0
   window_manager: ^0.5.1
   qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
   fl_chart: ^1.2.0
   provider: ^6.1.2
   path_provider: ^2.1.6
@@ -49,6 +50,7 @@ dependencies:
   crypto: ^3.0.6
   intl: ^0.20.2
   app_links: ^7.0.0
+  shimmer: ^3.0.0
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
   rxdart: ^0.27.7
@@ -68,6 +70,10 @@ flutter:
     - assets/json/networks/
     - assets/json/tokens/
     - assets/images/
+    # Asset dir declarations are not recursive, so subdirectories need their own
+    # entry. Without this, assets/images/textures/noise.png is never bundled and
+    # GWDecorations' mesh background fails at runtime.
+    - assets/images/textures/
     - assets/images/crypto/
     - packages/genius_wallet/assets/images/mask2.png
     - packages/genius_wallet/assets/images/mask4.png
