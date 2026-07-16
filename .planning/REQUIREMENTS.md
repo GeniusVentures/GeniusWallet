@@ -55,15 +55,70 @@ verified by running the flow.
 
 ### Design Gaps (GAP)
 
-develop added 12 files the design has never seen. These have no mockup, so the design language must
-be extended rather than copied.
+develop added 12 files the design has never seen. They have no mockup, no `DESIGN_SYSTEM.md` entry
+and no implementation on Alex's branch.
 
-- [ ] **GAP-01**: Every develop feature with no redesign counterpart is inventoried, with a decided treatment (extend the design language / keep develop's UI as-is / defer)
-- [ ] **GAP-02**: Settings screen (`lib/settings/settings_screen.dart`) — new on develop, no design
-- [ ] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — new on develop, no design
-- [ ] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — new on develop, no design
-- [ ] **GAP-05**: Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `screens/banxa_buy_screen.dart`) — new on develop, no design
-- [ ] **GAP-06**: Misc develop additions (`components/wallet_overview.dart`, `components/loading.dart`, `dashboard/home/widgets/transaction_displays.dart`) — new on develop, no design
+**Decision (2026-07-16, user):** these surfaces DO get re-skinned — the line is re-skin vs
+restructure, not designed vs undesigned.
+
+- **In scope (no product decision needed):** apply the tokens and `gw_*` primitives to the widgets
+  that are already there. The surface keeps its exact structure, item order, wording, and behavior —
+  it just wears the new colours, type, spacing, radius and components. This is a mechanical
+  translation of an existing layout into the design language.
+- **Out of scope (product decision required):** moving or reordering items, changing information
+  architecture, merging/splitting screens, adding or removing capability, or inventing a surface Alex
+  never drew. If applying the design language *requires* one of these to look right, stop, leave that
+  part as-is, and record it for product rather than deciding it here.
+
+Rationale: re-skinning to an adopted design system is a translation with a right answer; restructuring
+is a product judgement with no owner in this milestone. Shipping an invented structure nobody signed
+off is worse than an obvious gap product can prioritise.
+
+- [ ] **GAP-01**: Every develop surface with no Alex design is inventoried, and each is split into
+      what can be re-skinned mechanically vs what would need a structural/product decision. The
+      inventory, its evidence, and any deferred structural questions are written down for product
+- [ ] **GAP-02**: Settings screen (`lib/settings/settings_screen.dart`) — re-skinned in place; structure/rows unchanged
+- [ ] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — re-skinned in place; structure unchanged
+- [ ] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — re-skinned in place; flow and routing unchanged
+- [ ] **GAP-05**: Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `screens/banxa_buy_screen.dart`) — re-skinned in place; structure unchanged
+- [ ] **GAP-06**: Misc develop additions (`components/wallet_overview.dart`, `components/loading.dart`, `dashboard/home/widgets/transaction_displays.dart`) — re-skinned in place; structure unchanged
+
+GAP-02..06 are satisfied when the surface wears the design language AND a before/after comparison
+shows the same items, in the same order, doing the same things. Any structural question these raise
+is recorded for product, not answered here.
+
+### Alex's Demo Stubs and New Features (WIRE)
+
+**Decision (2026-07-16, user):** take Alex's **visual** only. Never port a feature his branch
+implements that develop doesn't already have, and never port a `WIRE-N` stub over develop's working
+code.
+
+Alex's `.planning/WIRING.md` (in the reference worktree) documents **11 `WIRE-N` markers** — surfaces
+that look finished but return mock data or do nothing. Six are marked 💰 *touches money*. His branch
+is a design prototype, not a working app. Verified examples:
+
+| Marker | Alex's branch | develop |
+|--------|---------------|---------|
+| WIRE-2 | Send shows `Transaction submitted (demo)` — **no broadcast** | real `GeniusApi.signAndSendTransaction` |
+| WIRE-3 | recipient validation is `recipient.length >= 6` — any 6+ chars passes | — |
+| WIRE-4 | `"1,000"` parses to `1.0` — a **1000× under-send** | — |
+| WIRE-1 | Swap quote/rate is mocked; `squid_token_service` returns hardcoded `mock*` | real Squid calls |
+| WIRE-9 | dashboard 24h delta is `balance * 0.024` — a fabricated +2.4% | — |
+| WIRE-8 | NFT list is 6 hardcoded tiles | — |
+| WIRE-7 | currency picker changes the symbol only; values stay USD | — |
+
+Porting these would regress working, money-handling features into demos and show users invented
+numbers. The whole-branch forward-port did exactly this and accepted it (finding 21).
+
+- [ ] **WIRE-01**: No `WIRE-N` stub from Alex's branch reaches develop. Before any screen phase lands,
+      `grep -rn "WIRE-" ` over the ported surface returns nothing, and the screen still calls
+      develop's real implementation. Where Alex's version is a demo and develop's is real,
+      **develop's logic wins and only the skin is taken**
+- [ ] **WIRE-02**: Alex-only features that develop does not have are OUT of scope for this milestone —
+      `lib/ai/` (AI FAB + processing status, WIRE-10), `lib/preferences/` (currency picker, WIRE-7),
+      `lib/tokens/address_book.dart`, `lib/tokens/convert_section.dart`, the NFTs tab (WIRE-8). They
+      are new capability, mostly demo-backed, and need product decisions about whether the feature
+      should exist at all. Recorded for product; not built here
 
 ### Behavior Preservation (BEH)
 
@@ -85,6 +140,9 @@ Deferred to future milestones.
 
 | Feature | Reason |
 |---------|--------|
+| Alex's `WIRE-N` demo stubs (all 11) | His branch is a design prototype: Send doesn't broadcast, Swap quotes are mocked, the 24h delta is `balance * 0.024`. develop's real implementations win — we take the skin, not the behavior. See WIRE-01 |
+| Alex-only features develop lacks (`lib/ai/`, `lib/preferences/`, address book, convert section, NFTs tab) | New capability, mostly demo-backed, needs a product decision on whether it should exist. Recorded for product. See WIRE-02 |
+| Restructuring any surface (moving/reordering items, changing IA, splitting/merging screens) | Product judgement with no owner in this milestone. Re-skin in place; record structural questions for product |
 | Big-bang merge of `origin/ui-redesign-3.514` | Rejected after analysis — 115 conflicts, structural collisions |
 | Whole-branch forward-port (`ui-redesign-3.514-develop`) | Superseded 2026-07-16 — compiled clean but dropped 37 develop behaviors; kept as read-only reference |
 | Re-architecting develop's structure | The port keeps develop's structure/logic and applies the skin on top |
