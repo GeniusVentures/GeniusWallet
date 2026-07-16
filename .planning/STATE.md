@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 3
 current_phase_name: GW Component Library
 status: executing
-stopped_at: Completed 03-01-PLAN.md (wave 1 of Phase 3). Dependencies, noise.png asset, and shadow-name guard landed; guard proven both directions on the real tree. Human must fully restart debug session (pubspec change) before any later plan's work is observable.
-last_updated: "2026-07-16T20:07:21.245Z"
+stopped_at: Completed 03-02-PLAN.md (wave 2 of Phase 3). 12 core gw_* primitives ported byte-identical, additive, analyze-clean, guard-clean, unconsumed. Nothing observable yet (no consumer) — deferred to plan 03-09's gallery walk.
+last_updated: "2026-07-16T20:46:21.099Z"
 last_activity: 2026-07-16
 last_activity_desc: Phase 3 execution started
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 15
-  completed_plans: 6
+  completed_plans: 7
   percent: 9
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 3 (GW Component Library) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-16 — Phase 3 execution started
@@ -63,6 +63,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 03-01]: mobile_scanner inserted after qr_flutter and shimmer after app_links in pubspec.yaml — Matched the reference worktree's relative ordering where the surrounding lines still align
 - [Phase 03-01]: Guard's Check 2 census uses ^(abstract )?class, not just ^class — Also catches abstract-class name collisions; verified identical 4-name result on today's tree, so no behavior gap
 - [Phase 03-01]: Shadow/canonical import matching uses full package:genius_wallet/... strings, not bare filename substrings — Codebase has zero relative imports anywhere under lib/ (verified), so the stricter match has no coverage gap
+- [Phase 03-02]: gw_token_row.dart ported to cards/, not data/ - DESIGN_SYSTEM.md section 5.2's table is stale; verified source path is cards/gw_token_row.dart
+- [Phase 03-02]: gw_ai_fab.dart deliberately excluded - imports lib/ai/, WIRE-02 out of scope for this milestone
 
 ### Pending Todos
 
@@ -93,8 +95,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T20:07:21.238Z
-Stopped at: Completed 03-01-PLAN.md (wave 1 of Phase 3). Dependencies, noise.png asset, and shadow-name guard landed; guard proven both directions on the real tree. Human must fully restart debug session (pubspec change) before any later plan's work is observable.
+Last session: 2026-07-16T20:46:21.092Z
+Stopped at: Completed 03-02-PLAN.md (wave 2 of Phase 3). 12 core gw_* primitives ported byte-identical, additive, analyze-clean, guard-clean, unconsumed. Nothing observable yet (no consumer) — deferred to plan 03-09's gallery walk.
 Resume file: None
 
 ## Performance Metrics
@@ -107,3 +109,4 @@ Resume file: None
 | Phase 02-design-tokens-verification-loop P04 | 20min | 3 tasks | 6 files |
 | Phase 02-design-tokens-verification-loop P05 | 7min | 3 tasks | 5 files |
 | Phase 03-gw-component-library P01 | 10min | 2 tasks | 7 files |
+| Phase 03-gw-component-library P02 | 3min | 3 tasks | 12 files |

@@ -62,6 +62,7 @@ restructure, not designed vs undesigned.
   that are already there. The surface keeps its exact structure, item order, wording, and behavior —
   it just wears the new colours, type, spacing, radius and components. This is a mechanical
   translation of an existing layout into the design language.
+
 - **Out of scope (product decision required):** moving or reordering items, changing information
   architecture, merging/splitting screens, adding or removing capability, or inventing a surface Alex
   never drew. If applying the design language *requires* one of these to look right, stop, leave that
@@ -74,6 +75,7 @@ off is worse than an obvious gap product can prioritise.
 - [ ] **GAP-01**: Every develop surface with no Alex design is inventoried, and each is split into
       what can be re-skinned mechanically vs what would need a structural/product decision. The
       inventory, its evidence, and any deferred structural questions are written down for product
+
 - [ ] **GAP-02**: Settings screen (`lib/settings/settings_screen.dart`) — re-skinned in place; structure/rows unchanged
 - [ ] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — re-skinned in place; structure unchanged
 - [ ] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — re-skinned in place; flow and routing unchanged
@@ -111,6 +113,7 @@ numbers.
       `grep -rn "WIRE-" ` over the ported surface returns nothing, and the screen still calls
       develop's real implementation. Where Alex's version is a demo and develop's is real,
       **develop's logic wins and only the skin is taken**
+
 - [ ] **WIRE-02**: Alex-only features that develop does not have are OUT of scope for this milestone —
       `lib/ai/` (AI FAB + processing status, WIRE-10), `lib/preferences/` (currency picker, WIRE-7),
       `lib/tokens/address_book.dart`, `lib/tokens/convert_section.dart`, the NFTs tab (WIRE-8). They

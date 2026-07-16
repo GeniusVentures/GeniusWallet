@@ -166,7 +166,7 @@ Plans:
   5. Every un-ported screen still renders and behaves as before — the library is additive and nothing consumes it yet
   6. `.planning/` records a treatment decision (extend the design language / keep develop's UI / defer) for each of the 12 develop features the design never saw, and every primitive those decisions call for exists in the gallery
 
-**Plans**: 1/10 plans executed
+**Plans**: 2/10 plans executed
 **UI hint**: yes
 **Carries**: `d8db88c` (assets/textures). **Findings**: 13, 15, 16, 25, 26.
 **Design contract**: `03-UI-SPEC.md` (approved 6/6 checker dimensions) — the additive-only mechanism
@@ -179,7 +179,7 @@ shadow-name pairs — `Splash` (boot path) and `WalletsOverview`/`WalletsOvervie
 Plans:
 
 - [x] 03-01-PLAN.md — Dependencies, the `noise.png` texture asset (carries `d8db88c`), and the shadow-name guard (DS-04, DS-02)
-- [ ] 03-02-PLAN.md — Core primitives: icon API, buttons, cards, inputs, animated number — 12 files (DS-02)
+- [x] 03-02-PLAN.md — Core primitives: icon API, buttons, cards, inputs, animated number — 12 files (DS-02)
 - [ ] 03-03-PLAN.md — Feedback states, mesh background, and the `Loading` shadow — 6 files (DS-02)
 - [ ] 03-04-PLAN.md — The 9 generated widgets, their custom siblings, and the compile canary — 14 files (DS-02)
 - [ ] 03-05-PLAN.md — Layout, screen wrappers, `BottomDrawer` chrome, overlays — 9 files (DS-02)
