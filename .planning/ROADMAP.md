@@ -166,7 +166,7 @@ Plans:
   5. Every un-ported screen still renders and behaves as before — the library is additive and nothing consumes it yet
   6. `.planning/` records a treatment decision (extend the design language / keep develop's UI / defer) for each of the 12 develop features the design never saw, and every primitive those decisions call for exists in the gallery
 
-**Plans**: 4/10 plans executed
+**Plans**: 5/10 plans executed
 **UI hint**: yes
 **Carries**: `d8db88c` (assets/textures). **Findings**: 13, 15, 16, 25, 26.
 **Design contract**: `03-UI-SPEC.md` (approved 6/6 checker dimensions) — the additive-only mechanism
@@ -182,7 +182,7 @@ Plans:
 - [x] 03-02-PLAN.md — Core primitives: icon API, buttons, cards, inputs, animated number — 12 files (DS-02)
 - [x] 03-03-PLAN.md — Feedback states, mesh background, and the `Loading` shadow — 6 files (DS-02)
 - [x] 03-04-PLAN.md — The 9 generated widgets, their custom siblings, and the compile canary — 14 files (DS-02)
-- [ ] 03-05-PLAN.md — Layout, screen wrappers, `BottomDrawer` chrome, overlays — 9 files (DS-02)
+- [x] 03-05-PLAN.md — Layout, screen wrappers, `BottomDrawer` chrome, overlays — 9 files (DS-02)
 - [ ] 03-06-PLAN.md — Specialist: QR scanner, dropdowns, SGNUS, and the `Splash` shadow — 9 files (DS-02)
 - [ ] 03-07-PLAN.md — Design gallery port, dev-gated route, and `GWCanvasBackground`'s first instantiation (DS-03, DS-04)
 - [ ] 03-08-PLAN.md — GAP-01: whole-app inventory and treatment decision (GAP-01)
