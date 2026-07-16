@@ -2,28 +2,22 @@
 
 ## Overview
 
-**Re-scoped 2026-07-16.** Phase 1 (Adopt GSD) shipped on `develop` via PR #207. Phases 2–4 of the
-previous roadmap encoded the whole-branch forward-port and have been removed along with their
-RFP-01..04 requirements — that approach is superseded (see PROJECT.md Key Decisions).
-
 This milestone lands the `ui-redesign-3.514` design on `develop` **incrementally, layer by layer**,
 on branch `ui-redesign-port` (`branching_strategy: none` — phases land on the current branch, not
-per-phase branches).
+per-phase branches). Phase 1 (Adopt GSD) shipped on `develop` via PR #207.
 
 ### Why this order
 
 The designer forked at `0495436` (2026-04-30); develop has **+127 commits** since. **128 of the
-design's 172 changed files are files develop also changed (74% overlap).** Both whole-branch
-attempts failed for the same structural reason: they had to reconcile all 128 collisions at once
-with no way to verify a slice. The forward-port reached 0 analyze errors and still dropped 37
-develop behaviors, 3 of them blockers.
+design's 172 changed files are files develop also changed (74% overlap).** Landing it in one step
+means reconciling all 128 collisions at once with nothing verifiable in between.
 
 The sequence is therefore **by dependency, not by subject** — each layer lands on a layer that
 already exists and has already been looked at:
 
 | Order | Layer | Why here |
 |-------|-------|----------|
-| 2 | Design tokens | Nothing can be skinned before the vocabulary exists. Tokens coexist with develop's theme, so this lands invisible — zero risk to un-ported screens. Also establishes the debug-build verification loop (BLD-02) that every later phase depends on, since analyze-clean is exactly what masked the 37 regressions. |
+| 2 | Design tokens | Nothing can be skinned before the vocabulary exists. Tokens coexist with develop's theme, so this lands invisible — zero risk to un-ported screens. Also establishes the debug-build verification loop (BLD-02) that every later phase depends on — analyze-clean says nothing about runtime behavior, and there is no test harness. |
 | 3 | `gw_*` primitives | The design's 82 new files are **additive** (new files, no collisions) → lowest risk of the whole port. Every screen imports them, so they must exist and be reviewed before any screen lands. The gallery (DS-03) makes them reviewable without a screen. |
 | 4 | Nav shell & chrome | The frame every screen mounts into. Must be stable before screens land, and it has never been visually walked. |
 | 5–10 | Screen areas | One area per phase, each landing on primitives that already exist and have been reviewed. |
@@ -36,9 +30,9 @@ where it was safe: tokens + dev-gating + verification merged into one foundation
 absorbed Settings and the SDK account manager rather than getting a thin phase of their own; GAP-01
 rides in the component-library phase instead of a standalone inventory phase; each GAP feature rides
 in the phase that owns its surface. Compression was **not** applied across screen areas — merging
-them recreates the exact reconcile-everything-at-once failure mode this milestone exists to avoid,
-and every phase must be independently landable on develop (no phase may leave develop
-half-skinned or broken).
+them rebuilds the reconcile-everything-at-once problem this ordering exists to avoid, and every
+phase must be independently landable on develop (no phase may leave develop half-skinned or
+broken).
 
 ### GAP treatment decision
 
@@ -49,7 +43,7 @@ it must be answered *while* the library is being built and *before* any screen l
 (the actual un-designed features) ride in the phase that owns their surface, so each is skinned in
 the same slice as its neighbours and is verified by the same walk.
 
-### BEH-02 — fix commits from `ui-redesign-3.514-develop`
+### BEH-02 — the 3 verified fixes
 
 Each is attached to the phase that owns its component:
 
@@ -64,9 +58,10 @@ closes; Phases 2 and 3 carry the other two.
 
 ### BEH-01 — the 37 findings as a per-phase checklist
 
-`.planning/REVIEW_FINDINGS_REDESIGN.md` was bought the hard way. Every finding is assigned to the
-phase that owns its file; each phase confirms its subset non-regressed as it lands, and Phase 11
-signs off the whole set.
+`.planning/REVIEW_FINDINGS_REDESIGN.md` records 37 evidenced defects in the design-vs-develop
+surface, each with a file:line and a fix; 3 are blockers. Every finding is assigned to the phase
+that owns its file; each phase confirms its subset non-regressed as it lands, and Phase 11 signs off
+the whole set.
 
 | Phase | Findings | Count |
 |-------|----------|-------|
@@ -89,7 +84,7 @@ build + visual walk. `flutter analyze` is a gate, never evidence.
 
 Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514`
 (original design branch, builds and runs as a Release exe — the visual source of truth) and branch
-`ui-redesign-3.514-develop` (abandoned forward-port, read-only reference).
+`ui-redesign-3.514-develop`, which exists only as the source of the 3 verified fixes in BEH-02.
 
 ## Phases
 
@@ -165,7 +160,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. `/design_gallery` opens in a debug build and renders every ported primitive (gw_button, gw_card, gw_token_row, gw_wallet_card, gw_error_state, gw_empty_state, gw_loading_state, gw_mesh_background, gw_icon, gw_checkbox, bottom_drawer, app_screen_view …), each visually matching the Release exe at `GeniusWallet-3514`
-  2. `gw_mesh_background` renders its texture rather than a blank fill — the `assets/images/textures/` declaration resolves at runtime (the omission that broke the forward-port)
+  2. `gw_mesh_background` renders its texture rather than a blank fill — the `assets/images/textures/` declaration resolves at runtime (a known omission — carried as `d8db88c`)
   3. Every gallery entry renders correctly in both light and dark appearance, and no QR surface renders dark-on-dark (findings 16 and 6 — QR backgrounds stay light in both themes)
   4. A drawer opened from the gallery mounts over the whole app, can be swiped down to dismiss, and switches to the desktop side-dialog at 768px — not 800 (findings 13, 25, 26)
   5. Every un-ported screen still renders and behaves as before — the library is additive and nothing consumes it yet
@@ -266,7 +261,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Buy, KYC, checkout and order history/details render in the redesign skin and a buy flow runs end to end
-  2. Completing KYC pops the webview and returns success to the caller — the redirect matches `BanxaApiService.redirectUrl`, not a placeholder (finding 1, a blocker on the forward-port)
+  2. Completing KYC pops the webview and returns success to the caller — the redirect matches `BanxaApiService.redirectUrl`, not a placeholder (finding 1 — a blocker)
   3. The checkout QR scans in both light and dark appearance (finding 6), and opening Banxa KYC on Linux falls back to the browser instead of crashing (finding 7)
   4. The develop-only Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `banxa_buy_screen.dart`) wear the extended design language per the Phase 3 treatment
 
@@ -282,7 +277,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. The connect button and session UI render in the redesign skin
-  2. A dApp pairing completes on x64 Windows desktop — WalletKit initializes rather than being skipped by an architecture check (finding 3, a blocker on the forward-port)
+  2. A dApp pairing completes on x64 Windows desktop — WalletKit initializes rather than being skipped by an architecture check (finding 3 — a blocker)
   3. Pressing connect twice concurrently initializes WalletKit exactly once (develop's idempotent Completer guard, not an arch check)
   4. When init has failed, pressing connect retries it and, if it fails again, tells the user to restart the app rather than failing silently (finding 20)
 

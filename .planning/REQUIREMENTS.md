@@ -1,20 +1,17 @@
 # Requirements: GeniusWallet
 
-**Defined:** 2026-07-15
-**Re-scoped:** 2026-07-16 — whole-branch forward-port superseded by an incremental component port
+**Defined:** 2026-07-16
 **Core Value:** Users can safely custody their keys and reliably perform core wallet actions.
 
 ## v1 Requirements
 
 Scope: land the `ui-redesign-3.514` design on `develop` incrementally, at low risk, without losing
-develop's behavior — and extend the design language to the features develop gained after the
-designer forked.
+develop's behavior — and re-skin the surfaces develop gained after the designer forked.
 
-**Why incremental:** the designer forked at `0495436` (2026-04-30). develop has +127 commits since,
-and **128 of the design's 172 changed files are files develop also changed** (74% overlap). The
-whole-branch approaches (merge, then forward-port) each had to reconcile all 128 at once with no way
-to verify a slice — the forward-port compiled cleanly and still dropped 37 develop behaviors,
-3 of them blockers.
+**Why incremental:** the designer forked `develop` at `0495436` (2026-04-30); develop has +127
+commits since, and **128 of the design's 172 changed files are files develop also changed** (74%
+overlap). Landing it in one step means reconciling all 128 at once with no way to verify a slice.
+Porting layer by layer makes each step small enough to check by running the app.
 
 ### Tooling (GSD)
 
@@ -23,7 +20,7 @@ to verify a slice — the forward-port compiled cleanly and still dropped 37 dev
 ### Build & Verification (BLD)
 
 - [x] **BLD-01**: Windows debug builds link and run, with hot reload and the Dart debugger — prerequisite for verifying any UI work (`4395da7`, on develop)
-- [x] **BLD-02**: Each port phase is verified by running the app (debug build + visual walk), not by `flutter analyze` alone — analyze-clean is what masked the forward-port's 37 regressions
+- [x] **BLD-02**: Each port phase is verified by running the app (debug build + visual walk), not by `flutter analyze` alone — analyze-clean says nothing about runtime behavior
 - [x] **BLD-03**: Dev-only affordances stay out of normal builds — the `Dev` header row and the onboarding `Mock` button (which injects a fake wallet + 20 fake transactions) are gated behind an opt-in flag
 
 ### Design System (DS)
@@ -34,12 +31,12 @@ collisions), so they carry the lowest risk and everything else depends on them.
 - [x] **DS-01**: Redesign theme tokens (colours, typography, spacing, decorations) live on `develop` and coexist with develop's existing theme without breaking un-ported screens
 - [ ] **DS-02**: The `gw_*` component library is ported to `develop` (buttons, cards, inputs, feedback states, token/wallet rows, mesh background, icons)
 - [ ] **DS-03**: A developer can view every ported primitive in one place to confirm fidelity against the design (`/design_gallery`)
-- [ ] **DS-04**: Redesign assets referenced by the design system are declared and bundled (e.g. `assets/images/textures/`, whose omission broke the mesh background on the forward-port)
+- [ ] **DS-04**: Redesign assets referenced by the design system are declared and bundled (e.g. `assets/images/textures/` — Flutter asset dir declarations are not recursive, so the mesh background silently fails without it)
 
 ### Navigation Shell (NAV)
 
 - [ ] **NAV-01**: The app shell wears the redesign skin (desktop rail + mobile bottom nav) on develop's `go_router` config, with every existing route still reachable
-- [ ] **NAV-02**: The shell survives startup and navigation without runtime exceptions — including the `!_dirty` crash the forward-port hit when the initial route resolved mid-mount
+- [ ] **NAV-02**: The shell survives startup and navigation without runtime exceptions — including the `!_dirty` crash when the initial route resolves mid-mount (fix carried as `7a63b4f`)
 
 ### Screen Areas (SCR)
 
@@ -51,7 +48,7 @@ verified by running the flow.
 - [ ] **SCR-03**: Token screens (token info, send, receive, address book, market data) wear the redesign
 - [ ] **SCR-04**: Swap (Squid Router) wears the redesign and keeps develop's route/fee/slippage logic
 - [ ] **SCR-05**: Banxa (buy, KYC, checkout, order history/details) wears the redesign and keeps develop's rework — including the real KYC redirect URL
-- [ ] **SCR-06**: dApp connectivity (Reown/WalletConnect) wears the redesign and keeps develop's idempotent init guard — the forward-port's arch check killed WalletConnect on all x64 desktop
+- [ ] **SCR-06**: dApp connectivity (Reown/WalletConnect) wears the redesign and keeps develop's idempotent init guard — an arch-based skip kills WalletConnect on all x64 desktop
 
 ### Design Gaps (GAP)
 
@@ -108,7 +105,7 @@ is a design prototype, not a working app. Verified examples:
 | WIRE-7 | currency picker changes the symbol only; values stay USD | — |
 
 Porting these would regress working, money-handling features into demos and show users invented
-numbers. The whole-branch forward-port did exactly this and accepted it (finding 21).
+numbers.
 
 - [ ] **WIRE-01**: No `WIRE-N` stub from Alex's branch reaches develop. Before any screen phase lands,
       `grep -rn "WIRE-" ` over the ported surface returns nothing, and the screen still calls
@@ -122,8 +119,8 @@ numbers. The whole-branch forward-port did exactly this and accepted it (finding
 
 ### Behavior Preservation (BEH)
 
-- [ ] **BEH-01**: The 37 findings in `.planning/REVIEW_FINDINGS_REDESIGN.md` are used as a checklist — each is confirmed non-regressed as its component lands (they were found the hard way once already)
-- [ ] **BEH-02**: The 3 remaining fix commits on `ui-redesign-3.514-develop` are ported with their components: `7a63b4f` (`!_dirty` guard → NAV), `f3fd16f` (dev-tools gating → BLD-03), `d8db88c` (assets/textures → DS-04)
+- [ ] **BEH-01**: The 37 findings in `.planning/REVIEW_FINDINGS_REDESIGN.md` are used as a checklist — each is confirmed non-regressed as its component lands. They are real, evidenced defects in this design-vs-develop surface (3 are blockers: wallets vanishing at startup, the Banxa KYC redirect stuck on a placeholder, WalletConnect dead on x64), each with a file:line and a fix
+- [ ] **BEH-02**: 3 verified fixes are ported with their components — `7a63b4f` (`!_dirty` crash guard → NAV), `f3fd16f` (dev-tools gating → BLD-03), `d8db88c` (assets/textures → DS-04). They sit on branch `ui-redesign-3.514-develop`, which exists only as a source for these three commits
 
 ## v2 Requirements
 
@@ -143,9 +140,7 @@ Deferred to future milestones.
 | Alex's `WIRE-N` demo stubs (all 11) | His branch is a design prototype: Send doesn't broadcast, Swap quotes are mocked, the 24h delta is `balance * 0.024`. develop's real implementations win — we take the skin, not the behavior. See WIRE-01 |
 | Alex-only features develop lacks (`lib/ai/`, `lib/preferences/`, address book, convert section, NFTs tab) | New capability, mostly demo-backed, needs a product decision on whether it should exist. Recorded for product. See WIRE-02 |
 | Restructuring any surface (moving/reordering items, changing IA, splitting/merging screens) | Product judgement with no owner in this milestone. Re-skin in place; record structural questions for product |
-| Big-bang merge of `origin/ui-redesign-3.514` | Rejected after analysis — 115 conflicts, structural collisions |
-| Whole-branch forward-port (`ui-redesign-3.514-develop`) | Superseded 2026-07-16 — compiled clean but dropped 37 develop behaviors; kept as read-only reference |
-| Other branches off the abandoned forward-port line | Out of scope — this milestone starts fresh from develop |
+| Landing the design in one step | 128 of the design's 172 files collide with develop's; one step means reconciling all of them with nothing verifiable in between |
 | Re-architecting develop's structure | The port keeps develop's structure/logic and applies the skin on top |
 | Porting the redesign's `hive` (classic) usage | develop uses `hive_ce`; develop's data layer wins |
 | New feature milestones | Deferred until the port lands |
@@ -200,7 +195,6 @@ Deferred to future milestones.
 - Complete: 2 (GSD-01, BLD-01 — Phase 1)
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases: 11 (1 complete, 10 remaining)
-- Removed 2026-07-16: RFP-01..04 (whole-branch forward-port) — superseded along with old Phases 2–4
 
 ---
 *Last updated: 2026-07-16 — traceability mapped to the incremental port roadmap*
