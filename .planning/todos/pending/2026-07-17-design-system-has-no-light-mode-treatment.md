@@ -81,9 +81,32 @@ Constraints that bound any future fix:
   analog* (screen-level, re-skin vs restructure). A component-treatment gap is a DS-02-scope
   question per 03-08-PLAN.md:159, not a GAP-01 row.
 
-**Next step that produces the missing data:** 03-09's human-check already walks every gallery
-section in both appearance modes. That walk is what yields the real count of dark-only
-components. Decide only once that number exists.
+**Next step that produces the missing data — CORRECTED 2026-07-17 (second correction):**
+
+~~03-09's human-check walks every gallery section in both modes and yields the count.~~ **The 03-09
+walk was performed and the count is NOT DERIVABLE at Phase 3.** Reason, established by the walk:
+
+develop's `theme.dart` is `ThemeData(brightness: Brightness.dark)` — hardcoded, with no `textTheme:`
+and no `toMaterialTextTheme()` (which is defined at `genius_wallet_typography.dart:133` and
+referenced NOWHERE else in `lib/`). `GeniusWalletTypography`'s styles carry **no color** — only 2
+`color:` mentions in the whole file. So every `Text` using them inherits white from the dark theme,
+unconditionally.
+
+**Alex's components correctly delegate color to the theme. We have not ported a theme that flips.**
+Any dark-only count taken before Phase 4 measures OUR missing theme, not HIS design — it would
+inflate the number and misattribute the cause. The 03-09 walk produced 8 findings; **5 collapse into
+this single cause** (token row / wallet card / empty-error text not flipping, button font not
+changing, icons not flipping).
+
+**The count must be re-derived AFTER Phase 4 wires the appearance-aware theme.** Expect most of the
+5 to evaporate. Recorded in `03-09-SUMMARY.md` as an accepted gap, explicitly not a pass.
+
+**Genuinely open after Phase 4 (Alex's real design choices, all byte-identical ports):**
+- `GWCanvasBackground` grain gated `if (!isLight)` — the original subject of this todo.
+- `GWMeshBackground` blobs invariant over a flipping backdrop.
+- `GWSwitch` disabled is visually identical to off (`gw_switch.dart:27` computes `disabled` and never
+  uses it for color; explicit `inactive*Color`s override Flutter's disabled rendering).
+- `GWSwitch` off-thumb is `textPrimary` → near-black in light mode.
 
 Note: 03-09's `must_haves.truths` currently asserts "Every gallery entry renders correctly in
 both light and dark appearance" — that expectation is probably false as written, in the same way
