@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: gw-component-library
 status: executing
-stopped_at: 03-07 human walk PASSED (DS-04); ready to execute 03-08
-last_updated: "2026-07-17T11:26:06.485Z"
+stopped_at: 03-09 mechanical portion complete (302a68c, 6686be2); human walk outstanding; ready to execute 03-10
+last_updated: "2026-07-17T11:59:14.766Z"
 last_activity: 2026-07-17
-last_activity_desc: Phase 03 execution started
+last_activity_desc: 03-09 gallery extension (mechanical portion complete; human walk outstanding)
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 9
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 03 (gw-component-library) — EXECUTING
-Plan: 9 of 10 (03-01..03-08 complete; 03-09 next)
+Plan: 10 of 10 (03-01..03-09 complete; 03-10 next)
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-17 — Phase 03 execution started
+Last activity: 2026-07-17 — 03-09 gallery extension (mechanical portion complete; human walk outstanding)
 
 Progress: [█░░░░░░░░░] 9% (1 of 11 phases)
 
@@ -77,6 +77,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: GAP-01 whole-app inventory: 10 evidenced gaps confirmed exact match to REQUIREMENTS.md GAP-02..06 (not the ROADMAP's estimated 12), via a whole-lib/-tree diff-filter=D scan
 - [Phase ?]: New finding: order_details_page.dart has a moved-path Alex analog (lib/banxa/order_details_page.dart) not named in GAP-05's list -- Phase 9 addendum, not a new GAP
 - [Phase ?]: Deferred structural question for product (03-GAP-INVENTORY.md): whether transaction_displays.dart (GAP-06) should split into per-type files matching Alex's 4-file organization, or keep develop's single-file structure with a mechanical re-skin
+- [Phase ?]: [Phase 03-09]: Both tasks landed in lib/dev/design_gallery_screen.dart as two separate atomic commits (302a68c, 6686be2), split by writing each task's end-state directly rather than isolating dart-format-churned hunks
+- [Phase ?]: [Phase 03-09]: GWIcon.svg/.png demo assets chosen by reading pubspec.yaml's packages/genius_wallet/assets/images/* declarations (shape.svg, mask2.png) rather than assuming an arbitrary bundled asset resolves under the default package: 'genius_wallet'
+- [Phase ?]: [Phase 03-09]: The gallery's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT) is OUTSTANDING, not passed -- recorded as coverage item D5 status:outstanding, per this project's standing no-unearned-PASS rule
 
 ### Pending Todos
 
@@ -91,6 +94,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - 37 evidenced defects in the design-vs-develop surface (`.planning/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
 - `analysis_options.yaml` excludes `lib/**/*.g.dart` — the compiler, not analyze, is the real gate for generated widgets
 - **Alex's design system may have no complete light mode** (2026-07-17, from the 03-07 walk) — `GWCanvasBackground` gates its grain behind `if (!isLight)`; `GWMeshBackground` never reads the appearance and washes out on a light base. Both verified byte-identical to the reference, so **neither is a port defect**. If light mode ships, this hits every screen Phases 4–9 mount. Scope unknown — 03-09's both-mode walk is what produces the real count. Do not fix before that number exists; see the todo for why removing the gate is insufficient
+- 03-09's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT across all 30 gallery sections) is outstanding -- no code changed pending it; see 03-09-SUMMARY.md's Outstanding section for the exact recipe
 
 ## Reference Material
 
@@ -109,7 +113,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-17T11:24:56.654Z
+Last session: 2026-07-17T11:55:20.622Z
 Stopped at: 03-07 walk PASSED (DS-04 met — noise.png loads, console clean, dev gate confirmed by a separate no-define launch). Walk falsified the "mesh blobs in both modes" criterion: Alex's design system has no light-mode treatment for GWCanvasBackground's grain or GWMeshBackground's blobs. Both byte-identical ports, NOT defects. Captured as a todo + concern; 03-09's plan corrected to record light-mode results and report a dark-only COUNT. No code changed. Ready to execute 03-08 (GAP-01 inventory, doc-only).
 Resume file: .planning/phases/03-gw-component-library/.continue-here.md
 
@@ -130,3 +134,4 @@ Resume file: .planning/phases/03-gw-component-library/.continue-here.md
 | Phase 03 P06 | 13min | 2 tasks | 12 files |
 | Phase 03-gw-component-library P07 | 12min | 3 tasks | 4 files |
 | Phase 03-gw-component-library P08 | 20min | 2 tasks | 1 files |
+| Phase 03-gw-component-library P09 | 35min | 2 tasks | 1 files |
