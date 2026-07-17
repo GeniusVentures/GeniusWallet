@@ -1,4 +1,33 @@
+---
+phase: 02-design-tokens-verification-loop
+verified: 2026-07-16T17:43:30Z
+status: passed
+score: 5/5 criteria PASS — all human-confirmed
+behavior_unverified: 1
+behavior_unverified_items:
+  - truth: "A breakpoint set in the debugger halts execution (criterion 1, clause B)"
+    test: "Attach the debugger, set a breakpoint in a hot path, trigger it"
+    expected: "Execution halts at the breakpoint"
+    why_human: "Clause A (hot reload) was human-confirmed — a live string edit applied via `r` with no restart. Clause B was NOT EXERCISED and is explicitly not claimed and not inferred; the record states why it is non-blocking. Recorded here so it is not silently lost."
+---
+
 # Phase 2 Verification Record (BLD-02)
+
+> **Frontmatter added 2026-07-17** (retroactively, during Phase 3's closeout). Without it,
+> `gsd-tools query verification.status` returned `missing` for this phase — "the verify step never
+> completed. Re-run execute-phase" — because this project's hand-written `NN-VERIFICATION.md`
+> convention predates the canonical template and carried no YAML block. Schema per
+> `gsd-core/templates/verification-report.md`.
+>
+> **`status: passed` reflects this document's own Summary table: 5/5 criteria PASS, every one
+> human-confirmed.** Two items are carried honestly rather than counted as passes: criterion 1's
+> clause B (breakpoint) was NOT EXERCISED (see `behavior_unverified_items`), and the onboarding
+> `Mock` button is an explicit **Phase 6 deferral** — it does not exist on develop today, so it is
+> out of scope rather than unverified.
+>
+> **Note for STATE.md's decision log:** its entry claiming "02-VERIFICATION.md marks criteria 1 and 3
+> OUTSTANDING and criterion 4 PARTIAL rather than PASS" is **stale** — it describes an intermediate
+> state before the human walks landed. This document's Summary table is the authority: 5/5 PASS.
 
 This document is the BLD-02 deliverable itself, not a formality: the verification loop it
 establishes here is the one every later phase inherits. It exists because the forward-port
