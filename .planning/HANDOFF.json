@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-17T21:11:59.033Z",
+  "phase": "4",
+  "phase_name": "navigation-shell-chrome",
+  "phase_dir": ".planning/phases/04-navigation-shell-chrome",
+  "plan": 1,
+  "task": 3,
+  "total_tasks": 3,
+  "status": "paused",
+  "branch": "ui-redesign-port",
+  "head": "c3a80d3",
+  "completed_tasks": [
+    {"id": 1, "name": "Reconcile theme.dart key-by-key into appearance-aware ThemeData (6 develop-only sections preserved, onPrimary: textOnBrand kept)", "status": "done", "commit": "953f1c7"},
+    {"id": "1-fix", "name": "Correct outlinedButtonTheme/filledButtonTheme vertical padding token", "status": "done", "commit": "029c089"},
+    {"id": 2, "name": "OS-first-launch default in gw_appearance.load(), MaterialApp ValueListenableBuilder wrap, gallery Scaffold reverted to transparent", "status": "done", "commit": "2f3aa8a"}
+  ],
+  "remaining_tasks": [
+    {"id": 3, "name": "D-02 gallery re-walk gate (HUMAN) — derive dark-only count, split findings bugs-vs-design, repro the two unexplained findings, confirm OS-follow default", "status": "not_started", "blocking": true}
+  ],
+  "blockers": [],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {
+      "action": "Perform the D-02 gallery re-walk and report four things",
+      "context": "04-01 wired the appearance-aware theme.dart (the linchpin). Run with --dart-define=GW_DEV_TOOLS=true, Dev > Gallery, toggle appearance, walk all 30 sections in BOTH modes. Report: (1) did the 5 theme-confound findings evaporate (token-row/wallet-card/empty-error text, button font, icons now flip color)? (2) the dark-only COUNT across 30 sections — the number that unblocks the light-mode grain decision; (3) do the two unexplained findings persist — 'Screen wrappers' blank in dark, disabled GWCheckbox invisible in dark? (4) OS-follow sanity — clear the persisted appearance / launch fresh on a light-set OS, does it open light? FULL stop-and-rerun (this plan changed main.dart's app root + touched a .g.dart), not hot reload. Close the reference Release exe first (shared Hive lock). This gate MUST close before 04-02+ (D-01/D-02).",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {"decision": "04-01 is theme-only and ends at the D-02 human gate", "rationale": "D-01/D-02 — wire the appearance-aware theme and prove it flips (re-walk) before any screen re-skin builds on it. Executed via --wave 1 so the run halts here naturally.", "phase": "4"},
+    {"decision": "theme.dart reconciled key-by-key, NOT wholesale-adopted from Alex", "rationale": "Alex's theme.dart drops 6 live develop ThemeData sections (floatingLabelBehavior.always/toggleButtonsTheme/filledButtonTheme/outlinedButtonTheme/dialogTheme/menuTheme/dividerTheme). All 6 verified present in the reconciled file. Take his visual, re-derive never inherit.", "phase": "4"},
+    {"decision": "GlobalSwapFabHost + 7a63b4f !_dirty carry deferred to the swap-FAB phase (D-08)", "rationale": "The component doesn't exist on develop, no Phase 4 criterion needs it, and it couples to out-of-scope lib/ai. ROADMAP records it as a carry-move, not a drop. Criterion 1's general clause stays and is walked in 04-02.", "phase": "4"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Ask the user for the D-02 gallery re-walk result (see human_actions_pending). Then split findings bugs-vs-design per D-04, record the dark-only count, and run /gsd-execute-phase 4 --wave 2 for the shell re-skin (04-02). One executor at a time (sequential — worktree base diverged).",
+  "context_notes": "Phase 4 is 6 plans, all checker-verified (one revision fixed a task-ordering bug in 04-05). Sequential execution only (worktree base-check shouldDegrade=true, and this project's Phase 2 index-race lesson). 04-01's code is done and every claim was orchestrator-verified: 6 preserved sections present, OS-brightness branch at gw_appearance.dart:33, ValueListenableBuilder at main.dart:297, gallery reverted to Colors.transparent, analyze 0 errors / 62-issue baseline, additive guard PASSED, tree clean. The re-walk is the payoff moment: it should show 5 of Phase 3's 8 findings resolved and finally yield the dark-only count that answers the user's light-mode grain question. Standing method that keeps paying off: make every agent RE-DERIVE, never inherit — it caught 6+ wrong inherited facts across Phases 3-4 today (section counts, importer counts, a physically-impossible walk instruction, the dropped theme sections, a task-ordering bug). Verification records now carry canonical frontmatter (status: passed) so /gsd-progress and /gsd-ship route correctly — added retroactively to Phase 2+3 today."
+}
