@@ -11,9 +11,25 @@ files:
 
 ## Problem
 
-Alex Faber's design system appears to have no complete light-mode treatment. Two components
-surfaced this in the 03-07 gallery walk (2026-07-17), and **neither is a port defect** — both
-were verified byte-identical to the reference before this was written:
+> **CORRECTION (2026-07-17, later the same day — read this first).** This todo originally claimed
+> Alex's design system "appears to have no complete light-mode treatment." **That is FALSE and was
+> written from an incomplete picture.** Alex's `lib/theme/theme.dart` IS fully appearance-aware:
+> ```dart
+> /// App theme. Re-evaluated whenever [GWAppearance] changes (main.dart wraps ...
+> final isLight = GWAppearance.isLight;
+> brightness: isLight ? Brightness.light : Brightness.dark,
+> ```
+> Light mode is a real, designed feature of his branch. **develop's `theme.dart` has zero
+> `GWAppearance` references** because Phase 2 deferred that wiring to Phase 4 (UI-SPEC §1.1 excludes
+> `theme.dart` wholesale as a 100%-collision file).
+>
+> So the accurate framing is narrower: **two components are deliberately dark-only WITHIN an
+> otherwise working light mode** — a design choice, not an unfinished system. Whether that choice
+> should be revisited is still an open product question (below), but it is NOT evidence that light
+> mode was abandoned.
+
+Two components are dark-only by design. Both surfaced in the 03-07 gallery walk (2026-07-17), and
+**neither is a port defect** — both were verified byte-identical to the reference:
 
 **1. `GWCanvasBackground`** (`genius_wallet_decorations.dart:145`) gates its top-light gradient
 AND its `noise.png` grain behind `if (!isLight)`. In light mode it paints only the base
