@@ -85,7 +85,7 @@ coverage:
     requirement: "DS-04"
     verification:
       - kind: human
-        ref: "Human walk performed 2026-07-17. Gallery opens from Dev > Gallery and renders its 14 sections. Canvas background shows visible grain in DARK mode. Console is FREE of 'Unable to load asset' for noise.png -- DS-04's load-bearing test, and the one that distinguishes an asset-bundling failure from a paint failure. Closure canary section shows its count. Second, separate launch with NO --dart-define confirmed: Dev row and Gallery button both absent."
+        ref: "Human walk performed 2026-07-17. Gallery opens from Dev > Gallery and renders -- nothing blank, no red error box, no missing-asset placeholder. SECTION COUNT CORRECTION (2026-07-17, re-derived in 03-09): the gallery at this plan's HEAD has **18** sections, not 14. The walk brief said '14' (inherited from HANDOFF.json) and this summary originally said '17' -- both wrong; `git show 3cd138c:lib/dev/design_gallery_screen.dart | grep -c '_Section('` = 19 minus the constructor declaration = 18. The human confirmed the gallery RENDERED; they did not verify a count, and no count claim should be attributed to them. Canvas background shows visible grain in DARK mode. Console is FREE of 'Unable to load asset' for noise.png -- DS-04's load-bearing test, and the one that distinguishes an asset-bundling failure from a paint failure. Closure canary section shows its count. Second, separate launch with NO --dart-define confirmed: Dev row and Gallery button both absent."
         status: pass
     human_judgment: true
     rationale: "PASS is the human's direct observation, not inferred from this plan's mechanical gates. The dev-gating check (point 5) was confirmed as its OWN separate launch, not the same dev-gated session -- that gate is what keeps the gallery and the two shadow classes it imports out of a normal build, so it was confirmed explicitly rather than folded into a blanket 'everything checks'."
@@ -192,10 +192,19 @@ None. No new network endpoints, auth paths, or trust-boundary-crossing file acce
 
 ### Walk result (2026-07-17)
 
-**PASS on DS-04.** Gallery opens from `Dev > Gallery` and renders its 14 sections; canvas grain
-visible in dark mode; **console free of `Unable to load asset` for `noise.png`** — the load-bearing
-check; canary section shows its count. A separate launch with no `--dart-define` confirmed `Dev` and
-`Gallery` both absent.
+**PASS on DS-04.** Gallery opens from `Dev > Gallery` and renders — nothing blank, no red box, no
+missing-asset placeholder; canvas grain visible in dark mode; **console free of `Unable to load
+asset` for `noise.png`** — the load-bearing check; canary section shows its count. A separate launch
+with no `--dart-define` confirmed `Dev` and `Gallery` both absent.
+
+> **Section-count correction (2026-07-17).** The walk brief asked the human to confirm "14 sections".
+> That number was inherited from `HANDOFF.json` and never re-derived; this summary's own "17" was
+> also wrong. The real count at this plan's HEAD is **18**
+> (`git show 3cd138c:lib/dev/design_gallery_screen.dart | grep -c '_Section('` → 19, minus the
+> `const _Section({...})` constructor declaration at line 940). Caught by 03-09's executor
+> re-deriving instead of inheriting — the same discipline that caught the 43-vs-60 file count and the
+> 2 analyzer-invisible compile errors. **The human's PASS covers "it rendered", not "there were 14".**
+> No count is attributed to them.
 
 **One criterion was falsified, not failed.** The walk brief (carried from `HANDOFF.json`) asked the
 human to confirm `GWMeshBackground` "shows animated blobs in **both** modes". In light mode the human
