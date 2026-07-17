@@ -82,8 +82,13 @@ coverage:
     human_judgment: false
   - id: D5
     description: "Visual walk: the Gallery button opens /design_gallery and renders correctly; the canvas-background section shows a visible noise texture with no 'Unable to load asset' console error; the gallery and Dev row are absent without the dart-define"
+    requirement: "DS-04"
+    verification:
+      - kind: human
+        ref: "Human walk performed 2026-07-17. Gallery opens from Dev > Gallery and renders its 14 sections. Canvas background shows visible grain in DARK mode. Console is FREE of 'Unable to load asset' for noise.png -- DS-04's load-bearing test, and the one that distinguishes an asset-bundling failure from a paint failure. Closure canary section shows its count. Second, separate launch with NO --dart-define confirmed: Dev row and Gallery button both absent."
+        status: pass
     human_judgment: true
-    rationale: "Requires launching and visually observing a native Windows GUI window, which this agent cannot do. The user holds an already-running debug session and its Hive data directory; launching a second instance is explicitly prohibited by this plan's own constraints. Reported as OUTSTANDING below with the exact walk to perform -- this plan's own mechanical proof (flutter build reaching the native link stage cleanly, GWCanvasBackground's asset/declaration both present, zero console-error-producing conditions found in source) is strong indirect evidence but is not a substitute for the human observation, per this phase's own BLD-02 discipline (02-VERIFICATION.md's precedent of never rounding OUTSTANDING up to PASS)."
+    rationale: "PASS is the human's direct observation, not inferred from this plan's mechanical gates. The dev-gating check (point 5) was confirmed as its OWN separate launch, not the same dev-gated session -- that gate is what keeps the gallery and the two shadow classes it imports out of a normal build, so it was confirmed explicitly rather than folded into a blanket 'everything checks'."
 
 # Metrics
 duration: 12min
@@ -181,6 +186,48 @@ None. No new network endpoints, auth paths, or trust-boundary-crossing file acce
 
 ## User Setup Required
 
+> **RESOLVED 2026-07-17 — the walk was performed. See coverage item D5 (status: pass) and
+> "Walk result" immediately below. The instructions that follow are retained as the record of what
+> was asked for; no action remains.**
+
+### Walk result (2026-07-17)
+
+**PASS on DS-04.** Gallery opens from `Dev > Gallery` and renders its 14 sections; canvas grain
+visible in dark mode; **console free of `Unable to load asset` for `noise.png`** — the load-bearing
+check; canary section shows its count. A separate launch with no `--dart-define` confirmed `Dev` and
+`Gallery` both absent.
+
+**One criterion was falsified, not failed.** The walk brief (carried from `HANDOFF.json`) asked the
+human to confirm `GWMeshBackground` "shows animated blobs in **both** modes". In light mode the human
+reported it as **"just a blank space"**. Investigation established this is **not a port defect**:
+
+- `cmp lib/components/effects/gw_mesh_background.dart <reference>` → **IDENTICAL**
+- `_surfaceBaseLight 0xFFDCE0E6` / `_surfaceBaseDark 0xFF0B0D12` + getter logic → identical to reference
+- `brandPrimary 0xFF14C8FF` / `brandSecondary 0xFF2BF5B4` / `brandTertiary 0xFFC28FFF` → identical to reference
+
+Identical code + identical inputs ⇒ our render **is** Alex's render; there is nothing to reconcile
+against the Release exe here. Root cause: `GWMeshBackground` is dark-designed — its own docstring
+says the blobs drift "over the dark teal canvas". It never reads the appearance; only the backdrop
+token flips. Pastel blobs at `alpha 110` over near-black read as a glow, and over light gray lose
+their contrast. The criterion presumed a light-mode treatment that does not exist in the source.
+**The criterion was wrong, not the build.**
+
+Two hypotheses remain open and are deliberately NOT resolved here — 03-09's toggle plus the
+reference walk is the right instrument:
+- **H1 (design):** dark-designed component, low contrast on a light base.
+- **H2 (demo geometry):** blob radius is `0.95 × maxDim` but the gallery demo box is 180px tall, so
+  only the near-center plateau of three oversized gradients shows — which would flatten blob
+  structure in BOTH modes, dark merely hiding it better. If H2, the demo box is at fault and a
+  light-mode treatment would fix nothing.
+
+Captured as `.planning/todos/pending/2026-07-17-design-system-has-no-light-mode-treatment.md` and as
+a STATE.md concern; `03-09-PLAN.md`'s falsified "renders correctly in both" `must_have` was corrected
+in the same commit (`e326357`) to require recording light-mode results and reporting a **count** of
+dark-only components. No code was changed: editing `if (!isLight)` would invent design Alex never
+made, break byte-identity, and fail 03-10's fidelity comparison by construction.
+
+---
+
 **Action needed: perform the visual walk this plan cannot perform itself.** This plan's mechanical gates all pass (`flutter analyze lib` 0 errors, `tool/verify_additive_boundary.sh` PASSED all 3 commits, `flutter build windows` reaches the native link stage cleanly with only a running-instance file lock remaining), but the actual render and asset-load proof requires a human running the Windows GUI.
 
 **Before starting:** close the reference Release exe if it is running — `GeniusWallet-3514\build\windows\x64\runner\Release\genius_wallet.exe` and the develop build share a Hive data directory and will deadlock on file locks if both run (`02-VERIFICATION.md`, standing environment fact 1). If your current debug session is what's currently running (PID 19684 was live during this plan's build attempts), **stop it fully first** — this plan changed `lib/navigation/router.dart`'s route list and `lib/test/dev_tools_widget.dart`'s button row, and hot reload can pick up simple widget-tree changes, but the safest, most conclusive walk is a full stop-and-rerun given this plan also touched a `.g.dart` generated widget your session had already compiled.
@@ -210,9 +257,9 @@ Report what you saw for each. If the canvas-background texture does not render e
 
 - **DS-03 and DS-04 both close on the mechanical side this plan:** the gallery exists, is dev-gated exactly like `/dev/token-probe`, and 17 sections (14 original + 3 new) are wired with zero raw color literals and zero token additions. `GWCanvasBackground` is instantiated for the first time in this repo's history, with the asset present (03-01), the pubspec declaration present (03-01), and a clean `flutter build` reaching the native link stage.
 - **The canary import's payoff is proven, not theoretical:** this plan's own build attempt caught 2 real Dart compile errors in a 03-04-landed `.g.dart` dependency file that `flutter analyze` structurally cannot see. Both are now fixed, so all 9 generated widgets + their 4 `custom/` siblings compile as real Dart front-end output as of this plan, narrowing `03-UI-SPEC.md` §2.8's accepted gap from "correctness not established by this phase" to "compile-correctness IS established (this plan); render-correctness is not (still Phase 5/6/7's job — nothing calls `build()` on any of the 9 widgets anywhere in this repo)."
-- **What this plan does NOT establish, for plan 03-09/03-10 to carry verbatim:** render correctness of the 9 generated widgets (still not mounted anywhere); the human visual walk of the gallery, canvas texture, and mesh animation (OUTSTANDING, see coverage item D5 and the User Setup Required section above); ROADMAP criterion 1 ("renders every ported primitive") — 12 primitives are still missing gallery sections (`GWTokenRow`, `GWWalletCard`, `GWErrorState`, `GWEmptyState`, `GWLoadingState`, `GWIcon`, `BottomDrawer`/`ResponsiveDrawer`, `AppScreenView`, `CryptoAddressQR`, `GWSwapFab`, `GWDialog`/`GWBottomSheet`, and the `Loading`/`Splash` shadow demos) — plan 03-09's explicit job, not started here.
+- **What this plan does NOT establish, for plan 03-09/03-10 to carry verbatim:** render correctness of the 9 generated widgets (still not mounted anywhere); **the light-mode treatment question the walk opened** — `GWCanvasBackground` and `GWMeshBackground` are both dark-designed (byte-identical ports, NOT defects); scope across the other 48 ported components is UNKNOWN and 03-09's both-mode walk must produce the count before any fix is designed (see the todo and STATE.md concern); ROADMAP criterion 1 ("renders every ported primitive") — 12 primitives are still missing gallery sections (`GWTokenRow`, `GWWalletCard`, `GWErrorState`, `GWEmptyState`, `GWLoadingState`, `GWIcon`, `BottomDrawer`/`ResponsiveDrawer`, `AppScreenView`, `CryptoAddressQR`, `GWSwapFab`, `GWDialog`/`GWBottomSheet`, and the `Loading`/`Splash` shadow demos) — plan 03-09's explicit job, not started here.
 - **No blockers for plan 03-09.** The `_Section(title:, child:)` pattern this plan's 3 new sections follow is unchanged from the original 14, ready to extend. The gallery's imports and structure are stable.
-- **Outstanding for the human:** the full visual walk in "User Setup Required" above — this is the FIRST plan in Phase 3 a human can actually see, so it carries more weight than any prior plan's "nothing to see yet" note.
+- ~~**Outstanding for the human:** the full visual walk in "User Setup Required" above~~ — **DONE 2026-07-17, PASS on DS-04.** See "Walk result" under User Setup Required. It carried the weight expected of the first plan in Phase 3 a human could see: it confirmed the noise asset loads (DS-04) and it surfaced that Alex's design system has no light-mode treatment for `GWCanvasBackground`'s grain or `GWMeshBackground`'s blobs — a finding no mechanical gate in this repo could have produced, and one that now shapes 03-09's walk.
 
 ---
 *Phase: 03-gw-component-library*
