@@ -35,8 +35,8 @@ collisions), so they carry the lowest risk and everything else depends on them.
 
 ### Navigation Shell (NAV)
 
-- [ ] **NAV-01**: The app shell wears the redesign skin (desktop rail + mobile bottom nav) on develop's `go_router` config, with every existing route still reachable
-- [ ] **NAV-02**: The shell survives startup and navigation without runtime exceptions — including the `!_dirty` crash when the initial route resolves mid-mount (fix carried as `7a63b4f`)
+- [x] **NAV-01**: The app shell wears the redesign skin (desktop rail + mobile bottom nav) on develop's `go_router` config, with every existing route still reachable
+- [x] **NAV-02**: The shell survives startup and navigation without runtime exceptions — including the `!_dirty` crash when the initial route resolves mid-mount (fix carried as `7a63b4f`)
 
 ### Screen Areas (SCR)
 
@@ -161,8 +161,8 @@ Deferred to future milestones.
 | DS-03 | Phase 3 — gw_* component library | Complete |
 | DS-04 | Phase 3 — gw_* component library | Complete |
 | GAP-01 | Phase 3 — gw_* component library | Complete |
-| NAV-01 | Phase 4 — Navigation shell & chrome | Pending |
-| NAV-02 | Phase 4 — Navigation shell & chrome | Pending |
+| NAV-01 | Phase 4 — Navigation shell & chrome | Complete |
+| NAV-02 | Phase 4 — Navigation shell & chrome | Complete |
 | BEH-02 | Phase 4 — Navigation shell & chrome | Pending |
 | GAP-02 | Phase 4 — Navigation shell & chrome | Pending |
 | GAP-03 | Phase 4 — Navigation shell & chrome | Pending |

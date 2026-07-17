@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 03
-current_phase_name: gw-component-library
-status: complete
-stopped_at: Phase 4 planned — 6 plans, checker-verified
-last_updated: "2026-07-17T16:14:14.264Z"
+current_phase: 04
+current_phase_name: navigation-shell-chrome
+status: executing
+stopped_at: "Phase 4 plan 01 executed -- theme wired, D-02 re-walk OUTSTANDING (checkpoint:human-verify)"
+last_updated: "2026-07-17T16:34:14.024Z"
 last_activity: 2026-07-17
-last_activity_desc: Phase 3 closed; criterion 5 walk PASSED
+last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 21
-  completed_plans: 15
+  completed_plans: 16
   percent: 18
 ---
 
@@ -24,19 +24,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 03 — gw-component-library
+**Current focus:** Phase 04 — navigation-shell-chrome
 
 ## Current Position
 
-Phase: 03 (gw-component-library) — **COMPLETE** (10/10 plans; criteria 3 PASS / 3 PARTIAL / 0 OUTSTANDING)
-Plan: 10 of 10 — all complete
-Status: **Phase 3 closed 2026-07-17.** Criteria 2 (DS-04), 4 (drawer), **5 (no visual change — the
+Phase: 04 (navigation-shell-chrome) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-17 — Phase 3 closed; criterion 5 walk PASSED
+Last activity: 2026-07-17 — Phase 04 execution started
 
 Progress: [██░░░░░░░░] 18% (2 of 11 phases)
 
@@ -87,6 +87,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: [Phase 03-10]: Verification record: criterion 5 (no-visual-change walk) recorded OUTSTANDING -- no Windows GUI access; criteria 1/3/6 PARTIAL (theme confound + 2 unexplained findings + 2 missing gallery sections); criteria 2/4 PASS
 - [Phase ?]: [Phase 03-10]: Re-derived two stale figures rather than trusting them: loading.dart's canonical importer count is 19 not 18; responsive_overlay.dart's lib/components/ modification is Phase 2's ca556e4 (BLD-03), not a Phase 3 leak
 - [Phase ?]: [Phase 03-10]: Criterion 6's deferred cross-check found 2 of 15 GAP-01 primitives with no gallery section: custom_drop_down.dart/currency_dropdown.dart and wallet_type_icon.dart -- both compile clean, neither is demoed
+- [Phase ?]: theme.dart reconciled key-by-key against Alex's reference (not a wholesale swap); onError kept as develop's original Colors.white rather than adding Alex's foundationWhite token outside this plan's file scope; outlinedButtonTheme.foregroundColor made appearance-aware (textPrimary, was hardcoded white) so sdk_account_manager.dart's footer buttons stay legible in light mode
+- [Phase ?]: colorScheme.errorContainer/onErrorContainer/scrim/surfaceDim/surfaceContainerHigh/onSurfaceVariant dropped from theme.dart's ColorScheme, matching Alex's reference and relying on Material 3's computed defaults; pin_screen.dart's errorContainer read still resolves to a reasonable value
 
 ### Pending Todos
 
@@ -106,6 +108,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - **Two 03-09 findings have NO established root cause** (2026-07-17) — `Screen wrappers` renders nothing in EITHER mode (light explained by white-text-on-light; **dark blankness unexplained**; `app_screen_view.dart` is byte-identical so not a port defect), and the disabled checkbox is invisible in dark (`btnDisabled` = `const Color.fromRGBO(188,188,188,1)`, not appearance-aware, but its role is unconfirmed). **Both need a real repro. No hypothesis has been recorded as fact**
 - 03-09's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT across all 30 gallery sections) is outstanding -- no code changed pending it; see 03-09-SUMMARY.md's Outstanding section for the exact recipe
 - Phase 3 criterion 5 (the no-visual-change walk, GW_DEV_TOOLS unset) is OUTSTANDING -- requires a human with Windows GUI access. Exact recipe recorded in 03-VERIFICATION.md
+- The D-02 gallery re-walk (04-01 Task 3) is OUTSTANDING -- no Windows GUI access from this execution environment. Must be performed by the user before any 04-02+ shell/screen re-skin plan begins. Exact recipe in 04-01-SUMMARY.md's 'Outstanding' section.
 
 ## Reference Material
 
@@ -124,9 +127,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-17T16:14:14.257Z
-Stopped at: Phase 4 planned — 6 plans, checker-verified
-Resume file: .planning/phases/04-navigation-shell-chrome/04-01-PLAN.md
+Last session: 2026-07-17T16:34:14.017Z
+Stopped at: Phase 4 plan 01 executed -- theme wired, D-02 re-walk OUTSTANDING (checkpoint:human-verify)
+Resume file: .planning/phases/04-navigation-shell-chrome/04-01-SUMMARY.md
 
 ## Performance Metrics
 
@@ -147,3 +150,4 @@ Resume file: .planning/phases/04-navigation-shell-chrome/04-01-PLAN.md
 | Phase 03-gw-component-library P08 | 20min | 2 tasks | 1 files |
 | Phase 03-gw-component-library P09 | 35min | 2 tasks | 1 files |
 | Phase 03-gw-component-library P10 | 30min | 2 tasks | 1 files |
+| Phase 04-navigation-shell-chrome P01 | ~35min | 2 tasks | 4 files |

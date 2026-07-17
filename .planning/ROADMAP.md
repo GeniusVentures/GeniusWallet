@@ -203,13 +203,15 @@ Plans:
   5. Settings and the SDK account manager open from the shell and wear the extended design language per the Phase 3 treatment decision, with develop's behavior intact
   6. A build-time exception renders the branded recovery screen with its Go-to-Dashboard button rather than the red error box, and closing the window shuts the SDK down on every platform (findings 11, 12)
 
-**Plans**: 6 plans
-- [ ] 04-01-PLAN.md — Theme-only linchpin: appearance-aware theme.dart, OS-follow first launch, MaterialApp ValueListenableBuilder wrap, gallery revert; ends with the D-02 re-walk gate (D-01/D-02/D-03)
+**Plans**: 1/6 plans executed
+
+- [x] 04-01-PLAN.md — Theme-only linchpin: appearance-aware theme.dart, OS-follow first launch, MaterialApp ValueListenableBuilder wrap, gallery revert; ends with the D-02 re-walk gate (D-01/D-02/D-03)
 - [ ] 04-02-PLAN.md — Nav shell chrome re-skin on develop's ShellRoute (desktop top bar + mobile bottom nav, 8 destinations, no Cubit) — NAV-01/NAV-02, criteria 1+2
 - [ ] 04-03-PLAN.md — Wallet drawer re-skin + boot/toast verify (rename/delete/guard/re-select/live/toast) — NAV-02, criteria 3+4, D-06/D-07
 - [ ] 04-04-PLAN.md — Settings screen re-skin in place — GAP-02, criterion 5
 - [ ] 04-05-PLAN.md — SDK account manager re-skin in place (key-entry dialogs, no key logging) — GAP-03, criterion 5
 - [ ] 04-06-PLAN.md — Branded build-time-exception recovery screen + SDK-shutdown verify — BEH-02, criterion 6
+
 **UI hint**: yes
 **Carries**: `7a63b4f` (`!_dirty` guard) — DEFERRED to the swap-FAB phase per D-08 (its target `GlobalSwapFabHost` is not built this phase; carry-move, not a drop). **Findings**: 2, 4, 5, 11, 12, 23, 27, 35.
 
