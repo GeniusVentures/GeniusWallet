@@ -15,6 +15,7 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -110,6 +111,8 @@ Future<void> main() async {
       await fetchAllCoinGeckoCoins();
 
       await geniusApi.loadStoredWallets();
+
+      GWAppearance.instance.load();
 
       if ((await geniusApi.getWallets().first).isEmpty) {
         byPassSGNUSConnecton(geniusApi);
@@ -291,13 +294,18 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          locale: DevicePreview.locale(context),
-          builder: DevicePreview.appBuilder,
-          title: 'Genius Wallet',
-          theme: getThemeData(),
-          routerConfig: geniusWalletRouter,
+        child: ValueListenableBuilder<GWAppearanceMode>(
+          valueListenable: GWAppearance.instance,
+          builder: (context, mode, _) {
+            return MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              locale: DevicePreview.locale(context),
+              builder: DevicePreview.appBuilder,
+              title: 'Genius Wallet',
+              theme: getThemeData(),
+              routerConfig: geniusWalletRouter,
+            );
+          },
         ),
       ),
     );

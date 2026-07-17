@@ -95,16 +95,12 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
       builder: (context, mode, _) {
         final isLight = GWAppearance.isLight;
         return Scaffold(
-          // Reference uses Colors.transparent here and lets the appearance-aware
-          // theme.dart behind it supply the canvas. develop's theme.dart is NOT
-          // appearance-aware yet -- Phase 2 deferred that wiring to Phase 4
-          // (UI-SPEC 1.1 excludes theme.dart wholesale). Transparent therefore
-          // falls through to develop's permanently-dark theme, while textPrimary
-          // correctly flips to near-black ink in light mode: dark-on-dark, and the
-          // light half of this gallery's own both-modes walk cannot be performed.
-          // Bound to surfaceBase instead, matching Phase 2's token_probe_screen.dart.
-          // Revert to Colors.transparent once Phase 4 ports the appearance-aware theme.
-          backgroundColor: GeniusWalletColors.surfaceBase,
+          // 244b71e (03-09) worked around develop's then-non-appearance-aware
+          // theme.dart by binding this to surfaceBase directly. Phase 4 (04-01)
+          // now wires an appearance-aware theme.dart, so the ambient theme's own
+          // scaffoldBackgroundColor: surfaceBase supplies the canvas correctly --
+          // reverted to Colors.transparent, matching the reference pattern.
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
             title: const Text('Design Gallery'),
             backgroundColor: GeniusWalletColors.surfaceElevated,

@@ -18,10 +18,23 @@ class GWAppearance extends ValueNotifier<GWAppearanceMode> {
   static bool get isLight => instance.value == GWAppearanceMode.light;
 
   /// Restore the persisted mode. Call once after Hive init.
+  ///
+  /// On a genuine first launch (no persisted value yet) this follows the OS
+  /// light/dark setting (D-03) rather than defaulting to dark unconditionally.
   void load() {
     final saved =
         Hive.box(preferencesBoxName).get(appearanceModeKey) as String?;
-    if (saved == 'light') value = GWAppearanceMode.light;
+    if (saved == 'light') {
+      value = GWAppearanceMode.light;
+    } else if (saved == 'dark') {
+      value = GWAppearanceMode.dark;
+    } else {
+      // No persisted preference: follow the OS setting.
+      final osBrightness = PlatformDispatcher.instance.platformBrightness;
+      value = osBrightness == Brightness.light
+          ? GWAppearanceMode.light
+          : GWAppearanceMode.dark;
+    }
   }
 
   Future<void> setMode(GWAppearanceMode mode) async {
