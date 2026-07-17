@@ -1,97 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 
+/// App theme. Re-evaluated whenever [GWAppearance] changes (main.dart wraps
+/// MaterialApp in a ValueListenableBuilder), so the appearance-aware tokens
+/// resolve for the active mode.
 ThemeData getThemeData() {
-  const colorScheme = ColorScheme.dark(
-    primary: GeniusWalletColors.lightGreenPrimary,
-    onPrimary: GeniusWalletColors.btnText,
-    secondary: GeniusWalletColors.lightGreenSecondary,
-    onSecondary: GeniusWalletColors.btnText,
-    tertiary: GeniusWalletColors.mutedGreen,
-    onTertiary: GeniusWalletColors.btnText,
-    error: Colors.red,
-    onError: Colors.white,
-    errorContainer: GeniusWalletColors.foundationError,
-    onErrorContainer: Colors.white,
-    surface: GeniusWalletColors.deepBlueCardColor,
-    onSurface: Colors.white,
-    surfaceDim: GeniusWalletColors.deepBlueTertiary,
-    surfaceContainerHigh: GeniusWalletColors.deepBlueMenu,
-    surfaceContainerHighest: GeniusWalletColors.deepBlue,
-    onSurfaceVariant: Colors.grey,
-    outline: GeniusWalletColors.lightGreenPrimary,
-    outlineVariant: Colors.grey,
-    scrim: Color(0xff000000),
-  );
+  final isLight = GWAppearance.isLight;
+  final colorScheme = isLight
+      ? ColorScheme.light(
+          primary: GeniusWalletColors.brandPrimary,
+          onPrimary: GeniusWalletColors.textOnBrand,
+          secondary: GeniusWalletColors.brandSecondary,
+          onSecondary: GeniusWalletColors.textOnBrand,
+          tertiary: GeniusWalletColors.brandTertiary,
+          onTertiary: GeniusWalletColors.textPrimary,
+          surface: GeniusWalletColors.surfaceElevated,
+          onSurface: GeniusWalletColors.textPrimary,
+          surfaceContainerHighest: GeniusWalletColors.surfaceMenu,
+          error: GeniusWalletColors.statusError,
+          // Kept as develop's original literal value (not Alex's
+          // GeniusWalletColors.foundationWhite, which does not exist in this
+          // codebase and would be a new token addition outside this
+          // theme-only plan's file scope) -- functionally identical: white
+          // text always reads on the saturated error red in both modes.
+          onError: Colors.white,
+          outline: GeniusWalletColors.brandPrimary,
+          outlineVariant: GeniusWalletColors.surfaceMenu,
+        )
+      : ColorScheme.dark(
+          primary: GeniusWalletColors.brandPrimary,
+          // textOnBrand (near-black), matching the light scheme — white on the
+          // bright brand fill failed WCAG AA for Material widgets in dark mode.
+          onPrimary: GeniusWalletColors.textOnBrand,
+          secondary: GeniusWalletColors.brandSecondary,
+          onSecondary: GeniusWalletColors.textOnBrand,
+          tertiary: GeniusWalletColors.brandTertiary,
+          onTertiary: GeniusWalletColors.textPrimary,
+          surface: GeniusWalletColors.surfaceElevated,
+          onSurface: GeniusWalletColors.textPrimary,
+          surfaceContainerHighest: GeniusWalletColors.surfaceMenu,
+          error: GeniusWalletColors.statusError,
+          onError: Colors.white,
+          outline: GeniusWalletColors.brandPrimary,
+          outlineVariant: GeniusWalletColors.surfaceMenu,
+        );
 
   return ThemeData(
-    brightness: Brightness.dark,
-    progressIndicatorTheme: ProgressIndicatorThemeData(
-      color: colorScheme.primary,
+    useMaterial3: true,
+    brightness: isLight ? Brightness.light : Brightness.dark,
+    // Solid canvas for interior screens (black in dark mode, white in light).
+    // Auth / Landing wrap the body in GWMeshBackground for the branded mesh.
+    scaffoldBackgroundColor: GeniusWalletColors.surfaceBase,
+    primarySwatch: Colors.blue,
+    colorScheme: colorScheme,
+    textTheme: GeniusWalletTypography.toMaterialTextTheme(),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: GeniusWalletColors.brandPrimary,
     ),
     tabBarTheme: TabBarThemeData(
-      unselectedLabelStyle: TextStyle(fontSize: 16),
+      unselectedLabelStyle: GeniusWalletTypography.titleMd,
+      labelStyle: GeniusWalletTypography.titleMd,
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: TextStyle(fontSize: 16),
-      labelColor: colorScheme.primary,
+      labelColor: GeniusWalletColors.textPrimary,
       dividerColor: Colors.transparent,
-      unselectedLabelColor: colorScheme.onSurfaceVariant,
-      indicatorColor: colorScheme.primary,
+      unselectedLabelColor: GeniusWalletColors.textSecondary,
+      indicatorColor: GeniusWalletColors.brandPrimary,
     ),
     datePickerTheme: DatePickerThemeData(
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          borderSide: BorderSide(
+            color: GeniusWalletColors.brandPrimary,
+            width: 2,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.primary, width: 1),
+          borderSide: BorderSide(
+            color: GeniusWalletColors.brandPrimary,
+            width: 1,
+          ),
         ),
       ),
-      backgroundColor: colorScheme.surface,
-      headerBackgroundColor: colorScheme.primary,
-      headerForegroundColor: Colors.black,
-      todayBorder: BorderSide(color: colorScheme.primary, width: 2),
+      backgroundColor: GeniusWalletColors.surfaceElevated,
+      headerBackgroundColor: GeniusWalletColors.brandPrimary,
+      headerForegroundColor: GeniusWalletColors.textPrimary,
+      todayBorder: const BorderSide(
+        color: GeniusWalletColors.brandPrimary,
+        width: 2,
+      ),
       todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return colorScheme.primary;
+          return GeniusWalletColors.brandPrimary;
         }
-        return colorScheme.primary.withValues(alpha: 0.15);
+        return GeniusWalletColors.brandPrimary.withAlpha(33);
       }),
       dayForegroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) return Colors.black;
-        if (states.contains(WidgetState.disabled)) return Colors.grey;
-        return Colors.white;
+        if (states.contains(WidgetState.selected)) {
+          return GeniusWalletColors.textPrimary;
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return GeniusWalletColors.textTertiary;
+        }
+        return GeniusWalletColors.textPrimary;
       }),
       dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return colorScheme.primary;
+          return GeniusWalletColors.brandPrimary;
         }
         if (states.contains(WidgetState.dragged)) {
-          return colorScheme.primary.withValues(alpha: 0.2);
+          return GeniusWalletColors.brandPrimary.withAlpha(51);
         }
         return Colors.transparent;
       }),
-      rangeSelectionBackgroundColor: colorScheme.primary.withValues(
-        alpha: 0.15,
-      ),
+      rangeSelectionBackgroundColor:
+          GeniusWalletColors.brandPrimary.withAlpha(38),
       rangeSelectionOverlayColor: WidgetStateProperty.all(
-        colorScheme.primary.withValues(alpha: 0.2),
+        GeniusWalletColors.brandPrimary.withAlpha(51),
       ),
     ),
     appBarTheme: AppBarTheme(
-      iconTheme: IconThemeData(size: 24),
-      titleTextStyle: TextStyle(fontSize: 18, color: Colors.white),
-      titleSpacing: 10,
+      iconTheme: const IconThemeData(size: 24),
+      titleTextStyle: GeniusWalletTypography.titleLg,
+      titleSpacing: GeniusWalletConsts.space4,
       centerTitle: true,
-      surfaceTintColor: colorScheme.surface,
-      backgroundColor: colorScheme.surface,
+      surfaceTintColor: GeniusWalletColors.surfaceElevated,
+      backgroundColor: GeniusWalletColors.surfaceElevated,
     ),
+    // --- Preserved from develop (absent from Alex's reference; each has a
+    // live consumer in this repo per 04-RESEARCH.md §1) -----------------
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
-        textStyle: const TextStyle(fontSize: 16),
-        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14.0,
+          vertical: GeniusWalletConsts.space4,
+        ),
+        textStyle: GeniusWalletTypography.titleMd,
+        // develop hardcoded Colors.white (only ever rendered against the old
+        // permanently-dark theme); made appearance-aware here so
+        // sdk_account_manager.dart's two footer OutlinedButton.icon widgets
+        // (which set no inline style) stay legible in light mode too (D-03).
+        foregroundColor: GeniusWalletColors.textPrimary,
       ),
     ),
     toggleButtonsTheme: ToggleButtonsThemeData(
@@ -101,133 +152,165 @@ ThemeData getThemeData() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
-        textStyle: const TextStyle(fontSize: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14.0,
+          vertical: GeniusWalletConsts.space4,
+        ),
+        textStyle: GeniusWalletTypography.titleMd,
       ),
     ),
+    dialogTheme: const DialogThemeData(
+      actionsPadding: EdgeInsets.all(GeniusWalletConsts.space6),
+    ),
+    // --- end preserved section -------------------------------------------
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-        textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
-        shape: WidgetStatePropertyAll(
+        overlayColor: WidgetStateProperty.resolveWith<Color?>(
+          (states) => Colors.transparent,
+        ),
+        surfaceTintColor: WidgetStateProperty.resolveWith<Color?>(
+          (states) => Colors.transparent,
+        ),
+        textStyle: WidgetStatePropertyAll(
+          GeniusWalletTypography.titleMd,
+        ),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space8,
+            vertical: GeniusWalletConsts.space10,
+          ),
+        ),
+        shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            side: BorderSide(color: colorScheme.primary, width: 1),
+            side: BorderSide(
+              color: GeniusWalletColors.brandPrimary,
+              width: 1,
+            ),
             borderRadius: BorderRadius.all(
-              Radius.circular(GeniusWalletConsts.borderRadiusButton),
+              Radius.circular(GeniusWalletConsts.radiusLg),
             ),
           ),
         ),
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>((Set states) {
+        backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+        foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.disabled)) {
-            return Colors.grey.shade900;
+            return GeniusWalletColors.textTertiary;
           }
-          return colorScheme.surface;
-        }),
-        foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set states) {
-          if (states.contains(WidgetState.disabled)) {
-            return colorScheme.onSurfaceVariant;
-          }
-          return Colors.white;
+          return GeniusWalletColors.textPrimary;
         }),
         iconSize: const WidgetStatePropertyAll(20),
-        iconColor: const WidgetStatePropertyAll(Colors.white),
-        padding: const WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
+        iconColor: WidgetStatePropertyAll(
+          GeniusWalletColors.textPrimary,
         ),
       ),
     ),
-    dialogTheme: DialogThemeData(actionsPadding: EdgeInsets.all(12)),
-    inputDecorationTheme: InputDecorationTheme(
-      contentPadding: EdgeInsets.all(20),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(GeniusWalletConsts.borderRadiusCard),
-        ),
-        borderSide: BorderSide(color: colorScheme.outlineVariant),
-      ),
+    inputDecorationTheme: const InputDecorationTheme(
+      contentPadding: EdgeInsets.all(GeniusWalletConsts.space10),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
-          Radius.circular(GeniusWalletConsts.borderRadiusCard),
+          Radius.circular(GeniusWalletConsts.radiusLg),
         ),
-        borderSide: BorderSide(color: colorScheme.secondary),
+        borderSide: BorderSide(color: GeniusWalletColors.brandPrimary),
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(
-          Radius.circular(GeniusWalletConsts.borderRadiusCard),
+          Radius.circular(GeniusWalletConsts.radiusLg),
         ),
       ),
-      hintStyle: TextStyle(color: Colors.grey),
+      // finding 36 / UI-SPEC §1.2: Alex's reference drops this entirely --
+      // must survive the reconcile explicitly, every TextField/TextFormField
+      // app-wide depends on labels staying pinned above the field.
       floatingLabelBehavior: FloatingLabelBehavior.always,
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
-        textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 16)),
+        textStyle: WidgetStatePropertyAll(
+          GeniusWalletTypography.titleMd,
+        ),
         padding: const WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
+          EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space12,
+            vertical: GeniusWalletConsts.space10,
+          ),
         ),
         shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
-              Radius.circular(GeniusWalletConsts.borderRadiusButton),
+              Radius.circular(GeniusWalletConsts.radiusLg),
             ),
           ),
         ),
-        foregroundColor: WidgetStateProperty.resolveWith<Color?>((Set states) {
+        backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+          (states) => GeniusWalletColors.btnFilter,
+        ),
+        foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.disabled)) {
-            return colorScheme.onSurfaceVariant;
+            return GeniusWalletColors.textTertiary;
           }
-          return Colors.white;
+          return GeniusWalletColors.textPrimary;
         }),
         iconSize: const WidgetStatePropertyAll(16),
-        iconColor: const WidgetStatePropertyAll(Colors.white),
+        iconColor: WidgetStatePropertyAll(
+          GeniusWalletColors.textPrimary,
+        ),
       ),
     ),
     searchBarTheme: SearchBarThemeData(
-      padding: WidgetStatePropertyAll(EdgeInsets.only(left: 15, right: 15)),
-      textStyle: WidgetStatePropertyAll(
-        TextStyle(fontWeight: FontWeight.normal, color: Colors.white),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
       ),
-      shape: WidgetStatePropertyAll(
+      textStyle: WidgetStatePropertyAll(GeniusWalletTypography.bodyLg),
+      shape: const WidgetStatePropertyAll(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(GeniusWalletConsts.borderRadiusCard),
+            Radius.circular(GeniusWalletConsts.radiusXs),
           ),
         ),
       ),
-      backgroundColor: WidgetStatePropertyAll(colorScheme.surface),
+      backgroundColor: WidgetStatePropertyAll(
+        GeniusWalletColors.surfaceElevated,
+      ),
     ),
-    textSelectionTheme: TextSelectionThemeData(
-      cursorColor: Colors.white,
-      selectionColor: colorScheme.onSurfaceVariant,
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: GeniusWalletColors.brandPrimary,
+      selectionColor: GeniusWalletColors.textSecondary,
     ),
     dropdownMenuTheme: DropdownMenuThemeData(
-      textStyle: const TextStyle(color: Colors.white),
+      textStyle: GeniusWalletTypography.bodyLg,
       menuStyle: MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(colorScheme.surfaceDim),
-        padding: WidgetStatePropertyAll(EdgeInsets.all(16.0)),
+        backgroundColor: WidgetStatePropertyAll(
+          GeniusWalletColors.surfaceElevated,
+        ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(GeniusWalletConsts.borderRadiusButton),
+            Radius.circular(GeniusWalletConsts.radiusPill),
           ),
-          borderSide: BorderSide(color: colorScheme.secondary),
+          borderSide: BorderSide(color: GeniusWalletColors.brandPrimary),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        contentPadding: EdgeInsets.only(left: GeniusWalletConsts.space10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(GeniusWalletConsts.borderRadiusButton),
+            Radius.circular(GeniusWalletConsts.radiusPill),
           ),
         ),
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: GeniusWalletColors.surfaceElevated,
       indicatorColor: Colors.transparent,
-      selectedLabelTextStyle: TextStyle(color: colorScheme.secondary),
+      selectedLabelTextStyle: const TextStyle(
+        color: GeniusWalletColors.brandPrimary,
+      ),
       labelType: NavigationRailLabelType.none,
-      selectedIconTheme: IconThemeData(color: colorScheme.secondary, size: 30),
+      useIndicator: false,
+      selectedIconTheme: const IconThemeData(
+        color: GeniusWalletColors.brandPrimary,
+        size: 30,
+      ),
       unselectedIconTheme: IconThemeData(
-        color: Colors.white,
+        color: GeniusWalletColors.textPrimary,
         opacity: 1,
         size: 30,
       ),
@@ -239,27 +322,38 @@ ThemeData getThemeData() {
       showUnselectedLabels: false,
       landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: colorScheme.secondary,
-      selectedIconTheme: IconThemeData(size: 30, color: colorScheme.secondary),
-      unselectedIconTheme: IconThemeData(size: 30, color: Colors.white),
+      selectedItemColor: GeniusWalletColors.brandPrimary,
+      selectedIconTheme: const IconThemeData(
+        size: 35,
+        color: GeniusWalletColors.brandPrimary,
+      ),
+      unselectedIconTheme: IconThemeData(
+        size: 35,
+        color: GeniusWalletColors.textPrimary,
+      ),
     ),
     checkboxTheme: CheckboxThemeData(
-      side: BorderSide(color: colorScheme.primary),
+      side: const BorderSide(color: GeniusWalletColors.brandPrimary),
       checkColor: WidgetStateProperty.resolveWith((states) {
         if (!states.contains(WidgetState.selected)) {
           return Colors.transparent;
         }
-        return colorScheme.onPrimary;
+        return GeniusWalletColors.textPrimary;
       }),
       fillColor: WidgetStateProperty.resolveWith((states) {
         if (!states.contains(WidgetState.selected)) {
           return Colors.transparent;
         }
-        return colorScheme.primary;
+        return GeniusWalletColors.brandPrimary;
       }),
     ),
+    // Preserved from develop (absent from Alex's reference) -- settings_screen.dart
+    // (and 6 other files) call bare Divider(); Alex leaves this unset, which
+    // would fall back to Material 3's colorScheme.outlineVariant default.
     dividerTheme: DividerThemeData(color: colorScheme.surfaceContainerHighest),
-    scaffoldBackgroundColor: colorScheme.surfaceDim,
+    // Preserved from develop (absent from Alex's reference) -- the
+    // account-drawer's per-wallet "..." MenuAnchor/MenuItemButton context menu
+    // (and sdk_account_manager.dart) depends on this for its rounded container.
     menuTheme: const MenuThemeData(
       style: MenuStyle(
         shape: WidgetStatePropertyAll(
@@ -271,6 +365,6 @@ ThemeData getThemeData() {
         ),
       ),
     ),
-    colorScheme: colorScheme,
+    buttonTheme: const ButtonThemeData(padding: EdgeInsets.zero),
   );
 }
