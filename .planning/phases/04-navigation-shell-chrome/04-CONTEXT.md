@@ -69,10 +69,31 @@ guard, and it renders a branded build-time-exception recovery screen (findings 1
   another, live drawer row updates while open, "Network Changed" toast on network switch) are develop's
   existing behaviors — preserve and re-skin, do not redesign.
 
+### Scope boundary — GlobalSwapFabHost / BEH-02 7a63b4f carry (resolved 2026-07-17, post-research)
+- **D-08:** **`GlobalSwapFabHost` and the `7a63b4f` `!_dirty` carry are DEFERRED out of Phase 4** to the
+  phase that actually lands the swap FAB (likely Phase 8 — Swap & bridge). Rationale, from
+  04-RESEARCH.md: the file `7a63b4f` patches does not exist on develop (it was one of Phase 3's 9
+  excluded nav-shell files), no Phase 4 criterion or the UI-SPEC mentions it, and Alex's version couples
+  it to `GWAiFab` (`lib/ai/`, WIRE-02 — out of scope for the whole milestone), so it would not compile
+  verbatim and a de-coupled version would be an invention, not a re-skin.
+  - **Criterion 1 is SPLIT accordingly:** its general clause — "app starts, reaches the shell, navigates
+    every existing `go_router` route with no runtime exception" — REMAINS in Phase 4 and must be walked.
+    Its specific `!_dirty`-via-`GlobalSwapFabHost` sub-clause is **N/A for Phase 4** (the component that
+    crashes isn't present) and moves with the carry.
+  - **BEH-02's `7a63b4f` line re-homes to the swap-FAB phase.** Flag this to the roadmap as a carry-move,
+    not a drop — the fix is still owed, just in the phase that introduces the crashing component.
+  - The planner MUST NOT scope any `GlobalSwapFabHost` work into a Phase 4 plan.
+
 ### Claude's Discretion
 - HOW `theme.dart` is reconciled (line-by-line vs adopt-Alex's-wholesale) is a planner/executor call,
   bounded by "take Alex's visual." Alex's `theme.dart` is 309 lines to develop's 276 (~329 changed
-  lines) — a heavy-collision file, the milestone's largest single reconcile.
+  lines) — a heavy-collision file, the milestone's largest single reconcile. Research (04-RESEARCH.md)
+  found it drops SIX live develop `ThemeData` sections that must be preserved through the merge, not
+  just `floatingLabelBehavior`: `toggleButtonsTheme`, `filledButtonTheme`, `outlinedButtonTheme`,
+  `dialogTheme`, `menuTheme`, `dividerTheme`.
+- **D-03 (follow-OS) requires a real `gw_appearance.dart` `load()` change**, not just the MaterialApp
+  wrap: research found `load()` defaults to dark unconditionally with no OS-brightness branch. 04-01's
+  scope includes adding that branch.
 - Desktop rail vs mobile bottom-nav breakpoint logic follows develop's existing
   `GeniusBreakpoints.useDesktopOverlay` / `isMobileApp` in the `ShellRoute` builder — no new breakpoint.
 
