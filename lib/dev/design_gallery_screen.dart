@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
+import 'package:genius_wallet/components/bottom_drawer/bottom_drawer.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
@@ -27,6 +29,7 @@ import 'package:genius_wallet/components/loading/loading.dart';
 import 'package:genius_wallet/components/loading/gw_spinner.dart';
 import 'package:genius_wallet/components/overlays/gw_bottom_sheet.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
+import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 // SHADOW IMPORT -- see
 // .planning/phases/03-gw-component-library/03-SHADOW-NAMES.md. This gallery
 // is the ONLY permitted importer of the `Splash` shadow (this path). Develop's
@@ -854,6 +857,61 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                       child: const Splash(),
                     ),
                   ),
+                ),
+              ),
+              _Section(
+                title: 'Drawer',
+                // Findings 13/25/26 -- opened via develop's existing,
+                // unmodified ResponsiveDrawer.show(), never Alex's
+                // regressed responsive_drawer.dart. title/actions are
+                // deliberately omitted so _ResponsiveDrawerScaffold
+                // renders no AppBar competing with BottomDrawer's own
+                // header (UI-SPEC §4.1).
+                child: GWButton(
+                  label: 'Open drawer demo',
+                  variant: GWButtonVariant.secondary,
+                  onPressed: () => ResponsiveDrawer.show(
+                    context: context,
+                    child: BottomDrawer(
+                      title: 'Drawer demo',
+                      children: List.generate(
+                        20,
+                        (i) => Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: GeniusWalletConsts.space2,
+                          ),
+                          child: Text(
+                            'Row $i — scroll to confirm the drawer scrolls '
+                            'independently.',
+                            style: GeniusWalletTypography.bodyMd,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              _Section(
+                title: 'QR',
+                // Finding 16 -- the quiet zone must stay LIGHT in both
+                // appearance modes; develop's crypto_address_qr.dart is
+                // theme-invariant and untouched here.
+                child: const CryptoAddressQR(
+                  address: '0x1234567890abcdef1234567890abcdef12345678',
+                  network: 'Ethereum',
+                  iconPath: 'assets/images/crypto/eth.png',
+                ),
+              ),
+              _Section(
+                title: 'Error state with retry',
+                // Finding 15 -- both a custom message AND onRetry are
+                // supplied, so the Retry button's presence alongside
+                // custom content is observable.
+                child: GWErrorState(
+                  message:
+                      'Could not load your balances. Check your connection '
+                      'and try again.',
+                  onRetry: () {},
                 ),
               ),
               _Section(
