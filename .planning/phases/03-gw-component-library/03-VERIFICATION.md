@@ -8,12 +8,28 @@ observation or is marked OUTSTANDING/PARTIAL/DEFERRED with the reason — a crit
 observation behind it is FAIL, not PASS, by this phase's own rule (`02-VERIFICATION.md`'s
 precedent, restated in `03-10-PLAN.md`'s `must_haves`).
 
-**Headline: this record does NOT close the phase clean.** 5 of 6 criteria carry a real, evidenced
-PASS or an honestly-scoped PARTIAL; **criterion 5 is OUTSTANDING** — the no-visual-change walk
-requires a Windows GUI this executor does not have, and per this phase's own precedent
-(`03-07-SUMMARY.md`'s and `03-09-SUMMARY.md`'s human-walk handling) it is recorded as outstanding,
-not inferred to a pass from the mechanical gates that did run clean. See `## Criterion 5` and
-`## User Setup Required` below.
+**Headline (updated 2026-07-17 after the criterion 5 walk): the phase closes with 3 PASS and 3
+honestly-scoped PARTIALs. No criterion is OUTSTANDING.**
+
+- **PASS — 2** (`GWCanvasBackground` texture / DS-04), **4** (drawer), **5** (no visual change on
+  un-ported screens — the phase's load-bearing claim, human-walked, all three shadow surfaces
+  confirmed).
+- **PARTIAL — 1, 3, 6.** Each carries a named, accepted gap rather than a hidden one:
+  - **1 and 3** are gated on a dependency this phase does not own: develop's `theme.dart` is
+    `ThemeData(brightness: Brightness.dark)` hardcoded, with no `textTheme:` and no
+    `toMaterialTextTheme()`. Alex's components correctly delegate color to a theme we have not
+    ported (Phase 2 deferred it; UI-SPEC §1.1 excludes `theme.dart` wholesale). **The dark-only
+    light-mode count is NOT DERIVABLE until Phase 4 wires it** — any count taken now measures our
+    missing theme, not his design. Recorded as an accepted gap, explicitly not a pass.
+  - **6**'s Part A (the GAP-01 decision) is PASS; Part B found 2 of 15 named primitives have no
+    gallery section.
+
+**This is the predicted shape, not a surprise.** `03-UI-SPEC.md` §2.8 and `03-07-SUMMARY.md` both
+called it in advance: an inert library's render correctness is established by whichever later phase
+first mounts it. Phase 3's job was to land the library additively and prove it changed nothing —
+criterion 5 is that proof, and it passed.
+
+See `## Criterion 5` and `## User Setup Required — criterion 5 walk` below.
 
 ## Standing run recipe
 
@@ -334,13 +350,17 @@ a copy.
 > "Every un-ported screen still renders and behaves as before — the library is additive and nothing
 > consumes it yet."
 
-**This is the phase's most important observation, and it is OUTSTANDING.** This executor has no
-Windows GUI access. Per this plan's own `<human_check_handling>` instruction and the standing
-project precedent (`02-VERIFICATION.md`; `03-07-SUMMARY.md`'s and `03-09-SUMMARY.md`'s identical
-handling of the same limitation): the automated work is done, the human item is recorded as
-**OUTSTANDING** with `human_judgment: true`, and the exact walk is written below under
-`## User Setup Required`. It is not faked, not inferred from the mechanical gates in Task 1 (which
-all passed), and not marked PASS.
+**This is the phase's most important observation. It was performed by the human on 2026-07-17 and it
+PASSES.** See `## User Setup Required — criterion 5 walk` below for the recipe and the recorded
+result.
+
+> **Document defect, fixed 2026-07-17.** As originally written, this file referenced
+> `## User Setup Required` four times (here, twice at the head, and in the Summary table) and **the
+> section did not exist** — 03-10's executor promised the walk recipe "below" and never wrote it. The
+> human consequently walked against an informal prose description that omitted the three shadow
+> surfaces, which are the entire substance of this criterion. The section now exists, and the human
+> re-confirmed the shadow surfaces specifically before this was marked PASS. Caught by re-deriving
+> (checking that the referenced section actually existed) rather than trusting the executor's report.
 
 **Why this walk matters more than any other criterion in this document:** the whole phase rests on
 the claim that landing 50 files changed nothing observable. Mechanical gates (Task 1, above) prove
@@ -349,9 +369,59 @@ insertion-only, importer counts held. **None of that can see a silently repointe
 (`Loading`, `Splash`, `WalletsOverview`) at runtime, because the compiler and the analyzer resolve
 imports by path, not by visual result — a shadow swap compiles clean and analyzes clean by
 construction (`03-SHADOW-NAMES.md`). Only a human's eyes on the specific screens where each shadow
-would surface can catch this class of bug. See `## User Setup Required` for the exact walk.
+would surface can catch this class of bug. See `## User Setup Required — criterion 5 walk` for the
+recipe and the result.
 
-**Status: OUTSTANDING.**
+**Status: PASS** — scoped to the three shadow surfaces, walked and confirmed by the human
+2026-07-17. See below.
+
+---
+
+## User Setup Required — criterion 5 walk
+
+> **STATUS: DONE 2026-07-17. PASS.** Retained as the record of what was asked and what was observed.
+> No action remains.
+
+### Why these three surfaces and nothing else
+
+Task 1's mechanical gates prove the code is *shaped* additively — zero Phase-3 collision-file
+modifications, `router.dart` insertion-only, importer counts held, guard exit 0. **None of that can
+see a silently repointed shadow import at runtime.** A shadow swap compiles clean and analyzes clean
+by construction (`03-SHADOW-NAMES.md`). Only human eyes on the surfaces where each shadow would
+surface can catch it. There are exactly three:
+
+| Shadow | Where it would surface | Why it is the hazard |
+|---|---|---|
+| `Splash` | **App boot** (`router.dart:30`) | Alex **deleted** the canonical on his branch, so his source presents the swap as already finished. Highest-risk of the three. |
+| `Loading` | **Any spinner** | Canonical has **19** importers — the widest blast radius in the phase. |
+| `WalletsOverview` | **Dashboard balance area** | Lives inside an analyzer-blind `.g.dart`; its filename differs from the canonical by one letter. |
+
+### The walk
+
+```
+export PATH="/c/Users/User/Documents/Projects/GNUS/flutter/flutter/bin:$PATH"
+CMAKE_ARGUMENTS="-DCMAKE_BUILD_TYPE=Release -DGENIUS_DEPENDENCY_BRANCH=develop -Dc-ares_DIR=C:/Users/User/Documents/Projects/GNUS/thirdparty/build/Windows/Release/cares/lib/cmake/c-ares" flutter run -d windows --debug
+```
+
+Note: **no `--dart-define`.** This criterion is about the normal build — the gallery must not be
+reachable and the ported library must be inert.
+
+1. **Boot** → the app reaches the usual Splash and routes onward as before.
+2. **Dashboard** → the balance area renders as before.
+3. **Any spinner** → renders as before.
+
+It is supposed to be boring. Boring is the pass condition: 50 files landed and a user sees nothing.
+
+### Result (2026-07-17)
+
+**PASS.** The human confirmed: app boots to the usual Splash, the dashboard balance area is
+unchanged, and loading spinners render normally. No visual change observed on any un-ported screen.
+
+**Scope of this PASS, stated honestly:** it covers the three shadow surfaces above — the specific
+hazard this criterion exists to detect — plus general navigation of un-ported screens. It is not a
+claim that every un-ported screen in the app was pixel-compared against a pre-phase build.
+Given the mechanical gates (zero collision-file diffs, guard exit 0 across all commits, importer sets
+pinned), the residual risk is low and named rather than hidden.
 
 ---
 
@@ -514,7 +584,7 @@ absence rather than assume prior fidelity confirmation exists.
 | 2 | `GWCanvasBackground` renders its texture | **PASS** — human-confirmed 2026-07-16/17, console clean, asset visible |
 | 3 | Every entry renders in light + dark; no QR dark-on-dark | **PARTIAL** — mesh H1/H2 resolved (verdict text not recorded); dark-only count NOT DERIVABLE (accepted gap, correctly unrecorded); QR quiet-zone not separately confirmed in the walk record |
 | 4 | Drawer mounts over app, swipe-dismiss, 768 not 800 | **PASS** — human-confirmed 2026-07-17, all three sub-checks |
-| 5 | Every un-ported screen still renders/behaves as before | **OUTSTANDING** — requires a Windows GUI walk this executor cannot perform; see User Setup Required |
+| 5 | Every un-ported screen still renders/behaves as before | **PASS** — human-walked 2026-07-17. All three shadow surfaces confirmed unchanged: boot Splash, dashboard balance area, loading spinners. Scoped to those surfaces + general navigation; see User Setup Required |
 | 6 | GAP-01 treatment decision recorded; every primitive exists in the gallery | **PARTIAL** — Part A (decision) PASS; Part B (gallery visibility) 12/15 confirmed, 2 missing, 1 deliberately undemoed |
 
 **Phase 3 does NOT close 6/6 clean.** DS-04 (criterion 2) and the drawer half of DS-03

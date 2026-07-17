@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 current_phase_name: gw-component-library
-status: verifying
-stopped_at: "03-10 verification record written: criterion 5 OUTSTANDING (no GUI access), 2/6 PASS + 3/6 PARTIAL otherwise. Phase 3 not closed 6/6 -- needs a human walk."
+status: complete
+stopped_at: Phase 3 COMPLETE. Ready to plan Phase 4 (nav shell) — wire theme.dart FIRST.
 last_updated: "2026-07-17T13:33:28.280Z"
 last_activity: 2026-07-17
-last_activity_desc: 03-10 verification record written; Phase 3 held open on criterion 5 (human walk)
+last_activity_desc: Phase 3 closed — criterion 5 walk PASSED (3 PASS, 3 PARTIAL, 0 OUTSTANDING)
 progress:
   total_phases: 11
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 15
   completed_plans: 15
-  percent: 9
+  percent: 18
 ---
 
 # Project State
@@ -28,15 +28,17 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 ## Current Position
 
-Phase: 03 (gw-component-library) — **ALL 10 PLANS EXECUTED, PHASE NOT CLOSED**
-Plan: 10 of 10 (03-01..03-10 all complete)
-Status: **NOT 6/6. Criterion 5 (no-visual-change walk) is OUTSTANDING — needs a human GUI walk.**
-Criteria 2 + 4 PASS; criteria 1, 3, 6 PARTIAL; criterion 5 OUTSTANDING. See `03-VERIFICATION.md`.
-**Do NOT advance to Phase 4 on plan-count alone** — `completed_phases` deliberately stays 1, not 2.
+Phase: 03 (gw-component-library) — **COMPLETE** (10/10 plans; criteria 3 PASS / 3 PARTIAL / 0 OUTSTANDING)
+Plan: 10 of 10 — all complete
+Status: **Phase 3 closed 2026-07-17.** Criteria 2 (DS-04), 4 (drawer), **5 (no visual change — the
+phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
+= PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
+**Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
+`theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-17 — 03-10 verification record written; phase held open on criterion 5
+Last activity: 2026-07-17 — Phase 3 closed; criterion 5 walk PASSED
 
-Progress: [█░░░░░░░░░] 9% (1 of 11 phases)
+Progress: [██░░░░░░░░] 18% (2 of 11 phases)
 
 ## Accumulated Context
 
