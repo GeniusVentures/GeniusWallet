@@ -79,6 +79,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 - Phases 2–10 are UI phases (`ui_phase: true`, `ui_safety_gate: true`) — each should get a UI-SPEC design contract via `/gsd-ui-phase` before planning
 - Corrected the v1 requirement count in REQUIREMENTS.md: 22 → 24 (previous count was wrong)
+- [ui] Design system has no light-mode treatment (`.planning/todos/pending/2026-07-17-design-system-has-no-light-mode-treatment.md`) — scope unknown; 03-09's both-mode walk produces the count
 
 ### Blockers/Concerns
 
@@ -86,6 +87,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Nav shell has never been visually walked — Phase 4 addresses this
 - 37 evidenced defects in the design-vs-develop surface (`.planning/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
 - `analysis_options.yaml` excludes `lib/**/*.g.dart` — the compiler, not analyze, is the real gate for generated widgets
+- **Alex's design system may have no complete light mode** (2026-07-17, from the 03-07 walk) — `GWCanvasBackground` gates its grain behind `if (!isLight)`; `GWMeshBackground` never reads the appearance and washes out on a light base. Both verified byte-identical to the reference, so **neither is a port defect**. If light mode ships, this hits every screen Phases 4–9 mount. Scope unknown — 03-09's both-mode walk is what produces the real count. Do not fix before that number exists; see the todo for why removing the gate is insufficient
 
 ## Reference Material
 
@@ -104,9 +106,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-16T21:55:57.163Z
-Stopped at: Completed 03-06-PLAN.md
-Resume file: None
+Last session: 2026-07-17
+Stopped at: Session resumed at Phase 3 plan 7/10 — blocked on the 03-07 gallery walk (human action)
+Resume file: .planning/phases/03-gw-component-library/.continue-here.md
 
 ## Performance Metrics
 
