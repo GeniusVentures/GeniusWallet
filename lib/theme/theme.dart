@@ -135,7 +135,7 @@ ThemeData getThemeData() {
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(
           horizontal: 14.0,
-          vertical: GeniusWalletConsts.space4,
+          vertical: GeniusWalletConsts.space8,
         ),
         textStyle: GeniusWalletTypography.titleMd,
         // develop hardcoded Colors.white (only ever rendered against the old
@@ -154,7 +154,7 @@ ThemeData getThemeData() {
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(
           horizontal: 14.0,
-          vertical: GeniusWalletConsts.space4,
+          vertical: GeniusWalletConsts.space8,
         ),
         textStyle: GeniusWalletTypography.titleMd,
       ),
