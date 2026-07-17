@@ -72,7 +72,7 @@ Rationale: re-skinning to an adopted design system is a translation with a right
 is a product judgement with no owner in this milestone. Shipping an invented structure nobody signed
 off is worse than an obvious gap product can prioritise.
 
-- [ ] **GAP-01**: Every develop surface with no Alex design is inventoried, and each is split into
+- [x] **GAP-01**: Every develop surface with no Alex design is inventoried, and each is split into
       what can be re-skinned mechanically vs what would need a structural/product decision. The
       inventory, its evidence, and any deferred structural questions are written down for product
 
@@ -160,7 +160,7 @@ Deferred to future milestones.
 | DS-02 | Phase 3 — gw_* component library | Complete |
 | DS-03 | Phase 3 — gw_* component library | Complete |
 | DS-04 | Phase 3 — gw_* component library | Complete |
-| GAP-01 | Phase 3 — gw_* component library | Pending |
+| GAP-01 | Phase 3 — gw_* component library | Complete |
 | NAV-01 | Phase 4 — Navigation shell & chrome | Pending |
 | NAV-02 | Phase 4 — Navigation shell & chrome | Pending |
 | BEH-02 | Phase 4 — Navigation shell & chrome | Pending |

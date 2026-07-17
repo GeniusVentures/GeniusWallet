@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: GW Component Library
+current_phase: 03
+current_phase_name: gw-component-library
 status: executing
 stopped_at: 03-07 human walk PASSED (DS-04); ready to execute 03-08
-last_updated: "2026-07-17T11:04:50.863Z"
+last_updated: "2026-07-17T11:26:06.485Z"
 last_activity: 2026-07-17
-last_activity_desc: 03-07 gallery walk passed; light-mode design gap captured
+last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 9
 ---
 
@@ -24,15 +24,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 3 — GW Component Library
+**Current focus:** Phase 03 — gw-component-library
 
 ## Current Position
 
-Phase: 3 (GW Component Library) — EXECUTING
-Plan: 8 of 10
+Phase: 03 (gw-component-library) — EXECUTING
+Plan: 9 of 10 (03-01..03-07 complete; 03-08 executing)
 Status: Ready to execute
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-16 — Phase 3 execution started
+Last activity: 2026-07-17 — Phase 03 execution started
 
 Progress: [█░░░░░░░░░] 9% (1 of 11 phases)
 
@@ -74,6 +74,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: Repointed the Splash shadow's Loading import from the reference's shadow path to develop's canonical loading.dart (identical constructor) to keep the Loading shadow's exposure limited to the design gallery; updated the guard's pinned canonical-importer list and 03-SHADOW-NAMES.md in the same commit as a deliberate, documented inventory update, not a guard loosening.
 - [Phase ?]: wallet_information.g.dart's ResponsiveDrawer.show(children:) fixed to child: -- Alex's fork API shape vs develop's canonical protected ResponsiveDrawer.show; fixed in the consumer, not the collision file
 - [Phase ?]: wallet_information.g.dart's FontAwesomeIcons.trash unwrapped via .data to satisfy SlidingDrawerButton's IconData? param (font_awesome_flutter ^11 delta) -- same precedent as 03-04's Icon->FaIcon, opposite direction
+- [Phase ?]: GAP-01 whole-app inventory: 10 evidenced gaps confirmed exact match to REQUIREMENTS.md GAP-02..06 (not the ROADMAP's estimated 12), via a whole-lib/-tree diff-filter=D scan
+- [Phase ?]: New finding: order_details_page.dart has a moved-path Alex analog (lib/banxa/order_details_page.dart) not named in GAP-05's list -- Phase 9 addendum, not a new GAP
+- [Phase ?]: Deferred structural question for product (03-GAP-INVENTORY.md): whether transaction_displays.dart (GAP-06) should split into per-type files matching Alex's 4-file organization, or keep develop's single-file structure with a mechanical re-skin
 
 ### Pending Todos
 
@@ -106,7 +109,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-17
+Last session: 2026-07-17T11:24:56.654Z
 Stopped at: 03-07 walk PASSED (DS-04 met — noise.png loads, console clean, dev gate confirmed by a separate no-define launch). Walk falsified the "mesh blobs in both modes" criterion: Alex's design system has no light-mode treatment for GWCanvasBackground's grain or GWMeshBackground's blobs. Both byte-identical ports, NOT defects. Captured as a todo + concern; 03-09's plan corrected to record light-mode results and report a dark-only COUNT. No code changed. Ready to execute 03-08 (GAP-01 inventory, doc-only).
 Resume file: .planning/phases/03-gw-component-library/.continue-here.md
 
@@ -126,3 +129,4 @@ Resume file: .planning/phases/03-gw-component-library/.continue-here.md
 | Phase 03-gw-component-library P05 | 7min | 2 tasks | 9 files |
 | Phase 03 P06 | 13min | 2 tasks | 12 files |
 | Phase 03-gw-component-library P07 | 12min | 3 tasks | 4 files |
+| Phase 03-gw-component-library P08 | 20min | 2 tasks | 1 files |
