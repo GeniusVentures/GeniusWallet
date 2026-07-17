@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 current_phase_name: gw-component-library
-status: executing
-stopped_at: 03-09 mechanical portion complete (302a68c, 6686be2); human walk outstanding; ready to execute 03-10
-last_updated: "2026-07-17T11:59:14.766Z"
+status: verifying
+stopped_at: "03-10 verification record written: criterion 5 OUTSTANDING (no GUI access), 2/6 PASS + 3/6 PARTIAL otherwise. Phase 3 not closed 6/6 -- needs a human walk."
+last_updated: "2026-07-17T13:33:28.280Z"
 last_activity: 2026-07-17
 last_activity_desc: 03-09 gallery extension (mechanical portion complete; human walk outstanding)
 progress:
   total_phases: 11
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 15
-  completed_plans: 14
-  percent: 9
+  completed_plans: 15
+  percent: 18
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 03 (gw-component-library) — EXECUTING
 Plan: 10 of 10 (03-01..03-09 complete; 03-10 next)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-17 — 03-09 gallery extension (mechanical portion complete; human walk outstanding)
 
@@ -80,6 +80,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: [Phase 03-09]: Both tasks landed in lib/dev/design_gallery_screen.dart as two separate atomic commits (302a68c, 6686be2), split by writing each task's end-state directly rather than isolating dart-format-churned hunks
 - [Phase ?]: [Phase 03-09]: GWIcon.svg/.png demo assets chosen by reading pubspec.yaml's packages/genius_wallet/assets/images/* declarations (shape.svg, mask2.png) rather than assuming an arbitrary bundled asset resolves under the default package: 'genius_wallet'
 - [Phase ?]: [Phase 03-09]: The gallery's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT) is OUTSTANDING, not passed -- recorded as coverage item D5 status:outstanding, per this project's standing no-unearned-PASS rule
+- [Phase ?]: [Phase 03-10]: Verification record: criterion 5 (no-visual-change walk) recorded OUTSTANDING -- no Windows GUI access; criteria 1/3/6 PARTIAL (theme confound + 2 unexplained findings + 2 missing gallery sections); criteria 2/4 PASS
+- [Phase ?]: [Phase 03-10]: Re-derived two stale figures rather than trusting them: loading.dart's canonical importer count is 19 not 18; responsive_overlay.dart's lib/components/ modification is Phase 2's ca556e4 (BLD-03), not a Phase 3 leak
+- [Phase ?]: [Phase 03-10]: Criterion 6's deferred cross-check found 2 of 15 GAP-01 primitives with no gallery section: custom_drop_down.dart/currency_dropdown.dart and wallet_type_icon.dart -- both compile clean, neither is demoed
 
 ### Pending Todos
 
@@ -98,6 +101,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - **The dark-only light-mode COUNT is NOT DERIVABLE until Phase 4 wires the theme** (2026-07-17) — the 03-09 walk established that any count taken now measures OUR missing theme, not Alex's design, and would misattribute the cause. Recorded in `03-09-SUMMARY.md` as an accepted gap, explicitly not a pass. **Re-derive after Phase 4.** See the todo for what stays genuinely open (canvas grain, mesh blobs, `GWSwitch` disabled==off, `GWSwitch` off-thumb near-black in light — all byte-identical ports, all Alex's real design choices)
 - **Two 03-09 findings have NO established root cause** (2026-07-17) — `Screen wrappers` renders nothing in EITHER mode (light explained by white-text-on-light; **dark blankness unexplained**; `app_screen_view.dart` is byte-identical so not a port defect), and the disabled checkbox is invisible in dark (`btnDisabled` = `const Color.fromRGBO(188,188,188,1)`, not appearance-aware, but its role is unconfirmed). **Both need a real repro. No hypothesis has been recorded as fact**
 - 03-09's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT across all 30 gallery sections) is outstanding -- no code changed pending it; see 03-09-SUMMARY.md's Outstanding section for the exact recipe
+- Phase 3 criterion 5 (the no-visual-change walk, GW_DEV_TOOLS unset) is OUTSTANDING -- requires a human with Windows GUI access. Exact recipe recorded in 03-VERIFICATION.md
 
 ## Reference Material
 
@@ -116,9 +120,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-17T11:55:20.622Z
-Stopped at: 03-07 walk PASSED (DS-04 met — noise.png loads, console clean, dev gate confirmed by a separate no-define launch). Walk falsified the "mesh blobs in both modes" criterion: Alex's design system has no light-mode treatment for GWCanvasBackground's grain or GWMeshBackground's blobs. Both byte-identical ports, NOT defects. Captured as a todo + concern; 03-09's plan corrected to record light-mode results and report a dark-only COUNT. No code changed. Ready to execute 03-08 (GAP-01 inventory, doc-only).
-Resume file: .planning/phases/03-gw-component-library/.continue-here.md
+Last session: 2026-07-17T13:33:28.271Z
+Stopped at: 03-10 verification record written: criterion 5 OUTSTANDING (no GUI access), 2/6 PASS + 3/6 PARTIAL otherwise. Phase 3 not closed 6/6 -- needs a human walk.
+Resume file: .planning/phases/03-gw-component-library/03-VERIFICATION.md
 
 ## Performance Metrics
 
@@ -138,3 +142,4 @@ Resume file: .planning/phases/03-gw-component-library/.continue-here.md
 | Phase 03-gw-component-library P07 | 12min | 3 tasks | 4 files |
 | Phase 03-gw-component-library P08 | 20min | 2 tasks | 1 files |
 | Phase 03-gw-component-library P09 | 35min | 2 tasks | 1 files |
+| Phase 03-gw-component-library P10 | 30min | 2 tasks | 1 files |
