@@ -73,7 +73,10 @@ coverage:
     requirement: "DS-03"
     verification:
       - kind: human
-        ref: "NOT YET PERFORMED -- this plan's own execution has no access to a Windows GUI. See 'Outstanding: the human walk' below for the exact recipe and every question that must be answered."
+        ref: "PERFORMED 2026-07-17. Criterion 4 (drawer: root-navigator mount, swipe-dismiss, 768 boundary) and the mesh H1/H2 discriminator: VERIFIED by the human. Criterion 1/3 (both-modes render): 8 findings reported -- see 'Walk result' below. ZERO are port defects (every implicated component cmp-verified byte-identical to the reference). 5 of 8 trace to ONE cause: develop's theme.dart is `ThemeData(brightness: Brightness.dark)` hardcoded with no textTheme wiring, so GeniusWalletTypography.* styles (which carry NO color) inherit white unconditionally. That is Phase 2's documented deferral to Phase 4, not a design gap."
+        status: partial
+      - kind: human
+        ref: "DARK-ONLY COUNT: **NOT DERIVABLE** at this phase, and deliberately NOT recorded. The walk cannot measure whether Alex's components have light-mode treatments while develop's theme.dart is hardcoded dark and un-wired -- his components correctly delegate color to a theme we have not ported yet. Any count taken now measures the missing theme, not the design. Re-derive after Phase 4 wires the appearance-aware theme. Recorded as an accepted gap, NOT a pass."
         status: outstanding
     human_judgment: true
     rationale: "This project's standing rule (02-VERIFICATION.md's precedent, reaffirmed by 03-07-SUMMARY.md and this plan's own <human_check_handling>): an unearned PASS on a human-observation criterion is the exact BLD-02 failure mode (37 regressions shipped analyze-clean). Every mechanical gate this plan can run (analyze, the guard, the zero-diff checks) has run and passed, but none of them can observe a rendered pixel, a swipe gesture, or a resize-through-768px breakpoint flip. Recording PASS here would be inventing an observation nobody made."
@@ -163,6 +166,71 @@ lib/theme/gw_appearance.dart
 **No individual `gw_*` component file references `isLight` or `GWAppearance` directly.** Every component that appears to flip between modes does so *indirectly*, through `GeniusWalletColors`'s getters (e.g. `textPrimary`, `surfaceBase`) resolving differently at read time — the components themselves carry no appearance logic. The two files that DO reference it directly are `genius_wallet_colors.dart` (the token layer itself) and `genius_wallet_decorations.dart` (home to `GWCanvasBackground`'s `if (!isLight)` grain gate, already established as dark-only by the 03-07 walk).
 
 **This tells us WHERE appearance logic lives, not WHICH components look wrong in light mode.** A component can consume flipping tokens correctly and still look poor in light mode for reasons no grep can find (contrast, a hardcoded-looking gradient that happens to use tokens, an icon color that reads fine on `surfaceBase` dark but not light). The dark-only **count** the todo needs can only come from the visual walk below — this reconnaissance is offered purely to orient whoever performs it, not to pre-empt it.
+
+## Walk result (2026-07-17)
+
+**Performed by the human. VERIFIED:** criterion 4 (drawer — root-navigator mount, swipe-to-dismiss,
+768 boundary) and the mesh H1/H2 discriminator. **8 findings reported on criteria 1/3.**
+
+**ZERO are port defects.** Every implicated component was `cmp`-verified byte-identical to the
+reference before any conclusion was drawn: `gw_switch.dart`, `gw_checkbox.dart`, `gw_token_row.dart`,
+`app_screen_view.dart` — all IDENTICAL. Consistent with all 50 files this phase.
+
+### Bucket 1 — the theme confound (5 of 8). ONE root cause. Phase 4's debt.
+
+**Evidence:**
+- `GeniusWalletTypography.titleMd` (and every sibling) = `_inter(fontSize:, height:, fontWeight:)` —
+  **carries NO color.** Only 2 `color:` mentions in the entire typography file.
+- develop's `theme.dart` = `ThemeData(brightness: Brightness.dark, ...)` — **hardcoded dark, no
+  `textTheme:`, no `toMaterialTextTheme()`.**
+- `toMaterialTextTheme()` is referenced **nowhere** in `lib/` except its own definition
+  (`genius_wallet_typography.dart:133`).
+
+Therefore every `Text` styled with `GeniusWalletTypography.*` and no explicit color inherits its
+color from the ambient `DefaultTextStyle` → develop's dark `ThemeData` → **white, unconditionally.**
+Alex's components correctly delegate color to the theme; **we have not ported a theme that flips.**
+His `theme.dart` does (`brightness: isLight ? Brightness.light : Brightness.dark`).
+
+| Finding | Cause |
+|---|---|
+| Token row value text not changing color | inherits dark theme's white |
+| Wallet card text not changing color | same |
+| Empty/Error state text not changing color | same |
+| Gradient + primary button text font not changing | `toMaterialTextTheme()` never wired |
+| Icons white / not flipping / washed light-gray on dark | `iconTheme` inherits `brightness: dark` |
+
+**Not design gaps. Not port defects. The predictable consequence of Phase 2's deferral**
+(UI-SPEC §1.1 excludes `theme.dart` wholesale; wiring is Phase 4's). Expect most of this bucket to
+evaporate when Phase 4 lands the appearance-aware theme. **Re-walk then; do not "fix" any of it here.**
+
+### Bucket 2 — Alex's own design behavior (byte-identical, real, for Phase 4/6 to weigh)
+
+- **`GWSwitch` disabled is visually identical to off.** `gw_switch.dart:27` computes
+  `final disabled = !enabled || onChanged == null;` — **and never uses it for color.** Lines 32–37 set
+  `activeColor`/`activeTrackColor`/`inactiveThumbColor`/`inactiveTrackColor` unconditionally, and
+  those explicit colors **override Flutter's built-in disabled rendering**. So a disabled switch and
+  an off switch are indistinguishable. Byte-identical to Alex — his behavior, not ours.
+- **`GWSwitch` off-thumb reads near-black in light.** `inactiveThumbColor:
+  GeniusWalletColors.textPrimary` → `_isLight ? _inkLight (0xFF10131A) : Colors.white`. The token is
+  behaving exactly as designed; the *design choice* is what reads poorly.
+- **`btnDisabled` = `Color.fromRGBO(188, 188, 188, 1)` — a `const`, NOT appearance-aware.** Flagged;
+  its role in the invisible-disabled-checkbox report is NOT yet confirmed (see Bucket 3).
+
+### Bucket 3 — UNEXPLAINED. Needs a real repro; no root cause established.
+
+- **`Screen wrappers` renders nothing in EITHER mode.** Partially explained in light
+  (`GeniusWalletTypography.bodySm` has no color → white text on the now-light `surfaceBase`), but
+  **dark-mode blankness is NOT explained** — white text on a dark surface should be visible.
+  `app_screen_view.dart` is byte-identical to Alex's, so this is not a port defect.
+  **No hypothesis is recorded as fact here.** Investigate with an actual repro, not by reading.
+- **Disabled checkbox invisible in dark.** `gw_checkbox.dart:30` computes `disabled` but the grep did
+  not confirm where/whether `btnDisabled` is consumed. Root cause NOT established.
+
+> **Method note.** Bucket 1 is why the dark-only COUNT was NOT recorded. Counting now would measure
+> our missing theme, not Alex's design — and would have pointed at "his design system is broken" when
+> the truth is "we haven't finished porting it." An earlier claim in this project's own todo
+> ("design system may have no complete light mode") was falsified the same day by reading his
+> `theme.dart`. Same failure mode: concluding from symptoms before tracing the cause.
 
 ## Outstanding: the human walk
 
