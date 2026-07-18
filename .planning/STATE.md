@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4 plan 01 executed -- theme wired, D-02 re-walk OUTSTANDING (checkpoint:human-verify)"
-last_updated: "2026-07-17T16:34:14.024Z"
-last_activity: 2026-07-17
-last_activity_desc: Phase 04 execution started
+stopped_at: "Phase 4 D-02 re-walk (partial): gallery-canvas bug fixed; theme flips but const components do NOT re-skin on live toggle + Inter not bundled. Inserted corrective plan 04-02 (ThemeExtension migration + Inter); 04-02-PLAN.md NOT yet authored. Re-walk paused until 04-02 executes."
+last_updated: "2026-07-18T11:11:11.391Z"
+last_activity: 2026-07-18
+last_activity_desc: "D-02 re-walk found const-rebuild + Inter-font bugs; inserted corrective 04-02, renumbered re-skins to 04-03..07"
 progress:
   total_phases: 11
   completed_phases: 2
-  total_plans: 21
+  total_plans: 22
   completed_plans: 16
   percent: 18
 ---
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 2 of 6
-Status: Ready to execute
+Plan: 2 of 7 (corrective — 04-02 ThemeExtension migration + Inter bundling; must precede re-skins 04-03..07)
+Status: 04-02-PLAN.md not yet authored; D-02 re-walk paused until 04-02 executes
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
