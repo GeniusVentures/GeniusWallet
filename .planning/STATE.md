@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4: 04-01/02/03/04 COMPLETE. 04-04 drawer walk PASSED after fixing a dialog-action navigator bug (3457e44 — GWDialog actions popped a dead/wrong navigator after the drawer closed). Shared card/dialog/drawer chrome now on GWColors. Next: 04-05 Settings (fold in a user-facing appearance toggle). UX-polish todos captured (account-row tap/address/balance-format, drawer/dialog padding)."
-last_updated: "2026-07-18T14:34:55.915Z"
+stopped_at: "Phase 4: 04-01..05 COMPLETE (5/7). 04-05 Settings walk PASSED (skin + controls + both modes; borderSubtle divider stands). Only 04-06 (SDK account manager) and 04-07 (recovery screen) remain, both pre-aligned to GWColors. Deferred: user-facing appearance toggle (its own follow-up), account-row + padding UX polish todos."
+last_updated: "2026-07-18T14:45:00.000Z"
 last_activity: 2026-07-18
-last_activity_desc: "04-04 wallet drawer re-skin complete (walk PASSED after dialog-action fix 3457e44)"
+last_activity_desc: "04-05 Settings re-skin complete (walk PASSED); 04-06/04-07 remain in Phase 4"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 22
-  completed_plans: 19
-  percent: 21
+  completed_plans: 20
+  percent: 22
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 5 of 7 (next: 04-05 Settings re-skin) — 04-01/02/03/04 complete
-Status: Ready to execute 04-05. 04-04 drawer walk PASSED after fixing a dialog-action navigator bug (3457e44). Fold a user-facing appearance toggle into 04-05 (see no-user-facing-appearance-toggle todo). UX-polish todos open (account-row tap/address/balance, padding/spacing)
+Plan: 6 of 7 (next: 04-06 SDK account manager re-skin) — 04-01..05 complete
+Status: Ready to execute 04-06. Then 04-07 (recovery screen) closes Phase 4. Both pre-aligned to GWColors. 04-06 touches key-entry dialogs — keep the no-key-logging gate (tool/check_no_new_key_logging.sh) intact
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until

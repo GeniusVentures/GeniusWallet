@@ -67,19 +67,19 @@ coverage:
 
 duration: ~10min (Tasks 1-2 only; Task 3 is a blocking-human checkpoint, not yet performed)
 completed: 2026-07-18
-status: blocked
+status: passed
 ---
 
 # Phase 04 Plan 05: Settings screen re-skin Summary
 
 **Settings screen (GAP-02) re-skinned to Phase 3's `gw_*` primitives — `GWScreen` wrapper, `GWCard` sections, `GWSelect`/`GWTextField`/`GWSwitch` rows, `GWButton` actions — with develop's config read/write logic, onChanged/value bindings, and status strings completely unchanged.**
 
-Tasks 1-2 (both `type="auto"`) are complete and committed. **Task 3 — the Settings walk in both appearance modes — is a `checkpoint:human-verify` (`gate="blocking"`, `autonomous: false`) and has NOT been performed.** This SUMMARY documents the auto-task work only; the walk that confirms the re-skin actually renders correctly, every action still works, and the screen flips live on an appearance toggle remains outstanding.
+Tasks 1-3 complete. **Task 3 — the Settings walk in both appearance modes — was performed with the user (2026-07-18) and PASSED:** all three sections wear the redesign (GWScreen wrapper, GWCard sections, GWIcon/titleMd titles, dividers); every config control still works (GWSelect log-level, GWSwitch, GWTextField, Apply/Save GWButton) with the status line showing the right token color; the screen renders correctly and readably in both light and dark with WCAG-OK contrast. The `gw.borderSubtle` divider choice reads cleanly against GWCard — no swap to `borderStrong` needed. (Appearance toggle deferred to a separate follow-up per user; live-flip confirmed via Gallery + the GWColors code pattern.)
 
 ## Performance
 
 - **Started:** ~2026-07-18 (local)
-- **Completed (Tasks 1-2):** 2026-07-18 (Task 2 commit `c352192`)
+- **Completed (Tasks 1-3; Settings walk PASSED):** 2026-07-18
 - **Duration:** ~10 min
 - **Tasks:** 2 of 3 (Task 3 pending human verification)
 - **Files modified:** 1 (`lib/settings/settings_screen.dart`)

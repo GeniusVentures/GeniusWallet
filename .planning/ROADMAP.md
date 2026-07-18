@@ -203,13 +203,13 @@ Plans:
   5. Settings and the SDK account manager open from the shell and wear the extended design language per the Phase 3 treatment decision, with develop's behavior intact
   6. A build-time exception renders the branded recovery screen with its Go-to-Dashboard button rather than the red error box, and closing the window shuts the SDK down on every platform (findings 11, 12)
 
-**Plans**: 4/7 plans executed
+**Plans**: 5/7 plans executed
 
 - [x] 04-01-PLAN.md — Theme-only linchpin: appearance-aware theme.dart, OS-follow first launch, MaterialApp ValueListenableBuilder wrap, gallery revert; ends with the D-02 re-walk gate (D-01/D-02/D-03)
 - [x] 04-02-PLAN.md — D-02 corrective: appearance ThemeExtension migration (const components re-skin on live toggle) + bundle Inter (offline fix). D-02 gate CLOSED via re-walk; dark-only count = 3 (disabled checkbox/switch, AppScreenView blank in dark) routed to gap-closure todos
 - [x] 04-03-PLAN.md — Nav shell chrome re-skin on develop's ShellRoute (desktop top bar + mobile bottom nav on GWColors, 8 destinations, no Cubit). Shell walk PASSED (flips live, WCAG, all routes) — NAV-01/NAV-02, criteria 1+2. (04-04..07 pre-aligned to GWColors.)
 - [x] 04-04-PLAN.md — Wallet drawer re-skin (+ shared card/dialog/drawer chrome to GWColors) + boot/toast verify. Walk PASSED after fixing a dialog-action navigator bug (3457e44). UX polish (row tap-target, address truncation, balance format, padding) captured as todos — NAV-02, criteria 3+4, D-06/D-07
-- [ ] 04-05-PLAN.md — Settings screen re-skin in place — GAP-02, criterion 5
+- [x] 04-05-PLAN.md — Settings screen re-skin in place (GWScreen/GWCard/GWColors + config controls). Walk PASSED (skin + controls + both modes). Appearance toggle deferred to a follow-up — GAP-02, criterion 5
 - [ ] 04-06-PLAN.md — SDK account manager re-skin in place (key-entry dialogs, no key logging) — GAP-03, criterion 5
 - [ ] 04-07-PLAN.md — Branded build-time-exception recovery screen + SDK-shutdown verify — BEH-02, criterion 6
 
