@@ -99,6 +99,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] Bundle Inter font — RESOLVED by 04-02 Task 3 (Inter bundled, network path removed); moved to todos/completed/.
 - [ui] Dark-mode disabled-state visibility — checkbox + switch (`.planning/todos/pending/2026-07-18-dark-mode-disabled-state-visibility-checkbox-switch.md`) — D-02 re-walk finding; disabled GWCheckbox invisible + disabled GWSwitch = looks off, in dark. WCAG contrast. Gap-closure.
 - [ui] AppScreenView blank in dark (`.planning/todos/pending/2026-07-18-appscreenview-blank-in-dark.md`) — D-02 re-walk finding; "Screen wrappers" section renders empty in dark. Gap-closure.
+- [ui] No user-facing appearance toggle (`.planning/todos/pending/2026-07-18-no-user-facing-appearance-toggle.md`) — setMode only in dev Gallery/token-probe; add an Appearance row to Settings (04-05).
+- [ui] **PRODUCT/IA decision** — Mobile nav: curate bottom nav to most-used, overflow the rest (`.planning/todos/pending/2026-07-18-mobile-nav-ia-curate-bottom-nav.md`) — 04-03 kept develop's 8 destinations per "re-skin never restructure"; 8 is poor mobile UX. Restructure like Alex's Gen-B curated nav, keep all 8 reachable. Deferred product decision, NOT a re-skin.
 
 ### Blockers/Concerns
 
