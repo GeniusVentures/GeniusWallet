@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 class ResponsiveDrawer {
@@ -16,6 +16,15 @@ class ResponsiveDrawer {
   }) {
     final isDesktop =
         MediaQuery.sizeOf(context).width >= GeniusBreakpoints.medium;
+
+    // Fail-soft read: resolved once at open-time (this is a static factory,
+    // not a widget build()), used for the two Route/API-level color params
+    // below (desktop panel decoration, mobile bottom-sheet backgroundColor).
+    // These are captured once when show() is invoked -- the same structural
+    // limitation as GWDialog.show()'s barrierColor -- while the LIVE flip
+    // while the drawer stays open is carried by
+    // _ResponsiveDrawerScaffold.build()'s own Theme dependency below.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
     final content = _ResponsiveDrawerScaffold(
       title: title,
@@ -38,9 +47,13 @@ class ResponsiveDrawer {
               child: Container(
                 width: desktopWidth,
                 height: double.infinity,
-                decoration: const BoxDecoration(
-                  color: GeniusWalletColors.deepBlueTertiary,
-                  borderRadius: BorderRadius.horizontal(
+                // Remapped from the legacy non-appearance-aware
+                // deepBlueTertiary constant to the closest appearance-aware
+                // sheet/menu surface token (documented value remap, see
+                // 04-04-SUMMARY.md). No longer const -- takes a runtime Color.
+                decoration: BoxDecoration(
+                  color: gw.surfaceMenu,
+                  borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(28),
                   ),
                 ),
@@ -60,7 +73,10 @@ class ResponsiveDrawer {
       enableDrag: enableDrag,
       useSafeArea: true,
       isScrollControlled: true,
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      // Remapped from the legacy non-appearance-aware deepBlueTertiary
+      // constant to the closest appearance-aware sheet/menu surface token
+      // (documented value remap, see 04-04-SUMMARY.md).
+      backgroundColor: gw.surfaceMenu,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -84,8 +100,18 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this widget to rebuild on a live appearance toggle -- this is the
+    // read that makes the LIVE drawer's own background genuinely flip while
+    // the drawer stays open (this widget stays mounted for the drawer's
+    // lifetime in both the desktop and mobile branches of
+    // ResponsiveDrawer.show()).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      // Remapped from the legacy non-appearance-aware deepBlueTertiary
+      // constant to the closest appearance-aware sheet/menu surface token
+      // (documented value remap, see 04-04-SUMMARY.md).
+      backgroundColor: gw.surfaceMenu,
 
       // Native Material app bar
       appBar: title != null

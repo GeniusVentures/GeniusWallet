@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class BottomDrawer extends StatelessWidget {
   final List<Widget> children;
@@ -17,8 +17,14 @@ class BottomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Container(
-      color: GeniusWalletColors.deepBlueTertiary,
+      // Remapped from the legacy non-appearance-aware deepBlueTertiary
+      // constant to the closest appearance-aware sheet/menu surface token
+      // (documented value remap, see 04-04-SUMMARY.md).
+      color: gw.surfaceMenu,
       child: SafeArea(
         child: Column(
           children: [
@@ -38,7 +44,7 @@ class BottomDrawer extends StatelessWidget {
                       title ?? '',
                       textAlign: TextAlign.center,
                       style: GeniusWalletTypography.titleMd.copyWith(
-                        color: GeniusWalletColors.textPrimary,
+                        color: gw.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -50,15 +56,14 @@ class BottomDrawer extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       tooltip: 'Close',
-                      icon: Icon(Icons.close,
-                          color: GeniusWalletColors.textPrimary),
+                      icon: Icon(Icons.close, color: gw.textPrimary),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                 ],
               ),
             ),
-            Divider(height: 1, color: GeniusWalletColors.textPrimary12),
+            Divider(height: 1, color: gw.textPrimary12),
             const SizedBox(height: GeniusWalletConsts.space2),
             // Scrollable content
             Expanded(

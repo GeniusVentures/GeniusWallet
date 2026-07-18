@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class GWCard extends StatelessWidget {
   const GWCard({
@@ -32,6 +32,10 @@ class GWCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
     // Default surfaces get the top-lit sheen + hairline edge so cards read as
     // material, not flat fills. Custom gradient/background/border are respected.
     final useDefaultSurface = gradient == null && background == null;
@@ -47,7 +51,7 @@ class GWCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         border: border ??
             (useDefaultSurface
-                ? Border.all(color: GeniusWalletColors.borderSubtle, width: 1)
+                ? Border.all(color: gw.borderSubtle, width: 1)
                 : null),
         boxShadow: elevated ? GeniusWalletElevation.card : null,
       ),
