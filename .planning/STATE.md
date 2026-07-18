@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4: 04-01..06 COMPLETE (6/7). 04-06 SDK account manager walk PASSED (skin + key-entry dialogs w/ working actions + both modes; no key logging). ONLY 04-07 (branded recovery screen) remains to close Phase 4 — it deliberately keeps static getters (renders above Theme; two-launch walk, not live-flip). Deferred UX polish todos: sdk add-dialog validation + drawer loading state, account-row, padding, appearance toggle."
+stopped_at: "Phase 4 ALL 7 PLANS EXECUTED + walked/PASSED (04-01..07). 04-07 recovery-screen walk PASSED (branded recovery both modes, Go-to-Dashboard escapes, SDK shutdown GENIUS_NODE_RET_OK on close; injected fault reverted). NEXT: Phase 4 goal-backward VERIFICATION (criteria 1-6) via /gsd-verify-work or gsd-verifier, then Phase 5 (Dashboard) planning. Open: 6 UX-polish/product todos + user-facing appearance toggle."
 last_updated: "2026-07-18T15:34:02.876Z"
 last_activity: 2026-07-18
-last_activity_desc: "04-06 SDK account manager re-skin complete (walk PASSED); only 04-07 remains in Phase 4"
+last_activity_desc: "Phase 4 complete — all 7 re-skin plans executed + walked (04-07 recovery screen PASSED); phase verification next"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 22
-  completed_plans: 21
-  percent: 23
+  completed_plans: 22
+  percent: 24
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 7 of 7 (last: 04-07 branded recovery screen) — 04-01..06 complete
-Status: Ready to execute 04-07 — the final Phase 4 plan. It KEEPS static getters (recovery screen renders above MaterialApp/Theme; walk uses two launches, not live-flip). After 04-07: Phase 4 verification, then Phase 5 (Dashboard) planning
+Plan: 7 of 7 — ALL Phase 4 plans executed + walked (04-01..07 PASSED)
+Status: Phase 4 re-skins DONE. Next: run Phase 4 goal-backward VERIFICATION (criteria 1-6), then plan Phase 5 (Dashboard). Deferred: user-facing appearance toggle + 6 UX-polish/product todos.
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
