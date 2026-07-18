@@ -52,6 +52,19 @@ TBD — evaluate during Phase 4 planning. Candidate approaches:
    the underlying architecture.
 
 Cross-refs: relates to the existing todo
-`2026-07-17-design-system-has-no-light-mode-treatment.md`. Note the sibling
-finding captured this session: Inter font not bundled
-(`2026-07-18-bundle-inter-font-so-it-loads-offline-instead-of-googlefonts.md`).
+`2026-07-17-design-system-has-no-light-mode-treatment.md`. The sibling Inter-font
+finding is resolved (moved to todos/completed/ by 04-02 Task 3).
+
+## Status (2026-07-18)
+
+**Mechanism FIXED by plan 04-02.** The `GWColors` ThemeExtension exists and is
+attached in `getThemeData()`, and 11 gallery-const-instanced components were
+migrated to `Theme.of(context).extension<GWColors>() ?? GWColors.dark()` — the
+D-02 re-walk confirmed they now re-skin on a live toggle. This todo stays open
+only for the **~13 deferred appearance-aware readers** (gw_text_field's siblings,
+gw_select, gw_card, gw_gradient_border_card, gw_spinner, gw_dialog,
+gw_bottom_sheet, bottom_drawer, gw_screen, coin_card_container,
+genius_wallet_decorations, genius_wallet_gradient, token_probe_screen) recorded in
+04-02-PLAN.md's `migration_surface`. They are migrated opportunistically as the
+re-skin plans 04-03..07 rebuild those surfaces (avoids touching a surface twice).
+Close this todo when the deferred set is fully on GWColors.

@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4 D-02 re-walk (partial): gallery-canvas bug fixed; theme flips but const components do NOT re-skin on live toggle + Inter not bundled. Inserted corrective plan 04-02 (ThemeExtension migration + Inter); 04-02-PLAN.md NOT yet authored. Re-walk paused until 04-02 executes."
-last_updated: "2026-07-18T11:11:11.391Z"
+stopped_at: "Phase 4 plan 04-02 COMPLETE (Tasks 1-4). ThemeExtension migration + Inter bundling executed; Task 4 D-02 gallery re-walk PASSED with user — const components re-skin live, Inter offline, OS-follow good. D-02 gate CLOSED. Dark-only count = 3 (disabled checkbox/switch invisible, AppScreenView blank in dark) routed to gap-closure todos. Next: 04-03 nav-shell re-skin."
+last_updated: "2026-07-18T12:35:27.843Z"
 last_activity: 2026-07-18
-last_activity_desc: "D-02 re-walk found const-rebuild + Inter-font bugs; inserted corrective 04-02, renumbered re-skins to 04-03..07"
+last_activity_desc: "04-02 complete: ThemeExtension migration + Inter bundling + D-02 re-walk PASSED (gate closed, dark-only count=3)"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 22
-  completed_plans: 16
-  percent: 18
+  completed_plans: 17
+  percent: 19
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 2 of 7 (corrective — 04-02 ThemeExtension migration + Inter bundling; must precede re-skins 04-03..07)
-Status: 04-02-PLAN.md not yet authored; D-02 re-walk paused until 04-02 executes
+Plan: 3 of 7 (next: 04-03 nav-shell chrome re-skin) — 04-01 + 04-02 complete, D-02 gate CLOSED
+Status: Ready to execute 04-03. The appearance system now re-skins const components live (04-02); Inter bundled; dark-only findings tracked as gap-closure todos
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
@@ -95,8 +95,10 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Phases 2–10 are UI phases (`ui_phase: true`, `ui_safety_gate: true`) — each should get a UI-SPEC design contract via `/gsd-ui-phase` before planning
 - Corrected the v1 requirement count in REQUIREMENTS.md: 22 → 24 (previous count was wrong)
 - [ui] Design system has no light-mode treatment (`.planning/todos/pending/2026-07-17-design-system-has-no-light-mode-treatment.md`) — scope unknown; 03-09's both-mode walk produces the count
-- [ui] Const widgets do not re-skin on live appearance toggle (`.planning/todos/pending/2026-07-18-const-widgets-do-not-re-skin-on-live-appearance-toggle.md`) — D-02 finding; const + static color getters ≠ InheritedWidget, so const subtrees keep stale colors on toggle. App-wide. Fix via ThemeExtension/InheritedWidget.
-- [ui] Bundle Inter font — GoogleFonts network fetch fails offline (`.planning/todos/pending/2026-07-18-bundle-inter-font-so-it-loads-offline-instead-of-googlefonts.md`) — D-02 finding; only JetBrainsMono bundled, Inter fetched at runtime → fallback font offline. App-wide.
+- [ui] Const widgets re-skin — mechanism FIXED by 04-02 (GWColors ThemeExtension; 11 components migrated) (`.planning/todos/pending/2026-07-18-const-widgets-do-not-re-skin-on-live-appearance-toggle.md`) — stays open only for the ~13 deferred readers, migrated opportunistically during 04-03..07 re-skins.
+- [ui] Bundle Inter font — RESOLVED by 04-02 Task 3 (Inter bundled, network path removed); moved to todos/completed/.
+- [ui] Dark-mode disabled-state visibility — checkbox + switch (`.planning/todos/pending/2026-07-18-dark-mode-disabled-state-visibility-checkbox-switch.md`) — D-02 re-walk finding; disabled GWCheckbox invisible + disabled GWSwitch = looks off, in dark. WCAG contrast. Gap-closure.
+- [ui] AppScreenView blank in dark (`.planning/todos/pending/2026-07-18-appscreenview-blank-in-dark.md`) — D-02 re-walk finding; "Screen wrappers" section renders empty in dark. Gap-closure.
 
 ### Blockers/Concerns
 

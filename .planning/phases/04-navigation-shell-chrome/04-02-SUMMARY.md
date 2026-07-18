@@ -221,26 +221,25 @@ None — all changes fall within the plan's declared `<threat_model>` (T-04-02-0
 
 None - no external service configuration required. The Inter TTFs are committed directly to the repo as OFL-licensed assets (no npm/package-manager dependency).
 
-## Outstanding: Task 4 (D-02 Gallery Re-Walk — BLOCKING HUMAN GATE)
+## Task 4: D-02 Gallery Re-Walk — PASSED (2026-07-18, with user)
 
-**Not performed.** Per the executor's explicit instructions, Task 4 (`type="checkpoint:human-verify"`, `gate="blocking-human"`) was not attempted or fabricated. It requires:
+Performed live with the user in a debug build (`--dart-define=GW_DEV_TOOLS=true`, Dev row > Gallery), toggling appearance in place.
 
-1. A debug build launch with `--dart-define=GW_DEV_TOOLS=true` (Dev row > Gallery).
-2. **Const re-skin check:** toggle appearance and confirm the const `GWTokenRow`/`GWWalletCard` demo instances plus all 9 other migrated const demos (empty/error state, checkbox, switch, button, text field, loading state) flip live with no re-enter-gallery workaround, and the `GWIcon` call site flips.
-3. **Inter offline check:** confirm button/body/heading text now renders in Inter (not the platform fallback), optionally with network blocked to prove no fetch path remains.
-4. **Two still-unexplained Phase-3 findings:** get a real repro for the `Screen wrappers` (AppScreenView) blank-in-dark finding and the disabled `GWCheckbox` invisible-in-dark finding.
-5. **Dark-only count:** walk all 30 gallery sections in both modes and record the dark-only component count, splitting BUGS vs. DESIGN CHOICES.
-6. **OS-follow default (D-03):** confirm a fresh launch with no persisted preference follows the OS brightness setting.
+- **Const live re-skin — PASS.** Every genuinely mode-dependent migrated component (token row, wallet card, empty/error/loading states, checkbox, switch, text field, and the tertiary/ghost/icon buttons + `GWIcon.material` call site) flips color on a LIVE toggle with no re-enter-gallery workaround. The **primary/gradient** buttons intentionally do NOT flip their text — near-black `textOnBrand` on the mode-invariant brand-cyan `brandPrimary` fill; white fails WCAG AA (~1.9:1). Confirmed correct-by-design, not a stuck migration.
+- **Inter offline — PASS.** Button/body/heading text renders in Inter, not the platform fallback.
+- **OS-follow default (D-03) — PASS.** User confirmed a fresh launch follows the OS brightness ("already verified all good").
+- **Dark-only count = 3 (all BUGS, none design/grain).** (1) disabled `GWCheckbox` invisible in dark; (2) disabled `GWSwitch` styled identically to switch-OFF in dark; (3) `AppScreenView` "Screen wrappers" section blank in dark. All are WCAG-contrast / disabled-affordance failures — pre-existing Phase-3 component gaps that a value-preserving migration does not fix. Plus a deferred minor item: `GWIcon.svg` renders always-white (tint at usage sites). None are grain-related, so the light-mode grain decision is now a clean aesthetic call.
+- **Findings routed to gap-closure todos:** `.planning/todos/pending/2026-07-18-dark-mode-disabled-state-visibility-checkbox-switch.md`, `.planning/todos/pending/2026-07-18-appscreenview-blank-in-dark.md`. WCAG contrast recorded as a standing project rule (auto-memory `wcag-contrast-rule`).
 
-This re-walk supersedes/closes the 04-01 D-02 gate and MUST close before `04-03..07` begin. **The next session must resume at Task 4, not re-execute Tasks 1-3.**
+**Gate outcome: the 04-01 D-02 gate is CLOSED.** The two corrective bugs (const-rebuild, Inter offline) are fixed and confirmed live. The 3 dark-only findings are pre-existing gaps tracked for gap-closure — they do NOT block `04-03..07`, which may now proceed.
 
 ## Next Phase Readiness
 
-Tasks 1-3 land the corrective ThemeExtension migration and the bundled Inter font — the mechanical fixes are in place and pass every automated gate (`flutter analyze`, the additive-boundary guard). What remains before `04-03..07` can safely build on this foundation is exclusively the Task 4 human re-walk: automated checks cannot prove a widget visually re-skins live or that Inter glyphs actually render, only that the code reads the right token / declares the right family. Phase 4's next plans (04-03 onward) should NOT start until Task 4 closes.
+All four tasks are complete. Tasks 1-3 landed the corrective ThemeExtension migration and the bundled Inter font (passing `flutter analyze` and the additive-boundary guard); Task 4's human re-walk confirmed live, in the running app, that const components re-skin on toggle and Inter renders offline. The 04-01 D-02 gate is closed. `04-03..07` (the nav-shell and screen re-skins) may now build on this foundation. The 3 dark-only findings surfaced by the re-walk are pre-existing Phase-3 gaps tracked as gap-closure todos and do not block the re-skins.
 
 ---
 *Phase: 04-navigation-shell-chrome*
-*Completed: 2026-07-18 (Tasks 1-3 only; Task 4 outstanding)*
+*Completed: 2026-07-18 (Tasks 1-4; D-02 gate closed)*
 
 ## Self-Check: PASSED
 
