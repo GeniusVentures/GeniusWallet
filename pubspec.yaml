@@ -221,3 +221,16 @@ flutter:
         - asset: assets/fonts/JetBrainsMono-ExtraBold-Italic.ttf
           weight: 800
           style: italic
+    # Bundled so GeniusWalletTypography renders offline (04-02) -- weights
+    # match the type scale's w400/w500/w600/w700 usage. Sourced from the
+    # official rsms/inter v4.1 release (SIL Open Font License 1.1), static
+    # (non-variable) TTFs from extras/ttf/ in that release zip.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700

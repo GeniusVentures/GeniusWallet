@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Typography aligned with the GNUS marketing site (gnus.ai), which uses the
 /// Inter variable font with a Tailwind-style scale (text-xs … text-5xl).
@@ -35,7 +34,8 @@ class GeniusWalletTypography {
     double? letterSpacing,
     List<FontFeature>? fontFeatures,
   }) =>
-      GoogleFonts.inter(
+      TextStyle(
+        fontFamily: 'Inter',
         fontSize: fontSize,
         height: height,
         fontWeight: fontWeight,
