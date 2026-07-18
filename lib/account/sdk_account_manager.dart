@@ -4,10 +4,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/bottom_drawer/bottom_drawer.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -41,7 +48,7 @@ class SDKAccountManagerButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               spacing: 6.0,
               children: [
-                const Icon(Icons.settings_applications),
+                const GWIcon.material(Icons.settings_applications),
                 if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
                   Text(
                     selected != null
@@ -50,7 +57,7 @@ class SDKAccountManagerButton extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
-                const Icon(Icons.arrow_drop_down),
+                const GWIcon.material(Icons.arrow_drop_down),
               ],
             ),
           ),
@@ -62,51 +69,60 @@ class SDKAccountManagerButton extends StatelessWidget {
   Future<void> _showSDKAccountDrawer(BuildContext context) async {
     await ResponsiveDrawer.show(
       context: context,
-      title: 'SDK Accounts',
+      // title/actions deliberately omitted here -- BottomDrawer supplies its
+      // own header, so _ResponsiveDrawerScaffold must not render a competing
+      // AppBar (04-UI-SPEC §5.1, the load-bearing binding rule from Phase 3).
       child: BlocBuilder<AppBloc, AppState>(
         builder: (context, state) {
           final accounts = state.sdkAccounts;
           final selected = state.selectedSDKAccount;
+          // Fail-soft read: registers the InheritedWidget dependency that
+          // forces this content to rebuild on a live appearance toggle
+          // (04-02 D-02).
+          final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
           if (accounts.isEmpty) {
-            return const Center(
-              child: Text(
-                'No SDK accounts available.\nAdd one to get started.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.white70),
-              ),
+            return BottomDrawer(
+              title: 'SDK Accounts',
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: GeniusWalletConsts.space10,
+                  ),
+                  child: Text(
+                    'No SDK accounts available.\nAdd one to get started.',
+                    textAlign: TextAlign.center,
+                    style: GeniusWalletTypography.bodyMd.copyWith(
+                      color: gw.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
             );
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return BottomDrawer(
+            title: 'SDK Accounts',
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                padding: const EdgeInsets.only(
+                  bottom: GeniusWalletConsts.space4,
                 ),
                 child: Text(
                   'Select the account the SDK uses for processing:',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.7),
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: gw.textSecondary,
                   ),
                 ),
               ),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemBuilder: (context, i) => _buildAccountRow(
-                    context,
-                    accounts[i],
-                    isSelected: accounts[i] == selected,
-                  ),
-                  itemCount: accounts.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 6),
+              for (var i = 0; i < accounts.length; i++) ...[
+                if (i > 0) const SizedBox(height: GeniusWalletConsts.space2),
+                _buildAccountRow(
+                  context,
+                  accounts[i],
+                  isSelected: accounts[i] == selected,
                 ),
-              ),
+              ],
             ],
           );
         },
@@ -141,119 +157,183 @@ class SDKAccountManagerButton extends StatelessWidget {
     String address, {
     required bool isSelected,
   }) {
-    final textColor = isSelected
-        ? GeniusWalletColors.deepBlueTertiary
-        : Colors.white;
-    final subColor = isSelected
-        ? GeniusWalletColors.deepBlueTertiary
-        : Colors.grey;
+    // Fail-soft read: registers the InheritedWidget dependency (on the
+    // per-row context passed in from the drawer's own itemBuilder, NOT the
+    // widget-level this.context) that forces this row to rebuild on a live
+    // appearance toggle while the drawer stays open (04-02 D-02).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    // Mode-invariant brand accent for the selected row (formerly the
+    // deepBlueTertiary text color + greenAccent tile fill, collapsed into a
+    // single brandPrimary border/icon accent -- the row's own surface stays
+    // on the appearance-aware gw.surfaceElevated in BOTH states, per
+    // 04-06-PLAN's routing table; brandPrimary text directly on a light
+    // surfaceElevated fails WCAG AA, which is why the accent lives on the
+    // border/icon, not on the body text).
+    final accentColor =
+        isSelected ? GeniusWalletColors.brandPrimary : gw.textPrimary;
 
     final mnemonic = context.read<AppBloc>().api.getSelectedAccountMnemonic();
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        selected: isSelected,
-        selectedTileColor: Colors.greenAccent,
-        onTap: () {
-          if (!isSelected) {
-            context.read<AppBloc>().add(SelectSDKAccount(address));
-            showAppSnackBar(
-              context,
-              'SDK account selected',
-              duration: const Duration(seconds: 1),
-            );
-          }
-        },
-        leading: Icon(
-          isSelected ? Icons.check_circle : Icons.account_balance_wallet,
-          color: textColor,
-        ),
-        title: Text(
-          WalletUtils.getAddressForDisplay(address),
-          style: TextStyle(
-            fontSize: 14,
-            fontFamily: 'JetBrainsMono',
-            color: textColor,
-            fontWeight: FontWeight.w500,
+    return GWCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space6,
+        vertical: GeniusWalletConsts.space4,
+      ),
+      background: gw.surfaceElevated,
+      border: Border.all(
+        color: isSelected ? GeniusWalletColors.brandPrimary : gw.borderSubtle,
+        width: isSelected ? 2 : 1,
+      ),
+      onTap: () {
+        if (!isSelected) {
+          context.read<AppBloc>().add(SelectSDKAccount(address));
+          showAppSnackBar(
+            context,
+            'SDK account selected',
+            duration: const Duration(seconds: 1),
+          );
+        }
+      },
+      child: Row(
+        children: [
+          GWIcon.material(
+            isSelected ? Icons.check_circle : Icons.account_balance_wallet,
+            color: accentColor,
           ),
-        ),
-        subtitle: isSelected
-            ? Text(
-                'Active processing account',
-                style: TextStyle(fontSize: 12, color: subColor),
-              )
-            : null,
-        trailing: isSelected
-            ? MenuAnchor(
-                builder: (context, controller, child) => IconButton(
-                  icon: Icon(Icons.more_vert, size: 20, color: textColor),
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                ),
-                menuChildren: [
-                  MenuItemButton(
-                    leadingIcon: const Icon(Icons.edit_location_alt),
-                    child: Text('Set payout address'),
-                    onPressed: () => _showSetPayoutAddressDialog(context),
+          const SizedBox(width: GeniusWalletConsts.space4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  WalletUtils.getAddressForDisplay(address),
+                  style: GeniusWalletTypography.bodySm.copyWith(
+                    fontFamily: 'JetBrainsMono',
+                    color: gw.textPrimary,
+                    fontWeight: FontWeight.w500,
                   ),
-                  if (mnemonic != null) ...[
-                    MenuItemButton(
-                      leadingIcon: const Icon(Icons.numbers),
-                      child: Text("Copy mnemonic"),
-                      onPressed: () => {
-                        Clipboard.setData(ClipboardData(text: mnemonic)),
-                      },
-                    ),
-                    MenuItemButton(
-                      leadingIcon: const Icon(Icons.qr_code),
-                      child: Text("View mnemonic's QR"),
-                      onPressed: () async => {
-                        await showDialog<void>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            contentPadding: EdgeInsetsGeometry.all(16),
-                            content: SizedBox(
-                              width: GeniusBreakpoints.small * 0.5,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    GeniusWalletConsts.borderRadiusCard,
-                                  ),
-                                  color: Colors.white,
-                                ),
-                                padding: EdgeInsets.all(4),
-                                child: QrImageView(data: mnemonic),
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(),
-                                child: const Text('Cancel'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      },
-                    ),
-                  ],
-                ],
-              )
-            : IconButton(
-                icon: const Icon(
-                  Icons.delete_outline,
-                  size: 20,
-                  color: Colors.redAccent,
                 ),
-                tooltip: 'Delete account',
-                onPressed: () =>
-                    _confirmDeleteSDKAccount(context, address, isSelected),
-              ),
+                if (isSelected)
+                  Text(
+                    'Active processing account',
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: gw.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          isSelected
+              ? MenuAnchor(
+                  // Explicit menuStyle: the reconciled theme no longer
+                  // supplies menuTheme, so an un-styled MenuAnchor container
+                  // reverts to stock Material 3 (04-RESEARCH Pitfall 5).
+                  style: MenuStyle(
+                    backgroundColor:
+                        WidgetStatePropertyAll(gw.surfaceElevated),
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          GeniusWalletConsts.radiusLg,
+                        ),
+                      ),
+                    ),
+                  ),
+                  builder: (context, controller, child) => IconButton(
+                    icon: GWIcon.material(
+                      Icons.more_vert,
+                      color: accentColor,
+                    ),
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                  ),
+                  menuChildren: [
+                    MenuItemButton(
+                      leadingIcon: GWIcon.material(
+                        Icons.edit_location_alt,
+                        color: gw.textPrimary,
+                      ),
+                      style: MenuItemButton.styleFrom(
+                        foregroundColor: gw.textPrimary,
+                      ),
+                      onPressed: () => _showSetPayoutAddressDialog(context),
+                      child: const Text('Set payout address'),
+                    ),
+                    if (mnemonic != null) ...[
+                      MenuItemButton(
+                        leadingIcon: GWIcon.material(
+                          Icons.numbers,
+                          color: gw.textPrimary,
+                        ),
+                        style: MenuItemButton.styleFrom(
+                          foregroundColor: gw.textPrimary,
+                        ),
+                        onPressed: () => {
+                          Clipboard.setData(ClipboardData(text: mnemonic)),
+                        },
+                        child: const Text("Copy mnemonic"),
+                      ),
+                      MenuItemButton(
+                        leadingIcon: GWIcon.material(
+                          Icons.qr_code,
+                          color: gw.textPrimary,
+                        ),
+                        style: MenuItemButton.styleFrom(
+                          foregroundColor: gw.textPrimary,
+                        ),
+                        onPressed: () async => {
+                          // Mnemonic QR display kept UNCHANGED (03-GAP-
+                          // INVENTORY §6): develop's existing qr_flutter
+                          // usage, incl. its intentional white backdrop
+                          // (mode-invariant, required for scannability --
+                          // not routed through GWColors).
+                          await showDialog<void>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              contentPadding: EdgeInsetsGeometry.all(16),
+                              content: SizedBox(
+                                width: GeniusBreakpoints.small * 0.5,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                      GeniusWalletConsts.borderRadiusCard,
+                                    ),
+                                    color: Colors.white,
+                                  ),
+                                  padding: EdgeInsets.all(4),
+                                  child: QrImageView(data: mnemonic),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        },
+                      ),
+                    ],
+                  ],
+                )
+              : IconButton(
+                  icon: const GWIcon.material(
+                    Icons.delete_outline,
+                    color: GeniusWalletColors.statusError,
+                  ),
+                  tooltip: 'Delete account',
+                  onPressed: () =>
+                      _confirmDeleteSDKAccount(context, address, isSelected),
+                ),
+        ],
       ),
     );
   }
@@ -275,26 +355,31 @@ class SDKAccountManagerButton extends StatelessWidget {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    // Pure re-skin of develop's existing confirmation dialog (04-UI-SPEC
+    // §4.1 D-06 note applies to the sibling wallet-drawer; this dialog
+    // already confirms, so the same "resolved, not conditional" logic
+    // holds here too). Copy preserved verbatim.
+    final confirmed = await GWDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete SDK account'),
-        content: Text(
+      title: 'Delete SDK account',
+      message:
           'Are you sure you want to delete the account ${WalletUtils.getAddressForDisplay(address)}?\n'
           'This action cannot be undone.',
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+        GWDialogAction(
+          label: 'Delete',
+          // Mode-invariant statusError destructive fill -- never
+          // Colors.red/redAccent, never routed through GWColors.
+          variant: GWButtonVariant.destructive,
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(true),
+        ),
+      ],
     );
 
     if (confirmed == true && context.mounted) {
