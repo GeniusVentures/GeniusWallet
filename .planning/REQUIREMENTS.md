@@ -76,8 +76,8 @@ off is worse than an obvious gap product can prioritise.
       what can be re-skinned mechanically vs what would need a structural/product decision. The
       inventory, its evidence, and any deferred structural questions are written down for product
 
-- [ ] **GAP-02**: Settings screen (`lib/settings/settings_screen.dart`) — re-skinned in place; structure/rows unchanged
-- [ ] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — re-skinned in place; structure unchanged
+- [x] **GAP-02**: Settings screen (`lib/settings/settings_screen.dart`) — re-skinned in place; structure/rows unchanged
+- [x] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — re-skinned in place; structure unchanged
 - [ ] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — re-skinned in place; flow and routing unchanged
 - [ ] **GAP-05**: Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `screens/banxa_buy_screen.dart`) — re-skinned in place; structure unchanged
 - [ ] **GAP-06**: Misc develop additions (`components/wallet_overview.dart`, `components/loading.dart`, `dashboard/home/widgets/transaction_displays.dart`) — re-skinned in place; structure unchanged
@@ -123,7 +123,7 @@ numbers.
 ### Behavior Preservation (BEH)
 
 - [ ] **BEH-01**: The 37 findings in `.planning/REVIEW_FINDINGS_REDESIGN.md` are used as a checklist — each is confirmed non-regressed as its component lands. They are real, evidenced defects in this design-vs-develop surface (3 are blockers: wallets vanishing at startup, the Banxa KYC redirect stuck on a placeholder, WalletConnect dead on x64), each with a file:line and a fix
-- [ ] **BEH-02**: 3 verified fixes are ported with their components — `7a63b4f` (`!_dirty` crash guard → NAV), `f3fd16f` (dev-tools gating → BLD-03), `d8db88c` (assets/textures → DS-04). They sit on branch `ui-redesign-3.514-develop`, which exists only as a source for these three commits
+- [x] **BEH-02**: 3 verified fixes are ported with their components — `7a63b4f` (`!_dirty` crash guard → NAV), `f3fd16f` (dev-tools gating → BLD-03), `d8db88c` (assets/textures → DS-04). They sit on branch `ui-redesign-3.514-develop`, which exists only as a source for these three commits
 
 ## v2 Requirements
 
@@ -163,9 +163,9 @@ Deferred to future milestones.
 | GAP-01 | Phase 3 — gw_* component library | Complete |
 | NAV-01 | Phase 4 — Navigation shell & chrome | Complete |
 | NAV-02 | Phase 4 — Navigation shell & chrome | Complete |
-| BEH-02 | Phase 4 — Navigation shell & chrome | Pending |
-| GAP-02 | Phase 4 — Navigation shell & chrome | Pending |
-| GAP-03 | Phase 4 — Navigation shell & chrome | Pending |
+| BEH-02 | Phase 4 — Navigation shell & chrome | Complete |
+| GAP-02 | Phase 4 — Navigation shell & chrome | Complete |
+| GAP-03 | Phase 4 — Navigation shell & chrome | Complete |
 | SCR-01 | Phase 5 — Dashboard | Pending |
 | GAP-06 | Phase 5 — Dashboard | Pending |
 | SCR-02 | Phase 6 — Onboarding | Pending |
