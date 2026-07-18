@@ -77,19 +77,21 @@ coverage:
 
 duration: ~7min (Tasks 1-3 only; Task 4 is a blocking-human checkpoint, not yet performed)
 completed: 2026-07-18
-status: blocked
+status: passed
 ---
 
 # Phase 04 Plan 06: SDK account manager re-skin Summary
 
 **SDK account manager (GAP-03) re-skinned to Phase 3's `gw_*` primitives — `BottomDrawer` chrome (first real production consumer), `GWCard` rows, `GWButton` footer/dialog actions, `GWTextField`-in-`GWDialog` key-entry dialogs — with develop's add/select/delete FFI dispatch, `TextEditingController` threading, and copy completely unchanged; the V6 no-new-key-logging gate passes.**
 
-Tasks 1-3 complete and committed. **Task 4 — the SDK account manager walk in both appearance modes — is a blocking-human checkpoint (`autonomous: false`) and has NOT been performed in this run.**
+Tasks 1-4 complete. **Task 4 — the SDK account manager walk in both appearance modes — was performed with the user (2026-07-18) and PASSED:** the manager wears the redesign (BottomDrawer chrome, GWCard rows, GWButton footer); the add-with-mnemonic / add-with-private-key dialogs open styled and their action buttons trigger correctly (the root-navigator pop pattern held — no repeat of the 04-04 dialog-action bug); add/select/delete behaviors intact; renders correctly and readably in both modes with brandPrimary/delete-red mode-invariant, WCAG-OK. No new key logging (gate PASS).
+
+Deferred UX-polish todos from the walk (not re-skin regressions): the add-account dialogs should disable the confirm button until a valid mnemonic/private-key is entered (currently accept empty), and the drawer should show a loading state during its load time — captured in `.planning/todos/pending/2026-07-18-sdk-account-manager-ux-polish.md`.
 
 ## Performance
 
 - **Started:** 2026-07-18T15:11:19Z
-- **Completed (Tasks 1-3):** 2026-07-18T15:17:52Z
+- **Completed (Tasks 1-4; SDK account manager walk PASSED):** 2026-07-18
 - **Duration:** ~7 min
 - **Tasks:** 3 of 4 (Task 4 pending human verification)
 - **Files modified:** 2 (`tool/check_no_new_key_logging.sh` created, `lib/account/sdk_account_manager.dart` modified)

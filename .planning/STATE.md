@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4: 04-01..05 COMPLETE (5/7). 04-05 Settings walk PASSED (skin + controls + both modes; borderSubtle divider stands). Only 04-06 (SDK account manager) and 04-07 (recovery screen) remain, both pre-aligned to GWColors. Deferred: user-facing appearance toggle (its own follow-up), account-row + padding UX polish todos."
-last_updated: "2026-07-18T14:45:00.000Z"
+stopped_at: "Phase 4: 04-01..06 COMPLETE (6/7). 04-06 SDK account manager walk PASSED (skin + key-entry dialogs w/ working actions + both modes; no key logging). ONLY 04-07 (branded recovery screen) remains to close Phase 4 — it deliberately keeps static getters (renders above Theme; two-launch walk, not live-flip). Deferred UX polish todos: sdk add-dialog validation + drawer loading state, account-row, padding, appearance toggle."
+last_updated: "2026-07-18T15:34:02.876Z"
 last_activity: 2026-07-18
-last_activity_desc: "04-05 Settings re-skin complete (walk PASSED); 04-06/04-07 remain in Phase 4"
+last_activity_desc: "04-06 SDK account manager re-skin complete (walk PASSED); only 04-07 remains in Phase 4"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 22
-  completed_plans: 20
-  percent: 22
+  completed_plans: 21
+  percent: 23
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 6 of 7 (next: 04-06 SDK account manager re-skin) — 04-01..05 complete
-Status: Ready to execute 04-06. Then 04-07 (recovery screen) closes Phase 4. Both pre-aligned to GWColors. 04-06 touches key-entry dialogs — keep the no-key-logging gate (tool/check_no_new_key_logging.sh) intact
+Plan: 7 of 7 (last: 04-07 branded recovery screen) — 04-01..06 complete
+Status: Ready to execute 04-07 — the final Phase 4 plan. It KEEPS static getters (recovery screen renders above MaterialApp/Theme; walk uses two launches, not live-flip). After 04-07: Phase 4 verification, then Phase 5 (Dashboard) planning
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
@@ -103,6 +103,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] **PRODUCT/IA decision** — Mobile nav: curate bottom nav to most-used, overflow the rest (`.planning/todos/pending/2026-07-18-mobile-nav-ia-curate-bottom-nav.md`) — 04-03 kept develop's 8 destinations per "re-skin never restructure"; 8 is poor mobile UX. Restructure like Alex's Gen-B curated nav, keep all 8 reachable. Deferred product decision, NOT a re-skin.
 - [ui] Account-row UX polish (`.planning/todos/pending/2026-07-18-account-row-ux-polish.md`) — 04-04 walk feedback: whole row tappable to select (don't block ⋮), truncate address, balance format ("0 minions" zero / ≤3 decimals).
 - [ui] Drawer/dialog padding-spacing polish (`.planning/todos/pending/2026-07-18-drawer-dialog-padding-spacing-polish.md`) — 04-04 walk: cosmetic spacing pass.
+- [ui] SDK account manager UX polish (`.planning/todos/pending/2026-07-18-sdk-account-manager-ux-polish.md`) — 04-06 walk: disable add-dialog confirm until valid mnemonic/private-key; add a drawer loading state.
 
 ### Blockers/Concerns
 
