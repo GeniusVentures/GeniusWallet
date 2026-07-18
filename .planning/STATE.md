@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4 ALL 7 PLANS EXECUTED + walked/PASSED (04-01..07). 04-07 recovery-screen walk PASSED (branded recovery both modes, Go-to-Dashboard escapes, SDK shutdown GENIUS_NODE_RET_OK on close; injected fault reverted). NEXT: Phase 4 goal-backward VERIFICATION (criteria 1-6) via /gsd-verify-work or gsd-verifier, then Phase 5 (Dashboard) planning. Open: 6 UX-polish/product todos + user-facing appearance toggle."
-last_updated: "2026-07-18T15:34:02.876Z"
-last_activity: 2026-07-18
-last_activity_desc: "Phase 4 complete — all 7 re-skin plans executed + walked (04-07 recovery screen PASSED); phase verification next"
+stopped_at: Phase 5 UI-SPEC approved (6/6 dimensions); ready to plan
+last_updated: "2026-07-18T16:12:54.193Z"
+last_activity: 2026-07-17
+last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 11
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 22
   completed_plans: 22
-  percent: 24
+  percent: 27
 ---
 
 # Project State
@@ -136,9 +136,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-17T16:34:14.017Z
-Stopped at: Phase 4 plan 01 executed -- theme wired, D-02 re-walk OUTSTANDING (checkpoint:human-verify)
-Resume file: .planning/phases/04-navigation-shell-chrome/04-01-SUMMARY.md
+Last session: 2026-07-18T16:12:54.186Z
+Stopped at: Phase 5 UI-SPEC approved (6/6 dimensions); ready to plan
+Resume file: .planning/phases/05-dashboard/05-UI-SPEC.md
 
 ## Performance Metrics
 
