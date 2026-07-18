@@ -6,6 +6,8 @@ import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
@@ -15,6 +17,8 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
@@ -231,27 +235,41 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // RECOVERY-SCREEN ROBUSTNESS: ErrorWidget.builder is global and may
+    // replace a widget ABOVE MaterialApp/Theme, so no Theme ancestor is
+    // guaranteed here. This screen therefore reads colors from the
+    // appearance-aware GeniusWalletColors STATIC GETTERS (GWAppearance
+    // global singleton, no BuildContext dependency) rather than a
+    // Theme-extension context read — deliberate inverse of the 04-02
+    // context-read migration (see 04-07-PLAN.md). GWButton below performs
+    // its own internal, pre-existing, fail-soft Theme-extension-or-dark-
+    // fallback read; that is unchanged by this plan and does not affect
+    // this screen's own color access.
     ErrorWidget.builder = (FlutterErrorDetails details) {
       return Material(
-        color: GeniusWalletColors.deepBlueTertiary,
+        color: GeniusWalletColors.surfaceBase,
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                const GWIcon.material(
                   Icons.error_outline,
-                  color: Colors.redAccent,
+                  color: GeniusWalletColors.statusError,
                   size: 64,
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                const SizedBox(height: GeniusWalletConsts.space8),
+                Text(
                   'Something went wrong',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: GeniusWalletTypography.titleLg.copyWith(
+                    color: GeniusWalletColors.textPrimary,
+                  ),
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton(
+                const SizedBox(height: GeniusWalletConsts.space12),
+                GWButton(
+                  label: 'Go to Dashboard',
+                  variant: GWButtonVariant.primary,
                   onPressed: () {
                     if (navigatorKey.currentContext != null) {
                       GoRouter.of(
@@ -259,7 +277,6 @@ class MyApp extends StatelessWidget {
                       ).go('/dashboard');
                     }
                   },
-                  child: const Text('Go to Dashboard'),
                 ),
               ],
             ),
