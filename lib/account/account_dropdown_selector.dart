@@ -52,32 +52,34 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
   }
 
   Future<void> _confirmRenameWallet(BuildContext context, Wallet wallet) async {
+    final appBloc = context.read<AppBloc>();
+    // Capture the ROOT navigator before closing the drawer: closing the drawer
+    // deactivates `context`, so the dialog (pushed on the root navigator by
+    // GWDialog.show) and its action pops must go through this stable
+    // NavigatorState, not the now-defunct outer `context`.
+    final navigator = Navigator.of(context, rootNavigator: true);
     // Close the drawer first so the dialog appears on the correct navigator.
     Navigator.of(context).pop();
 
-    // GWDialog.show() pushes onto the root navigator (useRootNavigator: true,
-    // matching showDialog's own default), so the outer `context` -- already
-    // established as the correct pop target above -- also closes the dialog
-    // itself, mirroring the existing pattern in design_gallery_screen.dart.
     final controller = TextEditingController(text: wallet.walletName);
     final newName = await GWDialog.show<String>(
-      context: context,
+      context: navigator.context,
       title: 'Rename Wallet',
       content: GWTextField(
         controller: controller,
         label: 'Wallet name',
         autofocus: true,
-        onFieldSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+        onFieldSubmitted: (value) => navigator.pop(value.trim()),
       ),
       actions: [
         GWDialogAction(
           label: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => navigator.pop(),
         ),
         GWDialogAction(
           label: 'Rename',
           variant: GWButtonVariant.primary,
-          onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+          onPressed: () => navigator.pop(controller.text.trim()),
         ),
       ],
     );
@@ -86,7 +88,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         newName.isNotEmpty &&
         newName != wallet.walletName &&
         mounted) {
-      context.read<AppBloc>().add(RenameWallet(wallet.address, newName));
+      appBloc.add(RenameWallet(wallet.address, newName));
       if (wallet.address == selectedWallet?.address) {
         setState(() {
           selectedWallet = selectedWallet!.copyWith(walletName: newName);
@@ -96,15 +98,19 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
   }
 
   Future<void> _confirmDeleteWallet(BuildContext context, Wallet wallet) async {
+    final appBloc = context.read<AppBloc>();
+    // Capture the ROOT navigator before closing the drawer: closing the drawer
+    // deactivates `context`, so the dialog (pushed on the root navigator by
+    // GWDialog.show) and its action pops must go through this stable
+    // NavigatorState, not the now-defunct outer `context`.
+    final navigator = Navigator.of(context, rootNavigator: true);
     // Close the drawer first so the dialog appears on the correct navigator.
     Navigator.of(context).pop();
-
-    final appBloc = context.read<AppBloc>();
 
     // Guard: require at least one wallet to remain.
     if (appBloc.state.wallets.length <= 1) {
       showAppSnackBar(
-        context,
+        navigator.context,
         'You must keep at least one wallet.',
         duration: const Duration(seconds: 2),
       );
@@ -115,21 +121,21 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     // (D-06 resolved to "already confirms" -- the sanctioned-exception
     // clause does NOT fire). Copy is preserved verbatim.
     final confirmed = await GWDialog.show<bool>(
-      context: context,
+      context: navigator.context,
       title: 'Delete wallet',
       message: 'Are you sure you want to delete "${wallet.walletName}"?\n\n'
           'This action cannot be undone.',
       actions: [
         GWDialogAction(
           label: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => navigator.pop(false),
         ),
         GWDialogAction(
           label: 'Delete',
           // Mode-invariant statusError destructive fill -- never
           // Colors.red/redAccent, never routed through GWColors.
           variant: GWButtonVariant.destructive,
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () => navigator.pop(true),
         ),
       ],
     );
