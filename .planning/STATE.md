@@ -95,6 +95,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Phases 2–10 are UI phases (`ui_phase: true`, `ui_safety_gate: true`) — each should get a UI-SPEC design contract via `/gsd-ui-phase` before planning
 - Corrected the v1 requirement count in REQUIREMENTS.md: 22 → 24 (previous count was wrong)
 - [ui] Design system has no light-mode treatment (`.planning/todos/pending/2026-07-17-design-system-has-no-light-mode-treatment.md`) — scope unknown; 03-09's both-mode walk produces the count
+- [ui] Const widgets do not re-skin on live appearance toggle (`.planning/todos/pending/2026-07-18-const-widgets-do-not-re-skin-on-live-appearance-toggle.md`) — D-02 finding; const + static color getters ≠ InheritedWidget, so const subtrees keep stale colors on toggle. App-wide. Fix via ThemeExtension/InheritedWidget.
+- [ui] Bundle Inter font — GoogleFonts network fetch fails offline (`.planning/todos/pending/2026-07-18-bundle-inter-font-so-it-loads-offline-instead-of-googlefonts.md`) — D-02 finding; only JetBrainsMono bundled, Inter fetched at runtime → fallback font offline. App-wide.
 
 ### Blockers/Concerns
 
