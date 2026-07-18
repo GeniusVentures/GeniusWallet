@@ -95,12 +95,14 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
       builder: (context, mode, _) {
         final isLight = GWAppearance.isLight;
         return Scaffold(
-          // 244b71e (03-09) worked around develop's then-non-appearance-aware
-          // theme.dart by binding this to surfaceBase directly. Phase 4 (04-01)
-          // now wires an appearance-aware theme.dart, so the ambient theme's own
-          // scaffoldBackgroundColor: surfaceBase supplies the canvas correctly --
-          // reverted to Colors.transparent, matching the reference pattern.
-          backgroundColor: Colors.transparent,
+          // This is a standalone route (router.dart /design_gallery) with nothing
+          // painting behind it, so the Scaffold must supply its own canvas. 04-01
+          // briefly set this to Colors.transparent (matching Alex's reference,
+          // whose gallery sits on a root background develop does not have) -- that
+          // showed the dark void in light mode instead of flipping. Omitting
+          // backgroundColor inherits the now-appearance-aware theme's
+          // scaffoldBackgroundColor: surfaceBase, so the canvas flips with the
+          // toggle. (D-02 re-walk finding.)
           appBar: AppBar(
             title: const Text('Design Gallery'),
             backgroundColor: GeniusWalletColors.surfaceElevated,
