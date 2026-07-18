@@ -17,6 +17,16 @@ class GeniusWalletTypography {
   /// website's `--tracking-tight` (-0.025em) treatment on large headings.
   static const double _trackingTight = -0.4;
 
+  /// Bakes a default text color from the appearance-aware
+  /// `GeniusWalletColors.textPrimary` STATIC GETTER when [color] is omitted.
+  /// This is a BACKWARD-COMPAT fallback only, kept for the many call sites
+  /// not yet migrated to context-resolved color -- it does NOT itself make
+  /// text re-skin live on a `const` widget (see the GWColors ThemeExtension
+  /// migration, 04-02). Live-re-skin call sites must instead pass an
+  /// explicit `color` sourced from `Theme.of(context).extension<GWColors>()`
+  /// (e.g. `GeniusWalletTypography.titleMd.copyWith(color: gw.textPrimary)`),
+  /// which overrides this baked default and rides the registered `Theme`
+  /// InheritedWidget dependency.
   static TextStyle _inter({
     required double fontSize,
     required double height,

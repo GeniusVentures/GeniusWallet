@@ -3,6 +3,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// App theme. Re-evaluated whenever [GWAppearance] changes (main.dart wraps
 /// MaterialApp in a ValueListenableBuilder), so the appearance-aware tokens
@@ -56,6 +57,19 @@ ThemeData getThemeData() {
     scaffoldBackgroundColor: GeniusWalletColors.surfaceBase,
     primarySwatch: Colors.blue,
     colorScheme: colorScheme,
+    // GWColors ThemeExtension -- makes the appearance-aware tokens available
+    // via Theme.of(context).extension<GWColors>() so `const` widgets that
+    // read it register an InheritedWidget dependency and rebuild on a live
+    // appearance toggle (fixes the const-rebuild bug the 04-01 D-02 re-walk
+    // surfaced; see .planning/todos/pending/2026-07-18-const-widgets-do-not-
+    // re-skin-on-live-appearance-toggle.md). MUST be present for BOTH modes
+    // in this single ThemeData return -- getThemeData() re-runs per toggle,
+    // so this one conditional entry covers both; a missing attachment would
+    // leave consumers on their fail-soft `?? GWColors.dark()` default, which
+    // is dark-only, silently rendering the app dark in light mode too.
+    extensions: <ThemeExtension<dynamic>>[
+      isLight ? GWColors.light() : GWColors.dark(),
+    ],
     textTheme: GeniusWalletTypography.toMaterialTextTheme(),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: GeniusWalletColors.brandPrimary,
