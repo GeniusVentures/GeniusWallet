@@ -15,6 +15,8 @@ import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -143,12 +145,13 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final destinations = _visibleDestinations;
     final selected = _currentIndex(context);
     final hideLabels = MediaQuery.sizeOf(context).width < GeniusBreakpoints.xxl;
 
     return ColoredBox(
-      color: GeniusWalletColors.deepBlueCardColor,
+      color: gw.surfaceElevated,
       child: SizedBox(
         height: GeniusWalletConsts.appBarHeight,
         child: Padding(
@@ -168,8 +171,8 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                     final (index, dest) = entry;
                     final isSelected = index == selected;
                     final color = isSelected
-                        ? Colors.greenAccent
-                        : Colors.white.withValues(alpha: 0.6);
+                        ? GeniusWalletColors.brandPrimary
+                        : gw.textSecondary;
 
                     final tabButton = Material(
                       color: Colors.transparent,
@@ -200,10 +203,8 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                     if (!hideLabels) ...[
                                       Text(
                                         dest.label,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: color,
-                                        ),
+                                        style: GeniusWalletTypography.labelMd
+                                            .copyWith(color: color),
                                       ),
                                     ],
                                   ],
@@ -214,7 +215,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                   width: hideLabels ? 20 : 60,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.greenAccent
+                                        ? GeniusWalletColors.brandPrimary
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -236,9 +237,9 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                 children: [
                   ..._buildActionRowWidgets(context),
                   ElevatedButton(
-                    child: const Text(
+                    child: Text(
                       "Buy GNUS",
-                      style: TextStyle(fontSize: 14),
+                      style: GeniusWalletTypography.labelMd,
                     ),
                     onPressed: () async {
                       context.push('/buy');
@@ -288,8 +289,9 @@ class DesktopOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      backgroundColor: gw.surfaceBase,
       appBar: const _DesktopTopBar(),
       body: BlocBuilder<AppBloc, AppState>(
         builder: (context, state) {
