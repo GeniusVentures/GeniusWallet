@@ -4,6 +4,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/scaffold/gw_screen.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 /// SPD log levels exposed in dropdown order (most verbose → silent).
@@ -149,24 +155,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Screen wrapper choice: GWScreen (not AppScreenView) — see SUMMARY for
+    // rationale (this screen owns a Scaffold+AppBar today, matching the
+    // sibling /logs route's SubmitLogsScreen pattern; AppScreenView has no
+    // appBar slot at all, so picking it would drop the "Settings" title —
+    // a structural change, not a re-skin).
+    return GWScreen(
       appBar: AppBar(title: const Text('Settings')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 24.0,
-              children: [
-                _buildLogSection(),
-                _buildNetworkSection(),
-                _buildCrdtSection(),
-              ],
-            ),
-          ),
-        ),
+      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+      maxContentWidth: GeniusBreakpoints.medium,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: GeniusWalletConsts.space12,
+        children: [
+          _buildLogSection(),
+          _buildNetworkSection(),
+          _buildCrdtSection(),
+        ],
       ),
     );
   }
@@ -291,54 +296,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Widget action,
     required Widget child,
   }) {
-    return Card(
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
-            if (loading)
-              const Padding(
-                padding: EdgeInsets.all(12),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else
-              child,
-            const SizedBox(height: 8),
-            if (status != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: status.contains('✅')
-                        ? Colors.greenAccent
-                        : status.contains('Error')
-                        ? Colors.redAccent
-                        : Colors.grey,
-                  ),
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this screen to re-skin on a LIVE appearance toggle (04-02 D-02) — never
+    // read GeniusWalletColors' static getters for this screen's own chrome.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return GWCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GWIcon.material(icon, size: 20, color: gw.textPrimary),
+              const SizedBox(width: GeniusWalletConsts.space4),
+              Text(
+                title,
+                style: GeniusWalletTypography.titleMd.copyWith(
+                  color: gw.textPrimary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            Align(alignment: Alignment.centerRight, child: action),
-          ],
-        ),
+            ],
+          ),
+          // M3's default Divider color (colorScheme.outlineVariant) applies
+          // now that 04-01 dropped dividerTheme (04-RESEARCH §1/§4.1); set an
+          // explicit appearance-aware color here rather than leave it to the
+          // default so contrast against GWCard's surfaceElevated fill is
+          // deterministic in both modes — confirm at the Task 3 walk and
+          // swap to gw.borderStrong if borderSubtle reads too faint.
+          Divider(color: gw.borderSubtle),
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            child,
+          const SizedBox(height: 8),
+          if (status != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                status,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: status.contains('✅')
+                      ? Colors.greenAccent
+                      : status.contains('Error')
+                      ? Colors.redAccent
+                      : Colors.grey,
+                ),
+              ),
+            ),
+          Align(alignment: Alignment.centerRight, child: action),
+        ],
       ),
     );
   }
