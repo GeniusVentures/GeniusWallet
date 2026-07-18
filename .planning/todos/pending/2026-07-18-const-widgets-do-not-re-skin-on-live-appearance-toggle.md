@@ -68,3 +68,12 @@ genius_wallet_decorations, genius_wallet_gradient, token_probe_screen) recorded 
 04-02-PLAN.md's `migration_surface`. They are migrated opportunistically as the
 re-skin plans 04-03..07 rebuild those surfaces (avoids touching a surface twice).
 Close this todo when the deferred set is fully on GWColors.
+
+**Shared-component gap (flagged during the 04-04..07 GWColors alignment,
+2026-07-18):** `gw_card.dart`, `gw_dialog.dart`, and `bottom_drawer.dart` are
+deferred readers used across MULTIPLE screens, so they are not in any single
+re-skin plan's `files_modified` and would otherwise fall through the cracks —
+their internal card/dialog/drawer chrome won't flip live until migrated in place.
+Assign these three to plan 04-04 (which re-skins the drawer + delete dialog
+surfaces): widen 04-04's scope to migrate them, OR handle as an explicit
+follow-up before Phase 4 closes. Decide at 04-04 execution.
