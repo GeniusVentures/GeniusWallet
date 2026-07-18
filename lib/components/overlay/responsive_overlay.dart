@@ -15,6 +15,7 @@ import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/test/dev_tools_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -116,22 +117,61 @@ class _MobileTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft GWColors read (04-02 const-widget live-flip pattern) --
+    // this widget is const-instanced (`bottomNavigationBar: const
+    // _MobileTabBar()`), so appearance-aware tokens must come from the
+    // Theme.of(context) InheritedWidget dependency, not a static getter.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final destinations = _visibleDestinations;
     final selected = _currentIndex(context);
 
-    return BottomNavigationBar(
-      currentIndex: selected,
-      onTap: (index) => context.go(destinations[index].path),
-      items: destinations
-          .map(
-            (d) => BottomNavigationBarItem(
-              icon: Icon(d.icon),
-              activeIcon: Icon(d.icon),
-              label: d.label,
-              tooltip: d.label,
-            ),
-          )
-          .toList(),
+    // Background: GWDecorations.surfaceSheen (Gen-B's token vocabulary,
+    // §2.5) -- a top-lit gradient consistent with the rest of the redesign's
+    // elevated surfaces, rather than a flat transparent fill. Safe to read
+    // directly (not gated through `gw`): it is itself appearance-aware
+    // (GWAppearance.isLight) and, because this Container lives inside
+    // _MobileTabBar's build(), it is only ever evaluated on a build() call
+    // already forced by the `gw` read above.
+    return Container(
+      decoration: BoxDecoration(
+        gradient: GWDecorations.surfaceSheen,
+        border: Border(
+          top: BorderSide(color: gw.borderSubtle, width: 0.5),
+        ),
+      ),
+      child: BottomNavigationBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        currentIndex: selected,
+        onTap: (index) => context.go(destinations[index].path),
+        selectedItemColor: GeniusWalletColors.brandPrimary,
+        unselectedItemColor: gw.textSecondary,
+        selectedIconTheme: const IconThemeData(
+          color: GeniusWalletColors.brandPrimary,
+        ),
+        unselectedIconTheme: IconThemeData(color: gw.textSecondary),
+        selectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
+          color: GeniusWalletColors.brandPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
+          color: gw.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
+        items: destinations
+            .map(
+              (d) => BottomNavigationBarItem(
+                icon: Icon(d.icon),
+                activeIcon: Icon(d.icon),
+                label: d.label,
+                tooltip: d.label,
+              ),
+            )
+            .toList(),
+      ),
     );
   }
 }
