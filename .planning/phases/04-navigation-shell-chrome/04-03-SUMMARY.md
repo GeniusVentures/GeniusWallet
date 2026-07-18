@@ -68,16 +68,16 @@ coverage:
     human_judgment: true
     rationale: "Compile-time analyze proves the code reads the right token but cannot prove the const bottom nav visually re-skins live in the running app or that all 8 destinations are tappable/reachable end to end -- that requires the Task 3 human shell walk, which is outstanding."
 
-duration: ~5min (Tasks 1-2 only; Task 3 is a blocking-human checkpoint, not yet performed)
+duration: ~5min auto (Tasks 1-2); Task 3 shell walk PASSED with user 2026-07-18
 completed: 2026-07-18
-status: blocked
+status: passed
 ---
 
 # Phase 04 Plan 03: Navigation Shell Chrome Re-Skin Summary
 
 **Re-skinned develop's `_DesktopTopBar`/`_MobileTabBar` (both const-instanced) onto the GWColors ThemeExtension so the desktop top bar and mobile bottom nav flip live on an in-place appearance toggle, composing Gen-B's token vocabulary onto develop's unchanged 8-destination set.**
 
-Tasks 1-2 (both `type="auto"`) are complete and committed. **Task 3 — the shell walk (criteria 1 + 2, both appearance modes) — is a `checkpoint:human-verify` (`gate="blocking"`) and has NOT been performed.** This SUMMARY documents the auto-task work only; the walk that confirms it actually works live in the running app remains outstanding.
+Tasks 1-3 complete. **Task 3 — the shell walk (criteria 1 + 2, both appearance modes) — was performed live with the user on 2026-07-18 and PASSED:** app boots to the re-skinned shell; all 8 destinations reachable in the same order with the Web tab landing on its page and no runtime exception; the top bar AND mobile bottom nav wear the redesign and show the correct mode after an appearance flip (both directions); the mobile bottom nav appears on narrow width with all 8 labeled tabs (selected = brand-cyan, unselected muted); WCAG AA contrast holds for selected/unselected labels + icons in both modes. Note (tracked as a todo, not a blocker): there is no user-facing appearance toggle outside the dev Gallery, so the shell's live-flip was exercised via the Gallery toggle + return; the in-place const re-skin is proven by the code pattern + the 04-02 Gallery walk.
 
 ## Performance
 
@@ -167,11 +167,11 @@ None — no external service configuration required.
 
 ## Next Phase Readiness
 
-Tasks 1-2 landed the token-correct, appearance-aware `responsive_overlay.dart` re-skin (both `_DesktopTopBar` and `_MobileTabBar`, plus `DesktopOverlay`'s background). `flutter analyze` is clean against the established baseline and the additive-boundary guard is green after every task. **Task 3 — the human shell walk confirming the live-flip, WCAG AA contrast in both modes, and boot/nav-exception-free operation across all 8 routes — is still outstanding** and blocks this plan's close. `04-04..07` should not be treated as unblocked by this SUMMARY alone; the Task 3 gate must close first, per the same D-02-style pattern 04-02 established.
+Tasks 1-2 landed the token-correct, appearance-aware `responsive_overlay.dart` re-skin (both `_DesktopTopBar` and `_MobileTabBar`, plus `DesktopOverlay`'s background); `flutter analyze` clean against the baseline, additive-boundary guard green after every task; and Task 3's human shell walk PASSED (live-flip, WCAG AA both modes, all 8 routes reachable, no boot/nav exception). **This plan is complete — 04-04 (wallet drawer re-skin) is unblocked.** Reminder for 04-04: widen its scope (or a follow-up) to migrate the shared `gw_card`/`gw_dialog`/`bottom_drawer` chrome to GWColors, and consider folding a user-facing appearance toggle into 04-05 Settings (both tracked as todos).
 
 ---
 *Phase: 04-navigation-shell-chrome*
-*Completed: 2026-07-18 (Tasks 1-2 only; Task 3 outstanding)*
+*Completed: 2026-07-18 (Tasks 1-3; shell walk PASSED)*
 
 ## Self-Check: PASSED
 

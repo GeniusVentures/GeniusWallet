@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4 plan 04-02 COMPLETE (Tasks 1-4). ThemeExtension migration + Inter bundling executed; Task 4 D-02 gallery re-walk PASSED with user — const components re-skin live, Inter offline, OS-follow good. D-02 gate CLOSED. Dark-only count = 3 (disabled checkbox/switch invisible, AppScreenView blank in dark) routed to gap-closure todos. Next: 04-03 nav-shell re-skin."
-last_updated: "2026-07-18T12:35:27.843Z"
+stopped_at: "Phase 4: 04-01/02/03 COMPLETE. 04-03 nav-shell re-skin walk PASSED (shell flips live, WCAG both modes, all 8 routes reachable). Re-skins 04-04..07 pre-aligned to GWColors (b1b9cda). Next: 04-04 wallet drawer — DECIDE at exec whether to widen scope to migrate shared gw_card/gw_dialog/bottom_drawer to GWColors. New gap todo: no user-facing appearance toggle (fold into 04-05 Settings)."
+last_updated: "2026-07-18T13:23:10.107Z"
 last_activity: 2026-07-18
-last_activity_desc: "04-02 complete: ThemeExtension migration + Inter bundling + D-02 re-walk PASSED (gate closed, dark-only count=3)"
+last_activity_desc: "04-03 nav-shell re-skin complete (walk PASSED); re-skins 04-04..07 pre-aligned to GWColors"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 22
-  completed_plans: 17
-  percent: 19
+  completed_plans: 18
+  percent: 20
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 3 of 7 (next: 04-03 nav-shell chrome re-skin) — 04-01 + 04-02 complete, D-02 gate CLOSED
-Status: Ready to execute 04-03. The appearance system now re-skins const components live (04-02); Inter bundled; dark-only findings tracked as gap-closure todos
+Plan: 4 of 7 (next: 04-04 wallet drawer re-skin) — 04-01/02/03 complete, GWColors foundation solid
+Status: Ready to execute 04-04. Re-skins 04-04..07 pre-aligned to GWColors. At 04-04 exec: decide whether to widen scope to migrate shared gw_card/gw_dialog/bottom_drawer
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
