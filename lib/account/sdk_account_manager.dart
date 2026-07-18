@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -127,23 +127,29 @@ class SDKAccountManagerButton extends StatelessWidget {
           );
         },
       ),
+      // These two footer actions had NO inline style: override, so they were
+      // fully dependent on the now-dropped outlinedButtonTheme
+      // (04-RESEARCH §1/§4.2) -- explicitly restyled as GWButton secondary
+      // so they never fall back to stock Material 3 defaults.
       footer: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(GeniusWalletConsts.space6),
         child: Row(
-          spacing: 8,
+          spacing: GeniusWalletConsts.space4,
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: GWButton(
+                label: 'Add with mnemonic',
+                leading: const GWIcon.material(Icons.text_fields),
+                variant: GWButtonVariant.secondary,
                 onPressed: () => _showAddWithMnemonicDialog(context),
-                icon: const Icon(Icons.text_fields, size: 18),
-                label: const AutoSizeText('Add with mnemonic', maxLines: 1),
               ),
             ),
             Expanded(
-              child: OutlinedButton.icon(
+              child: GWButton(
+                label: 'Add with private key',
+                leading: const GWIcon.material(Icons.key),
+                variant: GWButtonVariant.secondary,
                 onPressed: () => _showAddWithPrivateKeyDialog(context),
-                icon: const Icon(Icons.key, size: 18),
-                label: const AutoSizeText('Add with private key', maxLines: 1),
               ),
             ),
           ],
@@ -394,28 +400,31 @@ class SDKAccountManagerButton extends StatelessWidget {
 
   Future<void> _showAddWithMnemonicDialog(BuildContext context) async {
     final controller = TextEditingController();
-    final mnemonic = await showDialog<String>(
+    // SECURITY (V6): this dialog handles mnemonic key material. GWTextField
+    // is a pure presentation-layer wrapper around the SAME
+    // TextEditingController -- it never reads/logs the controller's value;
+    // the value flows straight from controller.text.trim() into the pop
+    // result below, exactly as develop's raw TextField did.
+    final mnemonic = await GWDialog.show<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Add Account with Mnemonic'),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            hintText: 'Enter your 12 or 24 word mnemonic phrase',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Add Account'),
-          ),
-        ],
+      title: 'Add Account with Mnemonic',
+      content: GWTextField(
+        controller: controller,
+        maxLines: 4,
+        hint: 'Enter your 12 or 24 word mnemonic phrase',
       ),
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
+        GWDialogAction(
+          label: 'Add Account',
+          variant: GWButtonVariant.primary,
+          onPressed: () => Navigator.of(context, rootNavigator: true)
+              .pop(controller.text.trim()),
+        ),
+      ],
     );
 
     if (mnemonic != null && mnemonic.isNotEmpty && context.mounted) {
@@ -436,27 +445,30 @@ class SDKAccountManagerButton extends StatelessWidget {
 
   Future<void> _showAddWithPrivateKeyDialog(BuildContext context) async {
     final controller = TextEditingController();
-    final privateKey = await showDialog<String>(
+    // SECURITY (V6): this dialog handles private-key material. GWTextField
+    // is a pure presentation-layer wrapper around the SAME
+    // TextEditingController -- it never reads/logs the controller's value;
+    // the value flows straight from controller.text.trim() into the pop
+    // result below, exactly as develop's raw TextField did.
+    final privateKey = await GWDialog.show<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Add Account with Private Key'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter your Ethereum private key (hex)',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Add Account'),
-          ),
-        ],
+      title: 'Add Account with Private Key',
+      content: GWTextField(
+        controller: controller,
+        hint: 'Enter your Ethereum private key (hex)',
       ),
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
+        GWDialogAction(
+          label: 'Add Account',
+          variant: GWButtonVariant.primary,
+          onPressed: () => Navigator.of(context, rootNavigator: true)
+              .pop(controller.text.trim()),
+        ),
+      ],
     );
 
     if (privateKey != null && privateKey.isNotEmpty && context.mounted) {
@@ -477,27 +489,25 @@ class SDKAccountManagerButton extends StatelessWidget {
 
   Future<void> _showSetPayoutAddressDialog(BuildContext context) async {
     final controller = TextEditingController();
-    final payoutAddress = await showDialog<String>(
+    final payoutAddress = await GWDialog.show<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Set Payout Address'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter the payout address (hex)',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Set Address'),
-          ),
-        ],
+      title: 'Set Payout Address',
+      content: GWTextField(
+        controller: controller,
+        hint: 'Enter the payout address (hex)',
       ),
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
+        GWDialogAction(
+          label: 'Set Address',
+          variant: GWButtonVariant.primary,
+          onPressed: () => Navigator.of(context, rootNavigator: true)
+              .pop(controller.text.trim()),
+        ),
+      ],
     );
 
     if (payoutAddress != null && payoutAddress.isNotEmpty && context.mounted) {
