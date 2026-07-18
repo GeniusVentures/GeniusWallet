@@ -4,9 +4,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/inputs/gw_select.dart';
+import 'package:genius_wallet/components/inputs/gw_switch.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -182,9 +187,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       icon: Icons.terminal,
       status: _logStatus,
       loading: _logLoading,
-      action: FilledButton.icon(
-        label: Text('Apply Log Changes'),
-        icon: Icon(Icons.play_arrow),
+      action: GWButton(
+        variant: GWButtonVariant.primary,
+        label: 'Apply Log Changes',
+        leading: const Icon(Icons.play_arrow),
         onPressed: _applyLogConfig,
       ),
       child: _loggerLevels.isEmpty
@@ -203,7 +209,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? entry.value
         : 'err'; // default if unknown
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
       child: Row(
         children: [
           Expanded(
@@ -215,12 +221,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Expanded(
             flex: 2,
-            child: DropdownButton<String>(
+            child: GWSelect<String>(
               value: currentLevel,
-              isExpanded: true,
-              underline: const SizedBox(),
               items: _spdlogLevels
-                  .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                  .map((l) => GWSelectItem(value: l, label: l))
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _loggerLevels[entry.key] = v);
@@ -238,9 +242,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       icon: Icons.lan,
       status: _networkStatus,
       loading: _networkLoading,
-      action: OutlinedButton.icon(
-        icon: Icon(Icons.save),
-        label: Text('Save Network Overrides'),
+      action: GWButton(
+        variant: GWButtonVariant.secondary,
+        label: 'Save Network Overrides',
+        leading: const Icon(Icons.save),
         onPressed: _saveNetworkConfig,
       ),
       child: _configFieldsTable(
@@ -264,9 +269,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       icon: Icons.backup,
       status: _crdtStatus,
       loading: _crdtLoading,
-      action: OutlinedButton.icon(
-        icon: Icon(Icons.save),
-        label: Text('Save CRDT Overrides'),
+      action: GWButton(
+        variant: GWButtonVariant.secondary,
+        label: 'Save CRDT Overrides',
+        leading: const Icon(Icons.save),
         onPressed: _saveCrdtConfig,
       ),
       child: _configFieldsTable(
@@ -331,19 +337,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             )
           else
             child,
-          const SizedBox(height: 8),
+          const SizedBox(height: GeniusWalletConsts.space4),
           if (status != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
               child: Text(
                 status,
-                style: TextStyle(
-                  fontSize: 12,
+                // ✅/Error logic unchanged (§7 strings preserved verbatim);
+                // only the color mapping changes. statusSuccess/statusError
+                // are mode-invariant (stay on the static getter); the
+                // neutral state MUST come from the extension (gw) so it
+                // flips on a live toggle instead of rendering stale.
+                style: GeniusWalletTypography.bodySm.copyWith(
                   color: status.contains('✅')
-                      ? Colors.greenAccent
+                      ? GeniusWalletColors.statusSuccess
                       : status.contains('Error')
-                      ? Colors.redAccent
-                      : Colors.grey,
+                      ? GeniusWalletColors.statusError
+                      : gw.textSecondary,
                 ),
               ),
             ),
@@ -368,35 +378,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Column(
-      spacing: 8,
+      spacing: GeniusWalletConsts.space4,
       children: config.entries.map((entry) {
         final label = keyLabels[entry.key] ?? entry.key;
         if (boolKeys.contains(entry.key)) {
-          return SwitchListTile(
-            title: Text(label),
+          // GWSwitch renders its own label + 48px-tap-target toggle in a
+          // Row -- dropping the ListTile wrapper per §3.1's mapping table.
+          return GWSwitch(
+            label: label,
             value: entry.value == true,
             onChanged: (v) => setState(() => config[entry.key] = v),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
           );
         }
         return Row(
           children: [
             Expanded(child: Text(label)),
             Expanded(
-              child: TextFormField(
+              child: GWTextField(
                 initialValue: entry.value.toString(),
                 keyboardType: numberKeys.contains(entry.key)
                     ? TextInputType.number
                     : TextInputType.text,
-                style: const TextStyle(fontFamily: 'JetBrainsMono'),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 10,
-                  ),
-                ),
                 onChanged: (v) {
                   if (numberKeys.contains(entry.key)) {
                     final parsed = int.tryParse(v);
