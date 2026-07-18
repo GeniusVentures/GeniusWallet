@@ -64,12 +64,21 @@ coverage:
 # Metrics
 duration: ~25min
 completed: 2026-07-18
-status: in-progress
+status: passed
 ---
 
 # Phase 04 Plan 04: Account Drawer Re-skin + Shared Chrome Migration Summary
 
-**Migrated GWCard/GWDialog/BottomDrawer/ResponsiveDrawer to live `GWColors` ThemeExtension reads and re-skinned the account/wallet drawer row, context menu, and rename/delete dialogs onto GWDialog -- Task 4's human drawer walk is still outstanding.**
+**Migrated GWCard/GWDialog/BottomDrawer/ResponsiveDrawer to live `GWColors` ThemeExtension reads and re-skinned the account/wallet drawer row, context menu, and rename/delete dialogs onto GWDialog. Task 4's human drawer walk was performed with the user (2026-07-18) and PASSED after one fix.**
+
+## Task 4: Drawer Walk — PASSED (2026-07-18, with user, after one fix)
+
+- **Boot + toast:** PASS — stored wallets present at cold boot; "Network Changed" toast fires.
+- **Appearance both modes:** PASS — drawer, dialogs, and the drawer's own panel/sheet background render correctly and are readable in light and dark; no regression to cards/dialogs on other screens from the app-wide GWCard/GWDialog migration.
+- **Drawer actions:** initially FAILED — the rename/delete confirmation dialog buttons did not trigger. Root cause: the re-skin closed the drawer first (deactivating `context`) but the GWDialog action closures still popped with `Navigator.of(context)`, while `GWDialog.show()` pushes on the ROOT navigator — so the pops hit a dead/wrong navigator and the awaited result never returned. **Fixed in `3457e44`** (capture the root `NavigatorState` + `AppBloc` before closing the drawer; show the dialog on `navigator.context` and pop via `navigator` in every action / onFieldSubmitted / guard-snackbar). Re-verified live: Cancel/Rename/Delete all work, rename applies, delete removes + re-selects. Restores develop's behavior.
+- **UX polish captured as todos (not re-skin regressions, deferred):** account-row UX (whole row tappable to select without blocking the ⋮; truncate address; balance formatting — "0 minions" when zero, ≤3 decimals otherwise) and drawer/dialog padding-spacing polish.
+
+**Gate outcome: Task 4 PASSED — 04-04 is complete.** Criteria 3 (boot wallets) and 4 (rename/delete/guard/re-select/live-update + toast) confirmed; the shared card/dialog/drawer chrome now flips live.
 
 ## Performance
 
@@ -154,7 +163,7 @@ Tasks 1-3 are committed and verified (analyze + additive-boundary guard). The pl
 
 ---
 *Phase: 04-navigation-shell-chrome*
-*Completed (Tasks 1-3 only): 2026-07-18*
+*Completed (Tasks 1-4; drawer walk PASSED after fix 3457e44): 2026-07-18*
 
 ## Self-Check: PASSED
 

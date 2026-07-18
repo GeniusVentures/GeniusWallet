@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: navigation-shell-chrome
 status: executing
-stopped_at: "Phase 4: 04-01/02/03 COMPLETE. 04-03 nav-shell re-skin walk PASSED (shell flips live, WCAG both modes, all 8 routes reachable). Re-skins 04-04..07 pre-aligned to GWColors (b1b9cda). Next: 04-04 wallet drawer — DECIDE at exec whether to widen scope to migrate shared gw_card/gw_dialog/bottom_drawer to GWColors. New gap todo: no user-facing appearance toggle (fold into 04-05 Settings)."
-last_updated: "2026-07-18T13:23:10.107Z"
+stopped_at: "Phase 4: 04-01/02/03/04 COMPLETE. 04-04 drawer walk PASSED after fixing a dialog-action navigator bug (3457e44 — GWDialog actions popped a dead/wrong navigator after the drawer closed). Shared card/dialog/drawer chrome now on GWColors. Next: 04-05 Settings (fold in a user-facing appearance toggle). UX-polish todos captured (account-row tap/address/balance-format, drawer/dialog padding)."
+last_updated: "2026-07-18T14:34:55.915Z"
 last_activity: 2026-07-18
-last_activity_desc: "04-03 nav-shell re-skin complete (walk PASSED); re-skins 04-04..07 pre-aligned to GWColors"
+last_activity_desc: "04-04 wallet drawer re-skin complete (walk PASSED after dialog-action fix 3457e44)"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 22
-  completed_plans: 18
-  percent: 20
+  completed_plans: 19
+  percent: 21
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 4 of 7 (next: 04-04 wallet drawer re-skin) — 04-01/02/03 complete, GWColors foundation solid
-Status: Ready to execute 04-04. Re-skins 04-04..07 pre-aligned to GWColors. At 04-04 exec: decide whether to widen scope to migrate shared gw_card/gw_dialog/bottom_drawer
+Plan: 5 of 7 (next: 04-05 Settings re-skin) — 04-01/02/03/04 complete
+Status: Ready to execute 04-05. 04-04 drawer walk PASSED after fixing a dialog-action navigator bug (3457e44). Fold a user-facing appearance toggle into 04-05 (see no-user-facing-appearance-toggle todo). UX-polish todos open (account-row tap/address/balance, padding/spacing)
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
@@ -101,6 +101,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] AppScreenView blank in dark (`.planning/todos/pending/2026-07-18-appscreenview-blank-in-dark.md`) — D-02 re-walk finding; "Screen wrappers" section renders empty in dark. Gap-closure.
 - [ui] No user-facing appearance toggle (`.planning/todos/pending/2026-07-18-no-user-facing-appearance-toggle.md`) — setMode only in dev Gallery/token-probe; add an Appearance row to Settings (04-05).
 - [ui] **PRODUCT/IA decision** — Mobile nav: curate bottom nav to most-used, overflow the rest (`.planning/todos/pending/2026-07-18-mobile-nav-ia-curate-bottom-nav.md`) — 04-03 kept develop's 8 destinations per "re-skin never restructure"; 8 is poor mobile UX. Restructure like Alex's Gen-B curated nav, keep all 8 reachable. Deferred product decision, NOT a re-skin.
+- [ui] Account-row UX polish (`.planning/todos/pending/2026-07-18-account-row-ux-polish.md`) — 04-04 walk feedback: whole row tappable to select (don't block ⋮), truncate address, balance format ("0 minions" zero / ≤3 decimals).
+- [ui] Drawer/dialog padding-spacing polish (`.planning/todos/pending/2026-07-18-drawer-dialog-padding-spacing-polish.md`) — 04-04 walk: cosmetic spacing pass.
 
 ### Blockers/Concerns
 
