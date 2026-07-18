@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:shimmer/shimmer.dart';
 
 class GWLoadingState extends StatelessWidget {
@@ -14,6 +15,9 @@ class GWLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -33,7 +37,7 @@ class GWLoadingState extends StatelessWidget {
             Text(
               message!,
               style: GeniusWalletTypography.bodyMd.copyWith(
-                color: GeniusWalletColors.textSecondary,
+                color: gw.textSecondary,
               ),
             ),
           ],
@@ -59,15 +63,16 @@ class GWSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Shimmer.fromColors(
-      baseColor: GeniusWalletColors.surfaceMenu,
-      highlightColor: GeniusWalletColors.surfaceElevated,
+      baseColor: gw.surfaceMenu,
+      highlightColor: gw.surfaceElevated,
       period: const Duration(milliseconds: 1200),
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: GeniusWalletColors.surfaceMenu,
+          color: gw.surfaceMenu,
           borderRadius: BorderRadius.circular(radius),
         ),
       ),
@@ -84,9 +89,10 @@ class GWShimmerWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Shimmer.fromColors(
-      baseColor: GeniusWalletColors.surfaceMenu,
-      highlightColor: GeniusWalletColors.surfaceElevated,
+      baseColor: gw.surfaceMenu,
+      highlightColor: gw.surfaceElevated,
       period: const Duration(milliseconds: 1200),
       child: child,
     );

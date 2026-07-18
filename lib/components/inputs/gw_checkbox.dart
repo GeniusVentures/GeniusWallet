@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Brand-styled checkbox with optional label / description. Styling follows
 /// the GNUS palette (cyan brand fill, white check, subtle outline when off).
@@ -27,6 +28,9 @@ class GWCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final disabled = !enabled || onChanged == null;
 
     // A natural Checkbox keeps Flutter's padded ~48px tap target (touch floor);
@@ -36,9 +40,7 @@ class GWCheckbox extends StatelessWidget {
         tristate: tristate,
         onChanged: disabled ? null : onChanged,
         side: BorderSide(
-          color: disabled
-              ? GeniusWalletColors.borderSubtle
-              : GeniusWalletColors.brandPrimary,
+          color: disabled ? gw.borderSubtle : GeniusWalletColors.brandPrimary,
           width: 1.5,
         ),
         shape: RoundedRectangleBorder(
@@ -47,14 +49,14 @@ class GWCheckbox extends StatelessWidget {
         ),
         fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.disabled)) {
-            return GeniusWalletColors.borderSubtle;
+            return gw.borderSubtle;
           }
           if (states.contains(WidgetState.selected)) {
             return GeniusWalletColors.brandPrimary;
           }
           return Colors.transparent;
         }),
-        checkColor: GeniusWalletColors.textPrimary,
+        checkColor: gw.textPrimary,
       );
 
     if (label == null && description == null) return box;
@@ -67,9 +69,7 @@ class GWCheckbox extends StatelessWidget {
           Text(
             label!,
             style: GeniusWalletTypography.bodyMd.copyWith(
-              color: disabled
-                  ? GeniusWalletColors.textTertiary
-                  : GeniusWalletColors.textPrimary,
+              color: disabled ? GeniusWalletColors.textTertiary : gw.textPrimary,
             ),
           ),
         if (description != null) ...[
@@ -77,7 +77,7 @@ class GWCheckbox extends StatelessWidget {
           Text(
             description!,
             style: GeniusWalletTypography.bodySm.copyWith(
-              color: GeniusWalletColors.textSecondary,
+              color: gw.textSecondary,
             ),
           ),
         ],

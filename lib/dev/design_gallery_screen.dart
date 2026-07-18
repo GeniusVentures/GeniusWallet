@@ -46,6 +46,7 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Living catalogue of every component in the GW design system. Reach this
 /// screen via the `Gallery` button in the `Dev` row inside `DevToolsWidget`
@@ -94,6 +95,12 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
       valueListenable: GWAppearance.instance,
       builder: (context, mode, _) {
         final isLight = GWAppearance.isLight;
+        // Fail-soft read: resolves the const GWIcon.material call site's
+        // color from the GWColors extension instead of the static getter
+        // (pure access-path change; this builder already rebuilds on toggle
+        // via ValueListenableBuilder, so this keeps that call site consistent
+        // with the migrated components below rather than changing behavior).
+        final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
         return Scaffold(
           // This is a standalone route (router.dart /design_gallery) with nothing
           // painting behind it, so the Scaffold must supply its own canvas. 04-01
@@ -664,7 +671,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                       children: [
                         GWIcon.material(
                           Icons.account_balance_wallet_outlined,
-                          color: GeniusWalletColors.textPrimary,
+                          color: gw.textPrimary,
                         ),
                         const SizedBox(height: GeniusWalletConsts.space2),
                         Text(

@@ -4,6 +4,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 enum GWButtonVariant {
   primary,
@@ -97,7 +98,10 @@ class GWButton extends StatelessWidget {
     }
   }
 
-  _Palette _palette() {
+  // Fail-soft read: registers the InheritedWidget dependency that forces
+  // this const-instanced widget to rebuild on a live appearance toggle. `gw`
+  // is threaded in from build() so _palette() stays a plain method.
+  _Palette _palette(GWColors gw) {
     switch (variant) {
       case GWButtonVariant.primary:
         return _Palette(
@@ -118,27 +122,27 @@ class GWButton extends StatelessWidget {
         );
       case GWButtonVariant.tertiary:
         return _Palette(
-          background: GeniusWalletColors.surfaceElevated,
-          foreground: GeniusWalletColors.textPrimary,
-          border: BorderSide(color: GeniusWalletColors.borderSubtle),
+          background: gw.surfaceElevated,
+          foreground: gw.textPrimary,
+          border: BorderSide(color: gw.borderSubtle),
         );
       case GWButtonVariant.ghost:
         return _Palette(
           background: Colors.transparent,
-          foreground: GeniusWalletColors.textPrimary,
+          foreground: gw.textPrimary,
           border: null,
         );
       case GWButtonVariant.destructive:
         return _Palette(
           background: GeniusWalletColors.statusError,
-          foreground: GeniusWalletColors.textPrimary,
+          foreground: gw.textPrimary,
           border: null,
         );
       case GWButtonVariant.icon:
         return _Palette(
-          background: GeniusWalletColors.surfaceElevated,
-          foreground: GeniusWalletColors.textPrimary,
-          border: BorderSide(color: GeniusWalletColors.borderSubtle),
+          background: gw.surfaceElevated,
+          foreground: gw.textPrimary,
+          border: BorderSide(color: gw.borderSubtle),
         );
       case GWButtonVariant.gradient:
         return _Palette(
@@ -153,7 +157,8 @@ class GWButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = _palette();
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final palette = _palette(gw);
     final disabled = onPressed == null || isLoading;
     final hasGradient = palette.gradient != null;
     final bg = disabled && variant != GWButtonVariant.ghost

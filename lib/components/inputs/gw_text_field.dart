@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class GWTextField extends StatelessWidget {
   const GWTextField({
@@ -60,6 +61,9 @@ class GWTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -68,7 +72,7 @@ class GWTextField extends StatelessWidget {
           Text(
             label!,
             style: GeniusWalletTypography.labelMd.copyWith(
-              color: GeniusWalletColors.textSecondary,
+              color: gw.textSecondary,
             ),
           ),
           const SizedBox(height: GeniusWalletConsts.space4),
@@ -97,31 +101,31 @@ class GWTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GeniusWalletTypography.bodyLg.copyWith(
-              color: GeniusWalletColors.textSecondary,
+              color: gw.textSecondary,
             ),
             prefixIcon: prefix,
             suffixIcon: suffix,
             counterText: '',
             filled: true,
-            fillColor: GeniusWalletColors.surfaceElevated,
+            fillColor: gw.surfaceElevated,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: GeniusWalletConsts.space8,
               vertical: GeniusWalletConsts.space8,
             ),
-            border: _border(GeniusWalletColors.borderSubtle),
-            enabledBorder: _border(GeniusWalletColors.borderSubtle),
+            border: _border(gw.borderSubtle),
+            enabledBorder: _border(gw.borderSubtle),
             focusedBorder: _border(GeniusWalletColors.brandPrimary, width: 2),
             errorBorder: _border(GeniusWalletColors.statusError),
             focusedErrorBorder:
                 _border(GeniusWalletColors.statusError, width: 2),
-            disabledBorder: _border(GeniusWalletColors.borderSubtle),
+            disabledBorder: _border(gw.borderSubtle),
             errorText: errorText,
             errorStyle: GeniusWalletTypography.bodySm.copyWith(
               color: GeniusWalletColors.statusError,
             ),
             helperText: errorText == null ? helper : null,
             helperStyle: GeniusWalletTypography.bodySm.copyWith(
-              color: GeniusWalletColors.textSecondary,
+              color: gw.textSecondary,
             ),
           ),
         ),
@@ -178,6 +182,7 @@ class _GWPasswordFieldState extends State<GWPasswordField> {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return GWTextField(
       controller: widget.controller,
       label: widget.label,
@@ -198,7 +203,7 @@ class _GWPasswordFieldState extends State<GWPasswordField> {
         icon: Icon(
           _obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
           size: 20,
-          color: GeniusWalletColors.textSecondary,
+          color: gw.textSecondary,
         ),
         onPressed: () => setState(() => _obscured = !_obscured),
       ),
@@ -224,23 +229,24 @@ class GWSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return GWTextField(
       controller: controller,
       hint: hint,
       autofocus: autofocus,
       onChanged: onChanged,
-      prefix: const Icon(
+      prefix: Icon(
         Icons.search,
         size: 20,
-        color: GeniusWalletColors.textSecondary,
+        color: gw.textSecondary,
       ),
       suffix: onClear != null
           ? IconButton(
               tooltip: 'Clear',
-              icon: const Icon(
+              icon: Icon(
                 Icons.close,
                 size: 18,
-                color: GeniusWalletColors.textSecondary,
+                color: gw.textSecondary,
               ),
               onPressed: onClear,
             )

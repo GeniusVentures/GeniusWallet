@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class GWTokenRow extends StatelessWidget {
   const GWTokenRow({
@@ -27,6 +27,9 @@ class GWTokenRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -59,13 +62,15 @@ class GWTokenRow extends StatelessWidget {
                   children: [
                     Text(
                       symbol,
-                      style: GeniusWalletTypography.titleMd,
+                      style: GeniusWalletTypography.titleMd
+                          .copyWith(color: gw.textPrimary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       name,
-                      style: GeniusWalletTypography.bodySm,
+                      style: GeniusWalletTypography.bodySm
+                          .copyWith(color: gw.textSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -81,14 +86,16 @@ class GWTokenRow extends StatelessWidget {
                   children: [
                     Text(
                       balance!,
-                      style: GeniusWalletTypography.numericBody,
+                      style: GeniusWalletTypography.numericBody
+                          .copyWith(color: gw.textPrimary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (subBalance != null)
                       Text(
                         subBalance!,
-                        style: GeniusWalletTypography.bodySm,
+                        style: GeniusWalletTypography.bodySm
+                            .copyWith(color: gw.textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -106,13 +113,18 @@ class _FallbackDot extends StatelessWidget {
   const _FallbackDot();
 
   @override
-  Widget build(BuildContext context) => CircleAvatar(
-        radius: 20,
-        backgroundColor: GeniusWalletColors.surfaceMenu,
-        child: const Icon(
-          Icons.token,
-          size: 18,
-          color: GeniusWalletColors.textSecondary,
-        ),
-      );
+  Widget build(BuildContext context) {
+    // Separate const StatelessWidget with its own build() -- needs its own
+    // fail-soft read.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: gw.surfaceMenu,
+      child: Icon(
+        Icons.token,
+        size: 18,
+        color: gw.textSecondary,
+      ),
+    );
+  }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class GWEmptyState extends StatelessWidget {
   const GWEmptyState({
@@ -23,6 +23,9 @@ class GWEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(GeniusWalletConsts.space12),
@@ -35,12 +38,12 @@ class GWEmptyState extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: GWDecorations.surfaceSheen,
                 shape: BoxShape.circle,
-                border: Border.all(color: GeniusWalletColors.borderSubtle),
+                border: Border.all(color: gw.borderSubtle),
               ),
               child: Icon(
                 icon,
                 size: 32,
-                color: GeniusWalletColors.textSecondary,
+                color: gw.textSecondary,
               ),
             ),
             const SizedBox(height: GeniusWalletConsts.space8),
@@ -54,7 +57,7 @@ class GWEmptyState extends StatelessWidget {
               Text(
                 message!,
                 style: GeniusWalletTypography.bodyMd.copyWith(
-                  color: GeniusWalletColors.textSecondary,
+                  color: gw.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),

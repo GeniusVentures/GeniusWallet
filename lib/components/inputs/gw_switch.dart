@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Brand-styled toggle switch. Use for binary settings (notifications,
 /// biometric unlock, network toggles). Prefers a label-on-left layout so the
@@ -24,6 +25,9 @@ class GWSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final disabled = !enabled || onChanged == null;
 
     final toggle = Switch.adaptive(
@@ -31,10 +35,10 @@ class GWSwitch extends StatelessWidget {
       onChanged: disabled ? null : onChanged,
       activeColor: GeniusWalletColors.brandPrimary,
       activeTrackColor: GeniusWalletColors.brandPrimary.withAlpha(140),
-      inactiveThumbColor: GeniusWalletColors.textPrimary,
-      inactiveTrackColor: GeniusWalletColors.surfaceMenu,
+      inactiveThumbColor: gw.textPrimary,
+      inactiveTrackColor: gw.surfaceMenu,
       trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
-        (states) => GeniusWalletColors.borderSubtle,
+        (states) => gw.borderSubtle,
       ),
       // Keep Flutter's padded 48px min tap target (was shrinkWrap → ~30-40px).
     );
@@ -63,7 +67,7 @@ class GWSwitch extends StatelessWidget {
                       style: GeniusWalletTypography.bodyMd.copyWith(
                         color: disabled
                             ? GeniusWalletColors.textTertiary
-                            : GeniusWalletColors.textPrimary,
+                            : gw.textPrimary,
                       ),
                     ),
                   if (description != null) ...[
@@ -71,7 +75,7 @@ class GWSwitch extends StatelessWidget {
                     Text(
                       description!,
                       style: GeniusWalletTypography.bodySm.copyWith(
-                        color: GeniusWalletColors.textSecondary,
+                        color: gw.textSecondary,
                       ),
                     ),
                   ],

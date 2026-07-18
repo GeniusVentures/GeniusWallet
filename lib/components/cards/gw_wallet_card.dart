@@ -2,9 +2,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Replacement for the Parabeac-generated WalletCard widget.
 /// Visual-only surface with icon + name + optional trailing arrow.
@@ -24,6 +24,9 @@ class GWWalletCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return GWCard(
       onTap: onTap,
       radius: GeniusWalletConsts.radiusPill,
@@ -50,18 +53,19 @@ class GWWalletCard extends StatelessWidget {
                 else
                   CircleAvatar(
                     radius: 15,
-                    backgroundColor: GeniusWalletColors.surfaceMenu,
+                    backgroundColor: gw.surfaceMenu,
                     child: Icon(
                       Icons.account_balance_wallet,
                       size: 16,
-                      color: GeniusWalletColors.textPrimary,
+                      color: gw.textPrimary,
                     ),
                   ),
                 const SizedBox(width: GeniusWalletConsts.space6),
                 Flexible(
                   child: AutoSizeText(
                     walletName ?? '',
-                    style: GeniusWalletTypography.bodyMd,
+                    style: GeniusWalletTypography.bodyMd
+                        .copyWith(color: gw.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
