@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
@@ -52,28 +55,31 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     // Close the drawer first so the dialog appears on the correct navigator.
     Navigator.of(context).pop();
 
+    // GWDialog.show() pushes onto the root navigator (useRootNavigator: true,
+    // matching showDialog's own default), so the outer `context` -- already
+    // established as the correct pop target above -- also closes the dialog
+    // itself, mirroring the existing pattern in design_gallery_screen.dart.
     final controller = TextEditingController(text: wallet.walletName);
-    final newName = await showDialog<String>(
+    final newName = await GWDialog.show<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename Wallet'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Wallet name'),
-          onSubmitted: (value) => Navigator.of(ctx).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Rename'),
-          ),
-        ],
+      title: 'Rename Wallet',
+      content: GWTextField(
+        controller: controller,
+        label: 'Wallet name',
+        autofocus: true,
+        onFieldSubmitted: (value) => Navigator.of(context).pop(value.trim()),
       ),
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        GWDialogAction(
+          label: 'Rename',
+          variant: GWButtonVariant.primary,
+          onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+        ),
+      ],
     );
 
     if (newName != null &&
@@ -105,26 +111,27 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    // This is a PURE re-skin of develop's existing confirmation dialog
+    // (D-06 resolved to "already confirms" -- the sanctioned-exception
+    // clause does NOT fire). Copy is preserved verbatim.
+    final confirmed = await GWDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete wallet'),
-        content: Text(
-          'Are you sure you want to delete "${wallet.walletName}"?\n\n'
+      title: 'Delete wallet',
+      message: 'Are you sure you want to delete "${wallet.walletName}"?\n\n'
           'This action cannot be undone.',
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context).pop(false),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+        GWDialogAction(
+          label: 'Delete',
+          // Mode-invariant statusError destructive fill -- never
+          // Colors.red/redAccent, never routed through GWColors.
+          variant: GWButtonVariant.destructive,
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+      ],
     );
 
     if (confirmed == true && mounted) {
