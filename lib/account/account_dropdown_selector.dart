@@ -9,6 +9,8 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -152,15 +154,18 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         builder: (context, appState) {
           final wallets = appState.wallets;
           if (wallets.isEmpty) {
-            return const Center(
+            final gw =
+                Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+            return Center(
               child: Text(
                 "You have no wallets!",
-                style: TextStyle(fontSize: 16, color: Colors.white70),
+                style: TextStyle(fontSize: 16, color: gw.textPrimary70),
               ),
             );
           }
           return ListView.separated(
             itemBuilder: (context, i) => _buildDrawerRow(
+              context,
               wallets[i],
               wallets[i].walletName == selectedWallet?.walletName,
             ),
@@ -194,21 +199,32 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     await Hive.box(walletBoxName).put(selectedWalletKey, selected.address);
   }
 
-  Widget _buildDrawerRow(Wallet wallet, bool isSelected) {
+  Widget _buildDrawerRow(
+    BuildContext context,
+    Wallet wallet,
+    bool isSelected,
+  ) {
+    // Fail-soft read: registers the InheritedWidget dependency (on the
+    // per-row context passed in from the drawer's own itemBuilder, NOT the
+    // widget-level this.context) that forces this row to rebuild on a live
+    // appearance toggle while the drawer stays open (04-02 D-02).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
     final isWatched = wallet.walletType == WalletType.tracking;
 
-    final textColor = isSelected
-        ? GeniusWalletColors.deepBlueTertiary
-        : Colors.white;
+    // Selected-row text/icons stay on the mode-invariant on-brand token
+    // (WCAG-safe against the brandPrimary fill); unselected rows read the
+    // appearance-aware primary/secondary text tokens.
+    final textColor =
+        isSelected ? GeniusWalletColors.textOnBrand : gw.textPrimary;
 
-    final subColor = isSelected
-        ? GeniusWalletColors.deepBlueTertiary
-        : Colors.grey;
+    final subColor =
+        isSelected ? GeniusWalletColors.textOnBrand : gw.textSecondary;
 
     return ListTile(
       selected: isSelected,
-      selectedTileColor: Colors.greenAccent,
-      tileColor: GeniusWalletColors.deepBlueCardColor,
+      selectedTileColor: GeniusWalletColors.brandPrimary,
+      tileColor: gw.surfaceElevated,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onTap: () => Navigator.of(context).pop(wallet),
       leading: _buildAvatar(wallet, isSelected: isSelected, size: 36),
@@ -282,6 +298,18 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       trailing: wallet.address.isEmpty
           ? null
           : MenuAnchor(
+              // Explicit menuStyle: the reconciled theme no longer supplies
+              // menuTheme, so an un-styled MenuAnchor container reverts to
+              // stock Material 3 (04-RESEARCH Pitfall 5).
+              style: MenuStyle(
+                backgroundColor: WidgetStatePropertyAll(gw.surfaceElevated),
+                shape: WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(GeniusWalletConsts.radiusLg),
+                  ),
+                ),
+              ),
               builder: (context, controller, child) => IconButton(
                 icon: Icon(Icons.more_vert, size: 20, color: textColor),
                 onPressed: () {
@@ -294,7 +322,10 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               ),
               menuChildren: [
                 MenuItemButton(
-                  leadingIcon: const Icon(Icons.copy, size: 20),
+                  leadingIcon: Icon(Icons.copy, size: 20, color: gw.textPrimary),
+                  style: MenuItemButton.styleFrom(
+                    foregroundColor: gw.textPrimary,
+                  ),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: wallet.address));
                     HapticFeedback.lightImpact();
@@ -309,7 +340,11 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 ),
                 if (wallet.walletType != WalletType.sgnus)
                   MenuItemButton(
-                    leadingIcon: const Icon(Icons.edit_outlined, size: 20),
+                    leadingIcon: Icon(Icons.edit_outlined,
+                        size: 20, color: gw.textPrimary),
+                    style: MenuItemButton.styleFrom(
+                      foregroundColor: gw.textPrimary,
+                    ),
                     onPressed: () => _confirmRenameWallet(context, wallet),
                     child: const Text('Rename'),
                   ),
@@ -339,12 +374,12 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final isWatched = wallet.walletType == WalletType.tracking;
     return CircleAvatar(
       radius: size / 2 - 2,
-      backgroundColor: Colors.greenAccent,
+      backgroundColor: GeniusWalletColors.brandPrimary,
       child: isWatched
           ? const Icon(
               Icons.remove_red_eye_outlined,
               size: 20,
-              color: GeniusWalletColors.deepBlueTertiary,
+              color: GeniusWalletColors.textOnBrand,
             )
           : Image.asset(
               'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
@@ -360,10 +395,12 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       builder: (context, state) {
         final wallets = state.wallets;
         if (wallets.isEmpty) {
-          return const Center(
+          final gw =
+              Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+          return Center(
             child: Text(
               "You have no wallets!",
-              style: TextStyle(fontSize: 16, color: Colors.white70),
+              style: TextStyle(fontSize: 16, color: gw.textPrimary70),
             ),
           );
         }
