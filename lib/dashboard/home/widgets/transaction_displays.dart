@@ -51,16 +51,9 @@ Widget _buildRow(
 }
 
 Widget _buildDetailsCard(BuildContext context, List<Widget> rows) {
-  final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-  return Container(
-    decoration: GWDecorations.surface(
-      radius: GeniusWalletConsts.radiusMd,
-      border: gw.borderSubtle,
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(spacing: 10.0, children: rows),
-    ),
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
+    child: Column(spacing: 10.0, children: rows),
   );
 }
 
@@ -93,16 +86,9 @@ Widget _buildCoinIconWithBadge(
             decoration: BoxDecoration(
               color: bgColor,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: GeniusWalletColors.textOnBrand,
-                width: 1.5,
-              ),
+              border: Border.all(color: Colors.white, width: 1.5),
             ),
-            child: Icon(
-              icon,
-              size: badgeSize * 0.55,
-              color: GeniusWalletColors.textOnBrand,
-            ),
+            child: Icon(icon, size: badgeSize * 0.55, color: Colors.white),
           ),
         ),
       ],
