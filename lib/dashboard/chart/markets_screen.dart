@@ -153,12 +153,17 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
                       return Expanded(
                         child: GridView.builder(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.fromLTRB(
+                            GeniusWalletConsts.space8,
+                            GeniusWalletConsts.space6,
+                            GeniusWalletConsts.space8,
+                            GeniusWalletConsts.space10,
+                          ),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: getCrossAxisCount(context),
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
+                                crossAxisSpacing: GeniusWalletConsts.space8,
+                                mainAxisSpacing: GeniusWalletConsts.space10,
                                 mainAxisExtent: 80,
                               ),
                           itemCount: coins.length,
