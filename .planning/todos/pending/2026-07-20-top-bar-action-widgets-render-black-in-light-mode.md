@@ -32,10 +32,28 @@ Distinct from [[2026-07-17-design-system-has-no-light-mode-treatment]] (which is
 mesh/canvas BACKGROUND effects being dark-only by design) — this is the foreground chrome
 controls failing to adopt light-mode surface tokens.
 
-## Solution
+## Root cause (found 2026-07-20 audit — broader than "top bar")
 
-TBD — audit each widget's surface/background color source and migrate the hardcoded dark
-fill to the appearance-aware token path (`Theme.of(context).extension<GWColors>()` surface
-fields, per the 04-02 / 04-04 discipline), so they flip live on an appearance toggle. Verify
-in both modes on a live flip. Keep develop's behavior; re-skin only. Confirm WCAG AA in light
-mode for each control after the fix. Route via GSD before implementing.
+The primary defect is THEME-LEVEL, not per-widget: `lib/theme/theme.dart`'s global
+`textButtonTheme` sets `backgroundColor: GeniusWalletColors.btnFilter` — a fixed dark-navy
+`const` (`Color.fromARGB(255, 19, 33, 53)`) that is NOT appearance-aware. So EVERY bare
+`TextButton` in the app renders dark-navy-fill + near-black `textPrimary` ink in light mode =
+dark-on-dark, illegible, and never flips against the light chrome. This is the shared cause
+behind the network / SDK / account selectors, the SGNUS connection button, and Submit-Job —
+not just the top bar. On top of the theme bug, individual widgets add hardcoded colors:
+- `reown_connect_button.dart` — hardcoded `deepBlueCardColor` fill + `Colors.white` text +
+  `Colors.greenAccent` icon + faint `Colors.red/amber/orange` alpha state tints (none flip).
+- `sgnus_connection_widget.dart` (status) — `Colors.white`/`Colors.white70` text on the light
+  hero → invisible (HARD FAIL).
+- `submit_job_dashboard_button.dart` — hardcoded `Colors.greenAccent` icon.
+- `network_dropdown_selector.dart` — `Colors.white70` empty-state text.
+- `account_dropdown_selector.dart` — `Colors.redAccent` delete menu item.
+Already OK: "Buy GNUS" (transparent + brand border), GNUS/Minions toggle (uses `textOnBrand`,
+§3.1-safe). No control ships the raw white-on-brand §3.1 defect.
+
+## Solution — IN PROGRESS via quick task 260720-eu9 (2026-07-20)
+
+Root theme fix (make textButton background appearance-aware in theme.dart, fixing all bare
+TextButtons app-wide) + per-widget hardcoded-color migrations to GWColors/status tokens +
+convert Submit Job and Buy GNUS to branded GWButton. Verify in BOTH modes app-wide (theme
+change has app-wide blast radius). WCAG AA for each control. Re-skin only; keep behavior.
