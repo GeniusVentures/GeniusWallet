@@ -165,7 +165,12 @@ class _NewsCardState extends State<_NewsCard> {
                     children: [
                       Text(
                         widget.article.title.trim(),
-                        style: GeniusWalletTypography.titleMd,
+                        // Hover box is ALWAYS Colors.black87 regardless of
+                        // app appearance -- overlay text uses the fixed
+                        // dark-palette (light) tokens, not gw.* (which
+                        // would go dark-on-dark in light mode).
+                        style: GeniusWalletTypography.titleMd
+                            .copyWith(color: GWColors.dark().textPrimary),
                         textAlign: TextAlign.center,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
@@ -173,7 +178,7 @@ class _NewsCardState extends State<_NewsCard> {
                       Text(
                         widget.article.pubDate,
                         style: GeniusWalletTypography.bodySm
-                            .copyWith(color: gw.textSecondary),
+                            .copyWith(color: GWColors.dark().textSecondary),
                       ),
                     ],
                   ),
@@ -193,10 +198,12 @@ class _TextOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Container(
       // Scrim over a photo, not a brand surface — intentionally kept as raw
       // black, per UI-SPEC §4.4 (the one named exception to zero-raw-color).
+      // The scrim is ALWAYS dark regardless of app appearance, so its
+      // overlay text uses the fixed dark-palette (light) tokens below, not
+      // gw.* -- gw.* would go dark-on-dark-scrim in light mode.
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -212,14 +219,15 @@ class _TextOverlay extends StatelessWidget {
         children: [
           Text(
             article.title.trim(),
-            style: GeniusWalletTypography.titleMd,
+            style: GeniusWalletTypography.titleMd
+                .copyWith(color: GWColors.dark().textPrimary),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             article.pubDate,
             style: GeniusWalletTypography.bodySm
-                .copyWith(color: gw.textSecondary),
+                .copyWith(color: GWColors.dark().textSecondary),
           ),
         ],
       ),
