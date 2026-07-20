@@ -34,7 +34,7 @@ key-decisions:
   - "develop's dead `displayBalance` ternary was removed rather than preserved — the `balance == 0` arm was unreachable behind the earlier `if (balance == 0) return` and keeping it would have been an unused_local_variable once the static Text became GWAnimatedNumber."
   - "'No funds available' follows the spec to bodyMd + statusError, which drops develop's FontWeight.bold. Flagged for the walk in case the lost emphasis reads as a regression."
 
-requirements-completed: []  # SCR-01 / GAP-06 NOT claimed — Task 2's blocking walk has not been performed
+requirements-completed: [SCR-01, GAP-06]  # Task 2 blocking walk APPROVED 2026-07-20 (fresh GW_DEV_TOOLS run; live-flip verified via new dev-tools bubble appearance toggle)
 
 # Coverage metadata — Task 1 automated gates only. Task 2 (checkpoint:human-verify,
 # gate="blocking") is NOT YET PERFORMED; every visual/behavioural claim below is
@@ -49,7 +49,7 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 1 — hero matches the Release exe reference and counts up on first paint, both modes"
-        status: pending
+        status: pass
     human_judgment: true
     rationale: "Token wiring is proven statically. That the hero actually reads as the redesign and that the count-up animation fires on first paint are visual facts only the walk can establish."
   - id: D2
@@ -61,7 +61,7 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 2 — toggle switches units, balance display / connection widgets / Submit Job all functional, nothing of Alex's IA present on screen"
-        status: pending
+        status: pass
     human_judgment: false
   - id: D3
     description: "'No funds available' uses statusError (mode-invariant) replacing hardcoded Colors.red; GNUS/Minions ToggleButtons re-skinned with behaviour intact"
@@ -72,7 +72,7 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 2 — the zero-funds message reads in statusError and the toggle is legible in BOTH modes (this is where the textOnBrand substitution gets its real check)"
-        status: pending
+        status: pass
     human_judgment: true
     rationale: "The 1.96:1 -> 10.12:1 correction is computed, not seen. The walk is what confirms the selected toggle segment is actually readable on the cyan fill in both modes."
   - id: D4
@@ -84,31 +84,43 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 3 — no hero flash before account load"
-        status: pending
+        status: pass
     human_judgment: false
   - id: D5
     description: "The hero re-skins LIVE on an in-place appearance toggle"
     requirement: "SCR-01"
     verification:
       - kind: manual
-        ref: "Task 2 walk step 4 — BLOCKED, structurally unverifiable; see 'Outstanding' below"
-        status: blocked
+        ref: "Task 2 walk step 4 — PASS (2026-07-20). Live in-place flip performed via the new dev-tools bubble appearance toggle (quick task 260720-bgl); label + balance figure re-skinned immediately, no stale static-getter read."
+        status: pass
     human_judgment: true
-    rationale: "Carries 05-01's recorded gap forward unchanged: there is no user-facing appearance toggle, so an IN-PLACE flip cannot be performed. Not claimable as a pass."
+    rationale: "Previously BLOCKED — no user-facing/in-place appearance toggle existed. Quick task 260720-bgl added a dev-only bubble with an in-place light/dark toggle usable over ANY screen, which makes this clause verifiable in dev builds. Walked and passed."
 
 # Metrics
 duration: ~15min (Task 1)
 completed: 2026-07-20
-status: awaiting-verification
+walk_completed: 2026-07-20  # Task 2 blocking checkpoint APPROVED
+status: complete
 ---
 
 # Phase 05 Plan 02: Hero Balance Re-skin Summary
 
 **Re-skinned develop's hero balance / wallet overview in place — `headlineMd` label on `gw.textSecondary`, the balance figure as `numericDisplay` counting up through `GWAnimatedNumber`, `statusError` for "No funds available", and a token-re-skinned GNUS/Minions toggle — while carrying develop's SGNUS/non-SGNUS branches and the connection/submit-job stack byte-identical. One WCAG AA failure in the UI-SPEC's own toggle table was caught by measurement and corrected. Task 2's blocking walk has NOT been performed; no visual criterion is claimed as passed.**
 
-## Status: awaiting the Task 2 walk
+## Status: COMPLETE — Task 2 walk APPROVED (2026-07-20)
 
-Task 1 is complete and committed. **Task 2 is a `checkpoint:human-verify` with `gate="blocking"` and has not been run** — this plan is `autonomous: false` and the walk requires a human on `gmac`. `SCR-01` and `GAP-06` are deliberately **not** marked complete, and `status:` is `awaiting-verification` rather than `complete`. Everything below the automated-gates section is a description of what was built, not a claim that it was seen working.
+Task 1 (re-skin) committed as `8a5e5a9`. **Task 2's blocking `checkpoint:human-verify` was performed and APPROVED on 2026-07-20** via a fresh `GW_DEV_TOOLS=true` Windows debug run, after quick task `260720-bgl` cleared the top-bar dev-tooling overflow that had been corrupting the chrome under test. `SCR-01` and `GAP-06` are now claimed complete; `status: complete`.
+
+### Task 2 Walk Result (2026-07-20)
+
+Walked in both light and dark mode; all five walk criteria PASS:
+- **D1 (criterion 1):** "Current Balance" label above a `numericDisplay` figure that counts up on first paint; reads as the redesign. ✅
+- **D2 (develop behavior intact):** non-SGNUS "No funds available" in `statusError`; SGNUS GNUS/Minions toggle switches units; `GeniusBalanceDisplay` / SGNUS connection / Submit Job all present and functional; **no** 24h delta, **no** action-pill row, **no** Assets/NFTs tab. ✅
+- **D3 (WCAG / statusError / toggle legibility):** label, balance, and "No funds available" readable in both modes; the corrected toggle segment legible on the cyan fill. ✅
+- **D4 (hero-not-before-load):** no hero flash before account load. ✅
+- **D5 (LIVE in-place flip):** previously BLOCKED (no in-place toggle existed) — now verified via the new dev-tools bubble appearance toggle (quick task `260720-bgl`); label + balance figure re-skin immediately on flip, no stale static-getter read. ✅
+
+Note: the dev-tools bubble's in-place appearance toggle also makes the same live-flip clause re-verifiable for 05-01 / 04-02 / 04-04 during dev walks (see STATE verification-blocker note). The **product** Settings appearance toggle remains its own open todo.
 
 ## Task Commits
 

@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: 05-02 Task 1 committed (8a5e5a9); Task 2 blocking human-verify walk PENDING
-last_updated: "2026-07-20T10:22:32.371Z"
+stopped_at: 05-02 walk APPROVED (both modes, 2026-07-20); next = 05-03 holdings list
+last_updated: "2026-07-20T11:40:00.000Z"
 last_activity: 2026-07-20
-last_activity_desc: Phase 05 execution started
+last_activity_desc: 05-02 hero-balance walk approved; dev-tooling bubble (quick 260720-bgl) approved
 progress:
   total_phases: 4
   completed_phases: 3
@@ -35,7 +35,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-20 — Quick task 260720-bgl: dev-tooling bubble (code done, walk pending)
+Last activity: 2026-07-20 — 05-02 hero-balance walk APPROVED (both modes) + dev-tooling bubble (quick 260720-bgl) APPROVED
 
 Progress: [█████████░] 86% (2 of 11 phases)
 
@@ -125,15 +125,15 @@ Full log in PROJECT.md Key Decisions. Recent:
 - 03-09's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT across all 30 gallery sections) is outstanding -- no code changed pending it; see 03-09-SUMMARY.md's Outstanding section for the exact recipe
 - Phase 3 criterion 5 (the no-visual-change walk, GW_DEV_TOOLS unset) is OUTSTANDING -- requires a human with Windows GUI access. Exact recipe recorded in 03-VERIFICATION.md
 - The D-02 gallery re-walk (04-01 Task 3) is OUTSTANDING -- no Windows GUI access from this execution environment. Must be performed by the user before any 04-02+ shell/screen re-skin plan begins. Exact recipe in 04-01-SUMMARY.md's 'Outstanding' section.
-- 05-01 must_have 'container flips LIVE on an in-place appearance toggle' is UNVERIFIABLE — setMode() exists only on dev screens, so toggling requires navigation that forces a rebuild and masks the const-staleness the clause guards against. Todo 2026-07-18-no-user-facing-appearance-toggle.md escalated to severity: verification-blocker; also blocks re-verification of the same clause in 04-02/04-04.
+- 05-01 must_have 'container flips LIVE on an in-place appearance toggle' — was UNVERIFIABLE (setMode() only on dev screens). **UNBLOCKED for dev walks 2026-07-20** by quick task 260720-bgl: the dev-tools bubble now carries an in-place light/dark toggle usable over ANY screen, so live-flip is verifiable in `GW_DEV_TOOLS=true` builds without navigation. Used to pass 05-02's D5 clause; the same path re-verifies 05-01 / 04-02 / 04-04. NOTE: this is a DEV affordance — the **product** user-facing toggle (todo 2026-07-18-no-user-facing-appearance-toggle.md, still verification-blocker for shipping) remains open.
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260720-bgl | Move dev tooling out of the top bar into a draggable dev-only overflow bubble | 2026-07-20 | 8bc5cab | [260720-bgl-move-dev-tooling-out-of-the-desktop-top-](./quick/260720-bgl-move-dev-tooling-out-of-the-desktop-top-/) |
+| 260720-bgl | Move dev tooling out of the top bar into a draggable dev-only overflow bubble | 2026-07-20 | a91aec0 | [260720-bgl-move-dev-tooling-out-of-the-desktop-top-](./quick/260720-bgl-move-dev-tooling-out-of-the-desktop-top-/) |
 
-> Note: code committed + analyze-clean; the blocking human-verify walk (Task 3) is still PENDING — needs a fresh `GW_DEV_TOOLS=true` debug run before the bubble is claimed working.
+> **APPROVED 2026-07-20.** Blocking human-verify walk passed on a fresh `GW_DEV_TOOLS=true` run: top bar no longer overflows (real widgets only), bubble anchored top-right below header, drags + expands within the viewport, all dev actions reachable, and its light/dark toggle live-re-skins the app. Fix `a91aec0` (top-right anchor + viewport clamp/scroll) followed the initial off-screen-expand report.
 
 ## Reference Material
 
@@ -153,7 +153,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-20T10:22:32.243Z
-Stopped at: 05-02 Task 1 committed (8a5e5a9); Task 2 blocking human-verify walk PENDING
+Stopped at: 05-02 walk APPROVED (both modes, 2026-07-20); next = 05-03 holdings list
 Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics
