@@ -5,7 +5,9 @@ import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
+import 'package:genius_wallet/dev/dev_mock_transactions.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
@@ -276,9 +278,38 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           },
                           tooltip: 'Missing icon scenario',
                         ),
+                        _devButton(
+                          'Mock txns',
+                          () {
+                            context.read<TransactionsCubit>().addTransactions(
+                              DevMockTransactions.instance.batch(
+                                isSgnus: false,
+                              ),
+                            );
+                            final sgnusTxController = context
+                                .read<GeniusApi>()
+                                .getSGNUSTransactionsController();
+                            for (final tx in DevMockTransactions.instance
+                                .batch(isSgnus: true)) {
+                              sgnusTxController.addTransaction(tx);
+                            }
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Mock transactions added',
+                              message: 'Added 8 mock transactions',
+                              type: ToastType.success,
+                            );
+                          },
+                          tooltip: 'Inject mock transactions batch',
+                        ),
                         _devButton('Clear', () {
                           DevMockHoldings.instance.clear();
                           context.read<WalletDetailsCubit>().clearMock();
+                          context.read<TransactionsCubit>().clear();
+                          context
+                              .read<GeniusApi>()
+                              .getSGNUSTransactionsController()
+                              .clear();
                         }),
                       ],
                     ),
