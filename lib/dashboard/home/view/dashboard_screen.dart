@@ -218,13 +218,17 @@ class OneColumnDashBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const spacing = SizedBox(height: gridSpacing / 2);
+    const spacing = SizedBox(height: GeniusWalletConsts.space10);
 
     return Padding(
       padding: const EdgeInsets.all(gridSpacing / 2),
       child: RefreshIndicator(
         onRefresh: () => _onRefresh(context),
         child: ListView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space8,
+            vertical: GeniusWalletConsts.space6,
+          ),
           children: [
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300),
