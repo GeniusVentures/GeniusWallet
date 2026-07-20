@@ -5,6 +5,11 @@ import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
@@ -32,6 +37,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -49,10 +55,22 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                 child: FutureStateWidget<List<NewsArticle>>(
                   future: _newsFuture,
                   onRetry: _retryNews,
-                  error: const Center(child: Text('Failed to load news.')),
+                  error: Center(
+                    child: Text(
+                      'Failed to load news.',
+                      style: GeniusWalletTypography.bodyMd
+                          .copyWith(color: gw.textSecondary),
+                    ),
+                  ),
                   onData: (articles) {
                     if (articles.isEmpty) {
-                      return const Center(child: Text('No news found.'));
+                      return Center(
+                        child: Text(
+                          'No news found.',
+                          style: GeniusWalletTypography.bodyMd
+                              .copyWith(color: gw.textSecondary),
+                        ),
+                      );
                     }
                     return RefreshIndicator(
                       onRefresh: () async => _retryNews(),
@@ -97,7 +115,12 @@ class _NewsCardState extends State<_NewsCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Container(
+      decoration: GWDecorations.surface(
+        radius: GeniusWalletConsts.radiusMd,
+        border: gw.borderSubtle,
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => launchWebSite(context, widget.article.link),
@@ -112,12 +135,15 @@ class _NewsCardState extends State<_NewsCard> {
                 imageUrl: widget.article.imageUrl ?? '',
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
-                  color: Colors.grey.shade800,
+                  color: gw.surfaceSunken,
                   child: const Center(child: Loading()),
                 ),
                 errorWidget: (context, url, error) => Container(
-                  color: Colors.grey.shade800,
-                  child: const Icon(Icons.error, color: Colors.red),
+                  color: gw.surfaceSunken,
+                  child: const Icon(
+                    Icons.error,
+                    color: GeniusWalletColors.statusError,
+                  ),
                 ),
               ),
               // Gradient overlay for text readability
@@ -139,20 +165,15 @@ class _NewsCardState extends State<_NewsCard> {
                     children: [
                       Text(
                         widget.article.title.trim(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: GeniusWalletTypography.titleMd,
                         textAlign: TextAlign.center,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         widget.article.pubDate,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
+                        style: GeniusWalletTypography.bodySm
+                            .copyWith(color: gw.textSecondary),
                       ),
                     ],
                   ),
@@ -172,7 +193,10 @@ class _TextOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Container(
+      // Scrim over a photo, not a brand surface — intentionally kept as raw
+      // black, per UI-SPEC §4.4 (the one named exception to zero-raw-color).
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -188,13 +212,14 @@ class _TextOverlay extends StatelessWidget {
         children: [
           Text(
             article.title.trim(),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: GeniusWalletTypography.titleMd,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             article.pubDate,
-            style: const TextStyle(color: Colors.white60, fontSize: 11),
+            style: GeniusWalletTypography.bodySm
+                .copyWith(color: gw.textSecondary),
           ),
         ],
       ),
