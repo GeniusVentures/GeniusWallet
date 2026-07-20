@@ -8,6 +8,11 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,6 +59,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this subtree to rebuild on a live appearance toggle (04-04 discipline).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -66,12 +74,10 @@ class _MarketsScreenState extends State<MarketsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: 12.0,
                 children: [
-                  const Text(
+                  Text(
                     "Markets",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    style: GeniusWalletTypography.headlineLg.copyWith(
+                      color: gw.textPrimary,
                     ),
                   ),
                   IconButton(
@@ -95,18 +101,22 @@ class _MarketsScreenState extends State<MarketsScreen> {
               FutureStateWidget<List<CoinGeckoCoin>>(
                 future: _coinsFuture,
                 onRetry: _retryCoins,
-                error: const Center(
+                error: Center(
                   child: Text(
                     "Failed to load market coins",
-                    style: TextStyle(color: Colors.white),
+                    style: GeniusWalletTypography.bodyMd.copyWith(
+                      color: gw.textSecondary,
+                    ),
                   ),
                 ),
                 onData: (coins) {
                   if (coins.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         "No market data available",
-                        style: TextStyle(color: Colors.white),
+                        style: GeniusWalletTypography.bodyMd.copyWith(
+                          color: gw.textSecondary,
+                        ),
                       ),
                     );
                   }
@@ -118,18 +128,22 @@ class _MarketsScreenState extends State<MarketsScreen> {
                           coinIds: _cachedCoinIds!,
                         )),
                     onRetry: _retryMarketData,
-                    error: const Center(
+                    error: Center(
                       child: Text(
                         "Failed to load market data",
-                        style: TextStyle(color: Colors.white),
+                        style: GeniusWalletTypography.bodyMd.copyWith(
+                          color: gw.textSecondary,
+                        ),
                       ),
                     ),
                     onData: (marketData) {
                       if (marketData.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Text(
                             "No market data available",
-                            style: TextStyle(color: Colors.white),
+                            style: GeniusWalletTypography.bodyMd.copyWith(
+                              color: gw.textSecondary,
+                            ),
                           ),
                         );
                       }
@@ -153,18 +167,23 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
                             if (data == null) {
                               return Container(
-                                color: Colors.red,
+                                color: GeniusWalletColors.statusError
+                                    .withAlpha(100),
                                 child: Center(
                                   child: Text(
                                     '${coin.symbol}\n${coin.id}',
-                                    style: const TextStyle(color: Colors.white),
+                                    style: GeniusWalletTypography.bodySm
+                                        .copyWith(color: gw.textPrimary),
                                   ),
                                 ),
                               );
                             }
 
-                            return Card(
+                            return Container(
                               clipBehavior: Clip.hardEdge,
+                              decoration: GWDecorations.surface(
+                                radius: GeniusWalletConsts.radiusMd,
+                              ),
                               child: CryptoSparkLineChart(
                                 onTap: () {
                                   context.push(

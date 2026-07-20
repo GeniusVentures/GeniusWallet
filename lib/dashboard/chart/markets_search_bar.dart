@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -111,56 +112,31 @@ class _MarketSearchBarState extends State<MarketSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this subtree to rebuild on a live appearance toggle (04-04 discipline).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         // Search Input Field
-        // Replace SearchBar with this TextField for custom style
-        TextField(
+        GWTextField(
           controller: _controller,
-          style: const TextStyle(color: Colors.white), // White input text
+          hint: 'Search Coins...',
           onChanged: _onSearchChanged,
-          decoration: InputDecoration(
-            hintText: 'Search Coins...',
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            filled: true,
-            fillColor: Colors.grey[900], // Very dark background for input
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.white24, // Subtle dark border
-                width: 1.4,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: const BorderSide(color: Colors.white38, width: 1.4),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: GeniusWalletColors.lightGreenPrimary,
-                width: 2,
-              ),
-            ),
-            suffixIcon: _isSearching
-                ? const Padding(padding: EdgeInsets.all(12.0), child: Loading())
-                : (_controller.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.white),
-                          onPressed: () {
-                            _controller.clear();
-                            setState(() {
-                              _searchResults = [];
-                            });
-                          },
-                        )
-                      : const Icon(Icons.search, color: Colors.white38)),
-          ),
+          prefix: Icon(Icons.search, color: gw.textSecondary),
+          suffix: _isSearching
+              ? const Padding(padding: EdgeInsets.all(12.0), child: Loading())
+              : (_controller.text.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear, color: gw.textSecondary),
+                        onPressed: () {
+                          _controller.clear();
+                          setState(() {
+                            _searchResults = [];
+                          });
+                        },
+                      )
+                    : null),
         ),
 
         const SizedBox(height: 8),
