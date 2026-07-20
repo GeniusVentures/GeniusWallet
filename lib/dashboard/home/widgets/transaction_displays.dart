@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:intl/intl.dart';
@@ -16,19 +21,28 @@ String _capitalizeStatus(TransactionStatus status) =>
     status.name[0].toUpperCase() + status.name.substring(1);
 
 Widget _buildRow(
+  BuildContext context,
   String label,
   String value, {
-  Color valueColor = Colors.white,
+  Color? valueColor,
 }) {
+  final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(label, style: const TextStyle(color: Colors.white70)),
+      Text(
+        label,
+        style: GeniusWalletTypography.bodySm.copyWith(
+          color: GeniusWalletColors.textPrimary70,
+        ),
+      ),
       Flexible(
         child: Text(
           value,
           textAlign: TextAlign.right,
-          style: TextStyle(color: valueColor),
+          style: GeniusWalletTypography.bodyMd.copyWith(
+            color: valueColor ?? gw.textPrimary,
+          ),
           overflow: TextOverflow.ellipsis,
         ),
       ),
@@ -36,10 +50,13 @@ Widget _buildRow(
   );
 }
 
-Widget _buildDetailsCard(List<Widget> rows) {
-  return Card(
-    color: GeniusWalletColors.deepBlueMenu,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+Widget _buildDetailsCard(BuildContext context, List<Widget> rows) {
+  final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+  return Container(
+    decoration: GWDecorations.surface(
+      radius: GeniusWalletConsts.radiusMd,
+      border: gw.borderSubtle,
+    ),
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(spacing: 10.0, children: rows),
@@ -76,9 +93,16 @@ Widget _buildCoinIconWithBadge(
             decoration: BoxDecoration(
               color: bgColor,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.black, width: 1.5),
+              border: Border.all(
+                color: GeniusWalletColors.textOnBrand,
+                width: 1.5,
+              ),
             ),
-            child: Icon(icon, size: badgeSize * 0.55, color: Colors.black),
+            child: Icon(
+              icon,
+              size: badgeSize * 0.55,
+              color: GeniusWalletColors.textOnBrand,
+            ),
           ),
         ),
       ],
@@ -93,10 +117,13 @@ class TransactionEscrowReleaseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      color: cs.surfaceContainerHigh,
-      child: ListTile(title: Text("Completed job")),
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Container(
+      decoration: GWDecorations.surface(
+        radius: GeniusWalletConsts.radiusMd,
+        border: gw.borderSubtle,
+      ),
+      child: const ListTile(title: Text("Completed job")),
     );
   }
 }
@@ -108,17 +135,20 @@ class TransactionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final amount =
         "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
-    final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+    final arrowBgColor =
+        isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
 
-    return Card(
-      color: cs.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: GWDecorations.surface(
+        radius: GeniusWalletConsts.radiusMd,
+        border: gw.borderSubtle,
+      ),
       child: ListTile(
         leading: _buildCoinIconWithBadge(
           tx.coinSymbol,
@@ -130,13 +160,13 @@ class TransactionItem extends StatelessWidget {
             Text(label),
             Text(
               " • ${tx.coinSymbol}",
-              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+              style: TextStyle(fontSize: 14, color: gw.textSecondary),
             ),
           ],
         ),
         onTap: () => _showTransactionDetails(context),
         subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
-        trailing: _buildAmountTrailing(amount, cs.onSurfaceVariant),
+        trailing: _buildAmountTrailing(amount, gw.textSecondary),
       ),
     );
   }
@@ -159,11 +189,12 @@ class TransactionItem extends StatelessWidget {
   }
 
   void _showTransactionDetails(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isSent = tx.transactionDirection == TransactionDirection.sent;
     final label = isSent ? "Sent" : "Received";
     final arrowIcon = isSent ? Icons.arrow_forward : Icons.arrow_downward;
-    final arrowBgColor = isSent ? Colors.lightBlueAccent : Colors.greenAccent;
+    final arrowBgColor =
+        isSent ? Colors.lightBlueAccent : GeniusWalletColors.brandGreen;
     final amountText =
         "${isSent ? '-' : '+'} ${formatAmount(tx.recipients.first.amount)} ${tx.coinSymbol}";
     final address = isSent ? tx.recipients.first.toAddr : tx.fromAddress;
@@ -187,28 +218,33 @@ class TransactionItem extends StatelessWidget {
           Center(
             child: Text(
               amountText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: gw.textPrimary,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          _buildDetailsCard([
-            _buildRow("Date", _dateFormat.format(tx.timeStamp)),
-            _buildRow("Status", _capitalizeStatus(tx.transactionStatus)),
+          _buildDetailsCard(context, [
+            _buildRow(context, "Date", _dateFormat.format(tx.timeStamp)),
             _buildRow(
+              context,
+              "Status",
+              _capitalizeStatus(tx.transactionStatus),
+            ),
+            _buildRow(
+              context,
               isSent ? "To" : "From",
               WalletUtils.getAddressForDisplay(address),
             ),
-            _buildRow("Network", tx.coinSymbol),
-            _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
-            _buildRow("Hash", WalletUtils.getAddressForDisplay(tx.hash)),
+            _buildRow(context, "Network", tx.coinSymbol),
+            _buildRow(context, "Network Fee", "${tx.fees} ${tx.coinSymbol}"),
+            _buildRow(context, "Hash", WalletUtils.getAddressForDisplay(tx.hash)),
           ]),
         ],
       ),
-      footer: ElevatedButton.icon(
+      footer: GWButton(
         onPressed: () {
           final url = getExplorerUrl(tx.coinSymbol, tx.hash);
           final uri = Uri.tryParse(url);
@@ -216,16 +252,10 @@ class TransactionItem extends StatelessWidget {
             launchWebSite(context, uri.toString());
           }
         },
-        icon: Icon(Icons.open_in_new, color: cs.surfaceDim),
-        label: const Text("View on Explorer"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.lightBlueAccent,
-          foregroundColor: cs.surfaceDim,
-          minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+        label: "View on Explorer",
+        leading: const Icon(Icons.open_in_new),
+        variant: GWButtonVariant.secondary,
+        expand: true,
       ),
     );
   }
@@ -238,18 +268,24 @@ class TransactionPurchasedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isFailed = tx.transactionStatus == TransactionStatus.failed;
     final amount = isFailed
         ? currencyFormatter.format(0)
         : "+ ${currencyFormatter.format(double.tryParse(tx.recipients.first.amount) ?? 0)}";
     const arrowIcon = Icons.attach_money;
-    final arrowBgColor = isFailed ? Colors.redAccent : Colors.greenAccent;
-    final amountColor = isFailed ? Colors.redAccent : Colors.greenAccent;
+    final arrowBgColor = isFailed
+        ? GeniusWalletColors.statusError
+        : GeniusWalletColors.brandGreen;
+    final amountColor = isFailed
+        ? GeniusWalletColors.statusError
+        : GeniusWalletColors.brandGreen;
 
-    return Card(
-      color: cs.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: GWDecorations.surface(
+        radius: GeniusWalletConsts.radiusMd,
+        border: gw.borderSubtle,
+      ),
       child: ListTile(
         onTap: () => _showPurchaseTransactionDetails(context, tx),
         leading: _buildCoinIconWithBadge(
@@ -264,24 +300,26 @@ class TransactionPurchasedItem extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: isFailed ? Colors.redAccent : Colors.white,
+                color: isFailed
+                    ? GeniusWalletColors.statusError
+                    : gw.textPrimary,
               ),
             ),
             Text(
               " • ${tx.coinSymbol}",
-              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+              style: TextStyle(fontSize: 14, color: gw.textSecondary),
             ),
           ],
         ),
         subtitle: Text(
           timeago.format(tx.timeStamp.toLocal()),
-          style: const TextStyle(fontSize: 12, color: Colors.white60),
+          style: TextStyle(fontSize: 12, color: gw.textSecondary),
         ),
         trailing: _buildAmountTrailing(
           amountColor,
           amount,
           isFailed,
-          cs.onSurfaceVariant,
+          gw.textSecondary,
         ),
       ),
     );
@@ -315,8 +353,11 @@ class TransactionPurchasedItem extends StatelessWidget {
   }
 
   void _showPurchaseTransactionDetails(BuildContext context, Transaction tx) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
-    final arrowBgColor = isFailed ? Colors.redAccent : Colors.greenAccent;
+    final arrowBgColor = isFailed
+        ? GeniusWalletColors.statusError
+        : GeniusWalletColors.brandGreen;
     final amountText = isFailed
         ? '\$0.00'
         : "+ \$${double.tryParse(tx.recipients.first.amount)?.toStringAsFixed(2) ?? '0.00'}";
@@ -343,24 +384,33 @@ class TransactionPurchasedItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: isFailed ? Colors.redAccent : Colors.white,
+                color: isFailed
+                    ? GeniusWalletColors.statusError
+                    : gw.textPrimary,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          _buildDetailsCard([
-            _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
+          _buildDetailsCard(context, [
             _buildRow(
-              "Status",
-              _capitalizeStatus(tx.transactionStatus),
-              valueColor: isFailed ? Colors.redAccent : Colors.white,
+              context,
+              "Date",
+              _dateFormat.format(tx.timeStamp.toLocal()),
             ),
             _buildRow(
+              context,
+              "Status",
+              _capitalizeStatus(tx.transactionStatus),
+              valueColor:
+                  isFailed ? GeniusWalletColors.statusError : gw.textPrimary,
+            ),
+            _buildRow(
+              context,
               "To",
               WalletUtils.getAddressForDisplay(tx.recipients.first.toAddr),
             ),
-            _buildRow("Network", tx.coinSymbol),
-            _buildRow("Network Fee", "${tx.fees} ${tx.coinSymbol}"),
+            _buildRow(context, "Network", tx.coinSymbol),
+            _buildRow(context, "Network Fee", "${tx.fees} ${tx.coinSymbol}"),
           ]),
         ],
       ),
@@ -376,6 +426,7 @@ class TransactionSwappedItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isFailed = tx.transactionStatus == TransactionStatus.failed;
     final fromSymbol = tx.fromSymbol ?? "";
     final toSymbol = tx.toSymbol ?? "";
@@ -384,16 +435,18 @@ class TransactionSwappedItem extends StatelessWidget {
     final fromAmount = tx.fromAmount ?? "0";
     final toAmount = tx.toAmount ?? "0";
 
-    return Card(
-      color: cs.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: GWDecorations.surface(
+        radius: GeniusWalletConsts.radiusMd,
+        border: gw.borderSubtle,
+      ),
       child: ListTile(
         title: Text(
           "Swapped${isFailed ? ' - Failed' : ''}",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: isFailed ? Colors.redAccent : Colors.white,
+            color: isFailed ? GeniusWalletColors.statusError : gw.textPrimary,
           ),
         ),
         subtitle: Text(timeago.format(tx.timeStamp.toLocal())),
@@ -405,6 +458,7 @@ class TransactionSwappedItem extends StatelessWidget {
           toAmount,
           toSymbol,
           isFailed,
+          gw,
         ),
       ),
     );
@@ -457,6 +511,7 @@ class TransactionSwappedItem extends StatelessWidget {
     String toAmount,
     String toSymbol,
     bool isFailed,
+    GWColors gw,
   ) {
     if (isFailed) {
       return Text(
@@ -464,7 +519,7 @@ class TransactionSwappedItem extends StatelessWidget {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Colors.redAccent,
+          color: GeniusWalletColors.statusError,
         ),
       );
     }
@@ -478,16 +533,20 @@ class TransactionSwappedItem extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.greenAccent,
+            color: GeniusWalletColors.brandGreen,
           ),
         ),
-        Text("- $fromAmount $fromSymbol", style: const TextStyle(fontSize: 14)),
+        Text(
+          "- $fromAmount $fromSymbol",
+          style: TextStyle(fontSize: 14, color: gw.textSecondary),
+        ),
       ],
     );
   }
 
   void _showSwapTransactionDetails(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isFailed = tx.transactionStatus == TransactionStatus.cancelled;
     final fromSymbol = tx.fromSymbol ?? "";
     final toSymbol = tx.toSymbol ?? "";
@@ -540,23 +599,31 @@ class TransactionSwappedItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: isFailed ? Colors.redAccent : Colors.white,
+                color: isFailed
+                    ? GeniusWalletColors.statusError
+                    : gw.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 24),
-          _buildDetailsCard([
-            _buildRow("Date", _dateFormat.format(tx.timeStamp.toLocal())),
+          _buildDetailsCard(context, [
             _buildRow(
+              context,
+              "Date",
+              _dateFormat.format(tx.timeStamp.toLocal()),
+            ),
+            _buildRow(
+              context,
               "Status",
               _capitalizeStatus(tx.transactionStatus),
-              valueColor: isFailed ? Colors.redAccent : Colors.white,
+              valueColor:
+                  isFailed ? GeniusWalletColors.statusError : gw.textPrimary,
             ),
-            _buildRow("From", "$fromAmount $fromSymbol"),
-            _buildRow("To", "$toAmount $toSymbol"),
-            _buildRow("Transaction Fee", "${tx.fees} $fromSymbol"),
-            _buildRow("Tx Hash", tx.hash),
+            _buildRow(context, "From", "$fromAmount $fromSymbol"),
+            _buildRow(context, "To", "$toAmount $toSymbol"),
+            _buildRow(context, "Transaction Fee", "${tx.fees} $fromSymbol"),
+            _buildRow(context, "Tx Hash", tx.hash),
           ]),
         ],
       ),
