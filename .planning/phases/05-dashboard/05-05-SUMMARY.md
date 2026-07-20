@@ -22,6 +22,7 @@ tech-stack:
   patterns:
     - "_NewsCard uses GWDecorations.surface(radius: radiusMd, border: gw.borderSubtle) directly rather than hand-assembling a BoxDecoration -- the plan's action text described the equivalent of what GWDecorations.surface already produces (surfaceSheen gradient + hairline border + GeniusWalletElevation.card shadow), so the existing helper was used instead of duplicating it inline, matching 05-01/05-04 precedent."
     - "The image placeholder AND its error-state sibling both filled Colors.grey.shade800 in develop; both were re-tokened to gw.surfaceSunken (not just the placeholder named in the UI-SPEC table) to satisfy the plan's own done-criteria zero-Colors.grey.shade800 gate."
+    - "Overlay text on an ALWAYS-dark scrim (the hover box's Colors.black87, _TextOverlay's Colors.black54/black gradient) must use FIXED dark-palette tokens (GWColors.dark().textPrimary/textSecondary), never gw.* -- gw.* flips with app appearance while the scrim behind it does not, so in light mode gw.textPrimary/textSecondary would resolve to the light-mode (dark ink) value and go dark-on-dark-scrim, unreadable. This is the mirror case of the §3.1 white-on-brand contrast defect: light-on-fixed-dark-surface, not appearance-aware-on-appearance-aware."
 
 key-files:
   created: []
@@ -32,6 +33,7 @@ key-decisions:
   - "GWDecorations.surface() was used verbatim instead of manually constructing BoxDecoration(gradient: surfaceSheen, border: Border.all(...), boxShadow: [...]) as the plan's action text spelled out -- the helper already implements exactly that shape (verified by reading genius_wallet_decorations.dart), so using it is simplification, not a deviation from intent."
   - "The image error-state Container's background (Colors.grey.shade800) was also re-tokened to gw.surfaceSunken, even though the UI-SPEC §4.4 table only named the placeholder branch explicitly. Left as Colors.grey.shade800 it would violate this plan's own done-criteria clause ('no ... grey.shade800 survives') and would visibly mismatch the placeholder's new color."
   - "Scaffold-background deepBlue* trap named in the plan's read_first/done text does NOT exist in the file: crypto_news_screen.dart has no Scaffold and no deepBlue* constant anywhere (confirmed by grep). This is the same plan-vs-reality drift pattern 05-04's SUMMARY documented for dashboard_markets.dart -- the file has apparently drifted since the UI-SPEC's research pass. No action was needed; recorded here rather than silently ignored."
+  - "Post-Task-1 coordinator walk feedback: both always-dark scrims' overlay title/date text were re-pointed from gw.textPrimary/gw.textSecondary (appearance-aware) to GWColors.dark().textPrimary/textSecondary (fixed light-on-dark) -- the hover box (Colors.black87) and the _TextOverlay gradient (Colors.black54/black) never change with app appearance, so their text must not either. _TextOverlay's now-unused Theme.of(context).extension<GWColors>() local was removed to keep flutter analyze clean. The card body/typography reads that DO flip with appearance (surfaceSunken image fill, borderSubtle card border, FutureStateWidget error/empty text) were explicitly left untouched -- only the two scrim-overlay text styles changed."
 
 requirements-completed: []  # SCR-01 NOT claimed complete -- Task 2's blocking human-verify walk has not been performed by this executor, per explicit instruction to stop at the checkpoint.
 
@@ -64,17 +66,17 @@ coverage:
     human_judgment: true
     rationale: "Token substitution is code-verified; that a broken image actually renders the statusError icon and a loading image actually shows the spinner over the correct fill are runtime facts only the walk can observe."
   - id: D3
-    description: "Card title/date typography (titleMd/bodySm) with gw.textSecondary replacing Colors.white60, applied consistently to both the always-visible _TextOverlay and the hover overlay; FutureStateWidget error/empty text tokened to bodyMd/gw.textSecondary"
+    description: "Card title/date typography (titleMd/bodySm) applied consistently to both the always-visible _TextOverlay and the hover overlay; FutureStateWidget error/empty text tokened to bodyMd/gw.textSecondary. Overlay text on the two ALWAYS-dark scrims (hover Colors.black87, _TextOverlay Colors.black54/black gradient) uses FIXED GWColors.dark().textPrimary/textSecondary (coordinator walk-feedback fix, commit 33b5901), not gw.* -- gw.* would go dark-on-dark-scrim in light mode"
     requirement: "SCR-01"
     verification:
       - kind: other
-        ref: "flutter analyze -- No issues found; grep -n 'Colors.white60' lib/dashboard/news/view/crypto_news_screen.dart -- zero matches; grep -n 'TextStyle(fontSize' -- zero matches (all raw TextStyle calls replaced by typography tokens)"
+        ref: "flutter analyze -- No issues found (both before fa757aa and after the 33b5901 contrast fix, incl. no unused-var warning from the removed _TextOverlay gw local); grep -n 'Colors.white60' lib/dashboard/news/view/crypto_news_screen.dart -- zero matches; grep -n 'TextStyle(fontSize' -- zero matches (all raw TextStyle calls replaced by typography tokens); grep -n 'GWColors.dark()' -- 4 matches (title+date x2 scrims)"
         status: pass
       - kind: manual_procedural
-        ref: "Task 2 walk steps 1+5 (criterion 1 card visual match, WCAG AA contrast over the card sheen and over the photo scrim, both modes) -- NOT YET PERFORMED"
+        ref: "Task 2 walk steps 1+5 (criterion 1 card visual match, WCAG AA contrast over the card sheen and over the photo scrim, both modes -- specifically confirming the light-mode fix holds) -- NOT YET PERFORMED"
         status: pass
     human_judgment: true
-    rationale: "Token substitution is code-verified. WCAG AA contrast against the live rendered card sheen/scrim in both light and dark mode is a visual fact only the walk can confirm."
+    rationale: "Token substitution is code-verified, including the coordinator-directed light-mode contrast fix. WCAG AA contrast against the live rendered card sheen/scrim in both light and dark mode is a visual fact only the walk can confirm."
   - id: D4
     description: "develop's finding-18 wiring (_retryNews / RefreshIndicator(onRefresh) / FutureStateWidget.onRetry) is untouched; pull-to-refresh and retry reload the feed"
     requirement: "SCR-01"
@@ -97,14 +99,14 @@ coverage:
     human_judgment: false
 
 # Metrics
-duration: ~15min (Task 1 only; Task 2 is the blocking checkpoint, intentionally not executed)
+duration: ~25min (Task 1 + post-walk-feedback contrast fix; Task 2 is the blocking checkpoint, intentionally not executed)
 completed: 2026-07-20
 status: blocked
 ---
 
 # Phase 05 Plan 05: News Feed Re-skin Summary
 
-**Re-skinned develop's `crypto_news_screen.dart` news feed in place -- `_NewsCard`'s `Card` became a `GWDecorations.surface` `Container` (borderSubtle border, radiusMd, card shadow) matching Alex's `NewsCard` decoration; the image placeholder and its error-state sibling both re-tokened from `Colors.grey.shade800` to `gw.surfaceSunken`; the error icon from `Colors.red` to `GeniusWalletColors.statusError`; card title/date typography (both the always-visible `_TextOverlay` and the hover overlay) from raw `TextStyle`s to `GeniusWalletTypography.titleMd`/`bodySm` with `gw.textSecondary` replacing `Colors.white60`; and `FutureStateWidget`'s error/empty text tokened to `bodyMd`/`gw.textSecondary` -- while keeping develop's `StaggeredGrid.extent` masonry and the finding-18 `_retryNews`/`RefreshIndicator`/`onRetry` wiring byte-identical (re-read and confirmed unchanged). Task 1 is committed. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed by this executor -- no visual/behavioral criterion is claimed as passed.**
+**Re-skinned develop's `crypto_news_screen.dart` news feed in place -- `_NewsCard`'s `Card` became a `GWDecorations.surface` `Container` (borderSubtle border, radiusMd, card shadow) matching Alex's `NewsCard` decoration; the image placeholder and its error-state sibling both re-tokened from `Colors.grey.shade800` to `gw.surfaceSunken`; the error icon from `Colors.red` to `GeniusWalletColors.statusError`; card title/date typography (both the always-visible `_TextOverlay` and the hover overlay) from raw `TextStyle`s to `GeniusWalletTypography.titleMd`/`bodySm` -- while keeping develop's `StaggeredGrid.extent` masonry and the finding-18 `_retryNews`/`RefreshIndicator`/`onRetry` wiring byte-identical (re-read and confirmed unchanged). Per coordinator walk feedback, the two ALWAYS-dark scrims' (hover box + gradient overlay) title/date text was corrected from appearance-aware `gw.*` (which went dark-on-dark-scrim in light mode) to fixed `GWColors.dark().textPrimary`/`textSecondary`. Both commits are made. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed by this executor -- no visual/behavioral criterion is claimed as passed.**
 
 ## Status: Task 1 COMPLETE -- Task 2 walk PENDING (not performed by this executor)
 
@@ -112,10 +114,10 @@ Per this plan's explicit instruction, the full blocking walk (Task 2, `gate="blo
 
 ## Performance
 
-- **Duration:** ~15 min (Task 1 only)
-- **Completed:** 2026-07-20 (Task 1)
-- **Tasks:** 1 of 2 (Task 2 is the blocking checkpoint, intentionally not executed)
-- **Files modified:** 1
+- **Duration:** ~25 min (Task 1: ~15 min; post-walk-feedback contrast fix: ~10 min)
+- **Completed:** 2026-07-20 (Task 1 + post-walk fix)
+- **Tasks:** 1 of 2 (Task 2 is the blocking checkpoint, intentionally not executed) + 1 coordinator-directed fix
+- **Files modified:** 1 (touched across 2 commits)
 
 ## Accomplishments
 
@@ -129,16 +131,18 @@ Per this plan's explicit instruction, the full blocking walk (Task 2, `gate="blo
 - **"Crypto News" heading left unchanged** -- already token-correct via `Theme.of(context).textTheme.displaySmall`, per the plan.
 - **`StaggeredGrid.extent` masonry kept** -- Alex's `MasonryGridView.count` was NOT adopted (§1's "different but equal algorithm, no user-visible requirement" rule).
 - **Finding 18's wiring re-read and confirmed unregressed**: `_retryNews()` (now :32-36), `RefreshIndicator(onRefresh: () async => _retryNews())` (now :75-76), `onRetry: _retryNews` on `FutureStateWidget` (now :57) -- all three call sites are byte-identical to pre-edit; only line numbers shifted from the added import lines and the error/empty-text wrapping.
+- **Post-Task-1 coordinator walk feedback (light-mode contrast on the always-dark scrims):** both scrims' overlay title/date text -- the hover box (`Colors.black87`) and the `_TextOverlay` gradient (`Colors.black54`/`Colors.black`) -- were reading `gw.textPrimary`/`gw.textSecondary` (appearance-aware), which resolved to the light-mode (dark-ink) value in light mode and went dark-on-dark-scrim, unreadable. Both fixed to `GWColors.dark().textPrimary`/`textSecondary` (fixed, always the light/dark-side treatment) since the scrims themselves never change with app appearance. `_TextOverlay`'s now-unused `gw` local was removed.
 
 ## Task Commits
 
 1. **Task 1: Re-skin crypto_news_screen.dart _NewsCard (§4.4)** -- `fa757aa` (feat)
+2. **Post-walk fix: always-dark scrim overlay text uses fixed dark-palette tokens** -- `33b5901` (fix)
 
 **Task 2 (`checkpoint:human-verify`, `gate="blocking"`):** PENDING. Not performed by this executor -- per this plan's explicit instruction to stop at the checkpoint and not perform the walk.
 
 ## Files Modified
 
-- `lib/dashboard/news/view/crypto_news_screen.dart` -- see per-element table below. Imports added: `theme/genius_wallet_colors.dart`, `theme/genius_wallet_consts.dart`, `theme/genius_wallet_decorations.dart`, `theme/genius_wallet_typography.dart`, `theme/gw_colors.dart`. `_retryNews`/`RefreshIndicator`/`onRetry` wiring byte-identical pre/post edit (confirmed by re-read, not just diff inspection).
+- `lib/dashboard/news/view/crypto_news_screen.dart` -- see per-element table below. Imports added (Task 1): `theme/genius_wallet_colors.dart`, `theme/genius_wallet_consts.dart`, `theme/genius_wallet_decorations.dart`, `theme/genius_wallet_typography.dart`, `theme/gw_colors.dart`. `_retryNews`/`RefreshIndicator`/`onRetry` wiring byte-identical pre/post edit (confirmed by re-read, not just diff inspection). Post-walk fix (`33b5901`): hover-overlay title/date and `_TextOverlay` title/date `.copyWith(color: ...)` re-pointed from `gw.textPrimary`/`gw.textSecondary` to `GWColors.dark().textPrimary`/`textSecondary`; `_TextOverlay`'s now-unused `gw` local removed.
 
 ## Element-by-Element (per UI-SPEC §4.4)
 
@@ -150,10 +154,10 @@ Per this plan's explicit instruction, the full blocking walk (Task 2, `gate="blo
 | Image error-state fill | `Colors.grey.shade800` | `gw.surfaceSunken` (not separately named in §4.4's table; closed to satisfy the plan's own done-criteria) |
 | Image error icon | `Icon(Icons.error, color: Colors.red)` | `Icon(Icons.error, color: GeniusWalletColors.statusError)` |
 | Gradient text-overlay (scrim) | `LinearGradient([Colors.black54, Colors.black])` | unchanged -- intentional exception, now commented inline |
-| `_TextOverlay` title | `TextStyle(fontSize: 14, w600)` | `GeniusWalletTypography.titleMd` |
-| `_TextOverlay` date | `TextStyle(color: Colors.white60, fontSize: 11)` | `GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary)` |
-| Hover overlay title | `TextStyle(fontSize: 16, bold)` | `GeniusWalletTypography.titleMd` |
-| Hover overlay date | `TextStyle(color: Colors.white60, fontSize: 12)` | `GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary)` |
+| `_TextOverlay` title | `TextStyle(fontSize: 14, w600)` | `GeniusWalletTypography.titleMd.copyWith(color: GWColors.dark().textPrimary)` (fixed -- scrim is always dark) |
+| `_TextOverlay` date | `TextStyle(color: Colors.white60, fontSize: 11)` | `GeniusWalletTypography.bodySm.copyWith(color: GWColors.dark().textSecondary)` (fixed -- scrim is always dark) |
+| Hover overlay title | `TextStyle(fontSize: 16, bold)` | `GeniusWalletTypography.titleMd.copyWith(color: GWColors.dark().textPrimary)` (fixed -- scrim is always dark) |
+| Hover overlay date | `TextStyle(color: Colors.white60, fontSize: 12)` | `GeniusWalletTypography.bodySm.copyWith(color: GWColors.dark().textSecondary)` (fixed -- scrim is always dark) |
 | Hover overlay background | `Colors.black87` | unchanged -- same scrim rationale, not named in §4.4's table |
 | `FutureStateWidget` error text | plain `Text('Failed to load news.')` | `GeniusWalletTypography.bodyMd.copyWith(color: gw.textSecondary)` |
 | `FutureStateWidget` empty text | plain `Text('No news found.')` | `GeniusWalletTypography.bodyMd.copyWith(color: gw.textSecondary)` |
@@ -189,9 +193,17 @@ Per this plan's binding constraint, the appearance-aware `Theme.of(context).exte
 - **Files modified:** none (investigation only)
 - **Verification:** `grep -n "Scaffold\|deepBlue" lib/dashboard/news/view/crypto_news_screen.dart` -- zero matches.
 
+**3. [Rule 1 -- Bug, coordinator-directed] Light-mode dark-on-dark-scrim overlay text on both always-dark scrims**
+- **Found during:** post-Task-1 coordinator walk feedback (a partial walk performed before the full blocking Task 2 checkpoint)
+- **Issue:** The hover overlay (`Container(color: Colors.black87)`) and `_TextOverlay` (`LinearGradient([Colors.black54, Colors.black])`) are both ALWAYS-dark scrims regardless of app appearance -- they are the plan's own named §4.4 raw-color exception. Task 1's title text (no explicit color, so it inherited the appearance-aware default from `GeniusWalletTypography`'s baked `textPrimary` static getter) and date text (`.copyWith(color: gw.textSecondary)`) both used appearance-aware color sources. In light mode, `textPrimary` resolves to the light-mode ink color -- dark text on the always-dark scrim, unreadable. This is the mirror of the plan's own §3.1 white-on-brand contrast defect: light text is needed on a fixed-dark surface, not an appearance-aware read.
+- **Fix:** Both scrims' title text -> `.copyWith(color: GWColors.dark().textPrimary)`; both scrims' date text -> `.copyWith(color: GWColors.dark().textSecondary)` -- fixed, always the dark-side (light) treatment, since the scrim itself never flips. `_TextOverlay`'s `final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();` local, now unused after this change, was removed to keep `flutter analyze` clean. `_NewsCardState`'s `gw` local was kept (still consumed by `surfaceSunken`/`borderSubtle`, which correctly remain appearance-aware). No card-body (non-scrim) text or behavior was touched.
+- **Files modified:** `lib/dashboard/news/view/crypto_news_screen.dart`
+- **Verification:** `flutter analyze lib/dashboard/news/view/crypto_news_screen.dart` -- No issues found (confirms no unused-var warning from the removed `_TextOverlay` local). `git diff --cached --name-only` before commit -- only this file staged, `README.md` excluded.
+- **Committed in:** `33b5901` (separate atomic commit, per coordinator's explicit instruction)
+
 ---
 
-**Total deviations:** 2 (1 Rule-1 token-discipline completion within the original plan scope; 1 Rule-1 plan-vs-reality drift note requiring no code change). **Impact:** none on the plan's intent -- the token-discipline closure makes the re-skin MORE complete against the plan's own zero-raw-value gate than the per-element table alone specified; the drift note documents a pre-existing mismatch between the UI-SPEC's research and current develop, not a change made here.
+**Total deviations:** 3 (1 Rule-1 token-discipline completion within the original plan scope; 1 Rule-1 plan-vs-reality drift note requiring no code change; 1 Rule-1 bug fix, coordinator-directed, outside Task 1's original diff). **Impact:** none on the plan's intent -- the token-discipline closure and the contrast fix both make the re-skin MORE correct against the plan's own zero-raw-value and WCAG contrast requirements than Task 1 alone delivered; the drift note documents a pre-existing mismatch between the UI-SPEC's research and current develop, not a change made here.
 
 ## Issues Encountered
 
@@ -207,6 +219,10 @@ Per this plan's binding constraint, the appearance-aware `Theme.of(context).exte
 - Copy-verbatim grep: "Crypto News", "Failed to load news.", "No news found." all present, unchanged.
 - `git diff --diff-filter=D --name-only HEAD~1 HEAD` -- no file deletions in the Task 1 commit.
 - `git status --short` after commit -- only the plan's one declared file staged/committed; pre-existing unrelated `README.md` modification left untouched and unstaged.
+- `flutter analyze lib/dashboard/news/view/crypto_news_screen.dart` (post-walk contrast fix) -- **No issues found** (no unused-var warning from the removed `_TextOverlay` `gw` local).
+- `git diff --cached --name-only` before the contrast-fix commit -- only `lib/dashboard/news/view/crypto_news_screen.dart` staged; `README.md` (still dirty, pre-existing/unrelated) explicitly excluded.
+- `git diff --diff-filter=D --name-only HEAD~1 HEAD` (contrast-fix commit) -- no file deletions.
+- Post-fix grep: `grep -n "GWColors.dark()"` -- 4 matches (title+date, both scrims); `grep -n "gw.textPrimary\|gw.textSecondary"` in the two scrim `Text` styles -- zero matches (both now use the fixed token); `_NewsCardState`'s `gw.surfaceSunken`/`gw.borderSubtle` reads confirmed still present and unchanged.
 
 **None of this constitutes the visual/behavioral verification Task 2's walk provides.**
 
@@ -216,13 +232,13 @@ None for Task 1. Task 2's blocking walk requires a cold debug run on **Windows**
 
 ## Next Phase Readiness
 
-Task 1's code work is complete and committed (`fa757aa`). **This plan is not closeable until Task 2's blocking walk runs and its results (per-mode, per-criterion) are recorded here.** `SCR-01`'s news clause is not claimed complete pending that walk. 05-06 can proceed independently -- this plan touched only `crypto_news_screen.dart`.
+Task 1's code work is complete and committed (`fa757aa`), and the post-walk coordinator-directed contrast fix is complete and committed (`33b5901`). **This plan is not closeable until Task 2's blocking walk runs and its results (per-mode, per-criterion) are recorded here.** `SCR-01`'s news clause is not claimed complete pending that walk. 05-06 can proceed independently -- this plan touched only `crypto_news_screen.dart`.
 
 ---
 *Phase: 05-dashboard*
-*Task 1 completed: 2026-07-20. Task 2 (blocking human-verify): PENDING.*
+*Task 1 completed: 2026-07-20. Post-walk contrast fix completed: 2026-07-20. Task 2 (blocking human-verify): PENDING.*
 
 ## Self-Check: PASSED
 
-`lib/dashboard/news/view/crypto_news_screen.dart` confirmed present on disk; task commit `fa757aa` confirmed present in `git log`.
+`lib/dashboard/news/view/crypto_news_screen.dart` confirmed present on disk; task commits `fa757aa` and `33b5901` confirmed present in `git log`.
 </content>
