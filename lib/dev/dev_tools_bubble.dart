@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
-import 'package:genius_wallet/reown/test/test_buy_buttons.dart';
-import 'package:genius_wallet/reown/test/test_swap_buttons.dart';
-import 'package:genius_wallet/test/test_transaction_button.dart';
+import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
+import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
+import 'package:genius_wallet/reown/send_transaction_details.dart';
+import 'package:genius_wallet/reown/swap_result_drawer.dart';
+import 'package:genius_wallet/squid_router/swap_fail_drawer.dart';
+import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
+import 'package:genius_wallet/test/dev_overrides.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -276,16 +285,139 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                   ),
                   gw: gw,
                   children: [
-                    // Task 2 replaces this Wrap's contents with inlined
-                    // _devButton calls and deletes these three widgets.
+                    // Inlined verbatim from the deleted TestTransactionButton
+                    // / TestSwapButtons / TestBuyButtons widgets. Only the
+                    // small accent dot carries the status hue now — every
+                    // label stays gw.textPrimary (D-03).
                     Wrap(
                       spacing: GeniusWalletConsts.space2,
                       runSpacing: GeniusWalletConsts.space2,
                       crossAxisAlignment: WrapCrossAlignment.center,
-                      children: const [
-                        TestTransactionButton(),
-                        TestSwapButtons(),
-                        TestBuyButtons(),
+                      children: [
+                        _devButton(
+                          'Add tx',
+                          () {
+                            final txController = context
+                                .read<GeniusApi>()
+                                .getSGNUSTransactionsController();
+                            final fakeTx = getFakeTransaction(true);
+                            txController.addTransaction(fakeTx);
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Transaction Added',
+                              message:
+                                  'Added: ${fakeTx.type} | ${fakeTx.transactionDirection}',
+                              type: ToastType.success,
+                            );
+                          },
+                          accent: GeniusWalletColors.statusSuccess,
+                        ),
+                        _devButton(
+                          'Approve conn',
+                          () {
+                            ApproveDappConnectionDrawer.show(
+                              context: context,
+                              dappName: 'uniswap',
+                              dappUrl: 'uniswap.org',
+                              dappDescription:
+                                  'UniSwap is a decentralized exchange protocol that allows users to swap various cryptocurrencies directly from their wallets without the need for an intermediary.',
+                              iconUrl: 'https://uniswap.org/favicon.ico',
+                            );
+                          },
+                          accent: GeniusWalletColors.statusWarning,
+                        ),
+                        _devButton(
+                          'Swap OK',
+                          () {
+                            SwapResultDrawer.show(
+                              context: context,
+                              isSuccess: true,
+                              txHash:
+                                  '0x0f9b1b9a7c65dd5c1c0c0ef879b1dd73bb7f7f2187bbf1a8329c7edc9b3d4abc',
+                              coinSymbol: 'ETH',
+                            );
+                          },
+                          accent: GeniusWalletColors.statusSuccess,
+                        ),
+                        _devButton(
+                          'Swap fail',
+                          () {
+                            SwapResultDrawer.show(
+                              context: context,
+                              isSuccess: false,
+                              txHash:
+                                  '0x0f9b1b9a7c65dd5c1c0c0ef879b1dd73bb7f7f2187bbf1a8329c7edc9b3d4abc',
+                              coinSymbol: 'ETH',
+                            );
+                          },
+                          accent: GeniusWalletColors.statusError,
+                        ),
+                        _devButton(
+                          'Approve swap',
+                          () {
+                            ApproveTransactionDrawer.show(
+                              dappName: 'uniswap',
+                              dappUrl: 'https://uniswap.org',
+                              context: context,
+                              iconUrl: 'https://uniswap.org/favicon.ico',
+                              content: const SendTransactionDetails(
+                                fromAddress: '0x0From',
+                                toAddress: '0X0To',
+                                amount: '1.0',
+                                totalGasFee: '0.001',
+                                priorityFee: '0.001',
+                                maxFeePerGas: '0.001',
+                              ),
+                            );
+                          },
+                          accent: GeniusWalletColors.statusInfo,
+                        ),
+                        _devButton(
+                          'Swap success',
+                          () {
+                            SwapSuccessDrawer.show(
+                              context,
+                              fromAmount: '1.0',
+                              toAmount: '0.98',
+                              fromSymbol: 'ETH',
+                              toSymbol: 'USDC',
+                              fromIconUrl:
+                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+                              toIconUrl:
+                                  'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                              chain: 'Ethereum',
+                            );
+                          },
+                          accent: GeniusWalletColors.statusSuccess,
+                        ),
+                        _devButton(
+                          'Swap failed',
+                          () {
+                            SwapFailDrawer.show(
+                              context,
+                              fromAmount: '1.0',
+                              toAmount: '0.00',
+                              fromSymbol: 'ETH',
+                              toSymbol: 'USDC',
+                              fromIconUrl:
+                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+                              toIconUrl:
+                                  'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                              chain: 'Ethereum',
+                            );
+                          },
+                          accent: GeniusWalletColors.statusError,
+                        ),
+                        _devButton(
+                          'Buy OK',
+                          () => BuySuccessDrawer.show(context),
+                          accent: GeniusWalletColors.statusSuccess,
+                        ),
+                        _devButton(
+                          'Buy fail',
+                          () => BuyCancelledDrawer.show(context),
+                          accent: GeniusWalletColors.statusError,
+                        ),
                       ],
                     ),
                   ],
