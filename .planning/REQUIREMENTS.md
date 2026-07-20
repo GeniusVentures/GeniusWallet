@@ -43,7 +43,7 @@ collisions), so they carry the lowest risk and everything else depends on them.
 One phase per area. Each lands on the already-ported design system, keeps develop's logic, and is
 verified by running the flow.
 
-- [ ] **SCR-01**: Dashboard (balances, holdings, transactions, markets, news) wears the redesign and keeps develop's behavior — pull-to-refresh, error/empty states, poll intervals, accountStatus gating
+- [x] **SCR-01**: Dashboard (balances, holdings, transactions, markets, news) wears the redesign and keeps develop's behavior — pull-to-refresh, error/empty states, poll intervals, accountStatus gating
 - [ ] **SCR-02**: Onboarding (create, import, recovery phrase, verify, legal) wears the redesign and keeps develop's behavior — including the seed-phrase read-only/hide-toggle and no seed logging
 - [ ] **SCR-03**: Token screens (token info, send, receive, address book, market data) wear the redesign
 - [ ] **SCR-04**: Swap (Squid Router) wears the redesign and keeps develop's route/fee/slippage logic
@@ -80,7 +80,7 @@ off is worse than an obvious gap product can prioritise.
 - [x] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — re-skinned in place; structure unchanged
 - [ ] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — re-skinned in place; flow and routing unchanged
 - [ ] **GAP-05**: Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `screens/banxa_buy_screen.dart`) — re-skinned in place; structure unchanged
-- [ ] **GAP-06**: Misc develop additions (`components/wallet_overview.dart`, `components/loading.dart`, `dashboard/home/widgets/transaction_displays.dart`) — re-skinned in place; structure unchanged
+- [x] **GAP-06**: Misc develop additions (`components/wallet_overview.dart`, `components/loading.dart`, `dashboard/home/widgets/transaction_displays.dart`) — re-skinned in place; structure unchanged
 
 GAP-02..06 are satisfied when the surface wears the design language AND a before/after comparison
 shows the same items, in the same order, doing the same things. Any structural question these raise
@@ -166,8 +166,8 @@ Deferred to future milestones.
 | BEH-02 | Phase 4 — Navigation shell & chrome | Complete |
 | GAP-02 | Phase 4 — Navigation shell & chrome | Complete |
 | GAP-03 | Phase 4 — Navigation shell & chrome | Complete |
-| SCR-01 | Phase 5 — Dashboard | Pending |
-| GAP-06 | Phase 5 — Dashboard | Pending |
+| SCR-01 | Phase 5 — Dashboard | Complete |
+| GAP-06 | Phase 5 — Dashboard | Complete |
 | SCR-02 | Phase 6 — Onboarding | Pending |
 | GAP-04 | Phase 6 — Onboarding | Pending |
 | SCR-03 | Phase 7 — Token screens | Pending |

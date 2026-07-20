@@ -1,38 +1,56 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-17T21:11:59.033Z",
-  "phase": "4",
-  "phase_name": "navigation-shell-chrome",
-  "phase_dir": ".planning/phases/04-navigation-shell-chrome",
-  "plan": 1,
-  "task": 3,
-  "total_tasks": 3,
+  "timestamp": "2026-07-20T10:39:21.567Z",
+  "phase": "05",
+  "phase_name": "dashboard",
+  "phase_dir": ".planning/phases/05-dashboard",
+  "plan": 2,
+  "task": 2,
+  "total_tasks": 2,
   "status": "paused",
   "branch": "ui-redesign-port",
-  "head": "c3a80d3",
+  "head": "4f5b079",
   "completed_tasks": [
-    {"id": 1, "name": "Reconcile theme.dart key-by-key into appearance-aware ThemeData (6 develop-only sections preserved, onPrimary: textOnBrand kept)", "status": "done", "commit": "953f1c7"},
-    {"id": "1-fix", "name": "Correct outlinedButtonTheme/filledButtonTheme vertical padding token", "status": "done", "commit": "029c089"},
-    {"id": 2, "name": "OS-first-launch default in gw_appearance.load(), MaterialApp ValueListenableBuilder wrap, gallery Scaffold reverted to transparent", "status": "done", "commit": "2f3aa8a"}
+    {"id": "05-01/1", "name": "Re-skin DashboardScrollContainer to GWDecorations.surface (UI-SPEC §5)", "status": "done", "commit": "af09302"},
+    {"id": "05-01/2", "name": "Re-skin shared Loading (§3.2) + FutureStateWidget default chrome (§4.6)", "status": "done", "commit": "ee326da"},
+    {"id": "05-01/3", "name": "Human walk — PASSED on gmac with one recorded verification gap", "status": "done", "commit": "f76edbc"},
+    {"id": "05-02/1", "name": "Re-skin wallet_overview.dart hero balance (§3.1/§4.1)", "status": "done", "commit": "8a5e5a9"}
   ],
   "remaining_tasks": [
-    {"id": 3, "name": "D-02 gallery re-walk gate (HUMAN) — derive dark-only count, split findings bugs-vs-design, repro the two unexplained findings, confirm OS-follow default", "status": "not_started", "blocking": true}
+    {"id": "05-02/2", "name": "Human walk for the hero balance re-skin — BLOCKING, never performed", "status": "not_started", "blocking": true}
   ],
-  "blockers": [],
+  "blockers": [
+    {
+      "description": "No user-facing appearance toggle. setMode() exists only in lib/dev/token_probe_screen.dart:103 and lib/dev/design_gallery_screen.dart:124, so any must_have clause requiring an IN-PLACE live appearance flip is UNVERIFIABLE. Toggling requires navigating to a dev screen and back, and that navigation forces a rebuild which masks the exact const-staleness the clause guards against.",
+      "type": "technical",
+      "workaround": "Record as an outstanding gap, never as a pass. Escalated in .planning/todos/pending/2026-07-18-no-user-facing-appearance-toggle.md with severity: verification-blocker. Also retroactively affects 04-02 and 04-04, which carry identical wording."
+    },
+    {
+      "description": "UI-SPEC §3.1's toggle-row table specifies fillColor: brandPrimary with selectedColor: textPrimary. White on #14C8FF measures 1.96:1 — far below the WCAG AA 4.5:1 threshold. 05-02 substituted textOnBrand (10.12:1), which is what theme.dart already pairs with brand fills and what UI-SPEC §3.3 itself uses.",
+      "type": "external",
+      "workaround": "Fix §3.1 at source before 05-03..05-06 copy the pattern. Needs Alex to confirm."
+    }
+  ],
   "async_jobs": [],
   "human_actions_pending": [
     {
-      "action": "Perform the D-02 gallery re-walk and report four things",
-      "context": "04-01 wired the appearance-aware theme.dart (the linchpin). Run with --dart-define=GW_DEV_TOOLS=true, Dev > Gallery, toggle appearance, walk all 30 sections in BOTH modes. Report: (1) did the 5 theme-confound findings evaporate (token-row/wallet-card/empty-error text, button font, icons now flip color)? (2) the dark-only COUNT across 30 sections — the number that unblocks the light-mode grain decision; (3) do the two unexplained findings persist — 'Screen wrappers' blank in dark, disabled GWCheckbox invisible in dark? (4) OS-follow sanity — clear the persisted appearance / launch fresh on a light-set OS, does it open light? FULL stop-and-rerun (this plan changed main.dart's app root + touched a .g.dart), not hot reload. Close the reference Release exe first (shared Hive lock). This gate MUST close before 04-02+ (D-01/D-02).",
+      "action": "Perform the 05-02 hero-balance walk and report per mode",
+      "context": "Quit ALL running Genius Wallet instances first, then run `gcd && flutter run -d macos --dart-define=GW_DEV_TOOLS=true`. Check: (1) 'Current Balance' label above a large figure that counts up on first paint; (2) behaviour intact — zero-funds wallet shows 'No funds available' in red, GNUS/Minions toggle switches units, GeniusBalanceDisplay + connection widgets + Submit Job work, and NO 24h delta / action-pill row / Assets-NFTs tab appeared; (3) hero does not flash before the account loads; (4) THE KEY CHECK — toggle legibility in DARK mode, which validates the textOnBrand contrast substitution; (5) repeat in light. Skip the in-place live-flip clause and record it blocked, same as 05-01.",
       "blocking": true
+    },
+    {
+      "action": "Decide whether 'No funds available' should keep develop's FontWeight.bold",
+      "context": "05-02 followed UI-SPEC literally to bodyMd, which dropped develop's bold. One-line restore if it reads under-emphasised during the walk.",
+      "blocking": false
     }
   ],
   "decisions": [
-    {"decision": "04-01 is theme-only and ends at the D-02 human gate", "rationale": "D-01/D-02 — wire the appearance-aware theme and prove it flips (re-walk) before any screen re-skin builds on it. Executed via --wave 1 so the run halts here naturally.", "phase": "4"},
-    {"decision": "theme.dart reconciled key-by-key, NOT wholesale-adopted from Alex", "rationale": "Alex's theme.dart drops 6 live develop ThemeData sections (floatingLabelBehavior.always/toggleButtonsTheme/filledButtonTheme/outlinedButtonTheme/dialogTheme/menuTheme/dividerTheme). All 6 verified present in the reconciled file. Take his visual, re-derive never inherit.", "phase": "4"},
-    {"decision": "GlobalSwapFabHost + 7a63b4f !_dirty carry deferred to the swap-FAB phase (D-08)", "rationale": "The component doesn't exist on develop, no Phase 4 criterion needs it, and it couples to out-of-scope lib/ai. ROADMAP records it as a carry-move, not a drop. Criterion 1's general clause stays and is walked in 04-02.", "phase": "4"}
+    {"decision": "GWDecorations.surface bound to border: rather than a surface-color parameter", "rationale": "The helper takes no surface-color argument — its fill comes from the appearance-aware surfaceSheen getter internally. Taken literally the plan would have left an unused variable. Binding the GWColors local to border: keeps a real appearance-aware consumer and upgrades the hairline edge off the static getter. Rule 3 deviation.", "phase": "05"},
+    {"decision": "selectedColor uses textOnBrand, not UI-SPEC §3.1's textPrimary", "rationale": "White on brandPrimary is 1.96:1, a WCAG AA failure. textOnBrand is 10.12:1 and is already the project's brand-fill pairing. The spec table is wrong at source.", "phase": "05"},
+    {"decision": "Currency symbol read from NumberFormat.simpleCurrency().currencySymbol", "rationale": "GWAnimatedNumber formats via decimalPatternDigits; a hardcoded $ prefix would silently pin the app to dollars. No currency switcher is exposed today, so this is future-proofing at equal cost.", "phase": "05"},
+    {"decision": "Six local-only files are marked skip-worktree", "rationale": "ios/macos project.pbxproj, AppDelegate.swift, Info.plist and both Podfile.lock carry the developer's personal Apple team (9UJNVD92ZW) and bundle id ai.gnus.GeniusWallet.jakub, because his Apple role is Customer Support and he cannot use the company team P7T32QQX5V. skip-worktree hides them from git status so they cannot be committed by accident. Undo with `git update-index --no-skip-worktree <path>` if an upstream change to those files ever needs pulling.", "phase": "05"}
   ],
-  "uncommitted_files": [],
-  "next_action": "Ask the user for the D-02 gallery re-walk result (see human_actions_pending). Then split findings bugs-vs-design per D-04, record the dark-only count, and run /gsd-execute-phase 4 --wave 2 for the shell re-skin (04-02). One executor at a time (sequential — worktree base diverged).",
-  "context_notes": "Phase 4 is 6 plans, all checker-verified (one revision fixed a task-ordering bug in 04-05). Sequential execution only (worktree base-check shouldDegrade=true, and this project's Phase 2 index-race lesson). 04-01's code is done and every claim was orchestrator-verified: 6 preserved sections present, OS-brightness branch at gw_appearance.dart:33, ValueListenableBuilder at main.dart:297, gallery reverted to Colors.transparent, analyze 0 errors / 62-issue baseline, additive guard PASSED, tree clean. The re-walk is the payoff moment: it should show 5 of Phase 3's 8 findings resolved and finally yield the dark-only count that answers the user's light-mode grain question. Standing method that keeps paying off: make every agent RE-DERIVE, never inherit — it caught 6+ wrong inherited facts across Phases 3-4 today (section counts, importer counts, a physically-impossible walk instruction, the dropped theme sections, a task-ordering bug). Verification records now carry canonical frontmatter (status: passed) so /gsd-progress and /gsd-ship route correctly — added retroactively to Phase 2+3 today."
+  "uncommitted_files": ["cmake/CommonBuildParameters.cmake", "cmake/DownloadDependencies.cmake"],
+  "next_action": "Run the 05-02 human walk (see human_actions_pending). On pass, resume the 05-02 executor to close Task 2, mark SCR-01/GAP-06, and flip 05-02-SUMMARY.md off status: awaiting-verification. Then execute 05-03 (holdings). Sequential only — worktree base-check reports shouldDegrade=true.",
+  "context_notes": "First session run entirely on macOS; every prior session was Windows. That platform switch is the source of most friction found today and it is NOT yet reflected in the planning docs. Phase 5 plans were authored on Windows and their <how-to-verify> blocks still say `flutter run -d windows` with /c/Users/... paths — translate them, do not follow them. Working aliases: gmac, gios, gcd. flutter test does not compile; flutter analyze is a gate not evidence, baseline 409 issues / 0 errors, report DELTA. Mouse click-drag does not scroll on desktop — lib/ sets no dragDevices anywhere, so Flutter's desktop default excludes mouse; pull-to-refresh must be walked with a two-finger trackpad gesture. A black window at startup is almost always a stale second instance holding the Hive container lock (~/Library/Containers/ai.gnus.GeniusWallet.jakub/), not a rendering bug — quit every instance before walking. CoinGecko 429 is the free-tier limit; the app degrades to cached data correctly and it is not a defect. The real design reference was found late in the session and is NOT on this branch: .planning/design/gnus-mockups.html on branch ui-redesign-3.514 (commit 9413a32) — a self-contained HTML mockup of five screens including the dashboard, plus gnus-tokens.json (Tokens Studio export). Its radius scale matches genius_wallet_consts.dart exactly. Two caveats when using it: it is a reconstruction from DESIGN_SYSTEM.md and Flutter code rather than device captures, all figures are mock values, and it approximates Inter with a system stack because font CDNs were unavailable — so where type differs, the APP is right and the mockup is wrong (04-02 bundled real Inter). It defines zero :hover rules, so it cannot settle any hover question. Consider merging those three files onto this branch so the reference travels with the work. NOTE ON STALE ARTEFACTS DELIBERATELY LEFT IN PLACE: .planning/phases/04-navigation-shell-chrome/.continue-here.md is a zombie from a 2026-07-17 pause and is NOT current — Phase 4 is fully closed (7 SUMMARYs + 04-VERIFICATION.md). ROADMAP.md still shows Phases 3 and 4 unticked despite both having VERIFICATION files. STATE.md's body progress line disagrees with its own frontmatter. These were left untouched on purpose so the repo owner can reproduce the drift; do not silently 'fix' them. Related: `gsd-tools query state.begin-phase` rewrote total_phases from 11 to 4 and dropped the percent key, because it counts phase directories on disk rather than reading ROADMAP.md — Phase 1 shipped as PR #207 with no directory. And `roadmap update-plan-progress` auto-ticked 05-02 complete purely because a SUMMARY file existed, before any human walk."
 }

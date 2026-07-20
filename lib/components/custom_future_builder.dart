@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 class FutureStateWidget<T> extends StatelessWidget {
   final Future<T> future;
@@ -34,12 +36,19 @@ class FutureStateWidget<T> extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                error ?? const Icon(Icons.error, color: Colors.red, size: 48),
+                error ??
+                    const Icon(
+                      Icons.error_outline,
+                      color: GeniusWalletColors.statusError,
+                      size: 48,
+                    ),
                 if (onRetry != null) ...[
                   const SizedBox(height: 12),
-                  ElevatedButton(
+                  GWButton(
                     onPressed: onRetry,
-                    child: const Text("Retry"),
+                    label: "Retry",
+                    variant: GWButtonVariant.primary,
+                    leading: const Icon(Icons.refresh),
                   ),
                 ],
               ],

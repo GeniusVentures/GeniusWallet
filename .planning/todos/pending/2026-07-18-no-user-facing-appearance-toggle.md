@@ -2,10 +2,35 @@
 created: 2026-07-18T13:23:10.107Z
 title: No user-facing appearance (dark/light) toggle
 area: ui
+severity: verification-blocker  # ESCALATED 2026-07-20 (05-01 walk) — was UX-only
 files:
   - lib/theme/gw_appearance.dart:40
   - lib/settings/settings_screen.dart
+blocks:
+  - "05-01 must_have: DashboardScrollContainer 'flips LIVE on an in-place appearance toggle rather than rendering stale'"
 ---
+
+## ESCALATION (2026-07-20, 05-01 dashboard walk)
+
+This is no longer just a UX gap — it is now a **verification blocker**. Multiple
+plans (04-02, 04-04, 05-01) carry a must_have of the form "re-skins LIVE on an
+IN-PLACE appearance toggle", which exists specifically to catch the const-staleness
+failure mode documented in `2026-07-18-const-widgets-do-not-re-skin-on-live-
+appearance-toggle.md`. That clause **cannot be verified while the only `setMode()`
+call sites are dev screens** (`lib/dev/token_probe_screen.dart:103`,
+`lib/dev/design_gallery_screen.dart:124`).
+
+The reason is structural, not a matter of walk discipline: toggling requires
+navigating away to a dev screen and back, and **that navigation forces a rebuild
+which masks exactly the const-staleness the clause guards against**. A walk done
+this way can only ever prove "correct AFTER an appearance change", never "flips
+LIVE in place". Until a toggle reachable from the surface under test exists, every
+such must_have must be recorded as an outstanding item rather than passed.
+
+**Recipe to close the blocked verifications once a toggle ships:** with the surface
+under test on screen and NOT navigated away from, flip appearance and confirm the
+surface re-skins immediately. A surface that stays in the old mode is the
+const-staleness regression.
 
 ## Problem
 

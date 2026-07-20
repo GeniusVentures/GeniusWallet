@@ -2,19 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 04
-current_phase_name: navigation-shell-chrome
+current_phase: 05
+current_phase_name: dashboard
 status: executing
-stopped_at: Phase 5 planned — 6 plans, checker PASS; ready to execute 05-01 (shared dashboard chrome)
-last_updated: "2026-07-18T16:41:00.772Z"
-last_activity: 2026-07-17
-last_activity_desc: Phase 04 execution started
+stopped_at: 05-02 Task 1 committed (8a5e5a9); Task 2 blocking human-verify walk PENDING
+last_updated: "2026-07-20T10:22:32.371Z"
+last_activity: 2026-07-20
+last_activity_desc: Phase 05 execution started
 progress:
-  total_phases: 11
+  total_phases: 4
   completed_phases: 3
   total_plans: 28
-  completed_plans: 22
-  percent: 27
+  completed_plans: 24
 ---
 
 # Project State
@@ -24,21 +23,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 04 — navigation-shell-chrome
+**Current focus:** Phase 05 — dashboard
 
 ## Current Position
 
-Phase: 04 (navigation-shell-chrome) — EXECUTING
-Plan: 7 of 7 — ALL Phase 4 plans executed + walked (04-01..07 PASSED)
-Status: Phase 4 re-skins DONE. Next: run Phase 4 goal-backward VERIFICATION (criteria 1-6), then plan Phase 5 (Dashboard). Deferred: user-facing appearance toggle + 6 UX-polish/product todos.
+Phase: 05 (dashboard) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
 phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
 = PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-17 — Phase 04 execution started
+Last activity: 2026-07-20 — Phase 05 execution started
 
-Progress: [██░░░░░░░░] 18% (2 of 11 phases)
+Progress: [█████████░] 86% (2 of 11 phases)
 
 ## Accumulated Context
 
@@ -89,6 +88,10 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: [Phase 03-10]: Criterion 6's deferred cross-check found 2 of 15 GAP-01 primitives with no gallery section: custom_drop_down.dart/currency_dropdown.dart and wallet_type_icon.dart -- both compile clean, neither is demoed
 - [Phase ?]: theme.dart reconciled key-by-key against Alex's reference (not a wholesale swap); onError kept as develop's original Colors.white rather than adding Alex's foundationWhite token outside this plan's file scope; outlinedButtonTheme.foregroundColor made appearance-aware (textPrimary, was hardcoded white) so sdk_account_manager.dart's footer buttons stay legible in light mode
 - [Phase ?]: colorScheme.errorContainer/onErrorContainer/scrim/surfaceDim/surfaceContainerHigh/onSurfaceVariant dropped from theme.dart's ColorScheme, matching Alex's reference and relying on Material 3's computed defaults; pin_screen.dart's errorContainer read still resolves to a reasonable value
+- [Phase 05]: DashboardScrollContainer's mandatory GWColors read is bound to GWDecorations.surface's border: parameter — GWDecorations.surface takes no surface-color argument (fill comes from the appearance-aware surfaceSheen getter), so binding gw.borderSubtle to border: keeps the Theme dependency live-flip requires while giving the read a real consumer instead of an unused local
+- [Phase 05]: Canonical loading.dart keeps develop's if (text != null) guard rather than the shadow's text ?? empty-string — The shadow renders an unconditional AutoSizeText, which would paint an empty text box on every text-less call site (most of the 19 importers); token choices ported, structure preserved
+- [Phase ?]: 05-02: UI-SPEC 3.1's toggle pairing (selectedColor textPrimary over fillColor brandPrimary) fails WCAG AA at 1.96:1 in dark mode; substituted textOnBrand (10.12:1). 3.1's table should be corrected for 05-03..05-06.
+- [Phase ?]: 05-02: GWAnimatedNumber currency prefix sourced from NumberFormat.simpleCurrency().currencySymbol, not hardcoded, preserving develop's locale-aware balance rendering.
 
 ### Pending Todos
 
@@ -104,6 +107,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] Account-row UX polish (`.planning/todos/pending/2026-07-18-account-row-ux-polish.md`) — 04-04 walk feedback: whole row tappable to select (don't block ⋮), truncate address, balance format ("0 minions" zero / ≤3 decimals).
 - [ui] Drawer/dialog padding-spacing polish (`.planning/todos/pending/2026-07-18-drawer-dialog-padding-spacing-polish.md`) — 04-04 walk: cosmetic spacing pass.
 - [ui] SDK account manager UX polish (`.planning/todos/pending/2026-07-18-sdk-account-manager-ux-polish.md`) — 04-06 walk: disable add-dialog confirm until valid mnemonic/private-key; add a drawer loading state.
+- [ui] CTA hover state is over-rounded (`.planning/todos/pending/2026-07-20-cta-hover-state-is-over-rounded.md`) — 05-01 walk. Radius tokens match the Figma export exactly, so this is wrong-token-applied, not wrong-token-value. Design does not settle it: `gnus-mockups.html` defines zero `:hover` rules. Needs an answer from Alex before any code change.
+- [general] Second app instance shows a silent black window (`.planning/todos/pending/2026-07-20-second-app-instance-shows-a-silent-black-window.md`) — 05-01 walk. Hive grants its container lock to one process; later ones hang before first paint with no error, no log, no dialog. Cost real debugging time — the black window was first mistaken for a rendering regression. Aggravated by the login-item entry that installs silently when a desktop build runs. Same condition tripped CoinGecko 429 (each instance runs the finding-14 60s timer); degradation to cache behaved correctly.
 
 ### Blockers/Concerns
 
@@ -118,6 +123,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - 03-09's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT across all 30 gallery sections) is outstanding -- no code changed pending it; see 03-09-SUMMARY.md's Outstanding section for the exact recipe
 - Phase 3 criterion 5 (the no-visual-change walk, GW_DEV_TOOLS unset) is OUTSTANDING -- requires a human with Windows GUI access. Exact recipe recorded in 03-VERIFICATION.md
 - The D-02 gallery re-walk (04-01 Task 3) is OUTSTANDING -- no Windows GUI access from this execution environment. Must be performed by the user before any 04-02+ shell/screen re-skin plan begins. Exact recipe in 04-01-SUMMARY.md's 'Outstanding' section.
+- 05-01 must_have 'container flips LIVE on an in-place appearance toggle' is UNVERIFIABLE — setMode() exists only on dev screens, so toggling requires navigation that forces a rebuild and masks the const-staleness the clause guards against. Todo 2026-07-18-no-user-facing-appearance-toggle.md escalated to severity: verification-blocker; also blocks re-verification of the same clause in 04-02/04-04.
 
 ## Reference Material
 
@@ -136,9 +142,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-18T16:41:00.765Z
-Stopped at: Phase 5 planned — 6 plans, checker PASS; ready to execute 05-01 (shared dashboard chrome)
-Resume file: .planning/phases/05-dashboard/05-01-PLAN.md
+Last session: 2026-07-20T10:22:32.243Z
+Stopped at: 05-02 Task 1 committed (8a5e5a9); Task 2 blocking human-verify walk PENDING
+Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics
 
@@ -160,3 +166,8 @@ Resume file: .planning/phases/05-dashboard/05-01-PLAN.md
 | Phase 03-gw-component-library P09 | 35min | 2 tasks | 1 files |
 | Phase 03-gw-component-library P10 | 30min | 2 tasks | 1 files |
 | Phase 04-navigation-shell-chrome P01 | ~35min | 2 tasks | 4 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 05 P01 | ~20min | 2 tasks | 3 files |
