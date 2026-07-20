@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:intl/intl.dart';
 
 class CryptoSparkLineChart extends StatelessWidget {
@@ -24,7 +25,7 @@ class CryptoSparkLineChart extends StatelessWidget {
     required this.currentPrice,
     required this.priceChangePercent,
     this.sparkline,
-    this.iconSize = 28,
+    this.iconSize = 20,
     this.iconPath,
     this.onTap,
   });
@@ -52,6 +53,9 @@ class CryptoSparkLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this const-instanced widget to rebuild on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
@@ -63,7 +67,7 @@ class CryptoSparkLineChart extends StatelessWidget {
       leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
       title: AutoSizeText(
         title,
-        style: const TextStyle(fontSize: 16, color: Colors.grey),
+        style: TextStyle(fontSize: 16, color: gw.textSecondary),
         maxLines: 1,
       ),
       onTap: onTap,
@@ -71,7 +75,7 @@ class CryptoSparkLineChart extends StatelessWidget {
         formattedPrice,
         style: TextStyle(
           fontSize: 14,
-          color: currentPrice == 0 ? Colors.grey[600] : Colors.white,
+          color: currentPrice == 0 ? gw.textSecondary : gw.textPrimary,
         ),
       ),
       titleAlignment: ListTileTitleAlignment.center,
