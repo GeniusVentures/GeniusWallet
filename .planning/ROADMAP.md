@@ -229,14 +229,15 @@ Plans:
   4. Market data refreshes once a minute, not every 20 seconds (finding 14 — the 20s interval risks CoinGecko 429s)
   5. Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)
 
-**Plans**: 0/6 plans executed — planned + checker PASS (2026-07-18); sequential re-skin (shared chrome first, then per-area), each with a human walk
+**Plans**: 1/6 plans executed
 
-- [ ] 05-01-PLAN.md — Shared dashboard chrome: DashboardScrollContainer + shared Loading + FutureStateWidget default states (GAP-06 loading.dart) — criteria 1, 2, 3
+- [x] 05-01-PLAN.md — Shared dashboard chrome: DashboardScrollContainer + shared Loading + FutureStateWidget default states (GAP-06 loading.dart) — criteria 1, 2, 3
 - [ ] 05-02-PLAN.md — Hero balance / wallet overview re-skin (GAP-06 wallet_overview.dart; wallets_overview.g.dart shadow read-only) — criteria 1, 3
 - [ ] 05-03-PLAN.md — Holdings list re-skin + verify 1-min market refresh (finding 14) — criteria 1, 4, 5
 - [ ] 05-04-PLAN.md — Markets re-skin (grid + GWTextField search + sparkline cards, error/retry) — criteria 1, 3, 5
 - [ ] 05-05-PLAN.md — News feed re-skin (develop's StaggeredGrid kept) — criteria 1, 2
 - [ ] 05-06-PLAN.md — Transactions re-skin in place (count footer, overflow-safety, SegmentedButton kept) (GAP-06 transaction_displays.dart) — criteria 1, 2, 5
+
 **UI hint**: yes
 **Findings**: 8, 9, 10, 14, 17, 18, 29, 30, 31, 32, 33, 34. **Covers GAP-06**: `wallet_overview.dart`, `loading.dart`, `transaction_displays.dart`.
 
@@ -348,7 +349,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | 2. Design tokens & verification loop | 2/5 | In Progress | - |
 | 3. gw_* component library | 0/10 | Planned | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
-| 5. Dashboard | 0/TBD | Not started | - |
+| 5. Dashboard | 1/6 | In Progress|  |
 | 6. Onboarding | 0/TBD | Not started | - |
 | 7. Token screens | 0/TBD | Not started | - |
 | 8. Swap & bridge | 0/TBD | Not started | - |
