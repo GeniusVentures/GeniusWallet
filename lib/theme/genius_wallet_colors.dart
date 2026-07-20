@@ -24,7 +24,11 @@ class GeniusWalletColors {
 
   static const Color btnGradientBlue = Color.fromRGBO(0, 104, 239, 1);
   static const Color btnGradientGreen = Color.fromRGBO(1, 221, 166, 1);
-  static const Color btnFilter = Color.fromARGB(255, 19, 33, 53);
+  // Appearance-aware: app-wide root fix for bare-TextButton light-mode
+  // legibility. theme.dart:258 is the sole consumer (textButtonTheme
+  // .backgroundColor); every bare TextButton flips via this single getter.
+  static Color get btnFilter =>
+      _isLight ? const Color(0xFFEFF2F6) : const Color.fromARGB(255, 19, 33, 53);
   static Color btnFilterSelected = lightGreenPrimary.withValues(alpha: 0.1);
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 
