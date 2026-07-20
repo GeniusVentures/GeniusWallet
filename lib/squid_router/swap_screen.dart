@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -224,44 +225,28 @@ class _SwapScreenState extends State<SwapScreen> {
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      // Invisible widget to balance the settings icon on the right
-                      const SizedBox(width: 24), // Same width as the Icon
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            "Swap",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
+                  child: GWPageHeader(
+                    title: "Swap",
+                    trailing: IconButton(
+                      icon: const Icon(
+                        Icons.tune,
+                        color: Colors.white,
+                        size: 24,
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.tune,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          SwapSettingsDrawer.show(
-                            context,
-                            initialSlippage: slippage,
-                            onSlippageChanged: (value) {
-                              setState(() {
-                                slippage = value;
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ],
+                      onPressed: () {
+                        SwapSettingsDrawer.show(
+                          context,
+                          initialSlippage: slippage,
+                          onSlippageChanged: (value) {
+                            setState(() {
+                              slippage = value;
+                            });
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
                 SwapField(
                   label: "You Pay",
                   controller: fromAmountController,

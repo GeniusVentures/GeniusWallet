@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -46,11 +47,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Crypto News',
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              const SizedBox(height: 24),
+              const GWPageHeader(title: 'Crypto News'),
               Expanded(
                 child: FutureStateWidget<List<NewsArticle>>(
                   future: _newsFuture,

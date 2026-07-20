@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/chart/markets_search_bar.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
@@ -68,38 +69,28 @@ class _MarketsScreenState extends State<MarketsScreen> {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
-            spacing: 16.0,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 12.0,
-                children: [
-                  Text(
-                    "Markets",
-                    style: GeniusWalletTypography.headlineLg.copyWith(
-                      color: gw.textPrimary,
-                    ),
+              GWPageHeader(
+                title: "Markets",
+                trailing: IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.magnifyingGlass,
+                    size: 18,
                   ),
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.magnifyingGlass,
-                      size: 18,
-                    ),
-                    onPressed: () {
-                      ResponsiveDrawer.show<void>(
-                        context: context,
-                        title: "Search Coins",
-                        child: ListView(
-                          children: [
-                            MarketSearchBar(
-                              onCoinPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                  onPressed: () {
+                    ResponsiveDrawer.show<void>(
+                      context: context,
+                      title: "Search Coins",
+                      child: ListView(
+                        children: [
+                          MarketSearchBar(
+                            onCoinPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
               FutureStateWidget<List<CoinGeckoCoin>>(
                 future: _coinsFuture,
