@@ -105,6 +105,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] Account-row UX polish (`.planning/todos/pending/2026-07-18-account-row-ux-polish.md`) — 04-04 walk feedback: whole row tappable to select (don't block ⋮), truncate address, balance format ("0 minions" zero / ≤3 decimals).
 - [ui] Drawer/dialog padding-spacing polish (`.planning/todos/pending/2026-07-18-drawer-dialog-padding-spacing-polish.md`) — 04-04 walk: cosmetic spacing pass.
 - [ui] SDK account manager UX polish (`.planning/todos/pending/2026-07-18-sdk-account-manager-ux-polish.md`) — 04-06 walk: disable add-dialog confirm until valid mnemonic/private-key; add a drawer loading state.
+- [ui] CTA hover state is over-rounded (`.planning/todos/pending/2026-07-20-cta-hover-state-is-over-rounded.md`) — 05-01 walk. Radius tokens match the Figma export exactly, so this is wrong-token-applied, not wrong-token-value. Design does not settle it: `gnus-mockups.html` defines zero `:hover` rules. Needs an answer from Alex before any code change.
+- [general] Second app instance shows a silent black window (`.planning/todos/pending/2026-07-20-second-app-instance-shows-a-silent-black-window.md`) — 05-01 walk. Hive grants its container lock to one process; later ones hang before first paint with no error, no log, no dialog. Cost real debugging time — the black window was first mistaken for a rendering regression. Aggravated by the login-item entry that installs silently when a desktop build runs. Same condition tripped CoinGecko 429 (each instance runs the finding-14 60s timer); degradation to cache behaved correctly.
 
 ### Blockers/Concerns
 
