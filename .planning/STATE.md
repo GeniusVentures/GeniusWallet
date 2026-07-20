@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: 05-05 news walk APPROVED (both modes, 2026-07-20); next = 05-06 transactions (last plan)
+stopped_at: Phase 05 IMPLEMENTATION-COMPLETE — all 6 plans walked & approved (2026-07-20); next = verification (/gsd-verify-work 05)
 last_updated: "2026-07-20T13:10:00.000Z"
 last_activity: 2026-07-20
-last_activity_desc: 05-05 news walk approved + GWPageHeader title unification (ipg) approved; next = 05-06 transactions
+last_activity_desc: Phase 05 complete — 05-06 transactions + 3 polish quick tasks (jvr/k81/lyn) walked & approved; PAUSED for handoff
 progress:
   total_phases: 4
   completed_phases: 3
@@ -35,7 +35,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-20 — 05-05 news walk APPROVED + GWPageHeader title unification approved; next = 05-06 transactions
+Last activity: 2026-07-20 — Phase 05 all 6 plans walked & approved; PAUSED for colleague handoff
 
 Progress: [█████████░] 86% (2 of 11 phases)
 
@@ -141,7 +141,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 | 260720-jvr | Add dev Mock-transactions injector (bubble MOCK section "Mock txns": varied offline batch — sent/received/failed/long-value — into TransactionsCubit + SGNUS controller; Clear extended) so the 05-06 transactions view is walkable on any wallet | 2026-07-20 | e127935 | [260720-jvr-add-a-dev-mock-transactions-injector-so-](./quick/260720-jvr-add-a-dev-mock-transactions-injector-so-/) |
 | 260720-k81 | Transaction-area polish (05-06 walk): badge white border+arrow on colored fill; row inter-spacing + shadow clearance (fixes dashboard tx card too); detail drawer shows plain data (no inner card); un-clip drawer close button (ResponsiveDrawer radius 28→24 + leading inset, shared) | 2026-07-20 | b4a6d92 | [260720-k81-polish-transaction-rows-and-detail-drawe](./quick/260720-k81-polish-transaction-rows-and-detail-drawe/) |
 
-> **All six 2026-07-20 dev/chrome/visual quick tasks (bgl, cw8, dty, eu9, gzq, ipg) WALKED & APPROVED (both light+dark) on 2026-07-20.** gzq=clipped surface-card shadows fixed (markets grid + mobile one-column dashboard). ipg=shared GWPageHeader unifying Markets/News/Swap page titles (headlineLg, left-aligned). bgl=dev bubble; cw8=mock-holdings injector; dty=sectioned bubble + branded buttons; eu9=header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded Submit-Job/Buy-GNUS. Resolved todos: `move-dev-tooling-out-of-top-bar-into-overflow-bubble`, `top-bar-action-widgets-render-black-in-light-mode` → moved to todos/completed.
+> **All 2026-07-20 quick tasks WALKED & APPROVED (both light+dark): bgl, cw8, dty, eu9, gzq, ipg, jvr, k81, lyn.** jvr=dev mock-transactions injector; k81=transaction-area polish (badge white, row spacing/shadow, drawer plain-data + un-clipped close); lyn=softened light-mode card/dialog shadows (appearance-aware). gzq=clipped surface-card shadows fixed (markets grid + mobile one-column dashboard). ipg=shared GWPageHeader unifying Markets/News/Swap page titles (headlineLg, left-aligned). bgl=dev bubble; cw8=mock-holdings injector; dty=sectioned bubble + branded buttons; eu9=header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded Submit-Job/Buy-GNUS. Resolved todos: `move-dev-tooling-out-of-top-bar-into-overflow-bubble`, `top-bar-action-widgets-render-black-in-light-mode` → moved to todos/completed.
 
 > **APPROVED 2026-07-20.** Blocking human-verify walk passed on a fresh `GW_DEV_TOOLS=true` run: top bar no longer overflows (real widgets only), bubble anchored top-right below header, drags + expands within the viewport, all dev actions reachable, and its light/dark toggle live-re-skins the app. Fix `a91aec0` (top-right anchor + viewport clamp/scroll) followed the initial off-screen-expand report.
 
@@ -163,7 +163,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-20T10:22:32.243Z
-Stopped at: 05-05 news walk APPROVED (both modes, 2026-07-20); next = 05-06 transactions (last plan)
+Stopped at: Phase 05 IMPLEMENTATION-COMPLETE — all 6 plans walked & approved (2026-07-20); next = verification
 Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics

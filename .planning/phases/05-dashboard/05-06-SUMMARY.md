@@ -40,7 +40,7 @@ key-decisions:
   - "Count footer's device text-scale behavior was PRESERVED, not dropped, even though the plan's action text names only the token+color substitution. The pre-existing 'fontSize: textScale(16)' (MediaQuery.textScalerOf(context).scale applied to a baseline size) is an accessibility mechanism, not a raw-px trap -- removing it would silently regress large-text-mode support. Folded it into the token substitution instead: fontSize: textScale(GeniusWalletTypography.labelMd.fontSize!), so the token owns the base size (13px, not the old hardcoded 16) while the accessibility scaling still applies on top."
   - "Empty-filtered-list state: ADDED. Per UI-SPEC 4.5's 'recommended, not mandated' framing, a GWEmptyState(icon: Icons.receipt_long_outlined, title: 'No transactions yet', message: 'Your sends, receives and swaps will appear here.') now renders in place of the bare blank ListView when filteredTransactions.isEmpty. Same list slot, same position, no structural change; the count footer ('Transactions: 0') still renders beneath it unconditionally, matching UI-SPEC's own wording that the footer alone would have sufficed had this been skipped."
 
-requirements-completed: []  # Task 3 (blocking human-verify walk) intentionally NOT performed by this executor -- see below. SCR-01/GAP-06 not claimed complete for this plan.
+requirements-completed: [SCR-01, GAP-06]  # Task 3 blocking walk APPROVED 2026-07-20 (both modes; mock-txns injector jvr + polish k81 + soft shadows lyn)
 
 # Coverage metadata -- Tasks 1-2 (auto, code re-skin) automated gates only.
 # Task 3 (checkpoint:human-verify, gate="blocking") is NOT YET PERFORMED; every
@@ -54,7 +54,7 @@ coverage:
         ref: "flutter analyze lib/dashboard/home/widgets/transaction_displays.dart -- No issues found; bash tool/verify_additive_boundary.sh Checks 1+3 PASS (Check 2 fails on the pre-existing, unrelated _Section duplicate already logged in deferred-items.md from 05-04); grep -q 'extension<GWColors>()' PRESENT (9 occurrences); grep for deepBlueMenu/Colors.white/white60/white70/redAccent/greenAccent/black -- zero matches (lightBlueAccent is the sole intentional survivor, confirmed present at exactly the two sent-arrow sites)"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 walk -- NOT YET PERFORMED"
+        ref: "Task 3 walk -- APPROVED 2026-07-20 (both modes; via dev Mock txns injector + transaction polish)"
         status: pass
     human_judgment: true
     rationale: "Token wiring and the grep/analyze/additive-boundary gates are proven statically. That the transaction rows and detail drawers actually read as the redesign, match the Release exe reference, and flip live on an in-place toggle (including an OPEN detail drawer, per this plan's LIVE-FLIP clause) are visual facts only the walk can establish."
@@ -66,7 +66,7 @@ coverage:
         ref: "flutter analyze lib/dashboard/home/widgets/transactions_slim_view.dart lib/dashboard/transactions/transactions_screen.dart -- No issues found; grep -q 'Transactions: ' PRESENT verbatim; grep for cs.onSurfaceVariant/Colors.white -- zero matches; grep -n '@override' transactions_screen.dart -- exactly one match at :12 (finding 34); grep -n 'RefreshIndicator|getCoins' -- both present at :16/:18 (finding 10)"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 walk -- NOT YET PERFORMED"
+        ref: "Task 3 walk -- APPROVED 2026-07-20 (both modes; via dev Mock txns injector + transaction polish)"
         status: pass
     human_judgment: true
     rationale: "Token substitution and the two re-confirmed findings are code-verified. That the filter's selected segment actually reads as brandPrimary, that pull-to-refresh actually reloads, and that a zero-result filter renders the new empty state without overflow/crash are runtime facts only the walk can observe."
@@ -78,21 +78,25 @@ coverage:
         ref: "git diff shows _buildRow's Flexible/overflow:TextOverflow.ellipsis wrap structurally identical (only the surrounding style/typography changed, not the wrap itself); _buildCoinIconWithBadge's errorBuilder: (_, _, _) => const SizedBox.shrink() line is byte-identical pre/post edit"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 walk step 3 (long-value detail row, no RenderFlex overflow) -- NOT YET PERFORMED"
+        ref: "Task 3 walk step 3 (long-value detail row, no RenderFlex overflow) -- APPROVED 2026-07-20 (both modes; via dev Mock txns injector + transaction polish)"
         status: pass
     human_judgment: false
 
 # Metrics
 duration: ~30min (Tasks 1-2; Task 3 is the blocking checkpoint, intentionally not executed)
 completed: 2026-07-20
-status: blocked
+status: complete
 ---
 
 # Phase 05 Plan 06: Transactions Area Re-skin Summary
 
 **Re-skinned develop's transactions area in place -- `transaction_displays.dart`'s four item widgets (`TransactionItem`, `TransactionPurchasedItem`, `TransactionSwappedItem`, `TransactionEscrowReleaseItem`) and their shared `_buildRow`/`_buildDetailsCard`/`_buildCoinIconWithBadge` helpers now wear `GWDecorations.surface` cards, `textPrimary70` row labels, a `brandGreen` received badge with a `textOnBrand` icon/border, `statusError` failure states, `gw.textPrimary`/`textSecondary` amount/secondary text, and a `GWButton` secondary-variant "View on Explorer" button -- while every `Flexible`/`ellipsis` overflow guard (findings 32/33) and the `errorBuilder` null-safety guard survive unchanged, and the file stays single-file (GAP-06, not split to Alex's four-file layout). `transactions_slim_view.dart` keeps develop's `SegmentedButton` (not Alex's `TransactionFilters` chip), re-skins its selected segment to `brandPrimary`, re-tokens the count footer (finding 31) verbatim onto `labelMd` + `gw.textSecondary` while preserving its device text-scale accessibility behavior, and adds a `GWEmptyState` for the empty-filtered-list case. `transactions_screen.dart` was re-read and re-confirmed unchanged: a single `@override` (finding 34) and `RefreshIndicator`-\>`getCoins()` (finding 10). Both auto tasks are committed. Task 3's blocking `checkpoint:human-verify` walk has NOT been performed by this executor -- no visual/behavioral criterion is claimed as passed.**
 
-## Status: BLOCKED -- Task 3 walk PENDING
+## Status: COMPLETE — Task 3 walk APPROVED (2026-07-20)
+
+Task 1 (`0b3ccf6`) + Task 2 (`bda2d98`) + post-walk polish across quick tasks jvr (mock-transactions injector, so a regular wallet's list is walkable), k81 (badge white border/arrow, row inter-spacing + shadow clearance, drawer shows plain data no inner card, un-clipped drawer close button), and lyn (softened light-mode card/dialog shadows). **Task 3's blocking `checkpoint:human-verify` walk was performed and APPROVED on 2026-07-20** (both modes): rows/drawers wear the redesign, sent/received/failed states read correctly, filters + count footer + long-value overflow-safety confirmed, live-flip works. `SCR-01`/`GAP-06` complete; `status: complete`. **This was the LAST plan of phase 05-dashboard — all 6 plans are now walked & approved; the phase is implementation-complete and ready for verification.**
+
+## (historical) Task 1 + Task 2
 
 Task 1 (`0b3ccf6`) + Task 2 (`bda2d98`) are complete and committed. **Task 3's blocking `checkpoint:human-verify` walk was intentionally NOT run by this executor**, per this plan's explicit instruction to stop at the checkpoint. `SCR-01`/`GAP-06` are NOT claimed complete for this plan; `status: blocked` pending the human walk. `requirements-completed` is left empty for this reason. This is the LAST plan of phase 05-dashboard -- the phase itself is not closeable until this walk (and any preceding 05-* plan's still-pending walk) completes.
 
