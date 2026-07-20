@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -58,6 +60,19 @@ class CoinsScreenState extends State<CoinsScreen> {
   }
 
   Future<void> _fetchMarketData(List<Coin> coins) async {
+    // DEV-ONLY: while mock-mode is ON, skip the network entirely and feed
+    // rows the seeded offline prices instead. This also no-ops the 1-min
+    // refresh timer and the BlocListener's successful-branch fetch, and
+    // skips _calculateTotalValue (the balance is already set by
+    // injectMockCoins).
+    if (kDebugMode && context.read<WalletDetailsCubit>().mockMode) {
+      setState(() {
+        _marketData = DevMockHoldings.instance.marketData;
+        _isFetchingMarketData = false;
+      });
+      return;
+    }
+
     if (_isFetchingMarketData || coins.isEmpty) return;
     setState(() => _isFetchingMarketData = true);
 

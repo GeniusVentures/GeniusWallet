@@ -15,11 +15,43 @@ part 'wallet_details_state.dart';
 class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   GeniusApi geniusApi;
   NetworkTokensProvider networkTokensProvider;
+
+  // DEV-ONLY: dev switch flipped by DevMockHoldings-driven bubble buttons
+  // (kDebugMode && kShowDevTools call sites only). Contains no fixtures
+  // itself — fixtures stay in lib/dev/dev_mock_holdings.dart.
+  bool mockMode = false;
+
   WalletDetailsCubit({
     WalletDetailsState initialState = const WalletDetailsState(),
     required this.geniusApi,
     required this.networkTokensProvider,
   }) : super(initialState);
+
+  /// DEV-ONLY: injects offline mock holdings, short-circuiting the live
+  /// read until [clearMock] is called.
+  void injectMockCoins(List<Coin> coins, {required String balance}) {
+    mockMode = true;
+    emit(
+      state.copyWith(
+        coinsStatus: WalletStatus.successful,
+        coins: coins,
+        selectedWalletBalance: balance,
+      ),
+    );
+  }
+
+  /// DEV-ONLY: turns mock-mode off and resumes the real (live) data path.
+  void clearMock() {
+    mockMode = false;
+    emit(
+      state.copyWith(
+        coinsStatus: WalletStatus.successful,
+        coins: const [],
+        selectedWalletBalance: '0',
+      ),
+    );
+    getCoins();
+  }
 
   Future<void> loadInitial({
     required Wallet selectedWallet,
@@ -89,6 +121,10 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   }
 
   FutureOr<void> getCoins() async {
+    // DEV-ONLY: while mock-mode is ON, the live read (and the
+    // selectNetwork/selectWallet re-fetches that call this) must not
+    // overwrite the injected mock holdings.
+    if (mockMode) return;
     try {
       emit(state.copyWith(coinsStatus: WalletStatus.loading));
       if (state.selectedWallet == null || state.selectedNetwork == null) {
