@@ -25,7 +25,7 @@ class CryptoSparkLineChart extends StatelessWidget {
     required this.currentPrice,
     required this.priceChangePercent,
     this.sparkline,
-    this.iconSize = 20,
+    this.iconSize = 28,
     this.iconPath,
     this.onTap,
   });

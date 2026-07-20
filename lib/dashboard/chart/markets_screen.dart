@@ -81,7 +81,10 @@ class _MarketsScreenState extends State<MarketsScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
+                    icon: const FaIcon(
+                      FontAwesomeIcons.magnifyingGlass,
+                      size: 18,
+                    ),
                     onPressed: () {
                       ResponsiveDrawer.show<void>(
                         context: context,
