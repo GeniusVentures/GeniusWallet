@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: 05-01 Tasks 1-2 committed; Task 3 human-verify walk outstanding
-last_updated: "2026-07-20T09:27:40.686Z"
+stopped_at: Completed 05-01-PLAN.md (Task 3 walk PASSED; live-flip clause carried as verification blocker)
+last_updated: "2026-07-20T10:11:13.822Z"
 last_activity: 2026-07-20
 last_activity_desc: Phase 05 execution started
 progress:
@@ -119,6 +119,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - 03-09's human walk (criteria 1/3/4, finding 15, and the light-mode dark-only COUNT across all 30 gallery sections) is outstanding -- no code changed pending it; see 03-09-SUMMARY.md's Outstanding section for the exact recipe
 - Phase 3 criterion 5 (the no-visual-change walk, GW_DEV_TOOLS unset) is OUTSTANDING -- requires a human with Windows GUI access. Exact recipe recorded in 03-VERIFICATION.md
 - The D-02 gallery re-walk (04-01 Task 3) is OUTSTANDING -- no Windows GUI access from this execution environment. Must be performed by the user before any 04-02+ shell/screen re-skin plan begins. Exact recipe in 04-01-SUMMARY.md's 'Outstanding' section.
+- 05-01 must_have 'container flips LIVE on an in-place appearance toggle' is UNVERIFIABLE — setMode() exists only on dev screens, so toggling requires navigation that forces a rebuild and masks the const-staleness the clause guards against. Todo 2026-07-18-no-user-facing-appearance-toggle.md escalated to severity: verification-blocker; also blocks re-verification of the same clause in 04-02/04-04.
 
 ## Reference Material
 
@@ -137,9 +138,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-20T09:27:31.224Z
-Stopped at: 05-01 Tasks 1-2 committed; Task 3 human-verify walk outstanding
-Resume file: .planning/phases/05-dashboard/05-01-PLAN.md
+Last session: 2026-07-20T10:11:13.811Z
+Stopped at: Completed 05-01-PLAN.md (Task 3 walk PASSED; live-flip clause carried as verification blocker)
+Resume file: None
 
 ## Performance Metrics
 
