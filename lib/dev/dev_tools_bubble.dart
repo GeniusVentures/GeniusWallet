@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/reown/test/test_buy_buttons.dart';
 import 'package:genius_wallet/reown/test/test_swap_buttons.dart';
 import 'package:genius_wallet/test/test_transaction_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
 /// Draggable, dev-only overlay bubble (kDebugMode && kShowDevTools, gated at
@@ -225,6 +228,67 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                       onPressed: () => context.push('/design_gallery'),
                       child: Text(
                         'Gallery',
+                        style: TextStyle(color: gw.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                // DEV-ONLY: offline mock-holdings scenario buttons, driving
+                // DevMockHoldings fixtures through WalletDetailsCubit so the
+                // phase-05 dashboard can be walked without a live wallet or
+                // CoinGecko network call. See lib/dev/dev_mock_holdings.dart.
+                Wrap(
+                  spacing: GeniusWalletConsts.space2,
+                  runSpacing: GeniusWalletConsts.space2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        DevMockHoldings.instance.loadPopulated();
+                        context.read<WalletDetailsCubit>().injectMockCoins(
+                          DevMockHoldings.instance.coins,
+                          balance: DevMockHoldings.instance.totalBalance,
+                        );
+                      },
+                      child: Text(
+                        'Populated',
+                        style: TextStyle(color: gw.textPrimary),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        DevMockHoldings.instance.loadExtreme();
+                        context.read<WalletDetailsCubit>().injectMockCoins(
+                          DevMockHoldings.instance.coins,
+                          balance: DevMockHoldings.instance.totalBalance,
+                        );
+                      },
+                      child: Text(
+                        'Long / extreme',
+                        style: TextStyle(color: gw.textPrimary),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        DevMockHoldings.instance.loadMissingIcon();
+                        context.read<WalletDetailsCubit>().injectMockCoins(
+                          DevMockHoldings.instance.coins,
+                          balance: DevMockHoldings.instance.totalBalance,
+                        );
+                      },
+                      child: Text(
+                        'Missing icon',
+                        style: TextStyle(color: gw.textPrimary),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        DevMockHoldings.instance.clear();
+                        context.read<WalletDetailsCubit>().clearMock();
+                      },
+                      child: Text(
+                        'Clear',
                         style: TextStyle(color: gw.textPrimary),
                       ),
                     ),
