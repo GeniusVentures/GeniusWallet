@@ -133,6 +133,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 |---|-------------|------|--------|-----------|
 | 260720-bgl | Move dev tooling out of the top bar into a draggable dev-only overflow bubble | 2026-07-20 | a91aec0 | [260720-bgl-move-dev-tooling-out-of-the-desktop-top-](./quick/260720-bgl-move-dev-tooling-out-of-the-desktop-top-/) |
 | 260720-cw8 | Dev-only offline mock-holdings injector (4 bubble scenarios) so the dashboard can be walked with a non-empty wallet | 2026-07-20 | 35e40d2 | [260720-cw8-add-a-dev-only-mock-holdings-injector-so](./quick/260720-cw8-add-a-dev-only-mock-holdings-injector-so/) |
+| 260720-dty | Sectionize the dev-tools bubble into 4 collapsible sections (Mock/Test flows/Navigate/Appearance) + light-mode legibility fix; deleted 4 orphaned Test*/DevToolsWidget files | 2026-07-20 | ddd9978 | [260720-dty-sectionize-the-dev-tools-bubble-into-col](./quick/260720-dty-sectionize-the-dev-tools-bubble-into-col/) |
 
 > **APPROVED 2026-07-20.** Blocking human-verify walk passed on a fresh `GW_DEV_TOOLS=true` run: top bar no longer overflows (real widgets only), bubble anchored top-right below header, drags + expands within the viewport, all dev actions reachable, and its light/dark toggle live-re-skins the app. Fix `a91aec0` (top-right anchor + viewport clamp/scroll) followed the initial off-screen-expand report.
 
