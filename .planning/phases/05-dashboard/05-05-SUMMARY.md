@@ -37,7 +37,7 @@ key-decisions:
   - "Post-Task-1 coordinator walk feedback, round 1 (commit 33b5901): both always-dark scrims' overlay title/date text were re-pointed from gw.textPrimary/gw.textSecondary (appearance-aware) to GWColors.dark().textPrimary/textSecondary, believing the latter was a fixed light-on-dark value. `_TextOverlay`'s now-unused Theme.of(context).extension<GWColors>() local was removed to keep flutter analyze clean."
   - "Post-Task-1 coordinator walk feedback, round 2 -- CORRECTION (commit 9a340f1): round 1 was still wrong. `GWColors.dark()`'s factory sets its fields from `GeniusWalletColors`' own appearance-aware STATIC GETTERS (e.g. `textPrimary: GeniusWalletColors.textPrimary`, which itself is `_isLight ? darkInk : Colors.white`) -- so `GWColors.dark().textPrimary` still resolves to dark ink in light mode, still dark-on-dark-scrim. Corrected to raw, mode-invariant `Colors.white`/`Colors.white70` (matching develop's original `Colors.white60` and the plan's own §4.4 scrim raw-color exception -- there is no genuinely fixed on-dark token in the system, so raw color is the correct, intentional choice here). The hover box (Colors.black87) and the _TextOverlay gradient (Colors.black54/black) never change with app appearance, so their overlay text must not either -- and must be a color that is ALSO genuinely fixed, not merely named 'dark()'."
 
-requirements-completed: []  # SCR-01 NOT claimed complete -- Task 2's blocking human-verify walk has not been performed by this executor, per explicit instruction to stop at the checkpoint.
+requirements-completed: [SCR-01]  # Task 2 blocking walk APPROVED 2026-07-20 (both modes; incl. corrected always-light scrim overlay text)
 
 # Coverage metadata -- Task 1 (auto, code re-skin) automated gates only.
 # Task 2 (checkpoint:human-verify, gate="blocking") is NOT YET PERFORMED; every
@@ -51,7 +51,7 @@ coverage:
         ref: "flutter analyze lib/dashboard/news/view/crypto_news_screen.dart -- No issues found; grep -q 'extension<GWColors>()' PRESENT (3 build() methods: _CryptoNewsScreenState, _NewsCardState, _TextOverlay); bash tool/verify_additive_boundary.sh Checks 1+3 PASS (Check 2 fails on a pre-existing unrelated _Section duplicate, already logged in deferred-items.md from 05-04, not this plan's files)"
         status: pass
       - kind: manual_procedural
-        ref: "Task 2 walk -- NOT YET PERFORMED"
+        ref: "Task 2 walk -- APPROVED 2026-07-20 (both light+dark)"
         status: pass
     human_judgment: true
     rationale: "Token wiring and the grep/analyze gates are proven statically. That the news grid actually reads as the redesign, matches the Release exe reference, and flips live on an in-place toggle are visual/behavioral facts only the walk can establish."
@@ -63,7 +63,7 @@ coverage:
         ref: "flutter analyze -- No issues found; grep -n 'Colors.grey.shade800|Colors.red\\b' lib/dashboard/news/view/crypto_news_screen.dart -- zero matches"
         status: pass
       - kind: manual_procedural
-        ref: "Task 2 walk step 3 (image states: broken image shows statusError icon, mid-load shows re-skinned Loading over surfaceSunken) -- NOT YET PERFORMED"
+        ref: "Task 2 walk step 3 (image states: broken image shows statusError icon, mid-load shows re-skinned Loading over surfaceSunken) -- APPROVED 2026-07-20 (both light+dark)"
         status: pass
     human_judgment: true
     rationale: "Token substitution is code-verified; that a broken image actually renders the statusError icon and a loading image actually shows the spinner over the correct fill are runtime facts only the walk can observe."
@@ -75,7 +75,7 @@ coverage:
         ref: "flutter analyze -- No issues found (before fa757aa, after 33b5901, and after the 9a340f1 correction, incl. no unused-var warning from the removed _TextOverlay gw local); grep -n 'Colors.white60' lib/dashboard/news/view/crypto_news_screen.dart -- zero matches; grep -n 'TextStyle(fontSize' -- zero matches (all raw TextStyle calls replaced by typography tokens); grep -n 'GWColors.dark()' in the two scrim Text styles -- zero matches post-9a340f1 (round-1's incorrect fix fully reverted); grep -n 'Colors.white\\b\\|Colors.white70' -- 4 matches (title+date x2 scrims)"
         status: pass
       - kind: manual_procedural
-        ref: "Task 2 walk steps 1+5 (criterion 1 card visual match, WCAG AA contrast over the card sheen and over the photo scrim, both modes -- specifically confirming the corrected light-mode fix holds) -- NOT YET PERFORMED"
+        ref: "Task 2 walk steps 1+5 (criterion 1 card visual match, WCAG AA contrast over the card sheen and over the photo scrim, both modes -- specifically confirming the corrected light-mode fix holds) -- APPROVED 2026-07-20 (both light+dark)"
         status: pass
     human_judgment: true
     rationale: "Token substitution is code-verified, including the coordinator-directed light-mode contrast correction. WCAG AA contrast against the live rendered card sheen/scrim in both light and dark mode is a visual fact only the walk can confirm."
@@ -87,7 +87,7 @@ coverage:
         ref: "Re-read lines :27-31 (_retryNews) and :57-58 (onRetry: _retryNews) pre-edit; post-edit the same three call sites -- _retryNews() body, RefreshIndicator(onRefresh: () async => _retryNews()), onRetry: _retryNews -- are present and byte-identical (only line numbers shifted, from the added imports/text-styling wraps around them, not from any change to the wiring itself)"
         status: pass
       - kind: manual_procedural
-        ref: "Task 2 walk step 2 (criterion 2: pull-to-refresh reloads; forced fetch failure + retry re-issues) -- NOT YET PERFORMED"
+        ref: "Task 2 walk step 2 (criterion 2: pull-to-refresh reloads; forced fetch failure + retry re-issues) -- APPROVED 2026-07-20 (both light+dark)"
         status: pass
     human_judgment: true
     rationale: "The wiring is statically proven unchanged (re-read + diff), but that pull-to-refresh and retry actually reload the feed at runtime are behavioral facts only the walk can observe."
@@ -103,14 +103,18 @@ coverage:
 # Metrics
 duration: ~35min (Task 1 + 2 rounds of post-walk-feedback contrast fixes; Task 2 is the blocking checkpoint, intentionally not executed)
 completed: 2026-07-20
-status: blocked
+status: complete
 ---
 
 # Phase 05 Plan 05: News Feed Re-skin Summary
 
 **Re-skinned develop's `crypto_news_screen.dart` news feed in place -- `_NewsCard`'s `Card` became a `GWDecorations.surface` `Container` (borderSubtle border, radiusMd, card shadow) matching Alex's `NewsCard` decoration; the image placeholder and its error-state sibling both re-tokened from `Colors.grey.shade800` to `gw.surfaceSunken`; the error icon from `Colors.red` to `GeniusWalletColors.statusError`; card title/date typography (both the always-visible `_TextOverlay` and the hover overlay) from raw `TextStyle`s to `GeniusWalletTypography.titleMd`/`bodySm` -- while keeping develop's `StaggeredGrid.extent` masonry and the finding-18 `_retryNews`/`RefreshIndicator`/`onRetry` wiring byte-identical (re-read and confirmed unchanged). Per coordinator walk feedback (two rounds), the two ALWAYS-dark scrims' (hover box + gradient overlay) title/date text was corrected -- round 1 mistakenly used `GWColors.dark().textPrimary/textSecondary` (still appearance-aware under the hood, still wrong in light mode); round 2 corrected to mode-invariant raw `Colors.white`/`Colors.white70`, matching develop's original `Colors.white60` and the plan's own §4.4 scrim raw-color exception. All three commits are made. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed by this executor -- no visual/behavioral criterion is claimed as passed.**
 
-## Status: Task 1 COMPLETE -- Task 2 walk PENDING (not performed by this executor)
+## Status: COMPLETE — Task 2 walk APPROVED (2026-07-20)
+
+Task 1 (`fa757aa`) + two scrim-text rounds (`33b5901` then the correction `9a340f1` — always-dark scrim overlay text set to mode-invariant `Colors.white`/`white70`, after discovering `GWColors.dark()` is not a fixed palette). **Task 2's blocking `checkpoint:human-verify` walk was performed and APPROVED on 2026-07-20** (both light and dark): news cards render in the redesign skin, refresh/retry work, image states render, live-flip works, and the corrected scrim-overlay title/date read as light-on-dark in BOTH modes. `SCR-01` complete; `status: complete`. (Separately, the news page TITLE was later unified onto the shared GWPageHeader in quick task 260720-ipg.)
+
+## (historical) Task 1 + scrim fixes
 
 Per this plan's explicit instruction, the full blocking walk (Task 2, `gate="blocking"`) was NOT run here. `SCR-01`'s news clause is NOT claimed complete; `status: blocked` pending the human walk. `requirements-completed` is left empty for this reason.
 

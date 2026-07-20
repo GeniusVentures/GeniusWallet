@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: 05-04 markets walk APPROVED (both modes, 2026-07-20); next = 05-05 news
+stopped_at: 05-05 news walk APPROVED (both modes, 2026-07-20); next = 05-06 transactions (last plan)
 last_updated: "2026-07-20T13:10:00.000Z"
 last_activity: 2026-07-20
-last_activity_desc: 05-04 markets walk approved (after value-color + search-icon fixes); next = 05-05 news
+last_activity_desc: 05-05 news walk approved + GWPageHeader title unification (ipg) approved; next = 05-06 transactions
 progress:
   total_phases: 4
   completed_phases: 3
@@ -35,7 +35,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-20 — 05-04 markets walk APPROVED (both modes); next = 05-05 news
+Last activity: 2026-07-20 — 05-05 news walk APPROVED + GWPageHeader title unification approved; next = 05-06 transactions
 
 Progress: [█████████░] 86% (2 of 11 phases)
 
@@ -139,7 +139,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 | 260720-gzq | Fix clipped surface-card shadows: markets grid spacing/padding + mobile one-column dashboard ListView padding/section spacing (shadow blurRadius 16 needs clearance); desktop layouts + shared decoration untouched | 2026-07-20 | 655aa93 | [260720-gzq-fix-clipped-surface-card-shadows-on-the-](./quick/260720-gzq-fix-clipped-surface-card-shadows-on-the-/) |
 | 260720-ipg | Add shared GWPageHeader (headlineLg/gw.textPrimary, left-aligned, optional trailing, space8 gap) and unify Markets/News/Swap in-body page titles onto it (News was unmapped displaySmall outlier; Swap was raw centered white) | 2026-07-20 | 905a2a9 | [260720-ipg-add-a-shared-gwpageheader-and-unify-the-](./quick/260720-ipg-add-a-shared-gwpageheader-and-unify-the-/) |
 
-> **All five 2026-07-20 dev/chrome/visual quick tasks (bgl, cw8, dty, eu9, gzq) WALKED & APPROVED (both light+dark) on 2026-07-20.** gzq=clipped surface-card shadows fixed (markets grid + mobile one-column dashboard), walked desktop + mobile breakpoint. bgl=dev bubble; cw8=mock-holdings injector; dty=sectioned bubble + branded buttons; eu9=header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded Submit-Job/Buy-GNUS. Resolved todos: `move-dev-tooling-out-of-top-bar-into-overflow-bubble`, `top-bar-action-widgets-render-black-in-light-mode` → moved to todos/completed.
+> **All six 2026-07-20 dev/chrome/visual quick tasks (bgl, cw8, dty, eu9, gzq, ipg) WALKED & APPROVED (both light+dark) on 2026-07-20.** gzq=clipped surface-card shadows fixed (markets grid + mobile one-column dashboard). ipg=shared GWPageHeader unifying Markets/News/Swap page titles (headlineLg, left-aligned). bgl=dev bubble; cw8=mock-holdings injector; dty=sectioned bubble + branded buttons; eu9=header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded Submit-Job/Buy-GNUS. Resolved todos: `move-dev-tooling-out-of-top-bar-into-overflow-bubble`, `top-bar-action-widgets-render-black-in-light-mode` → moved to todos/completed.
 
 > **APPROVED 2026-07-20.** Blocking human-verify walk passed on a fresh `GW_DEV_TOOLS=true` run: top bar no longer overflows (real widgets only), bubble anchored top-right below header, drags + expands within the viewport, all dev actions reachable, and its light/dark toggle live-re-skins the app. Fix `a91aec0` (top-right anchor + viewport clamp/scroll) followed the initial off-screen-expand report.
 
@@ -161,7 +161,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-20T10:22:32.243Z
-Stopped at: 05-04 markets walk APPROVED (both modes, 2026-07-20); next = 05-05 news
+Stopped at: 05-05 news walk APPROVED (both modes, 2026-07-20); next = 05-06 transactions (last plan)
 Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics
