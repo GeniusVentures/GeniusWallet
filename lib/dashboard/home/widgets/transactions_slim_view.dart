@@ -4,6 +4,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -113,8 +114,14 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
                     message:
                         'Your sends, receives and swaps will appear here.',
                   )
-                : ListView.builder(
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: GeniusWalletConsts.space6,
+                      horizontal: GeniusWalletConsts.space2,
+                    ),
                     itemCount: txs.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: GeniusWalletConsts.space6),
                     itemBuilder: (_, i) => switch (txs[i].type) {
                       TransactionType.purchase => TransactionPurchasedItem(
                         tx: txs[i],

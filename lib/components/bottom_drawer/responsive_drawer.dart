@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
@@ -54,7 +55,7 @@ class ResponsiveDrawer {
                 decoration: BoxDecoration(
                   color: gw.surfaceMenu,
                   borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(28),
+                    left: Radius.circular(GeniusWalletConsts.radius3xl),
                   ),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -78,7 +79,9 @@ class ResponsiveDrawer {
       // (documented value remap, see 04-04-SUMMARY.md).
       backgroundColor: gw.surfaceMenu,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(GeniusWalletConsts.radius3xl),
+        ),
       ),
       builder: (_) => content,
     );
@@ -121,9 +124,16 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
               elevation: 0,
               centerTitle: true,
               title: Text(title!),
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: Navigator.of(context).pop,
+              leadingWidth: 56,
+              leading: Padding(
+                padding: const EdgeInsets.only(
+                  left: GeniusWalletConsts.space2,
+                  top: GeniusWalletConsts.space2,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: Navigator.of(context).pop,
+                ),
               ),
               actions: actions,
             )
