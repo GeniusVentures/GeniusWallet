@@ -1,7 +1,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:intl/intl.dart';
 
@@ -60,7 +64,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final txs = filteredTransactions;
     final textScale = MediaQuery.textScalerOf(context).scale;
 
@@ -75,6 +79,10 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
             style: Theme.of(context).textTheme.headlineLarge,
           ),
           SegmentedButton<Filters>(
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: GeniusWalletColors.brandPrimary,
+              selectedForegroundColor: GeniusWalletColors.textOnBrand,
+            ),
             segments: Filters.values
                 .where((f) => f != Filters.all)
                 .map(
@@ -98,28 +106,36 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
             },
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: txs.length,
-              itemBuilder: (_, i) => switch (txs[i].type) {
-                TransactionType.purchase => TransactionPurchasedItem(
-                  tx: txs[i],
-                ),
-                TransactionType.escrowRelease => TransactionEscrowReleaseItem(
-                  tx: txs[i],
-                ),
-                TransactionType.swap => TransactionSwappedItem(tx: txs[i]),
-                _ => TransactionItem(tx: txs[i]),
-              },
-            ),
+            child: txs.isEmpty
+                ? const GWEmptyState(
+                    icon: Icons.receipt_long_outlined,
+                    title: 'No transactions yet',
+                    message:
+                        'Your sends, receives and swaps will appear here.',
+                  )
+                : ListView.builder(
+                    itemCount: txs.length,
+                    itemBuilder: (_, i) => switch (txs[i].type) {
+                      TransactionType.purchase => TransactionPurchasedItem(
+                        tx: txs[i],
+                      ),
+                      TransactionType.escrowRelease =>
+                        TransactionEscrowReleaseItem(tx: txs[i]),
+                      TransactionType.swap => TransactionSwappedItem(
+                        tx: txs[i],
+                      ),
+                      _ => TransactionItem(tx: txs[i]),
+                    },
+                  ),
           ),
           Align(
             alignment: Alignment.centerRight,
             child: AutoSizeText(
               "Transactions: ${txs.length}",
               maxLines: 1,
-              style: TextStyle(
-                fontSize: textScale(16),
-                color: cs.onSurfaceVariant,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                fontSize: textScale(GeniusWalletTypography.labelMd.fontSize!),
+                color: gw.textSecondary,
               ),
             ),
           ),
