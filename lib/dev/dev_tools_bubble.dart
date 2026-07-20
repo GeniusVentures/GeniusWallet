@@ -20,6 +20,15 @@ import 'package:go_router/go_router.dart';
 /// Tokens/Gallery push targets) plus a light/dark appearance toggle using the
 /// same `GWAppearance.instance.setMode` mechanism as the dev Gallery /
 /// token-probe screens.
+///
+/// Positioning is anchored to the TOP-RIGHT corner (right/top `Positioned`,
+/// not left/top): the default spot sits just below the header, and the
+/// expanded panel naturally grows DOWN and LEFT from that corner as its own
+/// width/height changes — no separate "flip direction" logic needed. Both
+/// states are clamped every drag (and on first layout) to the viewport,
+/// sized appropriately for whichever state is showing, so neither the
+/// collapsed bubble nor the expanded panel can be dragged above the header or
+/// past any edge.
 class DevToolsBubble extends StatefulWidget {
   const DevToolsBubble({super.key});
 
@@ -29,49 +38,91 @@ class DevToolsBubble extends StatefulWidget {
 
 class _DevToolsBubbleState extends State<DevToolsBubble> {
   static const double _collapsedSize = 48.0;
-  static const double _panelWidth = 260.0;
+  static const double _desiredPanelWidth = 260.0;
 
-  // Lazily initialised on first build (needs MediaQuery, unavailable in
-  // initState). ponytail: not persisted across app restarts — dev-only, a
-  // fresh corner position each launch is an acceptable ceiling.
+  // Small margin kept from every viewport edge (and from the header).
+  static const double _edgeInset = GeniusWalletConsts.space4;
+  static const double _headerHeight = GeniusWalletConsts.appBarHeight;
+
+  // (dx, dy) = (inset from the RIGHT edge, inset from the TOP edge) — NOT a
+  // left/top offset. Positioned(right:, top:) anchors the top-right corner,
+  // so the expanded panel grows down-and-left from the bubble's corner for
+  // free. Lazily initialised on first build (needs MediaQuery, unavailable
+  // in initState).
+  //
+  // ponytail: not persisted across app restarts — dev-only, a fresh corner
+  // position each launch is an acceptable ceiling.
   Offset? _position;
   bool _expanded = false;
 
-  Offset _clamp(Offset offset, Size screenSize) {
-    final maxX = (screenSize.width - _collapsedSize).clamp(0.0, double.infinity);
-    final maxY = (screenSize.height - _collapsedSize).clamp(0.0, double.infinity);
-    return Offset(offset.dx.clamp(0.0, maxX), offset.dy.clamp(0.0, maxY));
+  double _panelMaxWidth(Size screenSize) {
+    final available = screenSize.width - 2 * _edgeInset;
+    return _desiredPanelWidth < available ? _desiredPanelWidth : available;
+  }
+
+  double _panelMaxHeight(Size screenSize) {
+    return screenSize.height - _headerHeight - 2 * _edgeInset;
+  }
+
+  /// Clamps a (rightInset, topInset) anchor so a box of [width]x[height]
+  /// anchored at that corner stays fully below the header and within the
+  /// viewport on every edge.
+  Offset _clamp(Offset insets, Size screenSize, double width, double height) {
+    final minRight = _edgeInset;
+    final maxRightRaw = screenSize.width - width - _edgeInset;
+    final maxRight = maxRightRaw < minRight ? minRight : maxRightRaw;
+
+    final minTop = _headerHeight + _edgeInset;
+    final maxTopRaw = screenSize.height - height - _edgeInset;
+    final maxTop = maxTopRaw < minTop ? minTop : maxTopRaw;
+
+    return Offset(
+      insets.dx.clamp(minRight, maxRight),
+      insets.dy.clamp(minTop, maxTop),
+    );
   }
 
   void _dragBy(Offset delta, Size screenSize) {
+    final width = _expanded ? _panelMaxWidth(screenSize) : _collapsedSize;
+    final height = _expanded ? _panelMaxHeight(screenSize) : _collapsedSize;
     setState(() {
-      _position = _clamp((_position ?? Offset.zero) + delta, screenSize);
+      final current =
+          _position ?? Offset(_edgeInset, _headerHeight + _edgeInset);
+      // Anchor is (rightInset, topInset): moving the pointer right shrinks
+      // the right inset; moving it down grows the top inset.
+      final updated = Offset(current.dx - delta.dx, current.dy + delta.dy);
+      _position = _clamp(updated, screenSize, width, height);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
-    _position ??= _clamp(
-      Offset(
-        GeniusWalletConsts.space8,
-        screenSize.height - GeniusWalletConsts.space32 * 2,
-      ),
-      screenSize,
-    );
+    _position ??= Offset(_edgeInset, _headerHeight + _edgeInset);
+
+    final panelMaxWidth = _panelMaxWidth(screenSize);
+    final panelMaxHeight = _panelMaxHeight(screenSize);
+    final currentWidth = _expanded ? panelMaxWidth : _collapsedSize;
+    final currentHeight = _expanded ? panelMaxHeight : _collapsedSize;
+    final position = _clamp(_position!, screenSize, currentWidth, currentHeight);
 
     return ValueListenableBuilder<GWAppearanceMode>(
       valueListenable: GWAppearance.instance,
       builder: (context, mode, _) {
         final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
         final isLight = GWAppearance.isLight;
-        final position = _clamp(_position!, screenSize);
 
         return Positioned(
-          left: position.dx,
+          right: position.dx,
           top: position.dy,
           child: _expanded
-              ? _buildExpandedPanel(context, gw, isLight)
+              ? _buildExpandedPanel(
+                  context,
+                  gw,
+                  isLight,
+                  panelMaxWidth,
+                  panelMaxHeight,
+                )
               : _buildCollapsedBubble(gw),
         );
       },
@@ -96,92 +147,117 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     );
   }
 
-  Widget _buildExpandedPanel(BuildContext context, GWColors gw, bool isLight) {
+  Widget _buildExpandedPanel(
+    BuildContext context,
+    GWColors gw,
+    bool isLight,
+    double maxWidth,
+    double maxHeight,
+  ) {
     return Material(
       color: Colors.transparent,
-      child: Container(
-        width: _panelWidth,
-        padding: const EdgeInsets.all(GeniusWalletConsts.space6),
-        decoration: BoxDecoration(
-          color: gw.surfaceMenu,
-          border: Border.all(color: gw.borderSubtle),
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onPanUpdate: (details) =>
-                  _dragBy(details.delta, MediaQuery.sizeOf(context)),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.drag_indicator,
-                    color: gw.textSecondary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space2),
-                  Text(
-                    'Dev',
-                    style: TextStyle(color: gw.textSecondary, fontSize: 14),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(Icons.close, color: gw.textSecondary, size: 18),
-                    onPressed: () => setState(() => _expanded = false),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: GeniusWalletConsts.space4),
-            Wrap(
-              spacing: GeniusWalletConsts.space2,
-              runSpacing: GeniusWalletConsts.space2,
-              crossAxisAlignment: WrapCrossAlignment.center,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
+        child: Container(
+          width: maxWidth,
+          padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+          decoration: BoxDecoration(
+            color: gw.surfaceMenu,
+            border: Border.all(color: gw.borderSubtle),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+          ),
+          // Bounded above by maxHeight via the ConstrainedBox. Unlike
+          // ListView, SingleChildScrollView has no shrinkWrap param because
+          // it already hugs its child's natural size by default (it only
+          // grows to fill the constrained max, and scrolls, once content
+          // actually exceeds maxHeight).
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const TestTransactionButton(),
-                const TestSwapButtons(),
-                const TestBuyButtons(),
-                TextButton(
-                  onPressed: () => context.push('/dev/token-probe'),
-                  child: Text('Tokens', style: TextStyle(color: gw.textPrimary)),
-                ),
-                TextButton(
-                  onPressed: () => context.push('/design_gallery'),
-                  child: Text(
-                    'Gallery',
-                    style: TextStyle(color: gw.textPrimary),
+                GestureDetector(
+                  onPanUpdate: (details) =>
+                      _dragBy(details.delta, MediaQuery.sizeOf(context)),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.drag_indicator,
+                        color: gw.textSecondary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      Text(
+                        'Dev',
+                        style: TextStyle(color: gw.textSecondary, fontSize: 14),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: Icon(
+                          Icons.close,
+                          color: gw.textSecondary,
+                          size: 18,
+                        ),
+                        onPressed: () => setState(() => _expanded = false),
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                Wrap(
+                  spacing: GeniusWalletConsts.space2,
+                  runSpacing: GeniusWalletConsts.space2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const TestTransactionButton(),
+                    const TestSwapButtons(),
+                    const TestBuyButtons(),
+                    TextButton(
+                      onPressed: () => context.push('/dev/token-probe'),
+                      child: Text(
+                        'Tokens',
+                        style: TextStyle(color: gw.textPrimary),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/design_gallery'),
+                      child: Text(
+                        'Gallery',
+                        style: TextStyle(color: gw.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                Row(
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: isLight ? 'Switch to dark' : 'Switch to light',
+                      icon: Icon(
+                        isLight ? Icons.dark_mode : Icons.light_mode,
+                        color: gw.textPrimary,
+                      ),
+                      onPressed: () {
+                        GWAppearance.instance.setMode(
+                          isLight
+                              ? GWAppearanceMode.dark
+                              : GWAppearanceMode.light,
+                        );
+                      },
+                    ),
+                    Text(
+                      isLight ? 'Light' : 'Dark',
+                      style: TextStyle(color: gw.textSecondary, fontSize: 12),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: GeniusWalletConsts.space4),
-            Row(
-              children: [
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: isLight ? 'Switch to dark' : 'Switch to light',
-                  icon: Icon(
-                    isLight ? Icons.dark_mode : Icons.light_mode,
-                    color: gw.textPrimary,
-                  ),
-                  onPressed: () {
-                    GWAppearance.instance.setMode(
-                      isLight ? GWAppearanceMode.dark : GWAppearanceMode.light,
-                    );
-                  },
-                ),
-                Text(
-                  isLight ? 'Light' : 'Dark',
-                  style: TextStyle(color: gw.textSecondary, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
