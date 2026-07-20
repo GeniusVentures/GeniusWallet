@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
@@ -12,7 +13,6 @@ import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/squid_router/swap_fail_drawer.dart';
 import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -73,11 +73,6 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   bool _testFlowsExpanded = false;
   bool _navigateExpanded = false;
   bool _appearanceExpanded = true;
-
-  // Set at the top of _buildExpandedPanel each build so _devButton (a plain
-  // method, not a closure over a local) can read the active GWColors without
-  // widening its signature past what the plan specifies.
-  late GWColors _gw;
 
   double _panelMaxWidth(Size screenSize) {
     final available = screenSize.width - 2 * _edgeInset;
@@ -178,7 +173,6 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     double maxWidth,
     double maxHeight,
   ) {
-    _gw = gw;
     return Material(
       color: Colors.transparent,
       child: ConstrainedBox(
@@ -254,20 +248,34 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             balance: DevMockHoldings.instance.totalBalance,
                           );
                         }),
-                        _devButton('Long / extreme', () {
-                          DevMockHoldings.instance.loadExtreme();
-                          context.read<WalletDetailsCubit>().injectMockCoins(
-                            DevMockHoldings.instance.coins,
-                            balance: DevMockHoldings.instance.totalBalance,
-                          );
-                        }),
-                        _devButton('Missing icon', () {
-                          DevMockHoldings.instance.loadMissingIcon();
-                          context.read<WalletDetailsCubit>().injectMockCoins(
-                            DevMockHoldings.instance.coins,
-                            balance: DevMockHoldings.instance.totalBalance,
-                          );
-                        }),
+                        _devButton(
+                          'Long',
+                          () {
+                            DevMockHoldings.instance.loadExtreme();
+                            context
+                                .read<WalletDetailsCubit>()
+                                .injectMockCoins(
+                                  DevMockHoldings.instance.coins,
+                                  balance:
+                                      DevMockHoldings.instance.totalBalance,
+                                );
+                          },
+                          tooltip: 'Long / extreme values',
+                        ),
+                        _devButton(
+                          'No icon',
+                          () {
+                            DevMockHoldings.instance.loadMissingIcon();
+                            context
+                                .read<WalletDetailsCubit>()
+                                .injectMockCoins(
+                                  DevMockHoldings.instance.coins,
+                                  balance:
+                                      DevMockHoldings.instance.totalBalance,
+                                );
+                          },
+                          tooltip: 'Missing icon scenario',
+                        ),
                         _devButton('Clear', () {
                           DevMockHoldings.instance.clear();
                           context.read<WalletDetailsCubit>().clearMock();
@@ -286,9 +294,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                   gw: gw,
                   children: [
                     // Inlined verbatim from the deleted TestTransactionButton
-                    // / TestSwapButtons / TestBuyButtons widgets. Only the
-                    // small accent dot carries the status hue now — every
-                    // label stays gw.textPrimary (D-03).
+                    // / TestSwapButtons / TestBuyButtons widgets. GWButton
+                    // (tertiary) replaces the old TextButton + accent-dot
+                    // styling; full descriptions live in each tooltip for
+                    // labels short enough to avoid GWButtonSize.sm's
+                    // single-line ellipsis truncation.
                     Wrap(
                       spacing: GeniusWalletConsts.space2,
                       runSpacing: GeniusWalletConsts.space2,
@@ -310,10 +320,10 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               type: ToastType.success,
                             );
                           },
-                          accent: GeniusWalletColors.statusSuccess,
+                          tooltip: 'Add SGNUS Test Transaction',
                         ),
                         _devButton(
-                          'Approve conn',
+                          'Conn',
                           () {
                             ApproveDappConnectionDrawer.show(
                               context: context,
@@ -324,7 +334,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               iconUrl: 'https://uniswap.org/favicon.ico',
                             );
                           },
-                          accent: GeniusWalletColors.statusWarning,
+                          tooltip: 'Test Approve Connection Drawer',
                         ),
                         _devButton(
                           'Swap OK',
@@ -337,7 +347,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               coinSymbol: 'ETH',
                             );
                           },
-                          accent: GeniusWalletColors.statusSuccess,
+                          tooltip: 'Test Swap Result Drawer (Success)',
                         ),
                         _devButton(
                           'Swap fail',
@@ -350,10 +360,10 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               coinSymbol: 'ETH',
                             );
                           },
-                          accent: GeniusWalletColors.statusError,
+                          tooltip: 'Test Swap Result Drawer (Failure)',
                         ),
                         _devButton(
-                          'Approve swap',
+                          'Appr',
                           () {
                             ApproveTransactionDrawer.show(
                               dappName: 'uniswap',
@@ -370,10 +380,10 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               ),
                             );
                           },
-                          accent: GeniusWalletColors.statusInfo,
+                          tooltip: 'Test Approve Swap Drawer',
                         ),
                         _devButton(
-                          'Swap success',
+                          'Succeed',
                           () {
                             SwapSuccessDrawer.show(
                               context,
@@ -388,10 +398,10 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               chain: 'Ethereum',
                             );
                           },
-                          accent: GeniusWalletColors.statusSuccess,
+                          tooltip: 'Test Swap Success Drawer',
                         ),
                         _devButton(
-                          'Swap failed',
+                          'Failed',
                           () {
                             SwapFailDrawer.show(
                               context,
@@ -406,17 +416,17 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               chain: 'Ethereum',
                             );
                           },
-                          accent: GeniusWalletColors.statusError,
+                          tooltip: 'Test Swap Failed Drawer',
                         ),
                         _devButton(
                           'Buy OK',
                           () => BuySuccessDrawer.show(context),
-                          accent: GeniusWalletColors.statusSuccess,
+                          tooltip: 'Test Buy Success Drawer',
                         ),
                         _devButton(
                           'Buy fail',
                           () => BuyCancelledDrawer.show(context),
-                          accent: GeniusWalletColors.statusError,
+                          tooltip: 'Test Buy Cancelled Drawer',
                         ),
                       ],
                     ),
@@ -496,36 +506,20 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     );
   }
 
-  /// Compact text button for panel-section rows. The label always renders in
-  /// `gw.textPrimary` (independent of [accent]) so it stays WCAG AA on both
-  /// the light and dark `gw.surfaceMenu` panel; `accent`, when given, is only
-  /// ever painted as a small decorative dot, never as text color.
-  Widget _devButton(String label, VoidCallback onTap, {Color? accent}) {
-    return TextButton(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: GeniusWalletConsts.space2,
-          vertical: GeniusWalletConsts.space2,
-        ),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
+  /// Compact panel-section action button. Wraps the app's branded [GWButton]
+  /// (tertiary variant: `surfaceElevated` fill + `borderSubtle` border +
+  /// `gw.textPrimary` label) instead of a hand-rolled `TextButton`, so every
+  /// action button is appearance-aware and reads correctly in both light and
+  /// dark — this is what the light-mode walk feedback asked for. [tooltip],
+  /// when given, carries the full description for labels shortened to avoid
+  /// GWButtonSize.sm's one-line ellipsis truncation in the ~260px panel.
+  Widget _devButton(String label, VoidCallback onTap, {String? tooltip}) {
+    return GWButton(
+      label: label,
       onPressed: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (accent != null) ...[
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space2),
-          ],
-          Text(label, style: TextStyle(color: _gw.textPrimary, fontSize: 12)),
-        ],
-      ),
+      variant: GWButtonVariant.tertiary,
+      size: GWButtonSize.sm,
+      tooltip: tooltip,
     );
   }
 }
