@@ -166,11 +166,14 @@ class _NewsCardState extends State<_NewsCard> {
                       Text(
                         widget.article.title.trim(),
                         // Hover box is ALWAYS Colors.black87 regardless of
-                        // app appearance -- overlay text uses the fixed
-                        // dark-palette (light) tokens, not gw.* (which
-                        // would go dark-on-dark in light mode).
+                        // app appearance (§4.4's named raw-color scrim
+                        // exception) -- overlay text is mode-invariant raw
+                        // white, not gw.*/GWColors.dark() (both are
+                        // appearance-aware and flip to dark ink in light
+                        // mode, going dark-on-dark against this fixed-dark
+                        // scrim).
                         style: GeniusWalletTypography.titleMd
-                            .copyWith(color: GWColors.dark().textPrimary),
+                            .copyWith(color: Colors.white),
                         textAlign: TextAlign.center,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
@@ -178,7 +181,7 @@ class _NewsCardState extends State<_NewsCard> {
                       Text(
                         widget.article.pubDate,
                         style: GeniusWalletTypography.bodySm
-                            .copyWith(color: GWColors.dark().textSecondary),
+                            .copyWith(color: Colors.white70),
                       ),
                     ],
                   ),
@@ -202,8 +205,9 @@ class _TextOverlay extends StatelessWidget {
       // Scrim over a photo, not a brand surface — intentionally kept as raw
       // black, per UI-SPEC §4.4 (the one named exception to zero-raw-color).
       // The scrim is ALWAYS dark regardless of app appearance, so its
-      // overlay text uses the fixed dark-palette (light) tokens below, not
-      // gw.* -- gw.* would go dark-on-dark-scrim in light mode.
+      // overlay text below is mode-invariant raw white (§4.4's scrim
+      // exception extends to the text sitting on it) -- an appearance-aware
+      // token would flip to dark ink in light mode and go dark-on-dark.
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -220,14 +224,14 @@ class _TextOverlay extends StatelessWidget {
           Text(
             article.title.trim(),
             style: GeniusWalletTypography.titleMd
-                .copyWith(color: GWColors.dark().textPrimary),
+                .copyWith(color: Colors.white),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             article.pubDate,
             style: GeniusWalletTypography.bodySm
-                .copyWith(color: GWColors.dark().textSecondary),
+                .copyWith(color: Colors.white70),
           ),
         ],
       ),
