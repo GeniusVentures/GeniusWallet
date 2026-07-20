@@ -40,7 +40,7 @@ key-decisions:
   - "Post-walk coordinator feedback (light-mode row): lib/chart/crypto_simple_chart.dart (the SHARED CryptoSparkLineChart row widget both markets_screen.dart's grid and dashboard_markets.dart's list render into) was NOT in this plan's files_modified but carried a real light-mode white-on-white bug (price subtitle hardcoded Colors.white/grey[600], title hardcoded Colors.grey). Fixed in a second atomic commit per the coordinator's explicit instruction. The SAME commit also lowered the widget's default iconSize 28 -> 20, believing the too-large icon reported was the coin row icon -- this was a MISIDENTIFICATION, corrected below."
   - "CORRECTION (coordinator, same session): the too-large icon was the markets-view header search (magnifying-glass) IconButton in markets_screen.dart, NOT the coin row icon. Reverted crypto_simple_chart.dart's iconSize default back to 28 (coin icons were fine at that size) while KEEPING the gw.textPrimary/gw.textSecondary price/title color fixes from the same prior commit. Instead gave markets_screen.dart's header FaIcon(FontAwesomeIcons.magnifyingGlass) an explicit size: 18 so it reads proportionate to the headlineLg heading. Third atomic commit, scoped to exactly these two edits."
 
-requirements-completed: []  # SCR-01 NOT marked complete -- Task 2's blocking human-verify walk has NOT been performed. See 'Outstanding' below.
+requirements-completed: [SCR-01]  # Task 2 blocking walk APPROVED 2026-07-20 (both modes; markets rows re-walked after value-color + search-icon fixes)
 
 # Coverage metadata -- Task 1 (auto, code re-skin) automated gates only.
 # Task 2 (checkpoint:human-verify, gate="blocking") is NOT YET PERFORMED; every
@@ -55,7 +55,7 @@ coverage:
         status: pass
       - kind: manual_procedural
         ref: "Task 2 walk -- NOT YET PERFORMED"
-        status: unknown
+        status: pass
     human_judgment: true
     rationale: "Token wiring and the grep/analyze gates are proven statically. That the markets grid actually reads as the redesign, matches the Release exe reference, and both error/empty states render correctly are visual facts only the walk can establish."
   - id: D2
@@ -67,7 +67,7 @@ coverage:
         status: pass
       - kind: manual_procedural
         ref: "Task 2 walk step 2 (search field focus border, suffix spinner while resolving) -- NOT YET PERFORMED"
-        status: unknown
+        status: pass
     human_judgment: true
     rationale: "GWTextField's focus-border and fill styling are code-verified present (component contract, not re-derived here) but the actual rendered focus ring and spinner timing are visual/behavioural facts only the walk can confirm."
   - id: D3
@@ -79,7 +79,7 @@ coverage:
         status: pass
       - kind: manual_procedural
         ref: "Task 2 walk step 3 (criterion 3, forced fetch failure + retry press) -- NOT YET PERFORMED"
-        status: unknown
+        status: pass
     human_judgment: true
     rationale: "The wiring is statically proven unchanged (diff + re-read), but that a forced failure actually surfaces the retry button and that pressing it re-issues the fetch are runtime facts only the walk can observe."
   - id: D4
@@ -91,20 +91,24 @@ coverage:
         status: pass
       - kind: manual_procedural
         ref: "Task 2 walk step 4 (criterion 5, empty-symbol coin renders without overflow/crash) -- NOT YET PERFORMED"
-        status: unknown
+        status: pass
     human_judgment: false
 
 # Metrics
 duration: ~35min (Task 1 + 2 post-walk-feedback fixes)
 completed: 2026-07-20
-status: blocked
+status: complete
 ---
 
 # Phase 05 Plan 04: Markets Surface Re-skin Summary
 
 **Re-skinned develop's markets surface in place -- `markets_screen.dart`'s heading (headlineLg), grid cards (GWDecorations.surface), and both FutureStateWidget error slots (token-styled text, no GWErrorState to avoid a double-retry-button regression); `markets_search_bar.dart`'s raw TextField replaced by GWTextField; `dashboard_markets.dart`'s title/divider aligned to typography/border tokens; and, per post-walk coordinator feedback (two rounds), the SHARED `CryptoSparkLineChart` row widget's light-mode white-on-white price/title text fixed and the markets-view header search icon shrunk (after a first-round icon-size misidentification on the coin row was corrected) -- while verifying finding 8's cached-futures + retry wiring and finding 30's null-safe icon fallback are untouched. Task 1 (re-skin) and both coordinator-directed follow-up fixes are committed. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed -- no visual/behavioral criterion is claimed as passed.**
 
-## Status: Task 1 COMPLETE + 2 post-walk fixes COMPLETE -- Task 2 walk still PENDING (blocking checkpoint)
+## Status: COMPLETE — Task 2 walk APPROVED (2026-07-20)
+
+Task 1 (re-skin, `0c5d727`) + two rounds of post-walk fixes (`a932915` value/title light-mode contrast on the shared `CryptoSparkLineChart`; `aaa02dc` revert coin-icon size + shrink the markets search magnifying-glass to `size: 18`). **Task 2's blocking `checkpoint:human-verify` walk was performed and APPROVED on 2026-07-20** (both light and dark): markets grid + dashboard card render in the redesign skin, search field/retry/empty-symbol behave, coin-row value text reads in light mode, search icon proportionate, live-flip via the dev-tools bubble. `SCR-01` complete; `status: complete`. One out-of-scope item deferred to a todo: surface-card shadow clipping (markets grid + mobile sections) → `.planning/todos/pending/2026-07-20-surface-card-shadows-clipped.md`.
+
+## (historical) Task 1 + post-walk fixes
 
 Task 1 committed as `0c5d727`. A second atomic commit (`a932915`) addressed coordinator-reported light-mode contrast + (misidentified) icon-size bugs on the shared `CryptoSparkLineChart` row widget. A third atomic commit (`aaa02dc`) corrected the icon-size misidentification: reverted `crypto_simple_chart.dart`'s `iconSize` default to `28` (coin icons were fine; kept the price/title color fixes) and instead shrunk the markets-view header search `IconButton`'s `FaIcon` to `size: 18` in `markets_screen.dart`. Both follow-ups were found via partial walks/coordinator review before the full blocking checkpoint was reached. **Task 2's blocking `checkpoint:human-verify` has NOT been performed by this executor** -- per this plan's explicit instruction, the full walk is not run here. `SCR-01` is NOT claimed complete; `status: blocked` pending the human walk.
 

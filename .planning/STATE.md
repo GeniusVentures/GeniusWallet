@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: 05-03 holdings walk APPROVED (both modes, 2026-07-20); next = 05-04 markets
-last_updated: "2026-07-20T12:40:00.000Z"
+stopped_at: 05-04 markets walk APPROVED (both modes, 2026-07-20); next = 05-05 news
+last_updated: "2026-07-20T13:10:00.000Z"
 last_activity: 2026-07-20
-last_activity_desc: 05-03 holdings walk approved; 4 dev/chrome quick tasks (bgl/cw8/dty/eu9) all walked & approved
+last_activity_desc: 05-04 markets walk approved (after value-color + search-icon fixes); next = 05-05 news
 progress:
   total_phases: 4
   completed_phases: 3
@@ -35,7 +35,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-20 — 05-03 holdings walk APPROVED (both modes); quick tasks bgl/cw8/dty/eu9 all walked & approved
+Last activity: 2026-07-20 — 05-04 markets walk APPROVED (both modes); next = 05-05 news
 
 Progress: [█████████░] 86% (2 of 11 phases)
 
@@ -159,7 +159,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-20T10:22:32.243Z
-Stopped at: 05-03 holdings walk APPROVED (both modes, 2026-07-20); next = 05-04 markets
+Stopped at: 05-04 markets walk APPROVED (both modes, 2026-07-20); next = 05-05 news
 Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics
