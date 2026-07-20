@@ -35,7 +35,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-20 — Phase 05 execution started
+Last activity: 2026-07-20 — Quick task 260720-bgl: dev-tooling bubble (code done, walk pending)
 
 Progress: [█████████░] 86% (2 of 11 phases)
 
@@ -126,6 +126,14 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Phase 3 criterion 5 (the no-visual-change walk, GW_DEV_TOOLS unset) is OUTSTANDING -- requires a human with Windows GUI access. Exact recipe recorded in 03-VERIFICATION.md
 - The D-02 gallery re-walk (04-01 Task 3) is OUTSTANDING -- no Windows GUI access from this execution environment. Must be performed by the user before any 04-02+ shell/screen re-skin plan begins. Exact recipe in 04-01-SUMMARY.md's 'Outstanding' section.
 - 05-01 must_have 'container flips LIVE on an in-place appearance toggle' is UNVERIFIABLE — setMode() exists only on dev screens, so toggling requires navigation that forces a rebuild and masks the const-staleness the clause guards against. Todo 2026-07-18-no-user-facing-appearance-toggle.md escalated to severity: verification-blocker; also blocks re-verification of the same clause in 04-02/04-04.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260720-bgl | Move dev tooling out of the top bar into a draggable dev-only overflow bubble | 2026-07-20 | 8bc5cab | [260720-bgl-move-dev-tooling-out-of-the-desktop-top-](./quick/260720-bgl-move-dev-tooling-out-of-the-desktop-top-/) |
+
+> Note: code committed + analyze-clean; the blocking human-verify walk (Task 3) is still PENDING — needs a fresh `GW_DEV_TOOLS=true` debug run before the bubble is claimed working.
 
 ## Reference Material
 
