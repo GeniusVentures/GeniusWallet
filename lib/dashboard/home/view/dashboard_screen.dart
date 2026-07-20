@@ -14,6 +14,9 @@ import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/wallet_overview.dart';
@@ -260,7 +263,19 @@ class DashboardScrollContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    // Fail-soft GWColors read: this container is const-constructed at all five
+    // dashboard call sites, so without a Theme dependency Element.updateChild
+    // short-circuits on the identical const child and the surface renders
+    // stale after an in-place appearance toggle. Reading the extension here
+    // registers that dependency, which forces build() to re-run — and
+    // GWDecorations.surface recomputes its appearance-aware sheen on that
+    // rebuild (04-04 mechanism).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Container(
+      decoration: GWDecorations.surface(
+        radius: GeniusWalletConsts.radiusLg,
+        border: gw.borderSubtle,
+      ),
       child: Padding(padding: EdgeInsets.all(gridSpacing), child: child),
     );
   }
