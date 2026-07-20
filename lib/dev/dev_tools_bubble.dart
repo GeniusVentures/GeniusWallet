@@ -58,6 +58,18 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   Offset? _position;
   bool _expanded = false;
 
+  // Per-section expand state for the panel body (D-01 default states: MOCK
+  // and APPEARANCE open on first show, TEST FLOWS and NAVIGATE collapsed).
+  bool _mockExpanded = true;
+  bool _testFlowsExpanded = false;
+  bool _navigateExpanded = false;
+  bool _appearanceExpanded = true;
+
+  // Set at the top of _buildExpandedPanel each build so _devButton (a plain
+  // method, not a closure over a local) can read the active GWColors without
+  // widening its signature past what the plan specifies.
+  late GWColors _gw;
+
   double _panelMaxWidth(Size screenSize) {
     final available = screenSize.width - 2 * _edgeInset;
     return _desiredPanelWidth < available ? _desiredPanelWidth : available;
@@ -157,6 +169,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     double maxWidth,
     double maxHeight,
   ) {
+    _gw = gw;
     return Material(
       color: Colors.transparent,
       child: ConstrainedBox(
@@ -209,113 +222,137 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                   ),
                 ),
                 const SizedBox(height: GeniusWalletConsts.space4),
-                Wrap(
-                  spacing: GeniusWalletConsts.space2,
-                  runSpacing: GeniusWalletConsts.space2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    const TestTransactionButton(),
-                    const TestSwapButtons(),
-                    const TestBuyButtons(),
-                    TextButton(
-                      onPressed: () => context.push('/dev/token-probe'),
-                      child: Text(
-                        'Tokens',
-                        style: TextStyle(color: gw.textPrimary),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/design_gallery'),
-                      child: Text(
-                        'Gallery',
-                        style: TextStyle(color: gw.textPrimary),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: GeniusWalletConsts.space4),
                 // DEV-ONLY: offline mock-holdings scenario buttons, driving
                 // DevMockHoldings fixtures through WalletDetailsCubit so the
                 // phase-05 dashboard can be walked without a live wallet or
                 // CoinGecko network call. See lib/dev/dev_mock_holdings.dart.
-                Wrap(
-                  spacing: GeniusWalletConsts.space2,
-                  runSpacing: GeniusWalletConsts.space2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                _Section(
+                  label: 'MOCK',
+                  expanded: _mockExpanded,
+                  onToggle: () =>
+                      setState(() => _mockExpanded = !_mockExpanded),
+                  gw: gw,
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        DevMockHoldings.instance.loadPopulated();
-                        context.read<WalletDetailsCubit>().injectMockCoins(
-                          DevMockHoldings.instance.coins,
-                          balance: DevMockHoldings.instance.totalBalance,
-                        );
-                      },
-                      child: Text(
-                        'Populated',
-                        style: TextStyle(color: gw.textPrimary),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        DevMockHoldings.instance.loadExtreme();
-                        context.read<WalletDetailsCubit>().injectMockCoins(
-                          DevMockHoldings.instance.coins,
-                          balance: DevMockHoldings.instance.totalBalance,
-                        );
-                      },
-                      child: Text(
-                        'Long / extreme',
-                        style: TextStyle(color: gw.textPrimary),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        DevMockHoldings.instance.loadMissingIcon();
-                        context.read<WalletDetailsCubit>().injectMockCoins(
-                          DevMockHoldings.instance.coins,
-                          balance: DevMockHoldings.instance.totalBalance,
-                        );
-                      },
-                      child: Text(
-                        'Missing icon',
-                        style: TextStyle(color: gw.textPrimary),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        DevMockHoldings.instance.clear();
-                        context.read<WalletDetailsCubit>().clearMock();
-                      },
-                      child: Text(
-                        'Clear',
-                        style: TextStyle(color: gw.textPrimary),
-                      ),
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _devButton('Populated', () {
+                          DevMockHoldings.instance.loadPopulated();
+                          context.read<WalletDetailsCubit>().injectMockCoins(
+                            DevMockHoldings.instance.coins,
+                            balance: DevMockHoldings.instance.totalBalance,
+                          );
+                        }),
+                        _devButton('Long / extreme', () {
+                          DevMockHoldings.instance.loadExtreme();
+                          context.read<WalletDetailsCubit>().injectMockCoins(
+                            DevMockHoldings.instance.coins,
+                            balance: DevMockHoldings.instance.totalBalance,
+                          );
+                        }),
+                        _devButton('Missing icon', () {
+                          DevMockHoldings.instance.loadMissingIcon();
+                          context.read<WalletDetailsCubit>().injectMockCoins(
+                            DevMockHoldings.instance.coins,
+                            balance: DevMockHoldings.instance.totalBalance,
+                          );
+                        }),
+                        _devButton('Clear', () {
+                          DevMockHoldings.instance.clear();
+                          context.read<WalletDetailsCubit>().clearMock();
+                        }),
+                      ],
                     ),
                   ],
                 ),
                 const SizedBox(height: GeniusWalletConsts.space4),
-                Row(
+                _Section(
+                  label: 'TEST FLOWS',
+                  expanded: _testFlowsExpanded,
+                  onToggle: () => setState(
+                    () => _testFlowsExpanded = !_testFlowsExpanded,
+                  ),
+                  gw: gw,
                   children: [
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      tooltip: isLight ? 'Switch to dark' : 'Switch to light',
-                      icon: Icon(
-                        isLight ? Icons.dark_mode : Icons.light_mode,
-                        color: gw.textPrimary,
-                      ),
-                      onPressed: () {
-                        GWAppearance.instance.setMode(
-                          isLight
-                              ? GWAppearanceMode.dark
-                              : GWAppearanceMode.light,
-                        );
-                      },
+                    // Task 2 replaces this Wrap's contents with inlined
+                    // _devButton calls and deletes these three widgets.
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: const [
+                        TestTransactionButton(),
+                        TestSwapButtons(),
+                        TestBuyButtons(),
+                      ],
                     ),
-                    Text(
-                      isLight ? 'Light' : 'Dark',
-                      style: TextStyle(color: gw.textSecondary, fontSize: 12),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                _Section(
+                  label: 'NAVIGATE',
+                  expanded: _navigateExpanded,
+                  onToggle: () => setState(
+                    () => _navigateExpanded = !_navigateExpanded,
+                  ),
+                  gw: gw,
+                  children: [
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _devButton(
+                          'Tokens',
+                          () => context.push('/dev/token-probe'),
+                        ),
+                        _devButton(
+                          'Gallery',
+                          () => context.push('/design_gallery'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                _Section(
+                  label: 'APPEARANCE',
+                  expanded: _appearanceExpanded,
+                  onToggle: () => setState(
+                    () => _appearanceExpanded = !_appearanceExpanded,
+                  ),
+                  gw: gw,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: isLight
+                              ? 'Switch to dark'
+                              : 'Switch to light',
+                          icon: Icon(
+                            isLight ? Icons.dark_mode : Icons.light_mode,
+                            color: gw.textPrimary,
+                          ),
+                          onPressed: () {
+                            GWAppearance.instance.setMode(
+                              isLight
+                                  ? GWAppearanceMode.dark
+                                  : GWAppearanceMode.light,
+                            );
+                          },
+                        ),
+                        Text(
+                          isLight ? 'Light' : 'Dark',
+                          style: TextStyle(
+                            color: gw.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -324,6 +361,96 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Compact text button for panel-section rows. The label always renders in
+  /// `gw.textPrimary` (independent of [accent]) so it stays WCAG AA on both
+  /// the light and dark `gw.surfaceMenu` panel; `accent`, when given, is only
+  /// ever painted as a small decorative dot, never as text color.
+  Widget _devButton(String label, VoidCallback onTap, {Color? accent}) {
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space2,
+          vertical: GeniusWalletConsts.space2,
+        ),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      onPressed: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (accent != null) ...[
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: GeniusWalletConsts.space2),
+          ],
+          Text(label, style: TextStyle(color: _gw.textPrimary, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Collapsible section used by the dev-tools bubble's expanded panel. Header
+/// is a chevron + uppercase-style label; tapping it calls [onToggle]. Body
+/// ([children]) renders only when [expanded].
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.label,
+    required this.expanded,
+    required this.onToggle,
+    required this.gw,
+    required this.children,
+  });
+
+  final String label;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final GWColors gw;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onToggle,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                expanded ? Icons.expand_more : Icons.chevron_right,
+                color: gw.textSecondary,
+                size: 18,
+              ),
+              const SizedBox(width: GeniusWalletConsts.space2),
+              Text(
+                label,
+                style: TextStyle(color: gw.textSecondary, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        if (expanded)
+          Padding(
+            padding: const EdgeInsets.only(
+              top: GeniusWalletConsts.space2,
+              left: GeniusWalletConsts.space4,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
+          ),
+      ],
     );
   }
 }
