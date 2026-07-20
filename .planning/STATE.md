@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: 05-02 walk APPROVED (both modes, 2026-07-20); next = 05-03 holdings list
-last_updated: "2026-07-20T11:40:00.000Z"
+stopped_at: 05-03 holdings walk APPROVED (both modes, 2026-07-20); next = 05-04 markets
+last_updated: "2026-07-20T12:40:00.000Z"
 last_activity: 2026-07-20
-last_activity_desc: 05-02 hero-balance walk approved; dev-tooling bubble (quick 260720-bgl) approved
+last_activity_desc: 05-03 holdings walk approved; 4 dev/chrome quick tasks (bgl/cw8/dty/eu9) all walked & approved
 progress:
   total_phases: 4
   completed_phases: 3
@@ -35,7 +35,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-20 — 05-03 holdings executed (walk pending); dev mock-holdings injector (quick 260720-cw8) built (walk pending)
+Last activity: 2026-07-20 — 05-03 holdings walk APPROVED (both modes); quick tasks bgl/cw8/dty/eu9 all walked & approved
 
 Progress: [█████████░] 86% (2 of 11 phases)
 
@@ -109,8 +109,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] SDK account manager UX polish (`.planning/todos/pending/2026-07-18-sdk-account-manager-ux-polish.md`) — 04-06 walk: disable add-dialog confirm until valid mnemonic/private-key; add a drawer loading state.
 - [ui] CTA hover state is over-rounded (`.planning/todos/pending/2026-07-20-cta-hover-state-is-over-rounded.md`) — 05-01 walk. Radius tokens match the Figma export exactly, so this is wrong-token-applied, not wrong-token-value. Design does not settle it: `gnus-mockups.html` defines zero `:hover` rules. Needs an answer from Alex before any code change.
 - [general] Second app instance shows a silent black window (`.planning/todos/pending/2026-07-20-second-app-instance-shows-a-silent-black-window.md`) — 05-01 walk. Hive grants its container lock to one process; later ones hang before first paint with no error, no log, no dialog. Cost real debugging time — the black window was first mistaken for a rendering regression. Aggravated by the login-item entry that installs silently when a desktop build runs. Same condition tripped CoinGecko 429 (each instance runs the finding-14 60s timer); degradation to cache behaved correctly.
-- [ui] Move dev tooling out of top bar into overflow bubble (`.planning/todos/pending/2026-07-20-move-dev-tooling-out-of-top-bar-into-overflow-bubble.md`) — 05-02 walk. DevToolsWidget in `_buildActionRowWidgets` overflows `_DesktopTopBar` at ~1240px, pushing real action widgets off-screen and corrupting phase-05 walks. Move to a draggable dev-only bubble (incl. appearance toggle) so it occupies zero layout space. Blocks clean walking.
-- [ui] Top-bar action widgets render black in light mode (`.planning/todos/pending/2026-07-20-top-bar-action-widgets-render-black-in-light-mode.md`) — 05-02 walk. Network selector, wallet/account selector, GNUS/SGNUS connection, and Submit-Job keep a dark surface fill in light mode (don't adopt appearance-aware GWColors surface tokens); some run off-screen. Re-skin regression, distinct from the mesh/canvas background todo.
+- [ui] ✅ RESOLVED 2026-07-20 — Dev tooling moved to draggable bubble (quick bgl, walked) → todos/completed.
+- [ui] ✅ RESOLVED 2026-07-20 — Header/balance light-mode legibility fixed at the root (quick eu9: btnFilter appearance-aware app-wide + token migrations + branded CTAs, walked) → todos/completed.
+- [ui] Expand dev Mock section — transactions + more injectors (`.planning/todos/pending/2026-07-20-expand-dev-mock-section-more-injectors.md`) — LATER, incremental as each screen is walked. Mock-holdings injector (quick cw8) done; add transactions (reuse dev_overrides fakes) for 05-06, etc.
 
 ### Blockers/Concerns
 
@@ -136,6 +137,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 | 260720-dty | Sectionize the dev-tools bubble into 4 collapsible sections (Mock/Test flows/Navigate/Appearance) + light-mode legibility fix; deleted 4 orphaned Test*/DevToolsWidget files; buttons → branded GWButton | 2026-07-20 | 2c1527f | [260720-dty-sectionize-the-dev-tools-bubble-into-col](./quick/260720-dty-sectionize-the-dev-tools-bubble-into-col/) |
 | 260720-eu9 | Fix header + current-balance light-mode legibility: root theme fix (btnFilter → appearance-aware, fixes all bare TextButtons app-wide) + per-widget token migrations (reown/sgnus/network/account) + SubmitJob & Buy GNUS → branded GWButton | 2026-07-20 | 6324d09 | [260720-eu9-fix-light-mode-legibility-of-header-and-](./quick/260720-eu9-fix-light-mode-legibility-of-header-and-/) |
 
+> **All four 2026-07-20 dev/chrome quick tasks (bgl, cw8, dty, eu9) WALKED & APPROVED (both light+dark) on 2026-07-20.** bgl=dev bubble; cw8=mock-holdings injector; dty=sectioned bubble + branded buttons; eu9=header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded Submit-Job/Buy-GNUS. Resolved todos: `move-dev-tooling-out-of-top-bar-into-overflow-bubble`, `top-bar-action-widgets-render-black-in-light-mode` → moved to todos/completed.
+
 > **APPROVED 2026-07-20.** Blocking human-verify walk passed on a fresh `GW_DEV_TOOLS=true` run: top bar no longer overflows (real widgets only), bubble anchored top-right below header, drags + expands within the viewport, all dev actions reachable, and its light/dark toggle live-re-skins the app. Fix `a91aec0` (top-right anchor + viewport clamp/scroll) followed the initial off-screen-expand report.
 
 ## Reference Material
@@ -156,7 +159,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-20T10:22:32.243Z
-Stopped at: 05-02 walk APPROVED (both modes, 2026-07-20); next = 05-03 holdings list
+Stopped at: 05-03 holdings walk APPROVED (both modes, 2026-07-20); next = 05-04 markets
 Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics

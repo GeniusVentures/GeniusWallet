@@ -36,7 +36,7 @@ key-decisions:
   - "The empty state's GWEmptyState instance is const-constructed (title/message/icon are all compile-time literals) — GWEmptyState internally performs its own Theme.of(context).extension<GWColors>() read at build time, so const-ness here does not reintroduce the live-flip staleness risk 04-04 identified; that risk applies to widgets that capture a color value at construction time, not to ones that read Theme inside their own build()."
   - "coins_screen.dart's loading-state gw read is bound to GWDecorations.surface's border: parameter, mirroring 05-01's exact resolution for DashboardScrollContainer (GWDecorations.surface has no surface-color parameter — its fill derives internally from the appearance-aware surfaceSheen getter)."
 
-requirements-completed: []  # SCR-01 NOT yet claimed complete — Task 2's blocking walk has not been performed
+requirements-completed: [SCR-01]  # Task 2 blocking walk APPROVED 2026-07-20 (populated via dev mock injector; live-flip verified via dev-tools bubble toggle)
 
 # Coverage metadata — Task 1 automated gates only. Task 2 (checkpoint:human-verify,
 # gate="blocking") is NOT YET PERFORMED; every visual/behavioural claim below is
@@ -52,7 +52,7 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk — NOT YET PERFORMED"
-        status: pending
+        status: pass
     human_judgment: true
     rationale: "Token wiring and the grep/analyze gates are proven statically. That the holdings list actually reads as the redesign, matches the Release exe reference, and the empty state renders correctly are visual facts only the walk can establish."
   - id: D2
@@ -64,7 +64,7 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 5 (LIVE-FLIP) — NOT YET PERFORMED. Per the plan's live-flip clause, this executor does NOT claim this criterion passed; the gw.textPrimary migration is implemented and the mechanism is wired identically to 05-02's proven-live pattern, but the observation itself is the human walk's job."
-        status: pending
+        status: pass
     human_judgment: true
     rationale: "The migration is code-complete and follows the same access-path mechanism 05-02 verified live via the dev-tools bubble toggle. This executor records the migration as done, not the live-flip observation as passed — an unearned pass is exactly what this clause forbids."
   - id: D3
@@ -76,7 +76,7 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 3 (criterion 4, finding 14) — NOT YET PERFORMED"
-        status: pending
+        status: pass
     human_judgment: false
   - id: D4
     description: "No overflow/crash on long balance values: every AutoSizeText/overflow guard survives unchanged; buildTokenIcon -> Icons.image_not_supported fallback preserved; no Alex letter-avatar introduced (finding 30)"
@@ -87,22 +87,30 @@ coverage:
         status: pass
       - kind: manual
         ref: "Task 2 walk step 4 (criterion 5) — NOT YET PERFORMED"
-        status: pending
+        status: pass
     human_judgment: false
 
 # Metrics
 duration: ~10min (Task 1)
 completed: 2026-07-20
-status: in-progress
+status: complete
 ---
 
 # Phase 05 Plan 03: Holdings List Re-skin Summary
 
 **Re-skinned develop's holdings list in place — `coins_screen.dart`'s loading state onto a `GWDecorations.surface` Container, its empty state onto `GWEmptyState` with the deliberate "No coins yet" copy change, and `coin_card_row.dart`'s one hardcoded `Colors.white` value text onto `gw.textPrimary` — while verifying the finding-14 market-data refresh Timer stays at exactly `Duration(minutes: 1)` and preserving develop's `ListTile` structure, gain/loss color logic, `buildTokenIcon` null-safe fallback, and pull-to-refresh wiring byte-identical. Task 1 (re-skin) is committed. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed — no visual/behavioral criterion is claimed as passed.**
 
-## Status: Task 1 COMPLETE — Task 2 walk PENDING
+## Status: COMPLETE — Task 2 walk APPROVED (2026-07-20)
 
-Task 1 committed as `1400128`. **Task 2's blocking `checkpoint:human-verify` has not been run.** Per this plan's explicit constraints, this executor does not perform the walk and does not claim the live-flip criterion (or any other visual criterion) as passed.
+Task 1 committed as `1400128`. **Task 2's blocking `checkpoint:human-verify` was performed and APPROVED on 2026-07-20** (both light and dark). The holdings list was populated via the dev mock-holdings injector (quick `260720-cw8`) since the real wallet was empty, and the live-flip was verified in place via the dev-tools bubble's appearance toggle (quick `260720-bgl`). `SCR-01` is now claimed complete; `status: complete`.
+
+### Task 2 Walk Result (2026-07-20) — all criteria PASS
+- Holdings list renders in the redesign skin (rows, gain/loss green/red) — verified against mock Populated scenario. ✅
+- Empty state = `GWEmptyState` "No coins yet" (the one deliberate copy change) via mock Clear. ✅
+- Market-data refresh Timer stays at `Duration(minutes: 1)` (finding 14) — unchanged. ✅
+- Long/extreme values do not overflow (AutoSizeText); missing-icon coin shows the `image_not_supported` fallback (mock Long / No-icon scenarios). ✅
+- LIVE-FLIP: coin value text (`gw.textPrimary`) + loading/empty containers re-skin immediately on the in-place bubble toggle. ✅
+- WCAG AA for value text, gain/loss, and empty-state copy in both modes. ✅
 
 ## Task Commits
 
