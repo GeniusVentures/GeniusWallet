@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:go_router/go_router.dart';
 
@@ -129,25 +130,23 @@ class CoinsScreenState extends State<CoinsScreen> {
         builder: (context, state) {
           final walletCubit = context.read<WalletDetailsCubit>();
 
+          // Fail-soft read: registers the InheritedWidget dependency that
+          // forces this subtree to rebuild on a live appearance toggle.
+          final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
           if (state.coinsStatus == WalletStatus.loading) {
-            return const Card(
-              color: GeniusWalletColors.deepBlueCardColor,
-              shadowColor: Colors.transparent,
-              child: Center(child: Loading()),
+            return Container(
+              decoration: GWDecorations.surface(border: gw.borderSubtle),
+              child: const Center(child: Loading()),
             );
           }
 
           if (state.coins.isEmpty) {
-            return const Card(
-              color: GeniusWalletColors.deepBlueCardColor,
-              shadowColor: Colors.transparent,
-              child: AutoSizeText(
-                'No Coins Detected',
-                style: TextStyle(
-                  fontSize: 24,
-                  color: GeniusWalletColors.btnTextDisabled,
-                ),
-              ),
+            return const GWEmptyState(
+              icon: Icons.account_balance_wallet_outlined,
+              title: 'No coins yet',
+              message:
+                  'Your holdings will appear here once you receive a token.',
             );
           }
 
