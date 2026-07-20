@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: dashboard
 status: executing
-stopped_at: Completed 05-01-PLAN.md (Task 3 walk PASSED; live-flip clause carried as verification blocker)
-last_updated: "2026-07-20T10:11:13.822Z"
+stopped_at: 05-02 Task 1 committed (8a5e5a9); Task 2 blocking human-verify walk PENDING
+last_updated: "2026-07-20T10:22:32.371Z"
 last_activity: 2026-07-20
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 28
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -37,7 +37,7 @@ phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = P
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
 Last activity: 2026-07-20 — Phase 05 execution started
 
-Progress: [████████░░] 82% (2 of 11 phases)
+Progress: [█████████░] 86% (2 of 11 phases)
 
 ## Accumulated Context
 
@@ -90,6 +90,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: colorScheme.errorContainer/onErrorContainer/scrim/surfaceDim/surfaceContainerHigh/onSurfaceVariant dropped from theme.dart's ColorScheme, matching Alex's reference and relying on Material 3's computed defaults; pin_screen.dart's errorContainer read still resolves to a reasonable value
 - [Phase 05]: DashboardScrollContainer's mandatory GWColors read is bound to GWDecorations.surface's border: parameter — GWDecorations.surface takes no surface-color argument (fill comes from the appearance-aware surfaceSheen getter), so binding gw.borderSubtle to border: keeps the Theme dependency live-flip requires while giving the read a real consumer instead of an unused local
 - [Phase 05]: Canonical loading.dart keeps develop's if (text != null) guard rather than the shadow's text ?? empty-string — The shadow renders an unconditional AutoSizeText, which would paint an empty text box on every text-less call site (most of the 19 importers); token choices ported, structure preserved
+- [Phase ?]: 05-02: UI-SPEC 3.1's toggle pairing (selectedColor textPrimary over fillColor brandPrimary) fails WCAG AA at 1.96:1 in dark mode; substituted textOnBrand (10.12:1). 3.1's table should be corrected for 05-03..05-06.
+- [Phase ?]: 05-02: GWAnimatedNumber currency prefix sourced from NumberFormat.simpleCurrency().currencySymbol, not hardcoded, preserving develop's locale-aware balance rendering.
 
 ### Pending Todos
 
@@ -140,9 +142,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-20T10:11:13.811Z
-Stopped at: Completed 05-01-PLAN.md (Task 3 walk PASSED; live-flip clause carried as verification blocker)
-Resume file: None
+Last session: 2026-07-20T10:22:32.243Z
+Stopped at: 05-02 Task 1 committed (8a5e5a9); Task 2 blocking human-verify walk PENDING
+Resume file: .planning/phases/05-dashboard/05-02-PLAN.md
 
 ## Performance Metrics
 
