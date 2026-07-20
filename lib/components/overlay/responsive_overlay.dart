@@ -8,6 +8,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_tools_bubble.dart';
@@ -273,11 +274,10 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
               Row(
                 children: [
                   ..._buildActionRowWidgets(context),
-                  ElevatedButton(
-                    child: Text(
-                      "Buy GNUS",
-                      style: GeniusWalletTypography.labelMd,
-                    ),
+                  GWButton(
+                    variant: GWButtonVariant.secondary,
+                    size: GWButtonSize.md,
+                    label: 'Buy GNUS',
                     onPressed: () async {
                       context.push('/buy');
                     },
