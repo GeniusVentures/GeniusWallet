@@ -1,56 +1,45 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-20T10:39:21.567Z",
+  "timestamp": "2026-07-20T18:58:42.636Z",
   "phase": "05",
   "phase_name": "dashboard",
   "phase_dir": ".planning/phases/05-dashboard",
-  "plan": 2,
-  "task": 2,
-  "total_tasks": 2,
+  "plan": 6,
+  "task": 3,
+  "total_tasks": 3,
   "status": "paused",
-  "branch": "ui-redesign-port",
-  "head": "4f5b079",
+  "phase_status": "implementation-complete — all 6 plans (05-01..05-06) walked & APPROVED both modes; verification not yet run",
   "completed_tasks": [
-    {"id": "05-01/1", "name": "Re-skin DashboardScrollContainer to GWDecorations.surface (UI-SPEC §5)", "status": "done", "commit": "af09302"},
-    {"id": "05-01/2", "name": "Re-skin shared Loading (§3.2) + FutureStateWidget default chrome (§4.6)", "status": "done", "commit": "ee326da"},
-    {"id": "05-01/3", "name": "Human walk — PASSED on gmac with one recorded verification gap", "status": "done", "commit": "f76edbc"},
-    {"id": "05-02/1", "name": "Re-skin wallet_overview.dart hero balance (§3.1/§4.1)", "status": "done", "commit": "8a5e5a9"}
+    {"id": "05-01", "name": "DashboardScrollContainer + shared Loading re-skin", "status": "done+walked"},
+    {"id": "05-02", "name": "Hero balance / wallet overview re-skin", "status": "done+walked"},
+    {"id": "05-03", "name": "Holdings list re-skin", "status": "done+walked"},
+    {"id": "05-04", "name": "Markets surface re-skin", "status": "done+walked"},
+    {"id": "05-05", "name": "News feed re-skin", "status": "done+walked"},
+    {"id": "05-06", "name": "Transactions area re-skin", "status": "done+walked"}
+  ],
+  "quick_tasks_this_session": [
+    {"id": "260720-bgl", "name": "Dev tooling -> draggable overflow bubble", "status": "done+walked"},
+    {"id": "260720-cw8", "name": "Dev offline mock-holdings injector", "status": "done+walked"},
+    {"id": "260720-dty", "name": "Sectioned dev bubble + branded GWButtons", "status": "done+walked"},
+    {"id": "260720-eu9", "name": "Header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded CTAs", "status": "done+walked"},
+    {"id": "260720-gzq", "name": "Clipped surface-card shadows (markets grid + mobile sections)", "status": "done+walked"},
+    {"id": "260720-ipg", "name": "Shared GWPageHeader unifying Markets/News/Swap page titles", "status": "done+walked"},
+    {"id": "260720-jvr", "name": "Dev mock-transactions injector", "status": "done+walked"},
+    {"id": "260720-k81", "name": "Transaction-area polish (badge/rows/drawer)", "status": "done+walked"},
+    {"id": "260720-lyn", "name": "Softened light-mode card/dialog shadows (appearance-aware)", "status": "done+walked"}
   ],
   "remaining_tasks": [
-    {"id": "05-02/2", "name": "Human walk for the hero balance re-skin — BLOCKING, never performed", "status": "not_started", "blocking": true}
+    {"id": "verify-05", "name": "Phase 05 verification", "status": "not_started", "command": "/gsd-verify-work 05"},
+    {"id": "phase-06", "name": "Phase 06 onboarding (next phase after 05 verified)", "status": "not_started"}
   ],
-  "blockers": [
-    {
-      "description": "No user-facing appearance toggle. setMode() exists only in lib/dev/token_probe_screen.dart:103 and lib/dev/design_gallery_screen.dart:124, so any must_have clause requiring an IN-PLACE live appearance flip is UNVERIFIABLE. Toggling requires navigating to a dev screen and back, and that navigation forces a rebuild which masks the exact const-staleness the clause guards against.",
-      "type": "technical",
-      "workaround": "Record as an outstanding gap, never as a pass. Escalated in .planning/todos/pending/2026-07-18-no-user-facing-appearance-toggle.md with severity: verification-blocker. Also retroactively affects 04-02 and 04-04, which carry identical wording."
-    },
-    {
-      "description": "UI-SPEC §3.1's toggle-row table specifies fillColor: brandPrimary with selectedColor: textPrimary. White on #14C8FF measures 1.96:1 — far below the WCAG AA 4.5:1 threshold. 05-02 substituted textOnBrand (10.12:1), which is what theme.dart already pairs with brand fills and what UI-SPEC §3.3 itself uses.",
-      "type": "external",
-      "workaround": "Fix §3.1 at source before 05-03..05-06 copy the pattern. Needs Alex to confirm."
-    }
-  ],
-  "async_jobs": [],
-  "human_actions_pending": [
-    {
-      "action": "Perform the 05-02 hero-balance walk and report per mode",
-      "context": "Quit ALL running Genius Wallet instances first, then run `gcd && flutter run -d macos --dart-define=GW_DEV_TOOLS=true`. Check: (1) 'Current Balance' label above a large figure that counts up on first paint; (2) behaviour intact — zero-funds wallet shows 'No funds available' in red, GNUS/Minions toggle switches units, GeniusBalanceDisplay + connection widgets + Submit Job work, and NO 24h delta / action-pill row / Assets-NFTs tab appeared; (3) hero does not flash before the account loads; (4) THE KEY CHECK — toggle legibility in DARK mode, which validates the textOnBrand contrast substitution; (5) repeat in light. Skip the in-place live-flip clause and record it blocked, same as 05-01.",
-      "blocking": true
-    },
-    {
-      "action": "Decide whether 'No funds available' should keep develop's FontWeight.bold",
-      "context": "05-02 followed UI-SPEC literally to bodyMd, which dropped develop's bold. One-line restore if it reads under-emphasised during the walk.",
-      "blocking": false
-    }
-  ],
+  "blockers": [],
+  "human_actions_pending": [],
   "decisions": [
-    {"decision": "GWDecorations.surface bound to border: rather than a surface-color parameter", "rationale": "The helper takes no surface-color argument — its fill comes from the appearance-aware surfaceSheen getter internally. Taken literally the plan would have left an unused variable. Binding the GWColors local to border: keeps a real appearance-aware consumer and upgrades the hairline edge off the static getter. Rule 3 deviation.", "phase": "05"},
-    {"decision": "selectedColor uses textOnBrand, not UI-SPEC §3.1's textPrimary", "rationale": "White on brandPrimary is 1.96:1, a WCAG AA failure. textOnBrand is 10.12:1 and is already the project's brand-fill pairing. The spec table is wrong at source.", "phase": "05"},
-    {"decision": "Currency symbol read from NumberFormat.simpleCurrency().currencySymbol", "rationale": "GWAnimatedNumber formats via decimalPatternDigits; a hardcoded $ prefix would silently pin the app to dollars. No currency switcher is exposed today, so this is future-proofing at equal cost.", "phase": "05"},
-    {"decision": "Six local-only files are marked skip-worktree", "rationale": "ios/macos project.pbxproj, AppDelegate.swift, Info.plist and both Podfile.lock carry the developer's personal Apple team (9UJNVD92ZW) and bundle id ai.gnus.GeniusWallet.jakub, because his Apple role is Customer Support and he cannot use the company team P7T32QQX5V. skip-worktree hides them from git status so they cannot be committed by accident. Undo with `git update-index --no-skip-worktree <path>` if an upstream change to those files ever needs pulling.", "phase": "05"}
+    {"decision": "btnFilter made appearance-aware (theme root fix)", "rationale": "fixed dark-navy const never flipped -> all bare TextButtons illegible in light mode; one getter change fixes app-wide", "phase": "quick 260720-eu9"},
+    {"decision": "Scrim/on-dark overlay text uses raw Colors.white/white70, NOT GWColors.dark()", "rationale": "GWColors.dark()/.light() mirror appearance-aware getters and FLIP; they are not fixed palettes. §4.4 sanctions raw white on the always-dark photo scrim", "phase": "quick 05-05"},
+    {"decision": "Card/dialog elevation shadows appearance-aware (softer in light)", "rationale": "black@35%/45% reads too heavy on light surfaces; light -> ~12%/20%, dark unchanged", "phase": "quick 260720-lyn"}
   ],
-  "uncommitted_files": ["cmake/CommonBuildParameters.cmake", "cmake/DownloadDependencies.cmake"],
-  "next_action": "Run the 05-02 human walk (see human_actions_pending). On pass, resume the 05-02 executor to close Task 2, mark SCR-01/GAP-06, and flip 05-02-SUMMARY.md off status: awaiting-verification. Then execute 05-03 (holdings). Sequential only — worktree base-check reports shouldDegrade=true.",
-  "context_notes": "First session run entirely on macOS; every prior session was Windows. That platform switch is the source of most friction found today and it is NOT yet reflected in the planning docs. Phase 5 plans were authored on Windows and their <how-to-verify> blocks still say `flutter run -d windows` with /c/Users/... paths — translate them, do not follow them. Working aliases: gmac, gios, gcd. flutter test does not compile; flutter analyze is a gate not evidence, baseline 409 issues / 0 errors, report DELTA. Mouse click-drag does not scroll on desktop — lib/ sets no dragDevices anywhere, so Flutter's desktop default excludes mouse; pull-to-refresh must be walked with a two-finger trackpad gesture. A black window at startup is almost always a stale second instance holding the Hive container lock (~/Library/Containers/ai.gnus.GeniusWallet.jakub/), not a rendering bug — quit every instance before walking. CoinGecko 429 is the free-tier limit; the app degrades to cached data correctly and it is not a defect. The real design reference was found late in the session and is NOT on this branch: .planning/design/gnus-mockups.html on branch ui-redesign-3.514 (commit 9413a32) — a self-contained HTML mockup of five screens including the dashboard, plus gnus-tokens.json (Tokens Studio export). Its radius scale matches genius_wallet_consts.dart exactly. Two caveats when using it: it is a reconstruction from DESIGN_SYSTEM.md and Flutter code rather than device captures, all figures are mock values, and it approximates Inter with a system stack because font CDNs were unavailable — so where type differs, the APP is right and the mockup is wrong (04-02 bundled real Inter). It defines zero :hover rules, so it cannot settle any hover question. Consider merging those three files onto this branch so the reference travels with the work. NOTE ON STALE ARTEFACTS DELIBERATELY LEFT IN PLACE: .planning/phases/04-navigation-shell-chrome/.continue-here.md is a zombie from a 2026-07-17 pause and is NOT current — Phase 4 is fully closed (7 SUMMARYs + 04-VERIFICATION.md). ROADMAP.md still shows Phases 3 and 4 unticked despite both having VERIFICATION files. STATE.md's body progress line disagrees with its own frontmatter. These were left untouched on purpose so the repo owner can reproduce the drift; do not silently 'fix' them. Related: `gsd-tools query state.begin-phase` rewrote total_phases from 11 to 4 and dropped the percent key, because it counts phase directories on disk rather than reading ROADMAP.md — Phase 1 shipped as PR #207 with no directory. And `roadmap update-plan-progress` auto-ticked 05-02 complete purely because a SUMMARY file existed, before any human walk."
+  "uncommitted_files": ["README.md (pre-existing, unrelated — do NOT commit)"],
+  "next_action": "Run /gsd-progress (or /gsd-verify-work 05) to verify Phase 05, then proceed to Phase 06 (onboarding).",
+  "context_notes": "Phase 05 dashboard fully re-skinned + human-walked in both light and dark. A large dev-tooling suite was built this session to make offline walking possible: the dev-tools bubble (GW_DEV_TOOLS=true) has a MOCK section (Populated/Long/No-icon/Clear holdings + Mock txns) + Appearance toggle + Test flows + Navigate. Use it to populate empty-wallet screens offline. The app runs on Windows THIS machine (win32) — the older macOS framing in prior handoffs is stale; RE-DERIVE the platform. All work committed atomically via GSD on branch ui-redesign-port (commits authorized here despite AGENTS.md general rule)."
 }
