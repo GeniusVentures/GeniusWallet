@@ -366,12 +366,12 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                     leadingIcon: const Icon(
                       Icons.delete_outline,
                       size: 20,
-                      color: Colors.redAccent,
+                      color: GeniusWalletColors.statusError,
                     ),
                     onPressed: () => _confirmDeleteWallet(context, wallet),
                     child: const Text(
                       'Delete',
-                      style: TextStyle(color: Colors.redAccent),
+                      style: TextStyle(color: GeniusWalletColors.statusError),
                     ),
                   ),
               ],

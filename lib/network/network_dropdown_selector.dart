@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class NetworkDropdownSelector extends StatefulWidget {
   final Function(Network selectedNetwork)? onNetworkSelected;
@@ -118,10 +119,11 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final networks = Provider.of<NetworkProvider>(context).networks;
 
     if (networks.isEmpty) {
-      return const Center(
+      final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+      return Center(
         child: Text(
           "No networks available.",
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: gw.textSecondary),
         ),
       );
     }

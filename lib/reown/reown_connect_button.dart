@@ -11,6 +11,7 @@ import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -156,7 +157,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           showAppSnackBar(
             context,
             "DApp connection was rejected.",
-            backgroundColor: Colors.red,
+            backgroundColor: GeniusWalletColors.statusError,
           );
 
           await walletKit.rejectSession(
@@ -227,7 +228,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         showAppSnackBar(
           context,
           "WalletKit failed to initialize. Please restart the app.",
-          backgroundColor: Colors.red,
+          backgroundColor: GeniusWalletColors.statusError,
         );
       }
       return;
@@ -246,7 +247,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         context: context,
         builder: (ctx) => StatefulBuilder(
           builder: (ctx, setInnerState) => AlertDialog(
-            backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            backgroundColor:
+                Theme.of(ctx).extension<GWColors>()?.surfaceElevated ??
+                    GWColors.dark().surfaceElevated,
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -299,8 +302,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                     IconButton(
                                       icon: const Icon(
                                         Icons.paste,
-                                        color: GeniusWalletColors
-                                            .lightGreenPrimary,
+                                        color: GeniusWalletColors.brandPrimary,
                                       ),
                                       tooltip: "Paste from clipboard",
                                       onPressed: () async {
@@ -357,7 +359,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                     ),
                     icon: const Icon(
                       Icons.link,
-                      color: GeniusWalletColors.lightGreenPrimary,
+                      color: GeniusWalletColors.brandPrimary,
                     ),
                     label: Text(
                       showManualInput ? "Show QR Code" : "Enter URI Manually",
@@ -431,7 +433,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             showAppSnackBar(
               context,
               "Wallet connection failed. Please try again.",
-              backgroundColor: Colors.red,
+              backgroundColor: GeniusWalletColors.statusError,
             );
           }
         }
@@ -493,6 +495,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isConnected = _session != null;
 
     final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
@@ -505,33 +508,37 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
     if (isConnected) {
       icon = Icons.link_off;
-      iconColor = Colors.redAccent;
-      textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withValues(alpha: 0.1);
+      iconColor = GeniusWalletColors.statusError;
+      textColor = GeniusWalletColors.statusError;
+      backgroundColor =
+          GeniusWalletColors.statusError.withValues(alpha: 0.18);
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
-      iconColor = Colors.amber;
-      textColor = Colors.amber;
-      backgroundColor = Colors.amber.withValues(alpha: 0.1);
+      iconColor = GeniusWalletColors.statusWarning;
+      textColor = GeniusWalletColors.statusWarning;
+      backgroundColor =
+          GeniusWalletColors.statusWarning.withValues(alpha: 0.18);
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
-      iconColor = Colors.orange;
-      textColor = Colors.orange;
-      backgroundColor = Colors.orange.withValues(alpha: 0.1);
+      iconColor = GeniusWalletColors.statusWarning;
+      textColor = GeniusWalletColors.statusWarning;
+      backgroundColor =
+          GeniusWalletColors.statusWarning.withValues(alpha: 0.18);
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
-      iconColor = Colors.redAccent;
-      textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withValues(alpha: 0.1);
+      iconColor = GeniusWalletColors.statusError;
+      textColor = GeniusWalletColors.statusError;
+      backgroundColor =
+          GeniusWalletColors.statusError.withValues(alpha: 0.18);
       text = 'Retry Connect';
     } else {
       icon = Icons.link;
-      iconColor = Colors.greenAccent;
-      textColor = Colors.white;
-      backgroundColor = GeniusWalletColors.deepBlueCardColor;
+      iconColor = GeniusWalletColors.brandPrimary;
+      textColor = gw.textPrimary;
+      backgroundColor = gw.surfaceElevated;
       text = 'Connect';
     }
 
