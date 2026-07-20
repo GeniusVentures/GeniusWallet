@@ -31,11 +31,13 @@ key-files:
     - lib/dashboard/chart/markets_screen.dart
     - lib/dashboard/chart/markets_search_bar.dart
     - lib/dashboard/chart/dashboard_markets.dart
+    - lib/chart/crypto_simple_chart.dart
 
 key-decisions:
   - "GWErrorState was NOT used for markets_screen.dart's two FutureStateWidget error slots. Investigating custom_future_builder.dart showed it ALREADY appends its own GWButton('Retry') beneath whatever `error:` widget is supplied, whenever `onRetry != null` -- true today for both slots (finding 8's existing wiring). Passing GWErrorState(onRetry: _retryCoins) as the `error:` widget would add a SECOND, redundant retry button (GWErrorState's own GWButton plus FutureStateWidget's auto-appended one). The plan's action text names this exact fallback ('or, if GWErrorState does not fit, token the error text to GeniusWalletTypography.bodyMd.copyWith(color: gw.textSecondary)') -- taken here, with `onRetry` passed to FutureStateWidget only, never touched."
   - "dashboard_markets.dart's actual pre-edit state did not match the plan's read_first assumption (AutoSizeText/GeniusWalletFontSize.sectionHeader raw TextStyle heading, Container(height 2, deepBlueTertiary) divider). The FILE ON DISK already used Theme.of(context).textTheme.titleLarge for the title (no raw color) and Material's default Divider() (no raw color either) -- likely drifted since the UI-SPEC's research pass. Applied the SAME INTENT the plan specifies (typography-token heading, hairline gw.borderSubtle divider) to the actual code rather than the stale read_first text: Text(...) -> GeniusWalletTypography.titleLg.copyWith(color: gw.textPrimary); Divider() -> Container(height: 1, color: gw.borderSubtle)."
   - "Missing-data placeholder's debug text (coin.symbol/coin.id) was also token-styled (GeniusWalletTypography.bodySm.copyWith(color: gw.textPrimary)) even though the plan's action text only named the Container's fill color -- the raw `TextStyle(color: Colors.white)` on that Text would otherwise survive and violate SS7's zero-raw-Colors.white gate."
+  - "Post-walk coordinator feedback (light-mode row): lib/chart/crypto_simple_chart.dart (the SHARED CryptoSparkLineChart row widget both markets_screen.dart's grid and dashboard_markets.dart's list render into) was NOT in this plan's files_modified but carried a real light-mode white-on-white bug (price subtitle hardcoded Colors.white/grey[600], title hardcoded Colors.grey) plus an oversized default icon (28px). Fixed in a second atomic commit per the coordinator's explicit instruction, scoped to exactly those three changes -- gain/loss %/sparkline colors (mutedGreen/red, mode-invariant) and all behavior/structure left untouched."
 
 requirements-completed: []  # SCR-01 NOT marked complete -- Task 2's blocking human-verify walk has NOT been performed. See 'Outstanding' below.
 
@@ -92,25 +94,25 @@ coverage:
     human_judgment: false
 
 # Metrics
-duration: ~25min (Task 1)
+duration: ~30min (Task 1 + post-walk-feedback fix)
 completed: 2026-07-20
 status: blocked
 ---
 
 # Phase 05 Plan 04: Markets Surface Re-skin Summary
 
-**Re-skinned develop's markets surface in place -- `markets_screen.dart`'s heading (headlineLg), grid cards (GWDecorations.surface), and both FutureStateWidget error slots (token-styled text, no GWErrorState to avoid a double-retry-button regression); `markets_search_bar.dart`'s raw TextField replaced by GWTextField; `dashboard_markets.dart`'s title/divider aligned to typography/border tokens -- while verifying finding 8's cached-futures + retry wiring and finding 30's null-safe icon fallback are untouched. Task 1 (re-skin) is committed. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed -- no visual/behavioral criterion is claimed as passed.**
+**Re-skinned develop's markets surface in place -- `markets_screen.dart`'s heading (headlineLg), grid cards (GWDecorations.surface), and both FutureStateWidget error slots (token-styled text, no GWErrorState to avoid a double-retry-button regression); `markets_search_bar.dart`'s raw TextField replaced by GWTextField; `dashboard_markets.dart`'s title/divider aligned to typography/border tokens; and, per post-walk coordinator feedback, the SHARED `CryptoSparkLineChart` row widget's light-mode white-on-white price/title text and oversized icon fixed -- while verifying finding 8's cached-futures + retry wiring and finding 30's null-safe icon fallback are untouched. Task 1 (re-skin) and the coordinator-directed row fix are both committed. Task 2's blocking `checkpoint:human-verify` walk has NOT been performed -- no visual/behavioral criterion is claimed as passed.**
 
-## Status: Task 1 COMPLETE -- Task 2 walk PENDING (blocking checkpoint)
+## Status: Task 1 COMPLETE + post-walk row fix COMPLETE -- Task 2 walk still PENDING (blocking checkpoint)
 
-Task 1 committed as `0c5d727`. **Task 2's blocking `checkpoint:human-verify` has NOT been performed by this executor** -- per this plan's explicit instruction, the walk is not run here. `SCR-01` is NOT claimed complete; `status: blocked` pending the human walk.
+Task 1 committed as `0c5d727`. A second atomic commit (`a932915`) addresses coordinator-reported light-mode/icon-size bugs on the shared `CryptoSparkLineChart` row widget, found via a partial walk before the full blocking checkpoint was reached. **Task 2's blocking `checkpoint:human-verify` has NOT been performed by this executor** -- per this plan's explicit instruction, the full walk is not run here. `SCR-01` is NOT claimed complete; `status: blocked` pending the human walk.
 
 ## Performance
 
-- **Duration:** ~25 min (Task 1)
-- **Completed:** 2026-07-20 (Task 1 only)
-- **Tasks:** 1 of 2 (Task 2 is the blocking checkpoint, intentionally not executed)
-- **Files modified:** 3
+- **Duration:** ~30 min (Task 1: ~25 min; post-walk-feedback fix: ~5 min)
+- **Completed:** 2026-07-20 (Task 1 + post-walk fix)
+- **Tasks:** 1 of 2 (Task 2 is the blocking checkpoint, intentionally not executed) + 1 coordinator-directed fix
+- **Files modified:** 4
 
 ## Accomplishments
 
@@ -122,10 +124,12 @@ Task 1 committed as `0c5d727`. **Task 2's blocking `checkpoint:human-verify` has
 - **`markets_search_bar.dart`'s raw `TextField`** -- replaced wholesale by `GWTextField(hint: 'Search Coins...', prefix: Icon(Icons.search, color: gw.textSecondary), suffix: ...)`. GWTextField owns its own `brandPrimary` 2px focus border and `gw.surfaceElevated` fill internally -- no manual border/fill styling survives. The `Loading()` suffix spinner (re-skinned by 05-01) and the clear-icon suffix logic are preserved, both re-tokened from `Colors.white` to `gw.textSecondary`.
 - **`dashboard_markets.dart`'s title and divider** -- title `Theme.of(context).textTheme.titleLarge` -> `GeniusWalletTypography.titleLg.copyWith(color: gw.textPrimary)`; divider `Divider()` -> `Container(height: 1, color: gw.borderSubtle)` hairline, matching §4.2's precedent weight.
 - **Findings 8 and 30 re-read and confirmed unregressed** after the edit, per UI-SPEC §2.1's standing discipline (see "Plan-Mandated Confirmations" below).
+- **Post-walk coordinator feedback fix (shared row widget):** `lib/chart/crypto_simple_chart.dart`'s `CryptoSparkLineChart` -- the row widget rendered by BOTH `markets_screen.dart`'s grid and `dashboard_markets.dart`'s list -- had a light-mode white-on-white bug (price subtitle hardcoded `Colors.white`/`Colors.grey[600]`) and a hardcoded-grey title, plus an oversized default icon (28px). Fixed to `gw.textPrimary`/`gw.textSecondary` (appearance-aware) and `iconSize` default `20`. Gain/loss %/sparkline colors (`mutedGreen`/`red`, mode-invariant) and all behavior/structure left untouched, per the coordinator's explicit scope.
 
 ## Task Commits
 
 1. **Task 1: Re-skin markets_screen.dart + markets_search_bar.dart + dashboard_markets.dart (§4.3)** -- `0c5d727` (feat)
+2. **Post-walk fix: light-mode contrast + icon size on shared CryptoSparkLineChart row** -- `a932915` (fix)
 
 **Task 2 (`checkpoint:human-verify`, `gate="blocking"`):** PENDING. Not performed by this executor -- per this plan's explicit instruction to stop at the checkpoint.
 
@@ -134,6 +138,7 @@ Task 1 committed as `0c5d727`. **Task 2's blocking `checkpoint:human-verify` has
 - `lib/dashboard/chart/markets_screen.dart` (see per-element table below). Imports added: `theme/genius_wallet_colors.dart`, `theme/genius_wallet_consts.dart`, `theme/genius_wallet_decorations.dart`, `theme/genius_wallet_typography.dart`, `theme/gw_colors.dart`. `_retryCoins`/`_retryMarketData` bodies and their `onRetry:` bindings at (now) `:103`/`:130` are byte-identical to pre-edit `:97`/`:120` (line numbers shifted only due to the added import lines).
 - `lib/dashboard/chart/markets_search_bar.dart`: `TextField` -> `GWTextField`; import swap `theme/genius_wallet_colors.dart` (no longer needed, only consumer was the removed `lightGreenPrimary` focus border) -> `components/inputs/gw_text_field.dart` + `theme/gw_colors.dart`. Debounce/search/coin-tap logic (`_onSearchChanged`, `_onCoinTap`) untouched.
 - `lib/dashboard/chart/dashboard_markets.dart`: title and divider tokened (see key-decisions for the read_first-vs-actual-code note). `_future`/`_retry`/`FutureStateWidget` wiring untouched; its own `error:`/onData empty-state `Text`s were left as-is (no raw color present, not named in the plan's per-file action list).
+- `lib/chart/crypto_simple_chart.dart` (post-walk fix, coordinator-directed): price subtitle `currentPrice == 0 ? Colors.grey[600] : Colors.white` -> `currentPrice == 0 ? gw.textSecondary : gw.textPrimary`; title `Colors.grey` -> `gw.textSecondary`; `iconSize` default `28` -> `20`. Import added: `theme/gw_colors.dart`. Gain/loss `%`/sparkline colors (`_mutedGreen`/`_mutedRed`), `getSparklineChartData()`, and the `ListTile`/`LineChart` structure untouched.
 
 ## Element-by-Element (per UI-SPEC §4.3)
 
@@ -184,9 +189,17 @@ Per this plan's binding constraint, the appearance-aware `Theme.of(context).exte
 - **Verification:** `flutter analyze` clean; no raw color survives.
 - **Committed in:** `0c5d727` (Task 1 commit)
 
+**3. [Rule 1 -- Bug, coordinator-directed] Light-mode white-on-white price/title text + oversized icon on the shared markets row widget**
+- **Found during:** post-Task-1 coordinator walk feedback (a partial walk performed before the full blocking Task 2 checkpoint)
+- **Issue:** `lib/chart/crypto_simple_chart.dart` (`CryptoSparkLineChart`, the row widget shared by BOTH `markets_screen.dart`'s grid and `dashboard_markets.dart`'s list -- outside this plan's original `files_modified`) hardcoded the price subtitle to `currentPrice == 0 ? Colors.grey[600] : Colors.white` and the coin-name title to `Colors.grey` -- both invisible/low-contrast on the light-mode surface. The default `iconSize` (28) also read as too large against the re-skinned row.
+- **Fix:** Added the standard fail-soft `final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();` read; price subtitle -> `currentPrice == 0 ? gw.textSecondary : gw.textPrimary`; title -> `gw.textSecondary`; `iconSize` default -> `20`. Gain/loss `%`/sparkline colors (`_mutedGreen`/`Colors.red`, mode-invariant) and all behavior/structure explicitly left untouched, per the coordinator's scope.
+- **Files modified:** `lib/chart/crypto_simple_chart.dart`
+- **Verification:** `flutter analyze lib/chart/crypto_simple_chart.dart` -- No issues found. `git diff` confirms only the three named changes (import, title/subtitle color, iconSize default) plus the new `gw` local.
+- **Committed in:** `a932915` (separate atomic commit, per coordinator's explicit instruction)
+
 ---
 
-**Total deviations:** 2 auto-fixed (both Rule 1/2, token-discipline completions consistent with the plan's own §7 gate). **Impact:** none on the plan's intent -- both closures make the re-skin MORE complete against §7's zero-raw-value gate than the plan's per-element table alone specified; neither touches behavior, structure, or copy.
+**Total deviations:** 3 auto-fixed (2 × Rule 1/2 token-discipline completions within the original plan scope; 1 × Rule 1 bug fix on coordinator-directed feedback outside the original `files_modified`). **Impact:** none on the plan's intent -- all three closures make the re-skin MORE complete against §7's zero-raw-value gate and WCAG contrast requirements than the plan's per-element table alone specified; none touches behavior, structure, or copy.
 
 ## Issues Encountered
 
@@ -202,6 +215,10 @@ Per this plan's binding constraint, the appearance-aware `Theme.of(context).exte
 - `_retryCoins`/`_retryMarketData` wiring re-read: both functions byte-identical, both `onRetry:` bindings unchanged.
 - `git diff --diff-filter=D --name-only HEAD~1 HEAD` -- no file deletions in the Task 1 commit.
 - `git status --short` after commit -- only the plan's three declared files staged/committed; pre-existing unrelated `README.md` modification left untouched and unstaged; new `.planning/phases/05-dashboard/deferred-items.md` left untracked for the orchestrator's docs commit.
+- `flutter analyze lib/chart/crypto_simple_chart.dart` (post-walk fix) -- **No issues found**.
+- `git diff --cached --name-only` before the post-walk-fix commit -- only `lib/chart/crypto_simple_chart.dart` staged; `README.md` (still dirty, pre-existing/unrelated) explicitly excluded.
+- `git diff --diff-filter=D --name-only HEAD~1 HEAD` (post-walk-fix commit) -- no file deletions.
+- Coordinator's explicit exclusions honored: gain/loss `%`/sparkline colors, `Clip.hardEdge`, and grid/section spacing were NOT touched by this fix.
 
 **None of this constitutes the visual/behavioral verification Task 2's walk provides.**
 
@@ -211,12 +228,12 @@ None for Task 1. Task 2's blocking walk requires a cold debug run on **Windows**
 
 ## Next Phase Readiness
 
-Task 1's code work is complete and committed (`0c5d727`). **This plan is not closeable until Task 2's blocking walk runs and its results (per-mode, per-criterion) are recorded here.** `SCR-01` is not claimed complete pending that walk. 05-05/05-06 can proceed independently -- this plan touched only `markets_screen.dart`, `markets_search_bar.dart`, and `dashboard_markets.dart`.
+Task 1's code work is complete and committed (`0c5d727`), and the post-walk coordinator-directed row fix is complete and committed (`a932915`). **This plan is not closeable until Task 2's blocking walk runs and its results (per-mode, per-criterion) are recorded here.** `SCR-01` is not claimed complete pending that walk. 05-05/05-06 can proceed independently -- this plan touched `markets_screen.dart`, `markets_search_bar.dart`, `dashboard_markets.dart`, and (post-walk-feedback) the shared `crypto_simple_chart.dart` row widget. Note: the coordinator is separately handling the surface-card shadow-clipping issue (`Clip.hardEdge` / grid+section spacing) via `.planning/todos/pending/2026-07-20-surface-card-shadows-clipped.md` -- out of this plan's scope, not touched here.
 
 ---
 *Phase: 05-dashboard*
-*Task 1 completed: 2026-07-20. Task 2 (blocking human-verify): PENDING.*
+*Task 1 completed: 2026-07-20. Post-walk row fix completed: 2026-07-20. Task 2 (blocking human-verify): PENDING.*
 
 ## Self-Check: PASSED
 
-`lib/dashboard/chart/markets_screen.dart`, `lib/dashboard/chart/markets_search_bar.dart`, and `lib/dashboard/chart/dashboard_markets.dart` confirmed present on disk; task commit `0c5d727` confirmed present in `git log`.
+`lib/dashboard/chart/markets_screen.dart`, `lib/dashboard/chart/markets_search_bar.dart`, `lib/dashboard/chart/dashboard_markets.dart`, and `lib/chart/crypto_simple_chart.dart` confirmed present on disk; task commits `0c5d727` and `a932915` confirmed present in `git log`.
