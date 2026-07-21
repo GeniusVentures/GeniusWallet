@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transactions filter — Sent / Received / Escrow / Mint</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; max-width:680px; margin:0 auto var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .caption { max-width:680px; margin:0 auto var(--space-6); color:var(--text-secondary); font:400 13px/20px var(--font); }
+  .caption b { color:var(--text-primary); }
+  .stage { display:flex; justify-content:center; }
+
+  /* ── panel (mirrors the dashboard Transactions slim view) ── */
+  .panel { width:376px; transition:width .25s ease; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+  .panel.wide { width:620px; }
+  .phead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding:0 var(--space-2) var(--space-4); }
+  .phead h2 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; white-space:nowrap; }
+  .filterrow { padding:0 var(--space-2) var(--space-6); }        /* own-row placement */
+  .filterrow:empty { display:none; }
+
+  /* transaction rows */
+  .tx { display:flex; align-items:center; gap:var(--space-6); padding:10px var(--space-2); }
+  .tx + .tx { border-top:1px solid var(--border-subtle); }
+  .tx .ic { width:34px; height:34px; border-radius:11px; flex:none; display:grid; place-items:center; }
+  .tx .ic svg { width:17px; height:17px; }
+  .ic.g { background:var(--status-success-fill); color:var(--status-success); }
+  .ic.r { background:var(--status-error-fill);   color:var(--status-error); }
+  .ic.a { background:rgba(255,196,46,.14);        color:var(--status-warning); }
+  .ic.m { background:var(--brand-fill);           color:var(--brand-primary-strong); }
+  [data-theme="dark"] .ic.m { color:var(--brand-secondary); }
+  .tx .nm { flex:1; min-width:0; font:500 14px/18px var(--font); }
+  .tx .nm small { display:block; color:var(--text-secondary); font-weight:400; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tx .amt { font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+  .tx .amt small { display:block; color:var(--text-secondary); font-weight:400; font-size:12px; }
+  .amt.up { color:var(--status-success); } .amt.down { color:var(--text-primary); }
+  .empty { padding:36px 8px; text-align:center; color:var(--text-secondary); font:400 13px/20px var(--font); }
+
+  /* ═══════════════════════════════════════════════════════════
+     A · Branded segmented track (refined SegmentedButton)
+     one surfaceMenu track, equal segments, raised selected chip
+     ═══════════════════════════════════════════════════════════ */
+  .fa { display:flex; width:100%; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fa button { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font:600 12px/1 var(--font); padding:8px 6px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; transition:.14s; }
+  .fa button svg { width:14px; height:14px; }
+  .fa button:hover:not(.on) { color:var(--text-primary); }
+  .fa button.on { background:var(--brand-primary-strong); color:var(--text-on-brand); }
+
+  /* ═══════════════════════════════════════════════════════════
+     B · Semantic icon + label chips (wrap) — each filter its color
+     ═══════════════════════════════════════════════════════════ */
+  .fb { display:flex; flex-wrap:wrap; gap:6px; }
+  .fb button { display:inline-flex; align-items:center; gap:6px; font:600 12px/1 var(--font); padding:7px 11px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; transition:.14s; }
+  .fb button svg { width:14px; height:14px; }
+  .fb button:hover:not(.on) { border-color:var(--border-strong); color:var(--text-primary); }
+  .fb button.on { border-color:transparent; }
+  .fb button.on[data-c="g"] { background:var(--status-success-fill); color:var(--status-success); }
+  .fb button.on[data-c="r"] { background:var(--status-error-fill);   color:var(--status-error); }
+  .fb button.on[data-c="a"] { background:rgba(255,196,46,.16);         color:var(--status-warning); }
+  .fb button.on[data-c="m"] { background:var(--brand-fill);           color:var(--brand-primary-strong); }
+  [data-theme="dark"] .fb button.on[data-c="m"] { color:var(--brand-secondary); }
+
+  /* ═══════════════════════════════════════════════════════════
+     C · Compact icon-only segmented (labels only when active/wide)
+     the narrow-panel answer — stays on the title row as trailing
+     ═══════════════════════════════════════════════════════════ */
+  .fc { display:flex; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fc button { display:inline-flex; align-items:center; gap:0; font:600 12px/1 var(--font); height:30px; padding:0; width:34px; justify-content:center; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; overflow:hidden; transition:width .18s ease,background .14s,color .14s; }
+  .fc button svg { width:15px; height:15px; flex:none; }
+  .fc button .lbl { max-width:0; opacity:0; transition:max-width .18s ease,opacity .14s,margin .18s; white-space:nowrap; }
+  .fc button:hover:not(.on) { color:var(--text-primary); }
+  .fc button.on { background:var(--brand-primary-strong); color:var(--text-on-brand); width:auto; padding:0 11px; gap:6px; }
+  .fc button.on .lbl { max-width:80px; opacity:1; }
+  /* on the WIDE surface every chip shows its label */
+  .wide .fc button { width:auto; padding:0 11px; gap:6px; }
+  .wide .fc button .lbl { max-width:80px; opacity:1; }
+
+  /* ═══════════════════════════════════════════════════════════
+     D · Gradient-underline tabs (matches the nav tab language)
+     ═══════════════════════════════════════════════════════════ */
+  .fd { display:flex; gap:2px; border-bottom:1px solid var(--border-subtle); }
+  .fd button { position:relative; display:inline-flex; align-items:center; gap:6px; font:600 12.5px/1 var(--font); padding:9px 10px 11px; border:0; background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; transition:.14s; }
+  .fd button svg { width:14px; height:14px; }
+  .fd button:hover:not(.on) { color:var(--text-primary); }
+  .fd button.on { color:var(--text-primary); }
+  .fd button.on::after { content:''; position:absolute; left:8px; right:8px; bottom:-1px; height:2.5px; border-radius:3px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); box-shadow:0 0 8px rgba(10,174,230,.45); }
+
+  /* ═══════════════════════════════════════════════════════════
+     E · Dropdown / menu filter — one compact control, counts inside
+     stays trailing, scales to any width, room for future filters
+     ═══════════════════════════════════════════════════════════ */
+  .fe { position:relative; }
+  .fe .trigger { display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-primary); font:600 12.5px/1 var(--font); cursor:pointer; }
+  .fe .trigger:hover { border-color:var(--border-strong); }
+  .fe .trigger .cur { display:inline-flex; align-items:center; gap:6px; }
+  .fe .trigger svg.lead { width:15px; height:15px; color:var(--brand-primary-strong); }
+  [data-theme="dark"] .fe .trigger svg.lead { color:var(--brand-secondary); }
+  .fe .trigger svg.chev { width:13px; height:13px; color:var(--text-secondary); transition:transform .18s; }
+  .fe.open .trigger svg.chev { transform:rotate(180deg); }
+  .fe .menu { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:190px; background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:5px; display:none; }
+  .fe.open .menu { display:block; }
+  .fe .menu button { display:flex; align-items:center; gap:10px; width:100%; font:500 13px/1 var(--font); padding:9px 10px; border:0; border-radius:9px; background:transparent; color:var(--text-primary); cursor:pointer; }
+  .fe .menu button svg { width:15px; height:15px; color:var(--text-secondary); }
+  .fe .menu button:hover { background:var(--surface-menu); }
+  .fe .menu button.on { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .fe .menu button.on { color:var(--brand-secondary); }
+  .fe .menu button.on svg { color:currentColor; }
+  .fe .menu button .ct { margin-left:auto; font:600 12px/1 var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .fe .menu button.on .ct { color:currentColor; }
+  .fe .menu .sep { height:1px; background:var(--border-subtle); margin:4px 6px; }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <h1>Transactions filter</h1>
+  <div class="seg" role="group" aria-label="Variant">
+    <button data-v="A" aria-pressed="true">A · Segmented</button>
+    <button data-v="B" aria-pressed="false">B · Color chips</button>
+    <button data-v="C" aria-pressed="false">C · Icon-only ★</button>
+    <button data-v="D" aria-pressed="false">D · Underline</button>
+    <button data-v="E" aria-pressed="false">E · Dropdown</button>
+  </div>
+  <div class="seg" role="group" aria-label="Width">
+    <button data-w="narrow" aria-pressed="true">Narrow</button>
+    <button data-w="wide" aria-pressed="false">Wide</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="stage">
+  <div class="panel" data-panel>
+    <div class="phead"><h2>Transactions</h2><span data-trail></span></div>
+    <div class="filterrow" data-ownrow></div>
+    <div data-list></div>
+  </div>
+</div>
+
+<script>
+  // ── icons ──────────────────────────────────────────────────
+  const S = (p,extra='') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${p}</svg>`;
+  const IC = {
+    all:      S('<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/>'),
+    sent:     S('<line x1="7" y1="17" x2="17" y2="7"/><polyline points="9 7 17 7 17 15"/>'),   // ↗ outgoing
+    received: S('<line x1="17" y1="7" x2="7" y2="17"/><polyline points="15 17 7 17 7 9"/>'),   // ↙ incoming
+    escrow:   S('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+    mint:     S('<path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18"/>'),                            // ✦ spark
+  };
+  // filters: key, label, semantic-color class (g/r/a/m), mock count
+  const F = [
+    { k:'all',      lbl:'All',      c:null, ct:26 },
+    { k:'sent',     lbl:'Sent',     c:'r',  ct:7  },
+    { k:'received', lbl:'Received', c:'g',  ct:12 },
+    { k:'escrow',   lbl:'Escrow',   c:'a',  ct:2  },
+    { k:'mint',     lbl:'Mint',     c:'m',  ct:5  },
+  ];
+  const NONALL = F.filter(f => f.k !== 'all');
+
+  // ── mock transactions (real-ish shapes: GNUS, 0x addrs, fiat) ──
+  const TX = [
+    { k:'received', ic:'g', title:'Received GNUS', sub:'from 0x8a2f…c3f2 · 2h ago',   amt:'+12.5000', fiat:'+$9.30',  up:1 },
+    { k:'sent',     ic:'r', title:'Sent GNUS',     sub:'to 0x1c94…9b10 · 5h ago',     amt:'−4.0000',  fiat:'−$2.98',  up:0 },
+    { k:'mint',     ic:'m', title:'Minted GNUS',   sub:'block reward · yesterday',    amt:'+100.000', fiat:'+$74.4',  up:1 },
+    { k:'escrow',   ic:'a', title:'Escrow hold',   sub:'pending release · 2d ago',    amt:'8.0000',   fiat:'$5.95',   up:2 },
+    { k:'received', ic:'g', title:'Received GNUS', sub:'from 0x77de…0a41 · 3d ago',   amt:'+3.2000',  fiat:'+$2.38',  up:1 },
+    { k:'sent',     ic:'r', title:'Sent GNUS',     sub:'to 0xf021…88ac · 4d ago',     amt:'−1.5000',  fiat:'−$1.12',  up:0 },
+  ];
+
+  const state = { v:'A', w:'narrow', sel:'all' };
+  const panel = document.querySelector('[data-panel]');
+  const trail = document.querySelector('[data-trail]');
+  const ownrow = document.querySelector('[data-ownrow]');
+  const list = document.querySelector('[data-list]');
+  const cap = document.querySelector('[data-caption]');
+
+  // which variants sit on the title row (trailing) vs get their own row
+  const PLACEMENT = { A:'own', B:'own', C:'trail', D:'own', E:'trail' };
+
+  const CAP = {
+    A:'<b>A · Branded segmented track.</b> The refined version of today\'s <code>SegmentedButton</code>: one <code>surfaceMenu</code> track, four equal segments, active = solid <code>brandPrimaryStrong</code> fill (no more tiny FittedBox). Full-width on its own row under the title. Familiar, tidy — but four text segments need the full width, so it can\'t share the title row in the narrow panel.',
+    B:'<b>B · Semantic color chips.</b> Individual pills, each carrying its own icon + status color when active — Sent=red, Received=green, Escrow=amber, Mint=mint-brand. Most scannable and expressive; wraps to two rows when narrow. Trade-off: the multi-color active states are louder than the app\'s usual one-accent restraint.',
+    C:'<b>C · Compact icon-only segmented ★.</b> Icon-only in the narrow panel (tooltips on hover), and the <em>active</em> one expands to reveal its label — so it stays tiny yet legible, and fits on the title row as trailing (title row stays clean). On the wide surface every chip shows its label. Directly kills the overflow that forced the FittedBox. Recommended.',
+    D:'<b>D · Gradient-underline tabs.</b> Reuses the nav-tab language — icon+label tabs with the <code>brandCta</code> gradient underline under the active one. Ties the filter to the app\'s tab system and reads as "sections". Needs its own row; extends the gradient-underline motif (reserved for nav) into a panel, which may dilute it.',
+    E:'<b>E · Dropdown / menu filter.</b> One compact control on the title row; opens a menu with icons + live counts, current filter shown on the trigger. The most space-frugal and the most scalable (room for counts and future filters like Swap/Purchase). Trade-off: options are one click away, so less glanceable than always-visible chips.',
+  };
+
+  function chevron(){ return S('<polyline points="6 9 12 15 18 9"/>'); }
+
+  function buildControl(){
+    const sel = state.sel;
+    if (state.v === 'A'){
+      return `<div class="fa">` + F.map(f =>
+        `<button data-k="${f.k}" class="${sel===f.k?'on':''}">${IC[f.k]}<span>${f.lbl}</span></button>`
+      ).join('') + `</div>`;
+    }
+    if (state.v === 'B'){
+      return `<div class="fb">` + F.map(f =>
+        `<button data-k="${f.k}" data-c="${f.c||''}" class="${sel===f.k?'on':''}">${IC[f.k]}<span>${f.lbl}</span></button>`
+      ).join('') + `</div>`;
+    }
+    if (state.v === 'C'){
+      // no "All" chip — the panel defaults to All; clicking the active chip clears back to All
+      return `<div class="fc">` + NONALL.map(f =>
+        `<button data-k="${f.k}" class="${sel===f.k?'on':''}" title="${f.lbl}">${IC[f.k]}<span class="lbl">${f.lbl}</span></button>`
+      ).join('') + `</div>`;
+    }
+    if (state.v === 'D'){
+      return `<div class="fd">` + F.map(f =>
+        `<button data-k="${f.k}" class="${sel===f.k?'on':''}">${IC[f.k]}<span>${f.lbl}</span></button>`
+      ).join('') + `</div>`;
+    }
+    if (state.v === 'E'){
+      const curF = F.find(f => f.k === sel) || F[0];
+      const menu = F.map((f,i) =>
+        `${f.k==='sent'?'<div class="sep"></div>':''}<button data-k="${f.k}" class="${sel===f.k?'on':''}">${IC[f.k]}<span>${f.lbl}</span><span class="ct">${f.ct}</span></button>`
+      ).join('');
+      return `<div class="fe" data-fe>
+        <button class="trigger" data-fe-trigger>
+          <span class="cur"><span class="lead">${IC[curF.k]}</span>${curF.lbl}</span>
+          <span class="chev">${chevron()}</span>
+        </button>
+        <div class="menu">${menu}</div>
+      </div>`;
+    }
+    return '';
+  }
+
+  function renderRows(){
+    const rows = TX.filter(t => state.sel === 'all' ? true : t.k === state.sel);
+    if (!rows.length){ list.innerHTML = `<div class="empty">No ${state.sel} transactions yet.</div>`; return; }
+    list.innerHTML = rows.map(t =>
+      `<div class="tx">
+        <div class="ic ${t.ic}">${IC[t.k]}</div>
+        <div class="nm">${t.title}<small>${t.sub}</small></div>
+        <div class="amt ${t.up===1?'up':t.up===0?'down':''}">${t.amt} GNUS<small>${t.fiat}</small></div>
+      </div>`
+    ).join('');
+  }
+
+  function render(){
+    panel.classList.toggle('wide', state.w === 'wide');
+    const html = buildControl();
+    if (PLACEMENT[state.v] === 'trail'){ trail.innerHTML = html; ownrow.innerHTML = ''; }
+    else { ownrow.innerHTML = html; trail.innerHTML = ''; }
+    cap.innerHTML = CAP[state.v];
+    renderRows();
+    wireControl();
+  }
+
+  function pick(k){
+    // clicking the already-active filter clears to All (matches emptySelectionAllowed)
+    state.sel = (state.sel === k && k !== 'all') ? 'all' : k;
+    render();
+  }
+
+  function wireControl(){
+    list.parentElement.querySelectorAll('[data-k]').forEach(b =>
+      b.addEventListener('click', e => { e.stopPropagation(); pick(b.dataset.k); })
+    );
+    const fe = document.querySelector('[data-fe]');
+    if (fe){
+      const trg = fe.querySelector('[data-fe-trigger]');
+      trg.addEventListener('click', e => { e.stopPropagation(); fe.classList.toggle('open'); });
+    }
+  }
+  document.addEventListener('click', () => {
+    const fe = document.querySelector('[data-fe]'); if (fe) fe.classList.remove('open');
+  });
+
+  // ── toolbar wiring ──
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x===b)));
+    if (b.dataset.v){ state.v = b.dataset.v; state.sel = 'all'; render(); }
+    if (b.dataset.w){ state.w = b.dataset.w; render(); }
+    if (b.dataset.themeBtn) document.documentElement.dataset.theme = b.dataset.themeBtn;
+  }));
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 003 — Markets panel (match Assets)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-10); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; max-width: 560px; margin: 0 auto var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { max-width: 560px; margin: 0 auto var(--space-6); color: var(--text-secondary); font: 400 13px/20px var(--font); }
+  .caption b { color: var(--text-primary); }
+
+  /* Assets-matching panel chrome */
+  .panel { max-width: 560px; margin: 0 auto; background: linear-gradient(to bottom, var(--surface-sheen-a), var(--surface-sheen-b)); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-6); }
+  .phead { display: flex; align-items: baseline; gap: var(--space-4); padding: 2px var(--space-4) var(--space-8); }
+  .phead h2 { font: 600 18px/24px var(--font); margin-right: auto; }
+  .phead .sub { font: 400 13px/18px var(--font); color: var(--text-secondary); }
+
+  .row { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-6) var(--space-4); border-radius: var(--radius-md); cursor: pointer; }
+  .row:hover { background: var(--surface-menu); }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .row:hover, .row:hover + .row { border-top-color: transparent; }
+  .ic { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font: 700 12px/1 var(--font); }
+  .gnus{background:linear-gradient(135deg,#14C8FF,#2BF5B4);color:#001018}.btc{background:#F7931A}.eth{background:#627EEA}.xrp{background:#23292F}.bnb{background:#F3BA2F;color:#181818}.sol{background:#000}.tron{background:#EF0027}.doge{background:#C2A633;color:#181818}
+  .id { min-width: 0; flex: 1; }
+  .id .n { font: 500 15px/20px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .id .p { font: 500 13px/18px var(--font); font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .chip { font: 600 12px/16px var(--font); font-variant-numeric: tabular-nums; padding: 2px 7px; border-radius: 8px; white-space: nowrap; }
+  .chip.up { color: var(--status-success); background: var(--status-success-fill); }
+  .chip.down { color: var(--status-error); background: var(--status-error-fill); }
+  svg.spark { display: block; }
+  .right { display: flex; align-items: center; gap: var(--space-6); flex: none; }
+  .rank { width: 18px; text-align: right; font: 500 13px/1 var(--font); color: var(--text-primary-38); font-variant-numeric: tabular-nums; flex: none; }
+
+  /* Variant B — sparkline-led (bigger) */
+  [data-v="B"] .right { gap: var(--space-4); }
+  /* Variant C — price on right, rank on left, denser */
+  [data-v="C"] .row { padding: 10px var(--space-4); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 003 — Markets</h1>
+  <div class="seg" role="group" aria-label="Variant">
+    <button data-var="A" aria-pressed="true">A · Assets-mirror</button>
+    <button data-var="B" aria-pressed="false">B · Sparkline-led</button>
+    <button data-var="C" aria-pressed="false">C · Ranked compact</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="panel" data-v="A">
+  <div class="phead"><h2>Markets</h2><span class="sub">Top 8 · 24h</span></div>
+  <div data-rows></div>
+</div>
+
+<script>
+const COINS = [
+  {cls:'gnus',g:'G',n:'GENIUS AI',p:0.773642,c:-0.29,s:[6,7,6,8,7,9,8,7,6,7,6,5]},
+  {cls:'btc',g:'₿',n:'Bitcoin',p:65087,c:0.70,s:[10,11,10,12,13,12,14,13,15,14,16,15]},
+  {cls:'eth',g:'♦',n:'Ethereum',p:1894.28,c:1.36,s:[8,9,8,10,11,10,12,13,12,14,13,15]},
+  {cls:'xrp',g:'✕',n:'XRP',p:1.11,c:1.04,s:[7,8,7,9,8,10,9,11,10,11,10,12]},
+  {cls:'bnb',g:'◆',n:'BNB',p:569.62,c:-0.13,s:[12,11,12,11,10,11,10,9,10,9,8,9]},
+  {cls:'sol',g:'◎',n:'Solana',p:77.42,c:1.76,s:[6,7,8,7,9,10,9,11,12,11,13,14]},
+  {cls:'tron',g:'▲',n:'TRON',p:0.326443,c:-0.14,s:[11,10,11,10,9,10,9,8,9,8,9,8]},
+  {cls:'doge',g:'Ð',n:'Dogecoin',p:0.071721,c:-0.80,s:[12,11,10,11,9,10,8,9,7,8,6,7]},
+];
+const price = n => n >= 1 ? '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '$'+n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+const pct = c => (c>=0?'+':'')+c.toFixed(2)+'%';
+function spark(pts, up, w=64, h=22){
+  const max=Math.max(...pts),min=Math.min(...pts),sp=(max-min)||1;
+  const d=pts.map((p,i)=>`${(i/(pts.length-1)*w).toFixed(1)},${(h-((p-min)/sp)*(h-3)-1.5).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${d}" fill="none" stroke="var(--status-${up?'success':'error'})" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+let v='A';
+function rowHTML(c,i){
+  const up=c.c>=0;
+  const chip=`<span class="chip ${up?'up':'down'}">${pct(c.c)}</span>`;
+  if(v==='A') return `<div class="row"><div class="ic ${c.cls}">${c.g}</div><div class="id"><div class="n">${c.n}</div><div class="p">${price(c.p)}</div></div><div class="right">${spark(c.s,up,56,20)}${chip}</div></div>`;
+  if(v==='B') return `<div class="row"><div class="ic ${c.cls}">${c.g}</div><div class="id"><div class="n">${c.n}</div><div class="p">${price(c.p)}</div></div><div class="right">${spark(c.s,up,90,26)}${chip}</div></div>`;
+  // C — ranked compact, price right-aligned
+  return `<div class="row"><span class="rank">${i+1}</span><div class="ic ${c.cls}">${c.g}</div><div class="id"><div class="n">${c.n}</div></div><div class="right">${spark(c.s,up,48,18)}<div style="text-align:right"><div class="p" style="color:var(--text-primary)">${price(c.p)}</div>${chip}</div></div></div>`;
+}
+function render(){ document.querySelector('[data-rows]').innerHTML = COINS.map(rowHTML).join(''); }
+const CAP={
+  A:'<b>A · Assets-mirror.</b> Same chrome, 34px icon, name over price, right = mini sparkline + % chip. Reads as a twin of the Assets panel — status green/red (not the legacy muted green), same separators/spacing.',
+  B:'<b>B · Sparkline-led.</b> Same layout but a larger 90px sparkline gets real estate — Markets is about the trend, so the line leads and the % chip trails it.',
+  C:'<b>C · Ranked compact.</b> Adds a rank number, drops price to the subtitle-less right column, tighter rows — fits more coins; closest to an exchange watchlist.',
+};
+const panel=document.querySelector('.panel'), cap=document.querySelector('[data-caption]');
+function setV(x){ v=x; panel.dataset.v=x; cap.innerHTML=CAP[x]; render(); }
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  if(b.dataset.var) setV(b.dataset.var);
+  if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+}));
+setV('A');
+</script>
+</body>
+</html>

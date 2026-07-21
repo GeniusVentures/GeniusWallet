@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 004 — Unified section title</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-10); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; max-width: 900px; margin: 0 auto var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { max-width: 900px; margin: 0 auto var(--space-8); color: var(--text-secondary); font: 400 13px/20px var(--font); }
+  .caption b { color: var(--text-primary); }
+
+  .grid { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); }
+  .panel { background: linear-gradient(to bottom, var(--surface-sheen-a), var(--surface-sheen-b)); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-6); }
+
+  /* ── the ONE shared title component (position taken from Assets) ── */
+  /* left-aligned, space4 horizontal inset inside the panel's space6 padding,
+     top of panel, optional trailing on the right, space8 gap to content */
+  .title { display: flex; align-items: baseline; gap: var(--space-4); padding: 2px var(--space-4) var(--space-8); }
+  .title h2 { color: var(--text-primary); margin-right: auto; letter-spacing: -0.2px; }
+  .title .trail { color: var(--text-secondary); font: 400 13px/18px var(--font); }
+  .title .total { color: var(--text-primary); font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  /* font-size variants (line-height tracks) */
+  [data-fs="16"] .title h2 { font: 600 16px/22px var(--font); }   [data-fs="16"] .title .total { font-size: 18px; }
+  [data-fs="18"] .title h2 { font: 600 18px/24px var(--font); }   [data-fs="18"] .title .total { font-size: 20px; }
+  [data-fs="20"] .title h2 { font: 600 20px/28px var(--font); }   [data-fs="20"] .title .total { font-size: 22px; }
+  [data-fs="24"] .title h2 { font: 700 24px/32px var(--font); }   [data-fs="24"] .title .total { font-size: 24px; }
+
+  /* mock rows */
+  .row { display: flex; align-items: center; gap: var(--space-6); padding: 10px var(--space-4); }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .ic { width: 30px; height: 30px; border-radius: 50%; flex: none; }
+  .ic.a{background:linear-gradient(135deg,#14C8FF,#2BF5B4)}.ic.b{background:#627EEA}.ic.c{background:#F7931A}
+  .nm { flex: 1; font: 500 14px/18px var(--font); } .nm small { display:block; color: var(--text-secondary); font-weight:400; font-size:12px; }
+  .rt { font: 500 13px/18px var(--font); color: var(--text-primary-38); }
+  .segmini { display:flex; gap:4px; }
+  .segmini span { font: 500 11px/1 var(--font); padding: 5px 9px; border-radius: 999px; border:1px solid var(--border-subtle); color: var(--text-secondary); }
+  .segmini span.on { border-color: var(--brand-primary-strong); color: var(--brand-primary-strong); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 004 — Section title (one shared component)</h1>
+  <div class="seg" role="group" aria-label="Font size">
+    <button data-fs="16" aria-pressed="false">16px</button>
+    <button data-fs="18" aria-pressed="true">18px ★</button>
+    <button data-fs="20" aria-pressed="false">20px</button>
+    <button data-fs="24" aria-pressed="false">24px</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="grid" data-grid data-fs="18">
+  <!-- Assets: title + total right -->
+  <div class="panel">
+    <div class="title"><h2>Assets</h2><span class="total">$0.00</span></div>
+    <div class="row"><div class="ic a"></div><div class="nm">GeniusAI<small>$0.62</small></div><span class="rt">0.0000 GNUS</span></div>
+    <div class="row"><div class="ic b"></div><div class="nm">Ethereum<small>$1,927</small></div><span class="rt">0.0000 ETH</span></div>
+  </div>
+  <!-- Markets: title + trailing text -->
+  <div class="panel">
+    <div class="title"><h2>Markets</h2><span class="trail">Top 8 · 24h</span></div>
+    <div class="row"><div class="ic a"></div><div class="nm">GENIUS AI<small>$0.616</small></div><span class="rt">-17.78%</span></div>
+    <div class="row"><div class="ic c"></div><div class="nm">Bitcoin<small>$65,676</small></div><span class="rt">+2.48%</span></div>
+  </div>
+  <!-- Transactions: title + segment filter right -->
+  <div class="panel">
+    <div class="title"><h2>Transactions</h2><span class="segmini"><span class="on">Sent</span><span>Received</span><span>Escrow</span></span></div>
+    <div class="row"><div class="nm" style="color:var(--text-secondary)">No transactions yet</div></div>
+  </div>
+  <!-- Bitcoin Chart: title only -->
+  <div class="panel">
+    <div class="title"><h2>Bitcoin Chart</h2></div>
+    <div class="row"><div class="nm"><span style="font:700 22px/1 var(--font)">$65,676.00</span></div><span class="rt" style="color:var(--status-success)">+2.48%</span></div>
+  </div>
+</div>
+
+<script>
+  const CAP = {
+    "16": '<b>16px (titleMd).</b> Smallest — reads as a quiet label. Good if you want the data to dominate and titles to recede. May feel under-weighted on wide panels.',
+    "18": '<b>18px (titleLg) ★ recommended.</b> What "Assets" & "Markets" already use. Enough presence to anchor each panel without shouting; stays clean across 5 stacked compact cards. Least disruptive (Assets is the reference).',
+    "20": '<b>20px (headlineMd).</b> A touch more hierarchy/presence — titles clearly lead. Slightly heavier on the compact dashboard cards; good if you want the panels to feel more "sectioned".',
+    "24": '<b>24px (headlineLg).</b> What "Transactions" uses today. Bold, magazine-like. Strong on a big screen but dominates the smaller stacked cards and eats vertical space.',
+  };
+  const grid = document.querySelector('[data-grid]'), cap = document.querySelector('[data-caption]');
+  function setFs(fs){ grid.dataset.fs = fs; cap.innerHTML = CAP[fs]; }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.fs) setFs(b.dataset.fs);
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+  }));
+  setFs('18');
+</script>
+</body>
+</html>

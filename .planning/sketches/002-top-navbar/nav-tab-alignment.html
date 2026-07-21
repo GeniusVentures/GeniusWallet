@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nav tab — correct alignment options</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-10); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { color: var(--text-secondary); font: 400 13px/20px var(--font); margin-bottom: var(--space-6); max-width: 900px; }
+  .caption b { color: var(--text-primary); }
+
+  /* the bar shell — 68px, like the app */
+  .bar { position: relative; display: flex; align-items: stretch; height: 68px; padding: 0 24px; gap: 0; background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+  .logo { align-self: center; width: 40px; height: 40px; border-radius: 10px; flex: none; display: grid; place-items: center; background: linear-gradient(135deg,#14C8FF,#2BF5B4); color:#001018; font: 800 16px/1 var(--font); margin-right: 15px; }
+  .nav { display: flex; align-items: stretch; gap: 2px; }
+
+  /* centerline guide to PROVE vertical centering */
+  .guide { display: none; }
+  .guide.on { display: block; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(255,0,80,.5); z-index: 5; pointer-events: none; }
+
+  /* base tab: full bar height, content vertically centered */
+  .tab { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 14px; color: var(--text-secondary); cursor: pointer; }
+  .tab .lbl { display: flex; align-items: center; gap: 7px; font: 500 14px/1 var(--font); white-space: nowrap; }
+  .tab svg { width: 22px; height: 22px; }
+  .tab:hover { color: var(--text-primary); }
+
+  /* ============ A — bottom-bar underline (classic tab) ============ */
+  /* content centered in full height; gradient bar pinned to the BAR's bottom edge, width = tab content */
+  [data-v="A"] .tab.on { color: #fff; }
+  [data-v="A"] .tab.on::after { content:''; position:absolute; left:14px; right:14px; bottom:0; height:3px; border-radius:3px 3px 0 0; background:linear-gradient(90deg,#0AD89C,#0AAEE6); box-shadow:0 0 10px rgba(10,174,230,.5); }
+  [data-v="A"] .tab:hover:not(.on) { background: var(--surface-menu); }
+
+  /* ============ B — inset pill, NO underline (pill IS the indicator) ============ */
+  [data-v="B"] .tab { padding: 0; }
+  [data-v="B"] .tab .lbl { height: 40px; padding: 0 16px; border-radius: 10px; }   /* the pill, inset (40 in 68 → 14 top/bottom) */
+  [data-v="B"] .tab.on { color: #fff; }
+  [data-v="B"] .tab.on .lbl { background: rgba(20,200,255,.14); box-shadow: inset 0 0 0 1px rgba(43,245,180,.35); }
+  [data-v="B"] .tab:hover:not(.on) .lbl { background: var(--surface-menu); }
+
+  /* ============ C — inset box + underline INSIDE it (refined current) ============ */
+  [data-v="C"] .tab { padding: 0; }
+  [data-v="C"] .tab .box { position: relative; height: 44px; display:flex; align-items:center; padding: 0 14px; border-radius: 10px; }  /* inset box, 44 in 68 → 12 top/bottom */
+  [data-v="C"] .tab.on { color: #fff; }
+  [data-v="C"] .tab.on .box::after { content:''; position:absolute; left:14px; right:14px; bottom:4px; height:3px; border-radius:3px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); box-shadow:0 0 8px rgba(10,174,230,.45); }
+  [data-v="C"] .tab:hover:not(.on) .box { background: var(--surface-menu); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Nav tab — correct alignment</h1>
+  <div class="seg" role="group" aria-label="Option">
+    <button data-var="A" aria-pressed="true">A · Bottom-bar underline</button>
+    <button data-var="B" aria-pressed="false">B · Pill (no underline)</button>
+    <button data-var="C" aria-pressed="false">C · Inset box + underline</button>
+  </div>
+  <div class="seg" role="group" aria-label="Guide">
+    <button data-guide="on" aria-pressed="false">Centerline</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="bar" data-v="A">
+  <div class="guide" data-guide-line></div>
+  <div class="logo">G</div>
+  <nav class="nav" data-nav></nav>
+</div>
+
+<script>
+  const ICON = {
+    dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    tx:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+    mkt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 3 3 7-8"/><path d="M18 4h3v3"/></svg>',
+    news:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><path d="M17 8h3v10a2 2 0 0 1-2 2M7 8h6M7 12h6"/></svg>',
+    set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H0a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 1.7 6"/></svg>',
+  };
+  const ITEMS = [['dash','Dashboard',1],['tx','Transactions'],['swap','Swap'],['mkt','Markets'],['news','News'],['set','Settings']];
+  function build(v){
+    return ITEMS.map(([k,l,on])=>{
+      const inner = `<span class="lbl">${ICON[k]}<span>${l}</span></span>`;
+      if(v==='C') return `<div class="tab ${on?'on':''}"><div class="box">${inner}</div></div>`;
+      return `<div class="tab ${on?'on':''}">${inner}</div>`;
+    }).join('');
+  }
+  const bar = document.querySelector('.bar'), nav = document.querySelector('[data-nav]'), cap = document.querySelector('[data-caption]'), guide = document.querySelector('[data-guide-line]');
+  const CAP = {
+    A:'<b>A · Bottom-bar underline (classic tab).</b> Icon+label perfectly centered in the full bar height; the gradient bar sits on the NAVBAR\'s bottom edge (not floating), width = the tab name. The underline can never "go below" — it IS the bottom edge. Most standard (Material/exchange style). Hover = subtle full-height fill.',
+    B:'<b>B · Pill, no underline.</b> The active indicator is an inset rounded pill (subtle gradient tint + hairline) with the label dead-centered — no separate underline to misalign at all. Cleanest, most modern; the gradient lives in the pill tint.',
+    C:'<b>C · Inset box + underline inside.</b> A 44px inset box (12px top/bottom padding, never touches the bar edge), label centered, gradient underline pinned INSIDE the box near its bottom (4px up) so it never spills past. The refined version of the current attempt.',
+  };
+  function setV(v){ bar.dataset.v=v; nav.innerHTML=build(v); cap.innerHTML=CAP[v]; }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.guide){ const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',String(on)); guide.classList.toggle('on',on); return; }
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.var) setV(b.dataset.var);
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+  }));
+  nav.addEventListener('click',e=>{ const t=e.target.closest('.tab'); if(!t)return; nav.querySelectorAll('.tab').forEach(x=>x.classList.remove('on')); t.classList.add('on'); });
+  setV('A');
+</script>
+</body>
+</html>

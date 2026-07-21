@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 005 — Navbar right cluster</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-8); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { color: var(--text-secondary); font: 400 13px/20px var(--font); margin: 0 0 var(--space-6); max-width: 1180px; }
+  .caption b { color: var(--text-primary); }
+  .caption .tag { color: var(--brand-primary-strong); font-weight: 600; }
+  [data-theme="dark"] .caption .tag { color: var(--brand-primary); }
+
+  /* ---- bar shell (shared with sketch 002 language) ---- */
+  .stage { background: var(--surface-base); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+  .bar { display: flex; align-items: center; height: 68px; padding: 0 var(--space-8) 0 var(--space-12); gap: var(--space-8); background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid; place-items: center; background: linear-gradient(135deg,#14C8FF,#2BF5B4); color:#001018; font: 800 15px/1 var(--font); }
+  .nav { display: flex; align-items: center; gap: 2px; }
+  .grow { margin-left: auto; }
+  .item { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 40px; border-radius: 10px; color: var(--text-secondary); cursor: pointer; font: 500 14px/1 var(--font); white-space: nowrap; }
+  .item svg { width: 21px; height: 21px; }
+  .item:hover { color: var(--text-primary); background: var(--surface-menu); }
+  .item.on { color: var(--brand-primary); background: rgba(20,200,255,.10); }
+  [data-theme="dark"] .item.on { background: rgba(20,200,255,.14); }
+  .item.on::after { content:''; position:absolute; left:12px; right:12px; bottom:4px; height:2px; border-radius:2px; background: linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .compact .item .lbl { display: none; }           /* collapse labels so the bar fits on narrow preview */
+  .compact .item { padding: 0 9px; }
+
+  /* right cluster wrapper */
+  .right { display: flex; align-items: center; }
+
+  /* status dot colors */
+  .dot-ok { background: var(--status-success); }
+  .dot-warn { background: var(--status-warning); }
+  .dot-err { background: var(--status-error); }
+
+  /* ================================================================
+     VARIANT A — Unified context capsule + two aligned actions
+     Chain · wallet folded into ONE segmented pill (hairline dividers).
+     Then Connect (quiet) + Buy GNUS (gradient). Everything 40px tall.
+     ================================================================ */
+  [data-v="A"] .right { gap: var(--space-6); }
+  .capsule { display: flex; align-items: center; height: 40px; border-radius: var(--radius-md); background: var(--surface-menu); border: 1px solid var(--border-subtle); overflow: hidden; }
+  .capsule > * { display: flex; align-items: center; gap: 7px; height: 100%; padding: 0 12px; cursor: pointer; color: var(--text-primary); font: 500 13px/1 var(--font); white-space: nowrap; }
+  .capsule > * + * { border-left: 1px solid var(--border-subtle); }
+  .capsule .seg-c:hover { background: var(--surface-elevated); }
+  [data-theme="dark"] .capsule .seg-c:hover { background: rgba(255,255,255,.05); }
+  .chain-badge { width: 20px; height: 20px; border-radius: 50%; flex: none; display: grid; place-items: center; }
+  .eth { background:#627EEA; }
+  .eth svg { width: 11px; height: 11px; }
+  .wal-av { width: 21px; height: 21px; border-radius: 50%; flex: none; background: linear-gradient(135deg,#14C8FF,#2BF5B4); display:grid; place-items:center; color:#001018; font:800 10px/1 var(--font); }
+  .car { color: var(--text-primary-38); font-size: 10px; margin-left: -1px; }
+  .mono { font-family: var(--font-mono); font-size: 12px; letter-spacing:-.2px; }
+
+  /* shared action buttons (A + B) */
+  .btn { display: flex; align-items: center; gap: 7px; height: 40px; padding: 0 15px; border-radius: var(--radius-md); font: 600 13px/1 var(--font); cursor: pointer; white-space: nowrap; border: 0; }
+  .btn svg { width: 17px; height: 17px; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--brand-primary-strong); color: var(--brand-primary-strong); }
+  [data-theme="dark"] .btn-ghost { border-color: var(--brand-primary); color: var(--brand-primary); }
+  .btn-ghost:hover { background: var(--brand-fill); }
+  .btn-buy { background: linear-gradient(135deg,#0AAEE6,#0AD89C); color:#00140e; font-weight: 700; padding: 0 18px; }
+  .btn-buy:hover { filter: brightness(1.08); }
+  /* connected variant of the connect button (idle→connected) */
+  .btn-conn { background: var(--status-success-fill); color: var(--status-success); border: 0; }
+  .btn-conn .live { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* ================================================================
+     VARIANT B — Normalized quiet chips + single primary
+     Every control the same 40px height / radius-md / quiet fill.
+     Hierarchy purely by emphasis: quiet context → outlined Connect → gradient Buy.
+     Least structural change — the fast GSD port.
+     ================================================================ */
+  [data-v="B"] .right { gap: var(--space-4); }
+  .chip { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: var(--radius-md); background: var(--surface-menu); border: 1px solid var(--border-subtle); color: var(--text-primary); font: 500 13px/1 var(--font); cursor: pointer; white-space: nowrap; }
+  .chip:hover { border-color: var(--border-strong); }
+
+  /* ================================================================
+     VARIANT C — Wallet status capsule (Connect folds IN)
+     One hero capsule: chain badge over avatar + address + a LIVE status dot
+     that carries the Reown connection state, so no separate Connect button.
+     SDK/settings demoted to an icon button. Buy GNUS is the lone CTA.
+     ================================================================ */
+  [data-v="C"] .right { gap: var(--space-6); }
+  .icon-btn { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--surface-menu); border: 1px solid var(--border-subtle); color: var(--text-secondary); display: grid; place-items: center; cursor: pointer; }
+  .icon-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+  .icon-btn svg { width: 19px; height: 19px; }
+  .hero { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px 0 8px; border-radius: var(--radius-pill); background: var(--surface-menu); border: 1px solid var(--border-subtle); cursor: pointer; }
+  .hero:hover { border-color: var(--border-strong); }
+  .hero .stack { position: relative; width: 28px; height: 28px; flex: none; }
+  .hero .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#14C8FF,#2BF5B4); display:grid; place-items:center; color:#001018; font:800 12px/1 var(--font); }
+  .hero .chain-mini { position:absolute; right:-2px; bottom:-2px; width:14px; height:14px; border-radius:50%; background:#627EEA; border:2px solid var(--surface-menu); display:grid; place-items:center; }
+  .hero .chain-mini svg { width:7px; height:7px; }
+  .hero .col { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
+  .hero .addr { font: 600 13px/1 var(--font); color: var(--text-primary); }
+  .hero .state { display:flex; align-items:center; gap:5px; font: 500 11px/1 var(--font); color: var(--text-secondary); }
+  .hero .live { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent); }
+  .hero .live.dot-ok { color: var(--status-success); }
+  .hero .live.dot-warn { color: var(--status-warning); }
+  .hero .live.dot-err { color: var(--status-error); }
+
+  .measure { margin-top: var(--space-8); color: var(--text-primary-38); font: 400 12px/18px var(--font-mono); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 005 — Navbar right cluster</h1>
+  <div class="seg" role="group" aria-label="Variant">
+    <button data-var="A" aria-pressed="true">A · Context capsule</button>
+    <button data-var="B" aria-pressed="false">B · Normalized chips</button>
+    <button data-var="C" aria-pressed="false">C · Status capsule</button>
+  </div>
+  <div class="seg" role="group" aria-label="Connection">
+    <button data-state="ok" aria-pressed="true">Connected</button>
+    <button data-state="warn" aria-pressed="false">Connecting</button>
+    <button data-state="idle" aria-pressed="false">Disconnected</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="stage compact" data-v="A" data-state="ok">
+  <div class="bar">
+    <div class="logo">G</div>
+    <nav class="nav" data-nav></nav>
+    <div class="grow"></div>
+    <div class="right" data-right></div>
+  </div>
+</div>
+
+<p class="measure" data-measure></p>
+
+<script>
+  const ETH = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2 5.5 12.3 12 16l6.5-3.7L12 2zM5.5 13.6 12 22l6.5-8.4L12 17.4 5.5 13.6z"/></svg>';
+  const LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/></svg>';
+  const GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>';
+  const ICON = {
+    dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    tx:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+    mkt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 3 3 7-8"/><path d="M18 4h3v3"/></svg>',
+    news:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><path d="M17 8h3v10a2 2 0 0 1-2 2M7 8h6M7 12h6M7 16h4"/></svg>',
+    web:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>',
+    set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L13.7 2h-3.4l-.3 2.5A7 7 0 0 0 7.7 5.8l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5.3 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.3 2.5h3.4l.3-2.5a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg>',
+  };
+  const ITEMS = [['dash','Dashboard',1],['tx','Transactions'],['swap','Swap'],['mkt','Markets'],['news','News'],['web','Web'],['set','Settings']];
+  document.querySelector('[data-nav]').innerHTML = ITEMS.map(([k,l,on]) =>
+    `<div class="item ${on?'on':''}">${ICON[k]}<span class="lbl">${l}</span></div>`).join('');
+
+  const DOT = { ok:'dot-ok', warn:'dot-warn', idle:'' };
+  const STATE_LABEL = { ok:'Connected', warn:'Connecting…', idle:'Not connected' };
+
+  function connectBtn(state){
+    if (state === 'ok')  return `<button class="btn btn-conn"><span class="live dot-ok"></span>Connected</button>`;
+    if (state === 'warn')return `<button class="btn btn-conn" style="background:var(--status-warning-fill,rgba(255,196,46,.16));color:var(--status-warning)"><span class="live dot-warn"></span>Connecting…</button>`;
+    return `<button class="btn btn-ghost">${LINK}Connect</button>`;
+  }
+
+  const RIGHT = {
+    A: (s) => `
+      <div class="capsule">
+        <div class="seg-c" title="Select network"><span class="chain-badge eth">${ETH}</span><span class="car">▾</span></div>
+        <div class="seg-c" title="Select wallet"><span class="wal-av">SG</span><span class="mono">0x1d9b…4a87</span><span class="car">▾</span></div>
+      </div>
+      ${connectBtn(s)}
+      <button class="btn btn-buy">Buy GNUS</button>`,
+    B: (s) => `
+      <div class="chip" title="Select network"><span class="chain-badge eth">${ETH}</span><span class="car">▾</span></div>
+      <div class="chip" title="SDK accounts">${GEAR}<span class="mono">0x1d9b…4a87</span><span class="car">▾</span></div>
+      <div class="chip" title="Select wallet"><span class="wal-av">SG</span><span>Super Genius</span><span class="car">▾</span></div>
+      ${connectBtn(s)}
+      <button class="btn btn-buy">Buy GNUS</button>`,
+    C: (s) => `
+      <button class="icon-btn" title="SDK accounts">${GEAR}</button>
+      <div class="hero" title="Wallet · network · connection">
+        <div class="stack">
+          <div class="av">SG</div>
+          <div class="chain-mini">${ETH}</div>
+        </div>
+        <div class="col">
+          <span class="addr">0x1d9b…4a87</span>
+          <span class="state"><span class="live ${DOT[s]||'dot-err'}"></span>${STATE_LABEL[s]}</span>
+        </div>
+        <span class="car">▾</span>
+      </div>
+      <button class="btn btn-buy">Buy GNUS</button>`,
+  };
+
+  const CAP = {
+    A: '<span class="tag">A · Context capsule + two actions.</span> The three mismatched selectors (chain · SDK · wallet) fold into <b>one segmented pill</b> with hairline dividers — a single 40px unit instead of three grey blobs of unequal width. Then <b>Connect</b> and <b>Buy&nbsp;GNUS</b> as two aligned action buttons. Everything is one height, one radius, one gap. Reads as intentional next to the branded left side.',
+    B: '<span class="tag">B · Normalized chips.</span> Smallest change from today: keep the controls separate but force <b>identical 40px height, radius-md, quiet menu fill + hairline border</b> on all of them. Hierarchy is done purely by emphasis — quiet context chips → outlined Connect → the lone gradient Buy&nbsp;GNUS. The fastest, lowest-risk GSD port; fixes the sizing without restructuring.',
+    C: '<span class="tag">C · Wallet status capsule.</span> Boldest: the connected wallet becomes the hero — a pill-shaped capsule with the <b>chain badge tucked onto the avatar</b>, the address, and a <b>live status dot that carries the Reown connection state</b> (green / amber / red). Connect is no longer a separate button — it <b>folds into the dot</b>. SDK settings demote to an icon button; Buy&nbsp;GNUS is the one CTA. Fewest elements, strongest brand moment. Try the Connecting / Disconnected toggle — the dot and sub-label react.',
+  };
+  const MEASURE = {
+    A: '// today: 3× TextButton ~60px tall, grey fill, unequal widths, no gaps, +48px gradient Buy → 4 heights, 3 fills.  A: 1 capsule (40) + Connect (40) + Buy (40), gap space-6. one height, two fills (quiet + gradient).',
+    B: '// today: mismatched heights (56–60 vs 48) and 3 fill languages.  B: all 40px / radius-md, gap space-4. quiet menu fill for context, outline for Connect, gradient for Buy. token-only, no new components.',
+    C: '// today: Connect is a 5-state button competing with Buy for attention.  C: connection state moves into a status dot inside the wallet capsule → one fewer button, and the state is always visible, not just on the button.',
+  };
+
+  const stage = document.querySelector('.stage'), cap = document.querySelector('[data-caption]'),
+        measure = document.querySelector('[data-measure]'), right = document.querySelector('[data-right]');
+  let V = 'A', S = 'ok';
+  function render(){
+    stage.dataset.v = V; stage.dataset.state = S;
+    right.innerHTML = RIGHT[V](S);
+    cap.innerHTML = CAP[V];
+    measure.textContent = MEASURE[V];
+  }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.var) V = b.dataset.var;
+    if(b.dataset.state) S = b.dataset.state;
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme = b.dataset.themeBtn;
+    render();
+  }));
+  render();
+</script>
+</body>
+</html>

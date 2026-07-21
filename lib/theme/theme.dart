@@ -81,7 +81,7 @@ ThemeData getThemeData() {
       labelColor: GeniusWalletColors.textPrimary,
       dividerColor: Colors.transparent,
       unselectedLabelColor: GeniusWalletColors.textSecondary,
-      indicatorColor: GeniusWalletColors.brandPrimary,
+      indicatorColor: GeniusWalletColors.brandPrimaryStrong,
     ),
     datePickerTheme: DatePickerThemeData(
       inputDecorationTheme: const InputDecorationTheme(
@@ -99,7 +99,7 @@ ThemeData getThemeData() {
         ),
       ),
       backgroundColor: GeniusWalletColors.surfaceElevated,
-      headerBackgroundColor: GeniusWalletColors.brandPrimary,
+      headerBackgroundColor: GeniusWalletColors.brandPrimaryStrong,
       headerForegroundColor: GeniusWalletColors.textPrimary,
       todayBorder: const BorderSide(
         color: GeniusWalletColors.brandPrimary,
@@ -107,7 +107,7 @@ ThemeData getThemeData() {
       ),
       todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return GeniusWalletColors.brandPrimary;
+          return GeniusWalletColors.brandPrimaryStrong;
         }
         return GeniusWalletColors.brandPrimary.withAlpha(33);
       }),
@@ -122,7 +122,7 @@ ThemeData getThemeData() {
       }),
       dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return GeniusWalletColors.brandPrimary;
+          return GeniusWalletColors.brandPrimaryStrong;
         }
         if (states.contains(WidgetState.dragged)) {
           return GeniusWalletColors.brandPrimary.withAlpha(51);
@@ -224,7 +224,7 @@ ThemeData getThemeData() {
         borderRadius: BorderRadius.all(
           Radius.circular(GeniusWalletConsts.radiusLg),
         ),
-        borderSide: BorderSide(color: GeniusWalletColors.brandPrimary),
+        borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryStrong),
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(
@@ -301,7 +301,7 @@ ThemeData getThemeData() {
           borderRadius: BorderRadius.all(
             Radius.circular(GeniusWalletConsts.radiusPill),
           ),
-          borderSide: BorderSide(color: GeniusWalletColors.brandPrimary),
+          borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryStrong),
         ),
         contentPadding: EdgeInsets.only(left: GeniusWalletConsts.space10),
         border: OutlineInputBorder(
@@ -315,12 +315,12 @@ ThemeData getThemeData() {
       backgroundColor: GeniusWalletColors.surfaceElevated,
       indicatorColor: Colors.transparent,
       selectedLabelTextStyle: const TextStyle(
-        color: GeniusWalletColors.brandPrimary,
+        color: GeniusWalletColors.brandPrimaryStrong,
       ),
       labelType: NavigationRailLabelType.none,
       useIndicator: false,
       selectedIconTheme: const IconThemeData(
-        color: GeniusWalletColors.brandPrimary,
+        color: GeniusWalletColors.brandPrimaryStrong,
         size: 30,
       ),
       unselectedIconTheme: IconThemeData(
@@ -336,10 +336,10 @@ ThemeData getThemeData() {
       showUnselectedLabels: false,
       landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: GeniusWalletColors.brandPrimary,
+      selectedItemColor: GeniusWalletColors.brandPrimaryStrong,
       selectedIconTheme: const IconThemeData(
         size: 35,
-        color: GeniusWalletColors.brandPrimary,
+        color: GeniusWalletColors.brandPrimaryStrong,
       ),
       unselectedIconTheme: IconThemeData(
         size: 35,
@@ -358,7 +358,7 @@ ThemeData getThemeData() {
         if (!states.contains(WidgetState.selected)) {
           return Colors.transparent;
         }
-        return GeniusWalletColors.brandPrimary;
+        return GeniusWalletColors.brandPrimaryStrong;
       }),
     ),
     // Preserved from develop (absent from Alex's reference) -- settings_screen.dart

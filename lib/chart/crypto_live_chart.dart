@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/pulsing_skeleton.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:intl/intl.dart';
 
 class CryptoLiveChart extends StatefulWidget {
@@ -118,6 +122,11 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   double get priceChangePercent =>
       _oldestPrice > 0 ? (priceChange / _oldestPrice) * 100 : 0;
 
+  /// Per-point % change vs [_oldestPrice] — same series the hero price uses,
+  /// reused by the hover tooltip so each touched point gets its own %.
+  double _percentAt(double price) =>
+      _oldestPrice > 0 ? ((price - _oldestPrice) / _oldestPrice) * 100 : 0;
+
   String _formatTime(int timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
     return DateFormat('h:mm a').format(dateTime);
@@ -188,6 +197,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final tokenDecimals = _displayPrice >= 1 ? 2 : 6;
     final formattedPrice = NumberFormat.currency(
       symbol: "\$",
@@ -195,7 +205,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     ).format(_displayPrice);
 
     bool isUptrend = _latestPrice >= _oldestPrice;
-    Color fillColor = isUptrend ? Colors.greenAccent : Colors.redAccent;
+    // Trend tints the % pill only; the chart itself is always mint
+    // (see `mintColor` below), decoupled from up/down.
+    final Color trendColor = isUptrend ? gw.statusSuccess : gw.statusError;
+    final Color mintColor = GeniusWalletColors.brandSecondary;
 
     return MouseRegion(
       onExit: _onHoverExit,
@@ -203,51 +216,98 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
         builder: (context, constraints) {
           final bool isHeightBounded = constraints.maxHeight != double.infinity;
 
+          // ponytail: one fixed threshold (priceHeight * 3.5) decides compact
+          // mode, instead of measuring the actual header height, so the
+          // change row pops in/out abruptly at exactly that boundary rather
+          // than shrinking continuously. Upgrade path: measure the price +
+          // change row with a TextPainter and branch on the real height.
+          final bool isCompact =
+              isHeightBounded && constraints.maxHeight < widget.priceHeight * 3.5;
+          final double priceFontSize = isCompact
+              ? min(widget.priceHeight, constraints.maxHeight * 0.45)
+              : widget.priceHeight;
+          assert(
+            !isCompact || priceFontSize * 1.5 <= constraints.maxHeight,
+            'Compact price font must leave room for its own line metrics '
+            'within the available height, or the Column can overflow.',
+          );
+
           final chartContent = Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 2,
+            spacing: isCompact ? 0 : 2,
             children: [
-              AutoSizeText(
-                _hasData ? formattedPrice : 'Loading...',
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: widget.priceHeight,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (_hasData)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 6,
-                  children: [
-                    Text(
-                      "${priceChange >= 0 ? "+" : ""}\$${priceChange.toStringAsFixed(tokenDecimals)}",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: fillColor,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: fillColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: fillColor,
+              // Hero price over a soft cyan glow. The glow is a Positioned/
+              // IgnorePointer overlay behind the price — layout-neutral, so it
+              // adds no height to this Column and cannot re-open the compact
+              // overflow the 260720-uhe task closed.
+              Stack(
+                alignment: Alignment.center,
+                // Without Clip.none the Stack clips to the price text's tight
+                // bounds and cuts the blurred glow halo — the reason it read as
+                // absent. Clip.none lets the glow bleed out behind the price.
+                clipBehavior: Clip.none,
+                children: [
+                  // Positioned.fill keeps this layer at the price's size (so it
+                  // adds NO height — the uhe overflow guard stays intact), while
+                  // OverflowBox lets the glow paint larger (280x96) and CENTERED
+                  // behind the price. A bare Positioned(width,height) did not
+                  // reliably center and the glow rendered off the price.
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: OverflowBox(
+                        maxWidth: 280,
+                        maxHeight: 96,
+                        child: ImageFiltered(
+                          imageFilter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                colors: [
+                                  GeniusWalletColors.brandPrimary.withValues(
+                                    alpha: 0.42,
+                                  ),
+                                  Colors.transparent,
+                                ],
+                                stops: const [0.0, 0.75],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
+                  AutoSizeText(
+                    _hasData ? formattedPrice : 'Loading...',
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: priceFontSize,
+                      fontWeight: FontWeight.bold,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              if (_hasData && !isCompact)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space4,
+                    vertical: GeniusWalletConsts.space2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: trendColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusXs,
+                    ),
+                  ),
+                  child: Text(
+                    "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: trendColor,
+                    ),
+                  ),
                 ),
               if (widget.child != null) widget.child!,
               if (_hasData)
@@ -271,13 +331,13 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                               LineChartBarData(
                                 spots: _priceData,
                                 isCurved: false,
-                                color: Colors.white,
-                                barWidth: 2.5,
+                                color: mintColor,
+                                barWidth: 2.4,
                                 belowBarData: BarAreaData(
                                   show: true,
                                   gradient: LinearGradient(
                                     colors: [
-                                      fillColor.withValues(alpha: 0.2),
+                                      mintColor.withValues(alpha: 0.3),
                                       Colors.transparent,
                                     ],
                                     begin: Alignment.topCenter,
@@ -311,24 +371,73 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                                 return spotIndexes.map((index) {
                                   return TouchedSpotIndicatorData(
                                     FlLine(
-                                      color: Colors.grey[400]!,
-                                      strokeWidth: 1.2,
-                                      dashArray: [8, 4],
+                                      color: gw.borderStrong,
+                                      strokeWidth: 1,
                                     ),
-                                    const FlDotData(show: false),
+                                    FlDotData(
+                                      getDotPainter:
+                                          (spot, percent, bar, index) =>
+                                              FlDotCirclePainter(
+                                                radius: 5,
+                                                color: mintColor,
+                                                strokeWidth: 4,
+                                                strokeColor: mintColor
+                                                    .withValues(alpha: 0.26),
+                                              ),
+                                    ),
                                   );
                                 }).toList();
                               },
                               touchTooltipData: LineTouchTooltipData(
                                 fitInsideHorizontally: true,
+                                fitInsideVertically: true,
+                                tooltipBorderRadius: BorderRadius.circular(10),
+                                tooltipBorder: BorderSide(
+                                  color: gw.borderSubtle,
+                                ),
+                                getTooltipColor: (touchedSpot) =>
+                                    gw.surfaceElevated,
+                                // ponytail: fl_chart's LineTouchTooltipData has
+                                // no first-class drop-shadow like the sketch's
+                                // .tip bubble (only color + border + radius).
+                                // Ceiling: no shadow under the bubble. Upgrade
+                                // path: a custom overlay-positioned tooltip
+                                // widget if the shadow is ever needed.
                                 getTooltipItems: (touchedSpots) {
                                   return touchedSpots.map((spot) {
+                                    final pointPercent = _percentAt(spot.y);
+                                    final pointTrendColor = pointPercent >= 0
+                                        ? gw.statusSuccess
+                                        : gw.statusError;
                                     return LineTooltipItem(
-                                      '${_formatTime(spot.x.toInt())}\n\$${spot.y.toStringAsFixed(tokenDecimals)}',
-                                      const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                                      '${_formatTime(spot.x.toInt())}\n',
+                                      TextStyle(
+                                        color: gw.textSecondary,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
                                       ),
+                                      children: [
+                                        TextSpan(
+                                          text: NumberFormat.currency(
+                                            symbol: "\$",
+                                            decimalDigits: tokenDecimals,
+                                          ).format(spot.y),
+                                          style: TextStyle(
+                                            color: gw.textPrimary,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              '  ${pointPercent >= 0 ? "+" : ""}${pointPercent.toStringAsFixed(2)}%',
+                                          style: TextStyle(
+                                            color: pointTrendColor,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     );
                                   }).toList();
                                 },

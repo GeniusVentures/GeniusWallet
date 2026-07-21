@@ -7,7 +7,9 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/nav_chip_style.dart';
 
 class NetworkDropdownSelector extends StatefulWidget {
   final Function(Network selectedNetwork)? onNetworkSelected;
@@ -136,10 +138,11 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     return Tooltip(
       message: "Select network",
       child: TextButton(
+        style: navContextChipStyle(context),
         onPressed: () => _showNetworkDrawer(networks),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          spacing: 6.0,
+          spacing: GeniusWalletConsts.space4,
           children: [
             Image.asset(
               selectedNetwork?.iconPath ?? "",

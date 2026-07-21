@@ -39,6 +39,8 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.textPrimary12,
     required this.textPrimary10,
     required this.textSecondary,
+    required this.statusSuccess,
+    required this.statusError,
     required this.borderSubtle,
     required this.borderStrong,
   });
@@ -61,6 +63,17 @@ class GWColors extends ThemeExtension<GWColors> {
   final Color textPrimary10;
 
   final Color textSecondary;
+
+  // ponytail: statusSuccess/statusError (and light-mode textSecondary) live
+  // ONLY here as appearance-aware tokens; the source constants
+  // GeniusWalletColors.textSecondary/statusSuccess/statusError stay
+  // mode-invariant for their ~56+ non-migrated consumers. Ceiling: those call
+  // sites still fail WCAG AA in light mode. Upgrade path: a dedicated token
+  // pass that converts the source getters appearance-aware (or migrates those
+  // consumers to gw.*), after which these literals fold back into the source.
+  final Color statusSuccess;
+  final Color statusError;
+
   final Color borderSubtle;
   final Color borderStrong;
 
@@ -91,10 +104,17 @@ class GWColors extends ThemeExtension<GWColors> {
       textPrimary24: GeniusWalletColors.textPrimary24,
       textPrimary12: GeniusWalletColors.textPrimary12,
       textPrimary10: GeniusWalletColors.textPrimary10,
-      textSecondary: GeniusWalletColors.textSecondary,
+      // AA fix: light-mode textSecondary deliberately diverges from the
+      // mode-invariant GeniusWalletColors.textSecondary (3.0:1 ✗) to 6.3:1.
+      textSecondary: const Color(0xFF5A606E),
+      statusSuccess: const Color(0xFF07875F), // 4.5:1 on white
+      statusError: const Color(0xFFD92D2D), // 4.8:1 on white
       borderSubtle: GeniusWalletColors.borderSubtle,
       borderStrong: GeniusWalletColors.borderStrong,
     );
+    // NB: textSecondary is intentionally OMITTED from the value-preservation
+    // assert below — light-mode textSecondary deliberately diverges from the
+    // GeniusWalletColors invariant for WCAG AA (see field above).
     assert(
       !GWAppearance.isLight ||
           (instance.surfaceBase == GeniusWalletColors.surfaceBase &&
@@ -112,7 +132,6 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.textPrimary24 == GeniusWalletColors.textPrimary24 &&
               instance.textPrimary12 == GeniusWalletColors.textPrimary12 &&
               instance.textPrimary10 == GeniusWalletColors.textPrimary10 &&
-              instance.textSecondary == GeniusWalletColors.textSecondary &&
               instance.borderSubtle == GeniusWalletColors.borderSubtle &&
               instance.borderStrong == GeniusWalletColors.borderStrong),
       'GWColors.light() value drifted from GeniusWalletColors in light mode',
@@ -140,10 +159,17 @@ class GWColors extends ThemeExtension<GWColors> {
       textPrimary24: GeniusWalletColors.textPrimary24,
       textPrimary12: GeniusWalletColors.textPrimary12,
       textPrimary10: GeniusWalletColors.textPrimary10,
+      // Dark-mode textSecondary keeps the invariant (0xFF8A8F9D passes AA on
+      // the dark surface); the status tokens are the original dark values.
       textSecondary: GeniusWalletColors.textSecondary,
+      statusSuccess: const Color(0xFF0AD89C),
+      statusError: const Color(0xFFFF4D4D),
       borderSubtle: GeniusWalletColors.borderSubtle,
       borderStrong: GeniusWalletColors.borderStrong,
     );
+    // NB: textSecondary is OMITTED from the value-preservation assert below to
+    // mirror light() — the light branch deliberately diverges it for AA, so the
+    // shared assert cannot compare it (dark still uses the invariant value).
     assert(
       GWAppearance.isLight ||
           (instance.surfaceBase == GeniusWalletColors.surfaceBase &&
@@ -161,7 +187,6 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.textPrimary24 == GeniusWalletColors.textPrimary24 &&
               instance.textPrimary12 == GeniusWalletColors.textPrimary12 &&
               instance.textPrimary10 == GeniusWalletColors.textPrimary10 &&
-              instance.textSecondary == GeniusWalletColors.textSecondary &&
               instance.borderSubtle == GeniusWalletColors.borderSubtle &&
               instance.borderStrong == GeniusWalletColors.borderStrong),
       'GWColors.dark() value drifted from GeniusWalletColors in dark mode',
@@ -187,6 +212,8 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? textPrimary12,
     Color? textPrimary10,
     Color? textSecondary,
+    Color? statusSuccess,
+    Color? statusError,
     Color? borderSubtle,
     Color? borderStrong,
   }) {
@@ -207,6 +234,8 @@ class GWColors extends ThemeExtension<GWColors> {
       textPrimary12: textPrimary12 ?? this.textPrimary12,
       textPrimary10: textPrimary10 ?? this.textPrimary10,
       textSecondary: textSecondary ?? this.textSecondary,
+      statusSuccess: statusSuccess ?? this.statusSuccess,
+      statusError: statusError ?? this.statusError,
       borderSubtle: borderSubtle ?? this.borderSubtle,
       borderStrong: borderStrong ?? this.borderStrong,
     );

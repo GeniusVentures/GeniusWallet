@@ -37,16 +37,16 @@ class DevMockHoldings {
     mockMode = true;
     coins = const [
       Coin(
+        name: 'GeniusAI',
+        symbol: 'GNUS',
+        iconPath: 'assets/images/crypto/gnus.png',
+        balance: 1200,
+      ),
+      Coin(
         name: 'Ethereum',
         symbol: 'ETH',
         iconPath: 'assets/images/crypto/eth.png',
         balance: 1.35,
-      ),
-      Coin(
-        name: 'Bitcoin',
-        symbol: 'BTC',
-        iconPath: 'assets/images/crypto/btc.png',
-        balance: 0.042,
       ),
       Coin(
         name: 'USD Coin',
@@ -55,32 +55,32 @@ class DevMockHoldings {
         balance: 250,
       ),
       Coin(
-        name: 'Genius',
-        symbol: 'GNUS',
-        iconPath: 'assets/images/crypto/gnus.png',
-        balance: 1200,
+        name: 'Tether USD',
+        symbol: 'USDT',
+        iconPath: 'assets/images/crypto/usdt.png',
+        balance: 500,
       ),
     ];
     marketData = {
+      'gnus': _fixture(
+        symbol: 'GNUS',
+        currentPrice: 0.85,
+        priceChangePercentage24h: -5.40,
+      ),
       'eth': _fixture(
         symbol: 'ETH',
         currentPrice: 3200.00,
         priceChangePercentage24h: 3.20,
-      ),
-      'btc': _fixture(
-        symbol: 'BTC',
-        currentPrice: 64000.00,
-        priceChangePercentage24h: 1.10,
       ),
       'usdc': _fixture(
         symbol: 'USDC',
         currentPrice: 1.00,
         priceChangePercentage24h: 0.02,
       ),
-      'gnus': _fixture(
-        symbol: 'GNUS',
-        currentPrice: 0.85,
-        priceChangePercentage24h: -5.40,
+      'usdt': _fixture(
+        symbol: 'USDT',
+        currentPrice: 1.00,
+        priceChangePercentage24h: -0.06,
       ),
     };
   }

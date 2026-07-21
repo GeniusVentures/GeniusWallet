@@ -1,45 +1,52 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-20T18:58:42.636Z",
+  "timestamp": "2026-07-21T12:34:06+0200",
+  "context": "sketch+quick-tasks",
+  "platform": "macOS (darwin) — run: flutter run -d macos --dart-define=GW_DEV_TOOLS=true (Flutter 3.41.9 pinned)",
   "phase": "05",
   "phase_name": "dashboard",
-  "phase_dir": ".planning/phases/05-dashboard",
-  "plan": 6,
-  "task": 3,
-  "total_tasks": 3,
   "status": "paused",
-  "phase_status": "implementation-complete — all 6 plans (05-01..05-06) walked & APPROVED both modes; verification not yet run",
+  "baseline_commit": "7a95e68",
+  "branch": "ui-redesign-port",
+  "summary": "Homepage/dashboard redesign complete and WALKED & APPROVED (dark) across 7 uncommitted quick tasks. Navbar final. All work uncommitted per CLAUDE.md gate; PR deferred, awaiting Jakub's explicit authorization.",
   "completed_tasks": [
-    {"id": "05-01", "name": "DashboardScrollContainer + shared Loading re-skin", "status": "done+walked"},
-    {"id": "05-02", "name": "Hero balance / wallet overview re-skin", "status": "done+walked"},
-    {"id": "05-03", "name": "Holdings list re-skin", "status": "done+walked"},
-    {"id": "05-04", "name": "Markets surface re-skin", "status": "done+walked"},
-    {"id": "05-05", "name": "News feed re-skin", "status": "done+walked"},
-    {"id": "05-06", "name": "Transactions area re-skin", "status": "done+walked"}
+    {"id": "260720-uhe", "name": "Dashboard section spacing + space3 token + chart overflow fix", "status": "approved", "commit": null},
+    {"id": "260720-vwj", "name": "Assets panel redesign (sketch 001 A2)", "status": "approved", "commit": null},
+    {"id": "260721-0ze", "name": "App-wide brand sweep — kill flat #14C8FF, CTA->gradient, highlights->brandPrimaryStrong", "status": "approved", "commit": null},
+    {"id": "260721-1nk", "name": "Navbar B + Markets A + secondary CTA", "status": "approved", "commit": null},
+    {"id": "260721-bxr", "name": "Nav tab C + unified GWSectionTitle header height", "status": "approved", "commit": null},
+    {"id": "260721-ch1", "name": "Markets 'View All' editorial link", "status": "approved", "commit": null},
+    {"id": "260721-ed9", "name": "Top-bar right-cluster re-skin (sketch 005-B quiet chips)", "status": "approved", "commit": null}
   ],
-  "quick_tasks_this_session": [
-    {"id": "260720-bgl", "name": "Dev tooling -> draggable overflow bubble", "status": "done+walked"},
-    {"id": "260720-cw8", "name": "Dev offline mock-holdings injector", "status": "done+walked"},
-    {"id": "260720-dty", "name": "Sectioned dev bubble + branded GWButtons", "status": "done+walked"},
-    {"id": "260720-eu9", "name": "Header/balance light-mode root fix (btnFilter appearance-aware app-wide) + branded CTAs", "status": "done+walked"},
-    {"id": "260720-gzq", "name": "Clipped surface-card shadows (markets grid + mobile sections)", "status": "done+walked"},
-    {"id": "260720-ipg", "name": "Shared GWPageHeader unifying Markets/News/Swap page titles", "status": "done+walked"},
-    {"id": "260720-jvr", "name": "Dev mock-transactions injector", "status": "done+walked"},
-    {"id": "260720-k81", "name": "Transaction-area polish (badge/rows/drawer)", "status": "done+walked"},
-    {"id": "260720-lyn", "name": "Softened light-mode card/dialog shadows (appearance-aware)", "status": "done+walked"}
+  "session2_work": [
+    {"item": "Bitcoin/coin chart (sketch 006, A family)", "status": "approved_on_homepage", "files": ["lib/chart/crypto_live_chart.dart", "lib/chart/crypto_simple_chart.dart", "lib/dashboard/home/view/dashboard_screen.dart"]},
+    {"item": "Hover 'lift chip' design system (sketch 008 D) — timeframe done; nav + VIEW ALL", "status": "in_progress"}
   ],
   "remaining_tasks": [
-    {"id": "verify-05", "name": "Phase 05 verification", "status": "not_started", "command": "/gsd-verify-work 05"},
-    {"id": "phase-06", "name": "Phase 06 onboarding (next phase after 05 verified)", "status": "not_started"}
+    {"id": "sketch-007", "name": "Transaction-filter variant pick (Sent/Received/Escrow/Mint)", "status": "paused", "recommendation": "C - icon-only compact", "note": "5 variants in .planning/sketches/007-transaction-filters/index.html"},
+    {"name": "Non-homepage pages — a few redesign items remain", "status": "not_started"},
+    {"name": "Light-mode AA pass (dark-first policy)", "status": "deferred"}
   ],
-  "blockers": [],
-  "human_actions_pending": [],
+  "blockers": [
+    {"description": "PR/commit gated on Jakub's explicit authorization (CLAUDE.md: Do not create commits)", "type": "human_action", "workaround": "All work stays in the working tree until authorized"}
+  ],
+  "human_actions_pending": [
+    {"action": "Authorize PR against ui-redesign-port (not main)", "context": "7 quick tasks approved but uncommitted; stage per-path only", "blocking": true},
+    {"action": "Pick sketch 007 transaction-filter variant", "context": "recommendation is C", "blocking": false}
+  ],
   "decisions": [
-    {"decision": "btnFilter made appearance-aware (theme root fix)", "rationale": "fixed dark-navy const never flipped -> all bare TextButtons illegible in light mode; one getter change fixes app-wide", "phase": "quick 260720-eu9"},
-    {"decision": "Scrim/on-dark overlay text uses raw Colors.white/white70, NOT GWColors.dark()", "rationale": "GWColors.dark()/.light() mirror appearance-aware getters and FLIP; they are not fixed palettes. §4.4 sanctions raw white on the always-dark photo scrim", "phase": "quick 05-05"},
-    {"decision": "Card/dialog elevation shadows appearance-aware (softer in light)", "rationale": "black@35%/45% reads too heavy on light surfaces; light -> ~12%/20%, dark unchanged", "phase": "quick 260720-lyn"}
+    {"decision": "Navbar (nav tabs + right cluster) is FINAL", "rationale": "Jakub approved as-is on 2026-07-21"},
+    {"decision": "Buy GNUS + all right-cluster controls normalized to 40px via local ButtonStyle overrides", "rationale": "theme.dart textButtonTheme is shared app-wide — editing it globally regresses every bare TextButton (trap)"},
+    {"decision": "nav_chip_style uses explicit VisualDensity.standard", "rationale": "desktop's ambient compact density subtracted 8px from minHeight, collapsing chips to ~32px vs Buy GNUS's 40"},
+    {"decision": "Connect outline/label appearance-aware (light 0xFF0B6E8F)", "rationale": "raw brandPrimaryStrong is ~2:1 on light's white surfaceElevated — fails WCAG AA"}
   ],
-  "uncommitted_files": ["README.md (pre-existing, unrelated — do NOT commit)"],
-  "next_action": "Run /gsd-progress (or /gsd-verify-work 05) to verify Phase 05, then proceed to Phase 06 (onboarding).",
-  "context_notes": "Phase 05 dashboard fully re-skinned + human-walked in both light and dark. A large dev-tooling suite was built this session to make offline walking possible: the dev-tools bubble (GW_DEV_TOOLS=true) has a MOCK section (Populated/Long/No-icon/Clear holdings + Mock txns) + Appearance toggle + Test flows + Navigate. Use it to populate empty-wallet screens offline. The app runs on Windows THIS machine (win32) — the older macOS framing in prior handoffs is stale; RE-DERIVE the platform. All work committed atomically via GSD on branch ui-redesign-port (commits authorized here despite AGENTS.md general rule)."
+  "critical_anti_patterns": [
+    {"pattern": "git add -A / git add . / git commit -a", "severity": "blocking", "mitigation": "Working tree is SHARED with session-2 work AND holds 6 skip-worktree signing files (Jakub's Apple signing 9UJNVD92ZW). Stage ONLY explicit paths for the 7 approved tasks. Verify: git ls-files -v | grep '^S'."},
+    {"pattern": "Editing theme.dart textButtonTheme to fix button heights", "severity": "blocking", "mitigation": "Shared by every bare TextButton app-wide. Use local per-control ButtonStyle overrides (see lib/theme/nav_chip_style.dart)."},
+    {"pattern": "Trusting phase-plan <how-to-verify> blocks verbatim", "severity": "advisory", "mitigation": "Plans authored on Windows say 'flutter run -d windows'. On macOS: flutter run -d macos --dart-define=GW_DEV_TOOLS=true."},
+    {"pattern": "Leaving a stale app instance running", "severity": "advisory", "mitigation": "Holds the Hive container lock (~/Library/Containers/ai.gnus.GeniusWallet.jakub/) -> next launch = silent black window. Kill before relaunch."}
+  ],
+  "uncommitted_files_count": {"modified": 25, "new": 6, "diff": "+1228/-418"},
+  "next_action": "On resume: confirm whether to (a) open the PR for the 7 approved tasks (needs Jakub's go, stage per-path), (b) implement sketch 007 filters (rec C) via /gsd-quick --validate, or (c) start the non-homepage pages. Do NOT commit without authorization.",
+  "context_notes": "Everything on the homepage/dashboard is done and dark-approved. This session did ed9 (navbar right cluster) + sketch 007 (paused). Session 2 did the Bitcoin chart + hover language. All uncommitted by design. Machine is macOS (the 07-20 handoff's 'Windows' note was stale)."
 }

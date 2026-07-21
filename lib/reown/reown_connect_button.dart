@@ -11,7 +11,9 @@ import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -495,7 +497,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
   @override
   Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // Appearance-aware read IS needed here: light's surfaceElevated is pure
+    // white, and raw brandPrimaryStrong on white is ~2.1:1 (fails AA) -- see
+    // connectBrandColor. The status branches (Disconnect/Connecting/Timed
+    // Out/Retry) stay mode-invariant fixed fills, unaffected by this read.
     final isConnected = _session != null;
 
     final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
@@ -504,6 +509,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     Color iconColor;
     Color textColor;
     Color backgroundColor;
+    // Only the idle "Connect" state carries the 002-B ghost/outline border;
+    // the status branches (Disconnect/Connecting/…) stay filled + borderless.
+    BorderSide? border;
     String text;
 
     if (isConnected) {
@@ -535,15 +543,25 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           GeniusWalletColors.statusError.withValues(alpha: 0.18);
       text = 'Retry Connect';
     } else {
+      // 005-B ghost Connect (the secondary): transparent fill +
+      // appearance-aware brand outline & text/icon so it clears AA in BOTH
+      // modes (dark = brandPrimaryStrong, light = a darker brand -- see
+      // connectBrandColor). Connection logic (_connect/_disconnect) is
+      // untouched.
+      final brand = connectBrandColor(context);
       icon = Icons.link;
-      iconColor = GeniusWalletColors.brandPrimary;
-      textColor = gw.textPrimary;
-      backgroundColor = gw.surfaceElevated;
+      iconColor = brand;
+      textColor = brand;
+      backgroundColor = Colors.transparent;
+      border = BorderSide(color: brand, width: 1.5);
       text = 'Connect';
     }
 
     final btn = TextButton(
-      style: TextButton.styleFrom(backgroundColor: backgroundColor),
+      style: navChipShell(context).copyWith(
+        backgroundColor: WidgetStatePropertyAll(backgroundColor),
+        side: border == null ? null : WidgetStatePropertyAll(border),
+      ),
       onPressed: () {
         if (_isConnecting || _isDisconnecting) return;
 
@@ -554,7 +572,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         }
       },
       child: Row(
-        spacing: 6,
+        spacing: GeniusWalletConsts.space4,
         children: [
           AnimatedRotation(
             duration: const Duration(milliseconds: 600),

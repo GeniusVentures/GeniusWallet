@@ -86,9 +86,16 @@ Widget _buildCoinIconWithBadge(
             decoration: BoxDecoration(
               color: bgColor,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1.5),
+              border: Border.all(
+                color: GeniusWalletColors.textOnBrand,
+                width: 1.5,
+              ),
             ),
-            child: Icon(icon, size: badgeSize * 0.55, color: Colors.white),
+            child: Icon(
+              icon,
+              size: badgeSize * 0.55,
+              color: GeniusWalletColors.textOnBrand,
+            ),
           ),
         ),
       ],

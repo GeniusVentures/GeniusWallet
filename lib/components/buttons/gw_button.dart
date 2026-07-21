@@ -15,6 +15,10 @@ enum GWButtonVariant {
   icon,
   /// Hero / signature CTA — green→blue gradient lifted from the gnus.ai site.
   gradient,
+  /// Outline twin of [gradient] — transparent fill, gradient border + label
+  /// (painted via a srcIn ShaderMask over the brand CTA gradient). Pairs with
+  /// a [gradient] primary so both CTAs share one gradient identity.
+  gradientOutline,
 }
 
 enum GWButtonSize { sm, md, lg }
@@ -32,6 +36,7 @@ class GWButton extends StatelessWidget {
     this.expand = false,
     this.tooltip,
     this.semanticLabel,
+    this.height,
   })  : assert(label != null || leading != null,
             'GWButton needs a label or a leading widget'),
         icon = null;
@@ -48,7 +53,8 @@ class GWButton extends StatelessWidget {
   })  : label = null,
         leading = null,
         trailing = null,
-        expand = false;
+        expand = false,
+        height = null;
 
   final String? label;
   final Widget? leading;
@@ -61,10 +67,15 @@ class GWButton extends StatelessWidget {
   final bool expand;
   final String? tooltip;
   final String? semanticLabel;
+  // ponytail: local additive height override so a single call site (top-bar
+  // Buy GNUS) can render at 40 without a global GWButtonSize regression --
+  // default null preserves every existing size-based height app-wide.
+  final double? height;
 
   bool get _isIconOnly => icon != null;
 
   double get _height {
+    if (height != null) return height!;
     switch (size) {
       case GWButtonSize.sm:
         return 44; // was 36 — touch floor (iOS 44)
@@ -104,19 +115,23 @@ class GWButton extends StatelessWidget {
   _Palette _palette(GWColors gw) {
     switch (variant) {
       case GWButtonVariant.primary:
+        // App-wide primary CTA now paints the brand CTA gradient (was the flat
+        // neon brandPrimary fill) — single central edit propagates everywhere.
         return _Palette(
-          background: GeniusWalletColors.brandPrimary,
-          // Near-black on the bright cyan fill — white failed WCAG AA in dark
-          // mode (~1.9:1). textOnBrand is the system's on-brand-fill color.
+          background: GeniusWalletColors.gradientBlue,
+          // Near-black on the bright CTA gradient (white failed WCAG AA).
           foreground: GeniusWalletColors.textOnBrand,
           border: null,
+          gradient: GeniusWalletGradient.brandCta,
         );
       case GWButtonVariant.secondary:
+        // Deep-cyan brandPrimaryStrong outline + text (was the flat neon
+        // accent). One central edit → every secondary CTA app-wide.
         return _Palette(
           background: Colors.transparent,
-          foreground: GeniusWalletColors.brandPrimary,
+          foreground: GeniusWalletColors.brandPrimaryStrong,
           border: const BorderSide(
-            color: GeniusWalletColors.brandPrimary,
+            color: GeniusWalletColors.brandPrimaryStrong,
             width: 1.5,
           ),
         );
@@ -151,6 +166,15 @@ class GWButton extends StatelessWidget {
           foreground: GeniusWalletColors.textOnBrand,
           border: null,
           gradient: GeniusWalletGradient.brandCta,
+        );
+      case GWButtonVariant.gradientOutline:
+        // Border + label are painted opaque white then recolored by a srcIn
+        // ShaderMask in build(); the transparent fill stays transparent under
+        // the mask. Values here are pre-mask placeholders.
+        return _Palette(
+          background: Colors.transparent,
+          foreground: Colors.white,
+          border: const BorderSide(color: Colors.white, width: 1.5),
         );
     }
   }
@@ -250,14 +274,43 @@ class GWButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(
               _isIconOnly ? _height / 2 : GeniusWalletConsts.radiusLg),
           onTap: disabled ? null : onPressed,
+          // "łapka" — pointer cursor on the enabled CTA; deferred when
+          // disabled so it falls back to the natural (basic) cursor.
+          mouseCursor:
+              disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+          // Option A · Brighten (approved): the bright gradient fill swallows
+          // the default Material ripple, so we paint an explicit white wash on
+          // hover/press. Only the two gradient variants override the overlay;
+          // every other variant keeps InkWell's default hover behavior.
+          overlayColor: _overlay(disabled),
           child: child,
         ),
       ),
     );
 
-    Widget wrapped = button;
+    // Recolor the opaque border + label with the brand CTA gradient; the
+    // transparent fill is untouched (srcIn keeps zero-alpha pixels clear).
+    Widget masked = button;
+    if (variant == GWButtonVariant.gradientOutline) {
+      masked = ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) => (disabled
+                ? LinearGradient(
+                    begin: GeniusWalletGradient.brandCta.begin,
+                    end: GeniusWalletGradient.brandCta.end,
+                    colors: GeniusWalletGradient.brandCta.colors
+                        .map((c) => c.withAlpha(140))
+                        .toList(),
+                  )
+                : GeniusWalletGradient.brandCta)
+            .createShader(bounds),
+        child: button,
+      );
+    }
+
+    Widget wrapped = masked;
     if (expand && !_isIconOnly) {
-      wrapped = SizedBox(width: double.infinity, child: button);
+      wrapped = SizedBox(width: double.infinity, child: masked);
     }
     if (tooltip != null) {
       wrapped = Tooltip(message: tooltip!, child: wrapped);
@@ -266,6 +319,42 @@ class GWButton extends StatelessWidget {
       wrapped = Semantics(label: semanticLabel, button: true, child: wrapped);
     }
     return wrapped;
+  }
+
+  // Approved hover = option A · Brighten. A white wash on hover/press reads as
+  // a brightening of the gradient fill. Returns null for non-gradient variants
+  // so they defer to InkWell's default overlay (no regression to secondary/
+  // ghost/etc.). ponytail: gradientOutline's whole subtree is recolored by a
+  // srcIn ShaderMask, so this white overlay is repainted with the brand
+  // gradient — kept very low so it reads as a faint brand tint, not a wash.
+  // Ceiling: the outline reaction is a tint (not a true brighten); upgrade
+  // path = lift the overlay outside the mask if a stronger reaction is wanted.
+  WidgetStateProperty<Color?>? _overlay(bool disabled) {
+    final double hover;
+    final double press;
+    switch (variant) {
+      case GWButtonVariant.primary:
+      case GWButtonVariant.gradient:
+        hover = 0.12;
+        press = 0.18;
+        break;
+      case GWButtonVariant.gradientOutline:
+        hover = 0.04;
+        press = 0.06;
+        break;
+      default:
+        return null; // defer to InkWell default
+    }
+    return WidgetStateProperty.resolveWith((states) {
+      if (disabled) return Colors.transparent;
+      if (states.contains(WidgetState.pressed)) {
+        return Colors.white.withValues(alpha: press);
+      }
+      if (states.contains(WidgetState.hovered)) {
+        return Colors.white.withValues(alpha: hover);
+      }
+      return null;
+    });
   }
 
   Widget _spinner(Color color) => SizedBox(

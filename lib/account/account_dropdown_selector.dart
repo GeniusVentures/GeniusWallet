@@ -14,6 +14,7 @@ import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -236,7 +237,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
     return ListTile(
       selected: isSelected,
-      selectedTileColor: GeniusWalletColors.brandPrimary,
+      selectedTileColor: GeniusWalletColors.brandPrimaryStrong,
       tileColor: gw.surfaceElevated,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onTap: () => Navigator.of(context).pop(wallet),
@@ -387,7 +388,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final isWatched = wallet.walletType == WalletType.tracking;
     return CircleAvatar(
       radius: size / 2 - 2,
-      backgroundColor: GeniusWalletColors.brandPrimary,
+      backgroundColor: GeniusWalletColors.brandPrimaryStrong,
       child: isWatched
           ? const Icon(
               Icons.remove_red_eye_outlined,
@@ -424,10 +425,11 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         return Tooltip(
           message: "Select wallet",
           child: TextButton(
+            style: navContextChipStyle(context),
             onPressed: () => _showAccountDrawer(),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              spacing: 6.0,
+              spacing: GeniusWalletConsts.space4,
               children: [
                 _buildAvatar(selectedWallet!, isSelected: false, size: 25),
                 if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)

@@ -11,12 +11,19 @@ class GeniusWalletConsts {
   static const double borderRadiusCard = radiusLg;
   static const double borderRadiusButton = radiusPill;
 
-  static const double appBarHeight = 60;
+  static const double appBarHeight = 68;
 
   // ---------------------------------------------------------------------------
   // Spacing scale (4-pt grid). Use these instead of hardcoded EdgeInsets values.
   // ---------------------------------------------------------------------------
   static const double space2 = 4.0;
+  // ponytail: space3 (6px) is a deliberate 2-pt half-step — the ONE token off the
+  // otherwise-strict 4-pt grid. Added 2026-07-20 for the dashboard section-gap
+  // rhythm, which read too tight at 4px and too loose at 8px. Ceiling: if more
+  // half-steps get requested, the scale is drifting to 2-pt and the "4-pt grid"
+  // label above should change; upgrade path is to formalise a 2-pt scale in
+  // gnus-tokens.json rather than add space5/space7/... piecemeal.
+  static const double space3 = 6.0;
   static const double space4 = 8.0;
   static const double space6 = 12.0;
   static const double space8 = 16.0;
