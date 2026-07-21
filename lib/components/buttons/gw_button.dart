@@ -125,13 +125,17 @@ class GWButton extends StatelessWidget {
           gradient: GeniusWalletGradient.brandCta,
         );
       case GWButtonVariant.secondary:
-        // Deep-cyan brandPrimaryStrong outline + text (was the flat neon
-        // accent). One central edit → every secondary CTA app-wide.
+        // Appearance-aware on-surface outline + text (was the flat neon
+        // accent, then a raw brandPrimaryStrong that missed AA against
+        // light's surfaceBase). One central edit → every secondary CTA
+        // app-wide. In light mode this takes the pairing from 1.93:1 on
+        // surfaceBase to 4.76:1 -- the case that forced the darker light
+        // token value. Dark is unchanged (token == brandPrimaryStrong there).
         return _Palette(
           background: Colors.transparent,
-          foreground: GeniusWalletColors.brandPrimaryStrong,
-          border: const BorderSide(
-            color: GeniusWalletColors.brandPrimaryStrong,
+          foreground: GeniusWalletColors.brandPrimaryOnSurface,
+          border: BorderSide(
+            color: GeniusWalletColors.brandPrimaryOnSurface,
             width: 1.5,
           ),
         );

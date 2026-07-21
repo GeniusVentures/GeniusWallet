@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 
@@ -108,15 +109,44 @@ void main() {
   );
 
   test('Connect brand colors clear 4.5:1 AA in both modes', () {
-    // Light: darker brand on light's pure-white surfaceElevated.
-    expect(
-      contrastRatio(const Color(0xFF0B6E8F), const Color(0xFFFFFFFF)),
-      greaterThanOrEqualTo(4.5),
-    );
-    // Dark: brandPrimaryStrong on the dark surfaceElevated (0xFF0C0E14).
+    // Module-level default appearance is dark; flip to light for the light
+    // assertions and restore dark in addTearDown so test-order coupling
+    // cannot leak into later tests.
+    GWAppearance.instance.value = GWAppearanceMode.light;
+    addTearDown(() => GWAppearance.instance.value = GWAppearanceMode.dark);
+
+    // Light: token against all three consumer surfaces, not white alone --
+    // white alone is exactly the check that let the superseded #0B6E8F's
+    // surfaceBase miss (4.35:1) go unnoticed.
     expect(
       contrastRatio(
-        GeniusWalletColors.brandPrimaryStrong,
+        GeniusWalletColors.brandPrimaryOnSurface,
+        const Color(0xFFFFFFFF), // surfaceElevated
+      ),
+      greaterThanOrEqualTo(4.5),
+    );
+    expect(
+      contrastRatio(
+        GeniusWalletColors.brandPrimaryOnSurface,
+        const Color(0xFFEFF2F6), // surfaceMenu
+      ),
+      greaterThanOrEqualTo(4.5),
+    );
+    expect(
+      contrastRatio(
+        GeniusWalletColors.brandPrimaryOnSurface,
+        const Color(0xFFDCE0E6), // surfaceBase
+      ),
+      greaterThanOrEqualTo(4.5),
+    );
+
+    GWAppearance.instance.value = GWAppearanceMode.dark;
+
+    // Dark: token (brandPrimaryStrong) on the dark surfaceElevated
+    // (0xFF0C0E14).
+    expect(
+      contrastRatio(
+        GeniusWalletColors.brandPrimaryOnSurface,
         const Color(0xFF0C0E14),
       ),
       greaterThanOrEqualTo(4.5),

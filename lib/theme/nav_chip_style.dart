@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Shared 40px shell for the top-bar right-cluster (sketch 005 winner B).
@@ -58,10 +57,8 @@ ButtonStyle navContextChipStyle(BuildContext context) {
 /// Appearance-aware Connect brand color. Dark keeps `brandPrimaryStrong`
 /// (clears AA on the dark `surfaceElevated`, 0xFF0C0E14). Light uses a
 /// darker brand so the outline+label clear AA on light's pure-white
-/// `surfaceElevated` -- raw `brandPrimaryStrong` is only ~2.1:1 there.
-/// Reuses the existing `GWAppearance.isLight` signal (no new one invented).
+/// `surfaceElevated` -- raw `brandPrimaryStrong` is only 2.56:1 there.
+/// Delegates to the shared `GeniusWalletColors.brandPrimaryOnSurface` token.
 Color connectBrandColor(BuildContext context) {
-  return GWAppearance.isLight
-      ? const Color(0xFF0B6E8F)
-      : GeniusWalletColors.brandPrimaryStrong;
+  return GeniusWalletColors.brandPrimaryOnSurface;
 }

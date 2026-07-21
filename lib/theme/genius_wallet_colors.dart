@@ -52,6 +52,23 @@ class GeniusWalletColors {
   static Color brandPrimarySubtle =
       const Color(0xFF14C8FF).withAlpha(31); // ~12%
 
+  // Brand colour for content painted ON a surface -- foreground text,
+  // outlines, focus rings, indicators -- as distinct from
+  // `brandPrimaryStrong`, which is the brand FILL. Appearance-aware:
+  // - light `#0A6885`: 6.30:1 on surfaceElevated, 5.61:1 on surfaceMenu,
+  //   4.76:1 on surfaceBase. A deliberate darkening of `#0B6E8F` (the
+  //   Connect-chip value this replaces): `#0B6E8F` measures only 4.35:1 on
+  //   surfaceBase and misses AA text (4.5:1).
+  // - dark `brandPrimaryStrong` (`#0AAEE6`): 7.54:1 on surfaceElevated,
+  //   6.81:1 on surfaceMenu, 7.60:1 on surfaceBase.
+  // ponytail: on light's surfaceSunken (`#CFD4DB`) this is 4.23:1 -- clears
+  // the 3:1 non-text floor but not 4.5:1 body text. Ceiling: no current
+  // consumer paints body text on surfaceSunken. Upgrade path: a second,
+  // darker step if a body-text consumer on surfaceSunken ever appears.
+  static const Color _brandPrimaryOnSurfaceLight = Color(0xFF0A6885);
+  static Color get brandPrimaryOnSurface =>
+      _isLight ? _brandPrimaryOnSurfaceLight : brandPrimaryStrong;
+
   // Brand — secondary (mint/green). Vibrant v1.2 — electric.
   static const Color brandSecondary = Color(0xFF2BF5B4);
   static const Color brandSecondaryStrong = Color(0xFF0AD89C);

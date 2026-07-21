@@ -498,7 +498,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   @override
   Widget build(BuildContext context) {
     // Appearance-aware read IS needed here: light's surfaceElevated is pure
-    // white, and raw brandPrimaryStrong on white is ~2.1:1 (fails AA) -- see
+    // white, and raw brandPrimaryStrong on white is 2.56:1 (fails AA) -- see
     // connectBrandColor. The status branches (Disconnect/Connecting/Timed
     // Out/Retry) stay mode-invariant fixed fills, unaffected by this read.
     final isConnected = _session != null;

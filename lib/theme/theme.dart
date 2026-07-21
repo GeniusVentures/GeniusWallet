@@ -71,8 +71,13 @@ ThemeData getThemeData() {
       isLight ? GWColors.light() : GWColors.dark(),
     ],
     textTheme: GeniusWalletTypography.toMaterialTextTheme(),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: GeniusWalletColors.brandPrimary,
+    // Not const: the on-surface brand getter below is appearance-aware, not
+    // a compile-time constant. Light was 1.96/1.74/1.48:1 on
+    // surfaceElevated/surfaceMenu/surfaceBase (AA fail); the token clears
+    // 6.30/5.61/4.76:1. Dark moves brandPrimary -> brandPrimaryStrong,
+    // 9.86 -> 7.54:1, still well clear.
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: GeniusWalletColors.brandPrimaryOnSurface,
     ),
     tabBarTheme: TabBarThemeData(
       unselectedLabelStyle: GeniusWalletTypography.titleMd,
@@ -81,7 +86,9 @@ ThemeData getThemeData() {
       labelColor: GeniusWalletColors.textPrimary,
       dividerColor: Colors.transparent,
       unselectedLabelColor: GeniusWalletColors.textSecondary,
-      indicatorColor: GeniusWalletColors.brandPrimaryStrong,
+      // Light was 2.56/2.28/1.93:1 (AA fail); the token clears
+      // 6.30/5.61/4.76:1. Dark byte-identical (token = brandPrimaryStrong).
+      indicatorColor: GeniusWalletColors.brandPrimaryOnSurface,
     ),
     datePickerTheme: DatePickerThemeData(
       inputDecorationTheme: const InputDecorationTheme(
@@ -100,7 +107,11 @@ ThemeData getThemeData() {
       ),
       backgroundColor: GeniusWalletColors.surfaceElevated,
       headerBackgroundColor: GeniusWalletColors.brandPrimaryStrong,
-      headerForegroundColor: GeniusWalletColors.textPrimary,
+      // theme.dart:36-38 already rejects white-on-brandPrimaryStrong for
+      // ColorScheme.onPrimary (2.56:1, AA fail); this header foreground had
+      // the same defect. The near-black on-brand foreground below moves it
+      // 2.56 -> 7.74:1 in dark, 7.26 -> 7.74:1 in light.
+      headerForegroundColor: GeniusWalletColors.textOnBrand,
       todayBorder: const BorderSide(
         color: GeniusWalletColors.brandPrimary,
         width: 2,
@@ -113,7 +124,13 @@ ThemeData getThemeData() {
       }),
       dayForegroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return GeniusWalletColors.textPrimary;
+          // theme.dart:36-38 already rejects white-on-brandPrimaryStrong for
+          // ColorScheme.onPrimary (2.56:1, AA fail); the selected day label
+          // had the same defect. The near-black on-brand foreground below
+          // moves it 2.56 -> 7.74:1 in dark, 7.26 -> 7.74:1 in light.
+          // Disabled/default branches below sit on a transparent cell over
+          // surfaceElevated and stay as-is.
+          return GeniusWalletColors.textOnBrand;
         }
         if (states.contains(WidgetState.disabled)) {
           return GeniusWalletColors.textTertiary;
@@ -218,15 +235,20 @@ ThemeData getThemeData() {
         ),
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
-      contentPadding: EdgeInsets.all(GeniusWalletConsts.space10),
+    // Not const: the on-surface brand getter below is appearance-aware, not
+    // a compile-time constant.
+    inputDecorationTheme: InputDecorationTheme(
+      contentPadding: const EdgeInsets.all(GeniusWalletConsts.space10),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(
+        borderRadius: const BorderRadius.all(
           Radius.circular(GeniusWalletConsts.radiusLg),
         ),
-        borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryStrong),
+        // Widest blast radius in this task -- every TextField/TextFormField
+        // app-wide. Light was 2.56/2.28/1.93:1 (AA fail); the token clears
+        // 6.30/5.61/4.76:1. Dark byte-identical.
+        borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryOnSurface),
       ),
-      border: OutlineInputBorder(
+      border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(GeniusWalletConsts.radiusLg),
         ),
@@ -296,15 +318,19 @@ ThemeData getThemeData() {
           GeniusWalletColors.surfaceElevated,
         ),
       ),
-      inputDecorationTheme: const InputDecorationTheme(
+      // Not const: the on-surface brand getter below is appearance-aware,
+      // not a compile-time constant.
+      inputDecorationTheme: InputDecorationTheme(
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.all(
+          borderRadius: const BorderRadius.all(
             Radius.circular(GeniusWalletConsts.radiusPill),
           ),
-          borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryStrong),
+          // Light was 2.56/2.28/1.93:1 (AA fail); the token clears
+          // 6.30/5.61/4.76:1. Dark byte-identical.
+          borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryOnSurface),
         ),
-        contentPadding: EdgeInsets.only(left: GeniusWalletConsts.space10),
-        border: OutlineInputBorder(
+        contentPadding: const EdgeInsets.only(left: GeniusWalletConsts.space10),
+        border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(GeniusWalletConsts.radiusPill),
           ),
@@ -347,12 +373,20 @@ ThemeData getThemeData() {
       ),
     ),
     checkboxTheme: CheckboxThemeData(
-      side: const BorderSide(color: GeniusWalletColors.brandPrimary),
+      // Not const: the on-surface brand getter below is appearance-aware,
+      // not a compile-time constant. Light was 1.96/1.74/1.48:1 (AA fail);
+      // the token clears 6.30/5.61/4.76:1. Dark moves brandPrimary ->
+      // brandPrimaryStrong, 9.86 -> 7.54:1, still well clear.
+      side: BorderSide(color: GeniusWalletColors.brandPrimaryOnSurface),
       checkColor: WidgetStateProperty.resolveWith((states) {
         if (!states.contains(WidgetState.selected)) {
           return Colors.transparent;
         }
-        return GeniusWalletColors.textPrimary;
+        // theme.dart:36-38 already rejects white-on-brandPrimaryStrong for
+        // ColorScheme.onPrimary (2.56:1, AA fail); the checkmark had the
+        // same defect. The near-black on-brand foreground below moves it
+        // 2.56 -> 7.74:1 in dark, 7.26 -> 7.74:1 in light.
+        return GeniusWalletColors.textOnBrand;
       }),
       fillColor: WidgetStateProperty.resolveWith((states) {
         if (!states.contains(WidgetState.selected)) {
