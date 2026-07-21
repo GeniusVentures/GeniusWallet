@@ -5,6 +5,7 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
@@ -67,7 +68,21 @@ class DashboardScreenState extends State<DashboardScreen> {
               }
               if (state.subscribeToWalletStatus == AppStatus.error ||
                   state.accountStatus == AppStatus.error) {
-                return const Center(child: Text('Something went wrong!'));
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Something went wrong!'),
+                      const SizedBox(height: GeniusWalletConsts.space6),
+                      GWButton(
+                        onPressed: () => _onRetry(context),
+                        label: 'Retry',
+                        variant: GWButtonVariant.primary,
+                        leading: const Icon(Icons.refresh),
+                      ),
+                    ],
+                  ),
+                );
               }
 
               return const LoadingScreen();
@@ -77,6 +92,34 @@ class DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
+
+/// Re-drives both dashboard load legs (pull-to-refresh and the failure-branch
+/// Retry button share this one definition). Hoisted to file scope from
+/// [OneColumnDashBoardView] (Dart's privacy unit is the library, so a
+/// `_`-prefixed top-level function is reachable from every caller in this
+/// file) so the two callers can never dispatch diverging reload logic.
+Future<void> _onRefresh(BuildContext context) async {
+  final walletCubit = context.read<WalletDetailsCubit>();
+  context.read<AppBloc>().add(LoadWallets());
+  if (walletCubit.state.selectedWallet != null &&
+      walletCubit.state.selectedNetwork != null) {
+    walletCubit.getCoins();
+  }
+}
+
+/// Retry helper for the dashboard failure branch. Dispatches [FetchAccount]
+/// in addition to the shared [_onRefresh] reload: `accountStatus` is written
+/// ONLY by `_onFetchAccount` (app_bloc.dart:164/168/170), while
+/// `_onLoadWallets` writes only `subscribeToWalletStatus` and never touches
+/// `accountStatus`. Without this extra dispatch, a retry built on
+/// `_onRefresh` alone could never clear an account-load failure -- the button
+/// would visibly do nothing on the only leg currently reachable in shipped
+/// code. Do not simplify this back down to a single dispatch.
+Future<void> _onRetry(BuildContext context) async {
+  final appBloc = context.read<AppBloc>();
+  appBloc.add(FetchAccount());
+  await _onRefresh(context);
 }
 
 class ResponsiveDashboardView extends StatelessWidget {
@@ -214,15 +257,6 @@ class _ChartMarketsRow extends StatelessWidget {
 
 class OneColumnDashBoardView extends StatelessWidget {
   const OneColumnDashBoardView({super.key});
-
-  Future<void> _onRefresh(BuildContext context) async {
-    final walletCubit = context.read<WalletDetailsCubit>();
-    context.read<AppBloc>().add(LoadWallets());
-    if (walletCubit.state.selectedWallet != null &&
-        walletCubit.state.selectedNetwork != null) {
-      walletCubit.getCoins();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
