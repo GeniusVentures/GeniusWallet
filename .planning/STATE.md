@@ -183,11 +183,17 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-21
-Stopped at: Resumed after PR #210 merged. STATE refreshed to match HEAD; `HANDOFF.json` + root `.continue-here.md` consumed and removed (both asserted "uncommitted / PR deferred", now false). Proceeding to re-verify Phase 05 against HEAD.
-Resume file: .planning/phases/05-dashboard/05-VERIFICATION.md (stale — being re-run)
+Stopped at: **Phase 05 gap closure 05-07 — Task 1 committed (`64fa92d`), Task 2 BLOCKED on the human walk.** The dashboard error branch now carries a working Retry. Awaiting the forced-failure walk (recipe in `05-07-PLAN.md` Task 2) before Phase 05 can be signed off.
+Resume file: .planning/phases/05-dashboard/05-07-PLAN.md (Task 2 = blocking human-verify checkpoint)
 
-Open decisions carried in (neither is code):
-1. **Gap 2 — dashboard retry. STILL OPEN — this is what blocks Phase 05 sign-off.** ROADMAP criterion 3 ("with a working retry") vs UI-SPEC §6 (locks develop's string, forbids `GWErrorState`). Implement a retry, or record an override rewording the criterion. Filed as `.planning/todos/pending/2026-07-21-decision-dashboard-error-branch-retry.md`.
+**The §6 "conflict" was not real.** The 07-20 report, and my own 07-21 re-verification, both framed ROADMAP criterion 3 ("working retry") and UI-SPEC §6 as documents that could not both be satisfied. Re-reading §6 at source disproved that: §6 is a *Copywriting Contract*. It locks the string `'Something went wrong!'` and forbids substituting `GWErrorState` — it says nothing about adding a retry affordance *beside* the text. `"Retry"` already ships on develop (`custom_future_builder.dart:49`, `gw_error_state.dart:14`), so no new copy is introduced either. Both documents are satisfied; **no override was recorded and criterion 3 was NOT reworded.** Lesson: the second-hand summary of a constraint is not the constraint — read the source before declaring a deadlock.
+
+**What planning caught that the briefing got wrong** (two errors in my own hand-off to the planner, both found by reading code):
+1. `_onRefresh` is a method of `OneColumnDashBoardView` (`:215`), NOT of `DashboardScreenState` (which ends `:80`) — so it was never in scope at the error branch. Resolved by hoisting it to file scope verbatim, leaving `RefreshIndicator(onRefresh: () => _onRefresh(context))` untouched.
+2. **Reusing `_onRefresh` alone would have shipped a dead button.** `accountStatus` is written *only* inside `_onFetchAccount` (`app_bloc.dart:164,168,170`); `_onLoadWallets` writes only `subscribeToWalletStatus` and never emits `AppStatus.error` for it — so in shipped code the error branch is reachable *only* via `accountStatus == error`, the one leg `LoadWallets()` cannot clear. The retry therefore dispatches `FetchAccount()` **and** the shared reload. Independently re-verified by the plan-checker and again by the executor before any code was written.
+
+Open decisions:
+1. ~~**Gap 2 — dashboard retry.**~~ **DECIDED 2026-07-21 (user): add the retry, keep the string.** Implemented in 05-07 Task 1 (`64fa92d`). No override recorded, criterion 3 unchanged. **Phase 05 sign-off now waits only on the Task-2 walk**, not on a decision. Todo `2026-07-21-decision-dashboard-error-branch-retry.md` closes once the walk passes.
 2. ~~**UI-SPEC §3.1** still carries the 1.96:1 pairing.~~ **RESOLVED 2026-07-21 by quick `260721-bb3`** — and the fix found a second drift on the same cell (0ze's fill repoint). Both cells now match shipped code; ratios re-anchored to `brandPrimaryStrong` (2.56:1 rejected / 7.74:1 shipped).
 3. **Sketch 007** transaction-filter variant unpicked (rec **C · icon-only compact**).
 
