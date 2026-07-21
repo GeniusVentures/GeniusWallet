@@ -272,6 +272,19 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 **Findings**: 24, 37.
+**Inherits from Phase 5**: `lib/chart/crypto_live_chart.dart` was ALREADY re-skinned inside
+Phase 5, by quick task 260721-dws (sketch 006 variant A→), which landed in `0bcf3df` via PR
+#210. Phase 7 inherits a largely re-skinned chart — do NOT budget for a full re-skin of this
+file. The superseded assumption, named so it is not resurrected: the 2026-07-20 Phase 5
+verification had deferred the WHOLE chart re-skin to Phase 7, on the grounds that no 05-*
+plan touched the file and 8 raw `Colors.white`/`Colors.grey[400]` values survived. Both
+grounds are now false; `05-VERIFICATION.md`'s `deferred` block marks that item
+`status: superseded`. The residue Phase 7 DOES inherit, re-counted at HEAD 2026-07-21:
+exactly 4 raw values survive, all `Colors.white`, all on the zoom/pan `IconButton` row —
+lines 455, 463, 471 and 480. Every `Colors.grey[400]` is gone. Tracking todo:
+`.planning/todos/pending/2026-07-21-chart-zoom-pan-icons-still-raw-colors-white.md` — the
+residue is expected to be closed by the deferred light-mode AA pass, and may be deleted
+outright if the zoom/pan controls are removed when real timeframe ranges are wired.
 
 ### Phase 8: Swap & bridge
 
