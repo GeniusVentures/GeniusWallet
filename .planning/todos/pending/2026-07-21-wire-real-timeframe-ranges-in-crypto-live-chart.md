@@ -38,5 +38,8 @@ TBD — when this is picked up:
    though the A→ visual language conceptually replaces it with timeframe tabs. Once a range
    selector actually re-fetches data, zoom/pan over an already-scoped range may be redundant,
    or may still be useful for drilling into the fetched window — a product call, not a given.
+   `.planning/todos/pending/2026-07-21-chart-zoom-pan-icons-still-raw-colors-white.md` depends
+   on the answer to this question — if zoom/pan is removed here, that todo dies with it, so
+   settle this before spending the light-mode-pass budget on it.
 4. Keep the % pill / hero price / mint chart / hover tooltip styling from 260721-dws
    untouched; this follow-up is data-wiring only.
