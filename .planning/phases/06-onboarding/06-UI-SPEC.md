@@ -458,7 +458,7 @@ than silently leaving an undocumented orphan.
 
 ### 5.2 Logic-only files — zero UI surface
 
-The following 7 files contain no widgets and are out of this contract's scope entirely (nothing to
+The following 8 files contain no widgets and are out of this contract's scope entirely (nothing to
 re-skin); §3.3 already binds `new_wallet_state.dart` specifically on the `Equatable.toString()`
 seed-safety point:
 
@@ -469,9 +469,24 @@ seed-safety point:
 ### 5.3 File coverage reconciliation
 
 21 files named in the research brief + 1 added (`lib/screens/pin_screen.dart`, §4.9) = 22 files
-considered. Of those: 7 logic-only (§5.2, no UI), 1 dead code (§5.1, scope-fenced), 14 carry a
-concrete re-skin table above (§2.2–2.3, §4.1–4.9). 7 + 1 + 14 = 22 — every file named is accounted
-for, either with a table or an explicit reason it has none.
+considered. Of those: **8** logic-only (§5.2, no UI), 1 dead code (§5.1, scope-fenced), **13** carry
+a concrete re-skin table above (§2.2–2.3, §4.1–4.9). **8 + 1 + 13 = 22** — every file named is
+accounted for, either with a table or an explicit reason it has none.
+
+The 13 table-carrying files, enumerated so this count is auditable rather than asserted:
+`select_wallet_type_screen.dart` (§2.2), `wallet_routes.dart` (§2.3), `wallet_creation_screen.dart`
+(§4.1), `existing_wallet_flow.dart` + `new_wallet_flow.dart` (§4.2), `legal_screen.dart` (§4.3),
+`recovery_phrase_screen.dart` (§4.4), `verify_recovery_phrase_screen.dart` (§4.5),
+`import_security_screen.dart` (§4.6), `paste_field.dart` (§4.7), `create_pin_screen.dart` +
+`confirm_and_save_pin_screen.dart` (§4.8), `lib/screens/pin_screen.dart` (§4.9).
+
+> **Correction, 2026-07-21.** This block originally read "7 logic-only … 14 tables … 7 + 1 + 14 = 22".
+> **Both** figures were wrong and the two errors cancelled, so the total looked correct and the
+> reconciliation appeared to balance. The `gsd-ui-checker` caught the 7-vs-8 half and proposed
+> changing 7 → 8 — which alone would have produced 8 + 1 + 14 = 23 and broken the very arithmetic
+> the block exists to prove. Both numbers were re-derived by counting files against §2.2–§4.9 and
+> the enumeration above was added so the next reader can audit the count instead of trusting it.
+> A reconciliation that only balances by luck is not a reconciliation.
 
 ---
 
