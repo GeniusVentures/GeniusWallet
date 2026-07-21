@@ -21,6 +21,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_fault_injector.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/dev/dev_mock_sgnus.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -144,6 +145,36 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     ProcessingStatusTicked event,
     Emitter<AppState> emit,
   ) async {
+    // DEV-ONLY, release-safe: kDebugMode and kShowDevTools are both
+    // compile-time const bools, and they lead this && chain exactly as the
+    // fault-injector guard above (_onFetchAccount) does, so in a release
+    // build (or any debug build without the GW_DEV_TOOLS define) the whole
+    // condition constant-folds to false and the compiler eliminates this
+    // branch entirely. Placement is load-bearing and must NOT be moved
+    // inside the `try` below, however tempting that looks:
+    //   (1) it sits ahead of the `try` so `api.getProcessingStatus()` —
+    //       which has NO `_isSdkInitialized` guard — is never reached while
+    //       the override is armed;
+    //   (2) the existing `catch` cancels `_processingTimer` permanently, so
+    //       once a real read has thrown, no future tick will ever arrive on
+    //       its own; the dev bubble therefore dispatches
+    //       `ProcessingStatusTicked()` itself rather than depending on a
+    //       timer that may already be dead.
+    if (kDebugMode &&
+        kShowDevTools &&
+        DevMockSgnus.instance.processingOverride != null) {
+      final isProcessing = DevMockSgnus.instance.processingOverride!;
+      emit(
+        state.copyWith(
+          isProcessing: isProcessing,
+          processingPercentage: isProcessing
+              ? DevMockSgnus.processingPercentage
+              : 0.0,
+        ),
+      );
+      return;
+    }
+
     try {
       final statusInfo = api.getProcessingStatus();
 

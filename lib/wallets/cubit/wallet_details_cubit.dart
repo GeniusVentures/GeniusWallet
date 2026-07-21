@@ -21,6 +21,14 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   // itself — fixtures stay in lib/dev/dev_mock_holdings.dart.
   bool mockMode = false;
 
+  // DEV-ONLY: stash for the real selected wallet, set the FIRST time
+  // injectMockWallet is called (guarded by _hasStashedWallet so a repeated
+  // press does not overwrite the stash with the fixture itself). Restored
+  // by clearMock. Fixtures themselves stay in lib/dev/dev_mock_sgnus.dart —
+  // this cubit takes only a plain Wallet, never the fixture singleton.
+  Wallet? _stashedWallet;
+  bool _hasStashedWallet = false;
+
   WalletDetailsCubit({
     WalletDetailsState initialState = const WalletDetailsState(),
     required this.geniusApi,
@@ -40,7 +48,31 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     );
   }
 
-  /// DEV-ONLY: turns mock-mode off and resumes the real (live) data path.
+  /// DEV-ONLY: injects a fixture wallet as the selected wallet, short-
+  /// circuiting the live selection until [clearMock] is called. Stashes
+  /// whatever wallet was selected before injection the FIRST time this is
+  /// called (guarded by [_hasStashedWallet] so a repeated press cannot
+  /// overwrite the stash with the fixture itself).
+  void injectMockWallet(Wallet wallet) {
+    if (!_hasStashedWallet) {
+      _stashedWallet = state.selectedWallet;
+      _hasStashedWallet = true;
+    }
+    mockMode = true;
+    emit(state.copyWith(selectedWallet: wallet));
+  }
+
+  /// DEV-ONLY: turns mock-mode off, resumes the real (live) data path, and
+  /// restores whatever wallet [injectMockWallet] stashed via the same
+  /// copyWith call below.
+  ///
+  /// Ceiling: `copyWith` here is hand-written `x ?? this.x`, so passing a
+  /// null [_stashedWallet] means "keep the current value" — a stash of null
+  /// cannot be used to restore `selectedWallet` to null. On a machine where
+  /// no wallet was selected before [injectMockWallet] was called, Clear
+  /// therefore leaves the fixture wallet in place until the app restarts.
+  /// Do not restructure `copyWith` to fix that; it is a shared state class
+  /// and the change would reach far beyond this gap.
   void clearMock() {
     mockMode = false;
     emit(
@@ -48,8 +80,11 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         coinsStatus: WalletStatus.successful,
         coins: const [],
         selectedWalletBalance: '0',
+        selectedWallet: _stashedWallet,
       ),
     );
+    _stashedWallet = null;
+    _hasStashedWallet = false;
     getCoins();
   }
 

@@ -7,6 +7,8 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
@@ -388,14 +390,90 @@ class _MarketsDashboardViewState extends State<MarketsDashboardView> {
   Widget build(BuildContext context) {
     return FutureStateWidget<List<CoinGeckoCoin>>(
       future: _marketFuture,
-      onRetry: _retry,
-      error: const Center(child: Text("Failed to load market coins")),
+      // onRetry deliberately NOT passed here (05-08 Task 3, Edit C — a
+      // required structural deviation, not a pure container swap).
+      // FutureStateWidget (custom_future_builder.dart:35-56) renders its
+      // error path as Center > Column [error, if (onRetry != null)
+      // SizedBox(12) + GWButton('Retry')] -- it appends its OWN Retry as a
+      // SIBLING of whatever `error:` returns. Passing onRetry here as well
+      // would leave the card below containing only the message, with a
+      // second, naked Retry button underneath it. The retry moves INSIDE
+      // GWErrorState instead (same callback, same chrome --
+      // gw_error_state.dart:62-69 builds the identical primary GWButton
+      // with a refresh icon and the same 'Retry' label), so exactly one
+      // Retry exists, and it is inside the card. Do not "restore" this
+      // argument in a later sweep -- that silently reintroduces the second
+      // button.
+      error: DashboardScrollContainer(
+        // GWErrorState is NOT adaptive -- e3r (2e82ec2) gave the compact
+        // tier to GWEmptyState only -- so with a retry it needs roughly
+        // 224px (24+24 padding + 72 circle + 16+24 title + 16+48 button).
+        // The two-column dashboard hands this panel Expanded space that
+        // lands near 114px at an ordinary window height, beneath a 300px
+        // overview row, so this content needs the same scroll-safe wrapper
+        // Task 2 introduced for wallet_overview.dart, or closing this skin
+        // gap would open a fresh RenderFlex overflow in the same commit.
+        child: _MarketsErrorScrollSafe(
+          child: GWErrorState(
+            // Develop's string, byte-for-byte (UI-SPEC §6) -- a
+            // container/skin fix, NOT a copy change. Do not let
+            // GWErrorState's own default title ('Something went wrong')
+            // appear, and do not reword this string toward it.
+            title: "Failed to load market coins",
+            onRetry: _retry,
+          ),
+        ),
+      ),
       onData: (coins) {
         if (coins.isEmpty) {
-          return const Center(child: Text("No market data available"));
+          // Deliberately NOT wrapped in _MarketsErrorScrollSafe, unlike the
+          // error branch above -- and that asymmetry is correct, not an
+          // inconsistency. GWEmptyState became adaptive in quick 260721-e3r
+          // (2e82ec2): it selects its own compact tier from a FINITE
+          // constraints.maxHeight. Wrapping it in a scroll view would hand
+          // its internal LayoutBuilder an infinite maxHeight, permanently
+          // disabling that compact tier and forcing a ~192px full layout
+          // into a ~114px card -- undoing the fix e3r just shipped. No
+          // message, icon override or action is passed: this branch has no
+          // retry affordance today and this plan adds no new user-facing
+          // affordance or copy to it.
+          return DashboardScrollContainer(
+            // Develop's string, byte-for-byte (UI-SPEC §6) -- see the note
+            // on the error branch above; the same rule applies here.
+            child: GWEmptyState(title: "No market data available"),
+          );
         }
         return DashboardScrollContainer(
           child: DashboardMarkets(title: 'Markets', coins: coins),
+        );
+      },
+    );
+  }
+}
+
+/// Scroll-safe wrapper used ONLY by the Markets error branch above. This is
+/// the same LayoutBuilder -> inner scroll view -> ConstrainedBox idiom
+/// Task 2 applies inside wallet_overview.dart, duplicated here rather than
+/// promoted to a shared GW* primitive: two call sites do not justify a new
+/// public component or a new entry in the shadow-name inventory. Upgrade
+/// path: promote it if a third site ever needs the same idiom.
+class _MarketsErrorScrollSafe extends StatelessWidget {
+  const _MarketsErrorScrollSafe({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double minHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : 0.0;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: child,
+          ),
         );
       },
     );

@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_fault_injector.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
+import 'package:genius_wallet/dev/dev_mock_sgnus.dart';
 import 'package:genius_wallet/dev/dev_mock_transactions.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
@@ -325,15 +326,97 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               'consumed so the dashboard\'s Retry will '
                               'succeed.',
                         ),
+                        // DEV-ONLY: forces WalletsOverview's SGNUS branch,
+                        // previously unreachable in any walk (05-08 gap
+                        // B1). See lib/dev/dev_mock_sgnus.dart. Order
+                        // within each button is load-bearing: arm the
+                        // override BEFORE dispatching ProcessingStatusTicked,
+                        // or the tick reads a null override.
+                        _devButton(
+                          'SGNUS idle',
+                          () {
+                            DevMockSgnus.instance.arm(processing: false);
+                            context
+                                .read<GeniusApi>()
+                                .getSGNUSController()
+                                .updateConnection(
+                                  DevMockSgnus.instance.connection,
+                                );
+                            context
+                                .read<WalletDetailsCubit>()
+                                .injectMockWallet(DevMockSgnus.instance.wallet);
+                            context.read<AppBloc>().add(
+                              ProcessingStatusTicked(),
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'SGNUS fixture armed (idle)',
+                              message:
+                                  'WalletsOverview now renders the SGNUS '
+                                  'branch, isProcessing: false. A '
+                                  'pull-to-refresh destroys this fixture — '
+                                  're-press to restore it.',
+                              type: ToastType.success,
+                            );
+                          },
+                          tooltip:
+                              'Forces WalletType.sgnus with isProcessing: '
+                              "false, so WalletsOverview's SGNUS branch can "
+                              'be walked.',
+                        ),
+                        _devButton(
+                          'SGNUS busy',
+                          () {
+                            DevMockSgnus.instance.arm(processing: true);
+                            context
+                                .read<GeniusApi>()
+                                .getSGNUSController()
+                                .updateConnection(
+                                  DevMockSgnus.instance.connection,
+                                );
+                            context
+                                .read<WalletDetailsCubit>()
+                                .injectMockWallet(DevMockSgnus.instance.wallet);
+                            context.read<AppBloc>().add(
+                              ProcessingStatusTicked(),
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'SGNUS fixture armed (processing)',
+                              message:
+                                  'WalletsOverview now renders the SGNUS '
+                                  'branch, isProcessing: true — its tallest '
+                                  'shape. A pull-to-refresh destroys this '
+                                  'fixture — re-press to restore it.',
+                              type: ToastType.success,
+                            );
+                          },
+                          tooltip:
+                              'Forces WalletType.sgnus with isProcessing: '
+                              "true — the tallest shape of WalletsOverview's "
+                              'SGNUS branch.',
+                        ),
                         _devButton('Clear', () {
                           DevMockHoldings.instance.clear();
                           DevFaultInjector.instance.disarm();
+                          DevMockSgnus.instance.clear();
                           context.read<WalletDetailsCubit>().clearMock();
                           context.read<TransactionsCubit>().clear();
                           context
                               .read<GeniusApi>()
                               .getSGNUSTransactionsController()
                               .clear();
+                          // Tears down the SGNUS fixture pushed by the two
+                          // buttons above: empty the connection and re-tick
+                          // so the panel returns to idle immediately rather
+                          // than waiting on a timer.
+                          context
+                              .read<GeniusApi>()
+                              .getSGNUSController()
+                              .emptyConnection();
+                          context.read<AppBloc>().add(
+                            ProcessingStatusTicked(),
+                          );
                         }),
                       ],
                     ),

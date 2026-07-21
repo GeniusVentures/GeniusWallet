@@ -44,8 +44,68 @@ class WalletsOverviewState extends State<WalletsOverview> {
     // dependency here is what makes this subtree re-skin on a live appearance
     // flip. Mode-invariant tokens (statusError, brandPrimary) stay on the
     // GeniusWalletColors statics and are deliberately NOT routed through gw.
+    // Kept ABOVE the LayoutBuilder below, deliberately: moving it into the
+    // builder closure would relocate this dependency onto the LayoutBuilder
+    // element for no benefit — the same instruction 260721-e3r gave for
+    // GWEmptyState, for the same reason.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
+    // WHY this exists (05-08, gap B1): this widget is mounted in a hard
+    // 300px-capped slot at two call sites (dashboard_screen.dart:198-201,
+    // :270-273); DashboardScrollContainer eats 24px of that, leaving 276px.
+    // The SGNUS-wallet branch below — a 48px balance line, a toggle row, a
+    // connection button, a status row that grows by ~30px while processing,
+    // and a conditional 48px CTA — does not fit in what remains.
+    //
+    // WHY the minHeight feedback is what makes this safe: it hands the
+    // Column the EXACT SAME bound it receives today, so with
+    // `mainAxisAlignment`/`mainAxisSize` unchanged, `RenderFlex` computes
+    // its centering leftover from the same size — the rendering where there
+    // IS room is identical, not merely hopefully so. The only thing that
+    // changed is `maxHeight` is now unbounded, so content that does not fit
+    // gets scrolled instead of striped.
+    //
+    // WHY no threshold constant appears here, unlike `GWEmptyState`'s
+    // compact tier: this widget's intrinsic height is not derivable from
+    // constants — an FFI-polled `AutoSizeText`, three possible connection
+    // animations, and a conditional CTA — and two agents auditing it
+    // disagreed by ~29px on what that height even is. A structural fix does
+    // not depend on which of them was right.
+    //
+    // Nested-scrollable interaction, checked and load-bearing — do not
+    // "fix" this later: the outer `RefreshIndicator` in
+    // `OneColumnDashBoardView` is unaffected while this content fits,
+    // because a `Scrollable` whose min and max scroll extents are equal
+    // installs no drag recognizer and never enters the gesture arena. When
+    // the content does not fit, the inner view scrolls — which is the
+    // intended behavior in the only state where the two differ.
+    //
+    // ponytail: in the overflowing state the user must scroll inside a
+    // 300px card to reach the last child; this widget does not shrink its
+    // content the way `GWEmptyState` does. Upgrade path: give the panel
+    // more height at the dashboard call sites, or add a compact tier here
+    // once this widget's height is derivable from constants.
+    //
+    // KNOWN RISK: `LayoutBuilder` throws if an ancestor queries intrinsic
+    // dimensions of its subtree. Neither dashboard call site does — both
+    // reach this widget through a flex row and a plain `Container`/
+    // `Padding`, with no `IntrinsicHeight` anywhere in the chain.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double minHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : 0.0;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: _buildColumn(gw),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildColumn(GWColors gw) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
