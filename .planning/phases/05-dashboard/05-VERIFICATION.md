@@ -1,89 +1,115 @@
 ---
 phase: 05-dashboard
-verified: 2026-07-21T12:00:00Z
+verified: 2026-07-21T18:00:00Z
 status: gaps_found
-score: 3/5 must-haves verified (criterion 3 closed by 05-07 and walked; criterion 5 newly FAILED on a live defect)
-behavior_unverified: 2
+score: 2/5 truths verified outright (C3, C4); C1 PARTIAL narrowed to a single pending walk (B2's code gap resolved); C2 unchanged behavior-unverified; C5 STILL FAILED — B1 and the GWEmptyState site are resolved-and-walked, but a NEW, distinct third overflow site (crypto_live_chart.dart:315, 34px) was found live during the same walk and stays open
+behavior_unverified: 1
 overrides_applied: 0
-reverification_of: 2026-07-20T21:15:00Z
+reverification_of: 2026-07-21T12:00:00Z
 reverification_reason: >-
-  The 2026-07-20 report was taken at baseline `7a95e68`, which did NOT contain the
-  seven approved-but-uncommitted quick tasks. PR #210 merged them (`0bcf3df`), so two
-  of that report's three gaps were measured against code that no longer exists. This
-  re-verification re-derives all five criteria against the merged HEAD.
+  05-08's Task 4 (blocking human-verify walk) was performed and APPROVED 2026-07-21 on a
+  Windows debug build, closing gaps B1 and B2 below and the outstanding 260721-e3r
+  (GWEmptyState) re-walk in the same session. This re-verification moves those three items
+  to resolved/resolved-and-walked and records a NEW criterion-5 finding the walk itself
+  surfaced: a third, distinct RenderFlex overflow at crypto_live_chart.dart:315 (the zoom/pan
+  IconButton row, 34px), which 05-08 did not introduce and is not accountable for fixing.
 gaps:
   - truth: "Walking the dashboard ... produces no RenderFlex overflow (findings 30-34) — SECOND site: WalletsOverview"
-    status: failed
+    status: resolved
     discovered: 2026-07-21
+    resolved: 2026-07-21
     source: ".planning/AUDIT-260721-parallel-investigation.md (B1), derived at 87a7715"
     reason: >-
-      `lib/components/wallet_overview.dart:49` is a top-level
-      `Column(mainAxisAlignment: center)` with default `mainAxisSize: max`, no scroll view,
-      and no `Flexible`/`Expanded` on any of its six children — mounted inside a hard
-      `ConstrainedBox(maxHeight: 300)` (`dashboard_screen.dart:270-273` and `:198-201`).
-      The investigating agent reported this as "passes by 3px". The refuting agent
-      recomputed against Flutter SDK source and found the SGNUS-wallet branch overflows by
-      **~26px idle and ~55px processing** — the correction went in the WORSE direction.
-      **There is no dev fixture for this state.** It needs a live SGNUS connection plus
-      `isProcessing`, which is why no walk has ever reached it. Fixing the slot alone
-      therefore does NOT close this gap: without a fixture the criterion becomes
-      unverifiable rather than verified. That is the same trap as the empty-state
-      overflow — a state no fixture can reach is a state no walk will ever check.
+      CLOSED by plan 05-08 (Task 1 fixture + Task 2 structural fix), walked and APPROVED
+      2026-07-21 on a Windows debug build. `wallet_overview.dart`'s build() now wraps the
+      unchanged six-child Column in LayoutBuilder -> SingleChildScrollView ->
+      ConstrainedBox(minHeight: incoming bound) — no threshold constant, pixel-identical
+      where there is room, scrolls instead of overflowing where there is not. The dev bubble
+      gained two MOCK buttons ("SGNUS idle" / "SGNUS busy", lib/dev/dev_mock_sgnus.dart) that
+      make WalletType.sgnus + isProcessing reachable for the first time in this project's
+      history. Walked: both idle and processing states, both appearance modes, multiple
+      window sizes (including a deliberately cramped one to confirm inner scrolling, and a
+      wide one to confirm the unchanged-where-there-is-room regression gate), plus the
+      nested-scroll interaction with the outer RefreshIndicator. Zero RenderFlex overflow
+      lines attributable to WalletsOverview across the whole walk.
     artifacts:
       - path: "lib/components/wallet_overview.dart"
-        issue: "Line 49 — unscrollable Column(mainAxisSize.max) with no flexible children inside a 300px cap."
-      - path: "lib/dashboard/home/view/dashboard_screen.dart"
-        issue: "Lines 198-201 and 270-273 — the ConstrainedBox(maxHeight: 300) slots."
-      - path: "lib/dev/dev_tools_bubble.dart"
-        issue: "No MOCK scenario can force WalletType.sgnus + isProcessing, so the failing state is unreachable in a walk."
-    missing:
-      - "A layout fix (SingleChildScrollView or the same compact adaptation used in quick 260721-e3r)."
-      - "A dev-bubble MOCK scenario forcing WalletType.sgnus + isProcessing — without it criterion 5 stays unverifiable."
-      - "A walk of both the idle and processing SGNUS states, in both appearance modes."
+        issue: "RESOLVED — LayoutBuilder/SingleChildScrollView/ConstrainedBox wrapper, walked clean."
+      - path: "lib/dev/dev_mock_sgnus.dart"
+        issue: "RESOLVED (new file) — the fixture that made this state walkable at all."
+    missing: []
   - truth: "Balances, holdings, transactions, markets and news all render in the redesign skin — Markets error/empty branches"
-    status: failed
+    status: resolved
     discovered: 2026-07-21
+    resolved: 2026-07-21
     source: ".planning/AUDIT-260721-parallel-investigation.md (B2), derived at 87a7715"
     reason: >-
-      `dashboard_screen.dart:392` (the `error:` slot) and `:394-396` (the empty branch) each
-      return a bare `Center(child: Text(...))` **outside** `DashboardScrollContainer`, while
-      the success path at `:397-399` wraps in it. So whenever market data fails or returns
-      empty, the Markets tile loses its card, border and padding while all four sibling
-      panels keep theirs — the panel visibly falls out of the redesign exactly when
-      something has gone wrong. `markets_screen.dart:98-105` already styles these identical
-      strings correctly, so the right treatment exists in-repo and simply is not used here.
-      Reachable today: the 2026-07-21 run hit it via a CoinGecko handshake failure.
+      CLOSED by plan 05-08 (Task 3), walked and APPROVED 2026-07-21. Both the error branch
+      ("Failed to load market coins" + exactly one Retry) and the empty branch ("No market
+      data available") now render inside DashboardScrollContainer, keeping the card, border
+      and padding that all four sibling panels have. Develop's strings survive byte-for-byte
+      (UI-SPEC §6). Reached during the walk via a NEW dev fixture built in the same session
+      (Mkt error / Mkt empty bubble buttons, commit 3364259, DevFaultInjector.marketsFault) —
+      CoinGecko was 429-rate-limited for the whole session, so the app's real fallback to
+      cached data meant neither branch was otherwise reachable at all. Walked at a short
+      two-column window (the shape the error chrome could not fit before the scroll-safe
+      wrapper) with no overflow, and Retry re-confirmed to re-issue the fetch.
     artifacts:
       - path: "lib/dashboard/home/view/dashboard_screen.dart"
-        issue: "Line 392 (error) and 394-396 (empty) — bare Center(Text) outside DashboardScrollContainer."
-    missing:
-      - "Route both branches through GWErrorState / GWEmptyState inside DashboardScrollContainer, matching the four sibling panels."
-      - "A walk with market data forced to fail (offline or api.coingecko.com blocked) confirming the tile keeps its card."
-  - truth: "Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)"
-    status: fixed_walk_pending
+        issue: "RESOLVED — both branches now inside DashboardScrollContainer, walked."
+    missing: []
+  - truth: "Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34) — GWEmptyState/TransactionsSlimView site"
+    status: resolved
     discovered: 2026-07-21
+    resolved: 2026-07-21
     reason: >-
-      NEW defect, observed live on the first Windows debug run of this branch and confirmed
-      visually by the user — not a regression of the previously-reported 6.3px chart overflow,
-      which is genuinely fixed. `GWEmptyState`'s Column (`gw_empty_state.dart:32`) overflows its
-      slot inside `TransactionsSlimView` by 19px on first layout and 34px on a later pass.
-      Creator chain: Column <- Padding <- Center <- GWEmptyState <- Expanded <- Column <-
-      ConstrainedBox <- TransactionsSlimView <- BlocListener<TransactionsCubit,...>. Constraints
-      are `h<=125.0`; the content needs roughly 144. `mainAxisSize: min` is already set, so the
-      content genuinely does not fit.
-      It fires on an EMPTY WALLET at default window size — the fresh-install state, and the
-      first screen a new user sees. Every prior dashboard walk used the `cw8`/`jvr` mock
-      injectors to get a populated wallet, and a populated transactions list renders rows rather
-      than `GWEmptyState`, so the overflowing widget was never on screen during any walk. The
-      fixtures that made walking possible also made one entire state invisible.
+      CLOSED by quick task 260721-e3r (`2e82ec2`) and walked & APPROVED 2026-07-21 as part of
+      05-08's Task 4 Part D — this had been the outstanding item since the fix landed
+      (previously `fixed_walk_pending`). `GWEmptyState` now adapts below a finite-height
+      threshold, following the CryptoLiveChart compact-mode precedent. Walked on an empty
+      wallet at default window size (the fresh-install state that had never been walked
+      before): the Transactions empty state rendered with no overflow, and the message was
+      fully readable, not ellipsised. Regression gate held — the Assets empty state (pinned
+      at 300px) stayed full-size and visually unchanged, confirming Assets and Transactions
+      now look deliberately different rather than both having shrunk. Console evidence: zero
+      overflow lines on boot, where the pre-fix 2026-07-20 run logged 19px within seconds
+      under identical conditions. Re-walked across multiple window shapes per the plan's Part
+      D step 15.
     artifacts:
       - path: "lib/components/feedback/gw_empty_state.dart"
-        issue: "Line 32 — Column overflows by 19px/34px when given a 125px slot; needs ~144."
+        issue: "RESOLVED — adaptive compact tier below a finite maxHeight threshold, walked clean."
       - path: "lib/dashboard/home/widgets/transactions_slim_view.dart"
-        issue: "The ConstrainedBox that caps the panel and leaves GWEmptyState 125px."
+        issue: "RESOLVED — the ConstrainedBox that caps the panel is unchanged; the child now adapts to it."
+    missing: []
+  - truth: "Walking the dashboard produces no RenderFlex overflow — THIRD, newly-discovered site: crypto_live_chart.dart zoom/pan row"
+    status: failed
+    discovered: 2026-07-21
+    source: ".planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md — surfaced live during 05-08 Task 4's walk"
+    reason: >-
+      Observed live on the 2026-07-21 Windows debug walk, on the plain dashboard at ordinary
+      window size, with NO fixture armed: `crypto_live_chart.dart:315`'s inner Column is
+      handed `h=6.5` and needs ~40.5, because its Row of four zoom/pan IconButtons (48x48
+      Flutter defaults) cannot fit. 34px overflow. This is a THIRD, distinct site — not a
+      regression of the two sites just closed above (WalletsOverview and GWEmptyState both
+      produced zero overflow lines all session), and not a re-appearance of the already-fixed
+      6.3px chart overflow at the old `:206` (uhe's guard, still holding). It was present in
+      the 2026-07-20 log but recorded "unattributed" — Flutter suppresses the creator chain
+      for repeat errors and only dumps it for the run's first few unique failures — and only
+      printed its full chain here because the other two sites were fixed, making this one the
+      run's first error. Likely origin: quick 260721-dws's re-skin of this file consumed the
+      vertical budget the zoom/pan row used to have; dws's own glow overlay is confirmed
+      layout-neutral and not the cause.
+      This gap is explicitly OUT OF SCOPE for 05-08 — that plan's file list did not include
+      crypto_live_chart.dart, and Phase 7's ROADMAP entry already inherits this file's
+      residue (see ROADMAP.md's "Inherits from Phase 5" note). It blocks Phase 5's ROADMAP
+      criterion 5 regardless of which phase eventually fixes it.
+    artifacts:
+      - path: "lib/chart/crypto_live_chart.dart"
+        issue: "Line 315 — inner Column handed h=6.5, needs ~40.5; the Row of 4 zoom/pan IconButtons (lines 453-482) cannot fit."
     missing:
-      - "A diagnosed fix — see `.planning/todos/pending/2026-07-21-gwemptystate-overflows-in-transactions-slim-view.md` for the three candidate directions and why 'just clip it' is the worst of them."
-      - "Re-walk in BOTH appearance modes and at more than one window height (the 19/34 pair suggests the deficit varies with available space), plus a release build — release clips silently where debug paints stripes."
+      - "A product decision on whether zoom/pan survives, tied to the already-filed 'wire real timeframe ranges' todo (deleting the row closes this AND the raw-Colors.white finding AND the redundancy question at once)."
+      - "If it survives: a layout fix (give the Row its own height, or an adaptive compact mode like CryptoLiveChart's existing price-text handling) plus the token migration for the same four IconButtons' raw Colors.white."
+      - "A walk in both appearance modes and at more than one window height, plus a release-build check (release clips silently where debug paints stripes)."
   - truth: "When wallet or account load fails the dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29)"
     status: resolved
     resolved: 2026-07-21
@@ -212,20 +238,25 @@ human_verification:
     expected: "Each reloads its data."
     why_human: "State transition, no test harness."
   - test: >-
-      Force a market-data fetch failure (offline, or block api.coingecko.com) and press
-      the retry button that FutureStateWidget appends.
+      [RESOLVED 2026-07-21 — retained for history] Force a market-data fetch failure and press
+      the retry button.
     expected: "The fetch is re-issued and the grid populates on success."
-    why_human: >-
-      Never exercised by any walk. 05-01's D3 says so explicitly; 05-04's D3 marks the
-      step NOT YET PERFORMED while still carrying status: pass.
+    status: RESOLVED
+    note: >-
+      Walked as 05-08 Task 4 Part C, via the new `Mkt error`/`Mkt empty` dev fixture
+      (commit `3364259`) built during the walk itself. The retry now lives inside `GWErrorState`
+      (Task 3 Edit C), not appended by `FutureStateWidget`. With the fault still armed, Retry
+      re-issued the fetch and failed again, still inside the card; with the fault cleared,
+      Retry populated the grid. APPROVED.
   - test: >-
       Open the dashboard at a normal window height in a RELEASE build and inspect the
-      Bitcoin Chart card's bottom edge.
-    expected: "No clipped content, no striped overflow marker."
+      Bitcoin Chart card's bottom edge AND the zoom/pan control row.
+    expected: "No clipped content, no striped overflow marker, on either the card's bottom edge or the zoom/pan row."
     why_human: >-
-      Release silently clips where debug paints stripes. uhe's guard was walked in debug
-      and approved; dws then rewrote the file. Only a human comparing debug vs release
-      can tell whether real content is being lost.
+      Release silently clips where debug paints stripes. uhe's guard (the old 6.3px site) was
+      walked in debug and approved; dws then rewrote the file, and the 2026-07-21 debug walk
+      found a NEW 34px overflow on the zoom/pan row (see the criterion-5 gap). Only a human
+      comparing debug vs release can tell whether real content is being lost on either site.
   - test: >-
       Walk the Bitcoin Chart card and the zoom/pan control row in LIGHT mode.
     expected: "The zoom/pan icons are legible against the card surface."
@@ -235,18 +266,26 @@ human_verification:
 # Phase 5: Dashboard Verification Report (re-verification)
 
 **Phase Goal:** The dashboard wears the redesign and keeps every behavior develop shipped
-**Verified:** 2026-07-21
-**Status:** gaps_found — 1 open gap (a decision), 5 human-walk items
-**Re-verification:** Yes — supersedes the 2026-07-20T21:15Z report
-**Verified at:** `ui-redesign-port` @ `93f77d3` (code content from `0bcf3df`, merged as PR #210 / `a34d1f1`)
-**Previously verified at:** `7a95e68` — a baseline that predates the merge
+**Verified:** 2026-07-21 (18:00Z pass — post-05-08-Task-4 walk)
+**Status:** gaps_found — 1 open code gap (criterion 5, a NEW third overflow site), plus outstanding human-walk items unrelated to 05-08
+**Re-verification:** Yes — supersedes the 2026-07-21T12:00Z report
+**Verified at:** `ui-redesign-port` @ HEAD (05-08's Tasks 1-3 in `2d18b85`, the markets walk-fixture in `3364259`, plus the untracked chart-overflow todo)
+**Previously verified at:** `93f77d3` (12:00Z pass, code content from `0bcf3df` / PR #210)
 
-> **Why this re-run exists.** The 2026-07-20 report was written while seven walked-and-approved
-> quick tasks were still sitting uncommitted in the working tree behind the CLAUDE.md gate. The
-> verifier correctly measured the committed baseline `7a95e68` — but that baseline did not
-> contain the fixes. Two of its three gaps were therefore measured against code that no longer
-> exists at HEAD. Nothing in the original report was wrong when written; it simply expired the
-> moment PR #210 merged.
+> **Why this re-run exists.** Plan `05-08` closed gaps B1 and B2 below (WalletsOverview overflow,
+> Markets error/empty skin) and walked-and-approved the outstanding `260721-e3r` (`GWEmptyState`)
+> item, all in the same Task 4 human walk on 2026-07-21. That walk also surfaced a NEW, third
+> RenderFlex overflow site (`crypto_live_chart.dart:315`, the zoom/pan row, 34px) that neither
+> 05-08 nor any prior plan introduced or is accountable for. This re-verification moves the three
+> closed items to `resolved`/`resolved`-and-walked and records the new site as an open criterion-5
+> gap, rather than letting the closure of two gaps read as the closure of the whole criterion.
+
+> **Why the 2026-07-20 re-run before this one exists (carried forward).** The 2026-07-20 report was
+> written while seven walked-and-approved quick tasks were still sitting uncommitted in the working
+> tree behind the CLAUDE.md gate. The verifier correctly measured the committed baseline `7a95e68`
+> — but that baseline did not contain the fixes. Two of its three gaps were therefore measured
+> against code that no longer exists at HEAD. Nothing in the original report was wrong when
+> written; it simply expired the moment PR #210 merged.
 
 > **Standing constraint, carried forward unchanged.** `flutter test` does not compile on this
 > branch; there is no automated test harness. `flutter analyze` is a gate, never evidence. A
@@ -265,37 +304,43 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Balances, holdings, transactions, markets and news all render in the redesign skin and match the Release exe at `GeniusWallet-3514` | ⚠️ PARTIAL (was ✗ FAILED) | **Clause 1 now clean.** The k81 badge regression that failed this criterion is gone — `transaction_displays.dart:90,97` are back on `textOnBrand`. All five surfaces are re-skinned and walked. **Clause 2 still unevidenced** but no longer blocked: the reference Release exe IS present on this machine. Downgraded from FAILED to PARTIAL because the code defect is resolved and only a walk remains. |
-| 2 | Pull-to-refresh works on the dashboard, the transactions list and the news feed, and each reloads its data (findings 10, 17, 18) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED (unchanged) | All three re-confirmed wired at HEAD: `dashboard_screen.dart:231`, `transactions_screen.dart:16-18` (`WalletDetailsCubit.getCoins()`), `crypto_news_screen.dart:72`. Dashboard leg directly observed (05-01 walk). Transactions and news legs still rest on walk claims, not observation. |
-| 3 | Dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29) | ✓ **VERIFIED** (was ✗ FAILED) | Closed by plan **05-07** (`64fa92d`) and **walked & approved 2026-07-21 in both appearance modes**. A `GWButton` "Retry" now sits beside the byte-for-byte-preserved `'Something went wrong!'`, dispatching `FetchAccount()` **and** the shared reload — both gating statuses, not just one. Walk observed: fault armed → error branch rendered → Retry pressed → dashboard fully recovered. Finding 8's markets retry also exercised and approved (Part B), closing the "never exercised by any walk" gap. **No override was recorded and the criterion was not reworded** — see the note below on why the §6 conflict was illusory. |
-| 4 | Market data refreshes once a minute, not every 20 seconds (finding 14) | ✓ VERIFIED | `Timer.periodic(const Duration(minutes: 1), ...)` at `lib/components/coins/view/coins_screen.dart:55` (line moved from `:47` by the vwj Assets redesign; the constant is unchanged). Single unambiguous constant. Behaviourally corroborated by 05-01's CoinGecko 429. |
-| 5 | Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34) | ✗ **FAILED — new, live defect** | Count footer re-confirmed at `transactions_slim_view.dart:160`; findings 30–34 present; the old 6.3px chart overflow is genuinely fixed (uhe's guard, walked). **But a NEW RenderFlex overflow was observed live on 2026-07-21** and confirmed visually by the user: `GWEmptyState` inside `TransactionsSlimView` overflows by **19px then 34px** on an **empty wallet at default window size** — the fresh-install state. `gw_empty_state.dart:32`, constraints `h<=125.0`, content needs ~144. See the gap below. |
+| 1 | Balances, holdings, transactions, markets and news all render in the redesign skin and match the Release exe at `GeniusWallet-3514` | ⚠️ PARTIAL (unchanged verdict, narrower gap) | **Clause 1 now fully clean.** The k81 badge regression is gone (`textOnBrand` restored). B2 — the Markets error/empty branches losing their card — is now RESOLVED by plan **05-08** (Task 3) and **walked & approved 2026-07-21**: both branches render inside `DashboardScrollContainer` with the same chrome as the four sibling panels, strings byte-exact, exactly one Retry. All five surfaces, in every reachable state including error/empty, are re-skinned and walked. **Clause 2 (side-by-side vs the Release exe) is the ONLY remaining gap** — still unevidenced, though no longer blocked (the reference exe is present on this machine; see `.planning/todos/pending/2026-07-21-side-by-side-walk-dashboard-vs-release-exe.md`). Stays PARTIAL, not because of any known defect, but because that one walk hasn't been run. |
+| 2 | Pull-to-refresh works on the dashboard, the transactions list and the news feed, and each reloads its data (findings 10, 17, 18) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED (unchanged) | All three re-confirmed wired at HEAD: `dashboard_screen.dart:231`, `transactions_screen.dart:16-18` (`WalletDetailsCubit.getCoins()`), `crypto_news_screen.dart:72`. Dashboard leg directly observed (05-01 walk). Transactions and news legs still rest on walk claims, not observation. 05-08's Task 4 additionally re-confirmed the nested-scroll interaction between the new WalletsOverview scroll view and the outer `RefreshIndicator` does not break this. |
+| 3 | Dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29) | ✓ **VERIFIED** (unchanged) | Closed by plan **05-07** (`64fa92d`) and **walked & approved 2026-07-21 in both appearance modes**. A `GWButton` "Retry" now sits beside the byte-for-byte-preserved `'Something went wrong!'`, dispatching `FetchAccount()` **and** the shared reload — both gating statuses, not just one. Finding 8's markets retry also exercised and approved. |
+| 4 | Market data refreshes once a minute, not every 20 seconds (finding 14) | ✓ VERIFIED (unchanged) | `Timer.periodic(const Duration(minutes: 1), ...)` at `lib/components/coins/view/coins_screen.dart:55`. Single unambiguous constant. Behaviourally corroborated by 05-01's CoinGecko 429. |
+| 5 | Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34) | ✗ **STILL FAILED — resolved on two sites, newly failed on a third** | Count footer re-confirmed at `transactions_slim_view.dart:160`; findings 30–34 present. **Three of four known/newly-found overflow sites are now clean and walked:** the old 6.3px chart overflow (uhe's guard, walked), `WalletsOverview`'s B1 overflow (05-08 Task 2, walked idle+processing at multiple slot heights, zero overflow), and `GWEmptyState`'s 19px/34px overflow (`260721-e3r`, walked 2026-07-21, empty-wallet fresh-install state, zero overflow, Assets regression gate held). **But the SAME 2026-07-21 walk surfaced a fourth, brand-new site**: `crypto_live_chart.dart:315`'s zoom/pan `IconButton` row overflows by **34px** on the plain dashboard, no fixture armed, ordinary window size. Not a regression of any of the three sites just closed (all three produced zero overflow lines across the whole walk) and not the same defect re-appearing — a genuinely new, fourth site. Criterion 5 therefore stays FAILED, now exclusively on this one open item; see the gap below and `.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md`. |
 
-**Score:** 2/5 truths verified — was 1/5.
-Breakdown: 1 verified outright (C4), 1 verified-with-walk-pending (C5), 2 partial/behavior-unverified (C1, C2), 1 failed (C3).
+**Score:** 2/5 truths verified outright (C3, C4) — unchanged from the 12:00Z pass in raw count, but the shape of the remaining 3 improved materially: C1 narrowed from a code gap + a walk gap to a walk-only gap; C5's known sites all closed, replaced by one new site rather than staying open on the old ones; C2 unchanged.
+Breakdown: 2 verified outright (C3, C4), 1 partial narrowed to a single pending walk (C1), 1 behavior-unverified unchanged (C2), 1 failed on a newly-substituted single site (C5).
 
 ### What Changed Since 2026-07-20
 
-| Item | 07-20 status | HEAD status | Cause |
+| Item | 07-20 status | HEAD status (18:00Z, post-05-08-walk) | Cause |
 |------|-------------|-------------|-------|
 | Badge contrast (`transaction_displays.dart`) | Gap 1 — FAILED, 1.42:1 | **Resolved**, `textOnBrand` restored | Merge of the approved batch |
-| 6.3px RenderFlex overflow | Gap 3 — FAILED, confirmed open | **Code-mitigated**, walk pending | `260720-uhe` guard + assert (was uncommitted at 07-20) |
-| Dashboard retry | Gap 2 — PARTIAL | **Unchanged, still open** | Untouched by the merge; needs a ruling |
-| Chart skin | Deferred wholly to Phase 7, 8 raw values | **Largely delivered in Phase 5**, 4 raw values left | `260721-dws` (sketch 006 A→) |
-| Reference Release exe | "absent from this machine" | **Present** on the Windows box | Different machine, not a code change |
-| UI-SPEC §3.1's 1.96:1 pairing | Flagged as the finding that should outlive the report | **Still uncorrected** | Nobody has edited the contract |
+| 6.3px RenderFlex overflow (`crypto_live_chart.dart:206`) | Gap 3 — FAILED, confirmed open | **Resolved and walked** | `260720-uhe` guard + assert, walked & approved |
+| WalletsOverview overflow (B1, `wallet_overview.dart`) | Not yet found | **Resolved and walked** | Plan `05-08` (Tasks 1-2), Task 4 Part A APPROVED |
+| Markets error/empty skin (B2, `dashboard_screen.dart`) | Not yet found | **Resolved and walked** | Plan `05-08` (Task 3), Task 4 Part C APPROVED |
+| `GWEmptyState` overflow (19px/34px, `TransactionsSlimView`) | Not yet found | **Resolved and walked** | Quick `260721-e3r` (`2e82ec2`), walked as 05-08 Task 4 Part D |
+| Dashboard retry | Gap 2 — PARTIAL | **Resolved and walked** | Plan `05-07` (`64fa92d`), walked & approved both modes |
+| Chart zoom/pan row overflow (34px, `crypto_live_chart.dart:315`) | Not yet found | **NEW — open, FAILED** | Surfaced live during 05-08's Task 4 walk; third distinct site, out of 05-08's scope |
+| Chart skin | Deferred wholly to Phase 7, 8 raw values | Largely delivered in Phase 5, 4 raw values left | `260721-dws` (sketch 006 A→) |
+| Reference Release exe | "absent from this machine" | Present on the Windows box | Different machine, not a code change |
+| UI-SPEC §3.1's 1.96:1 pairing | Flagged as the finding that should outlive the report | **Corrected** | Quick `260721-bb3` |
 
 ### Required Artifacts (re-checked at HEAD)
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `lib/dashboard/home/widgets/transaction_displays.dart` | Overflow guards + no raw colors | ✓ VERIFIED (was ⚠️ REGRESSED) | Badge border `:90` and icon `:97` both `GeniusWalletColors.textOnBrand`; zero `Colors.white` in file |
-| `lib/dashboard/home/view/dashboard_screen.dart` | Gate/refresh/getCoins intact | ⚠️ PARTIAL | `RefreshIndicator` `:231` intact; error branch `:70` still retry-less |
+| `lib/dashboard/home/widgets/transaction_displays.dart` | Overflow guards + no raw colors | ✓ VERIFIED | Badge border `:90` and icon `:97` both `GeniusWalletColors.textOnBrand`; zero `Colors.white` in file |
+| `lib/dashboard/home/view/dashboard_screen.dart` | Gate/refresh/getCoins intact, retry present, Markets error/empty skinned | ✓ VERIFIED (was ⚠️ PARTIAL) | `RefreshIndicator` `:231` intact; error branch retry now present (05-07, walked); Markets error/empty branches now inside `DashboardScrollContainer` via `GWErrorState`/`GWEmptyState` (05-08 Task 3, walked) |
+| `lib/components/wallet_overview.dart` | No RenderFlex overflow at any slot height, unchanged where there is room | ✓ VERIFIED (new row) | `LayoutBuilder -> SingleChildScrollView -> ConstrainedBox(minHeight:...)` (05-08 Task 2), walked idle+processing at multiple slot heights, zero overflow |
+| `lib/components/feedback/gw_empty_state.dart` | Adaptive compact tier below a finite height threshold | ✓ VERIFIED (new row) | Quick `260721-e3r` (`2e82ec2`), walked on an empty wallet at default window size, Assets regression gate held |
 | `lib/components/coins/view/coins_screen.dart` | Holdings re-skin, 60s timer intact | ✓ VERIFIED | `Duration(minutes: 1)` `:55` |
 | `lib/dashboard/home/widgets/transactions_slim_view.dart` | Count footer kept | ✓ VERIFIED | `:160` verbatim |
 | `lib/dashboard/transactions/transactions_screen.dart` | Refresh wiring intact | ✓ VERIFIED | `:16-18` `getCoins()` |
 | `lib/dashboard/news/view/crypto_news_screen.dart` | Refresh wiring intact | ✓ VERIFIED | `:72` |
-| `lib/chart/crypto_live_chart.dart` | (was: not in any plan's scope) | ⚠️ RE-SKINNED, 4 raw whites | Compact guard `:217-230`; layout-neutral glow `:241`; zoom/pan icons still `Colors.white` `:455,463,471,480` |
+| `lib/chart/crypto_live_chart.dart` | (was: not in any plan's scope) | ⚠️ **NEW OVERFLOW FOUND**, 4 raw whites | Old compact guard `:217-230` still holds (walked, clean); layout-neutral glow `:241`; zoom/pan icons still `Colors.white` `:455,463,471,480`; **NEW: the zoom/pan Row itself overflows its slot by 34px at `:315`** — see the gap |
 
 ### Behavioral Spot-Checks
 
@@ -316,26 +361,38 @@ Breakdown: 1 verified outright (C4), 1 verified-with-walk-pending (C5), 2 partia
 
 ## Gaps Summary
 
-Phase 5 is in materially better shape than the 07-20 report reflects, and the difference is
-almost entirely an artifact of *when* that report was taken. Two of its three gaps were fixed by
-work that existed, was walked, and was approved — but was sitting uncommitted behind the commit
-gate at the moment of measurement. Merging PR #210 did not fix anything new; it made already-done
-fixes visible to the verifier.
+Phase 5 has closed every gap this report has ever carried **except one**, and that one is a
+brand-new site discovered in the very walk that closed the rest.
 
-**One gap survives, and it is not a code problem.** ROADMAP criterion 3 requires "a working
-retry" on the dashboard failure branch. UI-SPEC §6 explicitly locks develop's error string and
-forbids reconciling it to `GWErrorState`. The phase goal — "keeps every behavior develop shipped"
-— sides with §6. These two documents cannot both be satisfied, and the phase honoured the one it
-was written against. Implementing a retry would close the criterion and violate the spec;
-recording an override would close the spec and require rewording the criterion. Either is
-defensible. Neither is mine to choose.
+**Everything that was open at the 12:00Z pass today is now resolved and walked.** Plan `05-08`
+closed **B1** (`WalletsOverview`'s unscrollable Column, overflowing its SGNUS-wallet branch) and
+**B2** (the Markets error/empty branches losing their card) — both structurally fixed, both made
+reachable for the first time by dev-bubble fixtures built for exactly that purpose, and both walked
+and approved in the same session. The outstanding `260721-e3r` re-walk (`GWEmptyState`'s adaptive
+compact tier) was folded into that same Task 4 checklist rather than left as a second, competing
+one, and it too is now walked and approved — the Assets empty-state regression gate held. The
+dashboard-retry criterion (ROADMAP criterion 3), closed by `05-07` in an earlier session, remains
+resolved and walked; its own "conflict" with UI-SPEC §6 was previously shown to be illusory (§6
+locks the string, not the presence of a retry beside it) — restated here only because this
+report's own prose had drifted stale on that point in an earlier pass.
 
-**Two items are newly walkable rather than newly broken.** Criterion 1's "match the Release exe"
-clause has never been tested, and the 07-20 report attributed that to the reference being absent —
-correct for the macOS session, wrong for this machine, where the built Release exe is on disk. And
-the release-build chart-edge check remains the honest reason criterion 5 is not promoted to a
-clean pass: uhe's guard was walked in debug, dws rewrote the file afterwards, and release clips
-where debug stripes.
+**One new gap survives, and it is the reason criterion 5 stays FAILED.** The same 2026-07-21 walk
+that confirmed WalletsOverview and `GWEmptyState` clean surfaced a **third, distinct** RenderFlex
+overflow: `crypto_live_chart.dart:315`'s zoom/pan `IconButton` row, 34px, on the plain dashboard
+with no fixture armed. It is not a regression of anything closed above — both of this walk's own
+sites logged zero overflow — and not a reappearance of the already-fixed 6.3px chart overflow at
+the old `:206`. Plan `05-08`'s file scope never included `crypto_live_chart.dart`, so this is
+correctly out of that plan's accountability, but it is squarely inside ROADMAP criterion 5's
+"no RenderFlex overflow" and blocks Phase 5 sign-off regardless of which future plan fixes it. It
+is filed with three candidate directions, the leading one being a product decision (does zoom/pan
+survive once real timeframe ranges are wired?) that would close this finding, the raw-`Colors.white`
+finding, and a redundancy question all at once.
+
+**Two items remain walk-only, not code gaps.** Criterion 1's "match the Release exe" clause has
+still never been tested side by side (the reference exe is present and buildable on this machine;
+see the filed todo). And the release-build chart-edge check remains open for BOTH the old 6.3px
+site and the new 34px site: uhe's guard and the new overflow have only been observed in debug,
+which clips visibly where release clips silently.
 
 **The finding that outlived the last report is still alive.** UI-SPEC §3.1 still carries the
 1.96:1 pairing. 05-02 measured it, fixed it in code, and asked twice for the source to be

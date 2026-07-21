@@ -229,7 +229,9 @@ Plans:
   4. Market data refreshes once a minute, not every 20 seconds (finding 14 — the 20s interval risks CoinGecko 429s)
   5. Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)
 
-**Plans**: 7 plans (6 executed and walked; 05-07 is the gap-closure plan for criterion 3)
+**Plans**: 8 plans (05-01..05-06 executed and walked; 05-07 and 05-08 are gap-closure plans, both now
+executed and walked — 05-08's Task 4 additionally surfaced a NEW, third RenderFlex overflow site
+(`crypto_live_chart.dart:315`, zoom/pan row) that keeps criterion 5 open; see `05-VERIFICATION.md`)
 
 - [x] 05-01-PLAN.md — Shared dashboard chrome: DashboardScrollContainer + shared Loading + FutureStateWidget default states (GAP-06 loading.dart) — criteria 1, 2, 3
 - [x] 05-02-PLAN.md — Hero balance / wallet overview re-skin (GAP-06 wallet_overview.dart; wallets_overview.g.dart shadow read-only) — criteria 1, 3
@@ -237,10 +239,15 @@ Plans:
 - [x] 05-04-PLAN.md — Markets re-skin (grid + GWTextField search + sparkline cards, error/retry) — criteria 1, 3, 5
 - [x] 05-05-PLAN.md — News feed re-skin (develop's StaggeredGrid kept) — criteria 1, 2
 - [x] 05-06-PLAN.md — Transactions re-skin in place (count footer, overflow-safety, SegmentedButton kept) (GAP-06 transaction_displays.dart) — criteria 1, 2, 5
-- [ ] 05-07-PLAN.md — **Gap closure**: working Retry on the dashboard failure branch — dispatches `FetchAccount()` (the only writer of `accountStatus`) as well as `LoadWallets()`, beside develop's preserved "Something went wrong!" — criterion 3
+- [x] 05-07-PLAN.md — **Gap closure**: working Retry on the dashboard failure branch — dispatches `FetchAccount()` (the only writer of `accountStatus`) as well as `LoadWallets()`, beside develop's preserved "Something went wrong!" — criterion 3. Walked & approved 2026-07-21.
+- [x] 05-08-PLAN.md — **Gap closure**: `WalletsOverview` overflow (B1) fixed via a structural scroll wrapper + a new dev fixture making the SGNUS/processing state reachable for the first time; Markets error/empty branches (B2) routed through `GWErrorState`/`GWEmptyState` inside `DashboardScrollContainer` — criteria 1, 5. Task 4 walked & approved 2026-07-21, closing B1, B2 and the outstanding `260721-e3r` (`GWEmptyState`) re-walk — but surfaced a NEW, distinct third overflow site (`crypto_live_chart.dart:315`, out of this plan's scope) that keeps criterion 5 FAILED.
 
 **UI hint**: yes
 **Findings**: 8, 9, 10, 14, 17, 18, 29, 30, 31, 32, 33, 34. **Covers GAP-06**: `wallet_overview.dart`, `loading.dart`, `transaction_displays.dart`.
+**Phase sign-off status (2026-07-21):** All 8 plans executed and walked; ROADMAP criterion 5 ("no
+RenderFlex overflow") remains the sole open item, now on a single site
+(`.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md`) unrelated to any of
+this phase's own plans' file scope. Phase header checkbox stays unchecked until that item closes.
 
 ### Phase 6: Onboarding
 
@@ -371,7 +378,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | 2. Design tokens & verification loop | 2/5 | In Progress | - |
 | 3. gw_* component library | 0/10 | Planned | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
-| 5. Dashboard | 2/6 | In Progress|  |
+| 5. Dashboard | 8/8 | In Progress (all plans executed & walked; criterion 5 open on a new site) |  |
 | 6. Onboarding | 0/TBD | Not started | - |
 | 7. Token screens | 0/TBD | Not started | - |
 | 8. Swap & bridge | 0/TBD | Not started | - |

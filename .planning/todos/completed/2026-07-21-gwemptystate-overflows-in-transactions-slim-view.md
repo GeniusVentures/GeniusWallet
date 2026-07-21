@@ -78,3 +78,20 @@ so confirm in a release build too.
 
 Related: `.planning/phases/05-dashboard/05-VERIFICATION.md` (criterion 5),
 `.planning/todos/pending/2026-07-20-expand-dev-mock-section-more-injectors.md`.
+
+## RESOLVED 2026-07-21
+
+Fixed by quick task `260721-e3r` (`2e82ec2`) — `GWEmptyState` now adapts to a compact tier below
+a finite `constraints.maxHeight` threshold, following the `CryptoLiveChart` compact-mode precedent.
+Walked and **APPROVED** as part of `05-08`'s Task 4 Part D (the outstanding e3r walk, folded into
+that plan's consolidated checklist rather than left as a second, competing one): on an empty wallet
+at default window size, the Transactions empty state rendered with no overflow and a fully readable,
+non-ellipsised message; the Assets empty state (pinned at 300px) stayed full-size and visually
+unchanged, confirming the regression gate. Console evidence: zero overflow lines on boot, where the
+pre-fix 2026-07-20 run logged 19px within seconds under identical conditions. Re-walked across
+multiple window shapes per Part D step 15, in both appearance modes.
+
+Release-build verification of this specific site was not separately performed (see the standing
+`.planning/todos/pending/2026-07-20-dashboard-live-chart-overflows-by-6px.md`-style release-build
+caveat, tracked instead against the chart card's release-build item in `05-VERIFICATION.md`'s
+`human_verification`).
