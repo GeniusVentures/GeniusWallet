@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-21T20:12:36Z",
+  "phase": "06",
+  "phase_name": "Onboarding",
+  "phase_dir": ".planning/phases/06-onboarding",
+  "plan": 2,
+  "task": 3,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Re-skin legal_screen.dart — shared first step of both flows", "status": "done", "commit": "47527bc"},
+    {"id": 2, "name": "GAP-04 — swap wallet-type row to GWWalletCard, token-touch wallet_routes.dart fallbacks", "status": "done", "commit": "ba8e412"},
+    {"id": 3, "name": "Legal + GAP-04 walk (checkpoint:human-verify, gate=blocking)", "status": "blocked", "progress": "Checkpoint reached, not attempted. Blocked on a wallet-less profile — see blockers."}
+  ],
+  "remaining_tasks": [
+    {"id": 3, "name": "06-02 Task 3: Legal + GAP-04 walk, both appearance modes", "status": "blocked"},
+    {"id": "06-03..06-06", "name": "Remaining Phase 6 (Onboarding) plans — planned, not started", "status": "not_started"}
+  ],
+  "blockers": [
+    {
+      "description": "The app persists a wallet across FOUR independent stores (Hive boxes, native SuperGNUSNode dir, flutter_secure_storage's Windows file, shared_preferences.json). 06-02's walk and 06-03 both need a genuinely wallet-less profile, and completing onboarding during a walk consumes it for the next plan. Getting one fresh install took 4 attempts today and one irreversible deletion of 13 unrelated SGNUS* Credential Manager entries on a wrong hypothesis.",
+      "type": "technical",
+      "workaround": "Manual fresh-install recipe (expensive, documented below) until the GW_DATA_DIR override is built. See .planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md"
+    }
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {
+      "action": "Build a dev-only GW_DATA_DIR override so a fresh install becomes 'delete one scratch folder' instead of a 4-store manual recipe.",
+      "context": "Proposed and planned today but the user stopped it before any work started (the quick-task directory was removed, nothing written). This is NOT in progress — it is the recommended first action tomorrow, and it unblocks 06-02's walk plus 06-03 and three more plans after that.",
+      "blocking": true
+    },
+    {
+      "action": "Walk 06-02 Task 3 (recipe in 06-02-PLAN.md lines 209-258) on a fresh wallet-less profile, in both appearance modes, and record pass/fail per criterion in 06-02-SUMMARY.md.",
+      "context": "Tasks 1-2 are code-complete and gate-verified (commits 47527bc, ba8e412). Only the blocking human-verify walk remains before 06-02 can close.",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {"decision": "GWMeshBackground KEPT on /landing_screen in light mode", "rationale": "Judged live on a genuine fresh-install profile during 06-01's blocking mesh gate; the pre-named fallback (drop the mesh) was available and not needed.", "phase": "06"},
+    {"decision": "Phase 5 (Dashboard) closed with 3 explicit user-authorized overrides rather than fixes", "rationale": "Criterion 5's chart overflow is a card-height limitation confirmed by live inspection, not a component defect; criterion 1's Release-exe comparison and criterion 2's pull-to-refresh legs were never walked. The Observable Truths table still reads PARTIAL/FAILED — the phase closed despite them, not because they passed.", "phase": "05"},
+    {"decision": "GW_DATA_DIR dev-only data-directory override PLANNED but explicitly NOT started", "rationale": "User stopped it before any work began; record as tomorrow's recommended first action, not as work in progress.", "phase": "06"},
+    {"decision": "flutter test WORKS — 26 passing, corrected from a false 'no automated test harness' belief", "rationale": "The single 'failure' was local_wallet_storage_test.dart being entirely commented out, not a compile failure. This false belief had been carried into every phase plan, every verification report, and every agent brief this milestone.", "phase": "06"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Build the dev-only GW_DATA_DIR override (unblocks 06-02's walk and 06-03..06-06's fresh-profile needs), then walk 06-02 Task 3 per its plan's recipe (06-02-PLAN.md lines 209-258) in both appearance modes.",
+  "context_notes": "Phase 6 is 1/6 plans complete (06-01 CLOSED). 06-02 is code-complete (Tasks 1-2 committed) but its blocking walk (Task 3) has never been attempted — do not attempt it without a genuinely wallet-less profile, and do not treat the GW_DATA_DIR override as already built. 42 commits sit unpushed on ui-redesign-port; that is deliberate (CLAUDE.md commit-then-defer-PR gate), not an oversight — do not push without explicit authorization."
+}
