@@ -11,9 +11,10 @@ requires:
   - phase: 03-gw-component-library
     provides: "GWButton and GWMeshBackground primitives, both previously zero-caller"
 provides:
-  - "Re-skinned /landing_screen entry point (wallet_creation_screen.dart): deepBlue hardcoded-dark trap deleted, GWMeshBackground(intensity: 0.7) as its first real consumer, three CTAs mapped to GWButton (secondary/gradient/ghost)"
-  - "Flat, transparent, elevation-0 AppBar on both onboarding flow shells (ExistingWalletFlow, NewWalletFlow), routing/PopScope logic byte-identical"
-  - "A blocking human-verify checkpoint recipe (mesh light-mode gate + fresh-install first-run walk) ready to hand to the user"
+  - "Re-skinned /landing_screen entry point (wallet_creation_screen.dart): deepBlue hardcoded-dark trap deleted, GWMeshBackground(intensity: 0.7) as its first real consumer (WALKED & KEPT in both modes), three CTAs mapped to GWButton (secondary/gradient/ghost), narrow-width Padding gutter"
+  - "Flat, transparent, elevation-0 AppBar on both onboarding flow shells (ExistingWalletFlow, NewWalletFlow), routing/PopScope logic byte-identical — WALKED & APPROVED"
+  - "A walked, human-approved design decision: GWMeshBackground is KEPT on /landing_screen in light mode (the pre-named UI-SPEC §9.1 fallback was NOT needed)"
+  - "The Center -> Padding(space8) -> ConstrainedBox(maxWidth:) narrow-width-safe pattern, established here and carried forward as a todo for 06-02..06-05's own breakpoint-constrained screens"
 affects: [06-02, 06-03, 06-04, 06-05, 06-06]
 
 # Tech tracking
@@ -37,7 +38,7 @@ key-decisions:
   - "STALE PREMISE FOUND: the plan/UI-SPEC's central claim that GWButtonVariant.secondary's foreground text fails WCAG AA in light mode (raw brandPrimaryStrong #0AAEE6 at 1.93:1 on light surfaceBase) is now FALSE at HEAD. Quick task 260721-fa7 (landed same day, before this plan ran) already repointed gw_button.dart's secondary foreground from GeniusWalletColors.brandPrimaryStrong to the new appearance-aware GeniusWalletColors.brandPrimaryOnSurface (light value #0A6885, measured 4.76:1 on surfaceBase — passes AA text at 4.5:1). This was NOT fixed by this plan — it was already fixed by an unrelated same-day quick task before Tasks 1-2 ran. Task 3's walk recipe step 8 instructs recording this as an unfixed inherited defect; that instruction is now stale and must be re-verified against current code during the walk rather than assumed present."
   - "WALK-DRIVEN FIX (Rule 1): the Task 3 human walk, on a genuine fresh-install profile, found wallet_creation_screen.dart's CTAs glued to the window edge with zero gutter at narrow (mobile) window widths. Root cause: BoxConstraints(maxWidth:) on a ConstrainedBox only binds when the incoming constraint is WIDER than it -- once the window is narrower than GeniusBreakpoints.small*2/3 (~427px), Center's loosened constraints intersect down to the screen width itself, so the stretch Column renders edge-to-edge. Pre-existing desktop-first assumption (also present in legal_screen.dart, select_wallet_type_screen.dart, and every other GeniusBreakpoints.small-constrained onboarding screen -- none of which this plan owns or touched), not introduced by Task 1 -- but Task 1 re-skinned this screen and the walk is its gate, so it was fixed here rather than deferred. Fix: wrapped the existing ConstrainedBox in Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8)) (16px), chosen from house precedent (submit_logs_screen.dart's identical Center->Padding->ConstrainedBox shape at raw 16, and markets_screen.dart's page-level GridView padding at token space8) since no onboarding screen has an established mobile gutter of its own. Wide-window centring is unchanged by construction -- the Padding is only load-bearing once available width drops below maxWidth+32. Confirmed both Task 2 flow shells have no Center/ConstrainedBox of their own (Scaffold.body is _buildStep(...) directly), so this defect cannot live there and neither file needed a change."
 
-requirements-completed: []  # SCR-02 is only partially satisfied — Task 3 (the checkpoint) is outstanding; do not mark complete until the walk passes.
+requirements-completed: [SCR-02]  # Entry-half of SCR-02 closed by this plan: Task 3 walked and APPROVED 2026-07-21 on a genuine fresh install.
 
 coverage:
   - id: D1
@@ -51,10 +52,10 @@ coverage:
         ref: "plan's automated verify gate (GWMeshBackground present, >=2 GWButton(, no deepBlue/OutlinedButton/FilledButton/useDesktopLayout/LayoutBuilder/app_screen_with_header, GeniusBreakpoints.small*2/3 intact, logo_and_title.png intact) -- all passed"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 checkpoint: fresh-install first-run walk found the narrow-width glued-to-edge defect (now fixed, commit 67e2821); re-walk to confirm the fix and complete the remaining walk items (mesh light-mode gate, secondary-button re-verification) -- IN PROGRESS, not yet fully passed"
-        status: unknown
+        ref: "Task 3 checkpoint: fresh-install first-run walk (both window sizes, both appearance modes) -- WALKED & APPROVED 2026-07-21. Found and this plan fixed the narrow-width glued-to-edge defect (commit 67e2821), re-walked clean; wide-window regression confirmed unchanged; mesh light-mode gate PASSED (kept); console evidence zero RenderFlex overflowed / zero exceptions / zero LateInitializationError across every relaunch"
+        status: pass
     human_judgment: true
-    rationale: "Compile-time analyze and grep gates prove the code is structurally correct but cannot prove a fresh-install user sees a non-overflowing, appearance-correct landing screen at any window size, or that the mesh reads acceptably in light mode -- that is Task 3's blocking-human checkpoint. The walk already found and this plan already fixed one genuine defect (narrow-width gutter); the re-walk confirming the fix plus the remaining checklist items is outstanding."
+    rationale: "Human judgment was required to confirm the fresh-install screen renders correctly at any window size and to make the mesh light-mode keep-or-fallback call -- both now PASSED and recorded per the coordinator's approval message. human_judgment stays true (this was never auto-passable), but the walk item itself is closed."
   - id: D2
     description: "Both onboarding flow shells (ExistingWalletFlow, NewWalletFlow) wear a flat, transparent, elevation-0, scrolledUnderElevation-0 AppBar; PopScope/BlocListener/_buildStep left byte-identical"
     requirement: "SCR-02"
@@ -66,28 +67,28 @@ coverage:
         ref: "plan's automated verify gate (scrolledUnderElevation: 0 in both files, combined deletions <=2 lines [measured: 2], onPopInvokedWithResult intact in both, context.go('/dashboard') intact) -- all passed"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 checkpoint: in-flow back navigation + flat-AppBar visual check, both flows, both modes -- NOT YET PERFORMED"
-        status: unknown
+        ref: "Task 3 checkpoint: in-flow back navigation + flat-AppBar visual check, both flows, both modes -- WALKED & APPROVED 2026-07-21"
+        status: pass
     human_judgment: true
-    rationale: "Grep/analyze prove the AppBar expression changed and routing logic is untouched, but cannot prove PopScope still steps backward correctly in the running app or that the AppBar reads visually flat with no Material 3 tint -- that is Task 3's blocking-human checkpoint, outstanding."
+    rationale: "Human judgment was required to confirm PopScope still steps backward correctly in the running app and that the AppBar reads visually flat with no Material 3 tint -- both confirmed per the coordinator's approval message."
 
-duration: ~30min (Tasks 1-2 + one walk-driven fix; Task 3's checkpoint walk is still in progress)
+duration: ~40min (Tasks 1-2 + one walk-driven fix + Task 3's checkpoint walk)
 completed: 2026-07-21
-status: blocked
+status: complete
 ---
 
 # Phase 06 Plan 01: Onboarding entry screen + flow AppBars Summary
 
-**Re-skinned `/landing_screen`'s entry point (deepBlue trap deleted, `GWMeshBackground` adopted, CTAs mapped to `GWButton`, then a walk-found narrow-width gutter added) and flattened both onboarding flow shells' AppBar — Tasks 1-2 complete and committed; Task 3's walk is in progress, one defect found and fixed, remaining items (mesh light-mode gate, re-walk) outstanding.**
+**Re-skinned `/landing_screen`'s entry point (deepBlue trap deleted, `GWMeshBackground` adopted and KEPT after a live light-mode gate, CTAs mapped to `GWButton`, a walk-found narrow-width gutter added) and flattened both onboarding flow shells' AppBar — all 3 tasks complete, walked, and APPROVED on a genuine fresh install.**
 
-Tasks 1-2 (both `type="auto"`) are complete and committed. **Task 3 — the onboarding chrome walk, including the blocking mesh light-mode gate — is a `checkpoint:human-verify` (`gate="blocking"`) and is IN PROGRESS on a genuine fresh-install profile.** The walk already surfaced one real defect in Task 1's deliverable — CTAs glued to the window edge at narrow (mobile) widths, a pre-existing desktop-first assumption this screen inherited — which has been fixed and committed (Rule 1) below. The walk's remaining items (both window sizes/both modes re-confirmation, the mesh light-mode gate, the secondary-button re-verification) remain outstanding.
+All 3 tasks are complete. Tasks 1-2 (`type="auto"`) were committed first; **Task 3 — the onboarding chrome walk, including the blocking mesh light-mode gate — is a `checkpoint:human-verify` (`gate="blocking"`) and was WALKED AND APPROVED 2026-07-21** on a genuine fresh-install profile (all four independent wallet-persistence layers cleared — see `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`; it took four attempts). The walk found one real defect in Task 1's own deliverable — CTAs glued to the window bezel at narrow (mobile) widths, a pre-existing desktop-first assumption this screen inherited — fixed per Rule 1 (commit `67e2821`) and re-walked clean. **The blocking mesh light-mode gate PASSED: `GWMeshBackground` is KEPT** — the pre-named fallback was judged and not needed. The plan's own stale-premise finding (the inherited `GWButtonVariant.secondary` AA concern) was re-verified during the walk and confirmed already closed by unrelated same-day work. Console evidence across every relaunch: zero `RenderFlex overflowed`, zero exceptions, zero `LateInitializationError`.
 
 ## Performance
 
 - **Started:** 2026-07-21 (this session)
-- **Completed (Tasks 1-2 + walk-driven fix):** 2026-07-21
-- **Duration:** ~30 min
-- **Tasks:** 2 of 3 (Task 3 checkpoint walk in progress; 1 Rule-1 fix landed mid-walk)
+- **Completed (all 3 tasks, including the Task 3 walk):** 2026-07-21
+- **Duration:** ~40 min
+- **Tasks:** 3 of 3 complete
 - **Files modified:** 3
 
 ## Accomplishments
@@ -97,7 +98,23 @@ Tasks 1-2 (both `type="auto"`) are complete and committed. **Task 3 — the onbo
 - Both onboarding flow shells (`ExistingWalletFlow`, `NewWalletFlow`) now carry a flat, transparent, elevation-0 `AppBar` instead of Material 3's default tinted surface — the phase's one sanctioned raw `Colors.transparent`.
 - `PopScope.canPop`/`onPopInvokedWithResult`, both `BlocListener`s (including the `/dashboard` navigation), and both `_buildStep` switches are byte-identical — combined diff across both flow files measured at exactly 2 deletions (the two bare `AppBar()` expressions), proving no routing logic was touched.
 - Develop's locked single-tree structure survives: no `LayoutBuilder`, no `GeniusBreakpoints.useDesktopLayout` branch, no `AppScreenWithHeaderDesktop`/`Mobile` import anywhere in the touched files.
-- **Walk-driven fix:** the fresh-install walk found the entry screen's CTAs glued to the window edge at narrow widths (zero gutter). Fixed by wrapping the existing `ConstrainedBox` in `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))`, verified analyze-clean and baseline-holding (61 issues), and committed.
+- **Walk-driven fix:** the fresh-install walk found the entry screen's CTAs glued to the window edge at narrow widths (zero gutter). Fixed by wrapping the existing `ConstrainedBox` in `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))`, verified analyze-clean and baseline-holding (61 issues), and committed; re-walked clean.
+- **Task 3 walked and APPROVED** on a genuine fresh install — see the dedicated Task 3 Walk Results section below.
+
+## Task 3 Walk Results (WALKED & APPROVED, 2026-07-21)
+
+Performed on a genuine fresh-install profile — all four independent wallet-persistence layers cleared (Hive boxes, native SuperGNUSNode dir, `flutter_secure_storage.dat`, `shared_preferences.json`); it took four attempts to reach a truly wallet-less state (see `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
+
+1. **Entry screen, dark mode** — mesh background renders (not the old flat `deepBlue`), both CTAs render as branded `GWButton`s, nothing clipped. **APPROVED.**
+2. **Narrow/mobile width** — originally FAILED: CTAs glued to the window bezel with no gutter. Rule-1 fix applied (`67e2821`, `Padding(EdgeInsets.symmetric(horizontal: space8))` outside the `ConstrainedBox`). **Re-walked clean.**
+3. **Wide-window regression check** — confirmed unchanged after the gutter fix, exactly as the by-construction argument (Padding only binds below `maxWidth + 32`) predicted. **APPROVED.**
+4. **Light mode — the blocking mesh gate: PASSED. `GWMeshBackground` is KEPT.** The pre-named UI-SPEC §9.1 fallback (drop the mesh, let the wired `scaffoldBackgroundColor` stand) was NOT taken. Recorded explicitly as a live judgment call, not a waiver: STATE.md flags this component as one of two that never read the appearance (dark-only-by-design), and this is the first time anyone has actually looked at it live in light mode on a real consumer screen rather than inheriting that finding as a blanket assumption.
+5. **Secondary/outlined button in light mode** — re-verified against the already-landed `260721-fa7` fix (`gw_button.dart`'s `secondary` foreground repointed to `GeniusWalletColors.brandPrimaryOnSurface`, 1.93:1 → 4.76:1). No issue found; this closes the stale-premise flag raised in Decisions Made below.
+6. **Both flow shells** — flattened AppBars (transparent, elevation-0) and in-flow back navigation. **Walked and APPROVED.**
+
+**Console evidence across every relaunch of this walk: zero `RenderFlex overflowed` lines, zero exceptions, zero `LateInitializationError`.**
+
+**Fresh-install profile consumed:** a wallet was created during the walk. Any later plan needing genuine first-run state must clear all four persistence layers again.
 
 ## Task Commits
 
@@ -107,7 +124,7 @@ Each task was committed atomically:
 2. **Task 2: Flatten both flow shells' AppBar** - `b9c565f` (feat)
 3. **Walk-driven fix (Task 3, Rule 1): narrow-width gutter** - `67e2821` (fix)
 
-Task 3 (checkpoint:human-verify, gate="blocking") walk itself has NOT completed — no closing commit for it yet; `67e2821` is a code fix produced *during* the walk, not the walk's own commit.
+Task 3 (checkpoint:human-verify, gate="blocking") itself is a human walk, not a code change — it has no commit of its own beyond the Rule-1 fix (`67e2821`) it produced. The walk was performed and APPROVED by the coordinator 2026-07-21; see Task 3 Walk Results above.
 
 ## Files Created/Modified
 - `lib/onboarding/view/wallet_creation_screen.dart` - deepBlue background deleted, GWMeshBackground adopted, three CTAs mapped to GWButton, narrow-width Padding gutter added (walk-driven fix)
@@ -140,7 +157,7 @@ Task 3 (checkpoint:human-verify, gate="blocking") walk itself has NOT completed 
 
 ## Issues Encountered
 
-The stale-premise discovery (GWButtonVariant.secondary AA fix already landed, see Decisions Made) surfaced during pre-execution file reads and is reported, not treated as a blocking issue for Tasks 1-2 (neither task touches `gw_button.dart`). The narrow-width gutter defect (see Deviations above) was found and resolved mid-walk per Rule 1; it did not require a new checkpoint or user decision since it is a direct, unambiguous bug fix within Task 1's own file.
+The stale-premise discovery (GWButtonVariant.secondary AA fix already landed, see Decisions Made) surfaced during pre-execution file reads and was reported rather than silently treated as still-broken; the walk's own re-verification (Task 3 Walk Results item 5) confirmed it. The narrow-width gutter defect was found and resolved mid-walk per Rule 1, then re-walked clean; it did not require a new checkpoint or user decision since it was a direct, unambiguous bug fix within Task 1's own file.
 
 ## User Setup Required
 
@@ -148,21 +165,15 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-**Task 3 — the blocking human-verify checkpoint — is IN PROGRESS (re-walk pending after the narrow-width fix) and must complete before this plan (and therefore SCR-02's entry-screen criterion) can be marked complete.** Full recipe is in `06-01-PLAN.md`'s Task 3 `<how-to-verify>` block. Remaining:
+**Task 3 — the blocking human-verify checkpoint — is COMPLETE. Walked and APPROVED 2026-07-21.** All items passed: fresh-install entry screen (both window sizes, both modes), both CTAs entering their flows, the Cancel branch, in-flow back navigation on both flow shells, the blocking mesh light-mode gate (PASSED — mesh KEPT), and the secondary-button re-verification (confirmed already-fixed, no issue). This plan is CLOSED; `requirements-completed: [SCR-02]` reflects the entry-half slice this plan owns.
 
-1. Re-confirm the entry screen at narrow/short window sizes now shows a real gutter (no longer glued to the edge) at both the default and narrow sizes, in both appearance modes.
-2. Re-confirm the wide-window layout is visually unchanged from the already-approved pre-fix rendering (the fix is constraint-inert above `maxWidth + 32`).
-3. Both CTAs entering their flows, the Cancel branch (reached via account dropdown → add another wallet), in-flow back navigation on both flow shells, and a live in-place appearance flip via the dev bubble.
-4. **The blocking mesh light-mode gate (step 7):** judge `GWMeshBackground` honestly in light mode. STATE.md records this component as dark-only-by-design (painter reads no appearance, black-alpha-38 vignette over the light `surfaceBase`). If it reads muddy or washes out any CTA, the sanctioned fallback is a one-line change (drop `GWMeshBackground`, let the wired `scaffoldBackgroundColor` stand) — this is NOT optional per the user's constraints for this session; do not ship a degraded light-mode first screen.
-5. **Re-verify, don't assume, the GWButtonVariant.secondary light-mode observation** (step 8) — the plan expects an inherited AA failure that the code no longer has (see Decisions Made above). Confirm the actual current contrast reads legibly in light mode rather than filing a stale defect report.
+No code blockers exist for 06-02 through 06-06 — the chrome this plan lays (entry screen + flow AppBars) is structurally complete and now walk-approved in both modes. **Carried forward for whichever plan owns `legal_screen.dart`, `select_wallet_type_screen.dart`, `recovery_phrase_screen.dart`, `verify_recovery_phrase_screen.dart`, `import_security_screen.dart`, and `pin_screen.dart` (06-02..06-05):** each shares the same `Center`/`ConstrainedBox(maxWidth: GeniusBreakpoints.small...)` desktop-first pattern this plan found broken at narrow widths on the entry screen. `legal_screen.dart` and `select_wallet_type_screen.dart` (06-02's files) are confirmed by grep to be breakpoint-constrained with zero horizontal inset — the same bug, not merely a suspected one. **06-02 should apply the `space8`-outside-`ConstrainedBox` pattern proactively** rather than waiting for another human walk to catch it, per `.planning/todos/pending/2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`.
 
-Once Task 3 fully passes and its outcome (mesh keep-or-fallback decision + secondary-button re-verification + narrow-width fix confirmation) is recorded, this plan's SUMMARY should be updated (or a follow-up note added) to close out `requirements-completed: [SCR-02]` for this entry-half slice, and STATE.md's position should advance.
-
-No code blockers exist for 06-02 through 06-06 — the chrome this plan lays (entry screen + flow AppBars) is structurally complete regardless of the walk's mesh decision, since the fallback is a one-line, already-scoped change. **Note for whichever plan owns `legal_screen.dart`, `select_wallet_type_screen.dart`, `recovery_phrase_screen.dart`, `verify_recovery_phrase_screen.dart`, `import_security_screen.dart`, and `pin_screen.dart` (06-02..06-05):** each shares the same `Center`/`ConstrainedBox(maxWidth: GeniusBreakpoints.small...)` desktop-first pattern this plan just found broken at narrow widths on the entry screen. They were not touched here (out of this plan's file scope) but likely need the same `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))` treatment during their own re-skin walks.
+**Fresh-install profile consumed:** the walk created a wallet on the cleared profile used for this session. 06-06 (and any earlier plan needing genuine first-run state) must clear all four persistence layers again before its own walk.
 
 ---
 *Phase: 06-onboarding*
-*Completed: 2026-07-21 (Tasks 1-2 + 1 walk-driven fix; Task 3 walk in progress)*
+*Completed: 2026-07-21 (all 3 tasks; Task 3 walked and APPROVED)*
 
 ## Self-Check: PASSED
 
@@ -172,3 +183,4 @@ No code blockers exist for 06-02 through 06-06 — the chrome this plan lays (en
 - FOUND commit 3e1f432 (Task 1)
 - FOUND commit b9c565f (Task 2)
 - FOUND commit 67e2821 (walk-driven fix, Rule 1)
+- Task 3 checkpoint: WALKED AND APPROVED by the coordinator, 2026-07-21 (no code commit of its own; see Task 3 Walk Results)
