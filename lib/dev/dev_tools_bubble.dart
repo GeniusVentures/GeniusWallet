@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/dev/dev_fault_injector.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/dev/dev_mock_transactions.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
@@ -302,8 +304,30 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           },
                           tooltip: 'Inject mock transactions batch',
                         ),
+                        _devButton(
+                          'Fail acct',
+                          () {
+                            DevFaultInjector.instance.armAccountLoadFailure();
+                            context.read<AppBloc>().add(FetchAccount());
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Account-load failure armed',
+                              message:
+                                  'One-shot: already spent by the fetch just '
+                                  'dispatched. Press the dashboard\'s Retry '
+                                  'to recover.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Arms a ONE-SHOT account-load failure and '
+                              're-fetches now; the fault clears itself when '
+                              'consumed so the dashboard\'s Retry will '
+                              'succeed.',
+                        ),
                         _devButton('Clear', () {
                           DevMockHoldings.instance.clear();
+                          DevFaultInjector.instance.disarm();
                           context.read<WalletDetailsCubit>().clearMock();
                           context.read<TransactionsCubit>().clear();
                           context
