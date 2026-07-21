@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
@@ -16,6 +16,8 @@ import 'package:genius_wallet/onboarding/new_wallet/view/backup_phrase_screen.da
 import 'package:genius_wallet/onboarding/new_wallet/view/recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/view/wallet_creation_screen.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class WalletRoutes {
@@ -87,8 +89,15 @@ class WalletRoutes {
                 child: const ExistingWalletFlow(),
               );
             }
-            return const Center(
-              child: Text('Something went wrong! Please reload the app.'),
+            final gw =
+                Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+            return Center(
+              child: Text(
+                'Something went wrong! Please reload the app.',
+                style: GeniusWalletTypography.bodyMd.copyWith(
+                  color: gw.textSecondary,
+                ),
+              ),
             );
           },
         );
@@ -119,8 +128,15 @@ class WalletRoutes {
                 child: const NewWalletFlow(),
               );
             } else {
-              return const Center(
-                child: Text('Something went wrong! Please reload the app.'),
+              final gw =
+                  Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+              return Center(
+                child: Text(
+                  'Something went wrong! Please reload the app.',
+                  style: GeniusWalletTypography.bodyMd.copyWith(
+                    color: gw.textSecondary,
+                  ),
+                ),
               );
             }
           },
