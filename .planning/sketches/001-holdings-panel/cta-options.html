@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assets — empty-wallet CTA options</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-10); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); flex-wrap: wrap; align-items: center; max-width: 560px; margin: 0 auto var(--space-8); }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+
+  .panel { max-width: 560px; margin: 0 auto var(--space-8); background: linear-gradient(to bottom, var(--surface-sheen-a), var(--surface-sheen-b)); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-6); }
+  .phead { display: flex; justify-content: space-between; align-items: baseline; padding: 2px var(--space-4) var(--space-8); }
+  .phead h2 { font: 600 18px/24px var(--font); }
+  .phead .total { font: 700 20px/26px var(--font); font-variant-numeric: tabular-nums; }
+
+  .row { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-6) var(--space-4); }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .ic { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; font: 700 13px/1 var(--font); }
+  .ic.gnus { background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color: #001018; }
+  .ic.eth { background: #627EEA; } .ic.usdc { background: #2775CA; }
+  .id { flex: 1; min-width: 0; }
+  .id .n { font: 500 15px/20px var(--font); }
+  .id .s { font: 400 13px/18px var(--font); color: var(--text-secondary); }
+  .val { text-align: right; }
+  .val .a { font: 600 15px/20px var(--font); color: var(--text-primary-38); font-variant-numeric: tabular-nums; }
+  .val .b { font: 400 13px/18px var(--font); color: var(--text-primary-38); }
+
+  /* ── footer treatments ─────────────────────────── */
+  .footer { display: flex; gap: var(--space-6); padding: var(--space-8) var(--space-4) var(--space-2); align-items: center; }
+  .caption { max-width: 560px; margin: 0 auto var(--space-6); color: var(--text-secondary); font: 400 13px/20px var(--font); }
+  .caption strong { color: var(--text-primary); }
+
+  button.cta { font-family: var(--font); cursor: pointer; border: 1px solid transparent; }
+
+  /* base compact button — smaller than the shipped full-height pair */
+  .btn { height: 40px; padding: 0 18px; border-radius: var(--radius-pill); font: 600 14px/1 var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .ghost { background: transparent; border-color: var(--border-strong); color: var(--text-primary); }
+  .ghost:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+  .ghost-brand { background: var(--brand-fill, rgba(20,200,255,.12)); border-color: transparent; color: var(--brand-primary-strong); }
+  [data-theme="dark"] .ghost-brand { background: rgba(20,200,255,.14); color: var(--brand-primary); }
+  .solid-strong { background: var(--brand-primary-strong); color: #00121c; border-color: transparent; }
+  .gradient { background: linear-gradient(135deg, #0AAEE6, #0AD89C); color: #00140e; border-color: transparent; }
+  .linkbtn { background: transparent; border: 0; color: var(--brand-primary-strong); font: 600 14px/1 var(--font); padding: 0 10px; height: 40px; cursor: pointer; }
+  [data-theme="dark"] .linkbtn { color: var(--brand-primary); }
+
+  /* the SHIPPED baseline for comparison */
+  .shipped .btn { height: 52px; flex: 1; }
+  .shipped .neon { background: var(--brand-primary); color: #000b18; border-color: transparent; }
+
+  .variant { display: none; } .variant.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Empty-wallet CTA — options</h1>
+  <div class="seg" role="group" aria-label="Option">
+    <button data-opt="shipped" aria-pressed="true">Shipped (now)</button>
+    <button data-opt="A" aria-pressed="false">A · Ghost pair</button>
+    <button data-opt="B" aria-pressed="false">B · Gradient + ghost</button>
+    <button data-opt="C" aria-pressed="false">C · One CTA + link</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="panel">
+  <div class="phead"><h2>Assets</h2><span class="total">$0.00</span></div>
+  <div class="row"><div class="ic gnus">G</div><div class="id"><div class="n">GeniusAI</div><div class="s">$0.85</div></div><div class="val"><div class="a">$0.00</div><div class="b">0.0000 GNUS</div></div></div>
+  <div class="row"><div class="ic eth">♦</div><div class="id"><div class="n">Ethereum</div><div class="s">$1,903.76</div></div><div class="val"><div class="a">$0.00</div><div class="b">0.0000 ETH</div></div></div>
+  <div class="row"><div class="ic usdc">$</div><div class="id"><div class="n">USD Coin</div><div class="s">$1.00</div></div><div class="val"><div class="a">$0.00</div><div class="b">0.0000 USDC</div></div></div>
+
+  <!-- SHIPPED -->
+  <div class="variant active" data-panel="shipped">
+    <div class="footer shipped">
+      <button class="cta btn ghost" style="flex:1;height:52px;color:var(--brand-primary);border-color:var(--brand-primary)">Receive</button>
+      <button class="cta btn neon" style="flex:1;height:52px">Buy GNUS</button>
+    </div>
+  </div>
+
+  <!-- A · Ghost pair -->
+  <div class="variant" data-panel="A">
+    <div class="footer">
+      <button class="cta btn ghost" style="flex:1">Receive</button>
+      <button class="cta btn ghost-brand" style="flex:1">Buy GNUS</button>
+    </div>
+  </div>
+
+  <!-- B · Gradient primary + ghost -->
+  <div class="variant" data-panel="B">
+    <div class="footer">
+      <button class="cta btn ghost" style="flex:1">Receive</button>
+      <button class="cta btn gradient" style="flex:1">Buy GNUS</button>
+    </div>
+  </div>
+
+  <!-- C · One CTA + quiet link -->
+  <div class="variant" data-panel="C">
+    <div class="footer" style="justify-content:flex-end;gap:var(--space-4)">
+      <button class="cta linkbtn">Receive</button>
+      <button class="cta btn gradient" style="padding:0 26px">Buy GNUS</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CAPS = {
+  shipped: `<strong>Shipped (now).</strong> Two full-height (52px) pills, "Buy GNUS" filled with neon <code>#14C8FF</code> — loud, and the pair is tall/heavy. This is what we're replacing.`,
+  A: `<strong>A · Ghost pair.</strong> Both buttons 40px, outline. "Buy GNUS" gets a soft brand-tint fill (no neon slab). Calmest, most restrained — reads as "optional next step", not a billboard.`,
+  B: `<strong>B · Gradient + ghost.</strong> "Buy GNUS" = brand blue→green gradient (premium, not flat-neon), "Receive" = ghost. 40px. Keeps one clear primary without the harsh cyan.`,
+  C: `<strong>C · One CTA + link.</strong> Single gradient "Buy GNUS" as the only real button; "Receive" demoted to a quiet text link. Least visual weight, clearest hierarchy — right-aligned.`,
+};
+let opt = 'shipped';
+function render(){
+  document.querySelector('[data-caption]').innerHTML = CAPS[opt];
+  document.querySelectorAll('.variant').forEach(v=>v.classList.toggle('active', v.dataset.panel===opt));
+}
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
+  if(b.dataset.opt){opt=b.dataset.opt; render();}
+  if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+}));
+render();
+</script>
+</body>
+</html>

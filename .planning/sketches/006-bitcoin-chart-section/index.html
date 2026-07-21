@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 006 — Bitcoin Chart section</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-8); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { color: var(--text-secondary); font: 400 13px/20px var(--font); margin: 0 0 var(--space-8); max-width: 1180px; }
+  .caption b { color: var(--text-primary); }
+  .caption .tag { color: var(--brand-primary-strong); font-weight: 600; }
+  [data-theme="dark"] .caption .tag { color: var(--brand-primary); }
+
+  /* the dashboard cell the section lives in (2-/3-col grid) */
+  .grid { display: flex; gap: var(--space-6); flex-wrap: wrap; }
+  .cell { width: 480px; height: 340px; }
+  .mono { font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+
+  /* surface card = DashboardScrollContainer (radiusLg 15, hairline, sheen) */
+  .card { height: 100%; border-radius: var(--radius-lg); background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); padding: var(--space-6);
+    display: flex; flex-direction: column; overflow: hidden; }
+
+  /* coin identity avatar */
+  .av { width: 30px; height: 30px; border-radius: 50%; background:#F7931A; color:#fff; display:grid; place-items:center; font:700 15px/1 var(--font); flex:none; }
+  .up { color: var(--status-success); }
+  .pill { border-radius: 6px; padding: 3px 8px; font: 700 12px/1 var(--font);
+    background: var(--status-success-fill); color: var(--status-success); }
+
+  /* area chart wrapper */
+  .chart { position: relative; flex: 1; margin: 0 -2px; min-height: 0; }
+  .chart svg { width: 100%; height: 100%; display: block; }
+  .glow { position: absolute; left: 50%; top: 34%; width: 240px; height: 70px; transform: translate(-50%,-50%);
+    background: radial-gradient(60% 90% at 50% 50%, rgba(20,200,255,.22), transparent 70%); filter: blur(8px); pointer-events: none; }
+
+  /* timeframe tabs */
+  .tf { display: flex; gap: 2px; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; }
+  .tf button { border: 0; background: transparent; color: var(--text-secondary); font: 600 12px/1 var(--font); padding: 6px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+  .tf button.on { background: var(--surface-elevated); color: var(--brand-primary); box-shadow: var(--shadow-card); }
+  [data-theme="light"] .tf button.on { color: var(--brand-primary-strong); }
+
+  /* zoom/pan row (mockup-faithful) */
+  .zoom { display: flex; justify-content: center; gap: 20px; color: var(--text-primary-54); padding-top: var(--space-4); }
+  .zoom svg { width: 18px; height: 18px; cursor: pointer; }
+  .zoom svg:hover { color: var(--text-primary); }
+
+  /* last-point marker (concept C) */
+  .marker { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--brand-secondary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-secondary) 26%, transparent); }
+  .flag { position: absolute; transform: translate(-50%, -140%); background: var(--brand-secondary-strong,#0AD89C); color:#00140e;
+    font: 700 11px/1 var(--font); padding: 4px 7px; border-radius: 6px; white-space: nowrap; }
+
+  /* hover crosshair + point tooltip (desktop — the mockup has NO :hover rules, designed here) */
+  .chart .cross { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-strong); pointer-events: none; opacity: 0; transition: opacity .08s; }
+  .chart .hoverdot { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--brand-secondary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-secondary) 26%, transparent), 0 0 10px var(--brand-secondary); pointer-events: none; opacity: 0; transition: opacity .08s; }
+  .chart .tip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .08s; z-index: 3;
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); border-radius: 10px; padding: 7px 10px; white-space: nowrap; }
+  .chart .tip .d { font: 500 11px/1 var(--font); color: var(--text-secondary); margin-bottom: 6px; }
+  .chart .tip .pr { font: 700 14px/1 var(--font); color: var(--text-primary); }
+  .chart .tip .pc { font: 700 11px/1 var(--font); margin-left: 6px; }
+  .chart.hot .cross, .chart.hot .hoverdot, .chart.hot .tip { opacity: 1; }
+
+  /* timeframe side-rail (A↓) */
+  .tfrail { display: flex; flex-direction: column; gap: 4px; justify-content: center; padding-left: 8px; flex: none; }
+  .tfrail button { border: 0; background: var(--surface-menu); color: var(--text-secondary); font: 600 11px/1 var(--font); padding: 7px 10px; border-radius: 8px; cursor: pointer; }
+  .tfrail button.on { background: var(--surface-elevated); color: var(--brand-primary); box-shadow: var(--shadow-card); }
+  [data-theme="light"] .tfrail button.on { color: var(--brand-primary-strong); }
+  .chartrow { display: flex; flex: 1; min-height: 0; }
+  .chartrow .chart { flex: 1; }
+
+  /* ================= layout variants ================= */
+  /* A family — identity top-left, centered hero price+glow, edge chart (A/A→/A↓ share these) */
+  [data-v="A"] .head, [data-v="Ar"] .head, [data-v="Al"] .head { display: flex; align-items: center; gap: 10px; }
+  [data-v="A"] .head .a, [data-v="Ar"] .head .a, [data-v="Al"] .head .a { font: 700 15px/1 var(--font); }
+  [data-v="A"] .head .b, [data-v="Ar"] .head .b, [data-v="Al"] .head .b { font: 500 11px/1 var(--font); color: var(--text-secondary); letter-spacing:.4px; }
+  .card .head .tf { margin-left: auto; }
+  [data-v="A"] .hero, [data-v="Ar"] .hero, [data-v="Al"] .hero { text-align: center; position: relative; padding: 10px 0 4px; }
+  [data-v="A"] .hero .p, [data-v="Ar"] .hero .p, [data-v="Al"] .hero .p { position: relative; z-index: 1; font: 700 34px/1 var(--font); }
+  [data-v="A"] .hero .ch, [data-v="Ar"] .hero .ch, [data-v="Al"] .hero .ch { position: relative; z-index: 1; margin-top: 6px; display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1 var(--font); }
+
+  /* B — trading header: identity left, price+pill right (one baseline), timeframe tabs, chart fills, no zoom */
+  [data-v="B"] .head { display: flex; align-items: center; gap: 10px; }
+  [data-v="B"] .head .a { font: 700 15px/1 var(--font); }
+  [data-v="B"] .head .b { font: 500 11px/1 var(--font); color: var(--text-secondary); letter-spacing:.4px; }
+  [data-v="B"] .head .px { margin-left: auto; text-align: right; }
+  [data-v="B"] .head .px .p { font: 700 22px/1 var(--font); }
+  [data-v="B"] .head .px .ch { margin-top: 5px; display: inline-flex; align-items: center; gap: 7px; font: 700 12px/1 var(--font); }
+  [data-v="B"] .tfrow { display: flex; margin: 12px 0 2px; }
+
+  /* C — chart-hero: compact identity+price top-left, chart dominates, last-point marker, tiny timeframe right */
+  [data-v="C"] .head { display: flex; align-items: flex-start; gap: 10px; }
+  [data-v="C"] .head .a { font: 600 13px/1 var(--font); color: var(--text-secondary); }
+  [data-v="C"] .head .p { font: 700 26px/1 var(--font); margin-top: 4px; }
+  [data-v="C"] .head .ch { display: inline-flex; align-items: center; gap: 7px; font: 700 12px/1 var(--font); margin-top: 6px; }
+  [data-v="C"] .head .tf { margin-left: auto; }
+  [data-v="C"] .head .tf button { padding: 5px 8px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 006 — Bitcoin Chart section</h1>
+  <div class="seg" role="group" aria-label="Variant">
+    <button data-var="A" aria-pressed="true">A · Mockup hero</button>
+    <button data-var="Ar" aria-pressed="false">A→ TF top-right</button>
+    <button data-var="Al" aria-pressed="false">A↓ TF side-rail</button>
+    <button data-var="C" aria-pressed="false">C · Chart-hero</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="grid">
+  <div class="cell"><div class="card" data-card data-v="A"></div></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2BF5B4" stop-opacity=".30"/><stop offset="1" stop-color="#2BF5B4" stop-opacity="0"/>
+  </linearGradient>
+</defs></svg>
+
+<script>
+  const LINE = 'M0,86 C24,80 40,58 64,64 C92,71 104,40 132,44 C158,48 168,74 196,66 C222,58 236,28 264,34 C282,38 292,26 300,22';
+  const AREA = LINE + ' L300,118 L0,118 Z';
+  function chartSVG(stroke){ return `
+    <svg viewBox="0 0 300 118" preserveAspectRatio="none">
+      <path d="${AREA}" fill="url(#fill)"/>
+      <path d="${LINE}" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`; }
+  const ZOOM = `<div class="zoom">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3-3M8 11h6M11 8v6"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3-3M8 11h6"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 18l-6-6 6-6"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6l6 6-6 6"/></svg>
+  </div>`;
+  const TFS = ['1H','1D','1W','1M','1Y'];
+  const TF = () => `<div class="tf">${TFS.map((t,i)=>`<button class="${i===1?'on':''}">${t}</button>`).join('')}</div>`;
+  const TFRAIL = () => `<div class="tfrail">${TFS.map((t,i)=>`<button class="${i===1?'on':''}">${t}</button>`).join('')}</div>`;
+  const IDENT = `<span class="av">₿</span><div><div class="a">Bitcoin</div><div class="b">BTC</div></div>`;
+  const PILL = `<span class="pill">+1.59%</span>`;   // %-only change (USD absolute dropped)
+
+  const CARD = {
+    A: `<div class="head">${IDENT}</div>
+        <div class="hero"><div class="glow"></div>
+          <div class="p mono">$65,370.90</div>
+          <div class="ch"><span class="up mono">+$1,025.60</span><span class="pill">+1.59%</span></div>
+        </div>
+        <div class="chart">${chartSVG('var(--brand-secondary)')}</div>
+        ${ZOOM}`,
+    Ar: `<div class="head">${IDENT}${TF()}</div>
+        <div class="hero"><div class="glow"></div>
+          <div class="p mono">$65,370.90</div>
+          <div class="ch">${PILL}</div>
+        </div>
+        <div class="chart">${chartSVG('var(--brand-secondary)')}</div>`,
+    Al: `<div class="head">${IDENT}</div>
+        <div class="hero"><div class="glow"></div>
+          <div class="p mono">$65,370.90</div>
+          <div class="ch">${PILL}</div>
+        </div>
+        <div class="chartrow">
+          <div class="chart">${chartSVG('var(--brand-secondary)')}</div>
+          ${TFRAIL()}
+        </div>`,
+    B: `<div class="head">${IDENT}
+          <div class="px"><div class="p mono">$65,370.90</div>
+            <div class="ch"><span class="up mono">+$1,025.60</span><span class="pill">+1.59%</span></div></div>
+        </div>
+        <div class="tfrow">${TF()}</div>
+        <div class="chart">${chartSVG('var(--brand-secondary)')}</div>`,
+    C: `<div class="head">
+          <span class="av">₿</span>
+          <div>
+            <div class="a">Bitcoin · BTC</div>
+            <div class="p mono">$65,370.90</div>
+            <div class="ch">${PILL}</div>
+          </div>
+          ${TF()}
+        </div>
+        <div class="chart">${chartSVG('var(--brand-secondary)')}
+          <div class="marker" style="left:calc(100% - 8px); top:14%"></div>
+          <div class="flag" style="left:calc(100% - 8px); top:14%">$65,370</div>
+        </div>`,
+  };
+
+  const CAP = {
+    A: '<span class="tag">A · Mockup hero (chosen).</span> Coin identity (₿ · Bitcoin · BTC) top-left, a <b>centered hero price with the cyan glow</b>, mint % pill, an <b>edge-to-edge mint-gradient area chart</b>, and the centered zoom/pan row. Pure re-skin. <b>➜ Hover the chart</b> — a crosshair snaps to the line and a tooltip shows that point\'s <b>date + price + % change</b>. That hover is a desktop detail the mockup can\'t settle (it defines zero <code>:hover</code> rules), so it\'s designed here on our tokens; fl_chart already provides the touch/hover hook, so this is styling, not new data.',
+    B: '<span class="tag">B · Trading header.</span> One aligned header baseline instead of today\'s title-left / price-centered split: identity on the left, <b>live price + % pill on the right</b>. A <b>1H·1D·1W·1M·1Y timeframe row</b> replaces the zoom/pan cluster; the chart then fills the whole card. Reads like a real markets card; densest and most legible at a glance. <b>Note: timeframes are new behaviour</b> — a GSD task must decide whether to wire real ranges or keep it visual.',
+    Ar: '<span class="tag">A→ · TF top-right.</span> Extends the chosen A with a <b>timeframe segment top-right</b>, opposite the coin identity — so the header balances (identity ← → 1H·1D·1W·1M·1Y) while the hero price stays centered under the glow. The <b>USD delta is dropped — the % pill alone</b> carries the change. The bottom zoom/pan row is gone (timeframes replace it). Keeps A\'s look, adds the control you wanted, and the hover crosshair still works.',
+    Al: '<span class="tag">A↓ · TF side-rail.</span> Timeframes literally <b>“z boku”</b>: a vertical 1H→1Y rail pinned to the right edge of the chart, so the centered hero price + glow are untouched and the rail reads as chart chrome. Most space-efficient on a wide dashboard card; the chart still spans nearly full width. USD delta dropped (% pill only); hover crosshair works.',
+    C: '<span class="tag">C · Chart-hero.</span> The chart is the subject: compact identity + price stacked top-left, timeframe top-right, and the area chart dominates with a <b>live last-point marker + value flag</b>. USD delta dropped (% pill only). Most "glanceable" but the least like the mockup — and it adds both timeframes AND a marker overlay.',
+  };
+
+  const card = document.querySelector('[data-card]'), cap = document.querySelector('[data-caption]');
+
+  // ---- desktop hover: crosshair + point tooltip (date + price + %) ----
+  const MAXP = 65624, MINP = 63590;                       // maps chart top→high, bottom→low
+  const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+  function priceAt(y){ return MAXP - (y / 118) * (MAXP - MINP); }
+  function timeAt(frac){                                   // frac 0..1 across a ~24h window ending 14:32
+    const base = new Date(); base.setHours(14, 32, 0, 0);
+    const t = new Date(base.getTime() - (1 - frac) * 24 * 3600 * 1000);
+    return t.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' +
+           t.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  }
+  function wireHover(){
+    const chart = card.querySelector('.chart'); if(!chart) return;
+    const line = chart.querySelector('svg path:last-of-type');   // the stroke line (2nd path)
+    const N = 200, len = line.getTotalLength(), pts = [];
+    for(let i=0;i<=N;i++) pts.push(line.getPointAtLength(len*i/N));
+    const p0 = priceAt(pts[0].y);
+    const cross = Object.assign(document.createElement('div'),{className:'cross'});
+    const dot   = Object.assign(document.createElement('div'),{className:'hoverdot'});
+    const tip   = Object.assign(document.createElement('div'),{className:'tip'});
+    chart.append(cross, dot, tip);
+    chart.addEventListener('mousemove', e => {
+      const r = chart.getBoundingClientRect(), W = r.width, H = r.height;
+      const ux = Math.max(0, Math.min(300, (e.clientX - r.left) / W * 300));
+      let best = pts[0];
+      for(const p of pts) if(Math.abs(p.x - ux) < Math.abs(best.x - ux)) best = p;
+      const px = best.x / 300 * W, py = best.y / 118 * H;
+      const price = priceAt(best.y), pc = (price - p0) / p0 * 100;
+      const up = pc >= 0, col = up ? 'var(--status-success)' : 'var(--status-error)';
+      cross.style.left = px + 'px';
+      dot.style.left = px + 'px'; dot.style.top = py + 'px';
+      tip.innerHTML = `<div class="d">${timeAt(best.x/300)}</div><div><span class="pr">${fmt(price)}</span>` +
+                      `<span class="pc" style="color:${col}">${up?'+':''}${pc.toFixed(2)}%</span></div>`;
+      const half = tip.offsetWidth / 2, lx = Math.max(half+2, Math.min(W-half-2, px));
+      tip.style.left = lx + 'px';
+      const below = py < 54;                                // flip under the point near the top edge
+      tip.style.top = (below ? py + 14 : py - 12) + 'px';
+      tip.style.transform = below ? 'translate(-50%,0)' : 'translate(-50%,-100%)';
+      chart.classList.add('hot');
+    });
+    chart.addEventListener('mouseleave', () => chart.classList.remove('hot'));
+  }
+
+  function setV(v){ card.dataset.v = v; card.innerHTML = CARD[v]; cap.innerHTML = CAP[v]; wireHover(); }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.var) setV(b.dataset.var);
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme = b.dataset.themeBtn;
+  }));
+  // let timeframe tabs feel clickable
+  document.addEventListener('click', e=>{
+    const t = e.target.closest('.tf button, .tfrail button'); if(!t) return;
+    t.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on')); t.classList.add('on');
+  });
+  setV('A');
+</script>
+</body>
+</html>

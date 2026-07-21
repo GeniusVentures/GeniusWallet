@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 008 — Unified hover language</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-8); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { color: var(--text-secondary); font: 400 13px/20px var(--font); margin: 0 0 var(--space-8); max-width: 1180px; }
+  .caption b { color: var(--text-primary); }
+  .caption .tag { color: var(--brand-primary-strong); font-weight: 600; }
+  [data-theme="dark"] .caption .tag { color: var(--brand-primary); }
+  .hint { color: var(--text-primary-38); font: 500 12px/1 var(--font); margin: 0 0 var(--space-6); }
+
+  .stack { display: flex; flex-direction: column; gap: var(--space-8); max-width: 1080px; }
+  .panel { background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); overflow: hidden; }
+  .plabel { font: 600 11px/1 var(--font); color: var(--text-primary-38); letter-spacing: .4px; text-transform: uppercase; padding: var(--space-6) var(--space-8) 0; }
+
+  /* ---- 1. NAV BAR ---- */
+  .bar { display: flex; align-items: center; height: 60px; padding: 0 var(--space-8); gap: 2px; }
+  .logo { width: 30px; height: 30px; border-radius: 8px; flex: none; display: grid; place-items: center; margin-right: var(--space-6);
+    background: linear-gradient(135deg,#14C8FF,#2BF5B4); color:#001018; font: 800 14px/1 var(--font); }
+  .tab { position: relative; display: flex; align-items: center; gap: 7px; padding: 0 12px; height: 40px; border-radius: 10px;
+    color: var(--text-secondary); cursor: pointer; font: 500 14px/1 var(--font); white-space: nowrap; transition: color .15s, background .15s, box-shadow .15s, transform .12s; }
+  .tab svg { width: 20px; height: 20px; }
+  .tab.on { color: var(--brand-primary); }
+  [data-theme="light"] .tab.on { color: var(--brand-primary-strong); }
+  /* active underline — lowered so it clears the icon (the reported nit) */
+  .tab.on::before { content:''; position:absolute; left:12px; right:12px; bottom:2px; height:2px; border-radius:2px;
+    background: linear-gradient(90deg,#0AD89C,#0AAEE6); }
+
+  /* ---- 2. CHART HEADER (timeframe) ---- */
+  .hdr { display: flex; align-items: center; justify-content: space-between; padding: var(--space-6) var(--space-8); }
+  .htitle { font: 600 16px/1 var(--font); color: var(--text-primary); }
+  .tf { display: flex; gap: 2px; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; }
+  .tf b { display: block; font: 600 12px/1 var(--font); color: var(--text-secondary); padding: 7px 11px; border-radius: var(--radius-pill);
+    cursor: pointer; transition: color .15s, background .15s, box-shadow .15s, transform .12s; position: relative; }
+  .tf b.on { color: var(--text-on-brand); background: linear-gradient(135deg,#0AAEE6,#0AD89C); box-shadow: var(--shadow-card); }
+
+  /* ---- 3. MARKETS HEADER (VIEW ALL) ---- */
+  .viewall { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 8px; cursor: pointer;
+    color: var(--text-secondary); font: 700 11px/1 var(--font); letter-spacing: .6px; text-transform: uppercase;
+    transition: color .15s, background .15s, box-shadow .15s, transform .12s; position: relative; }
+  .viewall svg { width: 14px; height: 14px; }
+
+  /* the hoverable set: inactive nav tabs, inactive tf tabs, view-all */
+  /* ============ A · SOFT FILL ============ */
+  [data-hov="A"] .tab:not(.on):hover,
+  [data-hov="A"] .tf b:not(.on):hover,
+  [data-hov="A"] .viewall:hover { background: var(--surface-menu); color: var(--text-primary); }
+  [data-theme="dark"][data-hov="A"] .tab:not(.on):hover,
+  [data-theme="dark"][data-hov="A"] .tf b:not(.on):hover,
+  [data-theme="dark"][data-hov="A"] .viewall:hover { background: rgba(255,255,255,.06); }
+
+  /* ============ B · GRADIENT UNDERLINE GROW ============ */
+  [data-hov="B"] .tab:not(.on)::after,
+  [data-hov="B"] .tf b:not(.on)::after,
+  [data-hov="B"] .viewall::after { content:''; position:absolute; left:10px; right:10px; bottom:3px; height:2px; border-radius:2px;
+    background: linear-gradient(90deg,#0AD89C,#0AAEE6); transform: scaleX(0); transform-origin: center; transition: transform .16s; }
+  [data-hov="B"] .tab:not(.on):hover::after,
+  [data-hov="B"] .tf b:not(.on):hover::after,
+  [data-hov="B"] .viewall:hover::after { transform: scaleX(1); }
+  [data-hov="B"] .tab:not(.on):hover,
+  [data-hov="B"] .tf b:not(.on):hover,
+  [data-hov="B"] .viewall:hover { color: var(--text-primary); }
+
+  /* ============ C · BRAND TINT (minimal) ============ */
+  [data-hov="C"] .tab:not(.on):hover,
+  [data-hov="C"] .tf b:not(.on):hover,
+  [data-hov="C"] .viewall:hover { color: var(--brand-primary); }
+  [data-theme="light"][data-hov="C"] .tab:not(.on):hover,
+  [data-theme="light"][data-hov="C"] .tf b:not(.on):hover,
+  [data-theme="light"][data-hov="C"] .viewall:hover { color: var(--brand-primary-strong); }
+
+  /* ============ D · LIFT CHIP (tactile) ============ */
+  [data-hov="D"] .tab:not(.on):hover,
+  [data-hov="D"] .tf b:not(.on):hover,
+  [data-hov="D"] .viewall:hover { background: var(--surface-elevated); box-shadow: var(--shadow-card); color: var(--text-primary); transform: translateY(-1px); }
+  [data-theme="dark"][data-hov="D"] .tab:not(.on):hover,
+  [data-theme="dark"][data-hov="D"] .tf b:not(.on):hover,
+  [data-theme="dark"][data-hov="D"] .viewall:hover { background: var(--surface-sheen-a); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 008 — Unified hover language</h1>
+  <div class="seg" role="group" aria-label="Hover">
+    <button data-hov-btn="A" aria-pressed="true">A · Soft fill</button>
+    <button data-hov-btn="B" aria-pressed="false">B · Gradient underline</button>
+    <button data-hov-btn="C" aria-pressed="false">C · Brand tint</button>
+    <button data-hov-btn="D" aria-pressed="false">D · Lift chip</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+<p class="hint">↳ Hover the inactive nav tabs, the inactive timeframe tabs, and VIEW ALL — the active tab and selected 1D keep their gradient.</p>
+
+<div class="stack" data-hov="A">
+  <div class="panel">
+    <div class="plabel">Navigation bar — active = gradient underline (lowered to clear the icon)</div>
+    <div class="bar" data-nav></div>
+  </div>
+
+  <div class="panel">
+    <div class="plabel">Chart header — selected timeframe = gradient chip</div>
+    <div class="hdr">
+      <span class="htitle">Bitcoin · BTC</span>
+      <div class="tf"><b>1H</b><b class="on">1D</b><b>1W</b><b>1M</b><b>1Y</b></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="plabel">Markets header — VIEW ALL (a link, no persistent selected state)</div>
+    <div class="hdr">
+      <span class="htitle">Markets</span>
+      <span class="viewall">VIEW ALL <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ICON = {
+    dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    tx:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    mkt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 3 3 7-8"/><path d="M18 4h3v3"/></svg>',
+    news:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><path d="M17 8h3v10a2 2 0 0 1-2 2M7 8h6M7 12h6M7 16h4"/></svg>',
+    web:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>',
+    set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 6.2 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H2a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 3.3 6.2l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H8a1.7 1.7 0 0 0 1-1.6V2a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V8a1.7 1.7 0 0 0 1.6 1H22a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  };
+  const TABS = [['dash','Dashboard',1],['mkt','Markets'],['news','News'],['web','Web'],['set','Settings']];
+  document.querySelector('[data-nav]').innerHTML =
+    '<div class="logo">G</div>' +
+    TABS.map(([k,l,on]) => `<div class="tab ${on?'on':''}">${ICON[k]}<span>${l}</span></div>`).join('');
+
+  const CAP = {
+    A: '<span class="tag">A · Soft fill.</span> Hover raises a subtle surface fill behind the element and lifts the label to <b>text-primary</b> — exactly what the timeframe tabs do today. Calmest, most familiar; reads as "this is a surface you can press". Applies uniformly to nav tabs, timeframe tabs and VIEW ALL.',
+    B: '<span class="tag">B · Gradient underline.</span> Hover grows a thin <b>green→blue gradient underline</b> — the same gradient the active nav tab already uses. Ties every interactive element to one brand cue; hover reads as "a lighter echo of selected". Strongest system-coherence, since selection and hover speak the same language.',
+    C: '<span class="tag">C · Brand tint.</span> Hover just shifts the label/icon to <b>brand cyan</b> — no fill, no motion. Most minimal and quiet. <b>a11y note:</b> raw cyan on a light background is ~2–3:1; a Flutter port must darken it in light mode (it is transient hover text, not a resting state, but still worth an AA-safe tint).',
+    D: '<span class="tag">D · Lift chip.</span> Hover turns the element into a <b>raised chip</b> — elevated surface + soft card shadow + a 1px lift. Most tactile / "physical"; the boldest of the four. Echoes the timeframe selected chip and the Buy GNUS press feel, so hover and press share a material.',
+  };
+
+  const stack = document.querySelector('.stack'), cap = document.querySelector('[data-caption]');
+  function setHov(h){ stack.dataset.hov = h; cap.innerHTML = CAP[h]; }
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (b.dataset.hovBtn) setHov(b.dataset.hovBtn);
+    if (b.dataset.themeBtn) document.documentElement.dataset.theme = b.dataset.themeBtn;
+  }));
+  // clicking a nav tab / timeframe moves the active state so hover-vs-selected reads in context
+  document.querySelector('[data-nav]').addEventListener('click', e => {
+    const t = e.target.closest('.tab'); if(!t) return;
+    document.querySelectorAll('[data-nav] .tab').forEach(x => x.classList.remove('on')); t.classList.add('on');
+  });
+  document.querySelector('.tf').addEventListener('click', e => {
+    const t = e.target.closest('b'); if(!t) return;
+    t.parentElement.querySelectorAll('b').forEach(x => x.classList.remove('on')); t.classList.add('on');
+  });
+  setHov('A');
+</script>
+</body>
+</html>

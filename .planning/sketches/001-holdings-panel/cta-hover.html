@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buy GNUS — hover options</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-10); min-height: 100vh; }
+  .wrap { max-width: 600px; margin: 0 auto; }
+  .top { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); }
+  .top h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .lede { color: var(--text-secondary); font: 400 13px/20px var(--font); margin-bottom: var(--space-8); }
+  .lede b { color: var(--text-primary); }
+
+  .panel { background: linear-gradient(to bottom, var(--surface-sheen-a), var(--surface-sheen-b)); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-6); }
+  .phead { display: flex; justify-content: space-between; align-items: baseline; padding: 2px var(--space-4) var(--space-8); }
+  .phead h2 { font: 600 18px/24px var(--font); } .phead .total { font: 700 20px/26px var(--font); }
+  .row { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-6) var(--space-4); }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .ic { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #001018; font: 700 12px/1 var(--font); background: linear-gradient(135deg,#14C8FF,#2BF5B4); }
+  .ic.eth{background:#627EEA;color:#fff}.ic.usdc{background:#2775CA;color:#fff}
+  .nm { flex: 1; font: 500 15px/20px var(--font); } .amt { font: 500 13px/18px var(--font); color: var(--text-primary-38); }
+
+  .footer { display: flex; gap: var(--space-6); padding: var(--space-8) var(--space-4) var(--space-2); }
+
+  /* base compact buttons */
+  .btn { position: relative; height: 44px; flex: 1; border-radius: var(--radius-lg); font: 600 14px/1 var(--font); border: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; overflow: hidden;
+         transition: transform .16s ease, box-shadow .16s ease, filter .16s ease; }
+  .buy { background: linear-gradient(135deg,#0AAEE6,#0AD89C); color: #00140e; }
+  .buy::after { content:''; position:absolute; inset:0; background:#fff; opacity:0; transition:opacity .16s ease; }
+  .recv { background: transparent; color: #fff; }
+  .recv-border { position:absolute; inset:0; border-radius: var(--radius-lg); padding:1.5px;
+    background: linear-gradient(135deg,#0AAEE6,#0AD89C);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+  .recv .lbl { background: linear-gradient(135deg,#0AAEE6,#0AD89C); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .recv::after { content:''; position:absolute; inset:0; background: linear-gradient(135deg,#0AAEE6,#0AD89C); opacity:0; transition:opacity .16s ease; }
+
+  /* ── hover treatments (applied via [data-hov] on .footer) ── */
+  /* A — brighten: subtle white wash on the fill */
+  [data-hov="A"] .buy:hover::after { opacity:.12; }
+  [data-hov="A"] .recv:hover::after { opacity:.10; }
+
+  /* B — glow: brand-coloured shadow bloom, no colour change */
+  [data-hov="B"] .buy:hover { box-shadow: 0 0 0 1px rgba(43,245,180,.5), 0 6px 22px rgba(10,174,230,.45); }
+  [data-hov="B"] .recv:hover { box-shadow: 0 0 0 1px rgba(43,245,180,.4), 0 6px 18px rgba(10,174,230,.28); }
+
+  /* C — lift: brighten + rise + soft shadow + micro-scale */
+  [data-hov="C"] .buy:hover { transform: translateY(-1px) scale(1.015); box-shadow: 0 8px 20px rgba(10,174,230,.4); }
+  [data-hov="C"] .buy:hover::after { opacity:.10; }
+  [data-hov="C"] .recv:hover { transform: translateY(-1px) scale(1.015); }
+  [data-hov="C"] .recv:hover::after { opacity:.10; }
+  [data-hov="C"] .recv:hover .lbl, [data-hov="C"] .recv:hover .recv-border { } /* keep gradient */
+
+  .btn:active { transform: translateY(0) scale(.99); }
+  .hint { text-align:center; color:var(--text-secondary); font:400 12px/18px var(--font); margin-top: var(--space-8); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Buy GNUS — hover options</h1>
+    <div class="seg" role="group" aria-label="Hover">
+      <button data-h="A" aria-pressed="true">A · Brighten</button>
+      <button data-h="B" aria-pressed="false">B · Glow</button>
+      <button data-h="C" aria-pressed="false">C · Lift</button>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+      <button data-theme-btn="light" aria-pressed="false">Light</button>
+    </div>
+  </div>
+  <p class="lede">Filled gradient swallows the Material ripple, so it needs an explicit hover. <b>Hover the buttons</b> to feel each. Both CTAs react so the pair stays consistent.</p>
+
+  <div class="panel">
+    <div class="phead"><h2>Assets</h2><span class="total">$0.00</span></div>
+    <div class="row"><div class="ic">G</div><div class="nm">GeniusAI</div><span class="amt">0.0000 GNUS</span></div>
+    <div class="row"><div class="ic eth">♦</div><div class="nm">Ethereum</div><span class="amt">0.0000 ETH</span></div>
+    <div class="row"><div class="ic usdc">$</div><div class="nm">USD Coin</div><span class="amt">0.0000 USDC</span></div>
+    <div class="footer" data-hov="A">
+      <button class="btn recv"><span class="recv-border"></span><span class="lbl">Receive</span></button>
+      <button class="btn buy">Buy GNUS</button>
+    </div>
+  </div>
+  <p class="hint" data-hint></p>
+</div>
+
+<script>
+  const HINTS = {
+    A: 'A · Brighten — a ~12% white wash lifts the gradient on hover. Subtlest, cheapest, reads clearly on the fill.',
+    B: 'B · Glow — a brand-coloured shadow bloom (teal→cyan) with no colour shift. Most premium; strongest on dark.',
+    C: 'C · Lift — brighten + a 1px rise + micro-scale + soft shadow. Most tactile / "button lifts to meet you".',
+  };
+  const footer = document.querySelector('.footer'), hint = document.querySelector('[data-hint]');
+  function setH(h){ footer.dataset.hov = h; hint.textContent = HINTS[h]; }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.h) setH(b.dataset.h);
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+  }));
+  setH('A');
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 002 — Top navbar redesign</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-8); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .caption { color: var(--text-secondary); font: 400 13px/20px var(--font); margin: 0 0 var(--space-6); max-width: 1100px; }
+  .caption b { color: var(--text-primary); }
+
+  .stage { background: var(--surface-base); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+  /* top bar shell */
+  .bar { display: flex; align-items: center; height: 64px; padding: 0 var(--space-8); gap: var(--space-8); background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid; place-items: center; background: linear-gradient(135deg,#14C8FF,#2BF5B4); color:#001018; font: 800 15px/1 var(--font); }
+  .nav { display: flex; align-items: center; gap: 2px; }
+  .grow { margin-left: auto; }
+  .right { display: flex; align-items: center; gap: var(--space-6); }
+
+  /* nav item base */
+  .item { position: relative; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 40px; border-radius: 10px; color: var(--text-secondary); cursor: pointer; font: 500 14px/1 var(--font); white-space: nowrap; }
+  .item svg { width: 20px; height: 20px; }
+  .item:hover { color: var(--text-primary); background: var(--surface-menu); }
+  .item.on { color: var(--brand-primary); }
+
+  /* right-side chips */
+  .chip { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 10px; background: var(--surface-menu); border: 1px solid var(--border-subtle); color: var(--text-primary); font: 500 13px/1 var(--font); cursor: pointer; }
+  .chip .dot { width: 18px; height: 18px; border-radius: 50%; background: #627EEA; flex: none; }
+  .chip .car { color: var(--text-primary-38); font-size: 10px; }
+  .connect { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--brand-primary-strong); color: var(--brand-primary-strong); font: 600 13px/1 var(--font); cursor: pointer; }
+  [data-theme="dark"] .connect { color: var(--brand-primary); border-color: var(--brand-primary); }
+  .buy { height: 38px; padding: 0 18px; border-radius: 10px; border: 0; background: linear-gradient(135deg,#0AAEE6,#0AD89C); color:#00140e; font: 700 13px/1 var(--font); cursor: pointer; }
+  .buy:hover { filter: brightness(1.08); }
+
+  /* ============ VARIANT A — gradient pill active, bigger icons ============ */
+  [data-v="A"] .item svg { width: 22px; height: 22px; }
+  [data-v="A"] .item.on { color: var(--brand-primary); background: rgba(20,200,255,.10); }
+  [data-theme="dark"] [data-v="A"] .item.on { background: rgba(20,200,255,.14); }
+  [data-v="A"] .item.on::after { content:''; position:absolute; left:12px; right:12px; bottom:4px; height:2px; border-radius:2px; background: linear-gradient(90deg,#0AD89C,#0AAEE6); }
+
+  /* ============ VARIANT B — thick gradient underline bar, roomy ============ */
+  [data-v="B"] .bar { height: 68px; }
+  [data-v="B"] .item { height: 44px; padding: 0 14px; font-size: 15px; }
+  [data-v="B"] .item svg { width: 23px; height: 23px; }
+  [data-v="B"] .item.on { color: var(--text-primary); }
+  [data-v="B"] .item.on::after { content:''; position:absolute; left:10px; right:10px; bottom:-1px; height:3px; border-radius:3px 3px 0 0; background: linear-gradient(90deg,#0AD89C,#0AAEE6); box-shadow: 0 0 10px rgba(10,174,230,.5); }
+
+  /* ============ VARIANT C — icon-forward, label only on active, gradient chip ============ */
+  [data-v="C"] .item { width: 44px; height: 44px; padding: 0; justify-content: center; }
+  [data-v="C"] .item svg { width: 24px; height: 24px; }
+  [data-v="C"] .item .lbl { display: none; }
+  [data-v="C"] .item.on { width: auto; padding: 0 16px; gap: 9px; color:#00140e; background: linear-gradient(135deg,#0AAEE6,#0AD89C); }
+  [data-v="C"] .item.on .lbl { display: inline; font-weight: 600; }
+  [data-v="C"] .item:not(.on):hover { background: var(--surface-menu); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 002 — Top navbar</h1>
+  <div class="seg" role="group" aria-label="Variant">
+    <button data-var="A" aria-pressed="true">A · Pill + bar</button>
+    <button data-var="B" aria-pressed="false">B · Thick underline</button>
+    <button data-var="C" aria-pressed="false">C · Icon-forward</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="stage" data-v="A">
+  <div class="bar">
+    <div class="logo">G</div>
+    <nav class="nav" data-nav></nav>
+    <div class="grow"></div>
+    <div class="right">
+      <button class="chip"><span class="dot"></span><span class="car">▾</span></button>
+      <button class="chip">0x1d9b…4a87 <span class="car">▾</span></button>
+      <button class="chip">0x9fF8…2e2b <span class="car">▾</span></button>
+      <button class="connect">🔗 Connect</button>
+      <button class="buy">Buy GNUS</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ICON = {
+    dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    tx: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+    mkt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 3 3 7-8"/><path d="M18 4h3v3"/></svg>',
+    news: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="16" rx="2"/><path d="M17 8h3v10a2 2 0 0 1-2 2M7 8h6M7 12h6M7 16h4"/></svg>',
+    web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>',
+    fb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H9l-4 4V5z"/></svg>',
+    set: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L13.7 2h-3.4l-.3 2.5A7 7 0 0 0 7.7 5.8l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5.3 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.3 2.5h3.4l.3-2.5a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg>',
+  };
+  const ITEMS = [['dash','Dashboard',1],['tx','Transactions'],['swap','Swap'],['mkt','Markets'],['news','News'],['web','Web'],['fb','Feedback'],['set','Settings']];
+  document.querySelector('[data-nav]').innerHTML = ITEMS.map(([k,l,on]) =>
+    `<div class="item ${on?'on':''}">${ICON[k]}<span class="lbl">${l}</span></div>`).join('');
+
+  const CAP = {
+    A: '<b>A · Pill + bar.</b> Bigger 22px icons, active item gets a soft brand-tint pill + a short gradient bar under it (gradient actually visible now, unlike the 1px line). Calm, clearly grouped.',
+    B: '<b>B · Thick underline.</b> Taller 68px bar, 23px icons, active = a 3px gradient underline with a soft glow (premium, dark-first). Keeps the familiar underline paradigm but makes the gradient read.',
+    C: '<b>C · Icon-forward.</b> 24px icons only; the label appears just on the active item, which becomes a full gradient pill. Most compact / modern; strongest brand moment on the active tab.',
+  };
+  const stage = document.querySelector('.stage'), cap = document.querySelector('[data-caption]');
+  function setV(v){ stage.dataset.v = v; cap.innerHTML = CAP[v]; }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.var) setV(b.dataset.var);
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+  }));
+  // clicking a nav item moves the active state (feel it)
+  document.querySelector('[data-nav]').addEventListener('click', e=>{
+    const it = e.target.closest('.item'); if(!it) return;
+    document.querySelectorAll('[data-nav] .item').forEach(x=>x.classList.remove('on'));
+    it.classList.add('on');
+  });
+  setV('A');
+</script>
+</body>
+</html>

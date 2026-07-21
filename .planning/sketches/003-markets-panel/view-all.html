@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markets — "View all" designs</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; max-width:560px; margin:0 auto var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 13px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .caption { max-width:560px; margin:0 auto var(--space-6); color:var(--text-secondary); font:400 13px/20px var(--font); }
+  .caption b { color:var(--text-primary); }
+
+  .panel { max-width:560px; margin:0 auto; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+  .phead { display:flex; align-items:center; min-height:44px; padding:0 var(--space-4) var(--space-8); }
+  .phead h2 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-4); }
+  .row + .row { border-top:1px solid var(--border-subtle); }
+  .ic { width:30px; height:30px; border-radius:50%; flex:none; }
+  .ic.a{background:linear-gradient(135deg,#14C8FF,#2BF5B4)}.ic.b{background:#F7931A}.ic.c{background:#627EEA}
+  .nm { flex:1; font:500 14px/18px var(--font); } .nm small{display:block;color:var(--text-secondary);font-weight:400;font-size:12px}
+  .rt { display:flex; align-items:center; gap:10px; }
+  .chip { font:600 12px/16px var(--font); padding:2px 7px; border-radius:8px; }
+  .chip.u{color:var(--status-success);background:var(--status-success-fill)} .chip.d{color:var(--status-error);background:var(--status-error-fill)}
+  svg.spark{display:block}
+
+  /* ═══ View-all variants ═══ */
+  .va { display:inline-flex; align-items:center; cursor:pointer; font-family:var(--font); border:0; background:none; }
+  .va svg.arr { transition:transform .18s ease; }
+
+  /* A — soft brand-tint pill */
+  .va.soft { gap:6px; height:30px; padding:0 12px; border-radius:var(--radius-pill); background:rgba(20,200,255,.12); color:var(--brand-primary-strong); font:600 13px/1 var(--font); }
+  [data-theme="dark"] .va.soft { background:rgba(20,200,255,.14); color:var(--brand-primary); }
+  .va.soft:hover { background:rgba(20,200,255,.20); } .va.soft:hover svg.arr { transform:translateX(3px); }
+
+  /* B — ghost outline pill */
+  .va.ghost { gap:6px; height:30px; padding:0 13px; border-radius:var(--radius-pill); border:1.5px solid var(--brand-primary-strong); color:var(--brand-primary-strong); font:600 13px/1 var(--font); }
+  [data-theme="dark"] .va.ghost { border-color:var(--brand-primary); color:var(--brand-primary); }
+  .va.ghost:hover { background:rgba(20,200,255,.12); } .va.ghost:hover svg.arr { transform:translateX(3px); }
+
+  /* C — icon-only chevron circle */
+  .va.circle { width:30px; height:30px; justify-content:center; border-radius:50%; background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .va.circle:hover { color:var(--brand-primary); border-color:var(--brand-primary-strong); background:rgba(20,200,255,.10); }
+  .va.circle:hover svg.arr { transform:translateX(2px); }
+
+  /* D — editorial text link */
+  .va.editorial { gap:6px; color:var(--text-secondary); font:600 11px/1 var(--font); letter-spacing:.08em; text-transform:uppercase; }
+  .va.editorial:hover { color:var(--brand-primary); } .va.editorial:hover svg.arr { transform:translateX(3px); }
+  .va.editorial .txt { position:relative; }
+  .va.editorial:hover .txt::after { content:''; position:absolute; left:0; right:0; bottom:-3px; height:1.5px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <h1>Markets — "View all"</h1>
+  <div class="seg" role="group" aria-label="Variant">
+    <button data-v="soft" aria-pressed="true">A · Soft pill</button>
+    <button data-v="ghost" aria-pressed="false">B · Ghost pill</button>
+    <button data-v="circle" aria-pressed="false">C · Icon circle</button>
+    <button data-v="editorial" aria-pressed="false">D · Editorial</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+<p class="caption" data-caption></p>
+<div class="panel">
+  <div class="phead"><h2>Markets</h2><span data-trail></span></div>
+  <div class="row"><div class="ic a"></div><div class="nm">GENIUS AI<small>$0.744</small></div><div class="rt"><svg class="spark" width="52" height="18"><polyline points="0,12 10,10 20,13 30,9 40,11 52,6" fill="none" stroke="var(--status-success)" stroke-width="1.6"/></svg><span class="chip u">+6.7%</span></div></div>
+  <div class="row"><div class="ic b"></div><div class="nm">Bitcoin<small>$65,743</small></div><div class="rt"><svg class="spark" width="52" height="18"><polyline points="0,13 10,11 20,12 30,8 40,9 52,5" fill="none" stroke="var(--status-success)" stroke-width="1.6"/></svg><span class="chip u">+2.6%</span></div></div>
+  <div class="row"><div class="ic c"></div><div class="nm">Ethereum<small>$1,931</small></div><div class="rt"><svg class="spark" width="52" height="18"><polyline points="0,10 10,12 20,9 30,11 40,7 52,8" fill="none" stroke="var(--status-error)" stroke-width="1.6"/></svg><span class="chip d">-0.2%</span></div></div>
+</div>
+<p class="caption" style="text-align:center;margin-top:var(--space-8)">Hover the button to feel the arrow motion.</p>
+
+<script>
+  const ARR = '<svg class="arr" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const CHEV = '<svg class="arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+  const TRAIL = {
+    soft:`<button class="va soft">View all ${ARR}</button>`,
+    ghost:`<button class="va ghost">View all ${ARR}</button>`,
+    circle:`<button class="va circle" title="View all markets">${CHEV}</button>`,
+    editorial:`<button class="va editorial"><span class="txt">View all</span>${ARR}</button>`,
+  };
+  const CAP = {
+    soft:'<b>A · Soft brand-tint pill.</b> Reads clearly as a button (filled tint + chevron), on-brand but calm. The arrow nudges right on hover. Most obviously tappable — pairs with the gradient CTAs without competing.',
+    ghost:'<b>B · Ghost outline pill.</b> Same shape, hollow with a brand-strong hairline; fills a faint tint on hover. Lighter than A, still clearly a control. Matches the Receive/secondary outline language.',
+    circle:'<b>C · Icon-only chevron circle.</b> Minimal — a 30px round button with just a chevron (tooltip "View all markets"). Cleanest, zero text noise; relies on the affordance being understood.',
+    editorial:'<b>D · Editorial link.</b> Small uppercase "VIEW ALL" with tracking + a gradient underline that draws on hover and the arrow slides. No box — refined/magazine feel, lightest footprint.',
+  };
+  const t=document.querySelector('[data-trail]'), cap=document.querySelector('[data-caption]');
+  function set(v){ t.innerHTML=TRAIL[v]; cap.innerHTML=CAP[v]; }
+  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    if(b.dataset.v) set(b.dataset.v);
+    if(b.dataset.themeBtn) document.documentElement.dataset.theme=b.dataset.themeBtn;
+  }));
+  set('soft');
+</script>
+</body>
+</html>
