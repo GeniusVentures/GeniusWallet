@@ -254,9 +254,17 @@ Plans:
   3. Copying the recovery phrase on desktop shows its confirmation without throwing after the screen is dismissed mid-copy (finding 19 — missing `mounted` guard)
   4. The select-wallet-type step (develop-only, no mockup) wears the extended design language per the Phase 3 treatment and still routes correctly through `wallet_routes.dart`
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+- [ ] 06-01-PLAN.md — Onboarding chrome: `/landing_screen` entry (deepBlue trap killed, GWMeshBackground, 3 GWButton CTAs) + both flow shells' transparent AppBar — criterion 1
+- [ ] 06-02-PLAN.md — Shared Legal step + **GAP-04**: wallet-type row → GWWalletCard (1:1 swap, `GWWalletCard`'s first real consumer) and `wallet_routes.dart` typography-only — criteria 1, 4
+- [ ] 06-03-PLAN.md — Recovery-phrase + verify-recovery-phrase re-skin (security-critical; read-only grid, `_isVisible` default, finding-19 `mounted` guard preserved) — criteria 1, 2, 3
+- [ ] 06-04-PLAN.md — Import security + PasteField re-skin **+ the §3.6 IME hardening** (`autocorrect`/`enableSuggestions` false on the mnemonic/private-key field — a deliberate, recorded behavior addition) — criterion 1
+- [ ] 06-05-PLAN.md — Shared `screens/pin_screen.dart` re-skin **+ fixes the invoke-during-build Continue defect** (closure-wrapped `onCompleted`, type tightened to `void Function(String)` so the analyzer guards it) — criterion 1
+- [ ] 06-06-PLAN.md — Phase close: `tool/check_onboarding_seed_safety.sh` (UI-SPEC §3's six-item gate over the finished tree) + the **fresh-install end-to-end walk of BOTH flows** (no mock injectors — the Phase 05 fixture-blindness lesson) + 5 filed todos for the deliberately-unfixed gaps — criteria 1, 2, 3, 4
+
 **UI hint**: yes
-**Findings**: 19. **Covers GAP-04**: `select_wallet_type_screen.dart`, `wallet_routes.dart`.
+**Findings**: 19 — **already fixed on develop** (`recovery_phrase_screen.dart:105`); Phase 6 closes criterion 3 by PRESERVATION, not by a fix. **Covers GAP-04**: `select_wallet_type_screen.dart`, `wallet_routes.dart` (closed entirely by 06-02).
 
 ### Phase 7: Token screens
 
