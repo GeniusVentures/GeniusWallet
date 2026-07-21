@@ -56,7 +56,11 @@ coverage:
 # Metrics
 duration: ~15min (Task 1 only; Task 2 pending)
 completed: 2026-07-21
-status: awaiting-human-verify
+status: complete
+walk: APPROVED 2026-07-21 (both appearance modes) — Task 2 Part A observed: "Fail acct" armed the
+  one-shot fault, the dashboard rendered 'Something went wrong!' with the Retry button, and pressing
+  Retry recovered the app to a fully rendered dashboard. Part B (markets retry, finding 8) also
+  approved. Criterion 3 is satisfied by observation, not by wiring inspection.
 ---
 
 # Phase 05 Plan 07: Dashboard Error-Branch Retry Summary

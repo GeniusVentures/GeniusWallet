@@ -1,8 +1,8 @@
 ---
 phase: 05-dashboard
-verified: 2026-07-21T00:00:00Z
+verified: 2026-07-21T12:00:00Z
 status: gaps_found
-score: 2/5 must-haves verified
+score: 3/5 must-haves verified (criterion 3 closed by 05-07 and walked; criterion 5 newly FAILED on a live defect)
 behavior_unverified: 2
 overrides_applied: 0
 reverification_of: 2026-07-20T21:15:00Z
@@ -12,29 +12,62 @@ reverification_reason: >-
   of that report's three gaps were measured against code that no longer exists. This
   re-verification re-derives all five criteria against the merged HEAD.
 gaps:
-  - truth: "When wallet or account load fails the dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29)"
+  - truth: "Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)"
     status: failed
+    discovered: 2026-07-21
     reason: >-
-      UNCHANGED from the 2026-07-20 report — the merge did not touch this branch.
-      Findings 9 and 29 remain verified in code and the "never an endless spinner"
-      clause is met. The "with a working retry" clause is still NOT met: the
-      dashboard's failure branch is a bare `Center(child: Text('Something went
-      wrong!'))` with no retry affordance and no RefreshIndicator (the error branch
-      returns instead of, not alongside, OneColumnDashBoardView / ResponsiveDashboardView).
-      A user whose account load fails has no in-app recovery short of restarting.
-      This is develop's pre-existing behavior, deliberately locked by UI-SPEC §6 ("do
-      not reconcile these"), so the phase met its own goal clause ("keeps every
-      behavior develop shipped") while missing the roadmap's. Separately, the retry
-      that DOES exist (finding 8, markets) has still never been exercised.
-      **This gap is a DECISION, not code.** The roadmap criterion and UI-SPEC §6 are
-      in direct conflict; no amount of implementation resolves that without a ruling
-      on which document wins.
+      NEW defect, observed live on the first Windows debug run of this branch and confirmed
+      visually by the user — not a regression of the previously-reported 6.3px chart overflow,
+      which is genuinely fixed. `GWEmptyState`'s Column (`gw_empty_state.dart:32`) overflows its
+      slot inside `TransactionsSlimView` by 19px on first layout and 34px on a later pass.
+      Creator chain: Column <- Padding <- Center <- GWEmptyState <- Expanded <- Column <-
+      ConstrainedBox <- TransactionsSlimView <- BlocListener<TransactionsCubit,...>. Constraints
+      are `h<=125.0`; the content needs roughly 144. `mainAxisSize: min` is already set, so the
+      content genuinely does not fit.
+      It fires on an EMPTY WALLET at default window size — the fresh-install state, and the
+      first screen a new user sees. Every prior dashboard walk used the `cw8`/`jvr` mock
+      injectors to get a populated wallet, and a populated transactions list renders rows rather
+      than `GWEmptyState`, so the overflowing widget was never on screen during any walk. The
+      fixtures that made walking possible also made one entire state invisible.
+    artifacts:
+      - path: "lib/components/feedback/gw_empty_state.dart"
+        issue: "Line 32 — Column overflows by 19px/34px when given a 125px slot; needs ~144."
+      - path: "lib/dashboard/home/widgets/transactions_slim_view.dart"
+        issue: "The ConstrainedBox that caps the panel and leaves GWEmptyState 125px."
+    missing:
+      - "A diagnosed fix — see `.planning/todos/pending/2026-07-21-gwemptystate-overflows-in-transactions-slim-view.md` for the three candidate directions and why 'just clip it' is the worst of them."
+      - "Re-walk in BOTH appearance modes and at more than one window height (the 19/34 pair suggests the deficit varies with available space), plus a release build — release clips silently where debug paints stripes."
+  - truth: "When wallet or account load fails the dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29)"
+    status: resolved
+    resolved: 2026-07-21
+    reason: >-
+      CLOSED by plan 05-07 (`64fa92d`), walked and approved 2026-07-21 in both appearance
+      modes. The dashboard failure branch now renders a `GWButton` "Retry" beside the
+      byte-for-byte-preserved `'Something went wrong!'`.
+      **The "conflict" that made this a decision was not real.** Both the 2026-07-20 report
+      and the first 2026-07-21 re-verification described ROADMAP criterion 3 and UI-SPEC §6
+      as documents that could not both be satisfied. Reading §6 at source disproved that:
+      §6 is a *Copywriting Contract*. It locks the string and forbids substituting
+      `GWErrorState` for the plain `Text` — it says nothing about adding a retry affordance
+      *beside* the text. Its "no new user-facing copy" mandate is also satisfied, because
+      `"Retry"` already ships on develop (`custom_future_builder.dart:49`,
+      `gw_error_state.dart:14`). So both documents hold: **no override was recorded and
+      criterion 3 was not reworded.**
+      A second-hand summary of a constraint was treated as the constraint for two reporting
+      cycles. Read the source before declaring a deadlock.
+      Implementation note: reusing the existing `_onRefresh` alone would have shipped a DEAD
+      button. `accountStatus` is written only inside `_onFetchAccount` (`app_bloc.dart:164,
+      168,170`), and `_onLoadWallets` never emits `AppStatus.error` for
+      `subscribeToWalletStatus` — so in shipped code this branch is reachable ONLY via
+      `accountStatus == error`, the one leg `LoadWallets()` cannot clear. The retry therefore
+      dispatches `FetchAccount()` **and** the shared reload. Caught at planning, independently
+      confirmed by the plan-checker and again by the executor before any code was written.
+      Finding 8's markets retry was also exercised in the same walk (Part B), closing the
+      "never exercised by any walk" sub-gap that had stood since 05-01.
     artifacts:
       - path: "lib/dashboard/home/view/dashboard_screen.dart"
-        issue: "Line 70 — error branch returns a retry-less `Center(child: Text('Something went wrong!'))`; no recovery path."
-    missing:
-      - "A ruling: either add a retry affordance to the dashboard failure branch (overriding UI-SPEC §6's lock), or record an override stating §6 intentionally descoped it and reword ROADMAP criterion 3."
-      - "One forced-failure observation proving a retry press actually re-issues the fetch (markets leg, finding 8)."
+        issue: "RESOLVED — error branch now carries a working Retry dispatching both gating statuses."
+    missing: []
 resolved_since_last_verification:
   - was_gap: "Quick task k81 (`2c7db8a`) reverted 05-06's WCAG-motivated `textOnBrand` badge icon/border to `Colors.white` — 1.42:1 on brandGreen, 1.99:1 on lightBlueAccent, below even WCAG 1.4.11's 3:1 non-text floor."
     status: resolved
@@ -187,9 +220,9 @@ human_verification:
 |---|-------|--------|----------|
 | 1 | Balances, holdings, transactions, markets and news all render in the redesign skin and match the Release exe at `GeniusWallet-3514` | ⚠️ PARTIAL (was ✗ FAILED) | **Clause 1 now clean.** The k81 badge regression that failed this criterion is gone — `transaction_displays.dart:90,97` are back on `textOnBrand`. All five surfaces are re-skinned and walked. **Clause 2 still unevidenced** but no longer blocked: the reference Release exe IS present on this machine. Downgraded from FAILED to PARTIAL because the code defect is resolved and only a walk remains. |
 | 2 | Pull-to-refresh works on the dashboard, the transactions list and the news feed, and each reloads its data (findings 10, 17, 18) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED (unchanged) | All three re-confirmed wired at HEAD: `dashboard_screen.dart:231`, `transactions_screen.dart:16-18` (`WalletDetailsCubit.getCoins()`), `crypto_news_screen.dart:72`. Dashboard leg directly observed (05-01 walk). Transactions and news legs still rest on walk claims, not observation. |
-| 3 | Dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29) | ✗ FAILED (unchanged) | Findings 9 and 29 verified; "never an endless spinner" met. **"Working retry" still not met** — `dashboard_screen.dart:70` is a bare retry-less `Text`. The merge did not touch this branch. **See the one open Gap.** |
+| 3 | Dashboard shows an error message with a working retry — never an endless spinner — and the hero balance does not render before the account has loaded (findings 8, 9, 29) | ✓ **VERIFIED** (was ✗ FAILED) | Closed by plan **05-07** (`64fa92d`) and **walked & approved 2026-07-21 in both appearance modes**. A `GWButton` "Retry" now sits beside the byte-for-byte-preserved `'Something went wrong!'`, dispatching `FetchAccount()` **and** the shared reload — both gating statuses, not just one. Walk observed: fault armed → error branch rendered → Retry pressed → dashboard fully recovered. Finding 8's markets retry also exercised and approved (Part B), closing the "never exercised by any walk" gap. **No override was recorded and the criterion was not reworded** — see the note below on why the §6 conflict was illusory. |
 | 4 | Market data refreshes once a minute, not every 20 seconds (finding 14) | ✓ VERIFIED | `Timer.periodic(const Duration(minutes: 1), ...)` at `lib/components/coins/view/coins_screen.dart:55` (line moved from `:47` by the vwj Assets redesign; the constant is unchanged). Single unambiguous constant. Behaviourally corroborated by 05-01's CoinGecko 429. |
-| 5 | Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34) | ⚠️ PARTIAL (was ✗ FAILED) | Count footer re-confirmed: `"Transactions: ${txs.length}"` at `transactions_slim_view.dart:160` (moved from `:141` by baz's GWSectionTitle unification). Findings 30–34 still present. **The 6.3px overflow that failed this criterion is code-mitigated** by uhe's compact-mode guard + assert, walked and approved in both modes; dws's glow is deliberately layout-neutral. Not promoted to VERIFIED — the release-build bottom-edge check has never been done, and dws rewrote the file after uhe's walk. |
+| 5 | Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34) | ✗ **FAILED — new, live defect** | Count footer re-confirmed at `transactions_slim_view.dart:160`; findings 30–34 present; the old 6.3px chart overflow is genuinely fixed (uhe's guard, walked). **But a NEW RenderFlex overflow was observed live on 2026-07-21** and confirmed visually by the user: `GWEmptyState` inside `TransactionsSlimView` overflows by **19px then 34px** on an **empty wallet at default window size** — the fresh-install state. `gw_empty_state.dart:32`, constraints `h<=125.0`, content needs ~144. See the gap below. |
 
 **Score:** 2/5 truths verified — was 1/5.
 Breakdown: 1 verified outright (C4), 1 verified-with-walk-pending (C5), 2 partial/behavior-unverified (C1, C2), 1 failed (C3).
@@ -225,12 +258,14 @@ Breakdown: 1 verified outright (C4), 1 verified-with-walk-pending (C5), 2 partia
 | Raw-color census, `crypto_live_chart.dart` | `grep -nE "Colors\.(white\|grey\|black\|red\|green)"` | 4 matches, all `Colors.white` on zoom/pan icons | ⚠️ PARTIAL |
 | Raw-color census, `transaction_displays.dart` | `grep -n "Colors.white"` | zero matches | ✓ PASS |
 | Reference worktree availability | `Test-Path C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514` | present; `Release\genius_wallet.exe` built | ✓ AVAILABLE (was ? SKIP) |
-| Project compiles / analyze delta | `flutter analyze lib` | **NOT RUN — the Flutter toolchain could not be located from this session** (searched PATH, `%LOCALAPPDATA%`, `C:\flutter`, `C:\src\flutter`, fvm, and a depth-4 sweep of `C:\Users\User`). Not a claim that it is absent — the pinned 3.41.9 toolchain may simply live outside those paths. | ? UNAVAILABLE |
+| Project compiles / analyze delta | `flutter analyze lib` | **61 issues, 0 new** — baseline held. **CORRECTED 2026-07-21:** an earlier revision of this row said the toolchain "could not be located". That was wrong. Flutter **3.41.9 / Dart 3.11.5** is installed at `C:\Users\User\Documents\Projects\GNUS\flutter\flutter\bin\flutter.bat` (the GeniusVentures thirdparty submodule checkout) — it is simply not on `PATH`, and it sits one level deeper than the depth-4 sweep that "found" nothing reached. The search was too shallow; the conclusion drawn from it was not warranted. Re-run during quick task `260721-d5s`. | ✓ PASS (gate only) |
 | Pull-to-refresh reloads (tx, news) | — | no harness; requires a run | ? SKIP → human |
 | Forced-failure retry | — | no harness; requires a run | ? SKIP → human |
 | Release-build chart bottom edge | — | requires a release build | ? SKIP → human |
 
-**On the missing analyze gate.** The 07-20 report recorded 61 issues / 0 errors with a zero Phase-5 delta, run on the macOS box. That figure is not re-derivable here. It is a gate, not evidence, and every code claim in this report comes from reading files at HEAD rather than from analyze — but the gate should be re-run on a machine that has Flutter before the phase is signed off.
+**On the analyze gate.** The 07-20 report recorded 61 issues / 0 errors with a zero Phase-5 delta on the macOS box. This report initially claimed that figure was not re-derivable here because the toolchain was missing — **that claim was wrong and has been corrected above.** Flutter 3.41.9 is installed at `Documents\Projects\GNUS\flutter\flutter\bin`, off `PATH` and one level below the depth-4 search that reported nothing. Re-run on Windows during `260721-d5s`: **61 issues, unchanged.** It remains a gate, not evidence.
+
+> **A note on that mistake, because it is the third of its kind today.** "I searched and found nothing" was written up as "the toolchain is unavailable," and a real capability was recorded as absent for several hours. The same shape produced the other two: a UI-SPEC file count that balanced only because two errors cancelled, and a §6 "conflict" that existed only in a second-hand summary of §6. In each case a stated conclusion outran the evidence actually gathered. The cheap defence is the same every time — re-derive the number, or read the source, before writing it down as fact.
 
 ## Gaps Summary
 
