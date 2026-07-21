@@ -229,14 +229,15 @@ Plans:
   4. Market data refreshes once a minute, not every 20 seconds (finding 14 — the 20s interval risks CoinGecko 429s)
   5. Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)
 
-**Plans**: 2/6 plans executed
+**Plans**: 7 plans (6 executed and walked; 05-07 is the gap-closure plan for criterion 3)
 
 - [x] 05-01-PLAN.md — Shared dashboard chrome: DashboardScrollContainer + shared Loading + FutureStateWidget default states (GAP-06 loading.dart) — criteria 1, 2, 3
-- [x] 05-02-PLAN.md — Hero balance / wallet overview re-skin (GAP-06 wallet_overview.dart; wallets_overview.g.dart shadow read-only) — criteria 1, 3 — **code committed; Task 2 blocking human-verify walk PENDING, SCR-01/GAP-06 not yet claimed**
-- [ ] 05-03-PLAN.md — Holdings list re-skin + verify 1-min market refresh (finding 14) — criteria 1, 4, 5
-- [ ] 05-04-PLAN.md — Markets re-skin (grid + GWTextField search + sparkline cards, error/retry) — criteria 1, 3, 5
-- [ ] 05-05-PLAN.md — News feed re-skin (develop's StaggeredGrid kept) — criteria 1, 2
-- [ ] 05-06-PLAN.md — Transactions re-skin in place (count footer, overflow-safety, SegmentedButton kept) (GAP-06 transaction_displays.dart) — criteria 1, 2, 5
+- [x] 05-02-PLAN.md — Hero balance / wallet overview re-skin (GAP-06 wallet_overview.dart; wallets_overview.g.dart shadow read-only) — criteria 1, 3
+- [x] 05-03-PLAN.md — Holdings list re-skin + verify 1-min market refresh (finding 14) — criteria 1, 4, 5
+- [x] 05-04-PLAN.md — Markets re-skin (grid + GWTextField search + sparkline cards, error/retry) — criteria 1, 3, 5
+- [x] 05-05-PLAN.md — News feed re-skin (develop's StaggeredGrid kept) — criteria 1, 2
+- [x] 05-06-PLAN.md — Transactions re-skin in place (count footer, overflow-safety, SegmentedButton kept) (GAP-06 transaction_displays.dart) — criteria 1, 2, 5
+- [ ] 05-07-PLAN.md — **Gap closure**: working Retry on the dashboard failure branch — dispatches `FetchAccount()` (the only writer of `accountStatus`) as well as `LoadWallets()`, beside develop's preserved "Something went wrong!" — criterion 3
 
 **UI hint**: yes
 **Findings**: 8, 9, 10, 14, 17, 18, 29, 30, 31, 32, 33, 34. **Covers GAP-06**: `wallet_overview.dart`, `loading.dart`, `transaction_displays.dart`.
