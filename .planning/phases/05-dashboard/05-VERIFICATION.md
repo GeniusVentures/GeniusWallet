@@ -12,8 +12,55 @@ reverification_reason: >-
   of that report's three gaps were measured against code that no longer exists. This
   re-verification re-derives all five criteria against the merged HEAD.
 gaps:
-  - truth: "Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)"
+  - truth: "Walking the dashboard ... produces no RenderFlex overflow (findings 30-34) — SECOND site: WalletsOverview"
     status: failed
+    discovered: 2026-07-21
+    source: ".planning/AUDIT-260721-parallel-investigation.md (B1), derived at 87a7715"
+    reason: >-
+      `lib/components/wallet_overview.dart:49` is a top-level
+      `Column(mainAxisAlignment: center)` with default `mainAxisSize: max`, no scroll view,
+      and no `Flexible`/`Expanded` on any of its six children — mounted inside a hard
+      `ConstrainedBox(maxHeight: 300)` (`dashboard_screen.dart:270-273` and `:198-201`).
+      The investigating agent reported this as "passes by 3px". The refuting agent
+      recomputed against Flutter SDK source and found the SGNUS-wallet branch overflows by
+      **~26px idle and ~55px processing** — the correction went in the WORSE direction.
+      **There is no dev fixture for this state.** It needs a live SGNUS connection plus
+      `isProcessing`, which is why no walk has ever reached it. Fixing the slot alone
+      therefore does NOT close this gap: without a fixture the criterion becomes
+      unverifiable rather than verified. That is the same trap as the empty-state
+      overflow — a state no fixture can reach is a state no walk will ever check.
+    artifacts:
+      - path: "lib/components/wallet_overview.dart"
+        issue: "Line 49 — unscrollable Column(mainAxisSize.max) with no flexible children inside a 300px cap."
+      - path: "lib/dashboard/home/view/dashboard_screen.dart"
+        issue: "Lines 198-201 and 270-273 — the ConstrainedBox(maxHeight: 300) slots."
+      - path: "lib/dev/dev_tools_bubble.dart"
+        issue: "No MOCK scenario can force WalletType.sgnus + isProcessing, so the failing state is unreachable in a walk."
+    missing:
+      - "A layout fix (SingleChildScrollView or the same compact adaptation used in quick 260721-e3r)."
+      - "A dev-bubble MOCK scenario forcing WalletType.sgnus + isProcessing — without it criterion 5 stays unverifiable."
+      - "A walk of both the idle and processing SGNUS states, in both appearance modes."
+  - truth: "Balances, holdings, transactions, markets and news all render in the redesign skin — Markets error/empty branches"
+    status: failed
+    discovered: 2026-07-21
+    source: ".planning/AUDIT-260721-parallel-investigation.md (B2), derived at 87a7715"
+    reason: >-
+      `dashboard_screen.dart:392` (the `error:` slot) and `:394-396` (the empty branch) each
+      return a bare `Center(child: Text(...))` **outside** `DashboardScrollContainer`, while
+      the success path at `:397-399` wraps in it. So whenever market data fails or returns
+      empty, the Markets tile loses its card, border and padding while all four sibling
+      panels keep theirs — the panel visibly falls out of the redesign exactly when
+      something has gone wrong. `markets_screen.dart:98-105` already styles these identical
+      strings correctly, so the right treatment exists in-repo and simply is not used here.
+      Reachable today: the 2026-07-21 run hit it via a CoinGecko handshake failure.
+    artifacts:
+      - path: "lib/dashboard/home/view/dashboard_screen.dart"
+        issue: "Line 392 (error) and 394-396 (empty) — bare Center(Text) outside DashboardScrollContainer."
+    missing:
+      - "Route both branches through GWErrorState / GWEmptyState inside DashboardScrollContainer, matching the four sibling panels."
+      - "A walk with market data forced to fail (offline or api.coingecko.com blocked) confirming the tile keeps its card."
+  - truth: "Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)"
+    status: fixed_walk_pending
     discovered: 2026-07-21
     reason: >-
       NEW defect, observed live on the first Windows debug run of this branch and confirmed
