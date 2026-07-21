@@ -2,6 +2,12 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:equatable/equatable.dart';
+// kDebugMode is required for the dev-only fault-injector gate below.
+// package:flutter/rendering.dart (imported next) re-exports only
+// DiagnosticLevel/ValueChanged/ValueGetter/ValueSetter/VoidCallback from
+// foundation.dart — kDebugMode is not among them, so this explicit import is
+// required and will not trip unnecessary_import.
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
@@ -13,6 +19,8 @@ import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/dev/dev_fault_injector.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -164,6 +172,28 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     emit(state.copyWith(accountStatus: AppStatus.loading));
 
     try {
+      // DEV-ONLY, release-safe: kDebugMode and kShowDevTools are both
+      // compile-time const bools, and they lead this && chain, so in a
+      // release build (or any debug build without the GW_DEV_TOOLS define)
+      // the whole condition constant-folds to false and the compiler
+      // eliminates this branch entirely — DevFaultInjector.consumeAccountLoadFailure()
+      // is never called and this handler's executed behavior is
+      // byte-for-byte what it is at HEAD. This is dev_flags.dart's
+      // documented rule: always combine with kDebugMode at the call site.
+      // Ordering is load-bearing: putting the impure consume call first
+      // would defeat the constant-fold and would spend arms in builds that
+      // should not have them.
+      if (kDebugMode &&
+          kShowDevTools &&
+          DevFaultInjector.instance.consumeAccountLoadFailure()) {
+        // Any throw type works — the catch below is untyped (catch (_)) and
+        // swallows this identically to a real failure. Do not "improve"
+        // this into a typed exception; it would not change catch behavior.
+        throw Exception(
+          'DEV-ONLY: injected by dev_fault_injector.dart (armed via the '
+          'dev-tools bubble MOCK section) — not a real account-load failure.',
+        );
+      }
       final account = await api.getAccount();
       emit(state.copyWith(accountStatus: AppStatus.loaded, account: account));
     } catch (_) {
