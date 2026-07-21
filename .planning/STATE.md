@@ -4,24 +4,25 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 current_phase_name: Onboarding
-status: verifying
+status: executing
 stopped_at: >-
-  Phase 05 (Dashboard) CLOSED 2026-07-21 with 3 explicit user-authorized overrides recorded in
-  05-VERIFICATION.md (criteria 1's Release-exe walk, 2's pull-to-refresh behavior-unverified legs,
-  5's crypto_live_chart.dart:315 34px overflow — a card-height limitation the user confirmed by
-  live inspection, not a component defect). Quick task 260721-gx1 (a considered stopgap) was
-  abandoned by user decision rather than executed. New todo filed for the actual root cause
-  (dashboard Bitcoin Chart card vertical budget). Transitioned to Phase 06 (Onboarding) — not yet
-  started.
-last_updated: "2026-07-21T20:00:00.000Z"
+  06-01-PLAN.md (onboarding chrome: /landing_screen entry + both flow shells' AppBar) CLOSED
+  2026-07-21 — walked and APPROVED on a genuine fresh install (all four persistence layers
+  cleared). Task 3's walk found one Rule-1 defect (CTAs glued to the window bezel at narrow
+  width) which this plan fixed (commit 67e2821) and re-walked clean; the blocking mesh
+  light-mode gate PASSED, GWMeshBackground is KEPT. 06-02 (shared Legal step + GAP-04's
+  GWWalletCard swap) is next.
+last_updated: "2026-07-21T21:30:00.000Z"
 last_activity: 2026-07-21
 last_activity_desc: >-
-  Phase 05 closed with 3 recorded overrides (user-authorized); transitioned to Phase 06 (Onboarding)
+  06-01 CLOSED (walked & approved) — entry screen + flow AppBars re-skinned, one walk-driven
+  Rule-1 narrow-width gutter fix landed, GWMeshBackground kept after a live light-mode gate.
+  Transitioned to 06-02.
 progress:
   total_phases: 11
   completed_phases: 4
   total_plans: 36
-  completed_plans: 30
+  completed_plans: 31
   percent: 36
 ---
 
@@ -36,26 +37,55 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 ## Current Position
 
-Phase: 06 (onboarding) — READY TO PLAN
-Plan: Not started
-Status: **Phase 5 (Dashboard) is CLOSED (2026-07-21).** `05-VERIFICATION.md`'s frontmatter `status`
-flipped from `gaps_found` to `passed`, with `overrides_applied: 3` — this was NOT an earned pass.
-The three overridden items (criterion 1's Release-exe side-by-side walk, criterion 2's
-transactions/news pull-to-refresh behavior-unverified legs, criterion 5's
-`crypto_live_chart.dart:315` 34px overflow) are recorded in the file's `overrides:` block and
-`## Acknowledged Gaps` section with who authorized each, why, and what would close it later. The
-user inspected the one live defect (the chart overflow) directly, confirmed it is a genuine
-dashboard-card-height limitation (not a `crypto_live_chart.dart` bug — the same widget is fine at
-`token_info_screen.dart:130`'s taller slot), rejected the considered stopgap (`260721-gx1`, hiding
-the zoom/pan row) as producing "a non-overflowing broken card, not a fixed one," and authorized
-closing the phase with the gap recorded rather than patched over. New todo filed for the real root
-cause: `.planning/todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`.
+Phase: 06 (onboarding) — IN PROGRESS (1/6 plans complete)
+Plan: 06-01 CLOSED (walked & approved, 2026-07-21). **06-02 next** (shared Legal step + GAP-04's
+`GWWalletCard` swap).
+Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
+2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
+persistence layers cleared (it took four attempts; see
+`.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
+What was walked: entry screen in dark (mesh background, branded `GWButton` CTAs, nothing clipped);
+narrow/mobile width (originally FAILED — see below — then re-walked clean); wide-window regression
+(confirmed unchanged); **the blocking mesh light-mode gate**; the inherited secondary-button
+light-mode concern (re-verified, already closed); both flow shells' flattened AppBars and back
+navigation. Console evidence across every relaunch: zero `RenderFlex overflowed`, zero exceptions,
+zero `LateInitializationError`.
+
+**Walk-driven fix (Rule 1, commit `67e2821`):** the walk found `wallet_creation_screen.dart`'s CTAs
+glued to the window bezel with zero gutter at narrow widths — `ConstrainedBox(maxWidth:)` only
+constrains when the viewport is *wider* than it. Fixed with `Padding(EdgeInsets.symmetric(
+horizontal: GeniusWalletConsts.space8))` wrapped *outside* the existing `ConstrainedBox`, so the
+gutter is additive to (never a replacement for) the max-width centring; re-walked clean, and the
+wide-window layout confirmed unchanged by construction. Pre-existing desktop-first assumption, not
+introduced by this plan — but this plan re-skinned the screen and the walk is its own gate.
+
+**Design decision, recorded because it was a live gate with a real alternative, not a formality:
+`GWMeshBackground` is KEPT on `/landing_screen` in light mode.** The pre-named fallback (drop the
+mesh, let the wired `scaffoldBackgroundColor` stand) was NOT taken — the user judged the mesh live
+in light mode and it read acceptably. This matters because this same component is one of two this
+project has flagged as dark-only-by-design (see Blockers/Concerns below); this is the first time
+anyone has actually looked at it live in light mode on a real screen, rather than waiving it on the
+strength of the earlier finding, and it is now an explicit per-consumer decision, not an assumption.
+
+**Carried forward for 06-02 (do not rediscover):** the systemic mobile-gutter finding —
+`legal_screen.dart` and `select_wallet_type_screen.dart` (both owned by 06-02) are confirmed
+breakpoint-constrained with zero horizontal inset, the same class of bug `wallet_creation_screen.dart`
+just had. Apply the `space8`-outside-`ConstrainedBox` pattern proactively rather than waiting for a
+walk to catch it again — see
+`.planning/todos/pending/2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`
+for the full per-file breakdown (including two files needing a per-screen check rather than an
+assumed fix).
+
+**The fresh-install profile used for this walk is now CONSUMED** — a wallet was created during the
+walk. Any later plan needing genuine first-run state must clear all four persistence layers again.
+
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-21 — Phase 05 closed with 3 recorded overrides; transitioned to Phase 06
+Last activity: 2026-07-21 — 06-01 closed (walked & approved); mesh kept after a live light-mode
+gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [█████████████████░░░] 30/36 plans (83%)
+Progress: [██████████████████░░] 31/36 plans (86%)
 
 ## Accumulated Context
 
@@ -111,6 +141,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 05-02: UI-SPEC 3.1's toggle pairing (selectedColor textPrimary over fillColor brandPrimary) fails WCAG AA at 1.96:1 in dark mode; substituted textOnBrand (10.12:1). 3.1's table should be corrected for 05-03..05-06.
 - [Phase ?]: 05-02: GWAnimatedNumber currency prefix sourced from NumberFormat.simpleCurrency().currencySymbol, not hardcoded, preserving develop's locale-aware balance rendering.
 - [Phase 05 closeout, 2026-07-21]: **User closed Phase 5 with 3 explicit overrides rather than fixes.** Live-inspected the Bitcoin Chart card and confirmed the 34px `crypto_live_chart.dart:315` overflow is a dashboard-card-height limitation (not a component defect — same widget fine at `token_info_screen.dart:130`'s taller slot); rejected the considered stopgap `260721-gx1` (hiding zoom/pan below a 112px threshold) as producing "a non-overflowing broken card, not a fixed one"; directed closing the phase with the gap recorded honestly. Same decision folded in criterion 1's unwalked Release-exe comparison and criterion 2's unwalked pull-to-refresh legs as overrides rather than blockers. See `05-VERIFICATION.md`'s `overrides:`/`## Acknowledged Gaps`.
+- [Phase 06-01, 2026-07-21]: **`GWMeshBackground` KEPT on `/landing_screen` in light mode — a live design decision, not a waived assumption.** The plan's Task 3 recipe hardened UI-SPEC §9.1's "if distracting, drop back" into a blocking gate specifically because this component is one of two STATE records as dark-only-by-design (never reads the appearance). The user judged it live in light mode on a genuine fresh-install profile and it read acceptably; the pre-named fallback (drop the mesh, let the wired `scaffoldBackgroundColor` stand) was available and NOT needed. Recorded explicitly so a future reader sees someone actually looked, rather than inheriting the general dark-only finding as a blanket assumption this specific consumer failed.
+- [Phase 06-01, 2026-07-21]: **Walk-driven Rule-1 fix — narrow-width zero-gutter on `wallet_creation_screen.dart` (commit `67e2821`).** `ConstrainedBox(maxWidth: GeniusBreakpoints.small * 2/3)` only binds when the viewport is wider than it; below that, `Center`'s loosened constraints collapse to the raw viewport width and the stretch CTA column ran edge-to-edge with zero gutter. Fixed with `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))` wrapped outside the `ConstrainedBox` (additive gutter; wide-window centring unchanged by construction). Token chosen from real precedent (`submit_logs_screen.dart`'s identical structural shape, `markets_screen.dart`'s page-edge `space8` gutter) rather than invented. Same-class bug confirmed present in `legal_screen.dart` and `select_wallet_type_screen.dart` (06-02's files) — see `.planning/todos/pending/2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`.
 
 ### Pending Todos
 
@@ -148,7 +180,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - Nav shell has never been visually walked — Phase 4 addresses this
 - 37 evidenced defects in the design-vs-develop surface (`.planning/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
 - `analysis_options.yaml` excludes `lib/**/*.g.dart` — the compiler, not analyze, is the real gate for generated widgets
-- **Two components are dark-only by design** (2026-07-17, from the 03-07 walk) — `GWCanvasBackground` gates its grain behind `if (!isLight)`; `GWMeshBackground` never reads the appearance and washes out on a light base. Both verified byte-identical to the reference, so **neither is a port defect**. ~~Alex's design system may have no complete light mode~~ — **CORRECTED same day: FALSE.** Alex's `theme.dart` IS appearance-aware (`brightness: isLight ? Brightness.light : Brightness.dark`); light mode is a real designed feature. These two are deliberate dark-only choices *within* a working light mode. Scope of dark-only components still unknown — 03-09's both-mode walk produces the count. Do not fix before that number exists; see the todo for why removing the gate is insufficient
+- **Two components are dark-only by design** (2026-07-17, from the 03-07 walk) — `GWCanvasBackground` gates its grain behind `if (!isLight)`; `GWMeshBackground` never reads the appearance and washes out on a light base. Both verified byte-identical to the reference, so **neither is a port defect**. ~~Alex's design system may have no complete light mode~~ — **CORRECTED same day: FALSE.** Alex's `theme.dart` IS appearance-aware (`brightness: isLight ? Brightness.light : Brightness.dark`); light mode is a real designed feature. These two are deliberate dark-only choices *within* a working light mode. Scope of dark-only components still unknown — 03-09's both-mode walk produces the count. Do not fix before that number exists; see the todo for why removing the gate is insufficient. **UPDATE 2026-07-21 (06-01):** `GWMeshBackground` got its first real consumer (`/landing_screen`, `wallet_creation_screen.dart`) and its light-mode readability was walked LIVE, not assumed — 06-01's Task 3 hardened this into a blocking gate with a pre-named fallback (drop the mesh). It PASSED; the mesh is KEPT on this screen in light mode. This resolves nothing about the general dark-only census (still 03-09's open item) but establishes the precedent: each new consumer of a dark-only-flagged component needs its own live light-mode judgment call, not an inherited assumption either way.
 - **develop's `theme.dart` is NOT appearance-aware and Phase 4 must wire it — THIS IS NOW THE PHASE'S BIGGEST OPEN ITEM** (2026-07-17) — `ThemeData(brightness: Brightness.dark)`, hardcoded, zero `GWAppearance` references, no `textTheme:`, and `toMaterialTextTheme()` (defined `genius_wallet_typography.dart:133`) is referenced NOWHERE in `lib/`. Phase 2 deferred it (UI-SPEC §1.1 excludes `theme.dart` wholesale as a 100%-collision file). **Consequences already observed, both in 03-09:** (1) the gallery's faithfully-ported `Scaffold(backgroundColor: Colors.transparent)` fell through to the permanently-dark theme while `textPrimary` flipped to near-black ink → light mode unreadable. Worked around in the dev-only gallery (`244b71e` → `surfaceBase`); **revert to `Colors.transparent` when Phase 4 lands the real theme.** (2) `GeniusWalletTypography.*` styles carry NO color, so every `Text` using them inherits white from the dark theme unconditionally → 5 of the walk's 8 findings. **Every Phase 4+ screen mounting Alex's components will hit this until the theme is wired.** Wire it EARLY in Phase 4, before re-skinning any screen
 - **The dark-only light-mode COUNT is NOT DERIVABLE until Phase 4 wires the theme** (2026-07-17) — the 03-09 walk established that any count taken now measures OUR missing theme, not Alex's design, and would misattribute the cause. Recorded in `03-09-SUMMARY.md` as an accepted gap, explicitly not a pass. **Re-derive after Phase 4.** See the todo for what stays genuinely open (canvas grain, mesh blobs, `GWSwitch` disabled==off, `GWSwitch` off-thumb near-black in light — all byte-identical ports, all Alex's real design choices)
 - **Two 03-09 findings have NO established root cause** (2026-07-17) — `Screen wrappers` renders nothing in EITHER mode (light explained by white-text-on-light; **dark blankness unexplained**; `app_screen_view.dart` is byte-identical so not a port defect), and the disabled checkbox is invisible in dark (`btnDisabled` = `const Color.fromRGBO(188,188,188,1)`, not appearance-aware, but its role is unconfirmed). **Both need a real repro. No hypothesis has been recorded as fact**
@@ -213,32 +245,37 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-21
-Stopped at: **Phase 05 (Dashboard) CLOSED (2026-07-21).** Preceding history: 05-08 Task 4 (the
-blocking human-verify walk) was PERFORMED AND APPROVED (2026-07-21) — B1 (`WalletsOverview`
-SGNUS-branch overflow) and B2 (Markets error/empty branches losing their card) were **resolved and
-walked**, and the outstanding `260721-e3r` (`GWEmptyState`, 19px→34px inside `TransactionsSlimView`)
-re-walk closed in the same session — Assets' empty-state regression gate held. **Three
-previously-unreachable dashboard states became walkable**: SGNUS idle/processing (new
-`dev_mock_sgnus.dart`, Task 1) and Markets error/empty (a NEW dev fixture built DURING the walk
-itself — `Mkt error`/`Mkt empty`, commit `3364259` — because CoinGecko's live 429 rate-limiting meant
-the app kept falling back to cached data and neither branch was otherwise reachable). That same walk
-surfaced a NEW, third, distinct live failure: `crypto_live_chart.dart:315`'s zoom/pan `IconButton`
-row overflowing by **34px**, on the plain dashboard, no fixture armed, ordinary window size — not a
-regression of anything closed that session and not a reappearance of the already-fixed 6.3px chart
-overflow. **Resolution (2026-07-21, this session):** the user live-inspected the app, confirmed the
-overflow is a genuine dashboard-card-height limitation rather than a component defect, rejected the
-considered stopgap (`260721-gx1`) as cosmetic, and authorized closing Phase 5 with this and two
-other outstanding walk-items (criterion 1's Release-exe comparison, criterion 2's
-transactions/news pull-to-refresh legs) recorded as explicit overrides in `05-VERIFICATION.md`
-rather than fixed. New todo filed for the real root cause
-(`2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`). Phase advanced to Phase 06
-(Onboarding), not yet started. Also still open from the prior session: a `_basePath`
-`LateInitializationError` thrown as an unhandled `GoException` on every router redirect (likely
-pre-existing on develop — confirm before attributing it to this milestone).
-Resume file: None — Phase 05 CLOSED 2026-07-21 (see `05-VERIFICATION.md`'s `## Phase Closure`
-section). The chart-zoom-pan-row todo is no longer a phase-5 blocker; it is recorded as an accepted
-override and stays open only as a product/UX decision (see Open decisions item 4 below and the new
-root-cause todo `2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`).
+Stopped at: **06-01-PLAN.md CLOSED (2026-07-21) — walked and APPROVED.** Onboarding chrome (the
+`/landing_screen` entry point + both flow shells' AppBar) was re-skinned across two auto tasks
+(`3e1f432`, `b9c565f`), then Task 3's blocking human-verify checkpoint was run on a genuine
+fresh-install profile (all four persistence layers cleared — took four attempts; see
+`2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`). The walk found one
+real defect in Task 1's own deliverable — CTAs glued to the window bezel at narrow widths, because
+`ConstrainedBox(maxWidth:)` only constrains when the viewport is wider than it — fixed per Rule 1
+(`67e2821`, `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))` wrapped outside
+the `ConstrainedBox`) and re-walked clean; the wide-window layout was confirmed unchanged by
+construction. **The blocking mesh light-mode gate PASSED — `GWMeshBackground` is KEPT** on the
+entry screen in light mode, judged live rather than waived (see Decisions above). The inherited
+`GWButtonVariant.secondary` light-mode AA concern the plan named was re-verified and found already
+closed (same-day quick task `260721-fa7`, 1.93:1 → 4.76:1). Both flow shells' flattened AppBars and
+in-flow back navigation were also walked and approved. Console evidence across every relaunch: zero
+`RenderFlex overflowed`, zero exceptions, zero `LateInitializationError`. **Carried forward for
+06-02** (do not rediscover): `legal_screen.dart` and `select_wallet_type_screen.dart` share the same
+zero-inset breakpoint bug — see
+`2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`. **The fresh-install
+profile used for this walk is now CONSUMED** — a wallet was created during it; any later plan
+needing genuine first-run state must clear all four persistence layers again. Phase 06 is now 1/6
+plans complete; **06-02 is next.** Preceding history: Phase 05 (Dashboard) CLOSED 2026-07-21 with 3
+explicit user-authorized overrides (see prior entries in Decisions/Blockers above); also still open
+from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
+every router redirect (likely pre-existing on develop — confirm before attributing it to this
+milestone).
+Resume file: None — 06-01 CLOSED 2026-07-21 (see `06-01-SUMMARY.md`). Next up is 06-02-PLAN.md
+(shared Legal step + GAP-04's `GWWalletCard` swap), which should apply the
+`space8`-outside-`ConstrainedBox` gutter pattern proactively to `legal_screen.dart` and
+`select_wallet_type_screen.dart` rather than waiting for another walk to find it. The chart-zoom-pan-row
+todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
+Phase 06.
 
 **2026-07-21 parallel investigation — `.planning/AUDIT-260721-parallel-investigation.md` (derived at `87a7715`).** 67 agents, 6 disjoint areas, every finding adversarially refuted before surviving: **36 of 60 survived, 24 refuted (40%)**. Phase 05 gained **two** blockers beyond the already-fixed `GWEmptyState`, both now RESOLVED by plan `05-08` and walked & approved 2026-07-21: **B1** `WalletsOverview` was an unscrollable `Column(max)` in a hard `maxHeight:300` — the verifier's recount put the SGNUS branch at **~26px idle / ~55px processing**, correcting the investigator's "passes by 3px" in the *worse* direction; and **B2** the Markets error/empty branches returned bare `Center(Text)` outside `DashboardScrollContainer`, so that tile lost its card while four siblings kept theirs. B1 had **no dev fixture** (needed live SGNUS + processing) — 05-08 Task 1 shipped one (`dev_mock_sgnus.dart`), avoiding the empty-state trap a second time. Work queue Q1–Q6 with serialization points named. `_basePath` verified **pre-existing on develop** — not this milestone's. **`06-04-PLAN.md:99-100` is already superseded**: the repo has ZERO IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files — `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`. Amend before executing 06-04.
 

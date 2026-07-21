@@ -273,7 +273,7 @@ section for the full reasoning behind each:
 
 **Plans**: 6 plans
 
-- [ ] 06-01-PLAN.md — Onboarding chrome: `/landing_screen` entry (deepBlue trap killed, GWMeshBackground, 3 GWButton CTAs) + both flow shells' transparent AppBar — criterion 1
+- [x] 06-01-PLAN.md — Onboarding chrome: `/landing_screen` entry (deepBlue trap killed, GWMeshBackground, 3 GWButton CTAs) + both flow shells' transparent AppBar — criterion 1 — CLOSED 2026-07-21, walked & approved on a genuine fresh install (mesh KEPT after a live light-mode gate; walk-driven Rule-1 narrow-width gutter fix, commit `67e2821`; see `06-01-SUMMARY.md`)
 - [ ] 06-02-PLAN.md — Shared Legal step + **GAP-04**: wallet-type row → GWWalletCard (1:1 swap, `GWWalletCard`'s first real consumer) and `wallet_routes.dart` typography-only — criteria 1, 4
 - [ ] 06-03-PLAN.md — Recovery-phrase + verify-recovery-phrase re-skin (security-critical; read-only grid, `_isVisible` default, finding-19 `mounted` guard preserved) — criteria 1, 2, 3
 - [ ] 06-04-PLAN.md — Import security + PasteField re-skin **+ the §3.6 IME hardening** (`autocorrect`/`enableSuggestions` false on the mnemonic/private-key field — a deliberate, recorded behavior addition) — criterion 1
@@ -389,7 +389,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | 3. gw_* component library | 0/10 | Planned | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
 | 5. Dashboard | 8/8 | ✓ Complete (3 overrides recorded — see 05-VERIFICATION.md) | 2026-07-21 |
-| 6. Onboarding | 0/TBD | Not started | - |
+| 6. Onboarding | 1/6 | In Progress | - |
 | 7. Token screens | 0/TBD | Not started | - |
 | 8. Swap & bridge | 0/TBD | Not started | - |
 | 9. Banxa | 0/TBD | Not started | - |
