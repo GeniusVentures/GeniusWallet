@@ -161,8 +161,14 @@ canonical file only in **token discipline**, which is exactly this phase's job:
 | "Current Balance" heading | `Theme.of(context).textTheme.headlineMedium` (works, but re-express explicitly per §7 discipline) | `GeniusWalletTypography.headlineMd`, `gw.textSecondary` (label above the number, not the number itself — matches Alex's `_HeroBalance` label treatment, §1) |
 | "No wallet selected" / "No funds available" | plain `Text`, `Colors.red` hardcoded | `GeniusWalletTypography.bodyMd`; "No funds available" → `GeniusWalletColors.statusError` (not `Colors.red`) |
 | Balance figure | raw `TextStyle(fontSize: 36, fontWeight: w500)` | `GeniusWalletTypography.numericDisplay.copyWith(color: gw.textPrimary)` — wrap in `GWAnimatedNumber` (§1's sanctioned reuse) rather than a static `Text` so the balance counts up on first paint and on value change, matching Alex's `_HeroBalance` pattern without adopting its surrounding IA |
-| GNUS/Minions toggle | `ToggleButtons` with default Material colors | keep `ToggleButtons`, re-skin its `fillColor`/`selectedColor`/`borderColor` to `GeniusWalletColors.brandPrimary`/`textPrimary`/`borderSubtle` (the shadow file's own token choices at lines 148-152) |
+| GNUS/Minions toggle | `ToggleButtons` with default Material colors | keep `ToggleButtons`, re-skin its `fillColor`/`selectedColor`/`borderColor` to `GeniusWalletColors.brandPrimary`/`textOnBrand`/`borderSubtle` (the shadow file's own selected-label choice, `textPrimary`, was measured and rejected — it fails WCAG AA at 1.96:1 in dark mode against the `brandPrimary` fill; `textOnBrand` measures 10.12:1 and is the shipped substitute, applied by 05-02 in code and corrected here in the contract 2026-07-21) |
 | Container | `DashboardScrollContainer` (plain `Card`) | see §5 — `DashboardScrollContainer` itself is the re-skin target, not this widget's job to duplicate |
+
+> A label sitting on a saturated brand fill takes `textOnBrand`, never the appearance-aware
+> body-text token — that is the general rule the 1.96:1/10.12:1 pair above encodes. This exact
+> defect has escaped twice by two different routes: first here, in 05-02's toggle, then again on
+> the transaction badge via quick task 260721-k81 (re-closed by `05-VERIFICATION.md`). Treat the
+> rule as load-bearing, not cosmetic.
 
 **Binding rule:** the canonical `lib/components/wallet_overview.dart` file is edited in place. The
 shadow file `wallets_overview.g.dart` is read for reference only and stays exactly as Phase 3 left
