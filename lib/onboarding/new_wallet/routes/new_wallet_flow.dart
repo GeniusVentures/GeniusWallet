@@ -36,7 +36,11 @@ class NewWalletFlow extends StatelessWidget {
               }
             },
             child: Scaffold(
-              appBar: AppBar(),
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
               body: _buildStep(context, newPinCubit, state),
             ),
           );
