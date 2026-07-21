@@ -65,6 +65,7 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 | Fix Windows debug builds first (`4395da7`, on develop) | Debug builds were thought impossible (LNK1319 against `/MT`-only prebuilt native deps). Real cause was `_DEBUG` — not the runtime library — pulling in the debug CRT. Without hot reload, verifying a UI port is impractical; the first debug build immediately surfaced a startup crash that release had hidden for months | ✓ Good |
 | Isolate GSD `.planning/` on `chore/adopt-gsd` (own PR, off develop) | Keeps the redesign PR focused; `.planning/` is project infra for the whole team | — Pending |
 | Interactive mode (not YOLO) | GSD config is committed to the shared repo, so a conservative, approval-gated mode is safer for team-shared automation | — Pending |
+| Close a phase with recorded overrides rather than a cosmetic patch (Phase 5, 2026-07-21) | The dashboard Bitcoin Chart card's zoom/pan row overflowed by 34px because the card has no vertical room at the app's ordinary window size — a genuine layout defect, not a component bug (the same widget is fine on token detail's taller slot). A considered stopgap (hiding the row below a height threshold) would have cleared the overflow while leaving only a 6.5px chart hairline — "a non-overflowing broken card, not a fixed one." The user inspected the app directly, rejected the stopgap, and authorized closing the phase with this and two related unwalked items (Release-exe comparison, transactions/news pull-to-refresh) recorded as explicit, reasoned overrides in 05-VERIFICATION.md instead. Establishes the pattern: an honest, recorded gap beats a cosmetically-clean but substantively-unfixed patch | ✓ Applied — see `05-VERIFICATION.md` `overrides:` |
 
 ## Evolution
 
@@ -84,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-15 after initialization*
+*Last updated: 2026-07-21 after Phase 5 (Dashboard) closure*

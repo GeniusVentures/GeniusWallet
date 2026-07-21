@@ -97,7 +97,7 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [x] **Phase 2: Design tokens & verification loop** - Redesign token vocabulary lands invisibly; debug-build loop and dev-gating established (completed 2026-07-16)
 - [ ] **Phase 3: gw_* component library** - The 82 additive primitives + design gallery + gap treatment decided
 - [ ] **Phase 4: Navigation shell & chrome** - Shell, header chrome, Settings and SDK account manager wear the redesign
-- [ ] **Phase 5: Dashboard** - Balances, holdings, transactions, markets, news
+- [x] **Phase 5: Dashboard** - Balances, holdings, transactions, markets, news (completed 2026-07-21)
 - [ ] **Phase 6: Onboarding** - Create, import, recovery phrase, verify, legal, select-wallet-type
 - [ ] **Phase 7: Token screens** - Token info, send, receive, address book, charts
 - [ ] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge
@@ -229,9 +229,9 @@ Plans:
   4. Market data refreshes once a minute, not every 20 seconds (finding 14 — the 20s interval risks CoinGecko 429s)
   5. Walking the dashboard with long values, empty symbols and a filtered transaction list produces no RenderFlex overflow and no crash, and the transaction count footer is present (findings 30, 31, 32, 33, 34)
 
-**Plans**: 8 plans (05-01..05-06 executed and walked; 05-07 and 05-08 are gap-closure plans, both now
-executed and walked — 05-08's Task 4 additionally surfaced a NEW, third RenderFlex overflow site
-(`crypto_live_chart.dart:315`, zoom/pan row) that keeps criterion 5 open; see `05-VERIFICATION.md`)
+**Plans**: 8/8 plans complete (05-01..05-06 executed and walked; 05-07 and 05-08 are gap-closure
+plans, both executed and walked). **Phase CLOSED 2026-07-21 with 3 explicit user-authorized
+overrides** — see `05-VERIFICATION.md`'s `overrides:`/`## Acknowledged Gaps`.
 
 - [x] 05-01-PLAN.md — Shared dashboard chrome: DashboardScrollContainer + shared Loading + FutureStateWidget default states (GAP-06 loading.dart) — criteria 1, 2, 3
 - [x] 05-02-PLAN.md — Hero balance / wallet overview re-skin (GAP-06 wallet_overview.dart; wallets_overview.g.dart shadow read-only) — criteria 1, 3
@@ -244,10 +244,20 @@ executed and walked — 05-08's Task 4 additionally surfaced a NEW, third Render
 
 **UI hint**: yes
 **Findings**: 8, 9, 10, 14, 17, 18, 29, 30, 31, 32, 33, 34. **Covers GAP-06**: `wallet_overview.dart`, `loading.dart`, `transaction_displays.dart`.
-**Phase sign-off status (2026-07-21):** All 8 plans executed and walked; ROADMAP criterion 5 ("no
-RenderFlex overflow") remains the sole open item, now on a single site
-(`.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md`) unrelated to any of
-this phase's own plans' file scope. Phase header checkbox stays unchecked until that item closes.
+**Phase sign-off status (CLOSED 2026-07-21):** All 8 plans executed and walked. Criteria 3 and 4
+VERIFIED outright. Criteria 1, 2 and 5 close on **explicit user-authorized overrides**, not on
+having passed — see `05-VERIFICATION.md`'s `overrides:` frontmatter and `## Acknowledged Gaps`
+section for the full reasoning behind each:
+- **Criterion 5** ("no RenderFlex overflow") — `crypto_live_chart.dart:315`'s zoom/pan row still
+  overflows by 34px, on a single site unrelated to any of this phase's own plans' file scope. The
+  user live-inspected the app, confirmed it is a dashboard-card-height limitation (not a component
+  defect), and rejected the considered stopgap (`260721-gx1`) as cosmetic. New todo filed:
+  `2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`.
+- **Criterion 1** (clause 2, "match the Release exe") — code-level gaps all resolved; the
+  side-by-side walk itself has never been performed, though the reference exe is now present on
+  this machine.
+- **Criterion 2** (pull-to-refresh) — wiring confirmed at all three sites; the transactions/news
+  reload completion has never been directly observed (dashboard leg is observed).
 
 ### Phase 6: Onboarding
 
@@ -378,7 +388,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | 2. Design tokens & verification loop | 2/5 | In Progress | - |
 | 3. gw_* component library | 0/10 | Planned | - |
 | 4. Navigation shell & chrome | 0/TBD | Not started | - |
-| 5. Dashboard | 8/8 | In Progress (all plans executed & walked; criterion 5 open on a new site) |  |
+| 5. Dashboard | 8/8 | ✓ Complete (3 overrides recorded — see 05-VERIFICATION.md) | 2026-07-21 |
 | 6. Onboarding | 0/TBD | Not started | - |
 | 7. Token screens | 0/TBD | Not started | - |
 | 8. Swap & bridge | 0/TBD | Not started | - |

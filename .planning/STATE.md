@@ -2,47 +2,60 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 05
-current_phase_name: dashboard
+current_phase: 06
+current_phase_name: Onboarding
 status: verifying
-stopped_at: Plan 05-08 Task 4 WALKED AND APPROVED (2026-07-21) — gaps B1 (WalletsOverview overflow) and B2 (Markets error/empty skin) resolved and walked; the outstanding 260721-e3r (GWEmptyState) re-walk closed in the same session. BUT the walk surfaced a NEW third RenderFlex overflow site (crypto_live_chart.dart:315, zoom/pan row, 34px) — ROADMAP criterion 5 stays FAILED on that site. Phase 05 is still NOT signed off; next = decide whether chart zoom/pan survives (see the filed todo), then plan/execute the fix, then re-verify Phase 5 against HEAD.
-last_updated: "2026-07-21T18:00:00.000Z"
+stopped_at: >-
+  Phase 05 (Dashboard) CLOSED 2026-07-21 with 3 explicit user-authorized overrides recorded in
+  05-VERIFICATION.md (criteria 1's Release-exe walk, 2's pull-to-refresh behavior-unverified legs,
+  5's crypto_live_chart.dart:315 34px overflow — a card-height limitation the user confirmed by
+  live inspection, not a component defect). Quick task 260721-gx1 (a considered stopgap) was
+  abandoned by user decision rather than executed. New todo filed for the actual root cause
+  (dashboard Bitcoin Chart card vertical budget). Transitioned to Phase 06 (Onboarding) — not yet
+  started.
+last_updated: "2026-07-21T20:00:00.000Z"
 last_activity: 2026-07-21
-last_activity_desc: 05-08 Task 4 (blocking human-verify walk) performed and APPROVED on a Windows debug build. B1/B2 resolved; e3r's GWEmptyState re-walk closed. A NEW dev fixture (Mkt error/Mkt empty, commit 3364259) was built during the walk itself to make the Markets branches reachable under live CoinGecko 429 rate-limiting. A new, distinct 34px chart zoom/pan overflow was found and filed as a todo, keeping criterion 5 open.
+last_activity_desc: >-
+  Phase 05 closed with 3 recorded overrides (user-authorized); transitioned to Phase 06 (Onboarding)
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 28
-  completed_plans: 24
+  total_phases: 11
+  completed_phases: 4
+  total_plans: 36
+  completed_plans: 30
+  percent: 36
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-15)
+See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 05 — dashboard
+**Current focus:** Phase 06 — Onboarding
 
 ## Current Position
 
-Phase: 05 (dashboard) — IMPLEMENTATION COMPLETE (7/7 plans incl. gap-closure), RE-VERIFYING
-Plan: 08 of 08 (05-08 Task 4 walked & approved 2026-07-21)
-Status: `05-VERIFICATION.md` re-run against HEAD 2026-07-21T18:00Z — B1 and B2 resolved-and-walked,
-the outstanding `260721-e3r` (GWEmptyState) re-walk closed. ROADMAP criterion 5 STILL FAILED on a
-NEW, third, distinct RenderFlex overflow site (`crypto_live_chart.dart:315`, zoom/pan row, 34px)
-discovered live during the same walk — filed as
-`.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md`. Phase 5 sign-off remains
-blocked on that one item.
-phase's load-bearing claim, human-walked, all 3 shadow surfaces confirmed)** = PASS. Criteria 1, 3, 6
-= PARTIAL with named accepted gaps, NOT hidden ones. See `03-VERIFICATION.md`.
+Phase: 06 (onboarding) — READY TO PLAN
+Plan: Not started
+Status: **Phase 5 (Dashboard) is CLOSED (2026-07-21).** `05-VERIFICATION.md`'s frontmatter `status`
+flipped from `gaps_found` to `passed`, with `overrides_applied: 3` — this was NOT an earned pass.
+The three overridden items (criterion 1's Release-exe side-by-side walk, criterion 2's
+transactions/news pull-to-refresh behavior-unverified legs, criterion 5's
+`crypto_live_chart.dart:315` 34px overflow) are recorded in the file's `overrides:` block and
+`## Acknowledged Gaps` section with who authorized each, why, and what would close it later. The
+user inspected the one live defect (the chart overflow) directly, confirmed it is a genuine
+dashboard-card-height limitation (not a `crypto_live_chart.dart` bug — the same widget is fine at
+`token_info_screen.dart:130`'s taller slot), rejected the considered stopgap (`260721-gx1`, hiding
+the zoom/pan row) as producing "a non-overflowing broken card, not a fixed one," and authorized
+closing the phase with the gap recorded rather than patched over. New todo filed for the real root
+cause: `.planning/todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`.
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-21 — **05-08 Task 4 (blocking human-verify walk) performed and APPROVED** on a Windows debug build (`--dart-define=GW_DEV_TOOLS=true`, Flutter 3.41.9), console log monitored throughout. Closed: B1 (WalletsOverview SGNUS-branch overflow, via the new `DevMockSgnus` fixture — a state never reachable in this project's history before this session), B2 (Markets error/empty branches losing their card, via a NEW dev fixture built DURING the walk itself — `Mkt error`/`Mkt empty`, commit `3364259` — because CoinGecko's live 429 rate-limiting made the branches otherwise unreachable), and the outstanding `260721-e3r` (`GWEmptyState`) re-walk, folded into the same checklist. **Three previously-unreachable dashboard states are now walkable** thanks to `dev_mock_sgnus.dart` (SGNUS idle/processing) and `dev_fault_injector.dart`'s new `marketsFault` (Markets error/empty). The walk's own console log surfaced exactly ONE `RenderFlex overflowed` line all session: a NEW, third, distinct 34px overflow at `crypto_live_chart.dart:315` (the zoom/pan `IconButton` row) — not a regression of anything closed this session, filed as a todo, left OPEN against ROADMAP criterion 5. Before that: quick task `260721-bb3` (docs-only: UI-SPEC §3.1 contract corrected). Before that: **PR #210 MERGED by Jakub** — the 7 walked-and-approved quick tasks (uhe/vwj/0ze/1nk/bxr/ch1/ed9) plus 2 more from session 2 (baz, dws) landed in `0bcf3df`; docs + sketches 001–008 landed in `73a09a4`. Navbar = FINAL.
+Last activity: 2026-07-21 — Phase 05 closed with 3 recorded overrides; transitioned to Phase 06
 
-Progress: [█████████░] 86% (2 of 11 phases)
+Progress: [█████████████████░░░] 30/36 plans (83%)
 
 ## Accumulated Context
 
@@ -97,6 +110,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 05]: Canonical loading.dart keeps develop's if (text != null) guard rather than the shadow's text ?? empty-string — The shadow renders an unconditional AutoSizeText, which would paint an empty text box on every text-less call site (most of the 19 importers); token choices ported, structure preserved
 - [Phase ?]: 05-02: UI-SPEC 3.1's toggle pairing (selectedColor textPrimary over fillColor brandPrimary) fails WCAG AA at 1.96:1 in dark mode; substituted textOnBrand (10.12:1). 3.1's table should be corrected for 05-03..05-06.
 - [Phase ?]: 05-02: GWAnimatedNumber currency prefix sourced from NumberFormat.simpleCurrency().currencySymbol, not hardcoded, preserving develop's locale-aware balance rendering.
+- [Phase 05 closeout, 2026-07-21]: **User closed Phase 5 with 3 explicit overrides rather than fixes.** Live-inspected the Bitcoin Chart card and confirmed the 34px `crypto_live_chart.dart:315` overflow is a dashboard-card-height limitation (not a component defect — same widget fine at `token_info_screen.dart:130`'s taller slot); rejected the considered stopgap `260721-gx1` (hiding zoom/pan below a 112px threshold) as producing "a non-overflowing broken card, not a fixed one"; directed closing the phase with the gap recorded honestly. Same decision folded in criterion 1's unwalked Release-exe comparison and criterion 2's unwalked pull-to-refresh legs as overrides rather than blockers. See `05-VERIFICATION.md`'s `overrides:`/`## Acknowledged Gaps`.
 
 ### Pending Todos
 
@@ -118,6 +132,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [ui] ✅ RESOLVED 2026-07-20 — Header/balance light-mode legibility fixed at the root (quick eu9: btnFilter appearance-aware app-wide + token migrations + branded CTAs, walked) → todos/completed.
 - [ui] Expand dev Mock section — transactions + more injectors (`.planning/todos/pending/2026-07-20-expand-dev-mock-section-more-injectors.md`) — LATER, incremental as each screen is walked. Mock-holdings injector (quick cw8) done; add transactions (reuse dev_overrides fakes) for 05-06, etc.
 - [ui] ✅ RESOLVED 2026-07-20 — Dashboard live-chart 6.3px overflow, fixed and walked by quick task `260720-uhe` (compact-mode price text + assert in `crypto_live_chart.dart`); `.planning/todos/pending/...` → `todos/completed/`. Root cause was the inflexible price `AutoSizeText` in the two-column breakpoint, NOT `gzq` (that attribution was retracted; `gzq` is clean). Debug painted stripes; release silently clipped. `uhe` also harmonised dashboard spacing to one `space4` (8px) token.
+- [ui] ⚠️ ACCEPTED AS PHASE 5 OVERRIDE 2026-07-21 — Chart zoom/pan row 34px overflow (`.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md`) — the considered stopgap (quick `260721-gx1`) was abandoned by user decision (would have shipped "a non-overflowing broken card, not a fixed one"); recorded as an override in `05-VERIFICATION.md` instead. Stays in `todos/pending/` — the three-way convergence analysis (overflow + raw-`Colors.white` icons + zoom/pan-redundancy question) is unresolved.
+- [ui] **NEW 2026-07-21** — Bitcoin Chart card has no vertical room at ordinary window sizes (`.planning/todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`) — the actual root cause behind the overflow above; a `dashboard_screen.dart` sizing/product decision, user-confirmed by live inspection 2026-07-21. Measured: inner slot `h=6.5` where content needs ~40.5; `token_info_screen.dart:130` gives the same widget a much larger slot and is fine.
 
 ### Blockers/Concerns
 
@@ -125,6 +141,7 @@ Full log in PROJECT.md Key Decisions. Recent:
   **Cost of the error:** this constraint was carried into every phase plan, every verification report, and every agent brief in this milestone. It is why Phase 05 needed six human walks, why `verify:` blocks were written around a human being available, why "analyze is a gate, never evidence" became doctrine, and why APP-02 was deferred to v2 as if building a harness — when it is uncommenting one file. **Real test gates are available now.** Prefer them over grep gates wherever behaviour can be asserted; keep human walks for what only eyes can judge (visual fidelity, contrast in situ, feel).
   Caveats that ARE real: `token_info_loader_test.dart` makes live network calls to a GitHub URL that intermittently 404s, so it is flaky in CI-like conditions though it passed 9/9 in isolation here; and per-file invocation (`flutter test <path>`) compiles only that file's import closure, so it is the fast path for a focused gate.
   Toolchain, also previously mis-recorded as missing: Flutter **3.41.9 / Dart 3.11.5** at `C:\Users\User\Documents\Projects\GNUS\flutter\flutter\bin\flutter.bat` (off `PATH`). `flutter analyze lib` baseline = **61 issues**.
+
 - Nav shell has never been visually walked — Phase 4 addresses this
 - 37 evidenced defects in the design-vs-develop surface (`.planning/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
 - `analysis_options.yaml` excludes `lib/**/*.g.dart` — the compiler, not analyze, is the real gate for generated widgets
@@ -193,25 +210,32 @@ Full log in PROJECT.md Key Decisions. Recent:
 ## Session Continuity
 
 Last session: 2026-07-21
-Stopped at: **05-08 Task 4 (the blocking human-verify walk) PERFORMED AND APPROVED (2026-07-21).** B1
-(`WalletsOverview` SGNUS-branch overflow) and B2 (Markets error/empty branches losing their card) are
-now **resolved and walked**, and the outstanding `260721-e3r` (`GWEmptyState`, 19px→34px inside
-`TransactionsSlimView`) re-walk closed in the same session — Assets' empty-state regression gate
-held. **Three previously-unreachable dashboard states are now walkable**: SGNUS idle/processing (new
+Stopped at: **Phase 05 (Dashboard) CLOSED (2026-07-21).** Preceding history: 05-08 Task 4 (the
+blocking human-verify walk) was PERFORMED AND APPROVED (2026-07-21) — B1 (`WalletsOverview`
+SGNUS-branch overflow) and B2 (Markets error/empty branches losing their card) were **resolved and
+walked**, and the outstanding `260721-e3r` (`GWEmptyState`, 19px→34px inside `TransactionsSlimView`)
+re-walk closed in the same session — Assets' empty-state regression gate held. **Three
+previously-unreachable dashboard states became walkable**: SGNUS idle/processing (new
 `dev_mock_sgnus.dart`, Task 1) and Markets error/empty (a NEW dev fixture built DURING the walk
 itself — `Mkt error`/`Mkt empty`, commit `3364259` — because CoinGecko's live 429 rate-limiting meant
-the app kept falling back to cached data and neither branch was otherwise reachable). **But Phase 05
-is STILL NOT signed off: the same walk surfaced a NEW, third, distinct live failure.**
-`crypto_live_chart.dart:315`'s zoom/pan `IconButton` row overflows by **34px**, on the plain
-dashboard, no fixture armed, ordinary window size — not a regression of anything closed this
-session (WalletsOverview and `GWEmptyState` both produced zero overflow lines all walk) and not a
-reappearance of the already-fixed 6.3px chart overflow. ROADMAP criterion 5 ("no RenderFlex
-overflow") therefore stays FAILED, now exclusively on this one site. Also still open from the prior
-session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on every router
-redirect (likely pre-existing on develop — confirm before attributing it to this milestone).
-Resume file: `.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md` (criterion-5
-blocker; leading candidate fix is tied to the already-filed "wire real timeframe ranges" decision —
-see the todo's own framing of why deleting the zoom/pan row would close three findings at once)
+the app kept falling back to cached data and neither branch was otherwise reachable). That same walk
+surfaced a NEW, third, distinct live failure: `crypto_live_chart.dart:315`'s zoom/pan `IconButton`
+row overflowing by **34px**, on the plain dashboard, no fixture armed, ordinary window size — not a
+regression of anything closed that session and not a reappearance of the already-fixed 6.3px chart
+overflow. **Resolution (2026-07-21, this session):** the user live-inspected the app, confirmed the
+overflow is a genuine dashboard-card-height limitation rather than a component defect, rejected the
+considered stopgap (`260721-gx1`) as cosmetic, and authorized closing Phase 5 with this and two
+other outstanding walk-items (criterion 1's Release-exe comparison, criterion 2's
+transactions/news pull-to-refresh legs) recorded as explicit overrides in `05-VERIFICATION.md`
+rather than fixed. New todo filed for the real root cause
+(`2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`). Phase advanced to Phase 06
+(Onboarding), not yet started. Also still open from the prior session: a `_basePath`
+`LateInitializationError` thrown as an unhandled `GoException` on every router redirect (likely
+pre-existing on develop — confirm before attributing it to this milestone).
+Resume file: None — Phase 05 CLOSED 2026-07-21 (see `05-VERIFICATION.md`'s `## Phase Closure`
+section). The chart-zoom-pan-row todo is no longer a phase-5 blocker; it is recorded as an accepted
+override and stays open only as a product/UX decision (see Open decisions item 4 below and the new
+root-cause todo `2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`).
 
 **2026-07-21 parallel investigation — `.planning/AUDIT-260721-parallel-investigation.md` (derived at `87a7715`).** 67 agents, 6 disjoint areas, every finding adversarially refuted before surviving: **36 of 60 survived, 24 refuted (40%)**. Phase 05 gained **two** blockers beyond the already-fixed `GWEmptyState`, both now RESOLVED by plan `05-08` and walked & approved 2026-07-21: **B1** `WalletsOverview` was an unscrollable `Column(max)` in a hard `maxHeight:300` — the verifier's recount put the SGNUS branch at **~26px idle / ~55px processing**, correcting the investigator's "passes by 3px" in the *worse* direction; and **B2** the Markets error/empty branches returned bare `Center(Text)` outside `DashboardScrollContainer`, so that tile lost its card while four siblings kept theirs. B1 had **no dev fixture** (needed live SGNUS + processing) — 05-08 Task 1 shipped one (`dev_mock_sgnus.dart`), avoiding the empty-state trap a second time. Work queue Q1–Q6 with serialization points named. `_basePath` verified **pre-existing on develop** — not this milestone's. **`06-04-PLAN.md:99-100` is already superseded**: the repo has ZERO IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files — `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`. Amend before executing 06-04.
 
@@ -222,19 +246,29 @@ see the todo's own framing of why deleting the zoom/pan row would close three fi
 **The §6 "conflict" was not real.** The 07-20 report, and my own 07-21 re-verification, both framed ROADMAP criterion 3 ("working retry") and UI-SPEC §6 as documents that could not both be satisfied. Re-reading §6 at source disproved that: §6 is a *Copywriting Contract*. It locks the string `'Something went wrong!'` and forbids substituting `GWErrorState` — it says nothing about adding a retry affordance *beside* the text. `"Retry"` already ships on develop (`custom_future_builder.dart:49`, `gw_error_state.dart:14`), so no new copy is introduced either. Both documents are satisfied; **no override was recorded and criterion 3 was NOT reworded.** Lesson: the second-hand summary of a constraint is not the constraint — read the source before declaring a deadlock.
 
 **What planning caught that the briefing got wrong** (two errors in my own hand-off to the planner, both found by reading code):
+
 1. `_onRefresh` is a method of `OneColumnDashBoardView` (`:215`), NOT of `DashboardScreenState` (which ends `:80`) — so it was never in scope at the error branch. Resolved by hoisting it to file scope verbatim, leaving `RefreshIndicator(onRefresh: () => _onRefresh(context))` untouched.
 2. **Reusing `_onRefresh` alone would have shipped a dead button.** `accountStatus` is written *only* inside `_onFetchAccount` (`app_bloc.dart:164,168,170`); `_onLoadWallets` writes only `subscribeToWalletStatus` and never emits `AppStatus.error` for it — so in shipped code the error branch is reachable *only* via `accountStatus == error`, the one leg `LoadWallets()` cannot clear. The retry therefore dispatches `FetchAccount()` **and** the shared reload. Independently re-verified by the plan-checker and again by the executor before any code was written.
 
 Open decisions:
+
 1. ~~**Gap 2 — dashboard retry.**~~ **DECIDED 2026-07-21 (user): add the retry, keep the string.** Implemented in 05-07 Task 1 (`64fa92d`). No override recorded, criterion 3 unchanged. **Phase 05 sign-off now waits only on the Task-2 walk**, not on a decision. Todo `2026-07-21-decision-dashboard-error-branch-retry.md` closes once the walk passes.
 2. ~~**UI-SPEC §3.1** still carries the 1.96:1 pairing.~~ **RESOLVED 2026-07-21 by quick `260721-bb3`** — and the fix found a second drift on the same cell (0ze's fill repoint). Both cells now match shipped code; ratios re-anchored to `brandPrimaryStrong` (2.56:1 rejected / 7.74:1 shipped).
 3. **Sketch 007** transaction-filter variant unpicked (rec **C · icon-only compact**).
-4. **NEW 2026-07-21 — does the chart's zoom/pan control row survive?** The 34px overflow found
-   during 05-08's walk (`crypto_live_chart.dart:315`) is tied to the already-filed "wire real
-   timeframe ranges" todo: if the 1H/1D/1W/1M/1Y tabs are meant to replace zoom/pan once wired,
-   deleting the row closes this overflow, the raw-`Colors.white` finding, and the redundancy
-   question at once. If zoom/pan survives, it needs both a layout fix and the same token migration.
-   See `.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md`.
+4. **Does the chart's zoom/pan control row survive?** Still OPEN as a product decision — **no
+   longer a Phase 5 blocker.** The 34px overflow at `crypto_live_chart.dart:315` is now recorded as
+   an accepted Phase 5 override (`05-VERIFICATION.md`), not a gap this decision needs to unblock. A
+   considered stopgap (`260721-gx1`, hiding the row below a 112px threshold) was planned in full but
+   **abandoned by user decision 2026-07-21** — it would have shipped "a non-overflowing broken card,
+   not a fixed one" per its own risk assessment, since the dashboard card's real problem is its
+   vertical budget (new todo:
+   `2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`), not the zoom/pan row
+   itself. This decision is tied to the already-filed "wire real timeframe ranges" todo: if the
+   1H/1D/1W/1M/1Y tabs are meant to replace zoom/pan once wired, deleting the row closes this
+   overflow, the raw-`Colors.white` finding, and the redundancy question at once. If zoom/pan
+   survives, it needs both a layout fix and the same token migration.
+   See `.planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md` and
+   `.planning/todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`.
 
 **Lesson recorded in the §3.1 rule note:** contract cells are not self-maintaining. One cell drifted from HEAD twice in a single day — once by a per-plan substitution, once by a cross-cutting sweep (`0ze`) that repointed a token app-wide without touching the docs that name it. Re-check contract cells against HEAD after any sweep of that shape.
 

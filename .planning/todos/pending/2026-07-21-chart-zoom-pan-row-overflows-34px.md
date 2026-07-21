@@ -89,3 +89,39 @@ deliberate product change, not a layout fix.
 **Verify in both appearance modes and at more than one window height** — the slot height varies, so a
 fix that clears it at one size may not at another. Release builds clip silently where debug paints
 stripes.
+
+## Status 2026-07-21 — ACCEPTED AS A PHASE 5 OVERRIDE; STOPGAP DELIBERATELY NOT TAKEN
+
+**A stopgap was planned but abandoned.** Quick task `260721-gx1` planned to hide the zoom/pan Row
+below a derived 112px slot threshold (64px chart floor + 48px row) — see
+`.planning/quick/260721-gx1-stopgap-the-34px-chart-overflow-by-hidin/260721-gx1-PLAN.md` and its
+now-abandoned `260721-gx1-SUMMARY.md`. It was never executed. The user inspected the running app
+directly and rejected it: hiding the row would have produced a card with zero RenderFlex overflow
+lines but only a 6.5px chart hairline where the plot should be — the stopgap plan's own words called
+this "a non-overflowing broken card, not a fixed one." Shipping it would have converted an honest,
+visible FAIL into a cosmetic, dishonest PASS without giving the chart any usable room.
+
+**The user confirmed the root cause by direct inspection (2026-07-21):** *"it's just that the
+current size of the app being opened it does not have space for the bitcoin chart, we may want to
+drop that size, but again that is a todo item for later, let's close the phase 5 and set it as valid
+and continue."* That is: the overflow is a symptom of the dashboard's Bitcoin Chart card having
+insufficient vertical budget at the app's ordinary window size, not a defect in
+`crypto_live_chart.dart` itself — the identical widget gets a much taller slot at
+`token_info_screen.dart:130` and has no overflow there.
+
+**Disposition:**
+- **Phase 5 sign-off:** this finding is recorded as an explicit override in
+  `05-VERIFICATION.md`'s frontmatter `overrides:` block and `## Acknowledged Gaps` section
+  (accepted by the user, 2026-07-21). ROADMAP criterion 5 does NOT pass on the merits — the
+  override is what allows Phase 5 to close despite it.
+- **The root cause now has its own todo**, since it previously lived nowhere:
+  `.planning/todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`
+  (the dashboard's Bitcoin Chart card vertical budget / `dashboard_screen.dart` sizing decision).
+- **This file stays open, in `todos/pending/`.** The three-way convergence analysis above (this
+  overflow + the four raw-`Colors.white` icons + `dws`'s is-zoom/pan-redundant question, all landing
+  on the same four buttons) is unchanged and is still the reason deleting the row may be the
+  eventual end state — that product decision remains open, tracked alongside
+  `2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md`.
+- **Nothing in `lib/` changed as a result of this status update.** `crypto_live_chart.dart` is
+  exactly as it was when this todo was filed; the stopgap's constants/predicate/LayoutBuilder were
+  never added.

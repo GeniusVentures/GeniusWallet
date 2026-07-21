@@ -1,10 +1,69 @@
 ---
 phase: 05-dashboard
 verified: 2026-07-21T18:00:00Z
-status: gaps_found
-score: 2/5 truths verified outright (C3, C4); C1 PARTIAL narrowed to a single pending walk (B2's code gap resolved); C2 unchanged behavior-unverified; C5 STILL FAILED — B1 and the GWEmptyState site are resolved-and-walked, but a NEW, distinct third overflow site (crypto_live_chart.dart:315, 34px) was found live during the same walk and stays open
+status: passed
+previous_status: gaps_found
+score: 2/5 truths verified outright (C3, C4); C1, C2, C5 PASSED (override) — see overrides below, applied 2026-07-21 by explicit user decision after live app inspection. No criterion's underlying evidence changed; only the sign-off disposition did.
 behavior_unverified: 1
-overrides_applied: 0
+overrides_applied: 3
+overrides:
+  - must_have: >-
+      Walking the dashboard produces no RenderFlex overflow — the crypto_live_chart.dart:315
+      zoom/pan-row overflow (ROADMAP criterion 5)
+    reason: >-
+      User inspected the Bitcoin Chart card in the running app 2026-07-21 and confirmed the
+      planner's finding directly: "it's just that the current size of the app being opened it
+      does not have space for the bitcoin chart, we may want to drop that size, but again that
+      is a todo item for later, let's close the phase 5 and set it as valid and continue." The
+      34px overflow at crypto_live_chart.dart:315 is a card-height problem
+      (dashboard_screen.dart's vertical budget for the Bitcoin Chart card), not a component
+      defect — the identical widget is given a much larger slot at token_info_screen.dart:130
+      and is fine there. The considered stopgap (quick 260721-gx1, hiding the zoom/pan row
+      below a 112px threshold) was deliberately NOT executed: it would have cleared the
+      overflow while leaving a card containing only a 6.5px chart hairline — "a non-overflowing
+      broken card, not a fixed one," in the stopgap plan's own words — trading an honest FAIL
+      for a cosmetic, dishonest PASS.
+    closes_when: >-
+      A dashboard_screen.dart sizing decision gives the Bitcoin Chart card real vertical room
+      (new todo: 2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md), and/or the
+      zoom/pan-row product decision (2026-07-21-chart-zoom-pan-row-overflows-34px.md) resolves
+      whether the row survives at all.
+    accepted_by: "user (braianxde), live app inspection"
+    accepted_at: "2026-07-21T20:00:00Z"
+  - must_have: >-
+      Balances, holdings, transactions, markets and news all render in the redesign skin and
+      match the Release exe at GeniusWallet-3514 (ROADMAP criterion 1, clause 2 — the
+      side-by-side comparison)
+    reason: >-
+      Every code-level gap behind this criterion is resolved and walked (badge contrast,
+      Markets error/empty skin, WalletsOverview overflow, GWEmptyState overflow — see the
+      `gaps:` block below, all `status: resolved`). Only the side-by-side walk against the
+      reference Release exe has never been performed, though the reference exe is present and
+      built on this machine
+      (`GNUS-compare\GeniusWallet-3514\build\windows\x64\runner\Release\genius_wallet.exe`).
+      This is an unscheduled walk, not a known defect — closed by explicit user decision to
+      proceed rather than block the phase on a comparison walk with no evidence against it.
+    closes_when: >-
+      The side-by-side walk in
+      `.planning/todos/pending/2026-07-21-side-by-side-walk-dashboard-vs-release-exe.md` is
+      performed.
+    accepted_by: "user (braianxde), phase closeout decision"
+    accepted_at: "2026-07-21T20:00:00Z"
+  - must_have: >-
+      Pull-to-refresh works on the dashboard, the transactions list and the news feed, and each
+      reloads its data (ROADMAP criterion 2)
+    reason: >-
+      Wiring is confirmed byte-identical to develop's shipped `RefreshIndicator`/`onRefresh`
+      callbacks at all three sites (`dashboard_screen.dart:231`,
+      `transactions_screen.dart:16-18`, `crypto_news_screen.dart:72`). The dashboard leg has
+      been directly observed reloading (05-01 walk). The transactions and news legs' reload
+      completion is a state transition with no automated harness and has never been directly
+      observed by a human watching a live reload — behavior-unverified, not known-broken.
+    closes_when: >-
+      A human performs the pull-to-refresh walk recorded under `behavior_unverified_items` /
+      `human_verification` below and observes both lists actually re-fetch.
+    accepted_by: "user (braianxde), phase closeout decision"
+    accepted_at: "2026-07-21T20:00:00Z"
 reverification_of: 2026-07-21T12:00:00Z
 reverification_reason: >-
   05-08's Task 4 (blocking human-verify walk) was performed and APPROVED 2026-07-21 on a
@@ -267,7 +326,13 @@ human_verification:
 
 **Phase Goal:** The dashboard wears the redesign and keeps every behavior develop shipped
 **Verified:** 2026-07-21 (18:00Z pass — post-05-08-Task-4 walk)
-**Status:** gaps_found — 1 open code gap (criterion 5, a NEW third overflow site), plus outstanding human-walk items unrelated to 05-08
+**Status:** PASSED WITH 3 OVERRIDES (recorded 2026-07-21, closing the phase on explicit user
+authorization — see `## Acknowledged Gaps` below). **This is not an earned PASS on criteria 1, 2
+and 5** — their underlying evidence is unchanged from the `gaps_found` pass below (still PARTIAL /
+PRESENT_BEHAVIOR_UNVERIFIED / FAILED on their own merits). The user inspected the one live defect
+(the chart-card overflow) directly, confirmed it is a real card-height limitation rather than a
+component bug, rejected the considered stopgap as cosmetic, and authorized closing Phase 5 with
+the three outstanding items recorded as overrides rather than passes. See `## Acknowledged Gaps`.
 **Re-verification:** Yes — supersedes the 2026-07-21T12:00Z report
 **Verified at:** `ui-redesign-port` @ HEAD (05-08's Tasks 1-3 in `2d18b85`, the markets walk-fixture in `3364259`, plus the untracked chart-overflow todo)
 **Previously verified at:** `93f77d3` (12:00Z pass, code content from `0bcf3df` / PR #210)
@@ -312,6 +377,25 @@ human_verification:
 
 **Score:** 2/5 truths verified outright (C3, C4) — unchanged from the 12:00Z pass in raw count, but the shape of the remaining 3 improved materially: C1 narrowed from a code gap + a walk gap to a walk-only gap; C5's known sites all closed, replaced by one new site rather than staying open on the old ones; C2 unchanged.
 Breakdown: 2 verified outright (C3, C4), 1 partial narrowed to a single pending walk (C1), 1 behavior-unverified unchanged (C2), 1 failed on a newly-substituted single site (C5).
+
+## Acknowledged Gaps
+
+**Phase 5 closes on 2026-07-21 with three items recorded as explicit user-authorized overrides,
+not as passes.** The frontmatter `overrides:` block above carries the machine-readable form; this
+section is the human-readable record of the same three decisions. Nothing below was re-tested or
+newly fixed to produce this closure — the user reviewed the open items and chose to accept them
+rather than block the phase further.
+
+| # | Criterion | Real status (unchanged) | Not met | Authorized by | Reason | Closes when |
+|---|-----------|--------------------------|---------|----------------|--------|-------------|
+| 1 | ROADMAP C5 — "no RenderFlex overflow" | ✗ FAILED (see gap below) | The 34px overflow at `crypto_live_chart.dart:315` (zoom/pan `IconButton` row) still fires on the plain dashboard at ordinary window size | User, 2026-07-21, live app inspection | The chart card genuinely has no vertical room at the app's current window size. User's words: *"it's just that the current size of the app being opened it does not have space for the bitcoin chart, we may want to drop that size, but again that is a todo item for later, let's close the phase 5 and set it as valid and continue."* The considered stopgap (quick `260721-gx1`, hiding the zoom/pan row below a 112px slot threshold) was deliberately **abandoned, not executed** — it would have cleared the overflow while leaving a card containing only a 6.5px chart hairline, which the stopgap plan itself called "a non-overflowing broken card, not a fixed one." | A `dashboard_screen.dart` sizing decision gives the card real height (new todo filed), and/or the zoom/pan-row product decision resolves whether the row survives |
+| 2 | ROADMAP C1 clause 2 — "match the Release exe at GeniusWallet-3514" | ⚠️ PARTIAL (code gaps resolved; walk clause open) | The side-by-side comparison against the reference Release exe has never been performed | User, 2026-07-21, phase closeout decision | All code-level gaps behind criterion 1 are resolved and walked (badge contrast, Markets error/empty skin, WalletsOverview overflow, GWEmptyState overflow). Only the comparison walk itself is outstanding, and the reference exe is present and buildable on this machine — this is a scheduling gap, not a known defect | The side-by-side walk (`.planning/todos/pending/2026-07-21-side-by-side-walk-dashboard-vs-release-exe.md`) is performed |
+| 3 | ROADMAP C2 — "pull-to-refresh ... each reloads its data" | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | Transactions-list and news-feed reload completion has never been directly observed (dashboard leg IS observed) | User, 2026-07-21, phase closeout decision | Wiring is confirmed byte-identical to develop's shipped `RefreshIndicator`/`onRefresh` at all three sites. A reload completing is a state transition with no automated harness; only a human watching a live pull-to-refresh can confirm it | A human performs the pull-to-refresh walk recorded under `human_verification` below |
+
+**What this closure is NOT.** It is not a claim that these three criteria pass. The Observable
+Truths table below is left exactly as the `gaps_found` pass recorded it — PARTIAL / FAILED /
+PRESENT_BEHAVIOR_UNVERIFIED, unchanged. The phase closes *despite* these three items, on the
+strength of an explicit, recorded user decision, not because the evidence changed.
 
 ### What Changed Since 2026-07-20
 
@@ -409,5 +493,21 @@ ran afterwards.
 
 ---
 
+## Phase Closure (2026-07-21, post-verification)
+
+**Phase 5 is closed as of 2026-07-21** on explicit user authorization, with the three items above
+recorded as overrides (see frontmatter `overrides:` and `## Acknowledged Gaps`). The user inspected
+the Bitcoin Chart card live, confirmed the criterion-5 overflow is a genuine card-height limitation
+at the app's current window size (not a component defect), explicitly rejected the considered
+stopgap (`260721-gx1`) as merely cosmetic, and directed that Phase 5 close with the gap recorded
+honestly rather than hidden or patched over. Two follow-ups were filed as a direct result:
+`.planning/todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md` (new —
+the actual root cause) and the existing chart zoom/pan todo was updated in place to record the
+override. The quick task `260721-gx1` (the stopgap plan) was abandoned, not executed; see its
+`260721-gx1-SUMMARY.md`. Phase advances to Phase 6 (Onboarding) per ROADMAP.md / STATE.md.
+
+---
+
 _Re-verified: 2026-07-21 — supersedes 2026-07-20T21:15:00Z_
 _Verifier: Claude (Opus 4.8), goal-backward, code-level re-derivation at HEAD; no walk performed_
+_Closed: 2026-07-21 — status flipped `gaps_found` → `passed` with 3 recorded overrides, all authorized by the user directly; see `## Acknowledged Gaps`_
