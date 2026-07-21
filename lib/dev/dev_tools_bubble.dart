@@ -396,9 +396,67 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               "true — the tallest shape of WalletsOverview's "
                               'SGNUS branch.',
                         ),
+                        // DEV-ONLY: forces MarketsDashboardView's error and
+                        // empty branches (05-08 Task 3's GWErrorState /
+                        // GWEmptyState skin), previously unreachable in any
+                        // walk because CoinGecko's 429 rate-limit falls
+                        // back to cached data before either branch can
+                        // render. See lib/dev/dev_fault_injector.dart's
+                        // DevFaultInjector.marketsFault docs for the
+                        // sticky-with-an-explicit-off reasoning: these arm
+                        // a HELD state (survives resize / light-dark
+                        // toggle, and every fetch until 'Clear' below is
+                        // pressed) rather than a one-shot like 'Fail acct'
+                        // above, because a one-shot would be spent before
+                        // the walker had a chance to look at it.
+                        _devButton(
+                          'Mkt error',
+                          () {
+                            DevFaultInjector.instance.armMarketsFault(
+                              DevMarketsFault.error,
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Markets error armed',
+                              message:
+                                  'HELD until Clear is pressed: resize and '
+                                  'toggle appearance freely. Pressing the '
+                                  "panel's own Retry will keep failing "
+                                  'while armed — press Clear first, then '
+                                  'Retry, to see it recover.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Arms a STICKY dashboard Markets-panel load '
+                              'failure and refetches now; holds until '
+                              "Clear is pressed, so the panel's real Retry "
+                              'stays failing until then.',
+                        ),
+                        _devButton(
+                          'Mkt empty',
+                          () {
+                            DevFaultInjector.instance.armMarketsFault(
+                              DevMarketsFault.empty,
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Markets empty armed',
+                              message:
+                                  'HELD until Clear is pressed: resize and '
+                                  'toggle appearance freely.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Arms a STICKY dashboard Markets-panel empty '
+                              'result and refetches now; holds until '
+                              'Clear is pressed.',
+                        ),
                         _devButton('Clear', () {
                           DevMockHoldings.instance.clear();
                           DevFaultInjector.instance.disarm();
+                          DevFaultInjector.instance.disarmMarketsFault();
                           DevMockSgnus.instance.clear();
                           context.read<WalletDetailsCubit>().clearMock();
                           context.read<TransactionsCubit>().clear();

@@ -1,3 +1,7 @@
+// kDebugMode is required for the dev-only markets-fault listener gate in
+// _MarketsDashboardViewState below. See app_bloc.dart:5-10 for why this is
+// an explicit foundation.dart import rather than relying on material.dart.
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -11,6 +15,8 @@ import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
+import 'package:genius_wallet/dev/dev_fault_injector.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
@@ -378,6 +384,48 @@ class _MarketsDashboardViewState extends State<MarketsDashboardView> {
   void initState() {
     super.initState();
     _marketFuture = getDashboardMarketCoins();
+    // DEV-ONLY, release-safe: kDebugMode and kShowDevTools both lead this
+    // guard as compile-time const bools, so in a release build (or any
+    // debug build without the GW_DEV_TOOLS define) this whole block
+    // constant-folds to false and _onMarketsFaultChanged is never
+    // registered — byte-for-byte HEAD's behavior otherwise. Registered
+    // here (not read inline in build()) because DevFaultInjector.
+    // instance.marketsFault is armed/disarmed from the dev-tools bubble, a
+    // sibling widget with no shared Bloc/Cubit to dispatch an event
+    // through the way the account fault and SGNUS fixture do — see
+    // dev_fault_injector.dart's DevFaultInjector.marketsFault docs for the
+    // full reasoning.
+    if (kDebugMode && kShowDevTools) {
+      DevFaultInjector.instance.marketsFault.addListener(
+        _onMarketsFaultChanged,
+      );
+    }
+  }
+
+  // DEV-ONLY: re-runs the real fetch (through getDashboardMarketCoins(),
+  // which reads the armed/disarmed override itself) whenever the dev
+  // bubble arms or disarms a markets fault, so the panel updates
+  // immediately without requiring a manual Retry press or a route
+  // remount. See the listener registration above and
+  // dev_fault_injector.dart's DevFaultInjector.marketsFault docs.
+  void _onMarketsFaultChanged() {
+    setState(() {
+      _marketFuture = getDashboardMarketCoins();
+    });
+  }
+
+  @override
+  void dispose() {
+    // DEV-ONLY, release-safe: mirrors the initState guard above — this
+    // constant-folds away in release builds, so removeListener is never
+    // called on a listener that was never added, and this dispose() body
+    // is otherwise the trivial override it would be without any of this.
+    if (kDebugMode && kShowDevTools) {
+      DevFaultInjector.instance.marketsFault.removeListener(
+        _onMarketsFaultChanged,
+      );
+    }
+    super.dispose();
   }
 
   void _retry() {
