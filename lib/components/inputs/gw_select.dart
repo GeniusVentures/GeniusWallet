@@ -97,7 +97,7 @@ class GWSelect<T> extends StatelessWidget {
         border: _border(GeniusWalletColors.borderSubtle),
         enabledBorder: _border(GeniusWalletColors.borderSubtle),
         focusedBorder:
-            _border(GeniusWalletColors.brandPrimary, width: 2),
+            _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
         errorBorder: _border(GeniusWalletColors.statusError),
         focusedErrorBorder:
             _border(GeniusWalletColors.statusError, width: 2),

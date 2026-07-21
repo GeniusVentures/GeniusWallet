@@ -40,7 +40,9 @@ class GWCheckbox extends StatelessWidget {
         tristate: tristate,
         onChanged: disabled ? null : onChanged,
         side: BorderSide(
-          color: disabled ? gw.borderSubtle : GeniusWalletColors.brandPrimary,
+          color: disabled
+              ? gw.borderSubtle
+              : GeniusWalletColors.brandPrimaryStrong,
           width: 1.5,
         ),
         shape: RoundedRectangleBorder(
@@ -52,7 +54,7 @@ class GWCheckbox extends StatelessWidget {
             return gw.borderSubtle;
           }
           if (states.contains(WidgetState.selected)) {
-            return GeniusWalletColors.brandPrimary;
+            return GeniusWalletColors.brandPrimaryStrong;
           }
           return Colors.transparent;
         }),

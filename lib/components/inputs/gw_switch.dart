@@ -33,8 +33,8 @@ class GWSwitch extends StatelessWidget {
     final toggle = Switch.adaptive(
       value: value,
       onChanged: disabled ? null : onChanged,
-      activeColor: GeniusWalletColors.brandPrimary,
-      activeTrackColor: GeniusWalletColors.brandPrimary.withAlpha(140),
+      activeColor: GeniusWalletColors.brandPrimaryStrong,
+      activeTrackColor: GeniusWalletColors.brandPrimaryStrong.withAlpha(140),
       inactiveThumbColor: gw.textPrimary,
       inactiveTrackColor: gw.surfaceMenu,
       trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(

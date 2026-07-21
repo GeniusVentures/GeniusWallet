@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -73,38 +74,52 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
       constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 16.0,
+        // GWSectionTitle owns its own space8 bottom gap, so the leading title
+        // no longer needs the Column's 16px spacing above the list. Drop the
+        // outer spacing (it would double-gap ~32px against the title's space8)
+        // and let each remaining child that needs a gap keep its own.
         children: [
-          Text(
-            'Transactions',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          SegmentedButton<Filters>(
-            style: SegmentedButton.styleFrom(
-              selectedBackgroundColor: GeniusWalletColors.brandPrimary,
-              selectedForegroundColor: GeniusWalletColors.textOnBrand,
-            ),
-            segments: Filters.values
-                .where((f) => f != Filters.all)
-                .map(
-                  (filter) => ButtonSegment<Filters>(
-                    value: filter,
-                    label: Text(filter.label),
+          // Title (18px) with the filter segment lifted onto the title row as
+          // trailing. The segment (3-4 chips) is the tightest overflow case in
+          // the narrow right panel, so it is wrapped Flexible+FittedBox
+          // (scaleDown, centerRight) — the title Text stays unwrapped, matching
+          // the Assets reference. Never RenderFlex-overflows.
+          GWSectionTitle(
+            title: 'Transactions',
+            trailing: Flexible(
+              child: FittedBox(
+                alignment: Alignment.centerRight,
+                fit: BoxFit.scaleDown,
+                child: SegmentedButton<Filters>(
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor:
+                        GeniusWalletColors.brandPrimaryStrong,
+                    selectedForegroundColor: GeniusWalletColors.textOnBrand,
                   ),
-                )
-                .toList(),
-            selected: selectedFilter == Filters.all
-                ? <Filters>{}
-                : {selectedFilter},
-            emptySelectionAllowed: true,
-            showSelectedIcon: false,
-            onSelectionChanged: (Set<Filters> newSelection) {
-              setState(
-                () => selectedFilter = newSelection.isEmpty
-                    ? Filters.all
-                    : newSelection.first,
-              );
-            },
+                  segments: Filters.values
+                      .where((f) => f != Filters.all)
+                      .map(
+                        (filter) => ButtonSegment<Filters>(
+                          value: filter,
+                          label: Text(filter.label),
+                        ),
+                      )
+                      .toList(),
+                  selected: selectedFilter == Filters.all
+                      ? <Filters>{}
+                      : {selectedFilter},
+                  emptySelectionAllowed: true,
+                  showSelectedIcon: false,
+                  onSelectionChanged: (Set<Filters> newSelection) {
+                    setState(
+                      () => selectedFilter = newSelection.isEmpty
+                          ? Filters.all
+                          : newSelection.first,
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
           Expanded(
             child: txs.isEmpty
@@ -135,6 +150,10 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView>
                     },
                   ),
           ),
+          // Restores the gap the dropped Column `spacing: 16` used to give
+          // between the list and the count footer (the leading spacing was
+          // removed only to kill the title↔list double-gap).
+          const SizedBox(height: GeniusWalletConsts.space8),
           Align(
             alignment: Alignment.centerRight,
             child: AutoSizeText(

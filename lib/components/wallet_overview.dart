@@ -137,7 +137,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
           useMinions = index == 1;
         });
       },
-      fillColor: GeniusWalletColors.brandPrimary,
+      fillColor: GeniusWalletColors.brandPrimaryStrong,
       // UI-SPEC §3.1's table specifies textPrimary here, but that is white in
       // dark mode and white-on-brandPrimary measures 1.96:1 — a hard WCAG AA
       // failure. textOnBrand measures 10.12:1 and is the token this project

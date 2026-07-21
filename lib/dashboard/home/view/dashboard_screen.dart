@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -14,14 +13,16 @@ import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/wallet_overview.dart';
-
-const double gridSpacing = 12;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -101,12 +102,14 @@ class ResponsiveDashboardView extends StatelessWidget {
     const totalMinHeight = topRowMinHeight + bottomRowMinHeight;
 
     return Padding(
-      padding: EdgeInsets.all(gridSpacing / 2),
+      padding: const EdgeInsets.all(GeniusWalletConsts.space3),
       child: Row(
+        spacing: GeniusWalletConsts.space3,
         children: [
           Expanded(
             flex: 3,
             child: Column(
+              spacing: GeniusWalletConsts.space3,
               children: [
                 Expanded(
                   flex: 45,
@@ -145,8 +148,9 @@ class ResponsiveDashboardView extends StatelessWidget {
 
   Widget _twoColumnLayout() {
     return Padding(
-      padding: EdgeInsets.all(gridSpacing / 2),
+      padding: const EdgeInsets.all(GeniusWalletConsts.space3),
       child: Column(
+        spacing: GeniusWalletConsts.space3,
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 300),
@@ -154,9 +158,11 @@ class ResponsiveDashboardView extends StatelessWidget {
           ),
           const Expanded(
             child: Row(
+              spacing: GeniusWalletConsts.space3,
               children: [
                 Expanded(
                   child: Column(
+                    spacing: GeniusWalletConsts.space3,
                     children: [
                       Expanded(child: ChartDashboardView()),
                       Expanded(child: MarketsDashboardView()),
@@ -179,6 +185,7 @@ class _OverviewContributionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      spacing: GeniusWalletConsts.space3,
       children: [
         const Expanded(flex: 2, child: OverviewDashboardView()),
         const Expanded(
@@ -196,6 +203,7 @@ class _ChartMarketsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      spacing: GeniusWalletConsts.space3,
       children: [
         const Expanded(flex: 3, child: ChartDashboardView()),
         const Expanded(flex: 2, child: MarketsDashboardView()),
@@ -218,44 +226,38 @@ class OneColumnDashBoardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const spacing = SizedBox(height: GeniusWalletConsts.space10);
+    const spacing = SizedBox(height: GeniusWalletConsts.space3);
 
-    return Padding(
-      padding: const EdgeInsets.all(gridSpacing / 2),
-      child: RefreshIndicator(
-        onRefresh: () => _onRefresh(context),
-        child: ListView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space8,
-            vertical: GeniusWalletConsts.space6,
+    return RefreshIndicator(
+      onRefresh: () => _onRefresh(context),
+      child: ListView(
+        padding: const EdgeInsets.all(GeniusWalletConsts.space3),
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: OverviewDashboardView(),
           ),
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: OverviewDashboardView(),
-            ),
-            spacing,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: ContributionsDashboardView(),
-            ),
-            spacing,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 350),
-              child: const ChartDashboardView(),
-            ),
-            spacing,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 350),
-              child: const MarketsDashboardView(),
-            ),
-            spacing,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 400),
-              child: const TransactionsDashboardView(),
-            ),
-          ],
-        ),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: ContributionsDashboardView(),
+          ),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 350),
+            child: const ChartDashboardView(),
+          ),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 350),
+            child: const MarketsDashboardView(),
+          ),
+          spacing,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: const TransactionsDashboardView(),
+          ),
+        ],
       ),
     );
   }
@@ -280,7 +282,10 @@ class DashboardScrollContainer extends StatelessWidget {
         radius: GeniusWalletConsts.radiusLg,
         border: gw.borderSubtle,
       ),
-      child: Padding(padding: EdgeInsets.all(gridSpacing), child: child),
+      child: Padding(
+        padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+        child: child,
+      ),
     );
   }
 }
@@ -373,11 +378,7 @@ class ChartDashboardView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AutoSizeText(
-            "Bitcoin Chart",
-            maxLines: 1,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          const _ChartSectionHeader(),
           const Expanded(
             child: CryptoLiveChart(
               coinGeckoCoinId: 'bitcoin',
@@ -386,6 +387,234 @@ class ChartDashboardView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A→ header for the Bitcoin Chart card (sketch 006): coin identity on the
+/// left, a visual-only 1H·1D·1W·1M·1Y timeframe segment on the right, pushed
+/// apart on one row. Reproduces GWSectionTitle's exact geometry (same
+/// padding + minHeight) so this panel's title->body rhythm matches the
+/// Assets/Markets/Transactions panels that still use GWSectionTitle.
+class _ChartSectionHeader extends StatelessWidget {
+  const _ChartSectionHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        GeniusWalletConsts.space4,
+        2,
+        GeniusWalletConsts.space4,
+        // ~3x the shared space8 gap (per request): pushes the price/% down away
+        // from the Bitcoin·BTC + timeframe row and shrinks the chart, which was
+        // taking too much height. Chart-only override of the section rhythm.
+        GeniusWalletConsts.space24,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [_CoinIdentity(), _TimeframeSegment()],
+        ),
+      ),
+    );
+  }
+}
+
+/// ₿ coin avatar + "Bitcoin" (bold) + "BTC" ticker — mirrors sketch 006's
+/// IDENT block. Hardcoded to bitcoin, matching the card below it.
+class _CoinIdentity extends StatelessWidget {
+  const _CoinIdentity();
+
+  // ponytail: the ₿-on-#F7931A coin avatar is the recognizable Bitcoin brand
+  // LOGO mark -- WCAG's logo exemption applies, so its glyph/fill contrast
+  // does not gate AA; it stays the canonical white-₿-on-orange. Ceiling:
+  // hardcoded to bitcoin. Upgrade path: a coin-agnostic avatar when this card
+  // stops being hardcoded to coinGeckoCoinId: 'bitcoin'.
+  static const Color _bitcoinOrange = Color(0xFFF7931A);
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: _bitcoinOrange,
+            shape: BoxShape.circle,
+          ),
+          child: const Text(
+            '₿',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              height: 1,
+            ),
+          ),
+        ),
+        const SizedBox(width: GeniusWalletConsts.space3),
+        Text.rich(
+          // ONE line so "Bitcoin" centers in the shared 44px header at the same
+          // baseline as Markets/Assets titles. A two-line name+ticker stack
+          // centred its whole block, pushing the name line visibly higher.
+          TextSpan(
+            style: GeniusWalletTypography.titleLg.copyWith(
+              color: gw.textPrimary,
+              letterSpacing: -0.2,
+              height: 1,
+            ),
+            children: [
+              const TextSpan(text: 'Bitcoin'),
+              TextSpan(
+                text: '  ·  BTC',
+                style: TextStyle(
+                  color: gw.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Visual-only 1H·1D·1W·1M·1Y segmented control (sketch 006 `.tf`). Tapping a
+/// tab only moves the selected chip -- the plotted series in [CryptoLiveChart]
+/// below is UNCHANGED this task; wiring real ranges is a captured follow-up
+/// (see .planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-
+/// crypto-live-chart.md).
+///
+/// ponytail: this segment only changes its own selected state -- it does not
+/// re-fetch or re-window the series. Ceiling: non-functional tabs. Upgrade
+/// path: the follow-up todo wires real ranges into CryptoLiveChart.
+class _TimeframeSegment extends StatefulWidget {
+  const _TimeframeSegment();
+
+  @override
+  State<_TimeframeSegment> createState() => _TimeframeSegmentState();
+}
+
+class _TimeframeSegmentState extends State<_TimeframeSegment> {
+  static const _labels = ['1H', '1D', '1W', '1M', '1Y'];
+  int _selected = 1; // '1D', matching the sketch's default.
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: gw.surfaceMenu,
+        // Hairline border so the five tabs read as ONE connected segmented
+        // "baton" (a single track holding the options), not five loose chips.
+        border: Border.all(color: gw.borderSubtle),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < _labels.length; i++) ...[
+            if (i > 0) const SizedBox(width: 2),
+            _TimeframeTab(
+              label: _labels[i],
+              selected: i == _selected,
+              // Selected chip wears the brand CTA gradient with textOnBrand
+              // (near-black) -- AA-safe in BOTH modes, so no light-mode fallback
+              // is needed. Hover raises an unselected tab onto surfaceElevated.
+              unselectedColor: gw.textSecondary,
+              hoverColor: gw.surfaceElevated,
+              hoverTextColor: gw.textPrimary,
+              onTap: () => setState(() => _selected = i),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TimeframeTab extends StatefulWidget {
+  const _TimeframeTab({
+    required this.label,
+    required this.selected,
+    required this.unselectedColor,
+    required this.hoverColor,
+    required this.hoverTextColor,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final Color unselectedColor;
+  final Color hoverColor;
+  final Color hoverTextColor;
+  final VoidCallback onTap;
+
+  @override
+  State<_TimeframeTab> createState() => _TimeframeTabState();
+}
+
+class _TimeframeTabState extends State<_TimeframeTab> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.selected;
+    // Unselected label: muted normally, lifts to hoverTextColor on hover.
+    final Color labelColor = selected
+        ? GeniusWalletColors.textOnBrand
+        : (_hovered ? widget.hoverTextColor : widget.unselectedColor);
+
+    // Design-system hover = "lift chip" (sketch 008 variant D): an unselected
+    // tab rises onto surfaceElevated with the card shadow and a 1px lift, so
+    // hover and the selected gradient chip share a raised material.
+    final bool lifted = _hovered && !selected;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          transformAlignment: Alignment.center,
+          transform: lifted
+              ? Matrix4.translationValues(0, -1, 0)
+              : Matrix4.identity(),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space4,
+            vertical: GeniusWalletConsts.space3,
+          ),
+          decoration: BoxDecoration(
+            gradient: selected ? GeniusWalletGradient.brandCta : null,
+            color: selected
+                ? null
+                : (lifted ? widget.hoverColor : Colors.transparent),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+            boxShadow: (selected || lifted)
+                ? GeniusWalletElevation.card
+                : null,
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: labelColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        ),
       ),
     );
   }

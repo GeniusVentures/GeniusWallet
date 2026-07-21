@@ -15,6 +15,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -43,10 +44,11 @@ class SDKAccountManagerButton extends StatelessWidget {
         return Tooltip(
           message: 'SDK Accounts',
           child: TextButton(
+            style: navContextChipStyle(context),
             onPressed: () => _showSDKAccountDrawer(context),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              spacing: 6.0,
+              spacing: GeniusWalletConsts.space4,
               children: [
                 const GWIcon.material(Icons.settings_applications),
                 if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
@@ -177,7 +179,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     // surfaceElevated fails WCAG AA, which is why the accent lives on the
     // border/icon, not on the body text).
     final accentColor =
-        isSelected ? GeniusWalletColors.brandPrimary : gw.textPrimary;
+        isSelected ? GeniusWalletColors.brandPrimaryStrong : gw.textPrimary;
 
     final mnemonic = context.read<AppBloc>().api.getSelectedAccountMnemonic();
 
@@ -188,7 +190,9 @@ class SDKAccountManagerButton extends StatelessWidget {
       ),
       background: gw.surfaceElevated,
       border: Border.all(
-        color: isSelected ? GeniusWalletColors.brandPrimary : gw.borderSubtle,
+        color: isSelected
+            ? GeniusWalletColors.brandPrimaryStrong
+            : gw.borderSubtle,
         width: isSelected ? 2 : 1,
       ),
       onTap: () {

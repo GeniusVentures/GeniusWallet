@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
+import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,49 +56,47 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
           return marketData[coin.symbol.toLowerCase()] != null;
         }).toList();
 
-        return ListView.separated(
-          itemCount: visibleCoins.length,
-          separatorBuilder: (context, index) =>
-              Container(height: 1, color: gw.borderSubtle),
-          itemBuilder: (context, index) {
-            final coin = visibleCoins[index];
-            final data = marketData[coin.symbol.toLowerCase()]!;
+        // Real "Markets" panel header above the rows (003-A) via the shared
+        // GWSectionTitle, not a title crammed into the first list item. The
+        // list stays bounded via Column + Expanded (the panel already gives it
+        // bounded height).
+        return Column(
+          children: [
+            GWSectionTitle(
+              title: widget.title ?? 'Markets',
+              trailing: GWViewAllLink(onTap: () => context.go('/markets')),
+            ),
+            Expanded(
+              child: ListView.separated(
+                itemCount: visibleCoins.length,
+                separatorBuilder: (context, index) =>
+                    Container(height: 1, color: gw.borderSubtle),
+                itemBuilder: (context, index) {
+                  final coin = visibleCoins[index];
+                  final data = marketData[coin.symbol.toLowerCase()]!;
 
-            final item = CryptoSparkLineChart(
-              onTap: () {
-                context.push(
-                  '/token-info',
-                  extra: {"isGnusWalletConnected": false, "marketData": data},
-                );
-              },
-              title: coin.name,
-              iconPath: data.imageUrl,
-              currentPrice: data.currentPrice,
-              high24h: data.high24h,
-              low24h: data.low24h,
-              priceChangePercent: data.priceChangePercentage24h,
-              sparkline: data.sparkline,
-            );
-
-            if (index == 0 && widget.title != null) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title!,
-                    maxLines: 1,
-                    style: GeniusWalletTypography.titleLg.copyWith(
-                      color: gw.textPrimary,
-                    ),
-                  ),
-                  item,
-                ],
-              );
-            }
-
-            return item;
-          },
+                  return CryptoSparkLineChart(
+                    onTap: () {
+                      context.push(
+                        '/token-info',
+                        extra: {
+                          "isGnusWalletConnected": false,
+                          "marketData": data,
+                        },
+                      );
+                    },
+                    title: coin.name,
+                    iconPath: data.imageUrl,
+                    currentPrice: data.currentPrice,
+                    high24h: data.high24h,
+                    low24h: data.low24h,
+                    priceChangePercent: data.priceChangePercentage24h,
+                    sparkline: data.sparkline,
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );

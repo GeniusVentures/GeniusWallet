@@ -17,6 +17,8 @@ import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -41,7 +43,7 @@ final List<_TabDestination> _allDestinations = [
   const _TabDestination(
     path: '/dashboard',
     label: 'Dashboard',
-    icon: Icons.dashboard,
+    icon: Icons.dashboard_outlined,
   ),
   _TabDestination(
     path: '/transactions',
@@ -56,12 +58,12 @@ final List<_TabDestination> _allDestinations = [
   const _TabDestination(
     path: '/markets',
     label: 'Markets',
-    icon: Icons.stacked_line_chart,
+    icon: Icons.show_chart,
   ),
   const _TabDestination(
     path: '/news',
     label: 'News',
-    icon: Icons.library_books,
+    icon: Icons.article_outlined,
   ),
   _TabDestination(
     path: '/web',
@@ -72,12 +74,12 @@ final List<_TabDestination> _allDestinations = [
   const _TabDestination(
     path: '/logs',
     label: 'Feedback',
-    icon: Icons.feedback_outlined,
+    icon: Icons.chat_bubble_outline,
   ),
   const _TabDestination(
     path: '/settings',
     label: 'Settings',
-    icon: Icons.settings,
+    icon: Icons.settings_outlined,
   ),
 ];
 
@@ -108,7 +110,7 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
   ];
 }
 
-const _kIconSize = 16.0;
+const _kIconSize = 23.0;
 
 class _MobileTabBar extends StatelessWidget {
   const _MobileTabBar();
@@ -145,14 +147,14 @@ class _MobileTabBar extends StatelessWidget {
         showUnselectedLabels: true,
         currentIndex: selected,
         onTap: (index) => context.go(destinations[index].path),
-        selectedItemColor: GeniusWalletColors.brandPrimary,
+        selectedItemColor: GeniusWalletColors.brandPrimaryStrong,
         unselectedItemColor: gw.textSecondary,
         selectedIconTheme: const IconThemeData(
-          color: GeniusWalletColors.brandPrimary,
+          color: GeniusWalletColors.brandPrimaryStrong,
         ),
         unselectedIconTheme: IconThemeData(color: gw.textSecondary),
         selectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
-          color: GeniusWalletColors.brandPrimary,
+          color: GeniusWalletColors.brandPrimaryStrong,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
@@ -193,90 +195,206 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
       child: SizedBox(
         height: GeniusWalletConsts.appBarHeight,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.fromLTRB(24, 0, 12, 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                spacing: hideLabels ? 6 : 2,
                 children: [
                   Image.asset(
                     'assets/images/geniusappbarlogo.png',
-                    height: 30,
+                    height: 40,
                     package: 'genius_wallet',
                   ),
-                  ...destinations.indexed.map((entry) {
+                  // FIX 2: logo→nav gap. The logo PNG (38×38) bakes in a ~9px
+                  // transparent right margin (opaque bbox ends at x=29) but only
+                  // ~1px on the left, so at height 40 a raw 24px SizedBox renders
+                  // a ~33px visible gap on the right vs ~25px on the left. 15px
+                  // compensates the ~9.5px right margin → both visible gaps ≈24.
+                  const SizedBox(width: 15),
+                  Row(
+                    spacing: hideLabels ? 6 : 2,
+                    children: [
+                      ...destinations.indexed.map((entry) {
                     final (index, dest) = entry;
                     final isSelected = index == selected;
-                    final color = isSelected
-                        ? GeniusWalletColors.brandPrimary
-                        : gw.textSecondary;
+                    // Active label+icon = WHITE (textPrimary); the gradient lives
+                    // ONLY in the underline. Inactive tabs "light up" white on
+                    // hover. Built inside the StatefulBuilder below so the hover
+                    // colour can react to `lifted`.
 
-                    final tabButton = Material(
+                    // Design-system hover: an inactive tab lights up to white
+                    // (textPrimary) and rises onto surfaceElevated + card shadow
+                    // + a 1px lift.
+                    // ponytail: hover state lives in this StatefulBuilder
+                    // closure; a parent rebuild (route/theme change) resets it
+                    // mid-hover -- rare and harmless. Upgrade path: extract a
+                    // _DesktopNavTab StatefulWidget if it ever matters.
+                    bool hovered = false;
+                    final tabButton = StatefulBuilder(
+                      builder: (context, setHover) {
+                        final lifted = hovered && !isSelected;
+                        // WHITE on active OR hover, muted otherwise. No gradient
+                        // on the label -- the gradient is the underline only.
+                        final labelColor = (isSelected || lifted)
+                            ? gw.textPrimary
+                            : gw.textSecondary;
+                        final iconLabelRow = Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 6,
+                          children: [
+                            Icon(dest.icon, size: _kIconSize, color: labelColor),
+                            if (!hideLabels)
+                              Text(
+                                dest.label,
+                                style: GeniusWalletTypography.labelMd
+                                    .copyWith(color: labelColor),
+                              ),
+                          ],
+                        );
+                        return Material(
                       color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => context.go(dest.path),
-                        borderRadius: BorderRadius.circular(
-                          GeniusWalletConsts.borderRadiusCard,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: GeniusWalletConsts.space4,
                         ),
-                        mouseCursor: SystemMouseCursors.click,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6.0,
-                            horizontal: 12.0,
+                        child: InkWell(
+                          onTap: () => context.go(dest.path),
+                          onHover: (h) => setHover(() => hovered = h),
+                          borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.borderRadiusCard,
                           ),
-                          child: Ink(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 4,
-                              children: [
-                                Row(
-                                  spacing: 6,
+                          mouseCursor: SystemMouseCursors.click,
+                          // We paint the D lift ourselves, so suppress InkWell's
+                          // own overlay splash across all states.
+                          overlayColor: const WidgetStatePropertyAll(
+                            Colors.transparent,
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            transformAlignment: Alignment.center,
+                            transform: lifted
+                                ? Matrix4.translationValues(0, -1, 0)
+                                : Matrix4.identity(),
+                            decoration: BoxDecoration(
+                              color: lifted
+                                  ? gw.surfaceElevated
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(
+                                GeniusWalletConsts.borderRadiusCard,
+                              ),
+                              boxShadow: lifted
+                                  ? GeniusWalletElevation.card
+                                  : null,
+                            ),
+                            child: SizedBox(
+                            height: 44.0,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                              ),
+                              // IntrinsicWidth tracks the Column's content width;
+                              // CrossAxisAlignment.stretch makes the underline
+                              // span exactly the icon+label width -- same
+                              // content-tracking as before ("Transactions" long,
+                              // "Swap" short, icon-only when labels are hidden).
+                              child: IntrinsicWidth(
+                                // Design C center-fix: a Stack so the icon+label
+                                // centers on the TRUE box center (via Center),
+                                // INDEPENDENTLY of the underline. The old grouped
+                                // `Center(Column[Row, gap, underline])` centered
+                                // the whole [text + underline] block as one unit,
+                                // which pushed the icon+label ~3.5px ABOVE the box
+                                // center (extra space at the top). The underline is
+                                // now a `Positioned(bottom:4, left:0, right:0)`
+                                // child: positioned children do NOT contribute to
+                                // the Stack's intrinsic width, so IntrinsicWidth
+                                // still resolves the box width from the icon+label
+                                // Row (content-tracking preserved), and left:0/
+                                // right:0 stretches the underline to exactly that
+                                // width (icon-only when labels are hidden).
+                                child: Stack(
                                   children: [
-                                    Icon(
-                                      dest.icon,
-                                      size: _kIconSize,
-                                      color: color,
-                                    ),
-                                    if (!hideLabels) ...[
-                                      Text(
-                                        dest.label,
-                                        style: GeniusWalletTypography.labelMd
-                                            .copyWith(color: color),
+                                    Center(child: iconLabelRow),
+                                    // Underline rides ~3-4px beneath the centered
+                                    // text (still close to the label, NOT spread to
+                                    // the box bottom). bottom:4 leaves the blur-10
+                                    // glow ~4px clearance to the box edge; any
+                                    // downward bleed lands on the 12px of elevated
+                                    // bar below the box (same behaviour as the prior
+                                    // shipped layout, which also spilled) and stays
+                                    // inside the bar -- so no ClipRect is added,
+                                    // which would otherwise clip the horizontal glow
+                                    // and regress it.
+                                    Positioned(
+                                      // Lowered 4 -> 2 so the underline clears
+                                      // the icon (reported near-overlap).
+                                      bottom: 2,
+                                      left: 0,
+                                      right: 0,
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        height: 3,
+                                        decoration: BoxDecoration(
+                                          // 002-B: a thick 3px gradient bar with
+                                          // a rounded top and a soft
+                                          // brandPrimaryStrong glow. Selected
+                                          // uses the brand CTA gradient;
+                                          // unselected is flat transparent. A
+                                          // BoxDecoration cannot set both color
+                                          // and gradient, so each state uses
+                                          // exactly one.
+                                          gradient: isSelected
+                                              ? GeniusWalletGradient.brandCta
+                                              : null,
+                                          color: isSelected
+                                              ? null
+                                              : Colors.transparent,
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                            top: Radius.circular(3),
+                                          ),
+                                          boxShadow: isSelected
+                                              ? [
+                                                  BoxShadow(
+                                                    color: GeniusWalletColors
+                                                        .brandPrimaryStrong
+                                                        .withValues(alpha: 0.5),
+                                                    blurRadius: 10,
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
                                       ),
-                                    ],
+                                    ),
                                   ],
                                 ),
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  height: 1,
-                                  width: hideLabels ? 20 : 60,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? GeniusWalletColors.brandPrimary
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
+                              ),
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    });
 
                     return hideLabels
                         ? Tooltip(message: dest.label, child: tabButton)
                         : tabButton;
-                  }),
+                    }),
+                  ],
+                ),
                 ],
               ),
               Row(
+                spacing: GeniusWalletConsts.space4,
                 children: [
                   ..._buildActionRowWidgets(context),
                   GWButton(
-                    variant: GWButtonVariant.secondary,
+                    variant: GWButtonVariant.gradient,
                     size: GWButtonSize.md,
+                    height: 40,
                     label: 'Buy GNUS',
                     onPressed: () async {
                       context.push('/buy');
