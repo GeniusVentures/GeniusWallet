@@ -135,6 +135,16 @@ None - no external service configuration required.
 
 **This plan is NOT complete.** Task 2 (forced-failure walk) is outstanding and is the sole remaining item blocking Phase 05 sign-off (ROADMAP criterion 3). STATE.md has not yet been updated to reflect this plan, and no `docs(05-07): complete...` metadata commit has been made — both are deferred until Task 2 is approved.
 
+> **Updated 2026-07-21 by quick task `260721-d5s`.** The recipe below is a historical record of how
+> Task 2 was originally planned to be walked — by hand-editing `app_bloc.dart` with a temporary,
+> uncommitted one-shot fault, then reverting it. That recipe has been repointed: `260721-d5s` shipped
+> a dev-only, one-shot account-load fault injector (`lib/dev/dev_fault_injector.dart`, a gated hook in
+> `app_bloc.dart`'s `_onFetchAccount`, and a MOCK-section 'Fail acct' button in
+> `lib/dev/dev_tools_bubble.dart`) so the same walk now needs **zero source edits and nothing to
+> revert** — press 'Fail acct' instead of step 1 below. `05-07-PLAN.md` Task 2 has been rewritten to
+> match; this block is left as-is per the SUMMARY-is-a-record convention rather than silently
+> rewritten. See `05-07-PLAN.md` Task 2 for the current, authoritative recipe.
+
 **Recipe for Task 2 (copied from `05-07-PLAN.md`, corrects the recipe in `05-VERIFICATION.md` which targeted the markets leg, not the dashboard leg):**
 
 Part A — the dashboard retry (load-bearing):
