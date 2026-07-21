@@ -225,7 +225,7 @@ Breakdown: 1 verified outright (C4), 1 verified-with-walk-pending (C5), 2 partia
 | Raw-color census, `crypto_live_chart.dart` | `grep -nE "Colors\.(white\|grey\|black\|red\|green)"` | 4 matches, all `Colors.white` on zoom/pan icons | ⚠️ PARTIAL |
 | Raw-color census, `transaction_displays.dart` | `grep -n "Colors.white"` | zero matches | ✓ PASS |
 | Reference worktree availability | `Test-Path C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514` | present; `Release\genius_wallet.exe` built | ✓ AVAILABLE (was ? SKIP) |
-| Project compiles / analyze delta | `flutter analyze lib` | **NOT RUN — Flutter is not installed on this Windows machine** (searched PATH, `%LOCALAPPDATA%`, `C:\flutter`, `C:\src\flutter`, fvm, and a depth-4 sweep of `C:\Users\User`) | ? UNAVAILABLE |
+| Project compiles / analyze delta | `flutter analyze lib` | **NOT RUN — the Flutter toolchain could not be located from this session** (searched PATH, `%LOCALAPPDATA%`, `C:\flutter`, `C:\src\flutter`, fvm, and a depth-4 sweep of `C:\Users\User`). Not a claim that it is absent — the pinned 3.41.9 toolchain may simply live outside those paths. | ? UNAVAILABLE |
 | Pull-to-refresh reloads (tx, news) | — | no harness; requires a run | ? SKIP → human |
 | Forced-failure retry | — | no harness; requires a run | ? SKIP → human |
 | Release-build chart bottom edge | — | requires a release build | ? SKIP → human |
