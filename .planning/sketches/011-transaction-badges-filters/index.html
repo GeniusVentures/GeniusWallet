@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>011 · Transaction badges + filters — all 7 types</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+
+  .wrap { max-width:1180px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-8); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:820px; }
+  p.lede b { color:var(--text-primary); }
+
+  /* provenance tags — EXISTING vs NEW */
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.mod { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend div { display:flex; align-items:center; gap:var(--space-4); }
+
+  /* ── panel: mirrors the dashboard Transactions card ── */
+  .panel { width:520px; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-8); }
+  .panel.narrow { width:376px; }
+  .phead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding-bottom:var(--space-4); }
+  .phead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; }
+
+  /* EXISTING: Divider(height:1, thickness:1, color: gw.borderSubtle) — the homepage separator.
+     Straight, full-bleed, no rounding. Same as coins_screen.dart:313. */
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+
+  /* EXISTING anatomy: GWTokenRow — 40px icon, space6/space4 padding, radiusMd InkWell */
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); cursor:pointer; transition:background .14s; }
+  .row:hover { background:var(--surface-menu); }
+  .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row:hover .t .action { background:var(--surface-elevated); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .amt { text-align:right; white-space:nowrap; flex:none; }
+  .amt .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .amt .v.in { color:var(--status-success); }
+  .amt .v.na { color:var(--text-primary-38); }
+  .amt .f { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); font-variant-numeric:tabular-nums; margin-top:3px; }
+  .time { font:400 11px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; flex:none; width:44px; text-align:right; }
+
+  /* EXISTING: 40px circular token art (GWTokenRow icon slot) */
+  .id { position:relative; flex:none; width:40px; height:40px; }
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 12px/1 var(--font); color:#fff; }
+  .coin.eth{background:linear-gradient(160deg,#8A9DF5,#5B72D8)} .coin.btc{background:linear-gradient(160deg,#F9A03C,#E87B10)}
+  .coin.gnus{background:linear-gradient(160deg,#3AD9C0,#1FA9C8)} .coin.usdc{background:linear-gradient(160deg,#4A90E2,#2A6FC9)}
+  .coin.usdt{background:linear-gradient(160deg,#3FC1A0,#1E8E72)}
+  .id.dual .coin { width:34px; height:34px; font-size:10px; }
+  .id.dual .coin.b { position:absolute; left:16px; top:8px; border:2px solid var(--surface-sheen-b); }
+
+  /* NEW: direction/type badge, 18px, knocked-out glyph */
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:9px; height:9px; stroke-width:3.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* swatch grid for the scheme comparison */
+  .swatches { display:grid; grid-template-columns:repeat(auto-fill,minmax(154px,1fr)); gap:var(--space-6); margin-bottom:var(--space-8); }
+  .sw { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-6); text-align:center; }
+  .sw .demo { position:relative; width:40px; height:40px; margin:0 auto var(--space-4); }
+  .sw .nm { font:600 12px/16px var(--font); }
+  .sw .hex { font:400 11px/15px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .sw .cr { font:500 10px/14px var(--font); margin-top:4px; }
+  .cr.pass { color:var(--status-success); } .cr.fail { color:var(--status-error); }
+
+  table { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-bottom:var(--space-8); }
+  th, td { text-align:left; padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font:600 11px/16px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); }
+  td b { font-weight:600; }
+  td code { font:400 12px/18px var(--font-mono); color:var(--text-secondary); }
+
+  /* filter structures */
+  .fdemo { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-8); margin-bottom:var(--space-6); }
+  .fdemo .lab { font:600 13px/18px var(--font); margin-bottom:var(--space-2); display:flex; align-items:center; gap:var(--space-4); }
+  .fdemo .why { font:400 12px/18px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+
+  /* EXISTING 007-C: compact icon-only segmented */
+  .fc { display:inline-flex; background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fc button { display:inline-flex; align-items:center; justify-content:center; font:600 12px/1 var(--font); height:30px; width:34px; padding:0; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; overflow:hidden; transition:width .18s,background .14s,color .14s; }
+  .fc button svg { width:15px; height:15px; flex:none; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .fc button .lbl { max-width:0; opacity:0; white-space:nowrap; transition:max-width .18s,opacity .14s; }
+  .fc button.on { background:var(--brand-primary-strong); color:var(--text-on-brand); width:auto; padding:0 11px; gap:6px; }
+  .fc button.on .lbl { max-width:90px; opacity:1; }
+  .fc button:hover:not(.on) { color:var(--text-primary); }
+  .fc .sep { width:1px; background:var(--border-subtle); margin:4px 3px; flex:none; }
+
+  /* NEW: overflow "more types" menu */
+  .more { position:relative; display:inline-block; }
+  .more .menu { display:none; position:absolute; left:0; top:calc(100% + 6px); z-index:20; min-width:210px; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:var(--space-2); }
+  .more.open .menu { display:block; }
+  .more .menu button { display:flex; width:100%; align-items:center; gap:var(--space-4); font:500 13px/18px var(--font); padding:9px 10px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--text-primary); cursor:pointer; text-align:left; }
+  .more .menu button svg { width:14px; height:14px; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .more .menu button:hover { background:var(--surface-elevated); }
+  .more .menu button .n { margin-left:auto; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .more .menu .head { font:700 10px/14px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); padding:var(--space-4) 10px var(--space-2); }
+  .more .menu .divider { margin:var(--space-2) 0; }
+
+  .stage { display:flex; gap:var(--space-12); align-items:flex-start; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>011 · Transaction badges + filters — variant A locked, all 7 types</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="scheme">
+    <button data-v="1" aria-pressed="true">Scheme 1 · Restrained</button>
+    <button data-v="2" aria-pressed="false">Scheme 2 · Warm/cool</button>
+    <button data-v="3" aria-pressed="false">Scheme 3 · Brand-forward</button>
+  </div>
+  <div class="seg" id="width"><button data-v="wide" aria-pressed="true">520</button><button data-v="narrow" aria-pressed="false">376</button></div>
+</div>
+
+<div class="legend">
+  <div><span class="tag ex">Existing</span> already shipped on the homepage — reused as-is</div>
+  <div><span class="tag mod">Adapted</span> existing component, one property changed</div>
+  <div><span class="tag new">New</span> does not exist yet — must be built</div>
+</div>
+
+<h2 class="sec">1 · The badge colour question</h2>
+<p class="lede">
+  These badges are <b>filled circles with a knocked-out glyph</b>, so the contrast that matters is
+  glyph-against-fill, not fill-against-background. That is why saturated colours are safe here in both
+  themes, while the same colours would fail as text. Each ratio below is the glyph on its own fill.
+  <br><br>
+  <b>One hard constraint found in the code:</b> <code>statusWarning</code> (#FFC42E) exists only as a
+  static in <code>genius_wallet_colors.dart:178</code> — it is <b>not</b> in the <code>GWColors</code>
+  extension, so it is not appearance-aware. Fine as a badge fill; it would fail AA as text on white (1.7:1).
+</p>
+<div class="swatches" id="swatches"></div>
+
+<h2 class="sec">2 · All seven types, in the row</h2>
+<p class="lede">
+  Every <code>TransactionType</code> from <code>packages/genius_api/lib/models/transaction.dart</code>:
+  <b>transfer, mint, escrow, process, escrowRelease, purchase, swap</b> — plus the abnormal statuses.
+  Switch schemes above to compare in place.
+</p>
+<div class="stage">
+  <div class="panel" id="panel">
+    <div class="phead">
+      <h3>Transactions</h3>
+      <div id="filterslot"></div>
+    </div>
+    <hr class="divider">
+    <div id="list"></div>
+  </div>
+  <div style="flex:1; min-width:300px">
+    <table id="typetable"></table>
+  </div>
+</div>
+
+<h2 class="sec">3 · Filters — the coverage gap</h2>
+<p class="lede">
+  <b>Today's <code>Filters</code> enum is <code>{all, sent, received, escrow, mint}</code></b>
+  (<code>transactions_slim_view.dart:16</code>). Cross-referenced against the seven real types, three
+  are unreachable by any filter: <b>swap, purchase and process</b> — a swap can only ever be found under
+  "All". That is a coverage bug, not a styling preference. Below are three structures that close it.
+</p>
+<div id="filterstructures"></div>
+
+</div>
+
+<script>
+const SVG = (d,extra='') => `<svg viewBox="0 0 24 24">${d}</svg>`;
+const G = {
+  up:   '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  down: '<line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/>',
+  x:    '<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
+  cpu:  '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/>',
+  swap: '<polyline points="16 3 20 7 16 11"/><path d="M4 7h16"/><polyline points="8 21 4 17 8 13"/><path d="M20 17H4"/>',
+  card: '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  spark:'<path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="12" r="2.6"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>',
+  filt: '<polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3"/>',
+  dots: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+};
+
+/* ── the three coherent schemes ──────────────────────────────────
+   Each is internally consistent; they are not a pick-and-mix.     */
+const SCHEMES = {
+  1: { /* Restrained — colour ONLY where money moved; everything else neutral slate */
+    name:'Restrained',
+    sent:      { fill:'#64748B', glyph:'#FFFFFF', label:'Slate 500' },
+    received:  { fill:'#0AD89C', glyph:'#04241A', label:'statusSuccess' },
+    escrow:    { fill:'#64748B', glyph:'#FFFFFF', label:'Slate 500' },
+    release:   { fill:'#0AD89C', glyph:'#04241A', label:'statusSuccess' },
+    mint:      { fill:'#64748B', glyph:'#FFFFFF', label:'Slate 500' },
+    process:   { fill:'#64748B', glyph:'#FFFFFF', label:'Slate 500' },
+    purchase:  { fill:'#0AD89C', glyph:'#04241A', label:'statusSuccess' },
+    swap:      { fill:'#64748B', glyph:'#FFFFFF', label:'Slate 500' },
+    failed:    { fill:'#FF4D4D', glyph:'#FFFFFF', label:'statusError' },
+    pending:   { fill:'#FFC42E', glyph:'#3A2A00', label:'statusWarning' },
+  },
+  2: { /* Warm/cool — out is warm, in is cool-green, brand types keep brand hues */
+    name:'Warm / cool',
+    sent:      { fill:'#FF8A3D', glyph:'#2B1000', label:'Orange 500 (new token)' },
+    received:  { fill:'#0AD89C', glyph:'#04241A', label:'statusSuccess' },
+    escrow:    { fill:'#FFC42E', glyph:'#3A2A00', label:'statusWarning' },
+    release:   { fill:'#0AD89C', glyph:'#04241A', label:'statusSuccess' },
+    mint:      { fill:'#2BF5B4', glyph:'#00291C', label:'brandSecondary' },
+    process:   { fill:'#0AAEE6', glyph:'#000B18', label:'brandPrimaryStrong' },
+    purchase:  { fill:'#C28FFF', glyph:'#1B0733', label:'brandTertiary' },
+    swap:      { fill:'#C28FFF', glyph:'#1B0733', label:'brandTertiary' },
+    failed:    { fill:'#FF4D4D', glyph:'#FFFFFF', label:'statusError' },
+    pending:   { fill:'#FFC42E', glyph:'#3A2A00', label:'statusWarning' },
+  },
+  3: { /* Brand-forward — the GNUS palette does the talking; grey reserved for nothing */
+    name:'Brand-forward',
+    sent:      { fill:'#C28FFF', glyph:'#1B0733', label:'brandTertiary' },
+    received:  { fill:'#0AD89C', glyph:'#04241A', label:'statusSuccess' },
+    escrow:    { fill:'#FFC42E', glyph:'#3A2A00', label:'statusWarning' },
+    release:   { fill:'#2BF5B4', glyph:'#00291C', label:'brandSecondary' },
+    mint:      { fill:'#0AAEE6', glyph:'#000B18', label:'brandPrimaryStrong' },
+    process:   { fill:'#0AAEE6', glyph:'#000B18', label:'brandPrimaryStrong' },
+    purchase:  { fill:'#2BF5B4', glyph:'#00291C', label:'brandSecondary' },
+    swap:      { fill:'#C28FFF', glyph:'#1B0733', label:'brandTertiary' },
+    failed:    { fill:'#FF4D4D', glyph:'#FFFFFF', label:'statusError' },
+    pending:   { fill:'#FFC42E', glyph:'#3A2A00', label:'statusWarning' },
+  },
+};
+
+const KEYS = [
+  { k:'sent',     g:G.up,    n:'Sent',            note:'transfer · direction sent' },
+  { k:'received', g:G.down,  n:'Received',        note:'transfer · direction received' },
+  { k:'swap',     g:G.swap,  n:'Swapped',         note:'type swap' },
+  { k:'mint',     g:G.spark, n:'Minted',          note:'type mint' },
+  { k:'escrow',   g:G.lock,  n:'Escrow locked',   note:'type escrow' },
+  { k:'release',  g:G.unlock,n:'Escrow released', note:'type escrowRelease' },
+  { k:'process',  g:G.cpu,   n:'Processing job',  note:'type process' },
+  { k:'purchase', g:G.card,  n:'Purchased',       note:'type purchase' },
+  { k:'pending',  g:G.clock, n:'Pending',         note:'status pending' },
+  { k:'failed',   g:G.x,     n:'Failed',          note:'status failed / cancelled' },
+];
+
+/* WCAG contrast of glyph on its own fill */
+function lum(hex){const c=hex.replace('#','');const v=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255)
+  .map(x=>x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4));return .2126*v[0]+.7152*v[1]+.0722*v[2];}
+function ratio(a,b){const l1=lum(a),l2=lum(b);const hi=Math.max(l1,l2),lo=Math.min(l1,l2);return (hi+.05)/(lo+.05);}
+
+const TX = [
+  { k:'sent',     sym:'ETH',  title:'ETH',  action:'Sent',            party:'0x9fF8…2e2b', amt:'− 0.75 ETH',       fiat:'$1,440.20', time:'18:42', day:'Today' },
+  { k:'received', sym:'BTC',  title:'BTC',  action:'Received',        party:'0x1d9b…4a87', amt:'+ 0.0042 BTC',     fiat:'$278.19',   time:'15:10', day:'Today', in:1 },
+  { k:'swap',     sym:'USDC', title:'ETH → USDC', action:'Swapped',   party:'1.0 ETH',     amt:'+ 3,200.00 USDC',  fiat:'$3,200.00', time:'11:03', day:'Today', in:1, dual:'eth' },
+  { k:'mint',     sym:'GNUS', title:'GNUS', action:'Minted',          party:'Minted to wallet', amt:'+ 1,200 GNUS', fiat:'$924.00',  time:'21:55', day:'Yesterday', in:1 },
+  { k:'escrow',   sym:'GNUS', title:'GNUS', action:'Escrow locked',   party:'Job #4192',   amt:'− 75.00 GNUS',     fiat:'$57.75',    time:'20:14', day:'Yesterday' },
+  { k:'release',  sym:'GNUS', title:'GNUS', action:'Escrow released', party:'Job #4188',   amt:'+ 75.00 GNUS',     fiat:'$57.75',    time:'19:12', day:'Yesterday', in:1 },
+  { k:'process',  sym:'GNUS', title:'GNUS', action:'Processing job',  party:'Job #4192 · complete', amt:'—',       fiat:'0.42 GNUS spent', time:'16:20', day:'Yesterday', na:1 },
+  { k:'purchase', sym:'GNUS', title:'GNUS', action:'Purchased',       party:'Banxa · card', amt:'+ 500.00 GNUS',   fiat:'$385.00',   time:'09:47', day:'Yesterday', in:1 },
+  { k:'failed',   sym:'ETH',  title:'ETH',  action:'Buy',             party:'Banxa · payment declined', amt:'—',   fiat:'Not charged', time:'08:30', day:'18 Jul', na:1, status:'failed' },
+  { k:'pending',  sym:'USDT', title:'USDT', action:'Sent',            party:'0x4c7a…9910', amt:'− 420.00 USDT',    fiat:'$420.00',   time:'07:15', day:'18 Jul', status:'pending' },
+];
+
+const S = { theme:'dark', scheme:'1', width:'wide', filter:'all', menu:false, fstruct:null };
+
+function badge(k) {
+  const s = SCHEMES[S.scheme][k] || SCHEMES[S.scheme].sent;
+  const g = (KEYS.find(x => x.k === k) || KEYS[0]).g;
+  return `<span class="badge" style="background:${s.fill};color:${s.glyph}">
+    <svg viewBox="0 0 24 24" stroke="${s.glyph}">${g}</svg></span>`;
+}
+
+function renderSwatches() {
+  document.getElementById('swatches').innerHTML = KEYS.map(x => {
+    const s = SCHEMES[S.scheme][x.k];
+    const r = ratio(s.fill, s.glyph);
+    return `<div class="sw">
+      <div class="demo"><span class="coin gnus">${''}</span>${badge(x.k)}</div>
+      <div class="nm">${x.n}</div>
+      <div class="hex">${s.label}</div>
+      <div class="hex">${s.fill}</div>
+      <div class="cr ${r >= 4.5 ? 'pass' : 'fail'}">glyph ${r.toFixed(1)}:1 ${r >= 4.5 ? '✓' : '✕'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRows() {
+  const days = [...new Set(TX.map(t => t.day))];
+  document.getElementById('list').innerHTML = days.map(d => {
+    const rows = TX.filter(t => t.day === d);
+    return `<div class="day" style="display:flex;align-items:center;gap:12px;padding:16px 8px 6px;font:600 11px/14px var(--font);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.7px">${d}</div>`
+      + rows.map((t,i) => `
+      <div class="row">
+        <div class="id ${t.dual?'dual':''}">
+          ${t.dual ? `<span class="coin ${t.dual}">${t.dual.toUpperCase()}</span><span class="coin b ${t.sym.toLowerCase()}">${t.sym}</span>` : `<span class="coin ${t.sym.toLowerCase()}">${t.sym}</span>`}
+          ${badge(t.status || t.k)}
+        </div>
+        <div class="main">
+          <div class="t">${t.title}<span class="action">${t.action}</span></div>
+          <div class="s">${t.party}</div>
+        </div>
+        <div class="amt">
+          <span class="v ${t.in?'in':''} ${t.na?'na':''}">${t.amt}</span>
+          <span class="f">${t.fiat}</span>
+        </div>
+        <div class="time">${t.time}</div>
+      </div>` + (i < rows.length-1 ? '<hr class="divider">' : '')).join('');
+  }).join('');
+}
+
+function renderTable() {
+  document.getElementById('typetable').innerHTML =
+    `<tr><th>Type / status</th><th>Badge</th><th>Source</th></tr>` +
+    KEYS.map(x => {
+      const s = SCHEMES[S.scheme][x.k];
+      return `<tr>
+        <td><b>${x.n}</b><br><code>${x.note}</code></td>
+        <td><span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${s.fill};vertical-align:middle"></span>
+            <code style="margin-left:6px">${s.label}</code></td>
+        <td>${s.label.includes('new token') ? '<span class="tag new">New</span>' :
+             s.label.startsWith('Slate') ? '<span class="tag new">New</span>' :
+             '<span class="tag ex">Existing</span>'}</td>
+      </tr>`;
+    }).join('');
+}
+
+/* ── three filter structures that cover all seven types ── */
+const FSTRUCT = [
+  { id:'F1', label:'Two-tier — direction on the title row, types behind “More”',
+    tag:'mod', tagtext:'Adapted',
+    why:'Keeps 007-C exactly as picked (icon-only segmented, title row) for the four everyday filters, and hides the three rarer types behind an overflow menu with counts. Nothing overflows at 376px; the gap closes without adding a second row.',
+    render: () => `<div class="fc">
+        ${['sent','received','escrow','mint'].map(k => {
+          const K = KEYS.find(x => x.k === (k==='escrow'?'escrow':k==='mint'?'mint':k));
+          return `<button class="${S.filter===k?'on':''}" data-f="${k}" title="${K.n}"><svg viewBox="0 0 24 24" stroke="currentColor">${K.g}</svg><span class="lbl">${K.n.split(' ')[0]}</span></button>`;
+        }).join('')}
+        <span class="sep"></span>
+        <span class="more ${S.menu?'open':''}">
+          <button data-more="1" title="More types"><svg viewBox="0 0 24 24" stroke="currentColor">${G.dots}</svg></button>
+          <span class="menu">
+            <span class="head">More types</span>
+            ${[['swap','Swapped',G.swap,2],['purchase','Purchased',G.card,1],['process','Processing jobs',G.cpu,1]].map(([k,n,g,c]) =>
+              `<button data-f="${k}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg>${n}<span class="n">${c}</span></button>`).join('')}
+            <hr class="divider">
+            <span class="head">Status</span>
+            ${[['pending','Pending',G.clock,1],['failed','Failed',G.x,1]].map(([k,n,g,c]) =>
+              `<button data-f="${k}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg>${n}<span class="n">${c}</span></button>`).join('')}
+          </span>
+        </span>
+      </div>` },
+
+  { id:'F2', label:'Money / Activity — two groups, one row',
+    tag:'new', tagtext:'New',
+    why:'Splits the eight filters by what the user is actually asking. Money = it changed my balance (Sent, Received). Activity = the app did something (Swap, Mint, Escrow, Job, Buy). Honest grouping, but needs its own row — costs ~40px of panel height that the list currently uses.',
+    render: () => `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <span style="font:700 10px/14px var(--font);text-transform:uppercase;letter-spacing:.6px;color:var(--text-secondary)">Money</span>
+        <div class="fc">${[['sent','Sent',G.up],['received','Received',G.down]].map(([k,n,g])=>
+          `<button class="${S.filter===k?'on':''}" data-f="${k}" title="${n}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg><span class="lbl">${n}</span></button>`).join('')}</div>
+        <span style="font:700 10px/14px var(--font);text-transform:uppercase;letter-spacing:.6px;color:var(--text-secondary);margin-left:8px">Activity</span>
+        <div class="fc">${[['swap','Swap',G.swap],['mint','Mint',G.spark],['escrow','Escrow',G.lock],['process','Jobs',G.cpu],['purchase','Buy',G.card]].map(([k,n,g])=>
+          `<button class="${S.filter===k?'on':''}" data-f="${k}" title="${n}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg><span class="lbl">${n}</span></button>`).join('')}</div>
+      </div>` },
+
+  { id:'F3', label:'Single dropdown — everything, with counts',
+    tag:'new', tagtext:'New',
+    why:'One trigger on the title row; the menu carries all eight types, both statuses, and live counts. Scales to any number of future types and is the most space-frugal. Costs glanceability — you cannot see what is available without opening it.',
+    render: () => `<span class="more ${S.menu?'open':''}" style="display:inline-block">
+        <button data-more="1" style="display:inline-flex;align-items:center;gap:8px;font:600 12px/1 var(--font);height:34px;padding:0 12px;border-radius:var(--radius-md);border:1px solid var(--border-subtle);background:var(--surface-elevated);color:var(--text-primary);cursor:pointer">
+          <svg viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;fill:none;stroke-width:2">${G.filt}</svg>All types<span style="color:var(--text-secondary)">10</span></button>
+        <span class="menu">
+          <span class="head">Money</span>
+          ${[['sent','Sent',G.up,2],['received','Received',G.down,1]].map(([k,n,g,c])=>`<button data-f="${k}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg>${n}<span class="n">${c}</span></button>`).join('')}
+          <hr class="divider"><span class="head">Activity</span>
+          ${[['swap','Swapped',G.swap,1],['mint','Minted',G.spark,1],['escrow','Escrow',G.lock,2],['process','Processing jobs',G.cpu,1],['purchase','Purchased',G.card,1]].map(([k,n,g,c])=>`<button data-f="${k}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg>${n}<span class="n">${c}</span></button>`).join('')}
+          <hr class="divider"><span class="head">Status</span>
+          ${[['pending','Pending',G.clock,1],['failed','Failed',G.x,1]].map(([k,n,g,c])=>`<button data-f="${k}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg>${n}<span class="n">${c}</span></button>`).join('')}
+        </span>
+      </span>` },
+];
+
+function renderFilters() {
+  document.getElementById('filterslot').innerHTML = FSTRUCT[0].render();
+  document.getElementById('filterstructures').innerHTML = FSTRUCT.map(f => `
+    <div class="fdemo">
+      <div class="lab">${f.id} · ${f.label} <span class="tag ${f.tag}">${f.tagtext}</span></div>
+      <div class="why">${f.why}</div>
+      ${f.render()}
+    </div>`).join('');
+}
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('panel').className = 'panel' + (S.width === 'narrow' ? ' narrow' : '');
+  renderSwatches(); renderRows(); renderTable(); renderFilters();
+}
+
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-more]');
+  const f = e.target.closest('[data-f]');
+  if (m) { S.menu = !S.menu; render(); e.stopPropagation(); return; }
+  if (f) { S.filter = S.filter === f.dataset.f ? 'all' : f.dataset.f; S.menu = false; render(); return; }
+  if (S.menu) { S.menu = false; render(); }
+});
+['theme','scheme','width'].forEach(g => document.getElementById(g).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[g] = b.dataset.v;
+  document.querySelectorAll('#'+g+' button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  render();
+}));
+
+render();
+</script>
+</body>
+</html>

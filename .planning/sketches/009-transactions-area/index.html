@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transactions area — rows, filters, empty states</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+
+  /* ── sketch toolbar ── */
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; max-width:760px; margin:0 auto var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .tabs { display:flex; gap:var(--space-4); max-width:760px; margin:0 auto var(--space-6); flex-wrap:wrap; }
+  .tabs button { font:600 13px/18px var(--font); padding:8px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .tabs button[aria-pressed="true"] { border-color:transparent; background:var(--brand-primary-strong); color:var(--text-on-brand); }
+  .caption { max-width:760px; margin:0 auto var(--space-8); color:var(--text-secondary); font:400 13px/20px var(--font); }
+  .caption b { color:var(--text-primary); }
+  .stage { display:flex; justify-content:center; }
+
+  /* ── the panel shell (mirrors the dashboard Transactions card) ── */
+  .panel { width:376px; transition:width .25s ease; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); display:flex; flex-direction:column; min-height:520px; }
+  .panel.wide { width:680px; }
+  .phead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding:0 var(--space-2) var(--space-4); }
+  .phead h2 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; white-space:nowrap; }
+  .body { flex:1; display:flex; flex-direction:column; }
+  .foot { display:flex; justify-content:flex-end; padding-top:var(--space-8); color:var(--text-secondary); font:500 13px/18px var(--font); }
+
+  /* ── shared bits ── */
+  .ic { width:34px; height:34px; border-radius:11px; flex:none; display:grid; place-items:center; }
+  .ic svg { width:17px; height:17px; }
+  .ic.g { background:var(--status-success-fill); color:var(--status-success); }
+  .ic.r { background:var(--status-error-fill);   color:var(--status-error); }
+  .ic.a { background:rgba(255,196,46,.14);       color:var(--status-warning); }
+  .ic.m { background:var(--brand-fill);          color:var(--brand-primary-strong); }
+  [data-theme="dark"] .ic.m { color:var(--brand-secondary); }
+  .num { font-variant-numeric:tabular-nums; }
+  .muted { color:var(--text-secondary); }
+
+  /* status pips — only shown when NOT completed, so the happy path stays quiet */
+  .pip { display:inline-flex; align-items:center; gap:4px; font:600 11px/1 var(--font); padding:3px 8px; border-radius:var(--radius-pill); }
+  .pip.pending { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .pip.failed  { background:var(--status-error-fill); color:var(--status-error); }
+  .pip .dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .pip.pending .dot { animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+  /* empty states — shared skeleton, per-variant styling below */
+  .empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--space-12) var(--space-8); gap:var(--space-4); }
+  .empty .glyph { width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background:var(--surface-menu); color:var(--text-primary-38); margin-bottom:var(--space-2); }
+  .empty .glyph svg { width:24px; height:24px; }
+  .empty h3 { font:600 16px/22px var(--font); }
+  .empty p { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:260px; }
+  .empty .act { margin-top:var(--space-4); display:flex; gap:var(--space-4); }
+  .btn { font:600 13px/18px var(--font); padding:9px 16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:transparent; color:var(--text-primary); cursor:pointer; }
+  .btn:hover { border-color:var(--border-strong); }
+  .btn.primary { border-color:transparent; background:linear-gradient(90deg,var(--brand-secondary),var(--brand-primary)); color:var(--text-on-brand); }
+
+  /* loading skeleton */
+  .sk { background:var(--skeleton); border-radius:6px; }
+  @keyframes shimmer { 0%{opacity:.5} 50%{opacity:1} 100%{opacity:.5} }
+  .skrow { display:flex; align-items:center; gap:var(--space-6); padding:12px var(--space-2); animation:shimmer 1.6s ease-in-out infinite; }
+  .skrow .sk.av { width:34px; height:34px; border-radius:11px; flex:none; }
+  .skrow .sk.l1 { height:11px; width:55%; }
+  .skrow .sk.l2 { height:9px; width:35%; margin-top:6px; }
+  .skrow .sk.r1 { height:11px; width:64px; margin-left:auto; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     A · LEDGER — dense, quiet, tabular. Path of least resistance:
+     ListView.separated + Row, closest to what ships today.
+     ═══════════════════════════════════════════════════════════════ */
+  .A .list { display:flex; flex-direction:column; }
+  .A .tx { display:flex; align-items:center; gap:var(--space-6); padding:12px var(--space-2); cursor:pointer; border-radius:var(--radius-sm); transition:background .14s; }
+  .A .tx:hover { background:var(--surface-menu); }
+  .A .tx + .tx { border-top:1px solid var(--border-subtle); }
+  .A .nm { flex:1; min-width:0; }
+  .A .nm .t { font:500 14px/18px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .A .nm .s { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .A .amt { text-align:right; white-space:nowrap; }
+  .A .amt .v { font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .A .amt .f { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .A .amt .v.in { color:var(--status-success); }
+  /* filter: 007-C compact icon-only segmented, rides the title row */
+  .fc { display:flex; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fc button { display:inline-flex; align-items:center; justify-content:center; font:600 12px/1 var(--font); height:30px; width:34px; padding:0; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; overflow:hidden; transition:width .18s ease,background .14s,color .14s; }
+  .fc button svg { width:15px; height:15px; flex:none; }
+  .fc button .lbl { max-width:0; opacity:0; white-space:nowrap; transition:max-width .18s ease,opacity .14s; }
+  .fc button:hover:not(.on) { color:var(--text-primary); }
+  .fc button.on { background:var(--brand-primary-strong); color:var(--text-on-brand); width:auto; padding:0 11px; gap:6px; }
+  .fc button.on .lbl { max-width:80px; opacity:1; }
+  .wide .fc button { width:auto; padding:0 11px; gap:6px; }
+  .wide .fc button .lbl { max-width:80px; opacity:1; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     B · STATEMENT — each transaction is a card, with a month summary
+     strip on top. Most "financial product", most air, fewest rows
+     visible at once.
+     ═══════════════════════════════════════════════════════════════ */
+  .B .summary { display:flex; gap:var(--space-4); padding:0 var(--space-2) var(--space-8); }
+  .B .sum { flex:1; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-6); }
+  .B .sum .k { font:500 11px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px; }
+  .B .sum .v { font:600 17px/24px var(--font); font-variant-numeric:tabular-nums; margin-top:var(--space-2); }
+  .B .sum .v.in { color:var(--status-success); }
+  .B .list { display:flex; flex-direction:column; gap:var(--space-4); }
+  .B .tx { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6); background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); cursor:pointer; transition:transform .14s,border-color .14s; }
+  .B .tx:hover { transform:translateY(-1px); border-color:var(--border-strong); }
+  .B .nm { flex:1; min-width:0; }
+  .B .badge { display:inline-flex; align-items:center; gap:5px; font:600 10px/1 var(--font); text-transform:uppercase; letter-spacing:.5px; padding:4px 8px; border-radius:5px; }
+  .B .badge.g { background:var(--status-success-fill); color:var(--status-success); }
+  .B .badge.r { background:var(--status-error-fill); color:var(--status-error); }
+  .B .badge.a { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .B .badge.m { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .B .badge.m { color:var(--brand-secondary); }
+  .B .nm .t { font:500 14px/18px var(--font); margin-top:var(--space-4); }
+  .B .nm .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .B .amt { text-align:right; white-space:nowrap; }
+  .B .amt .v { font:600 16px/22px var(--font); font-variant-numeric:tabular-nums; }
+  .B .amt .v.in { color:var(--status-success); }
+  .B .amt .f { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; }
+  /* filter: semantic wrap chips */
+  .fb { display:flex; flex-wrap:wrap; gap:6px; padding:0 var(--space-2) var(--space-6); }
+  .fb button { display:inline-flex; align-items:center; gap:6px; font:600 12px/1 var(--font); padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; transition:.14s; }
+  .fb button svg { width:14px; height:14px; }
+  .fb button:hover:not(.on) { border-color:var(--border-strong); color:var(--text-primary); }
+  .fb button.on { border-color:transparent; background:var(--brand-primary-strong); color:var(--text-on-brand); }
+  .fb .count { opacity:.7; font-weight:500; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     C · TIMELINE — grouped by day with a rail. Answers "when did this
+     happen" first; the strongest at scanning a busy history.
+     ═══════════════════════════════════════════════════════════════ */
+  .C .daygroup { margin-bottom:var(--space-6); }
+  .C .dayhead { position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:var(--space-4); padding:var(--space-4) var(--space-2); background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-a) 70%,transparent); font:600 11px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.7px; }
+  .C .dayhead .line { flex:1; height:1px; background:var(--border-subtle); }
+  .C .rail { position:relative; padding-left:var(--space-10); }
+  .C .rail::before { content:""; position:absolute; left:15px; top:4px; bottom:4px; width:1px; background:var(--border-subtle); }
+  .C .tx { position:relative; display:flex; align-items:center; gap:var(--space-6); padding:10px var(--space-2); cursor:pointer; border-radius:var(--radius-sm); }
+  .C .tx:hover { background:var(--surface-menu); }
+  .C .tx::before { content:""; position:absolute; left:-25px; top:50%; transform:translateY(-50%); width:9px; height:9px; border-radius:50%; background:var(--surface-elevated); border:2px solid var(--border-strong); }
+  .C .tx.in::before  { border-color:var(--status-success); }
+  .C .tx.out::before { border-color:var(--text-primary-38); }
+  .C .tx.warn::before{ border-color:var(--status-warning); }
+  .C .nm { flex:1; min-width:0; }
+  .C .nm .t { font:500 14px/18px var(--font); }
+  .C .nm .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .C .amt { text-align:right; white-space:nowrap; font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .C .amt.in { color:var(--status-success); }
+  .C .time { font:400 11px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; min-width:52px; text-align:right; }
+  /* filter: dropdown with live counts (007-E) — most space-frugal */
+  .fe { position:relative; }
+  .fe .trigger { display:inline-flex; align-items:center; gap:var(--space-4); font:600 12px/1 var(--font); height:34px; padding:0 12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-primary); cursor:pointer; }
+  .fe .trigger svg { width:14px; height:14px; }
+  .fe .menu { display:none; position:absolute; right:0; top:calc(100% + 6px); z-index:10; min-width:190px; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:var(--space-2); }
+  .fe.open .menu { display:block; }
+  .fe .menu button { display:flex; width:100%; align-items:center; gap:var(--space-4); font:500 13px/18px var(--font); padding:9px 10px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--text-primary); cursor:pointer; text-align:left; }
+  .fe .menu button:hover { background:var(--surface-elevated); }
+  .fe .menu button .n { margin-left:auto; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .fe .menu button.on { color:var(--brand-primary-strong); }
+  [data-theme="dark"] .fe .menu button.on { color:var(--brand-secondary); }
+
+  /* ═══════════════════════════════════════════════════════════════
+     D · EXPAND-IN-PLACE — compact rows that open inline instead of
+     pushing a detail drawer. Adds search. Densest + most self-serve.
+     ═══════════════════════════════════════════════════════════════ */
+  .D .search { display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-2) var(--space-6); }
+  .D .search .field { flex:1; display:flex; align-items:center; gap:var(--space-4); height:36px; padding:0 12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .D .search .field svg { width:15px; height:15px; color:var(--text-secondary); flex:none; }
+  .D .search input { flex:1; min-width:0; border:0; background:transparent; color:var(--text-primary); font:400 13px/18px var(--font); outline:none; }
+  .D .search input::placeholder { color:var(--text-primary-38); }
+  .D .list { display:flex; flex-direction:column; }
+  .D .tx { padding:10px var(--space-2); cursor:pointer; border-radius:var(--radius-sm); }
+  .D .tx + .tx { border-top:1px solid var(--border-subtle); }
+  .D .tx:hover { background:var(--surface-menu); }
+  .D .txmain { display:flex; align-items:center; gap:var(--space-6); }
+  .D .nm { flex:1; min-width:0; }
+  .D .nm .t { font:500 14px/18px var(--font); }
+  .D .nm .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; }
+  .D .amt { text-align:right; white-space:nowrap; font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .D .amt.in { color:var(--status-success); }
+  .D .chev { color:var(--text-primary-38); transition:transform .18s ease; flex:none; }
+  .D .chev svg { width:14px; height:14px; display:block; }
+  .D .tx.open .chev { transform:rotate(90deg); }
+  .D .detail { display:none; margin-top:var(--space-6); padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); }
+  .D .tx.open .detail { display:block; }
+  .D .detail dl { display:grid; grid-template-columns:auto 1fr; gap:var(--space-4) var(--space-8); }
+  .D .detail dt { font:500 12px/16px var(--font); color:var(--text-secondary); }
+  .D .detail dd { font:400 12px/16px var(--font); font-family:var(--font-mono); text-align:right; word-break:break-all; }
+  .D .detail .acts { display:flex; gap:var(--space-4); margin-top:var(--space-6); }
+  .D .detail .acts .btn { padding:7px 12px; font-size:12px; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>009 · Transactions area — rows, filters, empty states</h1>
+  <div class="seg" id="theme">
+    <button data-v="dark"  aria-pressed="true">Dark</button>
+    <button data-v="light" aria-pressed="false">Light</button>
+  </div>
+  <div class="seg" id="width">
+    <button data-v="narrow" aria-pressed="true">Narrow panel</button>
+    <button data-v="wide"   aria-pressed="false">Wide area</button>
+  </div>
+  <div class="seg" id="state">
+    <button data-v="data"    aria-pressed="true">Populated</button>
+    <button data-v="loading" aria-pressed="false">Loading</button>
+    <button data-v="empty"   aria-pressed="false">Never used</button>
+  </div>
+</div>
+
+<div class="tabs" id="variant">
+  <button data-v="A" aria-pressed="true">A · Ledger</button>
+  <button data-v="B" aria-pressed="false">B · Statement</button>
+  <button data-v="C" aria-pressed="false">C · Timeline</button>
+  <button data-v="D" aria-pressed="false">D · Expand-in-place</button>
+</div>
+
+<p class="caption" id="cap"></p>
+
+<div class="stage">
+  <div class="panel" id="panel">
+    <div class="phead">
+      <h2>Transactions</h2>
+      <div id="filterslot"></div>
+    </div>
+    <div id="filterrow"></div>
+    <div class="body" id="body"></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+
+<script>
+/* ── icons ─────────────────────────────────────────────────────── */
+const I = {
+  sent:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>',
+  received: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>',
+  escrow:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  mint:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',
+  swap:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 2 21 6 17 10"/><path d="M3 6h18"/><polyline points="7 22 3 18 7 14"/><path d="M21 18H3"/></svg>',
+  receipt:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></svg>',
+  filter:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3"/></svg>',
+  search:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.7" y2="16.7"/></svg>',
+  chev:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>',
+  down:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+};
+
+/* ── mock data: real field names from packages/genius_api Transaction ── */
+const TX = [
+  { type:'transfer', dir:'sent',     sym:'ETH',  amt:'0.4200', fiat:'$806.52',   party:'0x9fF8…2e2b', day:'Today',     time:'18:42', status:'completed', fee:'0.00042 ETH', hash:'0x7c1e…9a02' },
+  { type:'mint',     dir:'received', sym:'GNUS', amt:'250.00', fiat:'$192.50',   party:'Minted',      day:'Today',     time:'15:10', status:'completed', fee:'0.00011 ETH', hash:'0x21ab…44f9' },
+  { type:'transfer', dir:'received', sym:'USDC', amt:'1,200.00', fiat:'$1,200.00', party:'0x1d9b…4a87', day:'Today',   time:'11:03', status:'pending',   fee:'0.00019 ETH', hash:'0x5f0c…8e17' },
+  { type:'escrow',   dir:'sent',     sym:'GNUS', amt:'75.00',  fiat:'$57.75',    party:'Job #4192',   day:'Yesterday', time:'21:55', status:'pending',   fee:'0.00008 ETH', hash:'0x9d33…10bc' },
+  { type:'swap',     dir:'sent',     sym:'ETH',  amt:'0.1500', fiat:'$288.04',   party:'ETH → USDC',  day:'Yesterday', time:'16:20', status:'completed', fee:'0.00051 ETH', hash:'0xbe72…33a1' },
+  { type:'transfer', dir:'sent',     sym:'USDT', amt:'420.00', fiat:'$420.00',   party:'0x4c7a…9910', day:'Yesterday', time:'09:47', status:'failed',    fee:'0.00023 ETH', hash:'0x08fa…7d55' },
+  { type:'escrowRelease', dir:'received', sym:'GNUS', amt:'75.00', fiat:'$57.75', party:'Job #4188',  day:'18 Jul',    time:'19:12', status:'completed', fee:'0.00009 ETH', hash:'0xa41d…6b20' },
+  { type:'purchase', dir:'received', sym:'GNUS', amt:'500.00', fiat:'$385.00',   party:'Banxa',       day:'18 Jul',    time:'08:30', status:'completed', fee:'—',           hash:'0xc902…1f4e' },
+];
+
+const FILTERS = [
+  { k:'all',      label:'All',      icon:I.filter },
+  { k:'sent',     label:'Sent',     icon:I.sent,     c:'r' },
+  { k:'received', label:'Received', icon:I.received, c:'g' },
+  { k:'escrow',   label:'Escrow',   icon:I.escrow,   c:'a' },
+  { k:'mint',     label:'Mint',     icon:I.mint,     c:'m' },
+];
+
+const S = { variant:'A', theme:'dark', width:'narrow', state:'data', filter:'all', menuOpen:false, openRow:null };
+
+const matches = (t, f) =>
+  f === 'all'      ? true :
+  f === 'escrow'   ? (t.type === 'escrow' || t.type === 'escrowRelease') :
+  f === 'mint'     ? t.type === 'mint' :
+  t.dir === f;
+
+const rows = () => S.state === 'data' ? TX.filter(t => matches(t, S.filter)) : [];
+const countFor = k => TX.filter(t => matches(t, k)).length;
+
+const kind = t =>
+  t.type === 'mint' ? 'm' :
+  (t.type === 'escrow' || t.type === 'escrowRelease') ? 'a' :
+  t.dir === 'received' ? 'g' : 'r';
+
+const glyph = t =>
+  t.type === 'mint' ? I.mint :
+  (t.type === 'escrow' || t.type === 'escrowRelease') ? I.escrow :
+  t.type === 'swap' ? I.swap :
+  t.dir === 'received' ? I.received : I.sent;
+
+const title = t =>
+  t.type === 'mint' ? 'Minted' :
+  t.type === 'escrow' ? 'Escrow locked' :
+  t.type === 'escrowRelease' ? 'Escrow released' :
+  t.type === 'swap' ? 'Swapped' :
+  t.type === 'purchase' ? 'Purchased' :
+  t.dir === 'received' ? 'Received' : 'Sent';
+
+const signed = t => (t.dir === 'received' ? '+' : '−') + t.amt + ' ' + t.sym;
+const pip = t => t.status === 'completed' ? '' :
+  `<span class="pip ${t.status}"><span class="dot"></span>${t.status === 'pending' ? 'Pending' : 'Failed'}</span>`;
+
+/* ── empty states ──────────────────────────────────────────────── */
+function emptyState() {
+  // Two genuinely different empties: a wallet that has never transacted,
+  // versus a filter that happens to match nothing. Today the app shows the
+  // same copy for both, which reads as "broken" in the second case.
+  if (S.state === 'empty' || S.filter === 'all') {
+    return `<div class="empty">
+      <div class="glyph">${I.receipt}</div>
+      <h3>No transactions yet</h3>
+      <p>Your sends, receives and swaps will appear here.</p>
+      <div class="act"><button class="btn primary">Buy GNUS</button><button class="btn">Receive</button></div>
+    </div>`;
+  }
+  const f = FILTERS.find(x => x.k === S.filter);
+  return `<div class="empty">
+    <div class="glyph">${f.icon}</div>
+    <h3>No ${f.label.toLowerCase()} transactions</h3>
+    <p>You have ${TX.length} transactions, but none match this filter.</p>
+    <div class="act"><button class="btn" onclick="setFilter('all')">Show all</button></div>
+  </div>`;
+}
+
+function loadingState() {
+  return '<div>' + Array.from({length:5}, () => `
+    <div class="skrow">
+      <div class="sk av"></div>
+      <div style="flex:1"><div class="sk l1"></div><div class="sk l2"></div></div>
+      <div class="sk r1"></div>
+    </div>`).join('') + '</div>';
+}
+
+/* ── filter renderers ──────────────────────────────────────────── */
+function filterCompact() {           // A — icon-only segmented, title row
+  return `<div class="fc">` + FILTERS.filter(f => f.k !== 'all').map(f => `
+    <button class="${S.filter===f.k?'on':''}" title="${f.label}" onclick="setFilter('${f.k}')">
+      ${f.icon}<span class="lbl">${f.label}</span>
+    </button>`).join('') + `</div>`;
+}
+function filterChips() {             // B — wrapping chips with counts
+  return `<div class="fb">` + FILTERS.map(f => `
+    <button class="${S.filter===f.k?'on':''}" data-c="${f.c||''}" onclick="setFilter('${f.k}')">
+      ${f.icon}${f.label}<span class="count">${countFor(f.k)}</span>
+    </button>`).join('') + `</div>`;
+}
+function filterMenu() {              // C — dropdown with live counts
+  const cur = FILTERS.find(f => f.k === S.filter);
+  return `<div class="fe ${S.menuOpen?'open':''}">
+    <button class="trigger" onclick="toggleMenu(event)">${cur.icon}${cur.label}<span class="muted num">${countFor(S.filter)}</span>${I.down}</button>
+    <div class="menu">` + FILTERS.map(f => `
+      <button class="${S.filter===f.k?'on':''}" onclick="setFilter('${f.k}')">${f.icon}${f.label}<span class="n">${countFor(f.k)}</span></button>`).join('') + `
+    </div></div>`;
+}
+function filterSearch() {            // D — search + chips on their own row
+  return `<div class="search">
+    <label class="field">${I.search}<input placeholder="Search address, hash or amount"></label>
+  </div>` + filterChips();
+}
+
+/* ── variant renderers ─────────────────────────────────────────── */
+const V = {
+  A: () => `<div class="list">` + rows().map(t => `
+    <div class="tx">
+      <div class="ic ${kind(t)}">${glyph(t)}</div>
+      <div class="nm">
+        <div class="t">${title(t)} ${t.sym} ${pip(t)}</div>
+        <span class="s">${t.party} · ${t.day} ${t.time}</span>
+      </div>
+      <div class="amt">
+        <span class="v ${t.dir==='received'?'in':''}">${signed(t)}</span>
+        <span class="f">${t.fiat}</span>
+      </div>
+    </div>`).join('') + `</div>`,
+
+  B: () => `<div class="summary">
+      <div class="sum"><div class="k">Received</div><div class="v in">+$1,835.25</div></div>
+      <div class="sum"><div class="k">Sent</div><div class="v">−$1,514.56</div></div>
+    </div>
+    <div class="list">` + rows().map(t => `
+    <div class="tx">
+      <div class="ic ${kind(t)}">${glyph(t)}</div>
+      <div class="nm">
+        <span class="badge ${kind(t)}">${title(t)}</span>
+        <div class="t">${t.sym} ${pip(t)}</div>
+        <div class="s">${t.party} · ${t.day} ${t.time}</div>
+      </div>
+      <div class="amt">
+        <span class="v ${t.dir==='received'?'in':''}">${signed(t)}</span>
+        <span class="f">${t.fiat}</span>
+      </div>
+    </div>`).join('') + `</div>`,
+
+  C: () => {
+    const days = [...new Set(rows().map(t => t.day))];
+    return days.map(d => `
+      <div class="daygroup">
+        <div class="dayhead">${d}<span class="line"></span></div>
+        <div class="rail">` + rows().filter(t => t.day === d).map(t => `
+          <div class="tx ${t.status!=='completed'?'warn':(t.dir==='received'?'in':'out')}">
+            <div class="nm">
+              <div class="t">${title(t)} ${t.sym} ${pip(t)}</div>
+              <div class="s">${t.party}</div>
+            </div>
+            <div class="amt ${t.dir==='received'?'in':''}">${signed(t)}</div>
+            <div class="time">${t.time}</div>
+          </div>`).join('') + `</div>
+      </div>`).join('');
+  },
+
+  D: () => `<div class="list">` + rows().map((t, i) => `
+    <div class="tx ${S.openRow===i?'open':''}" onclick="toggleRow(${i})">
+      <div class="txmain">
+        <div class="ic ${kind(t)}">${glyph(t)}</div>
+        <div class="nm">
+          <div class="t">${title(t)} ${t.sym} ${pip(t)}</div>
+          <div class="s">${t.party} · ${t.day} ${t.time}</div>
+        </div>
+        <div class="amt ${t.dir==='received'?'in':''}">${signed(t)}</div>
+        <div class="chev">${I.chev}</div>
+      </div>
+      <div class="detail">
+        <dl>
+          <dt>Hash</dt><dd>${t.hash}</dd>
+          <dt>Counterparty</dt><dd>${t.party}</dd>
+          <dt>Network fee</dt><dd>${t.fee}</dd>
+          <dt>Value</dt><dd>${t.fiat}</dd>
+          <dt>Status</dt><dd>${t.status}</dd>
+        </dl>
+        <div class="acts"><button class="btn">Copy hash</button><button class="btn">View on explorer</button></div>
+      </div>
+    </div>`).join('') + `</div>`,
+};
+
+const FILTER_SLOT = { A:'head', B:'row', C:'head', D:'row' };
+const FILTER_FN   = { A:filterCompact, B:filterChips, C:filterMenu, D:filterSearch };
+const CAPTION = {
+  A: 'Dense and quiet — the happy path shows no status at all, so pending and failed are the only things that raise their voice. Filter rides the title row (sketch 007-C), so the panel keeps every pixel for content. <b>Closest to what ships today</b>, so the cheapest to build.',
+  B: 'Each transaction is a card, with a month summary on top. Reads most like a financial product and gives amounts real weight — at the cost of showing roughly half as many rows in the same panel.',
+  C: 'Grouped by day on a rail. Answers <b>when</b> before <b>what</b>, and the day headers stick while scrolling. Strongest once history gets long; the most structure for a wallet with four transactions.',
+  D: 'Compact rows that open <b>in place</b> — hash, fee and explorer links without leaving the list or pushing a drawer. Adds search. Densest and most self-serve; the row does double duty.',
+};
+
+/* ── render ────────────────────────────────────────────────────── */
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  const panel = document.getElementById('panel');
+  panel.className = 'panel ' + S.variant + (S.width === 'wide' ? ' wide' : '');
+  document.getElementById('cap').innerHTML = CAPTION[S.variant];
+
+  const f = FILTER_FN[S.variant]();
+  document.getElementById('filterslot').innerHTML = FILTER_SLOT[S.variant] === 'head' ? f : '';
+  document.getElementById('filterrow').innerHTML  = FILTER_SLOT[S.variant] === 'row'  ? f : '';
+
+  const body = document.getElementById('body');
+  body.innerHTML = S.state === 'loading' ? loadingState()
+                 : rows().length ? V[S.variant]()
+                 : emptyState();
+
+  document.getElementById('foot').textContent =
+    S.state === 'data' ? `Transactions: ${rows().length}` : '';
+}
+
+function setFilter(k) { S.filter = (S.filter === k && k !== 'all') ? 'all' : k; S.menuOpen = false; S.openRow = null; if (S.state !== 'data') S.state = 'data', sync('state','data'); render(); }
+function toggleMenu(e) { e.stopPropagation(); S.menuOpen = !S.menuOpen; render(); }
+function toggleRow(i) { S.openRow = S.openRow === i ? null : i; render(); }
+function sync(group, v) { document.querySelectorAll('#'+group+' button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); }
+
+document.addEventListener('click', () => { if (S.menuOpen) { S.menuOpen = false; render(); } });
+['theme','width','state','variant'].forEach(group => {
+  document.getElementById(group).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S[group === 'variant' ? 'variant' : group] = b.dataset.v;
+    if (group === 'variant') { S.openRow = null; S.menuOpen = false; }
+    sync(group, b.dataset.v);
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

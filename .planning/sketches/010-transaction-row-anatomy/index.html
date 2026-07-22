@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transaction row anatomy — token-first / action-first / value-first</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; max-width:900px; margin:0 auto var(--space-6); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .tabs { display:flex; gap:var(--space-4); max-width:900px; margin:0 auto var(--space-6); flex-wrap:wrap; }
+  .tabs button { font:600 13px/18px var(--font); padding:9px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .tabs button[aria-pressed="true"] { border-color:transparent; background:var(--brand-primary-strong); color:var(--text-on-brand); }
+  .caption { max-width:900px; margin:0 auto var(--space-8); color:var(--text-secondary); font:400 13px/20px var(--font); }
+  .caption b { color:var(--text-primary); }
+
+  .stage { display:flex; justify-content:center; gap:var(--space-12); align-items:flex-start; flex-wrap:wrap; }
+  .panel { width:520px; transition:width .25s ease; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-8); display:flex; flex-direction:column; }
+  .panel.narrow { width:376px; }
+  .phead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding-bottom:var(--space-6); }
+  .phead h2 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; white-space:nowrap; }
+
+  /* ── filter: compact icon-only segmented, rides the title row (007-C) ── */
+  .fc { display:flex; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fc button { display:inline-flex; align-items:center; justify-content:center; gap:0; font:600 12px/1 var(--font); height:30px; width:34px; padding:0; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; overflow:hidden; transition:width .18s ease,background .14s,color .14s; }
+  .fc button svg { width:15px; height:15px; flex:none; }
+  .fc button .lbl { max-width:0; opacity:0; white-space:nowrap; transition:max-width .18s ease,opacity .14s; }
+  .fc button:hover:not(.on) { color:var(--text-primary); }
+  .fc button.on { background:var(--brand-primary-strong); color:var(--text-on-brand); width:auto; padding:0 11px; gap:6px; }
+  .fc button.on .lbl { max-width:90px; opacity:1; }
+
+  /* ── day separator: replaces eight identical "a day ago" strings ── */
+  .day { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-8) var(--space-2) var(--space-4); font:600 11px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.7px; }
+  .day:first-child { padding-top:var(--space-2); }
+  .day .line { flex:1; height:1px; background:var(--border-subtle); }
+  .day .sum { font:500 11px/14px var(--font); color:var(--text-primary-38); text-transform:none; letter-spacing:0; font-variant-numeric:tabular-nums; }
+
+  /* ── token identity: the app's existing coin icon + direction badge, kept ── */
+  .id { position:relative; flex:none; }
+  .coin { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font:700 13px/1 var(--font); color:#fff; }
+  .coin.eth  { background:linear-gradient(160deg,#8A9DF5,#5B72D8); }
+  .coin.btc  { background:linear-gradient(160deg,#F9A03C,#E87B10); }
+  .coin.gnus { background:linear-gradient(160deg,#3AD9C0,#1FA9C8); }
+  .coin.usdc { background:linear-gradient(160deg,#4A90E2,#2A6FC9); }
+  .coin.usdt { background:linear-gradient(160deg,#3FC1A0,#1E8E72); }
+  .badge { position:absolute; right:-3px; bottom:-3px; width:17px; height:17px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:9px; height:9px; stroke-width:3.2; }
+  .badge.out  { background:var(--text-primary-38); color:var(--surface-sunken); }
+  .badge.in   { background:var(--status-success); color:#04241A; }
+  .badge.fail { background:var(--status-error); color:#fff; }
+  .badge.lock { background:var(--status-warning); color:#3A2A00; }
+  .badge.job  { background:var(--brand-primary-strong); color:var(--text-on-brand); }
+  /* swap shows both sides — one identity, two tokens */
+  .id.dual { width:52px; }
+  .id.dual .coin { width:32px; height:32px; font-size:11px; }
+  .id.dual .coin.b { position:absolute; left:20px; top:6px; border:2px solid var(--surface-sheen-b); }
+
+  /* ── status: shown ONLY when it is not the happy path ── */
+  .pip { display:inline-flex; align-items:center; gap:4px; font:600 10px/1 var(--font); padding:4px 7px; border-radius:5px; text-transform:uppercase; letter-spacing:.4px; }
+  .pip.pending { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .pip.failed  { background:var(--status-error-fill); color:var(--status-error); }
+  .pip .dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .pip.pending .dot { animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+  /* ── one shared row skeleton for ALL seven types ── */
+  .row { display:flex; align-items:center; gap:var(--space-8); padding:var(--space-6) var(--space-4); border-radius:var(--radius-md); cursor:pointer; transition:background .14s; }
+  .row:hover { background:var(--surface-menu); }
+  .row + .row { box-shadow:inset 0 1px 0 var(--border-subtle); }
+  .main { flex:1; min-width:0; }
+  .amt { text-align:right; white-space:nowrap; flex:none; }
+  .num { font-variant-numeric:tabular-nums; }
+  .in { color:var(--status-success); }
+  .sub { color:var(--text-secondary); font:400 12px/16px var(--font); }
+  .dim { color:var(--text-primary-38); }
+
+  /* time sits far right, quiet, tabular so the column aligns */
+  .time { font:400 11px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; flex:none; width:44px; text-align:right; }
+
+  /* ═════ A · TOKEN-FIRST — the asset is the headline ═════ */
+  .A .row .t   { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .A .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .A .row .s   { margin-top:3px; }
+  .A .amt .v   { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .A .amt .f   { display:block; margin-top:3px; }
+
+  /* ═════ B · ACTION-FIRST — what happened is the headline (closest to today) ═════ */
+  .B .row .t   { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .B .row .t .tok { color:var(--text-secondary); font-weight:500; }
+  .B .row .s   { margin-top:3px; }
+  .B .amt .v   { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .B .amt .f   { display:block; margin-top:3px; }
+
+  /* ═════ C · VALUE-FIRST — the money is the headline ═════ */
+  .C .row      { align-items:center; }
+  .C .row .t   { font:500 13px/18px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:var(--space-4); }
+  .C .row .s   { font:600 15px/20px var(--font); color:var(--text-primary); margin-top:2px; }
+  .C .amt .v   { font:600 19px/24px var(--font); font-variant-numeric:tabular-nums; letter-spacing:-.3px; }
+  .C .amt .f   { display:block; margin-top:2px; }
+
+  /* ── the long-number fix, shared: clamp the display, keep the truth on hover ── */
+  .clamped { border-bottom:1px dotted var(--text-primary-38); cursor:help; }
+
+  .foot { display:flex; align-items:center; padding-top:var(--space-8); margin-top:var(--space-4); border-top:1px solid var(--border-subtle); color:var(--text-secondary); font:500 13px/18px var(--font); }
+  .foot .spacer { flex:1; }
+  .foot a { color:var(--brand-primary-strong); text-decoration:none; font-weight:600; }
+  [data-theme="dark"] .foot a { color:var(--brand-secondary); }
+
+  .notes { max-width:900px; margin:var(--space-12) auto 0; color:var(--text-secondary); font:400 13px/21px var(--font); }
+  .notes h3 { font:600 14px/20px var(--font); color:var(--text-primary); margin-bottom:var(--space-4); }
+  .notes li { margin:0 0 var(--space-4) var(--space-10); }
+  .notes b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>010 · Transaction row anatomy</h1>
+  <div class="seg" id="theme">
+    <button data-v="dark" aria-pressed="true">Dark</button>
+    <button data-v="light" aria-pressed="false">Light</button>
+  </div>
+  <div class="seg" id="width">
+    <button data-v="wide" aria-pressed="true">Panel 520</button>
+    <button data-v="narrow" aria-pressed="false">Narrow 376</button>
+  </div>
+</div>
+
+<div class="tabs" id="variant">
+  <button data-v="A" aria-pressed="true">A · Token-first</button>
+  <button data-v="B" aria-pressed="false">B · Action-first</button>
+  <button data-v="C" aria-pressed="false">C · Value-first</button>
+</div>
+
+<p class="caption" id="cap"></p>
+
+<div class="stage">
+  <div class="panel" id="panel">
+    <div class="phead">
+      <h2>Transactions</h2>
+      <div class="fc" id="filter"></div>
+    </div>
+    <div id="list"></div>
+    <div class="foot">
+      <span class="spacer"></span>
+      <span>8 transactions</span>
+    </div>
+  </div>
+</div>
+
+<div class="notes">
+  <h3>What changed versus the shipped panel — the same in all three variants</h3>
+  <ul>
+    <li><b>One row skeleton for all seven types.</b> "Completed job" and "Swapped" no longer render as
+      bare strings in a box; they get the same identity, title, meta and amount columns as everything
+      else. A swap shows <b>both</b> tokens in one identity instead of losing its icon.</li>
+    <li><b>Amounts are clamped, and the truth is preserved.</b> <code>123456789.12345679 ETH</code>
+      becomes <code>123,456,789.12</code> with the exact value on hover — it can no longer set the
+      panel's width. Tabular figures line the column up.</li>
+    <li><b>Fiat value on every row.</b> A wallet's job is to say what something is worth; the shipped
+      row only says how many tokens moved.</li>
+    <li><b>"Fee: 0.001 ETH" is gone from the resting row.</b> It repeated on all eight rows and was
+      never the reason anyone opened the panel — it belongs in the detail view.</li>
+    <li><b>Eight identical "a day ago" strings collapse into day separators</b> with a net total per
+      day, and a real timestamp per row.</li>
+    <li><b>Status shows only when it is not the happy path.</b> Completed rows stay silent; pending
+      pulses amber; failed reads red — and the failed row stops printing <code>$0.00</code> twice.</li>
+    <li><b>Per-row cards become one surface</b> with hairline separators, so the panel reads as a
+      history rather than a stack of boxes.</li>
+  </ul>
+</div>
+
+<script>
+const I = {
+  up:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/></svg>',
+  x:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  cpu:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 20 7 16 11"/><path d="M4 7h16"/><polyline points="8 21 4 17 8 13"/><path d="M20 17H4"/></svg>',
+  filt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3"/></svg>',
+};
+
+/* the exact eight rows from the shipped panel, including the two that break it */
+const TX = [
+  { day:'Today', time:'18:42', kind:'sent',     sym:'ETH',  amt:0.75,             fiat:'$1,440.20', to:'0x9fF8…2e2b', fee:'0.001 ETH', status:'ok' },
+  { day:'Today', time:'15:10', kind:'received', sym:'BTC',  amt:0.0042,           fiat:'$278.19',   to:'0x1d9b…4a87', fee:'0.001 BTC', status:'ok' },
+  { day:'Today', time:'11:03', kind:'received', sym:'GNUS', amt:1200,             fiat:'$924.00',   to:'0x4c7a…9910', fee:'0.001 GNUS', status:'ok' },
+  { day:'Yesterday', time:'21:55', kind:'sent', sym:'GNUS', amt:500,              fiat:'$385.00',   to:'0x08fa…7d55', fee:'0.001 GNUS', status:'ok' },
+  { day:'Yesterday', time:'20:14', kind:'job',  sym:'GNUS', amt:null,             fiat:'Job #4192', to:'Processing complete', fee:'—', status:'ok' },
+  { day:'Yesterday', time:'16:20', kind:'buy',  sym:'ETH',  amt:0,                fiat:'Payment declined', to:'Banxa', fee:'—', status:'failed' },
+  { day:'Yesterday', time:'09:47', kind:'swap', sym:'USDC', amt:3200, from:'ETH', fromAmt:1.0, fiat:'$3,200.00', to:'ETH → USDC', fee:'0.001 ETH', status:'ok' },
+  { day:'18 Jul', time:'19:12', kind:'sent',    sym:'ETH',  amt:123456789.12345679, fiat:'$237,116,835.12', to:'0x21ab…44f9', fee:'0.001 ETH', status:'pending' },
+];
+
+const LABEL  = { sent:'Sent', received:'Received', job:'Processing job', buy:'Buy', swap:'Swapped' };
+const BADGE  = { sent:'out', received:'in', job:'job', buy:'fail', swap:'out' };
+const BICON  = { sent:I.up, received:I.down, job:I.cpu, buy:I.x, swap:I.swap };
+
+/* clamp to 6 significant decimals, group thousands, keep the exact value in a tooltip */
+function fmt(n) {
+  if (n === null) return null;
+  const exact = String(n);
+  const shown = n.toLocaleString('en-US', { maximumFractionDigits: n >= 1000 ? 2 : 6 });
+  return { shown, exact, clamped: shown.replace(/,/g,'') !== exact };
+}
+function amountHTML(t) {
+  if (t.kind === 'job')  return `<span class="v dim">—</span>`;
+  if (t.status === 'failed') return `<span class="v dim">—</span>`;
+  const f = fmt(t.amt);
+  const sign = t.kind === 'received' || t.kind === 'swap' ? '+' : '−';
+  const cls  = t.kind === 'received' || t.kind === 'swap' ? 'in' : '';
+  const body = f.clamped
+    ? `<span class="clamped" title="${f.exact} ${t.sym}">${f.shown}</span>`
+    : f.shown;
+  return `<span class="v ${cls}">${sign} ${body} ${t.sym}</span>`;
+}
+function subAmountHTML(t) {
+  if (t.kind === 'job')  return `<span class="f sub">${t.fiat}</span>`;
+  if (t.status === 'failed') return `<span class="f sub" style="color:var(--status-error)">${t.fiat}</span>`;
+  if (t.kind === 'swap') return `<span class="f sub num">− ${t.fromAmt} ${t.from} · ${t.fiat}</span>`;
+  return `<span class="f sub num">${t.fiat}</span>`;
+}
+function identity(t) {
+  const b = `<span class="badge ${BADGE[t.kind]}">${BICON[t.kind]}</span>`;
+  if (t.kind === 'swap')
+    return `<div class="id dual"><span class="coin ${t.from.toLowerCase()}">${t.from}</span>
+            <span class="coin b ${t.sym.toLowerCase()}">${t.sym}</span>${b}</div>`;
+  return `<div class="id"><span class="coin ${t.sym.toLowerCase()}">${t.sym}</span>${b}</div>`;
+}
+const statusPip = t =>
+  t.status === 'ok' ? '' :
+  `<span class="pip ${t.status}"><span class="dot"></span>${t.status === 'pending' ? 'Pending' : 'Failed'}</span>`;
+
+const ROW = {
+  A: t => `<div class="row">${identity(t)}
+      <div class="main">
+        <div class="t">${t.kind === 'swap' ? `${t.from} → ${t.sym}` : t.sym}
+          <span class="action">${LABEL[t.kind]}</span>${statusPip(t)}</div>
+        <div class="s sub">${t.to}</div>
+      </div>
+      <div class="amt">${amountHTML(t)}${subAmountHTML(t)}</div>
+      <div class="time">${t.time}</div></div>`,
+
+  B: t => `<div class="row">${identity(t)}
+      <div class="main">
+        <div class="t">${LABEL[t.kind]} <span class="tok">· ${t.kind === 'swap' ? `${t.from} → ${t.sym}` : t.sym}</span>${statusPip(t)}</div>
+        <div class="s sub">${t.to}</div>
+      </div>
+      <div class="amt">${amountHTML(t)}${subAmountHTML(t)}</div>
+      <div class="time">${t.time}</div></div>`,
+
+  C: t => `<div class="row">${identity(t)}
+      <div class="main">
+        <div class="t">${LABEL[t.kind]}${statusPip(t)}</div>
+        <div class="s">${t.kind === 'swap' ? `${t.from} → ${t.sym}` : t.to}</div>
+      </div>
+      <div class="amt">${amountHTML(t)}${subAmountHTML(t)}</div>
+      <div class="time">${t.time}</div></div>`,
+};
+
+const CAP = {
+  A: 'The <b>asset</b> is the headline — "ETH", with "Sent" demoted to a quiet chip beside it. Best when you think in holdings ("what happened to my ETH?"). Costs: the action needs a second read, and the chip adds a small element to every row.',
+  B: 'The <b>action</b> is the headline — "Sent · ETH". Closest to what ships today, so it will feel familiar and is the cheapest to land. Best when you think in events ("what did I do?").',
+  C: 'The <b>value</b> is the headline — the amount is set two sizes larger and the left side compresses to a quiet label. Fastest to scan for money, and the long-number clamp matters most here. Costs: the loudest of the three, and near-equal amounts stop being distinguishable at a glance.',
+};
+
+const S = { variant:'A', theme:'dark', width:'wide', filter:'all' };
+const FILTERS = [ {k:'sent',l:'Sent',i:I.up}, {k:'received',l:'Received',i:I.down}, {k:'escrow',l:'Escrow',i:I.lock}, {k:'mint',l:'Mint',i:I.cpu} ];
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  const p = document.getElementById('panel');
+  p.className = 'panel ' + S.variant + (S.width === 'narrow' ? ' narrow' : '');
+  document.getElementById('cap').innerHTML = CAP[S.variant];
+  document.getElementById('filter').innerHTML = FILTERS.map(f =>
+    `<button class="${S.filter===f.k?'on':''}" title="${f.l}" data-f="${f.k}">${f.i}<span class="lbl">${f.l}</span></button>`).join('');
+
+  const days = [...new Set(TX.map(t => t.day))];
+  document.getElementById('list').innerHTML = days.map(d => {
+    const rows = TX.filter(t => t.day === d);
+    const net = rows.reduce((a,t) => a + (t.status !== 'ok' || t.amt === null ? 0 : (t.kind === 'received' || t.kind === 'swap' ? 1 : -1) * (t.fiat.startsWith('$') ? parseFloat(t.fiat.replace(/[$,]/g,'')) : 0)), 0);
+    const netStr = (net >= 0 ? '+' : '−') + '$' + Math.abs(net).toLocaleString('en-US',{maximumFractionDigits:2});
+    return `<div class="day">${d}<span class="line"></span><span class="sum">${netStr}</span></div>`
+         + rows.map(ROW[S.variant]).join('');
+  }).join('');
+}
+
+document.getElementById('filter').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S.filter = S.filter === b.dataset.f ? 'all' : b.dataset.f; render();
+});
+['theme','width','variant'].forEach(g => document.getElementById(g).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[g] = b.dataset.v;
+  document.querySelectorAll('#'+g+' button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  render();
+}));
+
+render();
+</script>
+</body>
+</html>

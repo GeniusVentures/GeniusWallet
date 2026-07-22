@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>013 · Mint + Processing-job badge colour, in context</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1240px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-8); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:860px; }
+  p.lede b { color:var(--text-primary); }
+  p.lede code { font:400 12px/18px var(--font-mono); }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new{ background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.lock{ background:rgba(16,19,26,.10); color:var(--text-secondary); }
+  [data-theme="dark"] .tag.lock { background:rgba(255,255,255,.10); }
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend div { display:flex; align-items:center; gap:var(--space-4); }
+
+  .locked { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6) var(--space-8); border:1px dashed var(--border-subtle); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); align-items:center; }
+  .locked b { color:var(--text-primary); }
+  .locked .chip { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; background:var(--surface-menu); border-radius:var(--radius-sm); }
+  .locked .dot { width:12px; height:12px; border-radius:50%; flex:none; }
+
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-12); }
+  @media (max-width:1000px) { .cols { grid-template-columns:1fr; } }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:var(--space-6); }
+  .opt { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-8) var(--space-4); text-align:center; cursor:pointer; transition:border-color .14s, transform .14s; position:relative; }
+  .opt:hover { border-color:var(--border-strong); transform:translateY(-1px); }
+  .opt.sel { border-color:var(--brand-primary-strong); background:var(--brand-fill); }
+  .opt .demo { position:relative; width:40px; height:40px; margin:0 auto var(--space-6); }
+  .opt .nm { font:600 12px/16px var(--font); }
+  .opt .hex { font:400 10px/14px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .opt .cr { font:500 10px/14px var(--font); margin-top:4px; }
+  .cr.pass { color:var(--status-success); } .cr.fail { color:var(--status-error); }
+  .opt .note { font:400 10px/15px var(--font); color:var(--text-secondary); margin-top:6px; }
+  .opt .pin { position:absolute; top:6px; right:6px; }
+  .opt .warnflag { position:absolute; top:6px; left:6px; font:700 9px/1 var(--font); padding:4px 6px; border-radius:4px; background:var(--status-error-fill); color:var(--status-error); }
+
+  /* EXISTING GWTokenRow geometry */
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 12px/1 var(--font); color:#fff; }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-menu); }
+  .badge svg { width:9px; height:9px; fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .panel { width:540px; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-8); }
+  .panel.narrow { width:376px; }
+  .phead { display:flex; align-items:center; min-height:44px; padding-bottom:var(--space-4); }
+  .phead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; }
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .row:hover { background:var(--surface-menu); }
+  .row .id { position:relative; width:40px; height:40px; flex:none; }
+  .row .id .badge { border-color:var(--surface-sheen-b); }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .amt { text-align:right; white-space:nowrap; }
+  .row .amt .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .row .amt .v.in { color:var(--status-success); }
+  .row .amt .v.na { color:var(--text-primary-38); }
+  .row .amt .f { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .time { font:400 11px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; width:44px; text-align:right; flex:none; }
+
+  .stage { display:flex; gap:var(--space-12); align-items:flex-start; flex-wrap:wrap; }
+  .sidecar { flex:1; min-width:280px; }
+  .strip { display:flex; gap:var(--space-6); flex-wrap:wrap; padding:var(--space-8); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); }
+  .strip .s { text-align:center; }
+  .strip .s .demo { position:relative; width:40px; height:40px; margin:0 auto 6px; }
+  .strip .s .lb { font:500 10px/14px var(--font); color:var(--text-secondary); }
+  .note { background:var(--surface-menu); border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-sm); padding:var(--space-6) var(--space-8); font:400 13px/21px var(--font); color:var(--text-secondary); margin-bottom:var(--space-8); max-width:860px; }
+  .note b { color:var(--text-primary); }
+  .note.warn { border-left-color:var(--status-warning); }
+  table { width:100%; border-collapse:collapse; font:400 12px/18px var(--font); }
+  th,td { text-align:left; padding:var(--space-4); border-bottom:1px solid var(--border-subtle); }
+  th { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>013 · Mint + Processing-job badge colour, judged in context</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="width"><button data-v="wide" aria-pressed="true">540</button><button data-v="narrow" aria-pressed="false">376</button></div>
+</div>
+
+<div class="legend">
+  <div><span class="tag ex">Existing</span> already a token in the codebase</div>
+  <div><span class="tag new">New</span> would add a token</div>
+  <div><span class="tag rec">Rec</span> my recommendation</div>
+  <div><span class="tag lock">Locked</span> decided already — not up for change here</div>
+</div>
+
+<div class="locked">
+  <b>Locked from 012:</b>
+  <span class="chip"><span class="dot" style="background:#64748B"></span> Sent · Slate #64748B <span class="tag lock">Locked</span></span>
+  <span class="chip">Mint icon · Pickaxe <span class="tag lock">Locked</span></span>
+  <span class="chip">Processing job icon · Server <span class="tag lock">Locked</span></span>
+  <span class="chip"><span class="dot" style="background:#0AD89C"></span> Received · statusSuccess</span>
+  <span class="chip"><span class="dot" style="background:#FF4D4D"></span> Failed · statusError</span>
+  <span class="chip"><span class="dot" style="background:#FFC42E"></span> Pending · statusWarning</span>
+</div>
+
+<div class="note warn">
+  <b>The constraint that decides this.</b> Four badge colours are already spoken for: green =
+  money in, red = failed, amber = pending, slate = sent. Whatever Mint and Job get must stay
+  distinguishable from all four <b>at 18px</b>, which is smaller than most colour intuitions assume.
+  Two traps are flagged in red on the swatches below: <b>brandSecondary #2BF5B4 sits only ~14° from
+  statusSuccess #0AD89C</b> — at badge size they read as the same green, so Mint would merge into
+  Received. And any amber-adjacent choice collides with Pending.
+</div>
+
+<div class="cols">
+  <div>
+    <h2 class="sec">Mint badge colour</h2>
+    <p class="lede"><code>TransactionType.mint</code> — tokens created into the wallet. It <b>is</b>
+      value arriving, which argues for green; but green already means "received", and a mint is not
+      a transfer from anyone.</p>
+    <div class="grid" id="mintgrid"></div>
+  </div>
+  <div>
+    <h2 class="sec">Processing-job badge colour</h2>
+    <p class="lede"><code>TransactionType.process</code> — a GNUS compute job. It has no direction:
+      it spends compute and returns a result. The only row type that is <b>activity, not money</b>.</p>
+    <div class="grid" id="jobgrid"></div>
+  </div>
+</div>
+
+<h2 class="sec">All badges together — the confusability check</h2>
+<p class="lede">This is the test that matters: not "is this colour nice" but "can I tell these six
+  apart at a glance, at 18px, in both themes".</p>
+<div class="strip" id="strip"></div>
+
+<h2 class="sec">Live preview <span class="tag ex">Existing</span> <code>GWTokenRow</code> + <code>Divider</code></h2>
+<div class="stage">
+  <div class="panel" id="panel">
+    <div class="phead"><h3>Transactions</h3></div>
+    <hr class="divider">
+    <div id="list"></div>
+  </div>
+  <div class="sidecar">
+    <table id="tbl"></table>
+  </div>
+</div>
+
+</div>
+
+<script>
+const P = {
+  up:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  down:'<line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/>',
+  pickaxe:'<path d="M14.5 9.5 4 20"/><path d="M3 6.5c4-3 10-3 14 1"/><path d="M17.5 3.5c-3 4-3 10 1 14"/><path d="M12.5 7.5l4 4"/>',
+  server:'<rect x="3" y="4" width="18" height="6" rx="1.6"/><rect x="3" y="14" width="18" height="6" rx="1.6"/><path d="M7 7h.01M7 17h.01"/>',
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  x:'<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>',
+  swap:'<polyline points="16 3 20 7 16 11"/><path d="M4 7h16"/><polyline points="8 21 4 17 8 13"/><path d="M20 17H4"/>',
+};
+
+/* hue distance helper, to justify the confusability warnings numerically */
+function hue(hex){const c=hex.replace('#','');let[r,g,b]=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255);
+  const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn; if(!d) return 0;
+  let h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4; h*=60; return h<0?h+360:h;}
+const hueGap=(a,b)=>{const d=Math.abs(hue(a)-hue(b));return Math.min(d,360-d);};
+function lum(h){const c=h.replace('#','');const v=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255).map(x=>x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4));return .2126*v[0]+.7152*v[1]+.0722*v[2];}
+const ratio=(a,b)=>{const l1=lum(a),l2=lum(b),hi=Math.max(l1,l2),lo=Math.min(l1,l2);return (hi+.05)/(lo+.05);};
+
+const TAKEN = { 'Received':'#0AD89C', 'Failed':'#FF4D4D', 'Pending':'#FFC42E', 'Sent':'#64748B' };
+
+const MINT_OPTS = [
+  { k:'slate',   n:'Slate (same as Sent)', hex:'#64748B', g:'#FFFFFF', tag:'new', rec:0, note:'Maximum restraint — but Mint then looks identical to Sent, and it is the opposite direction.' },
+  { k:'cyan',    n:'brandPrimaryStrong',   hex:'#0AAEE6', g:'#000B18', tag:'ex',  rec:1, note:'The house accent. Clearly not green, not amber, not slate. Zero new tokens.' },
+  { k:'violet',  n:'brandTertiary',        hex:'#C28FFF', g:'#1B0733', tag:'ex',  rec:1, note:'Furthest hue from every taken colour. Reads as "special event", which a mint is.' },
+  { k:'mintgrn', n:'brandSecondary',       hex:'#2BF5B4', g:'#00291C', tag:'ex',  rec:0, note:'The literal mint-green pun — but see the hue warning; it merges with Received.' },
+  { k:'success', n:'statusSuccess',        hex:'#0AD89C', g:'#04241A', tag:'ex',  rec:0, note:'Honest (value did arrive) but then Mint and Received are indistinguishable.' },
+  { k:'gold',    n:'Gold',                 hex:'#D9A441', g:'#2B1B00', tag:'new', rec:0, note:'"Struck coin" reads well with the pickaxe — but sits close to Pending amber.' },
+];
+const JOB_OPTS = [
+  { k:'slate',   n:'Slate (same as Sent)', hex:'#64748B', g:'#FFFFFF', tag:'new', rec:1, note:'Scheme 1 applied strictly: a job is not money, so it takes the neutral. Quietest option.' },
+  { k:'cyan',    n:'brandPrimaryStrong',   hex:'#0AAEE6', g:'#000B18', tag:'ex',  rec:1, note:'Compute is the product. Marking jobs in the house accent says "this is the GNUS bit".' },
+  { k:'violet',  n:'brandTertiary',        hex:'#C28FFF', g:'#1B0733', tag:'ex',  rec:0, note:'Distinct and calm — but competes with Mint if Mint also takes violet.' },
+  { k:'indigo',  n:'Indigo',               hex:'#6366F1', g:'#FFFFFF', tag:'new', rec:0, note:'Machine-like and separable from everything taken; adds a token to maintain in 2 themes.' },
+  { k:'teal',    n:'Deep teal',            hex:'#0E8C8C', g:'#FFFFFF', tag:'new', rec:0, note:'Calm and technical; risks reading as a dull green next to Received.' },
+  { k:'graphite',n:'Graphite',             hex:'#3F4655', g:'#FFFFFF', tag:'new', rec:0, note:'Recedes furthest — jobs become background noise, which may be right or wrong.' },
+];
+
+const S = { theme:'dark', width:'wide', mint:'violet', job:'cyan' };
+const mintDef = () => MINT_OPTS.find(o => o.k === S.mint);
+const jobDef  = () => JOB_OPTS.find(o => o.k === S.job);
+
+const badge=(g,f,gc,bc)=>`<span class="badge" style="background:${f};${bc?`border-color:${bc}`:''}"><svg viewBox="0 0 24 24" stroke="${gc}">${g}</svg></span>`;
+
+function optCard(o, group, sel, glyph) {
+  const cr = ratio(o.hex, o.g);
+  const clashes = Object.entries(TAKEN).filter(([n,h]) => hueGap(o.hex,h) < 22 && Math.abs(lum(o.hex)-lum(h)) < .28);
+  return `<div class="opt ${sel?'sel':''}" data-g="${group}" data-k="${o.k}">
+    ${o.rec?'<span class="pin tag rec">Rec</span>':''}
+    ${clashes.length?`<span class="warnflag">≈ ${clashes[0][0]}</span>`:''}
+    <div class="demo"><span class="coin" style="background:linear-gradient(160deg,#3AD9C0,#1FA9C8)">GNUS</span>${badge(glyph,o.hex,o.g)}</div>
+    <div class="nm">${o.n} <span class="tag ${o.tag}">${o.tag==='ex'?'Exist':'New'}</span></div>
+    <div class="hex">${o.hex}</div>
+    <div class="cr ${cr>=4.5?'pass':'fail'}">glyph ${cr.toFixed(1)}:1 ${cr>=4.5?'✓':'✕'}</div>
+    <div class="note">${o.note}</div>
+  </div>`;
+}
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('panel').className = 'panel' + (S.width==='narrow'?' narrow':'');
+  document.getElementById('mintgrid').innerHTML = MINT_OPTS.map(o=>optCard(o,'mint',S.mint===o.k,P.pickaxe)).join('');
+  document.getElementById('jobgrid').innerHTML  = JOB_OPTS.map(o=>optCard(o,'job', S.job===o.k, P.server)).join('');
+
+  const ALL = [
+    { lb:'Sent',      g:P.up,      f:'#64748B', gc:'#FFFFFF' },
+    { lb:'Received',  g:P.down,    f:'#0AD89C', gc:'#04241A' },
+    { lb:'Mint',      g:P.pickaxe, f:mintDef().hex, gc:mintDef().g },
+    { lb:'Job',       g:P.server,  f:jobDef().hex,  gc:jobDef().g },
+    { lb:'Escrow',    g:P.lock,    f:'#64748B', gc:'#FFFFFF' },
+    { lb:'Pending',   g:P.clock,   f:'#FFC42E', gc:'#3A2A00' },
+    { lb:'Failed',    g:P.x,       f:'#FF4D4D', gc:'#FFFFFF' },
+  ];
+  document.getElementById('strip').innerHTML = ALL.map(a=>`
+    <div class="s"><div class="demo"><span class="coin" style="background:linear-gradient(160deg,#8A9DF5,#5B72D8)"></span>${badge(a.g,a.f,a.gc,'var(--surface-menu)')}</div><div class="lb">${a.lb}</div></div>`).join('');
+
+  document.getElementById('tbl').innerHTML =
+    `<tr><th>Pair</th><th>Hue gap</th><th>Verdict</th></tr>` +
+    [['Mint vs Received', mintDef().hex, '#0AD89C'],
+     ['Mint vs Job',      mintDef().hex, jobDef().hex],
+     ['Job vs Received',  jobDef().hex,  '#0AD89C'],
+     ['Mint vs Pending',  mintDef().hex, '#FFC42E'],
+     ['Job vs Sent',      jobDef().hex,  '#64748B']]
+    .map(([n,a,b])=>{const gp=hueGap(a,b).toFixed(0);
+      const ok = gp>=40 || Math.abs(lum(a)-lum(b))>.3;
+      return `<tr><td>${n}</td><td>${gp}°</td><td style="color:${ok?'var(--status-success)':'var(--status-error)'}">${ok?'separable':'too close'}</td></tr>`;}).join('');
+
+  const TX = [
+    { sym:'ETH', bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', g:P.up,   f:'#64748B', gc:'#FFFFFF', t:'ETH', a:'Sent', s:'0x9fF8…2e2b', v:'− 0.75 ETH', fi:'$1,440.20', tm:'18:42' },
+    { sym:'BTC', bg:'linear-gradient(160deg,#F9A03C,#E87B10)', g:P.down, f:'#0AD89C', gc:'#04241A', t:'BTC', a:'Received', s:'0x1d9b…4a87', v:'+ 0.0042 BTC', fi:'$278.19', tm:'15:10', in:1 },
+    { sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.pickaxe, f:mintDef().hex, gc:mintDef().g, t:'GNUS', a:'Minted', s:'Minted to wallet', v:'+ 1,200 GNUS', fi:'$924.00', tm:'21:55', in:1 },
+    { sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.server, f:jobDef().hex, gc:jobDef().g, t:'GNUS', a:'Processing job', s:'Job #4192 · complete', v:'—', fi:'0.42 GNUS spent', tm:'16:20', na:1 },
+    { sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.lock, f:'#64748B', gc:'#FFFFFF', t:'GNUS', a:'Escrow locked', s:'Job #4192', v:'− 75.00 GNUS', fi:'$57.75', tm:'20:14' },
+    { sym:'USDC',bg:'linear-gradient(160deg,#4A90E2,#2A6FC9)', g:P.swap, f:'#64748B', gc:'#FFFFFF', t:'ETH → USDC', a:'Swapped', s:'1.0 ETH', v:'+ 3,200.00 USDC', fi:'$3,200.00', tm:'11:03', in:1 },
+    { sym:'USDT',bg:'linear-gradient(160deg,#3FC1A0,#1E8E72)', g:P.clock, f:'#FFC42E', gc:'#3A2A00', t:'USDT', a:'Sent', s:'0x4c7a…9910 · pending', v:'− 420.00 USDT', fi:'$420.00', tm:'09:47' },
+    { sym:'ETH', bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', g:P.x, f:'#FF4D4D', gc:'#FFFFFF', t:'ETH', a:'Buy', s:'Banxa · payment declined', v:'—', fi:'Not charged', tm:'08:30', na:1 },
+  ];
+  document.getElementById('list').innerHTML = TX.map((t,i)=>`
+    <div class="row">
+      <div class="id"><span class="coin" style="background:${t.bg}">${t.sym}</span>${badge(t.g,t.f,t.gc)}</div>
+      <div class="main"><div class="t">${t.t}<span class="action">${t.a}</span></div><div class="s">${t.s}</div></div>
+      <div class="amt"><span class="v ${t.in?'in':''} ${t.na?'na':''}">${t.v}</span><span class="f">${t.fi}</span></div>
+      <div class="time">${t.tm}</div>
+    </div>` + (i<TX.length-1?'<hr class="divider">':'')).join('');
+}
+
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-g]'); if (!o) return;
+  S[o.dataset.g] = o.dataset.k; render();
+});
+['theme','width'].forEach(g => document.getElementById(g).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[g] = b.dataset.v;
+  document.querySelectorAll('#'+g+' button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  render();
+}));
+render();
+</script>
+</body>
+</html>
