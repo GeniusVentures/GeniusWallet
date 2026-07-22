@@ -22,3 +22,42 @@ Not lazy about: input validation at trust boundaries, error handling that preven
 
 Do not create commits.
 Files under `/banxa` and `/squidrouter` are auto-generated. Do not change them.
+
+## Working in parallel sessions
+
+Two or more Claude sessions may run against this repo at once. On 2026-07-22 two sessions collided
+in five measured ways: sketch numbers clashed twice (016, 020), `ROADMAP.md`/`STATE.md`/`MANIFEST.md`
+could not be split when committing, `HANDOFF.json` held one slot for two sessions, the test baseline
+drifted 187→222 so every agent misread a neighbour's tests as a regression, and two `flutter run`
+instances fought over the Hive container lock.
+
+The pattern behind all five: **a file is the unit of conflict.** One file per item is safe. One
+shared file is not.
+
+**Roles.** Exactly one session is the EXECUTOR. Everything else is a DESIGN or RESEARCH session.
+
+**Only the executor may:**
+- commit, stage, push, or touch git state in any way
+- run `flutter run` (a second instance dies on the Hive lock at
+  `~/Library/Containers/ai.gnus.GeniusWallet.jakub/`)
+- run the full `flutter test` suite and quote a baseline
+- write `.planning/ROADMAP.md`, `.planning/STATE.md`, `.planning/sketches/MANIFEST.md`,
+  `.planning/HANDOFF.json`
+- edit anything under `lib/`, `test/`, `macos/`, `packages/`
+
+**A design session may only** create `.planning/sketches/<its own range>/` and append single files to
+`.planning/todos/pending/`. That is the queue: one file per item, never a shared list.
+
+**Sketch number ranges are reserved, not first-come.** Execution 000-099 · design lane A 100-149 ·
+design lane B 150-199. A shared counter has now collided on two consecutive days.
+
+**Every session writes its own `.planning/HANDOFF-<topic>.md` before it ends.** On 2026-07-22 this
+was the only reason one session's work could be summarised by another. A session that ends without
+one has produced no day summary.
+
+**A parallel agent's claim that "a concurrent session changed the tree" is a hypothesis, not a fact.**
+Every such report on 2026-07-22 turned out to be a sibling from the same wave or a stale git snapshot
+in the agent's own prompt. Check `git reflog` before acting on one.
+
+**If a design session must touch code or run the app, give it its own worktree** —
+`git worktree add ../GW-<lane> <branch>` — not a second checkout of the same tree.
