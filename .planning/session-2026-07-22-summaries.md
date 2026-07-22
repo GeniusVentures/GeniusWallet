@@ -92,7 +92,7 @@ additively, so no existing mockup changes appearance, and the misuse cannot sile
 
 # 6b · Standup note
 
-**Transactions tab got rebuilt today. Nothing is merged — it is all uncommitted on `ui-redesign-port`.**
+**Transactions tab got rebuilt today. It is pushed to `ui-redesign-port` (`fea77de..eca162c`) — not merged anywhere else, so pull that branch if you want it.**
 
 **What shipped.** The `/transactions` page was rendering the dashboard *panel* verbatim: a 736px column stranded in the middle of a 2000px window with a panel-sized title and no card. It is now a real page — 1280px wide, proper page header, and a filter rail down the left with live counts instead of a `⋯` popup. Empty states no longer float in the vertical middle of a tall panel. Failed and processing-job rows now show the real amount instead of a dash.
 
