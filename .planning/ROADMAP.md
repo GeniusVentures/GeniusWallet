@@ -248,14 +248,17 @@ overrides** — see `05-VERIFICATION.md`'s `overrides:`/`## Acknowledged Gaps`.
 VERIFIED outright. Criteria 1, 2 and 5 close on **explicit user-authorized overrides**, not on
 having passed — see `05-VERIFICATION.md`'s `overrides:` frontmatter and `## Acknowledged Gaps`
 section for the full reasoning behind each:
+
 - **Criterion 5** ("no RenderFlex overflow") — `crypto_live_chart.dart:315`'s zoom/pan row still
   overflows by 34px, on a single site unrelated to any of this phase's own plans' file scope. The
   user live-inspected the app, confirmed it is a dashboard-card-height limitation (not a component
   defect), and rejected the considered stopgap (`260721-gx1`) as cosmetic. New todo filed:
   `2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md`.
+
 - **Criterion 1** (clause 2, "match the Release exe") — code-level gaps all resolved; the
   side-by-side walk itself has never been performed, though the reference exe is now present on
   this machine.
+
 - **Criterion 2** (pull-to-refresh) — wiring confirmed at all three sites; the transactions/news
   reload completion has never been directly observed (dashboard leg is observed).
 
@@ -395,3 +398,45 @@ not a hard dependency chain. Each is independently landable on develop.
 | 9. Banxa | 0/TBD | Not started | - |
 | 10. dApp connectivity | 0/TBD | Not started | - |
 | 11. Port closeout | 0/TBD | Not started | - |
+
+### Phase 12: Transactions redesign
+
+**Goal:** The transactions surface reads as one system: every one of the seven `TransactionType`
+values renders through a single row anatomy, every type and status is reachable by a filter, and a
+wallet with no matching rows says which of the two "empty" situations it is in.
+
+**Requirements**: derived from the shipped-panel diagnosis in sketch 010 (see Design contract below)
+
+**Depends on:** Phase 5 (Dashboard) for `GWTokenRow`, `GWSectionTitle`, `GWEmptyState` and the
+homepage `Divider` pattern this phase reuses verbatim. Not blocked by Phase 6.
+
+**Design contract:** `.planning/sketches/010-014` — decided and locked 2026-07-22:
+- Row hierarchy: **token-first** (010-A) — the asset is the headline, the action a quiet chip.
+- Badges (18px, knocked-out glyph on a filled circle): Sent = Slate `#64748B`, Received =
+  `statusSuccess`, **Mint = `brandTertiary #C28FFF` with a pickaxe glyph**, **Processing job =
+  `brandPrimaryStrong #0AAEE6` with a server glyph**, Escrow = Slate, Pending = `statusWarning`,
+  Failed = `statusError`.
+- Filters: **F1 two-tier** — title row order is **Sent · Received · Mint · Jobs** (007-C compact
+  segmented control); **Escrow**, swap, purchase plus the two statuses move into an overflow menu with
+  live counts. Active chip is the **`brandCta` gradient, never flat blue**. Inside the overflow
+  menu the active item takes **gradient TEXT on the label only** — the glyph never changes with
+  selection, same icon and same colour whether active or not — painted the way the app already
+  does it — `ShaderMask(BlendMode.srcIn)` over `GeniusWalletGradient.brandCta`, the same technique
+  as `GWButtonVariant.gradientOutline` (`gw_button.dart:299`) and `GWViewAllLink`
+  (`gw_view_all_link.dart:65`). Never a flat accent colour. When the active filter
+  lives in the overflow menu, the `⋯` trigger itself takes the gradient so an applied filter is
+  never invisible. Desktop keeps the animated expand-to-label; **narrow/mobile is icon-only**.
+- Fixes carried by the row rewrite: amounts clamped (2 dp ≥1000, else 6) with the exact value
+  preserved on hover and tabular figures; fiat value on every row; `Fee:` removed from the resting
+  row; repeated relative time replaced by day separators plus a real timestamp; status shown only
+  when it is not the happy path; per-row cards replaced by one surface with hairline `Divider`s.
+
+**Known coverage bug this phase closes:** `Filters` (`transactions_slim_view.dart:16`) is
+`{all, sent, received, escrow, mint}` while `TransactionType` has seven values — `swap`, `purchase`
+and `process` are unreachable by any filter today.
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run `/gsd-plan-phase 12` to break down)

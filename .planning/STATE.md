@@ -337,3 +337,7 @@ Open decisions:
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 05 P01 | ~20min | 2 tasks | 3 files |
+
+### Roadmap Evolution
+
+- Phase 12 added 2026-07-22: Transactions redesign (design contract = sketches 010-014, all decisions locked)
