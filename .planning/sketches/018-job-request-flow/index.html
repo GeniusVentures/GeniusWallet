@@ -1,0 +1,533 @@
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>018 · Job request flow — file → cost → confirm → in-flight → result</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1340px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .14s; }
+  .seg button:hover { color:var(--text-primary); }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-8); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:940px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug { background:var(--status-error-fill); color:var(--status-error); }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  .note { background:var(--surface-menu); border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-sm); padding:var(--space-6) var(--space-8); font:400 13px/21px var(--font); color:var(--text-secondary); margin-bottom:var(--space-8); max-width:940px; }
+  .note b { color:var(--text-primary); }
+  .note.bad { border-left-color:var(--status-error); }
+
+  .stage { display:flex; gap:var(--space-12); align-items:flex-start; flex-wrap:wrap; }
+
+  /* ── the surface ────────────────────────────────────────── */
+  .surface { position:relative; flex:none; }
+  .frame { background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg);
+           overflow:hidden; position:relative; display:flex; flex-direction:column; }
+  .frame .dim { position:absolute; inset:0; background:rgba(0,0,0,.54); z-index:2; }
+  .bgdash { padding:var(--space-8); opacity:.55; pointer-events:none; display:flex; gap:10px; flex-wrap:wrap; }
+  .bgcard { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle);
+            border-radius:var(--radius-lg); height:150px; }
+
+  /* ResponsiveDrawer — mobile branch: showModalBottomSheet, radius3xl top corners */
+  .sheet { position:absolute; z-index:3; background:var(--surface-menu);
+           display:flex; flex-direction:column;
+           transition:transform .28s cubic-bezier(.2,.8,.2,1); }
+  .sheet.mob { left:0; right:0; bottom:0; max-height:92%;
+               border-top:1px solid var(--border-subtle); border-radius:24px 24px 0 0;
+               box-shadow:0 -8px 32px rgba(0,0,0,.30); }
+  /* ResponsiveDrawer — desktop branch: showDialog + Align.centerRight, width 420, full height */
+  .sheet.desk { right:0; top:0; bottom:0; width:420px;
+                border-left:1px solid var(--border-subtle); border-radius:24px 0 0 24px;
+                box-shadow:-8px 0 32px rgba(0,0,0,.30); }
+  /* the /submit_job route — a plain full-screen Scaffold */
+  .sheet.full { inset:0; border-radius:0; max-height:100%; background:var(--surface-base); }
+  .sheet .grab { width:36px; height:4px; border-radius:99px; background:var(--border-strong); margin:10px auto 0; flex:none; }
+  .sheet.desk .grab, .sheet.full .grab { display:none; }
+  .brk { position:absolute; z-index:5; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+         padding:4px 7px; border-radius:4px; background:var(--surface-elevated); color:var(--text-secondary);
+         border:1px solid var(--border-subtle); top:8px; left:8px; }
+
+  .shd { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-8) var(--space-10) var(--space-6); flex:none; }
+  .shd h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; }
+  .shd .x { margin-left:auto; width:30px; height:30px; border-radius:50%; border:0; background:var(--surface-menu); color:var(--text-secondary); cursor:pointer; display:grid; place-items:center; transition:all .14s; }
+  .shd .x:hover { background:var(--surface-sunken); color:var(--text-primary); transform:translateY(-1px); }
+  .shd .x svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; }
+
+  .sbody { padding:0 var(--space-10) var(--space-10); overflow:auto; flex:1; }
+
+  /* ── stepper variants ───────────────────────────────────── */
+  .steps-h { display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-10) var(--space-8); flex:none; }
+  .steps-h .s { display:flex; align-items:center; gap:6px; font:600 11px/16px var(--font); color:var(--text-primary-38); white-space:nowrap; }
+  .steps-h .s .n { width:19px; height:19px; border-radius:50%; display:grid; place-items:center; font:700 10px/1 var(--font);
+                   background:var(--surface-menu); color:var(--text-primary-38); flex:none; transition:all .2s; }
+  .steps-h .s.on   { color:var(--text-primary); }
+  .steps-h .s.on .n{ background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .steps-h .s.done { color:var(--text-secondary); }
+  .steps-h .s.done .n { background:var(--status-success); color:#000B18; }
+  .steps-h .ln { flex:1; height:1px; background:var(--border-subtle); min-width:8px; }
+  .steps-h .ln.done { background:var(--status-success); }
+
+  .steps-v { border-left:2px solid var(--border-subtle); margin-left:11px; padding-left:var(--space-10); }
+  .stepv { position:relative; padding-bottom:var(--space-10); }
+  .stepv:last-child { padding-bottom:0; }
+  .stepv .n { position:absolute; left:calc(-1 * var(--space-10) - 12px); top:0; width:22px; height:22px; border-radius:50%;
+              display:grid; place-items:center; font:700 10px/1 var(--font); background:var(--surface-menu);
+              color:var(--text-primary-38); border:2px solid var(--surface-elevated); transition:all .2s; }
+  .stepv.on .n   { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .stepv.done .n { background:var(--status-success); color:#000B18; }
+  .stepv .ttl { font:600 14px/20px var(--font); color:var(--text-primary-38); margin-bottom:var(--space-4); }
+  .stepv.on .ttl, .stepv.done .ttl { color:var(--text-primary); }
+  .stepv .content { display:none; }
+  .stepv.on .content { display:block; }
+  .stepv.done .content.summary { display:block; }
+
+  /* ── shared step content ────────────────────────────────── */
+  .drop { border:1.5px dashed var(--border-strong); border-radius:var(--radius-md); padding:var(--space-12) var(--space-8);
+          text-align:center; cursor:pointer; transition:all .16s; background:var(--surface-menu); }
+  .drop:hover { border-color:var(--brand-primary-strong); background:var(--brand-fill); transform:translateY(-1px); }
+  .drop svg { width:26px; height:26px; fill:none; stroke:var(--text-secondary); stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; margin-bottom:var(--space-6); }
+  .drop:hover svg { stroke:var(--brand-primary-strong); }
+  .drop .t { font:600 14px/20px var(--font); }
+  .drop .s { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:3px; }
+
+  .filechip { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-8);
+              background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); }
+  .filechip .ic { width:30px; height:30px; border-radius:var(--radius-sm); background:var(--surface-sunken); display:grid; place-items:center; flex:none; }
+  .filechip .ic svg { width:15px; height:15px; fill:none; stroke:var(--brand-primary-strong); stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  [data-theme="dark"] .filechip .ic svg { stroke:var(--brand-primary); }
+  .filechip .nm { font:500 13px/18px var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .filechip .sz { font:400 11px/15px var(--font); color:var(--text-secondary); }
+  .filechip .ch { margin-left:auto; font:500 12px/16px var(--font); color:var(--brand-primary-strong); background:none; border:0; cursor:pointer; }
+  [data-theme="dark"] .filechip .ch { color:var(--brand-primary); }
+
+  .costs { border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; }
+  .costs .r { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-8); }
+  .costs .r + .r { border-top:1px solid var(--border-subtle); }
+  .costs .r .k { font:400 13px/19px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:6px; }
+  .costs .r .k svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .costs .r .v { margin-left:auto; font:600 13px/19px var(--font); font-variant-numeric:tabular-nums; }
+  .costs .r.total { background:var(--surface-menu); }
+  .costs .r.total .k { color:var(--text-primary); font-weight:600; }
+  .costs .r.total .v { font-size:15px; }
+  .costs .r .v.err { color:var(--status-error); }
+
+  .balline { display:flex; align-items:center; gap:6px; font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:var(--space-6); }
+  .balline b { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .balline.short { color:var(--status-error); }
+
+  .json { background:var(--surface-sunken); border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+          padding:var(--space-6) var(--space-8); font:400 11px/17px var(--font-mono); color:var(--text-primary-70);
+          max-height:130px; overflow:auto; white-space:pre; }
+  .disc { display:flex; align-items:center; gap:6px; font:500 12px/17px var(--font); color:var(--text-secondary);
+          cursor:pointer; margin-top:var(--space-6); user-select:none; }
+  .disc svg { width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; transition:transform .16s; }
+  .disc.open svg { transform:rotate(90deg); }
+
+  .warn { display:flex; gap:var(--space-6); padding:var(--space-6) var(--space-8); border-radius:var(--radius-md);
+          background:var(--status-error-fill); font:400 12px/18px var(--font); color:var(--status-error); align-items:flex-start; }
+  .warn svg { width:14px; height:14px; flex:none; margin-top:2px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; }
+  .warn b { font-weight:600; }
+
+  .inflight { text-align:center; padding:var(--space-10) 0; }
+  .inflight .ring { width:88px; height:88px; margin:0 auto var(--space-8); position:relative; }
+  .inflight .ring svg { width:88px; height:88px; transform:rotate(-90deg); }
+  .inflight .ring circle { fill:none; stroke-width:5; stroke-linecap:round; }
+  .inflight .ring .tr { stroke:var(--surface-sunken); }
+  .inflight .ring .fg { stroke:url(#g018); transition:stroke-dasharray .4s linear; }
+  .inflight .ring .mid { position:absolute; inset:0; display:grid; place-items:center; font:700 20px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .inflight .t { font:600 16px/22px var(--font); }
+  .inflight .s { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:4px; }
+
+  .steplist { margin-top:var(--space-10); text-align:left; }
+  .steplist .i { display:flex; align-items:center; gap:var(--space-6); padding:5px 0; font:400 13px/19px var(--font); color:var(--text-primary-38); }
+  .steplist .i .m { width:17px; height:17px; border-radius:50%; display:grid; place-items:center; flex:none; background:var(--surface-menu); }
+  .steplist .i .m svg { width:9px; height:9px; fill:none; stroke:var(--text-primary-38); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .steplist .i.done { color:var(--text-primary); }
+  .steplist .i.done .m { background:var(--status-success); }
+  .steplist .i.done .m svg { stroke:#000B18; }
+  .steplist .i.now { color:var(--text-primary); }
+  .steplist .i.now .m { background:var(--brand-fill); }
+  .steplist .i.now .m::after { content:''; width:7px; height:7px; border-radius:50%; background:var(--brand-primary-strong); animation:pulse 1.2s ease-in-out infinite; }
+  [data-theme="dark"] .steplist .i.now .m::after { background:var(--brand-primary); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .steplist .i .tm { margin-left:auto; font:400 11px/15px var(--font-mono); color:var(--text-primary-38); }
+
+  .done .big { width:56px; height:56px; border-radius:50%; background:var(--status-success-fill); display:grid; place-items:center; margin:0 auto var(--space-8); }
+  .done .big svg { width:26px; height:26px; fill:none; stroke:var(--status-success); stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
+  .txrow { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-8); background:var(--surface-menu);
+           border-radius:var(--radius-md); font:400 12px/18px var(--font-mono); margin-top:var(--space-8); }
+  .txrow .k { font:500 11px/16px var(--font); color:var(--text-secondary); font-family:var(--font); }
+  .txrow .cp { margin-left:auto; background:none; border:0; color:var(--brand-primary-strong); cursor:pointer; font:500 11px/16px var(--font); }
+  [data-theme="dark"] .txrow .cp { color:var(--brand-primary); }
+
+  .sfoot { display:flex; gap:var(--space-6); padding:var(--space-8) var(--space-10);
+           border-top:1px solid var(--border-subtle); flex:none; background:var(--surface-elevated); }
+  .btn { display:flex; align-items:center; justify-content:center; gap:7px; height:40px; padding:0 var(--space-10);
+         border:0; border-radius:var(--radius-pill); font:600 13px/18px var(--font); cursor:pointer; transition:all .14s; }
+  .btn.grad { flex:1; background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; box-shadow:var(--shadow-card); }
+  .btn.grad:hover:not(:disabled) { transform:translateY(-1px); filter:brightness(1.06); }
+  .btn.ghost { background:transparent; border:1px solid var(--border-strong); color:var(--text-primary); }
+  .btn.ghost:hover { background:var(--surface-menu); transform:translateY(-1px); }
+  .btn:disabled { opacity:.42; cursor:not-allowed; }
+  .btn svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* sidecar */
+  .side { flex:1; min-width:320px; }
+  .side h3 { font:600 14px/20px var(--font); margin-bottom:var(--space-6); }
+  table { width:100%; border-collapse:collapse; font:400 12px/18px var(--font); }
+  th,td { text-align:left; padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+  td b { color:var(--text-primary); }
+  td.k { white-space:nowrap; font:500 12px/18px var(--font-mono); }
+
+  .variant { display:none; } .variant.on { display:block; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="g018" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0AD89C"/><stop offset="1" stop-color="#0AAEE6"/></linearGradient>
+</defs></svg>
+
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>018 · Job request flow — file → cost → confirm → in-flight → result</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="funds">
+    <button data-v="ok" aria-pressed="true">Enough GNUS</button>
+    <button data-v="short" aria-pressed="false">Not enough GNUS</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <span style="font:600 11px/16px var(--font);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px">Where it renders</span>
+  <div class="seg" id="surf">
+    <button data-v="desk" aria-pressed="true">Desktop — right panel 420 px</button>
+    <button data-v="mob" aria-pressed="false">Mobile — bottom sheet</button>
+    <button data-v="full" aria-pressed="false">/submit_job — full screen</button>
+  </div>
+</div>
+
+<div class="note">
+  <b>"Drawer" is not a pop-up.</b> <code>ResponsiveDrawer.show()</code> already exists
+  (<code>lib/components/bottom_drawer/responsive_drawer.dart</code>) and picks its own rendering from the viewport at
+  <code>GeniusBreakpoints.medium</code>:<br>
+  · <b>Desktop (≥ medium)</b> → <code>showDialog</code> + <code>Align.centerRight</code>: a <b>420 px panel pinned to the
+  right edge, full height</b>, rounded on its left side, dark barrier over the dashboard. Not centred, not a modal box.<br>
+  · <b>Mobile (&lt; medium)</b> → <code>showModalBottomSheet</code>: slides up from the bottom, <code>isScrollControlled</code>,
+  drag-to-dismiss, safe-area aware.<br>
+  Both wrap the content in the same <code>Scaffold</code> with a title bar, a close ✕ and an optional footer — so one
+  body of step content serves all three surfaces below.
+</div>
+
+<div class="note">
+  <b>This is the flow that exists — just never shown as one.</b> Every step below maps to a real call in
+  <code>submit_job_cubit.dart</code>. Today all of it is one flat <code>Scaffold</code>: an "Upload" action in the app bar,
+  a row of numbers, a raw JSON dump, a "Purchase" button, and a toast containing a transaction hash.
+  Nothing tells the user there are stages, that money moves in two separate transactions, or what happens after.
+</div>
+
+<div class="toolbar">
+  <div class="seg" id="variant" style="margin-right:auto">
+    <button data-v="a" aria-pressed="true">A · Drawer, vertical steps ★ Selected</button>
+    <button data-v="b" aria-pressed="false">B · Drawer, horizontal stepper</button>
+    <button data-v="c" aria-pressed="false">C · Full screen, progressive</button>
+  </div>
+  <span style="font:600 11px/16px var(--font);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px">Step</span>
+  <div class="seg" id="step">
+    <button data-v="1" aria-pressed="true">1 · File</button>
+    <button data-v="2" aria-pressed="false">2 · Cost</button>
+    <button data-v="3" aria-pressed="false">3 · Confirm</button>
+    <button data-v="4" aria-pressed="false">4 · In flight</button>
+    <button data-v="5" aria-pressed="false">5 · Result</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="surface" id="surface">
+    <div class="frame" id="frame">
+      <span class="brk" id="brk"></span>
+      <div class="bgdash" id="bgdash"></div>
+      <div class="dim"></div>
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <h3>What each step calls</h3>
+    <table>
+      <tr><th style="width:74px">Step</th><th>Real call</th></tr>
+      <tr><td class="k">1 File</td><td><code>openFilePicker()</code> — <code>FilePicker</code>, JSON only, single file. Shows a blocking <code>ModalBarrier</code> + <b>"Preparing AI job…"</b> while it runs.</td></tr>
+      <tr><td class="k">2 Cost</td><td><code>requestGeniusSDKCost(jobJson)</code> → job cost in GNUS.<br><code>getBrigeOutGasCost(...)</code> → chain gas for the bridge-out. Two separate numbers the current screen shows side by side with no explanation of which is which.</td></tr>
+      <tr><td class="k">3 Confirm</td><td><code>isPurchaseable = jobCost != 0 && jobCost &lt; gnusBalance</code> gates the button.</td></tr>
+      <tr><td class="k">4 In flight</td><td><code>bridgeOut(...)</code> → tx hash, <b>then</b> <code>requestGeniusSDKProcess(jobJson)</code>. Two operations, one button. If the bridge succeeds and the process call fails, the tokens are already burned.</td></tr>
+      <tr><td class="k">5 Result</td><td><code>emit(txHash)</code> → a success toast whose message body is the raw hash. Then <code>fetchGnusBalanceWithDelay()</code> — a hardcoded 5&nbsp;s wait because "fetching immediately returns a stale value".</td></tr>
+    </table>
+
+    <h3 style="margin-top:var(--space-12)">Failure modes the design has to carry</h3>
+    <table>
+      <tr><th style="width:74px">Source</th><th>Message</th></tr>
+      <tr><td class="k">picker</td><td>"The Selected File is not valid json" · "No file selected." · "Failed to pick file: …"</td></tr>
+      <tr><td class="k">cost</td><td>"Unable to retrieve job cost" · "Failed to estimate bridge gas cost."</td></tr>
+      <tr><td class="k">balance</td><td>"* You do not have enough GNUS" — today a bare red line under a disabled button</td></tr>
+      <tr><td class="k">bridge</td><td>"Bridge transaction failed. Please try again."</td></tr>
+      <tr><td class="k">process</td><td>7 mapped SDK codes: not initialized · process image · mint failed · invalid argument · transfer failed · pay-dev failed</td></tr>
+    </table>
+    <p class="lede" style="margin-top:var(--space-8)"><b>All eleven arrive as toasts today</b> — transient, dismissible,
+    with no way to get back to the message once it fades. Steps 2–4 in all three variants render errors inline instead,
+    where the thing that failed actually is.</p>
+  </div>
+</div>
+
+<h2 class="sec">Recommendation</h2>
+<div class="note">
+  <b>A · Drawer with vertical steps</b>, and <code>/submit_job</code> kept as the same content in a full-screen host
+  for narrow viewports and deep links. <span class="tag rec">Rec</span><br><br>
+  <b>Why a drawer at all:</b> <code>ResponsiveDrawer</code> is already in the codebase and already used exactly this way
+  for Receive (<code>coins_screen.dart:170</code>) — it is a bottom sheet on mobile and a side panel on desktop with no
+  extra work. Zero new routes, zero new navigation state, and the Compute panel stays visible behind the dim, so when
+  the job starts the user watches the progress land in the place it will live from then on.<br><br>
+  <b>Why vertical over horizontal (B):</b> the steps have wildly unequal weight — step 2 is a cost table plus an
+  optional JSON preview, step 3 is one sentence. A horizontal stepper allocates them equal visual space and forces a
+  full swap of the body on every transition. Vertical lets completed steps collapse to a one-line summary
+  (<i>"style-transfer.json · 4.0 GNUS"</i>) that stays on screen — which matters when step 3 asks you to confirm
+  spending money you decided on in step 2.<br><br>
+  <b>Why not C:</b> progressive disclosure on a full screen is the closest to what ships today, and it is fine — but it
+  needs a route, it hides the dashboard, and on desktop it wastes an entire screen on a five-field form. Keep it as
+  the fallback host, not the primary.<br><br>
+  <b>The one thing all three must fix:</b> step 4 is <b>two</b> money operations, not one. Show them as two
+  lines with independent ticks, so a failure between them is legible rather than mysterious.
+</div>
+
+</div>
+
+<script>
+let step = 1, variant = 'a', funds = 'ok', surf = 'desk';
+
+// Frame geometry per surface — sized so the 420 px desktop panel is shown at true width.
+const FRAME = {
+  desk: { w:880, h:560, brk:'Desktop ≥ medium · showDialog + Align.centerRight',
+          bg:'<div class="bgcard" style="width:290px"></div><div class="bgcard" style="width:414px"></div>' +
+             '<div class="bgcard" style="width:290px;height:110px"></div><div class="bgcard" style="width:414px;height:110px"></div>' },
+  mob:  { w:380, h:640, brk:'Mobile < medium · showModalBottomSheet',
+          bg:'<div class="bgcard" style="width:100%"></div><div class="bgcard" style="width:100%;height:110px"></div>' },
+  full: { w:880, h:560, brk:'/submit_job route · full-screen Scaffold', bg:'' },
+};
+const JSON_PREVIEW = `{
+  "job": "style-transfer",
+  "model": "sdxl-turbo",
+  "input":  "ipfs://Qm…7f2a",
+  "params": { "steps": 30, "cfg": 7.5 },
+  "output": { "format": "png", "count": 4 }
+}`;
+
+const ICON = {
+  up:'<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg>',
+  file:'<svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/></svg>',
+  gas:'<svg viewBox="0 0 24 24"><path d="M3 20h10V4H3zM13 9h3a2 2 0 012 2v6a1.5 1.5 0 003 0V8l-3-3"/></svg>',
+  chip:'<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg>',
+  chk:'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>',
+  warn:'<svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>',
+  arw:'<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+  x:'<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+};
+
+// ── step bodies (shared by all three variants) ──────────────
+function bodyFile(compact) {
+  if (compact) return `<div class="filechip"><div class="ic">${ICON.file}</div>
+      <div><div class="nm">style-transfer.json</div><div class="sz">1.4 KB · valid JSON</div></div></div>`;
+  return `<div class="drop" onclick="go(2)">${ICON.up}
+      <div class="t">Choose a job file</div>
+      <div class="s">A single <code>.json</code> job description</div></div>
+    <p style="font:400 12px/18px var(--font);color:var(--text-secondary);margin-top:var(--space-8)">
+      The file describes what the network should compute. It is validated before anything is charged.</p>`;
+}
+
+function bodyCost(compact) {
+  const short = funds === 'short';
+  if (compact) return `<div style="font:400 12px/18px var(--font);color:var(--text-secondary)">
+      4.00 GNUS job · 0.0021 ETH gas</div>`;
+  return `<div class="filechip" style="margin-bottom:var(--space-8)"><div class="ic">${ICON.file}</div>
+      <div style="min-width:0"><div class="nm">style-transfer.json</div><div class="sz">1.4 KB · valid JSON</div></div>
+      <button class="ch" onclick="go(1)">Change</button></div>
+    <div class="costs">
+      <div class="r"><span class="k">${ICON.chip} Job cost</span><span class="v">4.00 GNUS</span></div>
+      <div class="r"><span class="k">${ICON.gas} Bridge gas</span><span class="v">0.0021 ETH</span></div>
+      <div class="r total"><span class="k">You pay</span>
+        <span class="v ${short?'err':''}">4.00 GNUS + 0.0021 ETH</span></div>
+    </div>
+    <div class="balline ${short?'short':''}">
+      ${short ? `${ICON.warn} Balance <b>2.10 GNUS</b> — short by <b>1.90 GNUS</b>`
+              : `Balance after this job: <b>1,200.50 GNUS</b>`}
+    </div>
+    ${short ? `<div class="warn" style="margin-top:var(--space-8)">${ICON.warn}
+      <div><b>Not enough GNUS.</b> Top up, or pick a cheaper job file.</div></div>` : ''}
+    <div class="disc" id="disc" onclick="this.classList.toggle('open');
+        document.getElementById('jsonbox').style.display = this.classList.contains('open')?'block':'none'">
+      ${ICON.arw} Job definition</div>
+    <div class="json" id="jsonbox" style="display:none">${JSON_PREVIEW}</div>`;
+}
+
+function bodyConfirm(compact) {
+  if (compact) return '';
+  const short = funds === 'short';
+  return `<p style="font:400 14px/21px var(--font);margin-bottom:var(--space-8)">
+      This burns <b>4.00 GNUS</b> on this chain and submits the job to the SGNUS network.</p>
+    <div class="costs">
+      <div class="r"><span class="k">1 · Bridge out</span><span class="v">4.00 GNUS</span></div>
+      <div class="r"><span class="k">2 · Submit job</span><span class="v">style-transfer.json</span></div>
+    </div>
+    <p style="font:400 12px/18px var(--font);color:var(--text-secondary);margin-top:var(--space-8)">
+      These are two separate operations. The tokens are burned by the first one, before the second runs.</p>
+    ${short ? `<div class="warn" style="margin-top:var(--space-8)">${ICON.warn}
+      <div><b>Not enough GNUS</b> to complete this.</div></div>` : ''}`;
+}
+
+function bodyFlight() {
+  return `<div class="inflight">
+      <div class="ring">
+        <svg viewBox="0 0 88 88"><circle class="tr" cx="44" cy="44" r="38"/>
+          <circle class="fg" cx="44" cy="44" r="38" stroke-dasharray="${2*Math.PI*38*0.62} ${2*Math.PI*38}"/></svg>
+        <div class="mid">62%</div>
+      </div>
+      <div class="t">Processing your job</div>
+      <div class="s">style-transfer.json · about 4 minutes left</div>
+      <div class="steplist">
+        <div class="i done"><span class="m">${ICON.chk}</span>Tokens bridged<span class="tm">0x4f…a1</span></div>
+        <div class="i done"><span class="m">${ICON.chk}</span>Job accepted by the network<span class="tm">12:04</span></div>
+        <div class="i now"><span class="m"></span>Computing<span class="tm">62%</span></div>
+        <div class="i"><span class="m">${ICON.chk}</span>Result minted</div>
+      </div>
+    </div>`;
+}
+
+function bodyDone() {
+  return `<div class="inflight done">
+      <div class="big">${ICON.chk}</div>
+      <div class="t">Job complete</div>
+      <div class="s">style-transfer.json · minted <b>4.00 GNUS</b> of results</div>
+      <div class="txrow"><span class="k">Bridge tx</span>0x4f8c…a1d9
+        <button class="cp" onclick="this.textContent='Copied'">Copy</button></div>
+    </div>`;
+}
+
+const STEPS = [
+  { t:'Choose a file',      body:bodyFile },
+  { t:'Review the cost',    body:bodyCost },
+  { t:'Confirm and submit', body:bodyConfirm },
+  { t:'In flight',          body:bodyFlight },
+  { t:'Result',             body:bodyDone },
+];
+
+function footer() {
+  const short = funds === 'short';
+  if (step === 1) return `<button class="btn grad" onclick="go(2)">${ICON.up}Choose file</button>`;
+  if (step === 2) return `<button class="btn ghost" onclick="go(1)">Back</button>
+      <button class="btn grad" onclick="go(3)" ${short?'disabled':''}>Continue</button>`;
+  if (step === 3) return `<button class="btn ghost" onclick="go(2)">Back</button>
+      <button class="btn grad" onclick="go(4)" ${short?'disabled':''}>${ICON.chk}Pay 4.00 GNUS &amp; submit</button>`;
+  if (step === 4) return `<button class="btn ghost" onclick="go(5)">Hide — keep running</button>`;
+  return `<button class="btn ghost" onclick="go(1)">Submit another</button>
+      <button class="btn grad" onclick="go(1)">Done</button>`;
+}
+
+function render() {
+  // Variant C is the full-screen route by definition; A/B follow the surface toggle.
+  const mode = variant === 'c' ? 'full' : surf;
+  const F = FRAME[mode];
+  const frame = document.getElementById('frame');
+  frame.style.width = F.w + 'px';
+  frame.style.height = F.h + 'px';
+  document.getElementById('brk').textContent = F.brk;
+  document.getElementById('bgdash').innerHTML = F.bg;
+  document.querySelector('.frame .dim').style.display = mode === 'full' ? 'none' : 'block';
+
+  const isFull = mode === 'full';
+  const sheet = document.getElementById('sheet');
+  sheet.className = 'sheet ' + mode;
+
+  let head = `${isFull ? '' : '<div class="grab"></div>'}
+    <div class="shd"><h3>${step >= 4 ? 'Processing job' : 'New processing job'}</h3>
+      <button class="x">${ICON.x}</button></div>`;
+
+  let body = '';
+  if (variant === 'a') {
+    // vertical: completed steps collapse to a summary line and stay visible
+    if (step >= 4) {
+      body = `<div class="sbody">${STEPS[step-1].body()}</div>`;
+    } else {
+      body = `<div class="sbody"><div class="steps-v">` + STEPS.slice(0,3).map((s,i) => {
+        const n = i + 1;
+        const cls = n === step ? 'on' : n < step ? 'done' : '';
+        const inner = n === step ? `<div class="content">${s.body(false)}</div>`
+                    : n < step ? `<div class="content summary">${s.body(true)}</div>` : '';
+        return `<div class="stepv ${cls}"><span class="n">${n < step ? '✓' : n}</span>
+                  <div class="ttl">${s.t}</div>${inner}</div>`;
+      }).join('') + `</div></div>`;
+    }
+  } else if (variant === 'b') {
+    const bar = step >= 4 ? '' : `<div class="steps-h">` + STEPS.slice(0,3).map((s,i) => {
+      const n = i + 1;
+      const cls = n === step ? 'on' : n < step ? 'done' : '';
+      return `<div class="s ${cls}"><span class="n">${n < step ? '✓' : n}</span>${s.t}</div>` +
+             (n < 3 ? `<span class="ln ${n < step ? 'done' : ''}"></span>` : '');
+    }).join('') + `</div>`;
+    body = bar + `<div class="sbody">${STEPS[step-1].body(false)}</div>`;
+  } else {
+    // C: everything on one surface, later sections dimmed until reached
+    if (step >= 4) {
+      body = `<div class="sbody">${STEPS[step-1].body()}</div>`;
+    } else {
+      body = `<div class="sbody">` + STEPS.slice(0,3).map((s,i) => {
+        const n = i + 1;
+        const reached = n <= step;
+        return `<div style="opacity:${reached?1:.32};pointer-events:${reached?'auto':'none'};margin-bottom:var(--space-12)">
+            <div style="font:600 11px/16px var(--font);text-transform:uppercase;letter-spacing:.6px;
+                        color:var(--text-secondary);margin-bottom:var(--space-6)">${n} · ${s.t}</div>
+            ${reached ? s.body(n < step) : '<div style="height:52px;border:1px dashed var(--border-subtle);border-radius:var(--radius-md)"></div>'}
+          </div>`;
+      }).join('') + `</div>`;
+    }
+  }
+
+  sheet.innerHTML = head + body + `<div class="sfoot">${footer()}</div>`;
+}
+
+function go(n) {
+  step = n;
+  [...document.getElementById('step').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.v == n));
+  render();
+}
+window.go = go;
+
+function seg(id, fn) {
+  document.getElementById(id).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...b.parentNode.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+    fn(b.dataset.v);
+  });
+}
+seg('theme',   v => document.documentElement.dataset.theme = v);
+seg('variant', v => { variant = v; render(); });
+seg('step',    v => { step = +v; render(); });
+seg('funds',   v => { funds = v; render(); });
+seg('surf',    v => { surf = v; render(); });
+render();
+</script>
+</body>
+</html>

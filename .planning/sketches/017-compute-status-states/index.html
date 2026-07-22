@@ -1,0 +1,379 @@
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>017 · Compute status — one component, nine honest states</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1380px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .14s; }
+  .seg button:hover { color:var(--text-primary); }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-8); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:940px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug { background:var(--status-error-fill); color:var(--status-error); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+
+  .note { background:var(--surface-menu); border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-sm); padding:var(--space-6) var(--space-8); font:400 13px/21px var(--font); color:var(--text-secondary); margin-bottom:var(--space-8); max-width:940px; }
+  .note b { color:var(--text-primary); }
+  .note.bad { border-left-color:var(--status-error); }
+  .note.warn { border-left-color:var(--status-warning); }
+
+  /* ── the state grid ─────────────────────────────────────── */
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); }
+  @media (max-width:1120px) { .grid { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:760px)  { .grid { grid-template-columns:1fr; } }
+
+  .cell { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+          box-shadow:var(--shadow-card); padding:var(--space-8); display:flex; flex-direction:column; }
+  .cell .hd { display:flex; align-items:baseline; gap:var(--space-4); margin-bottom:var(--space-6); }
+  .cell .hd .n { font:700 10px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; }
+  .cell .hd .t { font:600 13px/18px var(--font); }
+  .cell .hd .now { margin-left:auto; }
+  .cell .src { font:400 10px/15px var(--font-mono); color:var(--text-primary-38); margin-bottom:var(--space-6); word-break:break-all; }
+  .cell .body { background:var(--surface-sunken); border-radius:var(--radius-md); padding:var(--space-8); min-height:118px; display:flex; flex-direction:column; justify-content:center; }
+  .cell .today { border-top:1px dashed var(--border-subtle); margin-top:var(--space-6); padding-top:var(--space-6); font:400 11px/17px var(--font); color:var(--text-secondary); }
+  .cell .today b { color:var(--status-error); font-weight:600; }
+
+  /* ── treatment A: dot + label ───────────────────────────── */
+  .st { display:flex; align-items:center; gap:var(--space-6); }
+  .dot { width:9px; height:9px; border-radius:50%; flex:none; position:relative; }
+  .dot.live::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid currentColor; opacity:.45; animation:ping 1.6s ease-out infinite; }
+  @keyframes ping { 0%{transform:scale(.7);opacity:.6} 100%{transform:scale(1.5);opacity:0} }
+  .st .lb { font:600 14px/20px var(--font); }
+  .st .end { margin-left:auto; font:600 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .sub { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:5px; min-height:17px; }
+  .sub .file { font:400 12px/17px var(--font-mono); color:var(--text-primary-70); }
+  .bar { height:6px; border-radius:99px; background:var(--surface-sunken); overflow:hidden; margin-top:var(--space-6); border:1px solid var(--border-subtle); }
+  .body .bar { background:rgba(128,128,128,.18); border:0; }
+  .bar i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); transition:width .5s ease; }
+  .bar.stall i { background:repeating-linear-gradient(135deg,var(--status-warning) 0 6px,transparent 6px 12px); }
+  .bar.dead i  { background:var(--border-subtle); }
+
+  /* ── treatment B: ring ──────────────────────────────────── */
+  .ringrow { display:flex; align-items:center; gap:var(--space-8); }
+  .ring { width:54px; height:54px; flex:none; position:relative; }
+  .ring svg { width:54px; height:54px; transform:rotate(-90deg); }
+  .ring circle { fill:none; stroke-width:4; stroke-linecap:round; }
+  .ring .tr { stroke:rgba(128,128,128,.22); }
+  .ring .fg { transition:stroke-dasharray .5s ease; }
+  .ring .mid { position:absolute; inset:0; display:grid; place-items:center; font:700 13px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .ring .mid.sm { font:700 10px/1 var(--font); }
+  .ring.spin svg { animation:spin 1.6s linear infinite; }
+  @keyframes spin { to { transform:rotate(270deg); } }
+
+  /* ── treatment C: stage bar ─────────────────────────────── */
+  .stages { display:flex; gap:4px; margin-bottom:var(--space-6); }
+  .stages i { flex:1; height:4px; border-radius:99px; background:rgba(128,128,128,.22); }
+  .stages i.on { background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .stages i.warn { background:var(--status-warning); }
+  .stages i.err { background:var(--status-error); }
+  .stagelb { font:600 11px/16px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); margin-bottom:3px; }
+
+  .cta { display:flex; gap:var(--space-6); margin-top:var(--space-6); }
+  .btn { flex:1; display:flex; align-items:center; justify-content:center; gap:7px; height:34px; border:0; border-radius:var(--radius-pill); font:600 12px/16px var(--font); cursor:pointer; transition:all .14s; }
+  .btn.grad { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .btn.grad:hover:not(:disabled) { transform:translateY(-1px); filter:brightness(1.06); }
+  .btn.ghost { background:transparent; border:1px solid var(--border-strong); color:var(--text-primary); }
+  .btn.ghost:hover { background:var(--surface-menu); transform:translateY(-1px); }
+  .btn:disabled { opacity:.42; cursor:not-allowed; }
+  .btn svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .why { font:400 11px/15px var(--font); color:var(--text-secondary); text-align:center; margin-top:5px; }
+  .why a { color:var(--brand-primary-strong); text-decoration:none; cursor:pointer; border-bottom:1px solid transparent; }
+  [data-theme="dark"] .why a { color:var(--brand-primary); }
+  .why a:hover { border-bottom-color:currentColor; }
+
+  table { width:100%; border-collapse:collapse; font:400 12px/18px var(--font); max-width:1100px; }
+  th,td { text-align:left; padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+  td b { color:var(--text-primary); }
+  td.k { white-space:nowrap; font:500 12px/18px var(--font); }
+  .ok { color:var(--status-success); font-weight:600; }
+  .no { color:var(--status-error); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>017 · Compute status — one component, nine honest states</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="treat">
+    <button data-v="a" aria-pressed="true">A · Dot + label ★ Selected</button>
+    <button data-v="b" aria-pressed="false">B · Ring + %</button>
+    <button data-v="c" aria-pressed="false">C · Stage bar</button>
+  </div>
+</div>
+
+<div class="note bad">
+  <b>Why this sketch exists.</b> The shipped card has two status widgets stacked on top of each other
+  (<code>SGNUSConnectionWidget</code> + <code>SGNUSConnectionStatusWidget</code>), and between them they cannot express
+  three states the app actually enters. Worse, two of them <b>render as something they are not</b>:<br><br>
+  <b>1 · The 52.5% lie.</b> <code>sgnus_connection_widget.dart:85</code> draws a determinate
+  <code>CircularProgressIndicator</code> from <code>getInitializationStatus()</code>. Measured over 161 polls / 40 s
+  (spike 002, sketch 015): it reaches <code>0.525</code> at t=10.6 s and <b>never changes again</b>. A determinate ring is a
+  promise that the number will reach 100. This one won't.<br><br>
+  <b>2 · The silent death.</b> <code>app_bloc.dart:193-196</code> — any exception from <code>getProcessingStatus()</code>
+  cancels <code>_processingTimer</code> <b>permanently</b> and emits <code>isProcessing:false</code>. There is no path that
+  ever restarts it. The UI then shows <code>idle</code> in grey: pixel-identical to a healthy node with nothing to do.<br><br>
+  <b>3 · The vanishing button.</b> <code>submit_job_dashboard_button.dart:25</code> → <code>SizedBox.shrink()</code>.
+</div>
+
+<div class="grid" id="grid"></div>
+
+<h2 class="sec">Reading the grid</h2>
+<p class="lede">Each cell shows the state's real trigger (monospace, from the code), the proposed rendering, and —
+under the dashed line — <b>what the shipped app shows instead</b>. Switch treatment in the toolbar to compare
+A / B / C on identical states.</p>
+
+<h2 class="sec">The three treatments, judged</h2>
+<table>
+  <tr><th style="width:130px">Criterion</th><th>A · Dot + label</th><th>B · Ring + %</th><th>C · Stage bar</th></tr>
+  <tr>
+    <td class="k">Can express "unknown"</td>
+    <td class="ok">Yes — a grey dot with no number is a complete, honest statement.</td>
+    <td class="no">Poorly — a ring with no value must either spin (implies progress) or sit empty (implies 0%).</td>
+    <td class="ok">Yes — all segments neutral.</td>
+  </tr>
+  <tr>
+    <td class="k">Can express "stalled"</td>
+    <td class="ok">Yes — label changes, number is dropped.</td>
+    <td class="no"><b>No.</b> This is the exact failure that ships today: the ring keeps drawing 52.5% forever.</td>
+    <td class="ok">Yes — hatched segment.</td>
+  </tr>
+  <tr>
+    <td class="k">Height cost</td>
+    <td class="ok">20 px for the status line.</td>
+    <td class="no">54 px — the ring sets the row height.</td>
+    <td>36 px.</td>
+  </tr>
+  <tr>
+    <td class="k">Reads at a glance</td>
+    <td>Good — colour + one word.</td>
+    <td class="ok">Best while genuinely processing; the % is the thing you want.</td>
+    <td>Weakest — segments need a legend to mean anything.</td>
+  </tr>
+  <tr>
+    <td class="k">Already in the codebase</td>
+    <td class="ok">Dot + label is trivial; nothing new.</td>
+    <td>Ring exists as <code>GWAiFab</code> on the design branch (unported).</td>
+    <td class="no">New. <span class="tag new">New</span></td>
+  </tr>
+  <tr>
+    <td class="k">Light mode</td>
+    <td class="ok">Colour carries meaning but never alone — the label repeats it.</td>
+    <td>Ring colour alone carries state → fails colour-blind readers without a label anyway.</td>
+    <td>Same issue as B.</td>
+  </tr>
+</table>
+
+<h2 class="sec">Contrast, computed</h2>
+<p class="lede">Every status colour against its own surface — dark <code>#0C0E14</code>, light <code>#FFFFFF</code>.
+The dot is decorative in all treatments (the label repeats the meaning), so <b>AA is judged on the label</b>.</p>
+<table>
+  <tr><th style="width:150px">State colour</th><th style="width:120px">Dark</th><th style="width:120px">Light token</th><th>Verdict</th></tr>
+  <tr><td class="k">Ready · success</td><td><code>#0AD89C</code> 11.4:1 <span class="ok">AA</span></td><td><code>#07875F</code> 4.6:1 <span class="ok">AA</span></td><td>Light must use the darkened token, not <code>#0AD89C</code> (1.9:1).</td></tr>
+  <tr><td class="k">Processing · brand</td><td><code>#14C8FF</code> 9.9:1 <span class="ok">AA</span></td><td><code>#0AAEE6</code> 3.0:1 <span class="no">fail</span></td><td>Label stays <code>textPrimary</code>; brand colours the dot + bar only.</td></tr>
+  <tr><td class="k">Starting / stalled · warn</td><td><code>#FFC42E</code> 12.6:1 <span class="ok">AA</span></td><td><code>#8A6200</code> 5.8:1 <span class="ok">AA</span></td><td>Both fine as label colour.</td></tr>
+  <tr><td class="k">Unavailable · error</td><td><code>#FF4D4D</code> 5.2:1 <span class="ok">AA</span></td><td><code>#D92D2D</code> 4.8:1 <span class="ok">AA</span></td><td>Both fine.</td></tr>
+  <tr><td class="k">Not linked · muted</td><td><code>textSecondary #8A8F9D</code> 6.0:1 <span class="ok">AA</span></td><td><code>#5A606E</code> 6.3:1 <span class="ok">AA</span></td><td>Grey dot is intentionally the lowest-energy state.</td></tr>
+</table>
+
+<h2 class="sec">Recommendation</h2>
+<div class="note">
+  <b>A · Dot + label, with B's ring reserved for one place: the off-dashboard FAB.</b> <span class="tag rec">Rec</span><br><br>
+  A is the only treatment that can tell the truth in all nine states. That is not a stylistic preference — states
+  3 (<i>stalled</i>) and 8 (<i>telemetry dead</i>) are states the app <b>demonstrably enters</b>, and B structurally
+  cannot render them without lying, because a ring's whole grammar is "this will fill up". A drops the number
+  and changes the word instead; the reader learns something true.<br><br>
+  <b>Where B still wins:</b> at 56 px with no room for a label — which is exactly <code>GWAiFab</code>, the design
+  branch's bottom-left floating action. Keep the ring there, and give the FAB the same rule: <b>when there is no
+  live percentage, no ring.</b> Show the brain glyph with a small state dot instead.<br><br>
+  <b>Three code changes this design requires</b> — flagging them now so they land in the plan, not as surprises:<br>
+  1 · A <b>stall detector</b>: same percentage for N consecutive polls → switch state. Cheap; the poll already runs.<br>
+  2 · A <b>restartable</b> processing timer. Today's permanent <code>cancel()</code> makes state 8's Retry impossible
+  to wire — it needs an <code>AppBloc</code> event that re-arms the timer.<br>
+  3 · The <b>linked-wallet</b> reason must reach the button. It already has both addresses
+  (<code>submit_job_dashboard_button.dart:22</code>); it just throws the information away instead of rendering it.
+</div>
+
+</div>
+
+<script>
+// Nine states — trigger read straight from the code path that produces each one.
+const S = [
+  { n:'01', t:'No wallet selected',
+    src:'wallet_overview.dart:120 — state.selectedWallet == null',
+    kind:'muted', lb:'No wallet', end:'', sub:'Select a wallet to use compute',
+    pct:null, stage:[0,0,0,0], cta:'off', why:'<a>Choose a wallet ›</a>',
+    today:'Shows the text <b>"No wallet selected"</b> where the balance goes, and nothing about compute at all.' },
+
+  { n:'02', t:'Wallet not linked to SGNUS',
+    src:'submit_job_dashboard_button.dart:22 — walletAddress != gnusConnectedWalletAddress',
+    kind:'muted', lb:'Not linked', end:'', sub:'This wallet isn\'t the one connected to SGNUS',
+    pct:null, stage:[0,0,0,0], cta:'off', why:'<a>Switch to the linked wallet ›</a>',
+    today:'The CTA is replaced by <b>SizedBox.shrink()</b> — the section\'s primary action silently disappears.' },
+
+  { n:'03', t:'Starting up — genuinely progressing',
+    src:'getInitializationStatus() — pct 0.20 → 0.30, "Migrating database (step 3 of 5)"',
+    kind:'warn', lb:'Starting up', end:'30%', sub:'Migrating database · step 3 of 5',
+    pct:30, stage:[2,0,0,0], cta:'off', why:'Available once startup finishes',
+    today:'A ring at 30% next to the label <b>"SGNUS Connection (30.0%)"</b>. This one state is actually honest.' },
+
+  { n:'04', t:'Startup stalled',
+    src:'pct == 0.525 unchanged across 157 consecutive polls (measured, 40 s)',
+    kind:'warn', lb:'Still starting up', end:'', sub:'Initializing blockchain service · 2 min',
+    pct:'stall', stage:[2,3,0,0], cta:'off', why:'Taking longer than usual. <a>See node status ›</a>',
+    today:'<b>"SGNUS Connection (52.5%)"</b> with a determinate ring, forever. The number never moves and the ring never completes.' },
+
+  { n:'05', t:'Connected · idle',
+    src:'connection.isConnected == true, appState.isProcessing == false',
+    kind:'ok', lb:'Ready', end:'idle', sub:'Node online · waiting for work',
+    pct:null, stage:[2,2,2,0], cta:'on', why:null,
+    today:'A green checkmark animation, then the word <b>"idle"</b> in grey — indistinguishable from state 08.' },
+
+  { n:'06', t:'Processing a job',
+    src:'appState.isProcessing == true, processingPercentage == 62.0',
+    kind:'live', lb:'Processing', end:'62%', sub:'<span class="file">style-transfer.json</span> · ~4 min left',
+    pct:62, stage:[2,2,2,1], cta:'on', why:null,
+    today:'A spinner labelled <b>"processing"</b> plus <b>"62.00%"</b>. Two decimal places on a number that moves every second.' },
+
+  { n:'07', t:'Job finished',
+    src:'isProcessing false→ after true; mint transaction lands in the SGNUS stream',
+    kind:'ok', lb:'Job complete', end:'+4.0', sub:'<span class="file">style-transfer.json</span> · minted 4.00 GNUS',
+    pct:100, stage:[2,2,2,2], cta:'on', why:'<a>View transaction ›</a>',
+    today:'<b>Nothing.</b> The status returns to "idle" and the completion is only visible as a new row in Transactions.' },
+
+  { n:'08', t:'Telemetry unavailable',
+    src:'app_bloc.dart:193 — catch → _processingTimer.cancel(), permanently',
+    kind:'err', lb:'Status unavailable', end:'', sub:'Lost contact with the node',
+    pct:'dead', stage:[3,3,3,3], cta:'on', why:'<a>Retry ›</a>',
+    today:'Shows <b>"idle"</b> in grey. Identical to state 05 — a healthy node and a dead feed look the same.' },
+
+  { n:'09', t:'SGNUS disconnected',
+    src:'connection.isConnected == false',
+    kind:'err', lb:'Disconnected', end:'', sub:'Not connected to the SGNUS network',
+    pct:null, stage:[0,0,0,0], cta:'off', why:'<a>See node status ›</a>',
+    today:'An <b>XAnimation</b> beside the words "SGNUS Connection" — a red ✗ with no explanation and no next step.' },
+];
+
+const COLOR = {
+  ok:   'var(--status-success)',
+  live: 'var(--brand-primary)',
+  warn: 'var(--status-warning)',
+  err:  'var(--status-error)',
+  muted:'var(--text-secondary)',
+};
+// Label colour: brand fails AA on light, so processing keeps a neutral label.
+const LABEL = { ok:'var(--status-success)', live:'var(--text-primary)', warn:'var(--status-warning)',
+                err:'var(--status-error)', muted:'var(--text-secondary)' };
+
+let treat = 'a';
+
+function ctaHTML(s) {
+  const dis = s.cta === 'off' ? 'disabled' : '';
+  return `<div class="cta"><button class="btn grad" ${dis}>
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New processing job</button></div>
+    ${s.why ? `<div class="why">${s.why}</div>` : ''}`;
+}
+
+function bodyA(s) {
+  const live = s.kind === 'live';
+  let bar = '';
+  if (s.pct === 'stall') bar = '<div class="bar stall"><i style="width:52.5%"></i></div>';
+  else if (s.pct === 'dead') bar = '<div class="bar dead"><i style="width:100%"></i></div>';
+  else if (typeof s.pct === 'number') bar = `<div class="bar"><i style="width:${s.pct}%"></i></div>`;
+  return `<div class="st">
+      <span class="dot ${live?'live':''}" style="background:${COLOR[s.kind]};color:${COLOR[s.kind]}"></span>
+      <span class="lb" style="color:${LABEL[s.kind]}">${s.lb}</span>
+      <span class="end" style="color:${s.end?'var(--text-primary)':'var(--text-secondary)'}">${s.end}</span>
+    </div>
+    <div class="sub">${s.sub}</div>${bar}${ctaHTML(s)}`;
+}
+
+function bodyB(s) {
+  const C = 2 * Math.PI * 23;
+  let ring;
+  if (typeof s.pct === 'number') {
+    ring = `<circle class="fg" cx="27" cy="27" r="23" stroke="${COLOR[s.kind]}"
+              stroke-dasharray="${C*s.pct/100} ${C}"/>`;
+  } else if (s.pct === 'stall') {
+    // The honest-rendering problem, made visible: B can only keep drawing 52.5%.
+    ring = `<circle class="fg" cx="27" cy="27" r="23" stroke="${COLOR.warn}"
+              stroke-dasharray="${C*0.525} ${C}" stroke-dasharray="${C*0.525} ${C}"/>`;
+  } else {
+    ring = '';
+  }
+  const mid = typeof s.pct === 'number' ? `${s.pct}%`
+            : s.pct === 'stall' ? '52.5%'
+            : `<span style="color:${COLOR[s.kind]};font-size:16px">●</span>`;
+  return `<div class="ringrow">
+      <div class="ring ${s.pct==='dead'?'':''}">
+        <svg viewBox="0 0 54 54"><circle class="tr" cx="27" cy="27" r="23"/>${ring}</svg>
+        <div class="mid ${String(mid).length>4?'sm':''}">${mid}</div>
+      </div>
+      <div style="min-width:0;flex:1">
+        <div class="lb" style="font:600 14px/20px var(--font);color:${LABEL[s.kind]}">${s.lb}</div>
+        <div class="sub" style="margin-top:3px">${s.sub}</div>
+      </div>
+    </div>${ctaHTML(s)}`;
+}
+
+function bodyC(s) {
+  const cls = ['', 'on', 'on', 'err'];
+  const segs = s.stage.map(v => {
+    if (v === 0) return '<i></i>';
+    if (v === 1) return '<i class="on" style="opacity:.55"></i>';
+    if (v === 2) return '<i class="on"></i>';
+    return '<i class="warn"></i>';
+  }).join('');
+  const names = ['Connect', 'Init', 'Ready', 'Job'];
+  return `<div class="stagelb">${names.join(' · ')}</div>
+    <div class="stages">${segs}</div>
+    <div class="st">
+      <span class="lb" style="color:${LABEL[s.kind]}">${s.lb}</span>
+      <span class="end" style="color:${s.end?'var(--text-primary)':'var(--text-secondary)'}">${s.end}</span>
+    </div>
+    <div class="sub">${s.sub}</div>${ctaHTML(s)}`;
+}
+
+function render() {
+  const fn = treat === 'a' ? bodyA : treat === 'b' ? bodyB : bodyC;
+  document.getElementById('grid').innerHTML = S.map(s => `
+    <div class="cell">
+      <div class="hd"><span class="n">${s.n}</span><span class="t">${s.t}</span></div>
+      <div class="src">${s.src}</div>
+      <div class="body">${fn(s)}</div>
+      <div class="today"><b>Today:</b> ${s.today}</div>
+    </div>`).join('');
+}
+
+function seg(id, fn) {
+  document.getElementById(id).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...b.parentNode.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+    fn(b.dataset.v);
+  });
+}
+seg('theme', v => document.documentElement.dataset.theme = v);
+seg('treat', v => { treat = v; render(); });
+render();
+</script>
+</body>
+</html>

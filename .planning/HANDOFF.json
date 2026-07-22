@@ -1,49 +1,63 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-21T20:12:36Z",
-  "phase": "06",
-  "phase_name": "Onboarding",
-  "phase_dir": ".planning/phases/06-onboarding",
-  "plan": 2,
-  "task": 3,
-  "total_tasks": 3,
+  "timestamp": "2026-07-22T14:05:00Z",
+  "phase": "15",
+  "phase_name": "Transactions tab — page frame, filter rail, empty-state anchor, amount honesty",
+  "phase_dir": ".planning/phases/15-transactions-tab",
+  "plan": 6,
+  "task": 0,
+  "total_tasks": 6,
   "status": "paused",
+  "note_on_this_file": "This replaces a 2026-07-21 handoff that pointed at Phase 06. Phase 06 is NOT resolved — its blocker and both of its pending human actions are carried forward verbatim below so nothing was lost by repointing the resume target. Phase 06 remains 1/6 with 06-02 code-complete and its blocking walk never attempted.",
   "completed_tasks": [
-    {"id": 1, "name": "Re-skin legal_screen.dart — shared first step of both flows", "status": "done", "commit": "47527bc"},
-    {"id": 2, "name": "GAP-04 — swap wallet-type row to GWWalletCard, token-touch wallet_routes.dart fallbacks", "status": "done", "commit": "ba8e412"},
-    {"id": 3, "name": "Legal + GAP-04 walk (checkpoint:human-verify, gate=blocking)", "status": "blocked", "progress": "Checkpoint reached, not attempted. Blocked on a wallet-less profile — see blockers."}
+    {"id": "15-01", "name": "Amount honesty: process prints '− <fee> <symbol>' with a '<fiat> fee' value line; failed/cancelled print the real signed amount at TxAmountTone.none, keeping 'Not charged'", "status": "done", "commit": null},
+    {"id": "15-02", "name": "GWEmptyState anchored: Align(topCenter) over ConstrainedBox(maxHeight: 480), guarded on isHeightBounded", "status": "done", "commit": null},
+    {"id": "15-03", "name": "Panel: Icons.sync_alt, filter control hidden on scoped.isEmpty, _activeLabelShader hoisted to file scope", "status": "done", "commit": null},
+    {"id": "15-04", "name": "_FilterRail/_RailRow (the ⋯ menu unrolled) + page presentation behind TransactionsSlimView.page", "status": "done", "commit": null},
+    {"id": "15-05", "name": "Page frame: GWPageHeader, GeniusBreakpoints.xl, Padding outside the ConstrainedBox, page flag plumbed with false defaults", "status": "done", "commit": null}
   ],
   "remaining_tasks": [
-    {"id": 3, "name": "06-02 Task 3: Legal + GAP-04 walk, both appearance modes", "status": "blocked"},
-    {"id": "06-03..06-06", "name": "Remaining Phase 6 (Onboarding) plans — planned, not started", "status": "not_started"}
+    {"id": "15-06", "name": "Human verify walk — DARK MODE ONLY. Page + rail, empty states across all five GWEmptyState call sites, amounts read as sentences.", "status": "not_started"},
+    {"id": "12-06", "name": "Phase 12's human walk — also never attempted, also dark only", "status": "not_started"}
   ],
   "blockers": [
     {
-      "description": "The app persists a wallet across FOUR independent stores (Hive boxes, native SuperGNUSNode dir, flutter_secure_storage's Windows file, shared_preferences.json). 06-02's walk and 06-03 both need a genuinely wallet-less profile, and completing onboarding during a walk consumes it for the next plan. Getting one fresh install took 4 attempts today and one irreversible deletion of 13 unrelated SGNUS* Credential Manager entries on a wrong hypothesis.",
+      "description": "CARRIED FORWARD FROM PHASE 06, UNRESOLVED: the app persists a wallet across FOUR independent stores (Hive boxes, native SuperGNUSNode dir, flutter_secure_storage, shared_preferences.json). 06-02's walk and 06-03 both need a genuinely wallet-less profile, and completing onboarding during a walk consumes it for the next plan.",
       "type": "technical",
-      "workaround": "Manual fresh-install recipe (expensive, documented below) until the GW_DATA_DIR override is built. See .planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md"
+      "workaround": "Manual fresh-install recipe until the GW_DATA_DIR override is built. See .planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md"
+    },
+    {
+      "description": "NOT a blocker for Phase 15 itself, but the reason two walks are outstanding: nothing in Phase 15 is blocked technically. 15-06 simply needs a human at the screen.",
+      "type": "process",
+      "workaround": "Run the app with --dart-define=GW_DEV_TOOLS=true and inject mock transactions from the dev bubble."
     }
   ],
   "async_jobs": [],
   "human_actions_pending": [
     {
-      "action": "Build a dev-only GW_DATA_DIR override so a fresh install becomes 'delete one scratch folder' instead of a 4-store manual recipe.",
-      "context": "Proposed and planned today but the user stopped it before any work started (the quick-task directory was removed, nothing written). This is NOT in progress — it is the recommended first action tomorrow, and it unblocks 06-02's walk plus 06-03 and three more plans after that.",
+      "action": "Walk 15-06 — DARK ONLY. Three things need an eye, not a test: is the 2px underline loud enough; does the ragged underline edge read badly (its width tracks the word, measured 39.75 → 119.25px across the labels); do the amounts read as sentences.",
+      "context": "Implementation is complete and measured — content width 1280.0 at 1600/2000/2560 viewports against 736 before. Light mode is backlog; a light finding is a note in the light-mode todo, never a blocker.",
       "blocking": true
     },
     {
-      "action": "Walk 06-02 Task 3 (recipe in 06-02-PLAN.md lines 209-258) on a fresh wallet-less profile, in both appearance modes, and record pass/fail per criterion in 06-02-SUMMARY.md.",
-      "context": "Tasks 1-2 are code-complete and gate-verified (commits 47527bc, ba8e412). Only the blocking human-verify walk remains before 06-02 can close.",
+      "action": "Decide which brand gradient is the source of truth. Sketch mockups paint #14C8FF → #2BF5B4; the app's brandCta is [#0AD89C, #0AAEE6]; genius_wallet_gradient.dart:15 claims it mirrors the website's #0c91cc → #06aa78. Three answers.",
+      "context": "Every gradient decision approved off a mockup was approved against colours the app does not paint. Logged in .planning/todos/pending/2026-07-22-sketch-theme-gradient-mismatch.md. Phase 15 is unaffected because its active mark was specified as 'whatever the navbar uses', which resolves to brandCta either way.",
+      "blocking": false
+    },
+    {
+      "action": "CARRIED FORWARD FROM PHASE 06: build the dev-only GW_DATA_DIR override, then walk 06-02 Task 3 (recipe in 06-02-PLAN.md lines 209-258) on a fresh wallet-less profile.",
+      "context": "Proposed 2026-07-21 and explicitly NOT started. Still the cheapest unblock for 06-02, 06-03 and three plans after that.",
       "blocking": true
     }
   ],
   "decisions": [
-    {"decision": "GWMeshBackground KEPT on /landing_screen in light mode", "rationale": "Judged live on a genuine fresh-install profile during 06-01's blocking mesh gate; the pre-named fallback (drop the mesh) was available and not needed.", "phase": "06"},
-    {"decision": "Phase 5 (Dashboard) closed with 3 explicit user-authorized overrides rather than fixes", "rationale": "Criterion 5's chart overflow is a card-height limitation confirmed by live inspection, not a component defect; criterion 1's Release-exe comparison and criterion 2's pull-to-refresh legs were never walked. The Observable Truths table still reads PARTIAL/FAILED — the phase closed despite them, not because they passed.", "phase": "05"},
-    {"decision": "GW_DATA_DIR dev-only data-directory override PLANNED but explicitly NOT started", "rationale": "User stopped it before any work began; record as tomorrow's recommended first action, not as work in progress.", "phase": "06"},
-    {"decision": "flutter test WORKS — 26 passing, corrected from a false 'no automated test harness' belief", "rationale": "The single 'failure' was local_wallet_storage_test.dart being entirely commented out, not a compile failure. This false belief had been carried into every phase plan, every verification report, and every agent brief this milestone.", "phase": "06"}
+    {"decision": "Transactions tab layout = sketch 020-B · Filter rail; page at GeniusBreakpoints.xl (1280) with GWPageHeader; rail and list each in a DashboardScrollContainer", "rationale": "The ⋯ overflow menu exists only because a 376px panel cannot show nine filters. A page can, so the rail IS that menu unrolled — the width buys something actionable instead of a gap between a hash and a number. The dashboard panel keeps its chips.", "phase": "15"},
+    {"decision": "Active rail row = sketch 022-B2 · underline only — w700 textPrimary label NEVER recoloured, 2px gradient rule beneath, glyph untouched", "rationale": "Jakub: 'to jest obecny standard na navigation bar i to powinnismy miec'. Verified: responsive_overlay.dart:349 paints the active tab with brandCta and does NOT gradient its label. Sketch 020's brand-fill background was invented and rejected; a gradient count was rejected because filterCounts() is computed over the UNFILTERED list so the numbers never move; a gradient wash was rejected at ~1.3:1 against the card (WCAG 1.4.11 wants 3:1) and because it collides with the hover fill.", "phase": "15"},
+    {"decision": "Empty state anchored by a RULE, not an offset: ConstrainedBox(maxHeight: 480) under Alignment.topCenter", "rationale": "In a short panel it behaves exactly as before, so nothing regresses where the layout was already fine; in a 1400px panel the icon settles at 192px instead of 652. Shared component — Assets and Markets get the same fix.", "phase": "15"},
+    {"decision": "Amounts print the real number in every case; the status carries the truth. The 'Not charged' value line is LOAD-BEARING and must not be removed", "rationale": "Jakub overruled the recommendation to drop the minus sign on a failed row. The override is safe ONLY because the value line disambiguates: the row then states 0.75 ETH · Not charged · Failed. Without that line a full-weight − 0.75 ETH asserts a balance change that never happened.", "phase": "15"},
+    {"decision": "37639d5 was an INCOMPLETE freeze fix; seven AutoSizeText call sites converted to fixed styles with ellipsis", "rationale": "It quantised a height-derived font size but left AutoSizeText free to re-fit on WIDTH, which a drag varies just as continuously. The app froze again the same afternoon with SkLRUCache<ParagraphCacheKey>::remove at 1580 samples. The original guard tested a pure function and never touched a widget — it tested the fix, not the bug. test/freeze_rule_test.dart now scans dashboard-reachable sources and fails with a file:line.", "phase": "15"}
   ],
-  "uncommitted_files": [],
-  "next_action": "Build the dev-only GW_DATA_DIR override (unblocks 06-02's walk and 06-03..06-06's fresh-profile needs), then walk 06-02 Task 3 per its plan's recipe (06-02-PLAN.md lines 209-258) in both appearance modes.",
-  "context_notes": "Phase 6 is 1/6 plans complete (06-01 CLOSED). 06-02 is code-complete (Tasks 1-2 committed) but its blocking walk (Task 3) has never been attempted — do not attempt it without a genuinely wallet-less profile, and do not treat the GW_DATA_DIR override as already built. 42 commits sit unpushed on ui-redesign-port; that is deliberate (CLAUDE.md commit-then-defer-PR gate), not an oversight — do not push without explicit authorization."
+  "uncommitted_files": ["ALL of Phase 12 and Phase 15 — see .planning/HANDOFF-2026-07-22-session-end.md for the per-file ownership map. Session B's Phase 13/14 work is also uncommitted in the same tree."],
+  "next_action": "Walk 15-06 in DARK mode only. Then decide the brand-gradient source of truth. Do not commit anything without Jakub saying so.",
+  "context_notes": "NEVER git add -A / git add . / git commit -a in this repo — the tree holds four independent change sets, including Jakub's local-only cmake patches and six skip-worktree files carrying his Apple signing. 42+ commits sit unpushed on ui-redesign-port; that is deliberate (commit-then-defer-PR gate), not an oversight. Test baseline is 222 passing / 1 failing; the failure is local_wallet_storage_test.dart, entirely commented out, failing at load, PRE-EXISTING. Under a loaded full-suite run some transaction tests flake and a tokens.json HTTP 404 appears — re-run serially before calling anything a regression."
 }
