@@ -15,7 +15,6 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
-import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -113,7 +112,18 @@ Future<void> main() async {
         networkProvider.networks,
       );
 
-      await fetchAllCoinGeckoCoins();
+      // REMOVED (Phase 13, walk-driven): `await fetchAllCoinGeckoCoins()` used
+      // to sit here, blocking `runApp()` on a NETWORK call — up to the full 3s
+      // `requestTimeout` on a cold or expired cache, with nothing on screen but
+      // the empty window. That was the "black screen before the logo appears".
+      //
+      // Safe to drop rather than defer: the function is self-caching and every
+      // real consumer already awaits it itself (dashboard_markets_util.dart:71
+      // and :87, coins_screen.dart:87, coin_gecko_api.dart:247), so this call
+      // only ever pre-warmed. The splash's closing run now warms the same cache
+      // (13-03), which makes the prefetch redundant. Firing it unawaited here
+      // would instead race the splash into a duplicate fetch — bad while
+      // CoinGecko is rate-limiting.
 
       await geniusApi.loadStoredWallets();
 

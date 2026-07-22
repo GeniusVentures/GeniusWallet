@@ -100,6 +100,14 @@ class GeniusApi {
   late final String _address;
   late final String _basePath;
   bool _isSdkInitialized = false;
+  // Memoized deliberately, never reset: initSDK()'s only caller is
+  // AppBloc._onInitializeSDK, gated by router.dart's sdkStatus ==
+  // AppStatus.initial, which goes permanently false once that handler
+  // completes regardless of outcome. The operation is already
+  // architecturally run-at-most-once per session; this Future just makes
+  // that true when two dispatches race during the frozen boot window
+  // (E1). Do not add a reset "for cleanliness".
+  Future<void>? _initFuture;
 
   static const String _overridesDirName = 'overrides';
 
@@ -178,11 +186,9 @@ class GeniusApi {
     return await _secureStorage.updateAccountFetchDate();
   }
 
-  Future<void> initSDK() async {
-    if (_isSdkInitialized) {
-      return;
-    }
+  Future<void> initSDK() => _initFuture ??= _doInitSDK();
 
+  Future<void> _doInitSDK() async {
     requestPermissions();
 
     final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();

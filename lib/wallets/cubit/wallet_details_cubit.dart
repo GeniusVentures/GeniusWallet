@@ -160,6 +160,11 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     // selectNetwork/selectWallet re-fetches that call this) must not
     // overwrite the injected mock holdings.
     if (mockMode) return;
+    // TEMPORARY (removed by plan 13-05): measures the coins/holdings leg's
+    // boot-time latency to answer 13-RESEARCH open question 1 / assumption
+    // A2. Not a feature — delete alongside the [boot-timing] debugPrint
+    // below once 13-03 has consumed the recorded figures.
+    final stopwatch = Stopwatch()..start();
     try {
       emit(state.copyWith(coinsStatus: WalletStatus.loading));
       if (state.selectedWallet == null || state.selectedNetwork == null) {
@@ -171,6 +176,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
       if (walletAddress == null) {
         debugPrint("Can't get coin info: wallet address is null");
+        emit(state.copyWith(coinsStatus: WalletStatus.error));
         return;
       }
 
@@ -192,6 +198,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         final networkSymbol = selectedNetwork.symbol;
         if (rpcUrl == null || rpcUrl.isEmpty || networkSymbol == null) {
           debugPrint("Can't get coin info: no RPC URL or network symbol");
+          emit(state.copyWith(coinsStatus: WalletStatus.error));
           return;
         }
         coinFuture = readTokenAssets(
@@ -201,26 +208,30 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         );
       }
 
-      coinFuture.then((List<Coin> coinList) {
-        if (!isClosed) {
-          emit(
-            state.copyWith(
-              coinsStatus: WalletStatus.successful,
-              coins: coinList,
-              // update selected coin to updated values after retrieval
-              selectedCoin: state.selectedCoin != null
-                  ? coinList.firstWhere(
-                      (coin) => coin.address == state.selectedCoin?.address,
-                      orElse: () =>
-                          state.selectedCoin!, // Keep the old coin if not found
-                    )
-                  : null,
-            ),
-          );
-        }
-      });
+      final coinList = await coinFuture;
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            coinsStatus: WalletStatus.successful,
+            coins: coinList,
+            // update selected coin to updated values after retrieval
+            selectedCoin: state.selectedCoin != null
+                ? coinList.firstWhere(
+                    (coin) => coin.address == state.selectedCoin?.address,
+                    orElse: () =>
+                        state.selectedCoin!, // Keep the old coin if not found
+                  )
+                : null,
+          ),
+        );
+      }
     } catch (e) {
       emit(state.copyWith(coinsStatus: WalletStatus.error));
+    } finally {
+      debugPrint(
+        '[boot-timing] getCoins settled in '
+        '${stopwatch.elapsedMilliseconds}ms status=${state.coinsStatus}',
+      );
     }
   }
 }

@@ -12,6 +12,15 @@ import 'package:intl/intl.dart';
 
 const Duration cacheDuration = Duration(minutes: 3);
 
+// Bounds a single outbound CoinGecko request. A healthy round trip is
+// comfortably sub-second, so this does not fire on a merely slow-but-alive
+// link; a black-holed socket (accepted but never answered — the client has no
+// default timeout) is instead capped at roughly double the boot sequence's
+// 1.5s minimum hold (13-02 D7) rather than hanging forever. Judgement call,
+// not a measurement (13-CONTEXT Claude's Discretion; 13-RESEARCH A1) — the
+// network-down walk in 13-05 is what revisits this value.
+const Duration requestTimeout = Duration(seconds: 3);
+
 /// Fetches historical prices for a coin from CoinGecko API
 Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -35,7 +44,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       'https://api.coingecko.com/api/v3/coins/$coinId/market_chart?vs_currency=usd&days=1';
 
   try {
-    final response = await http.get(Uri.parse(historyApi));
+    final response = await http.get(Uri.parse(historyApi)).timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -131,7 +140,7 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}&sparkline=true';
 
   try {
-    final response = await http.get(Uri.parse(marketApi));
+    final response = await http.get(Uri.parse(marketApi)).timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -191,7 +200,7 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
   );
 
   try {
-    final response = await http.get(url);
+    final response = await http.get(url).timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final coins = json.decode(response.body) as List<dynamic>;
