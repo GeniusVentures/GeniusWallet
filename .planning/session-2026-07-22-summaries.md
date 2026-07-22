@@ -59,12 +59,34 @@ Both are dark-mode only by Jakub's standing decision; light mode is backlog.
 - **A runtime `RenderFlex overflowed by 128 pixels on the right`.** This morning's handoff recorded an **82px** overflow at `responsive_overlay.dart:199` from before Phase 12. Same widget at a different width, or something new? **Not investigated — I am not claiming it is benign.**
 - **Native SDK leak:** the node loops on `Blockchain not fully initialized` every ~5s and starts a new bootstrap health check each time without cancelling the last — **92 in 7 minutes**. Not the freeze, but unbounded.
 
+## Shipped — pushed to `ui-redesign-port`, `fea77de..eca162c`
+
+| | |
+|---|---|
+| `9c51478` | freeze fix — 7 `AutoSizeText` sites + the guard that tests the bug |
+| `8cb4222` | Phase 12 rows/filters + Phase 15 the tab becomes a page |
+| `29b183b` | Phase 13 boot sequence (parallel session's work, committed at Jakub's instruction) |
+| `eca162c` | planning: phases 12-15, sketches 015-022, handoffs, todos |
+
+`cmake/CommonBuildParameters.cmake` and `cmake/DownloadDependencies.cmake` are **deliberately not
+committed** — Jakub's local-only build patches. Verified after the last commit that they are the
+*only* thing left in the working tree.
+
+Suite at **222 passing / 1 failing**, measured with `--concurrency=1`. The failure is
+`local_wallet_storage_test.dart`, entirely commented out, failing at load — pre-existing.
+`flutter analyze` has no `error`-severity issues; the 62 reported are info/warning and predate today.
+
+## Answered
+
+**The gradient question is settled** — Jakub, 2026-07-22: `brandCta` as it exists in the code is the
+source of truth. The sketch theme now carries `--brand-cta-a: #0AD89C` / `--brand-cta-b: #0AAEE6`
+additively, so no existing mockup changes appearance, and the misuse cannot silently repeat.
+
 ## Asks — one line each
 
-1. Which brand gradient is the source of truth: the mockups, `brandCta`, or the website?
-2. Do you want the five signing files dealt with, or the end-session guard rescoped?
-3. Should sketch numbers get a reservation convention, or should one session own the counter?
-4. Commit and PR when Jakub finishes — against `ui-redesign-port`, per-path, never `git add -A`?
+1. Do you want the five signing files dealt with, or the end-session guard rescoped?
+2. Should sketch numbers get a reservation convention, or should one session own the counter?
+3. A PR against `develop`/`main` when the port is ready — or does `ui-redesign-port` stay long-lived?
 
 ---
 
