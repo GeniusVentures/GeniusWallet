@@ -2,7 +2,7 @@
 phase: 06-onboarding
 plan: 02
 subsystem: ui
-tags: [flutter, onboarding, gw_button, gw_checkbox, gw_wallet_card, wcag, gap-04, narrow-width-gutter, walk-outstanding]
+tags: [flutter, onboarding, gw_button, gw_checkbox, gw_wallet_card, wcag, gap-04, narrow-width-gutter, walked-dark-only]
 
 # Dependency graph
 requires:
@@ -42,7 +42,7 @@ key-decisions:
   - "wallet_routes.dart confirmed to have 8 GoRoutes (not 7 as an earlier ROADMAP estimate implied) — the scope-fenced /backup_phrase route is one of them and was left untouched, per the plan's explicit correction of that stale premise."
   - "Deferred (not fixed): a pre-existing, unrelated verify_additive_boundary.sh Check 2 failure (duplicate private class _Section in lib/dev/design_gallery_screen.dart and lib/dev/dev_tools_bubble.dart) was found while running Task 2's verify gate. Confirmed present at HEAD before this plan's changes (reproduced with this plan's edits stashed out). Out of this plan's file scope — logged to .planning/phases/06-onboarding/deferred-items.md, not fixed."
 
-requirements-completed: []  # NOT marked complete: Task 3 (the blocking human-verify checkpoint/walk) is OUTSTANDING. GAP-04 and SCR-02's entry-half for this plan's two screens are code-complete and gate-verified, but this project's standing no-unearned-PASS rule withholds requirements-completed until the walk records pass/fail per criterion.
+requirements-completed: [SCR-02, GAP-04]  # Task 3 WALKED 2026-07-22 by Braian — all 8 dark-mode checkpoints PASS, console clean (zero RenderFlex overflows, zero exceptions). Recorded DARK ONLY: the light-mode legs of the plan's recipe (its criteria 2/3/7/9) were deferred under the app-wide light-mode backlog policy adopted 2026-07-22, which post-dates this plan. See "## Task 3 Walk Record" below for exactly what was and was not observed.
 
 coverage:
   - id: D1
@@ -56,10 +56,10 @@ coverage:
         ref: "plan's automated verify gate (GWColors read present, GWCheckbox( present, >=3 GWButton(, accepted ? onContinue : null gate present, both gnus.ai URLs present, no CheckboxListTile/OutlinedButton/FilledButton/headlineLarge/LayoutBuilder/app_screen_with_header on a non-comment line) -- all passed"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 checkpoint: Legal step walk (both flow callers, disabled/enabled Continue gate, checkbox dark-mode legibility, both URLs, live appearance flip, narrow-width check, both appearance modes)"
-        status: unknown
+        ref: "Task 3 checkpoint WALKED 2026-07-22 (dark only): CP1 both flow callers identical PASS; CP2 disabled/enabled/re-disabled Continue gate, disabled obvious PASS; CP3 unchecked checkbox clearly visible in dark PASS; CP4 both gnus.ai URLs open PASS; CP7 narrow/short window nothing clipped PASS; CP8 live appearance flip re-skins whole screen instantly PASS. Console: zero RenderFlex overflows, zero exceptions across the session."
+        status: pass
     human_judgment: true
-    rationale: "The consent-gate visual distinctness, checkbox dark-mode legibility (open STATE todo), live-flip correctness, and narrow-width safety require a human to judge in the running app. Task 3 is a checkpoint:human-verify (gate=blocking) and has not yet been walked."
+    rationale: "Walked live by Braian 2026-07-22 on a genuinely wallet-less profile (verified fresh by measurement before launch: wallet.hive 0 bytes, zero SuperGNUSNode dirs, secure store at account-only size). Dark mode only — the light-mode legs are deferred under the 2026-07-22 app-wide light-mode backlog policy, which post-dates this plan's recipe. CP8's live flip did exercise the light path mechanically (every element re-skinned instantly, so no static getter is being read where the GWColors extension should be), but no judgement was made about whether light mode LOOKS right."
   - id: D2
     description: "GAP-04 closed: select_wallet_type_screen.dart's Card+ListTile row swapped to GWWalletCard (icon/name/onTap byte-identical to develop's data and ImportWalletSelected dispatch); supportedNetworks list, all 3 commented-out future networks, ListView.separated shell, and outer Center/ConstrainedBox/Column unchanged; separator token-backed at space10; proactive narrow-width gutter fix applied"
     requirement: "GAP-04"
@@ -71,10 +71,10 @@ coverage:
         ref: "plan's automated verify gate (GWWalletCard( present, ImportWalletSelected( present, Ethereum entry present, 3 commented SupportedWallet(name: 'XRP'|'Stellar'|'Tron' entries counted, no ListTile/chevron_right/headlineLarge on a non-comment line) -- all passed"
         status: pass
       - kind: manual_procedural
-        ref: "Task 3 checkpoint: GAP-04 walk — the wallet-type step renders as GWWalletCard AND tapping it still routes to the import-security step (routing is half of criterion 4); single-item list reads as deliberate; narrow-width check; both appearance modes"
-        status: unknown
+        ref: "Task 3 checkpoint WALKED 2026-07-22 (dark only): CP5 the wallet-type step renders as GWWalletCard AND tapping it navigates to the import-security step — BOTH halves confirmed PASS; CP6 single-item list reads as deliberate (no stray separator, no phantom gap, no overflow) PASS; CP7 narrow/short window PASS."
+        status: pass
     human_judgment: true
-    rationale: "A good-looking card that does not navigate fails criterion 4 — routing must be confirmed live in the running app, which only a human walk can do. Task 3 has not yet been walked."
+    rationale: "Both halves of criterion 4 were confirmed live and separately — the walk question deliberately offered 'looks right but does NOT navigate' as a distinct answer so a good-looking card could not be mistaken for a pass. Routing confirmed. Dark mode only, per the 2026-07-22 light-mode backlog policy."
   - id: D3
     description: "wallet_routes.dart's two identical fallback Text widgets given bodyMd/gw.textSecondary styling; string preserved verbatim, NOT reconciled to GWErrorState; all 8 GoRoutes and the canonical Loading import unchanged"
     requirement: "GAP-04"
@@ -88,16 +88,16 @@ coverage:
     human_judgment: false
     rationale: "n/a — auto-passes: every automated verification passed and this deliverable's fallback branch is unreachable in practice (per UI-SPEC §2.3), so no live-app walk item was assigned to it in the plan's Task 3 recipe."
 
-duration: ~35min (Tasks 1-2; Task 3 checkpoint reached and NOT walked this session)
-completed: 2026-07-21
-status: outstanding
+duration: ~35min (Tasks 1-2, 2026-07-21) + walk 2026-07-22
+completed: 2026-07-22
+status: complete
 ---
 
 # Phase 06 Plan 02: Legal step + GAP-04 GWWalletCard swap Summary
 
-**Re-skinned the shared Legal step (both flows' first step) and closed GAP-04 by swapping `select_wallet_type_screen.dart`'s row to `GWWalletCard` — Tasks 1-2 complete and gate-verified; Task 3 (the blocking human-verify walk) is OUTSTANDING, not walked this session.**
+**Re-skinned the shared Legal step (both flows' first step) and closed GAP-04 by swapping `select_wallet_type_screen.dart`'s row to `GWWalletCard`. Tasks 1-2 complete and gate-verified 2026-07-21; Task 3's blocking human-verify walk PASSED 2026-07-22 — all 8 dark-mode checkpoints clear. Plan CLOSED.**
 
-Tasks 1 and 2 (`type="auto"`) are complete, committed, and pass every automated verify gate in the plan. **Task 3 — the blocking `checkpoint:human-verify` walk — has been reached but NOT performed.** Per explicit instruction, this executor stopped at the checkpoint rather than attempting or self-approving the walk. `status: outstanding` in this SUMMARY's frontmatter reflects that; `requirements-completed` is deliberately left empty until the walk records pass/fail per criterion, per this project's standing no-unearned-PASS rule.
+Tasks 1 and 2 (`type="auto"`) were completed, committed, and passed every automated verify gate on 2026-07-21. **Task 3 — the blocking `checkpoint:human-verify` walk — was performed on 2026-07-22 by Braian** on a genuinely wallet-less profile, and passed on every checkpoint. See `## Task 3 Walk Record` below for what was observed, and for the one part of the plan's recipe that was deliberately NOT executed.
 
 ## Performance
 
@@ -162,25 +162,50 @@ A pre-existing, unrelated `verify_additive_boundary.sh` Check 2 failure (duplica
 
 None - no external service configuration required.
 
+## Task 3 Walk Record
+
+**Walked 2026-07-22 by Braian. Result: PASS on all 8 checkpoints. Dark mode only.**
+
+**Profile:** genuinely wallet-less, and — unlike 06-01 — this was *verified before launching* rather than assumed: `wallet.hive` at 0 bytes, zero `SuperGNUSNode.Node.*` directories, `flutter_secure_storage.dat` at 310 bytes (the account-only size). No deletion was needed. Procedure now documented at `.planning/reference/FRESH-INSTALL-RECIPE.md`.
+
+| # | Checkpoint | Result |
+|---|-----------|--------|
+| 1 | Legal step identical from BOTH flow entry points | ✅ PASS |
+| 2 | Continue gate: disabled → enabled → re-disabled; disabled state obvious | ✅ PASS |
+| 3 | Unchecked `GWCheckbox` clearly visible in dark | ✅ PASS |
+| 4 | Both gnus.ai links open correctly | ✅ PASS |
+| 5 | `GWWalletCard` renders **and navigates** to import-security | ✅ PASS (both halves) |
+| 6 | Single-item list reads as deliberate | ✅ PASS |
+| 7 | Narrow/short window — nothing clipped | ✅ PASS |
+| 8 | Live appearance flip re-skins the whole screen instantly | ✅ PASS |
+
+**Console evidence across the whole session: zero `RenderFlex overflowed`, zero exceptions, zero `LateInitializationError`.** Checked directly in the run log, not merely observed on screen — this is the same signal that caught 06-01's gutter defect.
+
+**Checkpoint 3 resolves an open concern:** STATE carries a todo that a disabled `GWCheckbox` is invisible in dark mode. On this screen, unchecked reads clearly. That todo is about the *disabled* state specifically and stays open; this is not evidence against it.
+
+### What was deliberately NOT walked
+
+The plan's recipe (written 2026-07-21) asks for **both appearance modes** at its items 2, 3, 7 and 9. **Only dark was walked.** The app-wide light-mode backlog policy was adopted **2026-07-22**, one day after this recipe was written, and supersedes it: *"Do not stall a phase, a walk, or a plan on a light-mode-only defect."* See `.planning/todos/pending/2026-07-22-light-mode-verification-backlog.md`, whose item 4 is already this exact screen's two secondary link buttons.
+
+Consequently the recipe's **item 9 — re-verifying the inherited `GWButtonVariant.secondary` light-mode contrast — was NOT performed.** It is not recorded as passing. It belongs to the single dedicated light-mode pass, against `gw_button.dart`, not to this plan.
+
+Checkpoint 8 is the one light-adjacent check that survived, because it tests a *mechanism* rather than an appearance: every element re-skinned instantly on the flip, which proves no static getter is being read where the `GWColors` extension should be. It says nothing about whether light mode looks right.
+
+### Raised during the walk, deliberately NOT logged against this plan
+
+Braian raised that fonts and buttons are oversized on mobile, and that styling is scattered per-page instead of centralised in reusable components. Measured and confirmed (150 inline `TextStyle(` across 56 files; `GeniusWalletTypography` is a flat fixed scale with zero breakpoint awareness) — but it is **cross-cutting, predates this re-skin, and touches 56 files.** Logged as its own item at `.planning/todos/pending/2026-07-22-responsive-type-scale-and-component-consolidation.md`, carrying the `AutoSizeText`/`FittedBox` freeze-rule trap that any naive fix would hit. **Not a 06-02 defect and must not be treated as one.**
+
 ## Next Phase Readiness
 
-**Task 3 (`checkpoint:human-verify`, `gate="blocking"`) is OUTSTANDING.** A fresh session must run the walk recipe exactly as written in `06-02-PLAN.md`'s Task 3 (`<how-to-verify>`), in BOTH appearance modes, on a genuinely wallet-less profile (see 06-01 Task 3 step 0 — clear all four persistence layers; the 06-01 walk consumed the previous fresh-install profile). The walk must confirm, per criterion:
+**`06-02` is CLOSED.** Both requirements (`SCR-02`'s entry-half for these two screens, and `GAP-04`) are complete and walk-verified.
 
-1. The Legal step renders identically from BOTH `ExistingWalletFlow` and `NewWalletFlow` entry points.
-2. The disabled/enabled `Continue` consent gate is visually distinguishable in both states, both modes.
-3. `GWCheckbox`'s unchecked/disabled legibility in dark mode (the open STATE todo this screen surfaces).
-4. Both "Privacy Policy"/"Terms of Service" links open the correct gnus.ai URLs.
-5. GAP-04's routing half: the `GWWalletCard` row actually navigates to the import-security step, not just renders correctly.
-6. The single-item wallet list reads as deliberate, not broken (no stray separator, no overflow).
-7. Narrow/short window safety on both screens (the proactive gutter fix, applied this session — not yet walked).
-8. Live appearance-mode flip on the Legal step.
-9. Re-record the inherited `GWButtonVariant.secondary` light-mode legibility observation against the CURRENT code (06-01 found the plan's premise about this being an unfixed 1.93:1 failure is now STALE — quick task `260721-fa7` already fixed it to 4.76:1 before 06-01 ran; this plan's own walk should re-verify the same way 06-01's did rather than assume either the old failure or 06-01's fix without re-checking).
+**`06-03` is next.** No code blockers. Note it also needs a wallet-less profile — and the profile used for this walk is **still intact**, because the walk deliberately stopped at the import-security step rather than completing onboarding. Verify it before relying on it (`FRESH-INSTALL-RECIPE.md` step 0); if a wallet has since been created, re-run the recipe.
 
-No code blockers exist for `06-03` through `06-06` — the two files this plan owns are structurally complete and gate-verified. **`06-02` remains OPEN until Task 3 is walked and its outcome recorded.**
+⚠️ **Before `06-04` executes, it must be amended.** `06-04-PLAN.md:99-100` is superseded: the repo has zero IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files. `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`.
 
 ---
 *Phase: 06-onboarding*
-*Completed: Tasks 1-2 only, 2026-07-21. Task 3 (blocking human-verify checkpoint) OUTSTANDING — plan not yet closed.*
+*Completed: Tasks 1-2 on 2026-07-21; Task 3's blocking human-verify walk PASSED 2026-07-22 (dark only). Plan CLOSED.*
 
 ## Self-Check: PASSED
 
@@ -190,4 +215,5 @@ No code blockers exist for `06-03` through `06-06` — the two files this plan o
 - FOUND: .planning/phases/06-onboarding/deferred-items.md
 - FOUND commit 47527bc (Task 1)
 - FOUND commit ba8e412 (Task 2)
-- Task 3 checkpoint: NOT walked this session — no commit exists for it, by design (STOP instruction honored)
+- Task 3 checkpoint: WALKED 2026-07-22, 8/8 dark-mode checkpoints PASS, console clean (0 overflows, 0 exceptions)
+- Task 3 light-mode legs: deliberately NOT walked — deferred to the app-wide light-mode pass, recorded above as an explicit non-pass rather than an assumed one
