@@ -6,24 +6,27 @@ current_phase: 06
 current_phase_name: Onboarding
 status: executing
 stopped_at: >-
-  06-01-PLAN.md (onboarding chrome: /landing_screen entry + both flow shells' AppBar) CLOSED
-  2026-07-21 — walked and APPROVED on a genuine fresh install (all four persistence layers
-  cleared). Task 3's walk found one Rule-1 defect (CTAs glued to the window bezel at narrow
-  width) which this plan fixed (commit 67e2821) and re-walked clean; the blocking mesh
-  light-mode gate PASSED, GWMeshBackground is KEPT. 06-02 (shared Legal step + GAP-04's
-  GWWalletCard swap) is next.
-last_updated: "2026-07-21T21:30:00.000Z"
-last_activity: 2026-07-21
+  06-02 CLOSED 2026-07-22 — its blocking human-verify walk PASSED on all 8 dark-mode checkpoints,
+  console clean (zero RenderFlex overflows, zero exceptions). Walked on a profile verified fresh by
+  measurement before launch, not assumed. Light-mode legs deliberately NOT walked (deferred to the
+  app-wide light pass) and recorded as an explicit non-pass. 06-03 is next and needs a wallet-less
+  profile — the one used for this walk SURVIVED, because the walk stopped at import-security rather
+  than completing onboarding. Procedure: .planning/reference/FRESH-INSTALL-RECIPE.md. GW_DATA_DIR
+  was REJECTED 2026-07-22; do not propose it. 06-04 is known-superseded and must be amended before
+  it executes (see Blockers). Phases 12, 13 and 15 are PARKED — see "## In Flight" below.
+last_updated: "2026-07-22T13:01:05Z"
+last_activity: 2026-07-22
 last_activity_desc: >-
-  06-01 CLOSED (walked & approved) — entry screen + flow AppBars re-skinned, one walk-driven
-  Rule-1 narrow-width gutter fix landed, GWMeshBackground kept after a live light-mode gate.
-  Transitioned to 06-02.
+  Planning-state reconciliation (docs only, zero code). The frontmatter had drifted a day and four
+  phases behind reality — it claimed 11 total phases and 31/36 plans while HANDOFF.json pointed at
+  Phase 15. Counts corrected, the four concurrently-open phases recorded explicitly, and per-phase
+  resume pointers added for the parked ones. Phase 06 re-confirmed as the active phase.
 progress:
-  total_phases: 11
-  completed_phases: 4
-  total_plans: 36
-  completed_plans: 31
-  percent: 36
+  total_phases: 15
+  completed_phases: 5
+  total_plans: 53
+  completed_plans: 44
+  percent: 33
 ---
 
 # Project State
@@ -35,11 +38,35 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
 **Current focus:** Phase 06 — Onboarding
 
+## In Flight
+
+**FOUR phases are open at once.** This is not drift — it is what happened: on 2026-07-22 two parallel
+Claude sessions appended Phases 12–15 to the roadmap and worked them immediately, jumping over the
+unstarted 07–11 and leaving 06 half-finished behind them. GSD's state model carries exactly one
+`current_phase`, so the other three are recorded here rather than silently abandoned. **Phase 06 is
+the active one**; each parked phase also carries a `.continue-here.md` in its own phase directory.
+
+| Phase | Progress | Status | Exact resume condition |
+|-------|----------|--------|------------------------|
+| **06 Onboarding** | 2/6 | **ACTIVE** | 06-01 and 06-02 both CLOSED (06-02 walked 2026-07-22, 8/8 dark checkpoints PASS). **06-03 is next** — also needs a wallet-less profile; the walk's profile survived (onboarding was not completed). Use `reference/FRESH-INSTALL-RECIPE.md`. |
+| 12 Transactions redesign | 5/6 | PARKED | `12-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
+| 13 Boot / Signal Edge splash | 2/5 | PARKED | 13-03 is code-complete with its walk unclosed; **13-04 and 13-05 are not started.** 13-04 is the original ask (remove per-section dashboard loaders). Real code left here, not just a walk. |
+| 15 Transactions tab | 5/6 | PARKED | `15-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
+| 14 Compute panel | 0 plans | SCAFFOLDED | Directory exists with only a `.gitkeep`. Design is locked (sketches 016/017/018); no plans written. |
+
+**The bottleneck is not code — it is three outstanding human walks** (06-02 Task 3, 12-06, 15-06),
+all dark-mode-only, all requiring a person at the screen. Light mode is backlog for all three; a
+light-mode finding is a note in `todos/pending/2026-07-22-light-mode-verification-backlog.md`, never
+a blocker.
+
+**Phases 07–11 remain unstarted** and are now out of roadmap order behind 12–15. Whether they keep
+their numbering or get resequenced is an open question, not a decision anyone has made.
+
 ## Current Position
 
-Phase: 06 (onboarding) — IN PROGRESS (1/6 plans complete)
-Plan: 06-01 CLOSED (walked & approved, 2026-07-21). **06-02 next** (shared Legal step + GAP-04's
-`GWWalletCard` swap).
+Phase: 06 (onboarding) — IN PROGRESS (**2/6 plans complete**)
+Plan: 06-01 CLOSED (walked & approved, 2026-07-21). **06-02 CLOSED (walked & approved, 2026-07-22 —
+8/8 dark-mode checkpoints PASS, console clean). 06-03 is next.**
 Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
@@ -178,7 +205,7 @@ Full log in PROJECT.md Key Decisions. Recent:
   Toolchain, also previously mis-recorded as missing: Flutter **3.41.9 / Dart 3.11.5** at `C:\Users\User\Documents\Projects\GNUS\flutter\flutter\bin\flutter.bat` (off `PATH`). `flutter analyze lib` baseline = **61 issues**.
 
 - Nav shell has never been visually walked — Phase 4 addresses this
-- 37 evidenced defects in the design-vs-develop surface (`.planning/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
+- 37 evidenced defects in the design-vs-develop surface (`.planning/reference/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
 - `analysis_options.yaml` excludes `lib/**/*.g.dart` — the compiler, not analyze, is the real gate for generated widgets
 - **Two components are dark-only by design** (2026-07-17, from the 03-07 walk) — `GWCanvasBackground` gates its grain behind `if (!isLight)`; `GWMeshBackground` never reads the appearance and washes out on a light base. Both verified byte-identical to the reference, so **neither is a port defect**. ~~Alex's design system may have no complete light mode~~ — **CORRECTED same day: FALSE.** Alex's `theme.dart` IS appearance-aware (`brightness: isLight ? Brightness.light : Brightness.dark`); light mode is a real designed feature. These two are deliberate dark-only choices *within* a working light mode. Scope of dark-only components still unknown — 03-09's both-mode walk produces the count. Do not fix before that number exists; see the todo for why removing the gate is insufficient. **UPDATE 2026-07-21 (06-01):** `GWMeshBackground` got its first real consumer (`/landing_screen`, `wallet_creation_screen.dart`) and its light-mode readability was walked LIVE, not assumed — 06-01's Task 3 hardened this into a blocking gate with a pre-named fallback (drop the mesh). It PASSED; the mesh is KEPT on this screen in light mode. This resolves nothing about the general dark-only census (still 03-09's open item) but establishes the precedent: each new consumer of a dark-only-flagged component needs its own live light-mode judgment call, not an inherited assumption either way.
 - **develop's `theme.dart` is NOT appearance-aware and Phase 4 must wire it — THIS IS NOW THE PHASE'S BIGGEST OPEN ITEM** (2026-07-17) — `ThemeData(brightness: Brightness.dark)`, hardcoded, zero `GWAppearance` references, no `textTheme:`, and `toMaterialTextTheme()` (defined `genius_wallet_typography.dart:133`) is referenced NOWHERE in `lib/`. Phase 2 deferred it (UI-SPEC §1.1 excludes `theme.dart` wholesale as a 100%-collision file). **Consequences already observed, both in 03-09:** (1) the gallery's faithfully-ported `Scaffold(backgroundColor: Colors.transparent)` fell through to the permanently-dark theme while `textPrimary` flipped to near-black ink → light mode unreadable. Worked around in the dev-only gallery (`244b71e` → `surfaceBase`); **revert to `Colors.transparent` when Phase 4 lands the real theme.** (2) `GeniusWalletTypography.*` styles carry NO color, so every `Text` using them inherits white from the dark theme unconditionally → 5 of the walk's 8 findings. **Every Phase 4+ screen mounting Alex's components will hit this until the theme is wired.** Wire it EARLY in Phase 4, before re-skinning any screen
@@ -233,7 +260,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 |------|----------|-----|
 | Original design branch | worktree `C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514` | Builds + runs as a Release exe — the visual source of truth |
 | Verified fixes | branch `ui-redesign-3.514-develop` | Read-only; source of the 3 BEH-02 fix commits |
-| Regression audit | `.planning/REVIEW_FINDINGS_REDESIGN.md` | 37 findings, assigned per phase in ROADMAP.md |
+| Regression audit | `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` | 37 findings, assigned per phase in ROADMAP.md |
 
 ## Deferred Items
 
@@ -277,7 +304,7 @@ Resume file: None — 06-01 CLOSED 2026-07-21 (see `06-01-SUMMARY.md`). Next up 
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
 Phase 06.
 
-**2026-07-21 parallel investigation — `.planning/AUDIT-260721-parallel-investigation.md` (derived at `87a7715`).** 67 agents, 6 disjoint areas, every finding adversarially refuted before surviving: **36 of 60 survived, 24 refuted (40%)**. Phase 05 gained **two** blockers beyond the already-fixed `GWEmptyState`, both now RESOLVED by plan `05-08` and walked & approved 2026-07-21: **B1** `WalletsOverview` was an unscrollable `Column(max)` in a hard `maxHeight:300` — the verifier's recount put the SGNUS branch at **~26px idle / ~55px processing**, correcting the investigator's "passes by 3px" in the *worse* direction; and **B2** the Markets error/empty branches returned bare `Center(Text)` outside `DashboardScrollContainer`, so that tile lost its card while four siblings kept theirs. B1 had **no dev fixture** (needed live SGNUS + processing) — 05-08 Task 1 shipped one (`dev_mock_sgnus.dart`), avoiding the empty-state trap a second time. Work queue Q1–Q6 with serialization points named. `_basePath` verified **pre-existing on develop** — not this milestone's. **`06-04-PLAN.md:99-100` is already superseded**: the repo has ZERO IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files — `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`. Amend before executing 06-04.
+**2026-07-21 parallel investigation — `.planning/reference/AUDIT-260721-parallel-investigation.md` (derived at `87a7715`).** 67 agents, 6 disjoint areas, every finding adversarially refuted before surviving: **36 of 60 survived, 24 refuted (40%)**. Phase 05 gained **two** blockers beyond the already-fixed `GWEmptyState`, both now RESOLVED by plan `05-08` and walked & approved 2026-07-21: **B1** `WalletsOverview` was an unscrollable `Column(max)` in a hard `maxHeight:300` — the verifier's recount put the SGNUS branch at **~26px idle / ~55px processing**, correcting the investigator's "passes by 3px" in the *worse* direction; and **B2** the Markets error/empty branches returned bare `Center(Text)` outside `DashboardScrollContainer`, so that tile lost its card while four siblings kept theirs. B1 had **no dev fixture** (needed live SGNUS + processing) — 05-08 Task 1 shipped one (`dev_mock_sgnus.dart`), avoiding the empty-state trap a second time. Work queue Q1–Q6 with serialization points named. `_basePath` verified **pre-existing on develop** — not this milestone's. **`06-04-PLAN.md:99-100` is already superseded**: the repo has ZERO IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files — `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`. Amend before executing 06-04.
 
 **Fourth recurrence watch:** `theme.dart:103,116,355` pair `textPrimary` on `brandPrimaryStrong` = **2.56:1** in dark — the same white-on-brand-fill defect as 05-02's toggle and k81's badge, and `theme.dart:36-38` already rejects that exact pairing sixty lines above in the same file.
 
@@ -368,4 +395,4 @@ Open decisions:
 - Phase 13 progress 2026-07-22 (session B): 13-01 and 13-02 CLOSED; 13-03 code-complete
   with its walk NOT closed; 13-04 (the original ask — remove per-section dashboard loaders)
   and 13-05 not started. Full state, measured facts and open review items in
-  `.planning/HANDOFF-phase13-boot.md`. Everything uncommitted.
+  `.planning/handoffs/HANDOFF-phase13-boot.md`. Everything uncommitted.
