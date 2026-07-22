@@ -25,7 +25,7 @@ progress:
   total_phases: 15
   completed_phases: 5
   total_plans: 53
-  completed_plans: 46
+  completed_plans: 47
   percent: 33
 ---
 
@@ -48,7 +48,7 @@ the active one**; each parked phase also carries a `.continue-here.md` in its ow
 
 | Phase | Progress | Status | Exact resume condition |
 |-------|----------|--------|------------------------|
-| **06 Onboarding** | 4/6 | **ACTIVE** | 06-01..06-04 all CLOSED and walked. **06-05 is next** — it owns `pin_screen.dart`, the last screen carrying the systemic gutter defect. Profile: run step 0 of `reference/FRESH-INSTALL-RECIPE.md` before relying on it; the recipe is now proven end-to-end (32 items, verified clean). |
+| **06 Onboarding** | 5/6 | **ACTIVE** | 06-01..06-05 all CLOSED and walked. **06-06 is next — the phase closeout**, carrying deferred items (PasteField.height, per-build controllers holding key material, no screenshot protection). ROADMAP criterion 1 is now closed BOTH halves: create-wallet AND import both walked end-to-end to /dashboard. Profile consumed — re-run `reference/FRESH-INSTALL-RECIPE.md`. |
 | 12 Transactions redesign | 5/6 | PARKED | `12-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
 | 13 Boot / Signal Edge splash | 2/5 | PARKED | 13-03 is code-complete with its walk unclosed; **13-04 and 13-05 are not started.** 13-04 is the original ask (remove per-section dashboard loaders). Real code left here, not just a walk. |
 | 15 Transactions tab | 5/6 | PARKED | `15-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
@@ -64,11 +64,12 @@ their numbering or get resequenced is an open question, not a decision anyone ha
 
 ## Current Position
 
-Phase: 06 (onboarding) — IN PROGRESS (**4/6 plans complete**)
+Phase: 06 (onboarding) — IN PROGRESS (**5/6 plans complete**)
 Plan: 06-01 CLOSED 2026-07-21. **06-02 CLOSED 2026-07-22 (8/8 dark checkpoints PASS). 06-03 CLOSED
 2026-07-22 (10/10 dark walk steps PASS; six walk-driven defects found and fixed during the walk).
-06-04 CLOSED 2026-07-22 (10/11 dark walk steps PASS; five walk-driven defects fixed during the walk,
-including two of four import methods being unreachable on mobile). 06-05 is next.**
+06-04 CLOSED 2026-07-22. **06-05 CLOSED 2026-07-22 — it fixed a Continue button that had NEVER
+worked in either PIN step of either flow (invoke-during-build), and closed that defect class with a
+type change the analyzer now enforces. 06-06 (phase closeout) is next.**
 Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
