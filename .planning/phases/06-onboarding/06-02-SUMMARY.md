@@ -201,7 +201,7 @@ Braian raised that fonts and buttons are oversized on mobile, and that styling i
 
 **`06-03` is next.** No code blockers. Note it also needs a wallet-less profile — and the profile used for this walk is **still intact**, because the walk deliberately stopped at the import-security step rather than completing onboarding. Verify it before relying on it (`FRESH-INSTALL-RECIPE.md` step 0); if a wallet has since been created, re-run the recipe.
 
-⚠️ **Before `06-04` executes, it must be amended.** `06-04-PLAN.md:99-100` is superseded: the repo has zero IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files. `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`.
+~~⚠️ Before `06-04` executes, it must be amended.~~ **RETRACTED 2026-07-22 — this was wrong.** 06-04 was already amended on 2026-07-21 and carries all four IME flags plus a new Task 2. The claim was copied from a STATE.md audit note that was never updated after the amendment landed the same day; it was repeated here without opening the plan.
 
 ---
 *Phase: 06-onboarding*

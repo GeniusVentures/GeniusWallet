@@ -184,7 +184,7 @@ Still open from that todo: `import_security_screen.dart` (06-04) and `pin_screen
 
 ## Next Phase Readiness
 
-**06-04 is next.** ⚠️ **It must be amended before it executes** — `06-04-PLAN.md:99-100` is superseded: the repo has zero IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files. `enableIMEPersonalizedLearning` is the one that maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`.
+**06-04 is next and is READY TO EXECUTE.** ~~It must be amended first~~ — **RETRACTED 2026-07-22.** 06-04 was already amended 2026-07-21: an explicit `<amendment>` block, all four IME flags in Task 1, a new Task 2 extending `GWTextField` and hardening `sdk_account_manager.dart`, and Task 4's walk extended to all three key-bearing fields. The "must be amended" claim came from a stale STATE.md audit note and was repeated across three documents without anyone opening the plan.
 
 06-04 also owns `import_security_screen.dart`, which still carries the gutter defect — apply the pattern proactively rather than rediscovering it in a fourth walk.
 

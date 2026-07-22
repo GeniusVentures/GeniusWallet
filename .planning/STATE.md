@@ -12,8 +12,8 @@ stopped_at: >-
   app-wide light pass) and recorded as an explicit non-pass. 06-03 is next and needs a wallet-less
   profile — the one used for this walk SURVIVED, because the walk stopped at import-security rather
   than completing onboarding. Procedure: .planning/reference/FRESH-INSTALL-RECIPE.md. GW_DATA_DIR
-  was REJECTED 2026-07-22; do not propose it. 06-04 is known-superseded and must be amended before
-  it executes (see Blockers). Phases 12, 13 and 15 are PARKED — see "## In Flight" below.
+  was REJECTED 2026-07-22; do not propose it. 06-04 needs NO amendment — it was already amended
+  2026-07-21 and carries all four IME flags (see Blockers). Phases 12, 13 and 15 are PARKED — see "## In Flight" below.
 last_updated: "2026-07-22T13:01:05Z"
 last_activity: 2026-07-22
 last_activity_desc: >-
@@ -48,7 +48,7 @@ the active one**; each parked phase also carries a `.continue-here.md` in its ow
 
 | Phase | Progress | Status | Exact resume condition |
 |-------|----------|--------|------------------------|
-| **06 Onboarding** | 3/6 | **ACTIVE** | 06-01, 06-02, 06-03 all CLOSED and walked. **06-04 is next — but it MUST be amended first** (`06-04-PLAN.md:99-100` prescribes 2 of 4 IME flags for 1 of 3 key-bearing files; repo has zero IME hardening). It also owns `import_security_screen.dart`, which still carries the gutter defect. Wallet-less profile survived 06-03's walk. |
+| **06 Onboarding** | 3/6 | **ACTIVE** | 06-01, 06-02, 06-03 all CLOSED and walked. **06-04 is next and is READY** — it was already amended 2026-07-21 (all four IME flags, plus a new Task 2 for `GWTextField` + `sdk_account_manager.dart`). It also owns `import_security_screen.dart`, which still carries the gutter defect. Wallet-less profile survived 06-03's walk. |
 | 12 Transactions redesign | 5/6 | PARKED | `12-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
 | 13 Boot / Signal Edge splash | 2/5 | PARKED | 13-03 is code-complete with its walk unclosed; **13-04 and 13-05 are not started.** 13-04 is the original ask (remove per-section dashboard loaders). Real code left here, not just a walk. |
 | 15 Transactions tab | 5/6 | PARKED | `15-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
@@ -67,7 +67,7 @@ their numbering or get resequenced is an open question, not a decision anyone ha
 Phase: 06 (onboarding) — IN PROGRESS (**3/6 plans complete**)
 Plan: 06-01 CLOSED 2026-07-21. **06-02 CLOSED 2026-07-22 (8/8 dark checkpoints PASS). 06-03 CLOSED
 2026-07-22 (10/10 dark walk steps PASS; six walk-driven defects found and fixed during the walk).
-06-04 is next — AMEND IT FIRST, see Blockers.**
+06-04 is next and needs no amendment — already amended 2026-07-21.**
 Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
@@ -305,7 +305,7 @@ Resume file: None — 06-01 CLOSED 2026-07-21 (see `06-01-SUMMARY.md`). Next up 
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
 Phase 06.
 
-**2026-07-21 parallel investigation — `.planning/reference/AUDIT-260721-parallel-investigation.md` (derived at `87a7715`).** 67 agents, 6 disjoint areas, every finding adversarially refuted before surviving: **36 of 60 survived, 24 refuted (40%)**. Phase 05 gained **two** blockers beyond the already-fixed `GWEmptyState`, both now RESOLVED by plan `05-08` and walked & approved 2026-07-21: **B1** `WalletsOverview` was an unscrollable `Column(max)` in a hard `maxHeight:300` — the verifier's recount put the SGNUS branch at **~26px idle / ~55px processing**, correcting the investigator's "passes by 3px" in the *worse* direction; and **B2** the Markets error/empty branches returned bare `Center(Text)` outside `DashboardScrollContainer`, so that tile lost its card while four siblings kept theirs. B1 had **no dev fixture** (needed live SGNUS + processing) — 05-08 Task 1 shipped one (`dev_mock_sgnus.dart`), avoiding the empty-state trap a second time. Work queue Q1–Q6 with serialization points named. `_basePath` verified **pre-existing on develop** — not this milestone's. **`06-04-PLAN.md:99-100` is already superseded**: the repo has ZERO IME hardening (grep = 0 matches), and the plan prescribes 2 of the 4 needed flags for 1 of the 3 key-bearing files — `enableIMEPersonalizedLearning` is the one that actually maps to Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`. Amend before executing 06-04.
+**2026-07-21 parallel investigation — `.planning/reference/AUDIT-260721-parallel-investigation.md` (derived at `87a7715`).** 67 agents, 6 disjoint areas, every finding adversarially refuted before surviving: **36 of 60 survived, 24 refuted (40%)**. Phase 05 gained **two** blockers beyond the already-fixed `GWEmptyState`, both now RESOLVED by plan `05-08` and walked & approved 2026-07-21: **B1** `WalletsOverview` was an unscrollable `Column(max)` in a hard `maxHeight:300` — the verifier's recount put the SGNUS branch at **~26px idle / ~55px processing**, correcting the investigator's "passes by 3px" in the *worse* direction; and **B2** the Markets error/empty branches returned bare `Center(Text)` outside `DashboardScrollContainer`, so that tile lost its card while four siblings kept theirs. B1 had **no dev fixture** (needed live SGNUS + processing) — 05-08 Task 1 shipped one (`dev_mock_sgnus.dart`), avoiding the empty-state trap a second time. Work queue Q1–Q6 with serialization points named. `_basePath` verified **pre-existing on develop** — not this milestone's. **`06-04-PLAN.md` was superseded by Q2 — AND THE AMENDMENT WAS APPLIED THE SAME DAY (2026-07-21).** The plan now carries an explicit `<amendment date="2026-07-21">` block: Task 1 prescribes all FOUR flags, a new Task 2 extends `GWTextField` and hardens `sdk_account_manager.dart`'s two dialogs, and Task 4's walk covers all three key-bearing fields. **CORRECTED 2026-07-22 — this sentence previously read "Amend before executing 06-04" and was left un-updated after the amendment landed, causing three later documents to repeat a stale instruction. 06-04 needs no amendment.** (The baseline claim itself still holds: `grep` for the four flags across `lib/` = 0 matches at 2026-07-22.)
 
 **Fourth recurrence watch:** `theme.dart:103,116,355` pair `textPrimary` on `brandPrimaryStrong` = **2.56:1** in dark — the same white-on-brand-fill defect as 05-02's toggle and k81's badge, and `theme.dart:36-38` already rejects that exact pairing sixty lines above in the same file.
 
