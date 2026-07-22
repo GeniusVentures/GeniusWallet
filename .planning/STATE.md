@@ -341,3 +341,31 @@ Open decisions:
 ### Roadmap Evolution
 
 - Phase 12 added 2026-07-22: Transactions redesign (design contract = sketches 010-014, all decisions locked)
+- Phase 13 added 2026-07-22: Boot & loading sequence — Signal Edge splash + one shared dashboard
+  gate (design = sketch 015, approved). Grounded in spikes 001/002: the ~9.6 s main-isolate freeze
+  during `GeniusSDKInitWithMnemonic` is NOT fixable from Dart (spike 001 INVALIDATED), and the SDK
+  stalls at 52.5% forever, so the dashboard must never gate on `getInitializationStatus()`.
+- Phase 14 added 2026-07-22: Compute panel & job flow — the dashboard's first section (design =
+  sketches 016 **B2 Twin tiles**, 017 **A Dot+label**, 018 **A drawer, vertical steps**; all locked).
+  Carries three bloc build items beyond the re-skin: a **stall detector** (the 52.5% freeze is
+  currently drawn as a determinate ring), a **`RetryProcessingStatus` event** re-arming the timer
+  `app_bloc.dart:194` cancels permanently, and a **public `AccountDrawer.show`** so `switch wallet ›`
+  has somewhere to go. Hard constraint: the card has 276px and B2's worst state is 261px — anything
+  added to the compute block breaks it first.
+- Phase 15 added 2026-07-22: Transactions **tab** — page frame, filter rail, empty-state anchor,
+  amount honesty (design = sketches 020-022, all locked). The route mounts the dashboard *panel*
+  verbatim, so it renders as a 736px column on a 2000px page with a panel-sized title and no card.
+  Three decisions worth carrying forward: (a) the active rail row uses **022-B2, the navbar's
+  active-tab mark copied outright** — w700 label never recoloured, 2px gradient rule beneath, glyph
+  untouched; sketch 020's `brand-fill` background was invented and is rejected. (b) `GWEmptyState`
+  gets a **bounded centre** (`maxHeight: 480` under `topCenter`) rather than a hand-picked offset, so
+  short panels are unchanged and tall ones stop drifting — **this is a shared component, so Assets
+  and Markets change too.** (c) It **amends Phase 12's amount rules**: `process` and failed/cancelled
+  rows print the real number instead of an em-dash, and the `Not charged` value line becomes
+  load-bearing — it is the only thing stopping a full-weight `− 0.75 ETH` from claiming the balance
+  changed. Jakub overruled the recommendation to drop the sign; the value line is what makes the
+  override safe.
+- Phase 13 progress 2026-07-22 (session B): 13-01 and 13-02 CLOSED; 13-03 code-complete
+  with its walk NOT closed; 13-04 (the original ask — remove per-section dashboard loaders)
+  and 13-05 not started. Full state, measured facts and open review items in
+  `.planning/HANDOFF-phase13-boot.md`. Everything uncommitted.

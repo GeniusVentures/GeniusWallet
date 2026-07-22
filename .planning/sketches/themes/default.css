@@ -8,6 +8,18 @@
   --brand-secondary: #2BF5B4;
   --brand-tertiary: #C28FFF;
 
+  /* The CTA gradient's ACTUAL stops — GeniusWalletGradient.brandCta,
+     genius_wallet_gradient.dart:16-23. These are NOT --brand-primary /
+     --brand-secondary: those two are real tokens (brandPrimary, brandSecondary)
+     but they are the stops of brandBORDER, not brandCTA. Sketches 020-022 drew
+     "the brandCta gradient" with the wrong pair, so every gradient approved off
+     a mockup was approved against colours the app does not paint (up to 3
+     contrast points out). Jakub confirmed 2026-07-22: brandCta as it exists in
+     the code is the source of truth. Any mockup drawing the CTA gradient must
+     use these two. */
+  --brand-cta-a: #0AD89C;
+  --brand-cta-b: #0AAEE6;
+
   --surface-base: #DCE0E6;
   --surface-elevated: #FFFFFF;
   --surface-sheen-a: #FFFFFF;
