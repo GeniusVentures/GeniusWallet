@@ -416,6 +416,13 @@ class SDKAccountManagerButton extends StatelessWidget {
         controller: controller,
         maxLines: 4,
         hint: 'Enter your 12 or 24 word mnemonic phrase',
+        // IME hardening (06-04 §3.6) — do not remove. enableIMEPersonalizedLearning
+        // is the one that maps to Android's IME_FLAG_NO_PERSONALIZED_LEARNING;
+        // the other three do not close the keyboard learning-store leak alone.
+        autocorrect: false,
+        enableSuggestions: false,
+        enableIMEPersonalizedLearning: false,
+        textCapitalization: TextCapitalization.none,
       ),
       actions: [
         GWDialogAction(
@@ -460,6 +467,12 @@ class SDKAccountManagerButton extends StatelessWidget {
       content: GWTextField(
         controller: controller,
         hint: 'Enter your Ethereum private key (hex)',
+        // IME hardening (06-04 §3.6) — do not remove. See the mnemonic dialog
+        // above for why enableIMEPersonalizedLearning is the load-bearing flag.
+        autocorrect: false,
+        enableSuggestions: false,
+        enableIMEPersonalizedLearning: false,
+        textCapitalization: TextCapitalization.none,
       ),
       actions: [
         GWDialogAction(
