@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -306,9 +305,19 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                       ),
                     ),
                   ),
-                  AutoSizeText(
+                  // Text, not AutoSizeText. `priceFontSize` is already snapped
+                  // to a bounded set by [compactPriceFontSize] (37639d5), but
+                  // that only bounded the HEIGHT-derived input: AutoSizeText
+                  // then ran its own search to fit the available WIDTH, which
+                  // a drag-resize also varies continuously — so it kept
+                  // minting a distinct TextStyle per frame and the
+                  // ParagraphCache thrash the commit set out to kill survived.
+                  // The regression guard missed it because it tests the pure
+                  // function, not this widget. Ellipsis over shrink-to-fit.
+                  Text(
                     _hasData ? formattedPrice : 'Loading...',
                     maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: priceFontSize,
                       fontWeight: FontWeight.bold,
