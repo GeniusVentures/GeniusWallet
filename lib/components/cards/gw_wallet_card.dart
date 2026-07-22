@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
@@ -8,6 +7,12 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Replacement for the Parabeac-generated WalletCard widget.
 /// Visual-only surface with icon + name + optional trailing arrow.
+// Text, not AutoSizeText: AutoSizeText searches for a font size that
+// fits its box, so a drag-resize mints a distinct TextStyle — a distinct
+// skia ParagraphCacheKey — per frame, per row. That is the cache thrash
+// that freezes the macOS window (37639d5). Every one of these already
+// carried `overflow: ellipsis`, so the swap only drops the shrink-to-fit
+// step, which is precisely the part that could not be made safe.
 class GWWalletCard extends StatelessWidget {
   const GWWalletCard({
     super.key,
@@ -62,7 +67,7 @@ class GWWalletCard extends StatelessWidget {
                   ),
                 const SizedBox(width: GeniusWalletConsts.space6),
                 Flexible(
-                  child: AutoSizeText(
+                  child: Text(
                     walletName ?? '',
                     style: GeniusWalletTypography.bodyMd
                         .copyWith(color: gw.textPrimary),

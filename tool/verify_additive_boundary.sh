@@ -122,6 +122,13 @@ echo "== Check 1: shadow import boundary =="
 # a deliberate, reviewed addition to the exact-match list this check is
 # built to protect (a real new caller, not a silent path-swap of an existing
 # one) -- not a loosening of the guard.
+#
+# Plan 13-03 (boot-loading-sequence, sketch 015 "Signal Edge") removes the
+# canonical Splash route's `Loading()` call entirely -- the re-skinned boot
+# screen drives `BootSequence` instead of a spinner nobody could tick during
+# the ~9.6s native freeze (13-CONTEXT M1). This is a REAL caller leaving, not
+# a silent path-swap, so the baseline drops 19 -> 18 in the same commit that
+# removed the import. See 13-03-SUMMARY.md.
 LOADING_CANONICAL_EXPECTED='lib/banxa/banxa_orders_history.dart
 lib/banxa/banxa_payment.dart
 lib/banxa/checkout_qr.dart
@@ -137,7 +144,6 @@ lib/onboarding/new_wallet/view/recovery_phrase_screen.dart
 lib/onboarding/routes/wallet_routes.dart
 lib/screens/banxa_buy_screen.dart
 lib/screens/loading_screen.dart
-lib/screens/splash.dart
 lib/squid_router/swap_screen.dart
 lib/submit_job/view/submit_job_screen.dart
 lib/web/web_view_windows.dart'

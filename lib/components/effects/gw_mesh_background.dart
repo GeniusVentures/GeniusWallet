@@ -18,6 +18,7 @@ class GWMeshBackground extends StatefulWidget {
     this.intensity = 1.0,
     this.duration = const Duration(seconds: 36),
     this.baseColor,
+    this.dimAlpha,
   });
 
   final Widget child;
@@ -33,6 +34,18 @@ class GWMeshBackground extends StatefulWidget {
   /// Solid colour painted underneath the mesh. Defaults to the brand canvas
   /// teal — override only if you need a different base.
   final Color? baseColor;
+
+  /// Alpha (0..255) of the black overlay laid over the blobs.
+  ///
+  /// [intensity] alone cannot make this background *darker*: it scales the blob
+  /// alpha AND this overlay together, so turning it down yields a paler field,
+  /// not a deeper one. Separating the two is what lets a screen keep the brand
+  /// hues while sitting closer to a dark surface below it.
+  ///
+  /// Leave null to keep the historical coupling (`38 * intensity`) — that is
+  /// what every caller predating this parameter relies on, so a null default
+  /// is byte-identical to the previous behaviour for them.
+  final int? dimAlpha;
 
   @override
   State<GWMeshBackground> createState() => _GWMeshBackgroundState();
@@ -68,6 +81,7 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
               painter: _MeshPainter(
                 t: _controller.value,
                 intensity: widget.intensity.clamp(0.0, 1.0),
+                dimAlpha: widget.dimAlpha,
               ),
               size: Size.infinite,
             ),
@@ -80,10 +94,11 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
 }
 
 class _MeshPainter extends CustomPainter {
-  _MeshPainter({required this.t, required this.intensity});
+  _MeshPainter({required this.t, required this.intensity, this.dimAlpha});
 
   final double t;
   final double intensity;
+  final int? dimAlpha;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -132,11 +147,16 @@ class _MeshPainter extends CustomPainter {
     // foreground content without flattening the blobs at the edges.
     canvas.drawRect(
       rect,
-      Paint()..color = Colors.black.withAlpha((38 * intensity).round()),
+      Paint()
+        ..color = Colors.black.withAlpha(
+          // null keeps the historical `38 * intensity` coupling, so callers
+          // predating dimAlpha render exactly as before.
+          dimAlpha ?? (38 * intensity).round(),
+        ),
     );
   }
 
   @override
   bool shouldRepaint(_MeshPainter old) =>
-      old.t != t || old.intensity != intensity;
+      old.t != t || old.intensity != intensity || old.dimAlpha != dimAlpha;
 }

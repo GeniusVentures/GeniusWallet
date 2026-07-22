@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +10,34 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:intl/intl.dart';
+
+/// Price font size for the compact (height-starved) chart card, snapped to
+/// whole pixels.
+///
+/// The snapping is the point, not a rounding nicety. Derived straight from the
+/// available height, this size changes with every pixel the window moves, so a
+/// drag-resize hands skia's ParagraphCache a distinct TextStyle — a distinct
+/// cache key — on every single frame. That cache is a fixed-size LRU: it then
+/// misses on every lookup, evicts on every insert, and the layout never
+/// settles. On macOS the frame is never committed, the platform thread stays
+/// blocked in ResizeSynchronizer.beginResize, and the app freezes for good
+/// (100% of one core, isolate past any safepoint) until it is killed.
+/// Whole-pixel steps bound the number of distinct keys a drag can produce.
+///
+/// ponytail: whole pixels are the coarsest step that is still visually
+/// continuous, so the price nudges in 1px jumps mid-drag. If that ever reads
+/// as janky, the upgrade path is a small set of named sizes (28/20/14) chosen
+/// by height band — fewer keys still, at the cost of visible steps.
+double compactPriceFontSize({
+  required double maxHeight,
+  required double priceHeight,
+  required bool isCompact,
+}) {
+  if (!isCompact) return priceHeight;
+  // floor, never round: rounding up can exceed the 0.45 budget the caller's
+  // overflow assert depends on.
+  return min(priceHeight, maxHeight * 0.45).floorToDouble();
+}
 
 class CryptoLiveChart extends StatefulWidget {
   final String coinGeckoCoinId;
@@ -223,9 +250,11 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
           // change row with a TextPainter and branch on the real height.
           final bool isCompact =
               isHeightBounded && constraints.maxHeight < widget.priceHeight * 3.5;
-          final double priceFontSize = isCompact
-              ? min(widget.priceHeight, constraints.maxHeight * 0.45)
-              : widget.priceHeight;
+          final double priceFontSize = compactPriceFontSize(
+            maxHeight: constraints.maxHeight,
+            priceHeight: widget.priceHeight,
+            isCompact: isCompact,
+          );
           assert(
             !isCompact || priceFontSize * 1.5 <= constraints.maxHeight,
             'Compact price font must leave room for its own line metrics '
@@ -276,9 +305,19 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                       ),
                     ),
                   ),
-                  AutoSizeText(
+                  // Text, not AutoSizeText. `priceFontSize` is already snapped
+                  // to a bounded set by [compactPriceFontSize] (37639d5), but
+                  // that only bounded the HEIGHT-derived input: AutoSizeText
+                  // then ran its own search to fit the available WIDTH, which
+                  // a drag-resize also varies continuously — so it kept
+                  // minting a distinct TextStyle per frame and the
+                  // ParagraphCache thrash the commit set out to kill survived.
+                  // The regression guard missed it because it tests the pure
+                  // function, not this widget. Ellipsis over shrink-to-fit.
+                  Text(
                     _hasData ? formattedPrice : 'Loading...',
                     maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: priceFontSize,
                       fontWeight: FontWeight.bold,

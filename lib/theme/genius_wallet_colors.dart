@@ -176,6 +176,22 @@ class GeniusWalletColors {
   static const Color statusError =
       Color(0xFFFF4D4D); // gnus.ai --destructive, vibrant v1.2
   static const Color statusWarning = Color(0xFFFFC42E);
+  // Slate — the transaction-badge fill sketch 012 picked for Sent and Escrow.
+  // WHY a new token rather than reuse: amber already means Pending and red
+  // already means Failed, so painting a *successful* send in either would make
+  // a completed transaction read as a problem. Slate is the deliberate
+  // "nothing is wrong here, this is just an outbound movement" neutral.
+  //
+  // ponytail: FILL ONLY — never use this as a text/foreground colour. It is
+  // mode-invariant and deliberately NOT added to the GWColors extension,
+  // because the badge's GLYPH colour is computed from the fill
+  // (badgeGlyphColor in dashboard/home/widgets/transaction_badge.dart), so the
+  // pair stays AA-correct in both appearances without a second hand-maintained
+  // appearance-aware token. Ceiling: as a fill on the light canvas it is only
+  // 2.6:1 against white, which is fine for a filled shape but would fail AA as
+  // text. Upgrade path: promote to GWColors with a per-appearance value if a
+  // text consumer ever appears.
+  static const Color statusNeutral = Color(0xFF64748B);
   static const Color statusInfo = brandPrimary;
 
   // ---------------------------------------------------------------------------

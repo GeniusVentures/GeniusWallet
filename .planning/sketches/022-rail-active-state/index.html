@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>022 · Filter rail — how the active row is marked</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1420px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 20px/26px var(--font); letter-spacing:-.3px; margin:var(--space-16) 0 var(--space-4); }
+  h3.sub { font:600 15px/20px var(--font); margin:var(--space-10) 0 var(--space-4); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:980px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.ad  { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bad { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.ok  { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+  svg.g { fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---- rail base (identical in every option) ---- */
+  .rail { width:100%; }
+  .rail .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+              padding:var(--space-4) var(--space-6) var(--space-3); }
+  .ri { position:relative; display:flex; align-items:center; gap:var(--space-4); height:40px; padding:0 var(--space-6);
+        border-radius:var(--radius-md); cursor:pointer; }
+  .ri svg { width:14px; height:14px; color:var(--text-secondary); flex:none; }
+  .ri .lw { flex:1; position:relative; display:flex; }
+  .ri .l { font:500 13px/18px var(--font); color:var(--text-primary); }
+  .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .ri.hover { background:var(--surface-elevated); }
+  .rd { height:1px; background:var(--border-subtle); margin:var(--space-4) var(--space-6); }
+
+  /* specificity must beat `.ri .l` / `.ri .c`, which set an opaque colour */
+  .ri .l.grad, .ri .c.grad { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));
+          -webkit-background-clip:text; background-clip:text; color:transparent; }
+  [data-theme="light"] .ri .l.grad, [data-theme="light"] .ri .c.grad { background:none; color:#0A6885; }
+
+  /* A · leading rail */
+  .opt-A .ri.on::before { content:''; position:absolute; left:0; top:8px; bottom:8px; width:2px; border-radius:2px;
+                          background:linear-gradient(180deg,var(--brand-primary),var(--brand-secondary)); }
+  [data-theme="light"] .opt-A .ri.on::before { background:#0A6885; }
+  .opt-A .ri.on .l { font-weight:700; }
+
+  /* B · underline */
+  .opt-B .ri.on .lw::after { content:''; position:absolute; left:0; bottom:-6px; width:var(--ul,54px); height:2px; border-radius:2px;
+                             background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); }
+  [data-theme="light"] .opt-B .ri.on .lw::after { background:#0A6885; }
+  .opt-B .ri.on .l { font-weight:700; }
+
+  /* C · gradient count only */
+  .opt-C .ri.on .l { font-weight:700; }
+  .opt-C .ri.on .c { font-weight:700; }
+
+  /* D · underline + gradient count, plain label */
+  .opt-D .ri.on .lw::after { content:''; position:absolute; left:0; bottom:-6px; width:var(--ul,54px); height:2px; border-radius:2px;
+                             background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); }
+  [data-theme="light"] .opt-D .ri.on .lw::after { background:#0A6885; }
+  .opt-D .ri.on .l { font-weight:700; }
+  .opt-D .ri.on .c { font-weight:700; }
+
+  /* B2 · underline ONLY — the label is never recoloured */
+  .opt-B2 .ri.on .lw::after { content:''; position:absolute; left:0; bottom:-6px; width:var(--ul,54px); height:2px; border-radius:2px;
+                              background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); }
+  [data-theme="light"] .opt-B2 .ri.on .lw::after { background:#0A6885; }
+  .opt-B2 .ri.on .l { font-weight:700; }
+
+  /* E · gradient wash */
+  .opt-E .ri.on { background:linear-gradient(90deg, rgba(20,200,255,.16), rgba(43,245,180,.06)); }
+  [data-theme="light"] .opt-E .ri.on { background:linear-gradient(90deg, rgba(10,104,133,.14), rgba(10,104,133,.04)); }
+  .opt-E .ri.on .l { font-weight:700; }
+
+  .optgrid { display:grid; grid-template-columns:repeat(6,1fr); gap:var(--space-6); align-items:start; }
+  .opt .cap { font:600 14px/19px var(--font); margin-bottom:var(--space-4); display:flex; align-items:center; gap:var(--space-4); flex-wrap:wrap; }
+  .opt .why { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-6); }
+  .opt .why b { color:var(--text-primary); }
+  .opt .prov { font:400 11px/16px var(--font-mono); color:var(--text-secondary); margin-top:var(--space-4); }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-top:var(--space-4); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+               padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.win td { background:var(--brand-fill); }
+  .mono { font-family:var(--font-mono); font-size:12px; }
+
+  /* ---- locked strip ---- */
+  .locked { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:var(--space-4); margin-bottom:var(--space-8); }
+  .locked .l2 { padding:var(--space-6); background:var(--surface-menu); border:1px solid var(--border-subtle);
+                border-left:3px solid var(--status-success); border-radius:var(--radius-md); }
+  .locked .k { font:700 9px/1 var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--status-success); }
+  .locked .v { font:600 14px/19px var(--font); margin-top:var(--space-3); }
+  .locked .w { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:var(--space-3); }
+
+  /* ---- rows ---- */
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .row .time { width:44px; flex:none; font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row .id { position:relative; width:40px; height:40px; flex:none; }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .amt { text-align:right; flex:none; }
+  .row .amt .a { font:600 16px/21px var(--font-mono); font-variant-numeric:tabular-nums; }
+  .row .amt .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .pos { color:var(--status-success); }
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 11px/1 var(--font); color:#fff; overflow:hidden; }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:9px; height:9px; stroke-width:3.2; }
+  .pill { font:600 11px/16px var(--font); padding:2px 8px; border-radius:var(--radius-pill); }
+  .st-ok { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .st-pd { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .st-fl { background:var(--status-error-fill); color:var(--status-error); }
+
+  .eslot { height:420px; display:flex; flex-direction:column; }
+  .boundbox { height:380px; display:flex; align-items:center; justify-content:center; }
+  .eblock { display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .eblock .circle { width:72px; height:72px; border-radius:50%; display:grid; place-items:center;
+                    background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .eblock .circle svg { width:32px; height:32px; }
+  .eblock .et { font:600 18px/24px var(--font); margin-top:var(--space-8); }
+  .eblock .em { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-4); max-width:300px; }
+  .sectionhead { display:flex; align-items:center; min-height:44px; padding:2px var(--space-4) var(--space-4); }
+  .sectionhead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>022 · Filter rail — <b>how the active row is marked</b></h1>
+  <div class="seg" id="tsel">
+    <button data-t="dark" aria-pressed="true">Dark</button>
+    <button data-t="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<h2 class="sec">Locked — nothing below reopens these</h2>
+<div class="locked">
+  <div class="l2"><div class="k">Layout</div><div class="v">B · Filter rail</div><div class="w">Page at <code>xl</code> 1280, <code>GWPageHeader</code>, list + rail in cards.</div></div>
+  <div class="l2"><div class="k">Empty state</div><div class="v">Anchor c · 480px bounded centre</div><div class="w">Plus: no action buttons, filter control hidden when there is nothing to filter.</div></div>
+  <div class="l2"><div class="k">Empty state icon</div><div class="v">4 · Two-way arrows</div><div class="w"><code>Icons.sync_alt</code>.</div></div>
+  <div class="l2"><div class="k">Amounts</div><div class="v">Real number, always</div><div class="w">Failed and Computing print the amount normally; the status carries the truth.</div></div>
+</div>
+
+<!-- ==================== AMOUNTS, AS DECIDED ==================== -->
+<h2 class="sec">1 · Amounts — your call, implemented</h2>
+<p class="lede">
+  You overruled my "drop the sign on a failed row", so the amount now prints normally in every case and the
+  <b>status</b> carries the truth. I want to flag one thing and then stop arguing: <b>the value line is what keeps this
+  honest.</b> With <code class="mono">− 0.75 ETH</code> at full weight, the row needs <code class="mono">Not charged</code>
+  underneath, or a wallet that never lost 0.75 ETH reads as if it did.
+</p>
+<p class="lede">
+  With that line kept, the failed row says <b>0.75 ETH · Not charged · Failed</b> — three unambiguous facts, and on the
+  homepage panel the red <code>failed</code> badge on the coin plus <code>· Failed</code> in the subtitle carry the state
+  where there is no Status column. So the objection I raised is answered by the value line, not by the sign. Your version
+  wins.
+</p>
+
+<div style="display:flex;gap:var(--space-8);align-items:flex-start;flex-wrap:wrap">
+  <div style="flex:1;min-width:470px">
+    <h3 class="sub">Transactions tab</h3>
+    <div class="card" id="tbl"></div>
+  </div>
+  <div style="width:420px">
+    <h3 class="sub">Homepage panel — no Status column</h3>
+    <div class="card" id="pnl"></div>
+  </div>
+</div>
+
+<!-- ==================== THE OPEN DECISION ==================== -->
+<h2 class="sec">2 · The one open decision — the active rail row</h2>
+<p class="lede">
+  All five share the identical rest and hover states (<code>_menuItem</code> geometry, sketch 008 "lift chip" hover) and
+  all five leave the <b>glyph untouched</b> — the rule locked at <code>transactions_slim_view.dart:525</code>. Only the
+  active mark differs. <b>Toggle Light in the toolbar</b> before deciding: every gradient in this app degrades to flat
+  <code>#0A6885</code> on light surfaces, because <code>brandCta</code>'s own stops measure 1.65:1 and 2.28:1 there.
+</p>
+
+<div class="optgrid">
+
+  <div class="opt opt-A">
+    <div class="cap">A · Leading rail <span class="tag ad">Adapted</span></div>
+    <div class="card"><div class="rail" id="rA"></div></div>
+    <div class="why"><b>2px gradient bar on the left edge</b> + gradient label. The navbar's active-tab indicator,
+      rotated to vertical.</div>
+    <div class="prov">navbar indicator + <code>_activeLabelShader</code></div>
+    <div class="why"><b>Against:</b> the bar sits outside the row's padding, so it reads as a margin ornament rather than
+      as part of the item. Rotating a horizontal mark to vertical is the weakest kind of "precedent".</div>
+  </div>
+
+  <div class="opt opt-B">
+    <div class="cap">B · Underline <span class="tag ad">Adapted</span> <span class="tag rec">recommended</span></div>
+    <div class="card"><div class="rail" id="rB"></div></div>
+    <div class="why"><b>Gradient label + a 2px gradient underline under the label itself.</b> This is the navbar's mark
+      used <em>as it is</em> — same orientation, same 2px, same gradient, same relationship to a word.</div>
+    <div class="prov">navbar active tab, unrotated</div>
+    <div class="why"><b>For:</b> a rail item and a nav tab are the same thing — a persistent destination-like selection
+      with a label. Nothing is re-oriented or reinterpreted. <b>Against:</b> the underline width tracks the word, so the
+      mark's length varies row to row.</div>
+  </div>
+
+  <div class="opt opt-B2">
+    <div class="cap">B2 · Underline only <span class="tag ex">Existing</span> <span class="tag rec">recommended</span></div>
+    <div class="card"><div class="rail" id="rB2"></div></div>
+    <div class="why"><b>The same 2px gradient underline, but the label is never recoloured</b> — it just goes w700
+      <code>textPrimary</code>, exactly like an active nav tab.</div>
+    <div class="prov">navbar active tab, copied outright</div>
+    <div class="why"><b>This is what the navbar actually does.</b> Look at "Transactions" in the top bar: white and
+      bold with a gradient rule under it — the <em>text is not gradient</em>. B adds a second gradient the navbar never
+      had. <b>Also:</b> no light-mode text degradation to keep in sync, because the label is never brand-coloured.</div>
+  </div>
+
+  <div class="opt opt-C">
+    <div class="cap">C · Gradient count <span class="tag new">New</span></div>
+    <div class="card"><div class="rail" id="rC"></div></div>
+    <div class="why"><b>Label goes plain w700; the count becomes the gradient.</b> The number is what the filter actually
+      changes, so the mark lands on the payload rather than the name.</div>
+    <div class="prov">no precedent — the app has never marked state on a numeral</div>
+    <div class="why"><b>Against, and it is serious:</b> the counts do not change when you filter — <code>filterCounts()</code>
+      is computed over the unfiltered list on purpose — so a gradient number promises movement that never happens. It is
+      also the quietest of the five at exactly the moment you need the loudest.</div>
+  </div>
+
+  <div class="opt opt-D">
+    <div class="cap">D · Underline + count <span class="tag ad">Adapted</span></div>
+    <div class="card"><div class="rail" id="rD"></div></div>
+    <div class="why"><b>B plus C:</b> gradient label, gradient underline, gradient count. Everything the row owns turns
+      brand at once.</div>
+    <div class="prov">navbar indicator + <code>_activeLabelShader</code> + new numeral treatment</div>
+    <div class="why"><b>Against:</b> three marks for one boolean. When every element shouts, the row stops having a
+      hierarchy — and it inherits C's problem of gradient-ing a number that never moves.</div>
+  </div>
+
+  <div class="opt opt-E">
+    <div class="cap">E · Gradient wash <span class="tag new">New</span></div>
+    <div class="card"><div class="rail" id="rE"></div></div>
+    <div class="why"><b>"Current solution but in gradient colour"</b> — the row background becomes a low-alpha
+      <code>brandCta</code> wash, label w700 <code>textPrimary</code>.</div>
+    <div class="prov">no precedent — this is 020's rejected <code>brand-fill</code> with a gradient in it</div>
+    <div class="why"><b>Against:</b> a 16% wash measures well under the 3:1 WCAG 1.4.11 wants for a UI-state boundary, so
+      it cannot be the only mark — the w700 is doing the real work. It also collides with the hover surface: hover fills
+      the row too, so hover and active become the same gesture in two tints.</div>
+  </div>
+
+</div>
+
+<h3 class="sub">Contrast, measured</h3>
+<table class="t">
+  <tr><th>Mark</th><th>Dark</th><th>Light</th><th>Gate</th></tr>
+  <tr><td>Plain w700 label (B2, E) — <code>#FFFFFF</code> / ink</td><td class="mono">15.9:1 on #0C0E14</td><td class="mono">16.4:1 on #FFFFFF</td><td>AA text 4.5:1 ✓ — and nothing to degrade</td></tr>
+  <tr><td>Gradient label — <code>#14C8FF</code></td><td class="mono">8.6:1 on #181B24 · 9.7:1 on #0C0E14</td><td class="mono">degrades to #0A6885 → 5.6:1</td><td>AA text 4.5:1 ✓</td></tr>
+  <tr><td>Gradient label — <code>#2BF5B4</code></td><td class="mono">12.0:1 · 13.5:1</td><td class="mono">same degradation</td><td>AA text 4.5:1 ✓</td></tr>
+  <tr><td>2px bar / underline (A, B, B2, D)</td><td class="mono">9.7:1 vs the card</td><td class="mono">#14C8FF on white is <b>2.0:1 ✗</b> — must reuse the same <code>_activeLabelShader</code> degradation to #0A6885 → 6.2:1 ✓</td><td>1.4.11 non-text 3:1</td></tr>
+  <tr><td>Wash (E)</td><td class="mono">~1.3:1 vs the card</td><td class="mono">~1.2:1</td><td>1.4.11 3:1 <b>✗ — cannot stand alone</b></td></tr>
+</table>
+
+<h3 class="sub">B vs B2 — the decision, side by side</h3>
+<p class="lede">
+  You asked for the underline without the recoloured text, and it changes my recommendation. <b>Go and look at the top
+  bar of the app:</b> the active tab is <em>white and bold with a gradient rule under it</em> — the label itself is not
+  gradient. So B2 is the navbar's mark copied outright; <b>B is the navbar's mark plus a second gradient the navbar
+  never had.</b>
+</p>
+<p class="lede">
+  And it is the same argument I used to reject D. If the underline already says "selected", a gradient label says it a
+  second time — redundant state marking, which is exactly what made D worse than B. <b>By my own reasoning, B2 beats
+  B.</b> It also has one fewer moving part in light mode: the label is never brand-coloured, so there is no text
+  degradation to keep in sync with the underline's.
+</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-8);max-width:760px">
+  <div class="opt opt-B">
+    <div class="cap">B · Underline + gradient label</div>
+    <div class="card"><div class="rail" id="cmpB"></div></div>
+  </div>
+  <div class="opt opt-B2">
+    <div class="cap">B2 · Underline only <span class="tag rec">recommended</span></div>
+    <div class="card"><div class="rail" id="cmpB2"></div></div>
+  </div>
+</div>
+
+<h3 class="sub">Recommendation</h3>
+<table class="t">
+  <tr><th>Option</th><th>Verdict</th></tr>
+  <tr class="win"><td>B2 · Underline only</td><td><b>Ship this.</b> The navbar's active-tab mark copied outright — bold label, gradient rule, nothing recoloured. A rail item and a nav tab are the same object (a persistent, labelled selection), so the mark transfers with no rotation, no reinterpretation and no second gradient. One mark for one boolean. Nothing new to build.</td></tr>
+  <tr><td>B · Underline + gradient label</td><td>Was my recommendation; now second. Says "selected" twice, and adds a light-mode text degradation that has to stay in sync with the underline's. Take it only if B2 reads too quiet on the real screen.</td></tr>
+  <tr><td>A · Leading rail</td><td>Fine, and my 021 proposal — but it rotates a horizontal mark for no reason other than that the list is vertical, and the bar reads as ornament in the margin.</td></tr>
+  <tr><td>D · Underline + count</td><td>Three marks for one boolean, and it inherits C's defect below.</td></tr>
+  <tr><td>C · Gradient count</td><td>Do not. The counts never change when filtering, so the mark promises motion that never comes.</td></tr>
+  <tr><td>E · Gradient wash</td><td>Do not <em>alone</em>. Fails 1.4.11 at 1.3:1 and collides with the hover fill.</td></tr>
+</table>
+
+<!-- ==================== EMPTY STATE, FINAL ==================== -->
+<h2 class="sec">3 · Empty state as decided — arrows, 480px bounded centre, no filter control</h2>
+<div style="display:flex;gap:var(--space-8);flex-wrap:wrap">
+  <div style="flex:1;min-width:400px">
+    <div class="card eslot">
+      <div class="sectionhead"><h3>Transactions</h3></div>
+      <div class="boundbox">
+        <div class="eblock">
+          <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M4 8h13l-3-3m6 11H7l3 3"/></svg></div>
+          <div class="et">No transactions yet</div>
+          <div class="em">Your sends, receives and swaps will appear here.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;min-width:400px">
+    <p class="lede">
+      <b>One note I owe you, then I drop it.</b> <code>Icons.sync_alt</code> is two horizontal opposed arrows;
+      <code>Icons.swap_horiz_outlined</code> — the Swap tab's glyph in the navbar — is also two horizontal opposed
+      arrows. At 32px inside a circle they are close enough that the empty Transactions page can read as "go to Swap".
+      You have picked it knowing that, so it ships; I am recording it here so a later walk does not log it as a
+      surprise.
+    </p>
+    <p class="lede">
+      If you ever want the meaning without the collision, the same idea rotated — <code>Icons.swap_vert</code>, arrows
+      up and down — reads as "in and out of this wallet" and shares no silhouette with the Swap tab. One-word change,
+      no other consequence.
+    </p>
+  </div>
+</div>
+
+</div>
+
+<script>
+const G = {
+  all:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>', received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',
+  mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',
+  job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+  escrow:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  swap:'<path d="M4 8h13l-3-3m6 11H7l3 3"/>',
+  purchase:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  pending:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', failed:'<path d="M6 6l12 12M18 6 6 18"/>'
+};
+
+// Which sub-elements take the gradient, per option.
+const OPT = {
+  A: {label:true,  count:false},
+  B: {label:true,  count:false},
+  B2:{label:false, count:false},
+  C: {label:false, count:true },
+  D: {label:true,  count:true },
+  E: {label:false, count:false},
+};
+
+const ITEMS = [
+  {k:'all',      n:'All',       c:11, head:null,     on:true },
+  {k:null},
+  {k:'sent',     n:'Sent',      c:3,  head:'Type'},
+  {k:'received', n:'Received',  c:1},
+  {k:'mint',     n:'Mint',      c:1},
+  {k:'job',      n:'Computing', c:1,  hover:true},
+  {k:'escrow',   n:'Escrow',    c:2},
+  {k:'swap',     n:'Swapped',   c:1},
+  {k:'purchase', n:'Purchased', c:2},
+  {k:null},
+  {k:'pending',  n:'Pending',   c:1,  head:'Status'},
+  {k:'failed',   n:'Failed',    c:2},
+];
+
+// approximate label widths so the underline tracks the word
+const W = {All:22,Sent:29,Received:57,Mint:27,Computing:66,Escrow:44,Swapped:57,Purchased:64,Pending:50,Failed:38};
+
+function railHTML(opt) {
+  const o = OPT[opt];
+  return ITEMS.map(it => {
+    if (!it.k) return '<div class="rd"></div>';
+    const head = it.head ? `<div class="rh">${it.head}</div>` : '';
+    const cls = ['ri', it.on ? 'on' : '', it.hover ? 'hover' : ''].filter(Boolean).join(' ');
+    const lc = (it.on && o.label) ? 'l grad' : 'l';
+    const cc = (it.on && o.count) ? 'c grad' : 'c';
+    return `${head}<div class="${cls}" style="--ul:${W[it.n]}px">
+      <svg class="g" viewBox="0 0 24 24">${G[it.k]}</svg>
+      <span class="lw"><span class="${lc}">${it.n}</span></span>
+      <span class="${cc}">${it.c}</span></div>`;
+  }).join('');
+}
+['A','B','B2','C','D','E'].forEach(k => { document.getElementById('r'+k).innerHTML = railHTML(k); });
+document.getElementById('cmpB').innerHTML  = railHTML('B');
+document.getElementById('cmpB2').innerHTML = railHTML('B2');
+
+// ---- rows: amounts as decided ----
+const ink = c => (['#0AD89C','#FFC42E'].includes(c) ? '#000B18' : '#fff');
+const rows = [
+  {t:'10:48', sym:'GNUS', c:'#0AD89C', act:'Computing',     sub:'Job 0xdevm…ck09',            amt:'− 0.42 GNUS',   cls:'',    fiat:'$0.32 fee',   b:'job',      bc:'#0AAEE6', st:['Complete','st-ok']},
+  {t:'10:39', sym:'ETH',  c:'#627EEA', act:'Sent',          sub:'0xToMo…ed01',                amt:'− 0.75 ETH',    cls:'',    fiat:'$1,439.65',   b:'sent',     bc:'#64748B', st:['Complete','st-ok']},
+  {t:'10:26', sym:'BTC',  c:'#F7931A', act:'Received',      sub:'0xFrom…ed02',                amt:'+ 0.0042 BTC',  cls:'pos', fiat:'$276.89',     b:'received', bc:'#0AD89C', st:['Complete','st-ok']},
+  {t:'13:40', sym:'GNUS', c:'#0AD89C', act:'Escrow locked', sub:'Locked in escrow · Pending', amt:'− 500.00 GNUS', cls:'',    fiat:'$375.50',     b:'pending',  bc:'#FFC42E', st:['Pending','st-pd']},
+  {t:'21:30', sym:'ETH',  c:'#627EEA', act:'Purchased',     sub:'Card purchase · Failed',     amt:'− 0.75 ETH',    cls:'',    fiat:'Not charged', b:'failed',   bc:'#FF4D4D', st:['Failed','st-fl']},
+];
+const idb = r => `<div class="id"><div class="coin" style="background:${r.c}">${r.sym}</div>
+  <div class="badge" style="background:${r.bc};color:${ink(r.bc)}"><svg class="g" viewBox="0 0 24 24">${G[r.b]}</svg></div></div>`;
+const listRow = r => `<div class="row"><div class="time">${r.t}</div>${idb(r)}
+  <div class="main"><div class="t">${r.sym}<span class="action">${r.act}</span></div><div class="s">${r.sub}</div></div>
+  <div class="amt"><div class="a ${r.cls}">${r.amt}</div><div class="f">${r.fiat}</div></div></div>`;
+const tableRow = r => `<div class="row"><div class="time">${r.t}</div>${idb(r)}
+  <div class="main"><div class="t">${r.sym}<span class="action">${r.act}</span></div><div class="s">${r.sub}</div></div>
+  <div class="amt" style="width:170px"><div class="a ${r.cls}">${r.amt}</div><div class="f">${r.fiat}</div></div>
+  <div style="width:96px;text-align:right"><span class="pill ${r.st[1]}">${r.st[0]}</span></div></div>`;
+const join = (a, fn) => a.map(fn).join('<div class="divider"></div>');
+document.getElementById('tbl').innerHTML = join(rows, tableRow);
+document.getElementById('pnl').innerHTML = join(rows, listRow);
+
+document.getElementById('tsel').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.documentElement.dataset.theme = b.dataset.t;
+});
+</script>
+</body>
+</html>

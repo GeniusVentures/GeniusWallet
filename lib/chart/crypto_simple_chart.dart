@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
@@ -60,10 +59,21 @@ class CryptoSparkLineChart extends StatelessWidget {
       leading: buildTokenIcon(iconPath: iconPath, size: iconSize),
       // NAME is primary (titleMd / textPrimary), price secondary (bodySm /
       // textSecondary) — mirrors the Assets CoinCardRow hierarchy.
-      title: AutoSizeText(
+      // A FIXED style with an ellipsis, never AutoSizeText. AutoSizeText
+      // searches for a font size that fits the box, so as the window is
+      // drag-resized it emits a different size — and therefore a different
+      // TextStyle, and therefore a different skia ParagraphCacheKey — on
+      // essentially every frame. With one of these per market row, that fills
+      // and evicts the fixed-size cache continuously, layout never settles,
+      // no frame is ever committed, and the macOS embedder blocks forever in
+      // ResizeSynchronizer.beginResize. That is the freeze commit 37639d5
+      // diagnosed; 37639d5 only quantised the OTHER site's height-derived
+      // font size and left this width-driven search in place.
+      title: Text(
         title,
         style: GeniusWalletTypography.titleMd.copyWith(color: gw.textPrimary),
         maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       onTap: onTap,
       subtitle: Text(

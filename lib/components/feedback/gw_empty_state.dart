@@ -63,10 +63,35 @@ class GWEmptyState extends StatelessWidget {
   static const double _compactActionBlockHeight =
       GeniusWalletConsts.space4 + _actionButtonHeight; // 8 + 48 = 56
 
+  // How far this widget will search for the vertical middle of its slot.
+  //
+  // THE RULE (sketch 021 §3, locked in sketch 022): centre within the slot,
+  // but never search more than 480px for the middle. Sketch 020 measured the
+  // bare `Center` this replaced: in the ~1400px `/transactions` slot the icon
+  // landed ~650px down with ~260px of visible void above and below — below
+  // the fold on a laptop. Sketch 021 rejected both hand-picked offsets
+  // (topCenter + space16, topCenter + space32) because a fixed offset is
+  // wrong at every height except the one it was picked at. This is a RULE, so
+  // a slot shorter than 480 renders byte-identically to what shipped before.
+  //
+  // It is a FIXED LITERAL, deliberately — not a fraction of the incoming
+  // height. A proportional anchor (`maxHeight * 0.35`) would derive a
+  // dimension continuously from constraints, which is the exact class of
+  // thing commit `37639d5` banned after it froze the macOS app: a distinct
+  // value per frame thrashes skia's fixed-size caches and layout never
+  // settles. 480 is one number and `isHeightBounded` below is a bool — both
+  // bounded sets. Guard: `test/chart/compact_price_font_size_test.dart`.
+  static const double _anchorSearchHeight = 480;
+
   // ponytail: the base threshold (192) assumes the title+message shape, so a
-  // hypothetical title-only call site sitting in a 160-192px slot would go
-  // compact without needing to — harmless, and no current call site renders
-  // `GWEmptyState` without a message today. When `actionLabel`/`onAction` are
+  // title-only call site sitting in a 160-192px slot goes compact without
+  // strictly needing to — harmless, and it is a REAL case, not a
+  // hypothetical: `dashboard_screen.dart:491` renders
+  // `GWEmptyState(title: "No market data available")` with no message, no
+  // icon override and no action, in a ~114px Markets card. That card is far
+  // below 192 either way, so the compact tier already handles it correctly;
+  // only the shape assumption is loose, and tightening the threshold
+  // arithmetic to match would buy nothing. When `actionLabel`/`onAction` are
   // set, the effective threshold below adds `_actionBlockHeight` so an
   // action-bearing instance in the ~192-256px band correctly stays FULL
   // instead of false-negatively skipping compact (the false-negative case a
@@ -113,6 +138,19 @@ class GWEmptyState extends StatelessWidget {
           'to compact cannot relieve the overflow it exists to prevent',
         );
 
+        // Same property as the assert above — constant-only, so it can never
+        // fire for a real layout, only for a future edit that breaks the
+        // design invariant. This one states in code what the anchor comment
+        // argues in prose: the cap only BINDS above 480 while compact only
+        // fires below 192 (256 with an action), so there is no slot height at
+        // which the cap could become the thing selecting the layout.
+        assert(
+          _anchorSearchHeight > compactHeightThreshold,
+          'the anchor search height must stay clear of the threshold that '
+          'selects the compact tier, or the cap could become the thing '
+          'choosing the layout instead of the real slot height',
+        );
+
         final double iconBox = isCompact ? _iconBoxCompact : _iconBoxFull;
         final double iconGlyph =
             isCompact ? _iconGlyphCompact : _iconGlyphFull;
@@ -126,7 +164,7 @@ class GWEmptyState extends StatelessWidget {
             ? GeniusWalletConsts.space2
             : GeniusWalletConsts.space4;
 
-        return Center(
+        final Widget centred = Center(
           child: Padding(
             padding: EdgeInsets.all(outerPadding),
             child: Column(
@@ -176,6 +214,43 @@ class GWEmptyState extends StatelessWidget {
                 ],
               ],
             ),
+          ),
+        );
+
+        // UNBOUNDED slot — the design gallery (`design_gallery_screen.dart:757`
+        // sits in a `Column(crossAxisAlignment: stretch)`). Today's tree,
+        // returned unchanged, and this guard is the entire reason the branch
+        // exists: `Align`/`ConstrainedBox` under an infinite height would hand
+        // the inner `Center` a BOUNDED 0..480, `Center` would then take the
+        // largest allowed size, and this widget would inflate from its ~192px
+        // content to exactly 480 — growing a 288px void in the gallery
+        // (measured, by dropping this line). `isHeightBounded` is the same
+        // flag the compact decision above reads: one source of truth for
+        // "is this slot real".
+        if (!isHeightBounded) return centred;
+
+        // BOUNDED slot. Read inner-to-outer, because that is the non-obvious
+        // part: `centred` centres the block inside whatever height it is
+        // given; the `ConstrainedBox` caps that height at 480; the outer
+        // `Align` pins the capped box to the top of the real slot. In a slot
+        // SHORTER than 480 the cap does not bind, the box fills the slot, and
+        // the result is exactly the plain `Center` this widget shipped with —
+        // which is why nothing regresses where the layout is already fine.
+        //
+        // On the compact interaction, because a reviewer will ask: the
+        // `ConstrainedBox` sits INSIDE the `LayoutBuilder`, so
+        // `constraints.maxHeight` — the value `isCompact` is computed from —
+        // is untouched by the cap. Compact selection reads the REAL slot
+        // height exactly as it did before. And the two ranges cannot overlap:
+        // compact fires below 192 (256 with an action) while the cap only
+        // binds above 480, so no slot exists in which the cap could push a
+        // full layout into compact or hold a compact layout out of it. The
+        // second assert above says so in code.
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: _anchorSearchHeight),
+            child: centred,
           ),
         );
       },

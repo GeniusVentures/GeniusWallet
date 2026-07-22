@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>020 · Transactions TAB — page layout, filter placement, empty states</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1420px; margin:0 auto; }
+
+  /* ---------- page chrome of the sketch itself ---------- */
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; position:sticky; top:0; z-index:20;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h3.sub { font:600 15px/20px var(--font); margin:var(--space-10) 0 var(--space-4); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:960px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+
+  /* ---------- provenance tags ---------- */
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.ad  { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bad { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend div { display:flex; align-items:center; gap:var(--space-4); }
+
+  /* ---------- diagnosis ---------- */
+  .diag { display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:var(--space-6); margin-bottom:var(--space-8); }
+  .diag .d { padding:var(--space-8); background:var(--surface-menu); border:1px solid var(--border-subtle); border-left:3px solid var(--status-error); border-radius:var(--radius-md); }
+  .diag .d .n { font:700 10px/1 var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--status-error); }
+  .diag .d h4 { font:600 14px/20px var(--font); margin:var(--space-4) 0 var(--space-3); }
+  .diag .d p { font:400 12px/19px var(--font); color:var(--text-secondary); }
+  .diag .d p + p { margin-top:var(--space-3); }
+
+  /* ---------- fake app viewport ---------- */
+  .viewport { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:52px; padding:0 var(--space-8); background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); }
+  .navbar .logo { width:22px; height:22px; border-radius:6px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); flex:none; }
+  .navbar .nl { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .navbar .nl.on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .nl.on::after { content:''; position:absolute; left:0; right:0; bottom:-17px; height:2px; background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); }
+  .navbar .sp { margin-left:auto; }
+  .navbar .cta { font:600 12px/1 var(--font); padding:8px 12px; border-radius:var(--radius-pill); background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#000B18; }
+  .stage { padding:var(--space-8) var(--space-6); min-height:520px; }
+
+  /* the width-cap ruler */
+  .ruler { position:relative; margin:0 auto var(--space-6); height:16px; }
+  .ruler::before { content:''; position:absolute; inset:7px 0 auto; height:1px; background:var(--border-strong); }
+  .ruler span { position:absolute; left:50%; top:0; transform:translateX(-50%); background:var(--surface-base); padding:0 var(--space-4);
+                font:400 10px/16px var(--font-mono); color:var(--text-secondary); white-space:nowrap; }
+
+  /* ---------- existing components, replicated ---------- */
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); padding-bottom:var(--space-8); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+  .sectionhead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding:2px var(--space-4) var(--space-4); }
+  .sectionhead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+
+  .filterbar { display:flex; align-items:center; padding:3px; gap:2px; background:var(--surface-menu);
+               border:1px solid var(--border-subtle); border-radius:var(--radius-pill); }
+  .filterbar .chip { width:32px; height:32px; border-radius:var(--radius-pill); display:grid; place-items:center; color:var(--text-secondary); cursor:pointer; }
+  .filterbar .chip:hover { background:var(--surface-elevated); color:var(--text-primary); }
+  .filterbar .chip.on { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#000B18; }
+  .filterbar .vr { width:1px; height:20px; background:var(--border-subtle); margin:0 var(--space-2); }
+  .filterbar svg { width:15px; height:15px; }
+
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+  .daylabel { font:600 13px/18px var(--font); letter-spacing:.7px; color:var(--text-secondary); padding:var(--space-4) var(--space-6) var(--space-2); }
+  .daylabel.later { padding-top:var(--space-12); }
+
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .row:hover { background:var(--surface-menu); }
+  .row .time { width:44px; flex:none; font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row .id { position:relative; width:40px; height:40px; flex:none; }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .amt { text-align:right; flex:none; }
+  .row .amt .a { font:600 16px/21px var(--font-mono); }
+  .row .amt .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .pos { color:var(--status-success); } .neu { color:var(--text-secondary); }
+
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 12px/1 var(--font); color:#fff; }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center;
+           border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:9px; height:9px; }
+  svg.g { fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+  .footcount { text-align:right; font:400 13px/18px var(--font); color:var(--text-secondary); padding:var(--space-8) var(--space-6) 0; }
+
+  /* ---------- B: filter rail ---------- */
+  .rail { width:212px; flex:none; }
+  .rail .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+              padding:var(--space-4) var(--space-6) var(--space-3); }
+  .rail .ri { display:flex; align-items:center; gap:var(--space-4); height:40px; padding:0 var(--space-6); border-radius:var(--radius-md); cursor:pointer; }
+  .rail .ri:hover { background:var(--surface-menu); }
+  .rail .ri.on { background:var(--brand-fill); }
+  .rail .ri svg { width:14px; height:14px; color:var(--text-secondary); flex:none; }
+  .rail .ri .l { font:500 13px/18px var(--font); flex:1; }
+  .rail .ri.on .l { font-weight:700; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));
+                    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  [data-theme="light"] .rail .ri.on .l { background:none; color:#0A6885; }
+  .rail .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .rail .rd { height:1px; background:var(--border-subtle); margin:var(--space-4) var(--space-6); }
+
+  /* ---------- C: wide table ---------- */
+  .thead { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-3) var(--space-6);
+           font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); }
+  .trow { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .trow:hover { background:var(--surface-menu); }
+  .c-time { width:52px; flex:none; } .c-asset { width:168px; flex:none; display:flex; align-items:center; gap:var(--space-4); }
+  .c-type { width:120px; flex:none; } .c-detail { flex:1; min-width:0; }
+  .c-amt { width:150px; flex:none; text-align:right; } .c-val { width:118px; flex:none; text-align:right; }
+  .c-st { width:96px; flex:none; text-align:right; }
+  .trow .c-time { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .trow .c-asset .nm { font:600 14px/19px var(--font); }
+  .trow .c-type .chip2 { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .trow .c-detail { font:400 13px/18px var(--font-mono); color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .trow .c-amt { font:600 15px/20px var(--font-mono); } .trow .c-val { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .trow .c-st .pill { font:600 11px/16px var(--font); padding:2px 8px; border-radius:var(--radius-pill); }
+  .st-ok { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .st-pd { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .st-fl { background:var(--status-error-fill); color:var(--status-error); }
+  .tsmall .c-asset .mini { position:relative; width:28px; height:28px; flex:none; }
+  .tsmall .coin { width:28px; height:28px; font-size:9px; }
+  .tsmall .badge { width:14px; height:14px; border-width:1.5px; } .tsmall .badge svg { width:7px; height:7px; }
+  .dayband { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-8) var(--space-6) var(--space-3);
+             font:600 13px/18px var(--font); letter-spacing:.7px; color:var(--text-secondary); }
+  .dayband .ln { flex:1; height:1px; background:var(--border-subtle); }
+
+  /* ---------- empty states ---------- */
+  .emptygrid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); }
+  .eframe { display:flex; flex-direction:column; }
+  .eframe > .cap { font:600 13px/18px var(--font); margin-bottom:var(--space-4); display:flex; align-items:center; gap:var(--space-4); }
+  .eframe > .note { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-4); }
+  .epanel { height:600px; position:relative; display:flex; flex-direction:column; }
+  .eslot { flex:1; position:relative; overflow:hidden; }
+  .eblock { display:flex; flex-direction:column; align-items:center; text-align:center; padding:var(--space-12); }
+  .eblock .circle { width:72px; height:72px; border-radius:50%; display:grid; place-items:center;
+                    background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .eblock .circle svg { width:32px; height:32px; }
+  .eblock .et { font:600 18px/24px var(--font); margin-top:var(--space-8); }
+  .eblock .em { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-4); max-width:300px; }
+  .eblock .acts { display:flex; gap:var(--space-4); margin-top:var(--space-8); }
+  .btn { font:600 13px/1 var(--font); padding:0 18px; height:48px; display:inline-flex; align-items:center; border-radius:var(--radius-pill); cursor:pointer; }
+  .btn.pri { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#000B18; }
+  .btn.sec { background:transparent; border:1px solid var(--border-strong); color:var(--text-primary); }
+  .e-center .eblock { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); }
+  .e-anchor .eblock { padding-top:var(--space-16); }
+  .voidmark { position:absolute; left:50%; transform:translateX(-50%); font:400 10px/14px var(--font-mono);
+              color:var(--status-error); background:var(--status-error-fill); padding:3px 8px; border-radius:4px; white-space:nowrap; }
+
+  table.cost { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-top:var(--space-6); }
+  table.cost th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+                  padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  table.cost td { padding:var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  table.cost td:first-child { font-weight:600; white-space:nowrap; }
+  table.cost tr.win td { background:var(--brand-fill); }
+
+  .hide { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>020 · Transactions <b>tab</b> — layout, filters, empty states</h1>
+  <div class="seg" id="vsel">
+    <button data-v="A" aria-pressed="true">A · Page frame</button>
+    <button data-v="B" aria-pressed="false">B · Filter rail</button>
+    <button data-v="C" aria-pressed="false">C · Wide table</button>
+  </div>
+  <div class="seg" id="tsel">
+    <button data-t="dark" aria-pressed="true">Dark</button>
+    <button data-t="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<!-- ============================ DIAGNOSIS ============================ -->
+<h2 class="sec">What is actually wrong — from the code, not the eye</h2>
+<p class="lede">
+  The tab does not have a weak design. It has <b>no page design at all</b>: it mounts the homepage
+  <em>panel</em> verbatim and lets it float. Three concrete causes, each one line.
+</p>
+
+<div class="diag">
+  <div class="d">
+    <div class="n">Cause 1 · width</div>
+    <h4>The page is capped at panel width</h4>
+    <p><code>transactions_slim_view.dart:177</code> caps itself at <code>GeniusBreakpoints.medium</code> = <b>768px</b>,
+       because it is a dashboard panel. <code>transactions_screen.dart:26</code> wraps it in a <code>Center</code>.</p>
+    <p>On a 2000px window that is a 736px column with ~630px of dead base surface on each side.
+       The sibling tab <code>markets_screen.dart:70</code> caps at <code>xxl</code> = <b>1536px</b> and scales its column
+       count with width. Transactions is the odd one out.</p>
+  </div>
+  <div class="d">
+    <div class="n">Cause 2 · header</div>
+    <h4>A panel title is doing a page title's job</h4>
+    <p><code>transactions_slim_view.dart:192</code> uses <code>GWSectionTitle</code> — the 18px <em>panel</em> header with
+       its shared 44px min-height, designed to sit inside a card next to Assets and Markets.</p>
+    <p>Every other full page in the app (<code>markets_screen.dart:73</code>, <code>crypto_news_screen.dart:50</code>,
+       <code>swap_screen.dart:228</code>) uses <code>GWPageHeader</code> — 24px <code>headlineLg</code>. So "Transactions"
+       renders one size smaller than every other page title in the product.</p>
+  </div>
+  <div class="d">
+    <div class="n">Cause 3 · no surface</div>
+    <h4>The list sits on the raw base colour</h4>
+    <p>On the dashboard the same widget is wrapped in <code>DashboardScrollContainer</code>
+       (<code>dashboard_screen.dart:322</code>) — <code>GWDecorations.surface</code>, <code>radiusLg</code>,
+       <code>borderSubtle</code>, <code>space6</code> padding.</p>
+    <p>The tab wraps it in nothing. The rows hang on <code>surface-base</code> with no edge, which is exactly why the
+       screenshot reads as an unfinished screen rather than a sparse one.</p>
+  </div>
+  <div class="d">
+    <div class="n">Cause 4 · empty state</div>
+    <h4>The empty block is pinned to the vertical midpoint</h4>
+    <p><code>gw_empty_state.dart:129</code> returns a <code>Center</code>, and both call sites hand it an
+       <code>Expanded</code> (<code>transactions_slim_view.dart:208</code>). In a ~1400px-tall slot the icon lands
+       <b>700px down</b>, below the fold, with a void above and below it.</p>
+    <p>Second defect in the same screenshot: the <b>filter bar is still rendered</b> on a wallet with zero
+       transactions — five controls offering to filter nothing.</p>
+  </div>
+</div>
+
+<div class="legend">
+  <div><span class="tag ex">Existing</span> shipped component, reused unchanged</div>
+  <div><span class="tag ad">Adapted</span> existing component, one property or one call site changed</div>
+  <div><span class="tag new">New</span> must be built</div>
+  <div><span class="tag bad">Problem</span> what the screenshot shows today</div>
+</div>
+
+<!-- ============================ VARIANTS ============================ -->
+<h2 class="sec">Three whole schemes for the tab</h2>
+
+<!-- ---------------- A ---------------- -->
+<div class="var" data-v="A">
+  <p class="lede">
+    <b>A · Page frame.</b> Stops pretending the width problem can be solved by getting wider. The list settles at a
+    comfortable reading measure (<code>GeniusBreakpoints.large</code> = 1024) and is <em>framed</em> by the same card the
+    dashboard uses, so the surrounding space reads as deliberate margin instead of abandonment. Header becomes a real
+    page header; the filter bar rides in its trailing slot, exactly where Markets puts its search.
+    <br><span class="tag ex">Existing</span> row, badges, filter bar, dividers, day labels, footer count — untouched.
+    <span class="tag ad">Adapted</span> <code>GWPageHeader</code> + <code>DashboardScrollContainer</code> at a new call site;
+    one width constant.
+    <span class="tag new">New</span> nothing.
+  </p>
+
+  <div class="viewport">
+    <div class="navbar">
+      <div class="logo"></div>
+      <span class="nl">Dashboard</span><span class="nl on">Transactions</span><span class="nl">Swap</span>
+      <span class="nl">Markets</span><span class="nl">News</span>
+      <span class="sp"></span><span class="cta">Buy GNUS</span>
+    </div>
+    <div class="stage">
+      <div style="max-width:1024px;margin:0 auto;">
+        <div class="ruler"><span>max-width 1024 · GeniusBreakpoints.large</span></div>
+        <div class="pagehead">
+          <h2>Transactions</h2>
+          <div class="filterbar">
+            <div class="chip on" title="Sent"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg></div>
+            <div class="chip" title="Received"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg></div>
+            <div class="chip" title="Mint"><svg class="g" viewBox="0 0 24 24"><path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/></svg></div>
+            <div class="chip" title="Computing"><svg class="g" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div>
+            <div class="vr"></div>
+            <div class="chip" title="More filters"><svg class="g" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="daylabel">TODAY</div>
+          <div id="A-rows"></div>
+          <div class="footcount">11 transactions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------------- B ---------------- -->
+<div class="var hide" data-v="B">
+  <p class="lede">
+    <b>B · Filter rail.</b> The <code>⋯</code> overflow menu exists only because a 376px dashboard panel cannot show nine
+    filters. A page can. So the rail <em>is</em> that menu, unrolled: <code>_menuItem</code> already renders exactly
+    glyph + label + live count at 40px, so the rail is the same rows in a column instead of a popup — and the extra width
+    goes to something a user can act on rather than to a gap between a hash and a number.
+    <br><span class="tag ex">Existing</span> row, badges, dividers, day labels, <code>filterCounts()</code>,
+    <code>badgeGlyph()</code>, the menu-item anatomy.
+    <span class="tag ad">Adapted</span> <code>GWPageHeader</code>, <code>DashboardScrollContainer</code>.
+    <span class="tag new">New</span> one private <code>_FilterRail</code> — a Column over the same nine <code>Filters</code>.
+  </p>
+
+  <div class="viewport">
+    <div class="navbar">
+      <div class="logo"></div>
+      <span class="nl">Dashboard</span><span class="nl on">Transactions</span><span class="nl">Swap</span>
+      <span class="nl">Markets</span><span class="nl">News</span>
+      <span class="sp"></span><span class="cta">Buy GNUS</span>
+    </div>
+    <div class="stage">
+      <div style="max-width:1280px;margin:0 auto;">
+        <div class="ruler"><span>max-width 1280 · GeniusBreakpoints.xl</span></div>
+        <div class="pagehead"><h2>Transactions</h2><span style="font:400 13px/18px var(--font);color:var(--text-secondary)">11 transactions</span></div>
+        <div style="display:flex;gap:var(--space-8);align-items:flex-start;">
+          <div class="card rail">
+            <div class="rh">Type</div>
+            <div class="ri on"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg><span class="l">Sent</span><span class="c">3</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg><span class="l">Received</span><span class="c">1</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/></svg><span class="l">Mint</span><span class="c">1</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg><span class="l">Computing</span><span class="c">1</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="l">Escrow</span><span class="c">2</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M4 8h13l-3-3m6 11H7l3 3"/></svg><span class="l">Swapped</span><span class="c">1</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span class="l">Purchased</span><span class="c">2</span></div>
+            <div class="rd"></div>
+            <div class="rh">Status</div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="l">Pending</span><span class="c">1</span></div>
+            <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg><span class="l">Failed</span><span class="c">2</span></div>
+          </div>
+          <div class="card" style="flex:1;min-width:0;">
+            <div class="daylabel">TODAY</div>
+            <div id="B-rows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------------- C ---------------- -->
+<div class="var hide" data-v="C">
+  <p class="lede">
+    <b>C · Wide table.</b> The only variant that actually spends 1536px: at ≥1280 the row's stacked
+    title/subtitle <em>unstacks</em> into real columns with a header rule, the way an explorer or a statement export reads.
+    Scannable down any single column — but it is also the only variant that breaks Phase 12's just-locked
+    <em>one row anatomy</em> rule, because the page and the dashboard panel would then render transactions differently.
+    <br><span class="tag ex">Existing</span> badges, coin art, day grouping, <code>txRowContent()</code> — the data
+    layer needs nothing.
+    <span class="tag ad">Adapted</span> <code>GWPageHeader</code>, day label becomes a full-width band.
+    <span class="tag new">New</span> a second row layout in <code>transaction_displays.dart</code>, a column-header row,
+    a status pill, and the tests that pin both layouts.
+  </p>
+
+  <div class="viewport">
+    <div class="navbar">
+      <div class="logo"></div>
+      <span class="nl">Dashboard</span><span class="nl on">Transactions</span><span class="nl">Swap</span>
+      <span class="nl">Markets</span><span class="nl">News</span>
+      <span class="sp"></span><span class="cta">Buy GNUS</span>
+    </div>
+    <div class="stage">
+      <div style="max-width:1536px;margin:0 auto;">
+        <div class="ruler"><span>max-width 1536 · GeniusBreakpoints.xxl — same cap as the Markets tab</span></div>
+        <div class="pagehead">
+          <h2>Transactions</h2>
+          <div class="filterbar">
+            <div class="chip on"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg></div>
+            <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg></div>
+            <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/></svg></div>
+            <div class="chip"><svg class="g" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div>
+            <div class="vr"></div>
+            <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></div>
+          </div>
+        </div>
+        <div class="card tsmall">
+          <div class="thead">
+            <span class="c-time">Time</span><span class="c-asset">Asset</span><span class="c-type">Type</span>
+            <span class="c-detail">Detail</span><span class="c-amt">Amount</span><span class="c-val">Value</span><span class="c-st">Status</span>
+          </div>
+          <div class="divider"></div>
+          <div class="dayband">TODAY <span class="ln"></span></div>
+          <div id="C-rows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ EMPTY STATES ============================ -->
+<h2 class="sec">Empty state — the tab and the dashboard panel have the same disease</h2>
+<p class="lede">
+  Both slots are tall (the panel in your screenshot is ~1400px), and <code>GWEmptyState</code> centres in whatever it is
+  given. Below, all three are the identical component in an identical 600px slot — the only thing that changes is
+  <b>where it is anchored</b> and <b>whether it offers a way out</b>. The live panel is more than twice this tall, so the
+  drift in E1 is worse in the app than it looks here.
+</p>
+
+<div class="emptygrid">
+  <div class="eframe">
+    <div class="cap">E1 · Centred <span class="tag bad">today</span></div>
+    <div class="card epanel">
+      <div class="sectionhead"><h3>Transactions</h3>
+        <div class="filterbar" style="transform:scale(.85);transform-origin:right center">
+          <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg></div>
+          <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg></div>
+          <div class="vr"></div>
+          <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></div>
+        </div>
+      </div>
+      <div class="eslot e-center">
+        <div class="voidmark" style="top:22%">≈ 260px of void</div>
+        <div class="eblock">
+          <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+          <div class="et">No transactions yet</div>
+          <div class="em">Your sends, receives and swaps will appear here.</div>
+        </div>
+        <div class="voidmark" style="bottom:16%">≈ 260px of void · dead end, no action</div>
+      </div>
+    </div>
+    <div class="note">The block sits at 50% of the slot. Filter bar still offered on a wallet with nothing to filter.</div>
+  </div>
+
+  <div class="eframe">
+    <div class="cap">E2 · Anchored <span class="tag ad">Adapted</span></div>
+    <div class="card epanel">
+      <div class="sectionhead"><h3>Transactions</h3></div>
+      <div class="eslot e-anchor">
+        <div class="eblock">
+          <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+          <div class="et">No transactions yet</div>
+          <div class="em">Your sends, receives and swaps will appear here.</div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Sits where the first row would sit. One property: <code>Center</code> → <code>Align(topCenter)</code>
+      inside <code>GWEmptyState</code>, plus <code>space16</code>. Filter bar hidden when there is nothing to filter
+      (<code>scoped.isEmpty</code>) — the branch already exists at <code>transactions_slim_view.dart:246</code>.</div>
+  </div>
+
+  <div class="eframe">
+    <div class="cap">E3 · Anchored + a way out <span class="tag rec">recommended</span></div>
+    <div class="card epanel">
+      <div class="sectionhead"><h3>Transactions</h3></div>
+      <div class="eslot e-anchor">
+        <div class="eblock">
+          <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+          <div class="et">No transactions yet</div>
+          <div class="em">Receive your first tokens or buy GNUS to get started.</div>
+          <div class="acts"><span class="btn pri">Receive</span><span class="btn sec">Buy GNUS</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">E2 plus real next steps. <code>GWEmptyState</code> already supports one action
+      (<code>actionLabel</code>/<code>onAction</code>) — a second slot is the only addition.
+      <b>Branch 2 is untouched:</b> a filter that matched nothing keeps "Show all" and must never say Buy GNUS —
+      that wallet is not empty (the rule is already written at <code>transactions_slim_view.dart:255</code>).</div>
+  </div>
+</div>
+
+<h3 class="sub">The filtered-empty branch, for completeness</h3>
+<p class="lede">Same anchoring, different copy, different icon, different action — this branch is already correct in code and
+  only inherits the anchoring change.</p>
+<div style="max-width:420px">
+  <div class="card epanel" style="height:340px">
+    <div class="sectionhead"><h3>Transactions</h3>
+      <div class="filterbar" style="transform:scale(.85);transform-origin:right center">
+        <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg></div>
+        <div class="chip on"><svg class="g" viewBox="0 0 24 24"><path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/></svg></div>
+        <div class="vr"></div>
+        <div class="chip"><svg class="g" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></div>
+      </div>
+    </div>
+    <div class="eslot e-anchor">
+      <div class="eblock" style="padding-top:var(--space-10)">
+        <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg></div>
+        <div class="et">No mint transactions</div>
+        <div class="em">You have 11 transactions, but none match this filter.</div>
+        <div class="acts"><span class="btn sec">Show all</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ RECOMMENDATION ============================ -->
+<h2 class="sec">Recommendation and what each one costs</h2>
+<table class="cost">
+  <tr><th>Scheme</th><th>What the width buys</th><th>Files touched</th><th>Risk</th></tr>
+  <tr>
+    <td>A · Page frame</td>
+    <td>Nothing extra — it stops the stretch at 1024 and <em>frames</em> the result so the margin reads as intentional.</td>
+    <td><code>transactions_screen.dart</code> only (~15 lines). Zero changes to row, filters, badges, tests.</td>
+    <td>None. Also the fallback if B is rejected — B is A plus a rail.</td>
+  </tr>
+  <tr class="win">
+    <td>B · Filter rail <span class="tag rec">recommended</span></td>
+    <td>All nine filters visible with live counts, no popup. The <code>⋯</code> menu disappears from the page.</td>
+    <td><code>transactions_screen.dart</code> + one private <code>_FilterRail</code> (~60 lines) reusing
+        <code>filterCounts()</code> and <code>badgeGlyph()</code>. Row untouched.</td>
+    <td>Two filter presentations exist — chips on the dashboard panel, rail on the page. Standard responsive
+        answer, but it is a divergence and should be named as one.</td>
+  </tr>
+  <tr>
+    <td>C · Wide table</td>
+    <td>Real columns; best scanning at 1536px.</td>
+    <td><code>transaction_displays.dart</code> gains a second layout, plus a header row, a status pill, and new tests.</td>
+    <td>Breaks Phase 12's locked "one anatomy for all seven types". Largest diff, and the drawer would then disagree
+        with the row it was opened from.</td>
+  </tr>
+</table>
+
+<p class="lede" style="margin-top:var(--space-8)">
+  <b>Pick B for the tab and E3 for both empty states.</b> B is A with ~60 extra lines and it is the only cheap variant
+  that turns the width into something usable; if the two-filter-presentation divergence bothers you, A ships in
+  twenty minutes and nothing is lost — B is a strict superset of it. C is the right answer for a different product,
+  and it costs the row rule Phase 12 just paid for.
+</p>
+
+</div>
+
+<script>
+  const rows = [
+    {t:'10:48', sym:'GNUS', c:'#0AD89C', act:'Processing job', sub:'Job 0xdevm…ck09', amt:'—',            fiat:'0.42 GNUS spent', tone:'neu', b:'job',      bc:'#0AAEE6', type:'Computing', st:['Complete','st-ok']},
+    {t:'10:39', sym:'ETH',  c:'#627EEA', act:'Sent',           sub:'0xToMo…ed01',     amt:'− 0.75 ETH',    fiat:'$1,439.65',       tone:'',    b:'sent',     bc:'#64748B', type:'Sent',      st:['Complete','st-ok']},
+    {t:'10:26', sym:'BTC',  c:'#F7931A', act:'Received',       sub:'0xFrom…ed02',     amt:'+ 0.0042 BTC',  fiat:'$276.89',         tone:'pos', b:'received', bc:'#0AD89C', type:'Received',  st:['Complete','st-ok']},
+    {t:'10:11', sym:'GNUS', c:'#0AD89C', act:'Purchased',      sub:'Card purchase',   amt:'+ 500.00 GNUS', fiat:'$375.50',         tone:'pos', b:'purchase', bc:'#0AD89C', type:'Purchased', st:['Complete','st-ok']},
+    {t:'09:15', sym:'GNUS', c:'#0AD89C', act:'Minted',         sub:'Minted to wallet',amt:'+ 1,200.00 GNUS',fiat:'$901.19',        tone:'pos', b:'mint',     bc:'#C28FFF', type:'Mint',      st:['Complete','st-ok']},
+    {t:'13:40', sym:'GNUS', c:'#0AD89C', act:'Escrow locked',  sub:'Locked in escrow',amt:'− 500.00 GNUS', fiat:'$375.50',         tone:'',    b:'pending',  bc:'#FFC42E', type:'Escrow',    st:['Pending','st-pd']},
+    {t:'21:30', sym:'ETH',  c:'#627EEA', act:'Purchased',      sub:'Card purchase',   amt:'—',             fiat:'Not charged',     tone:'neu', b:'failed',   bc:'#FF4D4D', type:'Purchased', st:['Failed','st-fl']},
+  ];
+  const G = {
+    sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>', received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',
+    mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',
+    job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+    purchase:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+    pending:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', failed:'<path d="M6 6l12 12M18 6 6 18"/>'
+  };
+  const ink = c => (['#0AD89C','#FFC42E'].includes(c) ? '#000B18' : '#fff');
+  const badge = r => `<div class="badge" style="background:${r.bc};color:${ink(r.bc)}"><svg class="g" viewBox="0 0 24 24" style="stroke-width:3.2">${G[r.b]}</svg></div>`;
+
+  const listRow = r => `
+    <div class="row">
+      <div class="time">${r.t}</div>
+      <div class="id"><div class="coin" style="background:${r.c}">${r.sym.slice(0,3)}</div>${badge(r)}</div>
+      <div class="main"><div class="t">${r.sym}<span class="action">${r.act}</span></div><div class="s">${r.sub}</div></div>
+      <div class="amt"><div class="a ${r.tone}">${r.amt}</div><div class="f">${r.fiat}</div></div>
+    </div>`;
+
+  const tableRow = r => `
+    <div class="trow">
+      <span class="c-time">${r.t}</span>
+      <span class="c-asset"><span class="mini"><span class="coin" style="background:${r.c}">${r.sym.slice(0,3)}</span>${badge(r)}</span><span class="nm">${r.sym}</span></span>
+      <span class="c-type"><span class="chip2">${r.type}</span></span>
+      <span class="c-detail">${r.sub}</span>
+      <span class="c-amt ${r.tone}">${r.amt}</span>
+      <span class="c-val">${r.fiat}</span>
+      <span class="c-st"><span class="pill ${r.st[1]}">${r.st[0]}</span></span>
+    </div>`;
+
+  const joinRows = (arr, fn) => arr.map(fn).join('<div class="divider"></div>');
+  document.getElementById('A-rows').innerHTML = joinRows(rows.slice(0,5), listRow);
+  document.getElementById('B-rows').innerHTML = joinRows(rows.slice(0,5), listRow);
+  document.getElementById('C-rows').innerHTML = joinRows(rows, tableRow);
+
+  document.getElementById('vsel').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#vsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.var').forEach(v => v.classList.toggle('hide', v.dataset.v !== b.dataset.v));
+  });
+  document.getElementById('tsel').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#tsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.documentElement.dataset.theme = b.dataset.t;
+  });
+</script>
+</body>
+</html>

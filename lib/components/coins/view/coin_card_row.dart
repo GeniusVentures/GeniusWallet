@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -12,6 +11,12 @@ import 'package:intl/intl.dart';
 /// balance, so a zero-balance row still reads as alive; the trailing column
 /// carries the HOLDING (fiat value over token amount) and is the only thing
 /// dimmed (~38%) when the balance is zero.
+// Text, not AutoSizeText: AutoSizeText searches for a font size that
+// fits its box, so a drag-resize mints a distinct TextStyle — a distinct
+// skia ParagraphCacheKey — per frame, per row. That is the cache thrash
+// that freezes the macOS window (37639d5). Every one of these already
+// carried `overflow: ellipsis`, so the swap only drops the shrink-to-fit
+// step, which is precisely the part that could not be made safe.
 class CoinCardRow extends StatelessWidget {
   final String iconPath;
   final String name;
@@ -64,10 +69,9 @@ class CoinCardRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Flexible(
-            child: AutoSizeText(
+            child: Text(
               currencyFormatter.format(price),
               maxLines: 1,
-              minFontSize: 10,
               overflow: TextOverflow.ellipsis,
               style: GeniusWalletTypography.bodySm
                   .copyWith(color: gw.textSecondary),
@@ -96,20 +100,18 @@ class CoinCardRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          AutoSizeText(
+          Text(
             currencyFormatter.format(fiatValue),
             maxLines: 1,
-            minFontSize: 12,
             overflow: TextOverflow.ellipsis,
             style: GeniusWalletTypography.numericBody.copyWith(
               fontWeight: FontWeight.bold,
               color: noBalance ? gw.textPrimary38 : gw.textPrimary,
             ),
           ),
-          AutoSizeText(
+          Text(
             amountText,
             maxLines: 1,
-            minFontSize: 10,
             overflow: TextOverflow.ellipsis,
             style: GeniusWalletTypography.bodySm.copyWith(
               color: noBalance ? gw.textPrimary38 : gw.textSecondary,
