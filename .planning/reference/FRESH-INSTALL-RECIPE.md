@@ -26,18 +26,34 @@ If you find yourself typing `cmdkey`, stop.
 Deletion is irreversible for layer 3. Check first — it is often unnecessary.
 
 ```powershell
+# The node-directory count is the signal that actually works. Use it.
+$n = @(Get-ChildItem "$env:USERPROFILE\Documents\SuperGNUSNode.Node.*" -EA SilentlyContinue).Count
+"node dirs         : $n   <- 0 = fresh, >=1 = a wallet exists"
+
+# Informational only. NEITHER of these is trustworthy on its own — a wallet
+# imported end-to-end left wallet.hive at 0 bytes (measured 2026-07-22).
 "wallet.hive bytes : " + (Get-Item "$env:USERPROFILE\Documents\wallet.hive" -EA SilentlyContinue).Length
 "secure store bytes: " + (Get-Item "$env:APPDATA\com.example\genius_wallet\flutter_secure_storage.dat" -EA SilentlyContinue).Length
-"node dirs         : " + @(Get-ChildItem "$env:USERPROFILE\Documents\SuperGNUSNode.Node.*" -EA SilentlyContinue).Count
+
+if ($n -eq 0) { "VERDICT: FRESH" } else { "VERDICT: has a wallet - run the recipe below" }
 ```
 
 Reading the result:
 
 | Signal | Fresh | Has a wallet | Reliability |
 |---|---|---|---|
-| `wallet.hive` | **0 bytes** — no `selectedWalletKey` written | non-zero | **strong** |
-| `SuperGNUSNode.Node.*` count | **0** | ≥1 (one per SDK init) | **strong** |
-| `flutter_secure_storage.dat` | small (hundreds of bytes) | materially larger | **weak — see below** |
+| `SuperGNUSNode.Node.*` count | **0** | ≥1 (one per SDK init) | **STRONG — use this one** |
+| `wallet.hive` | 0 bytes | *may still be 0* | **UNRELIABLE — see below** |
+| `flutter_secure_storage.dat` | small (hundreds of bytes) | materially larger | **weak** |
+
+⚠️ **`wallet.hive` is NOT a reliable signal. Corrected 2026-07-22 by direct measurement.** A wallet
+was imported end-to-end through the full onboarding flow (06-04's walk, reaching the dashboard with
+the wallet loaded) and `wallet.hive` **stayed at 0 bytes** — while the node-directory count went
+0 → 1. That box holds `selectedWalletKey`, which is evidently not written on import.
+
+An earlier version of this document called `wallet.hive == 0` a *strong* freshness signal. It is
+not, and trusting it would let someone run a "fresh install" walk on a profile that already has a
+wallet — silently invalidating the walk. **Count `SuperGNUSNode.Node.*` directories instead.**
 
 **Why a non-empty `.dat` is still "fresh":** `LocalWalletStorage.init()`
 (`packages/local_secure_storage/lib/src/local_secure_storage_base.dart:72-77`) calls
@@ -64,7 +80,7 @@ Only layers 1–3 exist on Windows. Layer 4 is recorded in the old todo and **is
 
 | # | Location | Holds | Present 2026-07-22? |
 |---|---|---|---|
-| 1 | `%USERPROFILE%\Documents\*.hive` + `*.lock` | Hive boxes — `wallet`, `preferences`, `network`, plus caches | yes, 9 boxes |
+| 1 | `%USERPROFILE%\Documents\*.hive` + `*.lock` | Hive boxes — `wallet`, `preferences`, `network`, caches, **and per-wallet `transactions_0x<address>.hive` boxes** | yes |
 | 2 | `%USERPROFILE%\Documents\SuperGNUSNode.Node.*` | native SuperGenius RocksDB node identity | **no — zero present** |
 | 3 | `%APPDATA%\com.example\genius_wallet\flutter_secure_storage.dat` | **seeds, private keys, PIN** — the one that matters | yes, 310 B |
 | 4 | ~~`shared_preferences.json`~~ | — | **DOES NOT EXIST.** The only copies on this box belong to unrelated "NoPing" software. Do not delete those. |
@@ -106,6 +122,25 @@ foreach ($t in $targets) {
 ```
 
 Run it once with `$DryRun = $true`, read the list, then flip to `$false`.
+
+### ⚠️ The `*.hive` glob is load-bearing — never replace it with a fixed list
+
+Box names are **dynamic**. Creating or importing a wallet produces a per-wallet transactions box
+named after the address, e.g.:
+
+```
+transactions_0x9858effd232b4033e47d90003d41ec34ecaeda94.hive
+```
+
+A hand-written list of "wallet, preferences, network, caches" would silently miss those and leave
+wallet state behind — which is very plausibly one of the four failed attempts on 2026-07-21 that
+made this problem look intractable. **Always glob.**
+
+Two side notes worth knowing:
+- The wallet **address is exposed as a filename** under `Documents\`. Not key material, but it does
+  leak which addresses this machine has held. Filed as an observation, not fixed here.
+- **Verified working end-to-end 2026-07-22**: after an end-to-end import walk, this recipe removed
+  32 items and returned the profile to `node dirs = 0`, `hive boxes = 0`, secure store gone.
 
 The last two targets (`overrides\`, `*_config.json`) are the SDK's generated config; they are
 regenerated on launch and are safe to drop. They are included because leaving them behind has
