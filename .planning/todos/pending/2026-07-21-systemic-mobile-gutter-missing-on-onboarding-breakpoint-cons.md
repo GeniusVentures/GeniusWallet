@@ -8,10 +8,34 @@ files:
   - lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart
   - lib/onboarding/existing_wallet/view/import_security_screen.dart
   - lib/screens/pin_screen.dart
-  - lib/onboarding/existing_wallet/view/recovery_phrase_screen.dart
-  - lib/onboarding/existing_wallet/view/verify_recovery_phrase_screen.dart
+  - lib/onboarding/new_wallet/view/recovery_phrase_screen.dart
+  - lib/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart
   - lib/onboarding/view/wallet_creation_screen.dart
 ---
+
+## RESOLVED for the two seed screens — 2026-07-22 (06-03 Task 3 walk)
+
+This todo left an open question: the two seed screens were breakpoint-constrained but *did* have
+some inset, so it said they "need a per-screen check rather than assuming either way." **The check
+was done and the answer is: they needed the fix.** Their existing inset was inner-widget padding —
+`EdgeInsets.all(8.0)` on the grid wrapper and `symmetric(horizontal: 4.0)` on each tile — which
+never reaches the page edge. At narrow widths the content still ran against the window bezel, and
+a human confirmed it live before the fix.
+
+Both are now fixed with the standard pattern (`Padding(horizontal: space8)` outside the
+`ConstrainedBox`):
+- `lib/onboarding/new_wallet/view/recovery_phrase_screen.dart` ✅
+- `lib/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart` ✅
+
+**Two path corrections:** this todo listed both files under `existing_wallet/`. They actually live
+under `new_wallet/`. A grep driven by the old paths would have found nothing and wrongly concluded
+they were clean.
+
+**Lesson for the remaining four:** "has an inset somewhere in the file" is not evidence of a page
+gutter. Check what the inset is attached to, not merely that one exists.
+
+**Still open:** `legal_screen.dart` and `select_wallet_type_screen.dart` were fixed in 06-02;
+`import_security_screen.dart` (06-04) and `pin_screen.dart` (06-05) remain.
 
 ## Problem
 

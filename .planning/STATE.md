@@ -25,7 +25,7 @@ progress:
   total_phases: 15
   completed_phases: 5
   total_plans: 53
-  completed_plans: 44
+  completed_plans: 45
   percent: 33
 ---
 
@@ -48,7 +48,7 @@ the active one**; each parked phase also carries a `.continue-here.md` in its ow
 
 | Phase | Progress | Status | Exact resume condition |
 |-------|----------|--------|------------------------|
-| **06 Onboarding** | 2/6 | **ACTIVE** | 06-01 and 06-02 both CLOSED (06-02 walked 2026-07-22, 8/8 dark checkpoints PASS). **06-03 is next** — also needs a wallet-less profile; the walk's profile survived (onboarding was not completed). Use `reference/FRESH-INSTALL-RECIPE.md`. |
+| **06 Onboarding** | 3/6 | **ACTIVE** | 06-01, 06-02, 06-03 all CLOSED and walked. **06-04 is next — but it MUST be amended first** (`06-04-PLAN.md:99-100` prescribes 2 of 4 IME flags for 1 of 3 key-bearing files; repo has zero IME hardening). It also owns `import_security_screen.dart`, which still carries the gutter defect. Wallet-less profile survived 06-03's walk. |
 | 12 Transactions redesign | 5/6 | PARKED | `12-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
 | 13 Boot / Signal Edge splash | 2/5 | PARKED | 13-03 is code-complete with its walk unclosed; **13-04 and 13-05 are not started.** 13-04 is the original ask (remove per-section dashboard loaders). Real code left here, not just a walk. |
 | 15 Transactions tab | 5/6 | PARKED | `15-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
@@ -64,9 +64,10 @@ their numbering or get resequenced is an open question, not a decision anyone ha
 
 ## Current Position
 
-Phase: 06 (onboarding) — IN PROGRESS (**2/6 plans complete**)
-Plan: 06-01 CLOSED (walked & approved, 2026-07-21). **06-02 CLOSED (walked & approved, 2026-07-22 —
-8/8 dark-mode checkpoints PASS, console clean). 06-03 is next.**
+Phase: 06 (onboarding) — IN PROGRESS (**3/6 plans complete**)
+Plan: 06-01 CLOSED 2026-07-21. **06-02 CLOSED 2026-07-22 (8/8 dark checkpoints PASS). 06-03 CLOSED
+2026-07-22 (10/10 dark walk steps PASS; six walk-driven defects found and fixed during the walk).
+06-04 is next — AMEND IT FIRST, see Blockers.**
 Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
