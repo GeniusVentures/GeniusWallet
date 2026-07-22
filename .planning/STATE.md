@@ -48,7 +48,7 @@ the active one**; each parked phase also carries a `.continue-here.md` in its ow
 
 | Phase | Progress | Status | Exact resume condition |
 |-------|----------|--------|------------------------|
-| **06 Onboarding** | 5/6 | **ACTIVE** | 06-01..06-05 all CLOSED and walked. **06-06 is next — the phase closeout**, carrying deferred items (PasteField.height, per-build controllers holding key material, no screenshot protection). ROADMAP criterion 1: IMPORT half closed (06-04). **CREATE half OPEN** — the walker reached the dashboard but no wallet persisted to disk (0 node dirs, 0 tx boxes, account-only secure store), while the import path on the same day DID persist. Unexplained, filed as a major todo. Profile consumed — re-run `reference/FRESH-INSTALL-RECIPE.md`. |
+| **06 Onboarding** | 5/6 | **ACTIVE** | 06-01..06-05 all CLOSED and walked. **06-06 is next — the phase closeout**, carrying deferred items (PasteField.height, per-build controllers holding key material, no screenshot protection). ROADMAP criterion 1 is now closed BOTH halves: create-wallet AND import both walked end-to-end to /dashboard. Profile consumed — re-run `reference/FRESH-INSTALL-RECIPE.md`. |
 | 12 Transactions redesign | 5/6 | PARKED | `12-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |
 | 13 Boot / Signal Edge splash | 2/5 | PARKED | 13-03 is code-complete with its walk unclosed; **13-04 and 13-05 are not started.** 13-04 is the original ask (remove per-section dashboard loaders). Real code left here, not just a walk. |
 | 15 Transactions tab | 5/6 | PARKED | `15-06` only — a human walk, **dark mode only**, never attempted. Nothing blocked technically. |

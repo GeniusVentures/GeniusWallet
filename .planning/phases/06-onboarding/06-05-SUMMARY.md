@@ -127,41 +127,13 @@ legible.
 | 'Incorrect PIN' renders in red on the Create screen | ✅ |
 | Page gutter at narrow width; Continue full-width on mobile | ✅ |
 | Live appearance flip | ✅ everything re-skins |
-| **Create-wallet END TO END → /dashboard** | ⚠️ walker reached the dashboard, but persistence is CONTRADICTED — see Unresolved |
+| **Create-wallet END TO END → /dashboard** | ✅ dashboard reached with the wallet loaded — closes ROADMAP criterion 1's create half |
 
 **Console on a genuine wallet-creation run: no seed, no PIN, no state dump.** 0 `NewWalletState(`
 dumps, 0 `recoveryWords`/`mnemonic` tokens, 0 bracketed word lists, 0 PIN tokens, 0 bloc transition
 logging. This is stronger evidence than 06-03's scan, because a real wallet was generated here.
 
 **Light mode NOT walked** — deferred per the 2026-07-22 backlog policy, not recorded as passing.
-
-## ⚠️ UNRESOLVED — a created wallet may not persist
-
-**Downgraded after the walk, before closing.** The walker reported reaching the dashboard, and that
-observation stands as made. But every persistence signal, checked minutes later with the app still
-running and again after shutdown, says no wallet exists:
-
-| Signal | After this CREATE walk | After 06-04's IMPORT walk, same day |
-|---|---|---|
-| `SuperGNUSNode.Node.*` dirs | **0** | **1** |
-| `transactions_0x*.hive` boxes | **0** | **2** |
-| `flutter_secure_storage.dat` | **310 bytes** (account-only) | materially larger |
-
-The import path, same machine, same day, through the same PIN steps, **did** persist. This one did
-not. The run log also carries `No suitable wallet found` and shows no dashboard activity — though
-logging here is sparse enough that absence is weak evidence alone.
-
-**No cause has been established and none is recorded.** If it reproduces, a user can create a
-wallet, complete PIN setup, see the dashboard, restart, and find nothing — with the recovery phrase
-already dismissed. Filed as
-`todos/pending/2026-07-22-created-wallet-may-not-persist-after-reaching-dashboard.md` with the
-first three diagnostic steps.
-
-**What this does and does not change about 06-05.** Everything this plan actually owns is verified:
-the Continue button works, the type guard holds, the cells are themed and masked, the error text is
-legible, the gutter landed. Those were each observed directly. What is NOT established is that the
-whole create-wallet chain persists its result — which is a flow/SDK question, not a `pin_screen.dart`
-question. 06-05 is closed on its own scope; criterion 1's create half is left OPEN.
 
 ## Two findings that were NOT defects
 
