@@ -42,7 +42,7 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 ## Context
 
 - **Brownfield adoption.** GSD is layered onto an existing, in-production app. See `.planning/codebase/` for architecture, stack, conventions, testing, integrations, and concerns.
-- **The design source.** `origin/ui-redesign-3.514` (Alex Faber) — forked from develop 2026-04-30. It carries the authoritative design system (`DESIGN_SYSTEM.md` v1.0, adopted; `gnus-tokens.json`; `gnus-mockups.html`) and 11 theme files. It is a **design prototype, not a working app**: `.planning/ALEX-WIRING.md` (his own doc) records 11 `WIRE-N` stubs — Send doesn't broadcast, swap quotes are mocked, the dashboard's 24h delta is `balance * 0.024`. Take the visual; develop's logic always wins.
+- **The design source.** `origin/ui-redesign-3.514` (Alex Faber) — forked from develop 2026-04-30. It carries the authoritative design system (`DESIGN_SYSTEM.md` v1.0, adopted; `gnus-tokens.json`; `gnus-mockups.html`) and 11 theme files. It is a **design prototype, not a working app**: `.planning/reference/ALEX-WIRING.md` (his own doc) records 11 `WIRE-N` stubs — Send doesn't broadcast, swap quotes are mocked, the dashboard's 24h delta is `balance * 0.024`. Take the visual; develop's logic always wins.
 - **Reference material.** Worktree `GNUS-compare/GeniusWallet-3514` builds and runs Alex's branch as a Release exe — the visual source of truth. It shares the Hive data dir with the develop build, so the two cannot run at once.
 - **Verification reality.** No test harness (`flutter test` does not compile). Windows debug + hot reload works (`4395da7`) and is the loop: build, run, edit, reload, look.
 

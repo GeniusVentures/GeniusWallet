@@ -77,7 +77,7 @@ gaps:
     status: resolved
     discovered: 2026-07-21
     resolved: 2026-07-21
-    source: ".planning/AUDIT-260721-parallel-investigation.md (B1), derived at 87a7715"
+    source: ".planning/reference/AUDIT-260721-parallel-investigation.md (B1), derived at 87a7715"
     reason: >-
       CLOSED by plan 05-08 (Task 1 fixture + Task 2 structural fix), walked and APPROVED
       2026-07-21 on a Windows debug build. `wallet_overview.dart`'s build() now wraps the
@@ -101,7 +101,7 @@ gaps:
     status: resolved
     discovered: 2026-07-21
     resolved: 2026-07-21
-    source: ".planning/AUDIT-260721-parallel-investigation.md (B2), derived at 87a7715"
+    source: ".planning/reference/AUDIT-260721-parallel-investigation.md (B2), derived at 87a7715"
     reason: >-
       CLOSED by plan 05-08 (Task 3), walked and APPROVED 2026-07-21. Both the error branch
       ("Failed to load market coins" + exactly one Retry) and the empty branch ("No market

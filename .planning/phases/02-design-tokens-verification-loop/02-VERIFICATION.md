@@ -32,7 +32,7 @@ behavior_unverified_items:
 This document is the BLD-02 deliverable itself, not a formality: the verification loop it
 establishes here is the one every later phase inherits. It exists because the forward-port
 reached **0 `flutter analyze` errors and still dropped 37 develop behaviors, 3 of them blockers**
-(see `.planning/REVIEW_FINDINGS_REDESIGN.md`). Recording an unearned PASS in this document would
+(see `.planning/reference/REVIEW_FINDINGS_REDESIGN.md`). Recording an unearned PASS in this document would
 recreate exactly that failure mode — see threat T-02-18. Every row below carries a real observation
 or is marked OUTSTANDING/DEFERRED with the reason; a criterion with no observation behind it is
 FAIL, not PASS, by this phase's own rule.

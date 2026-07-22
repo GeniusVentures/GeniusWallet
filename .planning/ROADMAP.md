@@ -58,7 +58,7 @@ closes; Phases 2 and 3 carry the other two.
 
 ### BEH-01 — the 37 findings as a per-phase checklist
 
-`.planning/REVIEW_FINDINGS_REDESIGN.md` records 37 evidenced defects in the design-vs-develop
+`.planning/reference/REVIEW_FINDINGS_REDESIGN.md` records 37 evidenced defects in the design-vs-develop
 surface, each with a file:line and a fix; 3 are blockers. Every finding is assigned to the phase
 that owns its file; each phase confirms its subset non-regressed as it lands, and Phase 11 signs off
 the whole set.
@@ -370,7 +370,7 @@ outright if the zoom/pan controls are removed when real timeframe ranges are wir
 **Requirements**: BEH-01
 **Success Criteria** (what must be TRUE):
 
-  1. Every one of the 37 findings in `.planning/REVIEW_FINDINGS_REDESIGN.md` is confirmed non-regressed by running the app, each with a recorded observation — or consciously accepted with a written reason
+  1. Every one of the 37 findings in `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` is confirmed non-regressed by running the app, each with a recorded observation — or consciously accepted with a written reason
   2. A single walk from cold start through onboarding, dashboard, token, swap, Banxa and dApp connect completes with no runtime exception and no screen still wearing develop's old skin
   3. Windows debug and release builds both succeed and `flutter analyze` reports 0 errors
 

@@ -38,7 +38,7 @@ behavior_unverified_items:
 
 This document is the BLD-02 loop applied to Phase 3, inherited verbatim from
 `02-VERIFICATION.md`: it exists because the forward-port reached **0 `flutter analyze` errors and
-still dropped 37 develop behaviors, 3 of them blockers** (`.planning/REVIEW_FINDINGS_REDESIGN.md`).
+still dropped 37 develop behaviors, 3 of them blockers** (`.planning/reference/REVIEW_FINDINGS_REDESIGN.md`).
 Recording an unearned PASS here recreates exactly that failure mode. Every row below carries a real
 observation or is marked OUTSTANDING/PARTIAL/DEFERRED with the reason — a criterion with no
 observation behind it is FAIL, not PASS, by this phase's own rule (`02-VERIFICATION.md`'s
