@@ -101,7 +101,7 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [ ] **Phase 3: gw_* component library** - The 82 additive primitives + design gallery + gap treatment decided
 - [x] **Phase 4: Navigation shell & chrome** - Shell, header chrome, Settings and SDK account manager wear the redesign (7/7 plans; 04-VERIFICATION.md = passed 6/6, 2026-07-18)
 - [x] **Phase 5: Dashboard** - Balances, holdings, transactions, markets, news (completed 2026-07-21)
-- [ ] **Phase 6: Onboarding** - Create, import, recovery phrase, verify, legal, select-wallet-type
+- [x] **Phase 6: Onboarding** - Create, import, recovery phrase, verify, legal, select-wallet-type (completed 2026-07-23 — 6/6 plans; fresh-install walk PASSED all 4 criteria)
 - [ ] **Phase 7: Token screens** - Token info, send, receive, address book, charts
 - [ ] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge
 - [ ] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details
@@ -284,7 +284,7 @@ section for the full reasoning behind each:
 - [x] 06-03-PLAN.md — Recovery-phrase + verify-recovery-phrase re-skin (security-critical; read-only grid, `_isVisible` default, finding-19 `mounted` guard preserved) — criteria 1, 2, 3
 - [x] 06-04-PLAN.md — Import security + PasteField re-skin **+ the §3.6 IME hardening** (`autocorrect`/`enableSuggestions` false on the mnemonic/private-key field — a deliberate, recorded behavior addition) — criterion 1
 - [x] 06-05-PLAN.md — Shared `screens/pin_screen.dart` re-skin **+ fixes the invoke-during-build Continue defect** (closure-wrapped `onCompleted`, type tightened to `void Function(String)` so the analyzer guards it) — criterion 1
-- [ ] 06-06-PLAN.md — Phase close: `tool/check_onboarding_seed_safety.sh` (UI-SPEC §3's six-item gate over the finished tree) + the **fresh-install end-to-end walk of BOTH flows** (no mock injectors — the Phase 05 fixture-blindness lesson) + 5 filed todos for the deliberately-unfixed gaps — criteria 1, 2, 3, 4
+- [x] 06-06-PLAN.md — Phase close: `tool/check_onboarding_seed_safety.sh` (UI-SPEC §3's six-item gate over the finished tree) + the **fresh-install end-to-end walk of BOTH flows** (no mock injectors — the Phase 05 fixture-blindness lesson) + 5 filed todos for the deliberately-unfixed gaps — criteria 1, 2, 3, 4 (CLOSED 2026-07-23; gate all-six PASS `bec9c03`, todos `3d7aa07`, walk PASSED — see 06-06-SUMMARY.md)
 
 **UI hint**: yes
 **Findings**: 19 — **already fixed on develop** (`recovery_phrase_screen.dart:105`); Phase 6 closes criterion 3 by PRESERVATION, not by a fix. **Covers GAP-04**: `select_wallet_type_screen.dart`, `wallet_routes.dart` (closed entirely by 06-02).
@@ -395,7 +395,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | 3. gw_* component library | 10/10 | Executed — walk-gated (03-VERIFICATION 3 PASS / 3 PARTIAL) | - |
 | 4. Navigation shell & chrome | 7/7 | ✓ Complete (04-VERIFICATION passed 6/6) | 2026-07-18 |
 | 5. Dashboard | 8/8 | ✓ Complete (3 overrides recorded — see 05-VERIFICATION.md) | 2026-07-21 |
-| 6. Onboarding | 5/6 | In Progress — 06-06 (closeout) next | - |
+| 6. Onboarding | 6/6 | ✓ Complete (fresh-install walk PASSED all 4 criteria) | 2026-07-23 |
 | 7. Token screens | 0/TBD | Not started | - |
 | 8. Swap & bridge | 0/TBD | Not started | - |
 | 9. Banxa | 0/TBD | Not started | - |

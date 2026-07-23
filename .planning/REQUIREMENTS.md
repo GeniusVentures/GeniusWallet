@@ -171,7 +171,7 @@ Deferred to future milestones.
 | GAP-03 | Phase 4 — Navigation shell & chrome | Complete |
 | SCR-01 | Phase 5 — Dashboard | Complete |
 | GAP-06 | Phase 5 — Dashboard | Complete |
-| SCR-02 | Phase 6 — Onboarding | Pending |
+| SCR-02 | Phase 6 — Onboarding | ✓ Complete (Phase 6 closed 2026-07-23; fresh-install walk PASSED) |
 | GAP-04 | Phase 6 — Onboarding | ✓ Complete (closed by 06-02, `ba8e412`) |
 | SCR-03 | Phase 7 — Token screens | Pending |
 | SCR-04 | Phase 8 — Swap & bridge | Pending |
@@ -198,10 +198,10 @@ Deferred to future milestones.
 - v1 requirements: **24 total** — corrected 2026-07-16; the previous "22" miscounted
   (1 GSD + 3 BLD + 4 DS + 2 NAV + 6 SCR + 6 GAP + 2 BEH = 24)
 
-- Complete: **17** (GSD-01, BLD-01, DS-01/02/03/04, BLD-02/03, NAV-01/02, BEH-02, GAP-01/02/03/04/06, SCR-01) — updated 2026-07-23
-- Pending: 7 (SCR-02, SCR-03, SCR-04, SCR-05, SCR-06, GAP-05, BEH-01)
+- Complete: **18** (GSD-01, BLD-01, DS-01/02/03/04, BLD-02/03, NAV-01/02, BEH-02, GAP-01/02/03/04/06, SCR-01, SCR-02) — updated 2026-07-23
+- Pending: 6 (SCR-03, SCR-04, SCR-05, SCR-06, GAP-05, BEH-01)
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
-- Phases (official track): 11 — **4 complete (1, 2, 4, 5)**, Phase 3 executed/walk-gated, Phase 6 in progress (5/6), 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
+- Phases (official track): 11 — **5 complete (1, 2, 4, 5, 6)**, Phase 3 executed/walk-gated, 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
 - Note: WIRE-01/WIRE-02 are tracked as guard requirements outside the 24 v1 count by design (they are "do-not-port" guards, not deliverables).
 
 ---

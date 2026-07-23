@@ -6,12 +6,14 @@ current_phase: 06
 current_phase_name: Onboarding
 status: executing
 stopped_at: >-
-  Phase 06 is at 5/6 — 06-01..06-05 all CLOSED (each has a SUMMARY + a "close the plan" commit);
-  06-06 (phase closeout: the seed-safety gate + the fresh-install end-to-end walk of BOTH flows)
-  is the one remaining plan and is NEXT. Matches git `d81e7ea` ("Phase 06 paused at 5/6 — 06-06
-  (closeout) is next"). NOTE: the redesign track (Phases 12-17) advanced in parallel on this same
-  branch and is further along than this official-track pointer — see the dual-track note below.
-last_updated: "2026-07-23T18:00:00.000Z"
+  Phase 06 (Onboarding) is CLOSED 2026-07-23 — all 6/6 plans complete. 06-06 shipped the §3
+  seed-safety gate (tool/check_onboarding_seed_safety.sh, all six checks PASS, bec9c03), filed the
+  five deliberately-unfixed-gap todos (3d7aa07), and the fresh-install end-to-end walk was run: RUN A
+  create (dark+light) + stress passes + RUN B import all walked to /dashboard with no onboarding-screen
+  overflow and a clean seed/PIN console scan. All four ROADMAP criteria PASS (see 06-06-SUMMARY.md).
+  Next official-track phase: 07 (Token screens) — not yet planned. The redesign track (Phases 12-17)
+  also lives on this branch; 16/17 shipped, walks outstanding — see the dual-track note below.
+last_updated: "2026-07-23T20:00:00.000Z"
 last_activity: 2026-07-23
 last_activity_desc: >-
   Redesign track (branch redesign/transactions-tab-260722, orthogonal to Phase 06): integrated
@@ -25,10 +27,10 @@ progress:
   # Official GSD track only (Phases 1-11). The redesign track (Phases 12-17) is counted
   # separately — see the dual-track note in "Current Position" below.
   total_phases: 11
-  completed_phases: 4            # phases with an [x] header: 1, 2, 4, 5 (3 still walk-gated)
+  completed_phases: 5            # phases with an [x] header: 1, 2, 4, 5, 6 (3 still walk-gated)
   total_plans: 36               # PLAN files across phases 2-6
-  completed_plans: 35           # SUMMARY files across phases 2-6 (was 31 — Phase 06 counted 1, is 5)
-  percent: 97                   # plan-based: 35/36. (Phase-based 4/11 = 36% if you prefer that metric.)
+  completed_plans: 36           # SUMMARY files across phases 2-6 (Phase 06 now 6/6 — 06-06 closed 2026-07-23)
+  percent: 100                  # plan-based: 36/36 for phases 2-6. (Phase-based 5/11 = 45% if you prefer that metric.)
 ---
 
 # Project State
@@ -44,14 +46,16 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
 > The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
-> - **Official track:** Phase 06 (Onboarding) — **5/6 plans complete**; **06-06 (closeout) is next.**
+> - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Next planned: Phase 07 (Token screens), not yet planned.
 > - **Redesign track:** Phases 12-17 landed in parallel. Committed status: 12 (5/6), 13 (2/5),
 >   15 (5/6, walk pending), **16 Markets + 17 News shipped** (`aa78eec` / `651541c`, walks pending);
 >   14 is design-only (unplanned). See ROADMAP Phases 12-17 for detail.
 
-Phase: 06 (onboarding) — IN PROGRESS (**5/6 plans complete**)
-Plan: 06-01..06-05 CLOSED. **06-06 (phase closeout: seed-safety gate + fresh-install end-to-end
-walk of both flows) is next.** Historical note preserved below records the 06-01 walk detail.
+Phase: 06 (onboarding) — **COMPLETE (6/6 plans, closed 2026-07-23).**
+Plan: 06-01..06-06 all CLOSED. 06-06 shipped the §3 seed-safety gate + 5 gap todos, and the
+fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
+no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
+screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
 Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
@@ -97,7 +101,7 @@ Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases 
 Last activity: 2026-07-21 — 06-01 closed (walked & approved); mesh kept after a live light-mode
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [███████████████████░] 35/36 plans (97%) — official track, phases 2-6
+Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
 
 ## Accumulated Context
 
@@ -293,10 +297,10 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: None — 06-01..06-05 all CLOSED (see their SUMMARYs). **Next up is 06-06-PLAN.md**
-(phase closeout: the seed-safety gate over the finished tree + the fresh-install end-to-end walk of
-BOTH onboarding flows, no mock injectors). The `space8`-outside-`ConstrainedBox` gutter pattern was
-applied across 06-02..06-05 as planned. The chart-zoom-pan-row
+Resume file: None — **Phase 06 CLOSED 6/6 (2026-07-23), all four ROADMAP criteria PASS** (see
+`06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
+(or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
+06-02..06-05 as planned. The chart-zoom-pan-row
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
 Phase 06.
 
