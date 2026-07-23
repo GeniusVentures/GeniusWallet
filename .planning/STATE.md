@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 06
 current_phase_name: onboarding
 status: executing
-stopped_at: Phase 07 UI-SPEC approved (6/6)
-last_updated: "2026-07-23T18:41:13.558Z"
+stopped_at: Phase 07 planned — 3 plans, checker-approved; ready to execute
+last_updated: "2026-07-23T19:05:43.663Z"
 last_activity: 2026-07-21
 last_activity_desc: 06-01 closed (walked & approved); mesh kept after a live light-mode
 progress:
   total_phases: 17
   completed_phases: 5
-  total_plans: 53
+  total_plans: 56
   completed_plans: 48
   percent: 29
 ---
@@ -251,12 +251,12 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-23T18:41:13.548Z
+Last session: 2026-07-23T19:05:43.653Z
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
 below is the preserved 06-01 historical narrative; read it for context, not for the next step.
 
 --- 06-01 historical detail (2026-07-21) ---
-Stopped at: Phase 07 UI-SPEC approved (6/6)
+Stopped at: Phase 07 planned — 3 plans, checker-approved; ready to execute
 `/landing_screen` entry point + both flow shells' AppBar) was re-skinned across two auto tasks
 (`3e1f432`, `b9c565f`), then Task 3's blocking human-verify checkpoint was run on a genuine
 fresh-install profile (all four persistence layers cleared — took four attempts; see
@@ -282,7 +282,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: .planning/phases/07-token-screens/07-UI-SPEC.md
+Resume file: .planning/phases/07-token-screens/07-01-PLAN.md
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
