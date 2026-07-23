@@ -10,6 +10,8 @@ tags: [ffi, progress, splash, sgns-sdk]
 
 # Spike 002: Init Progress Polling
 
+> NOTE (2026-07-23): the later 9.6 s / 52.5%-stall / 141 ms-data-ready figures cited by sketch 015 and Phase 13 come from a subsequent 40 s / 161-poll cold-start trace, NOT from this spike. This spike measured ~8.2 s freeze; the 52.5% stall curve was UNMEASURED here (see spike 002). Treat the Phase-13 trace as authoritative for those three numbers.
+
 ## What This Validates
 
 **Given** `GeniusSDKInitWithMnemonic` running in a spawned isolate,

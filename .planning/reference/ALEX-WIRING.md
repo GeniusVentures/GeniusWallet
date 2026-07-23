@@ -10,7 +10,7 @@ grep -rn "WIRE-" lib/
 Each `WIRE-N` below maps 1:1 to that marker and gives you the **exact seam** to call, the
 **prerequisites**, and whether it is mechanical wiring or a decision you must make.
 
-Read `REVIEW_FINDINGS.md` first for the safety context. This file is the task list.
+Read `REVIEW_FINDINGS_REDESIGN.md` first for the safety context. This file is the task list.
 
 **Legend** · 🔌 mechanical (drop in the real call/source) · ⚖️ decision (needs a product / locale /
 per-chain choice, not just a call) · 💰 touches money — validate before shipping.
@@ -20,7 +20,7 @@ per-chain choice, not just a call) · 💰 touches money — validate before shi
 ## Already handled in this prep pass (so you don't have to)
 
 - ✅ **Swap no longer fabricates/persists a fake completed transaction** — it is now an honest
-  `(demo)` like Send/Buy (`lib/squid_router/swap_screen.dart`). See `REVIEW_FINDINGS.md §B1`.
+  `(demo)` like Send/Buy (`lib/squid_router/swap_screen.dart`). See `REVIEW_FINDINGS_REDESIGN.md` finding [21] (the swap-submit demo deviation).
 - ✅ **QR address parsing fixed for EIP-681 token-transfer URIs** — `extractWalletAddress`
   (`lib/components/qr_scanner/gw_qr_scanner.dart`) now returns the `?address=` payee, not the token
   contract.
@@ -85,7 +85,7 @@ per-chain choice, not just a call) · 💰 touches money — validate before shi
   and `GWCurrency.code` as the fiat. Also point the **token picker** at the on-ramp's
   purchasable-token catalogue (you can buy tokens you don't yet hold), not the wallet's coins.
 - **Note:** the `dev_logsubmissions` rebase **deletes/refactors several `lib/banxa/*` files** —
-  reconcile that first (`REVIEW_FINDINGS.md §A1`).
+  reconcile that first (`REVIEW_FINDINGS_REDESIGN.md` — see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
 
 ### 🔌 WIRE-6 — Buy live quote
 - **Where:** `lib/tokens/buy_screen.dart` review row (~L290), `Quote: Shown at checkout`.
@@ -126,19 +126,19 @@ per-chain choice, not just a call) · 💰 touches money — validate before shi
 
 ---
 
-## Not "wiring" but required before production (see REVIEW_FINDINGS.md)
+## Not "wiring" but required before production (see REVIEW_FINDINGS_REDESIGN.md)
 
 These are environment/config, not code seams — they won't show up under `grep WIRE-`:
 
 - **Camera permission** (iOS/macOS `NSCameraUsageDescription` + macOS entitlement) — the scanner
-  can't open without it. `REVIEW_FINDINGS.md §A3`.
+  can't open without it. `REVIEW_FINDINGS_REDESIGN.md` (see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
 - **`build_runner`** — `dart run build_runner build --delete-conflicting-outputs` to generate
-  `token_model.g.dart`, else `flutter analyze`/`test` stay red. `§C6`.
+  `token_model.g.dart`, else `flutter analyze`/`test` stay red. (see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
 - **Secrets → env** — rotate + move the hardcoded Banxa key (also the HMAC secret) and WC
-  `projectId` out of source. `§C4`.
-- **`WALLET_PK`** — never ship it; it is the real signing key. `§C1`.
-- **Sentry PII / log scrubbing** before any store release. `§C3`.
-- **Rebase** onto current `dev_logsubmissions` (now +96 commits, conflicts — incl. Banxa). `§A1`.
+  `projectId` out of source. (see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
+- **`WALLET_PK`** — never ship it; it is the real signing key. (see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
+- **Sentry PII / log scrubbing** before any store release. (see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
+- **Rebase** onto current `dev_logsubmissions` (now +96 commits, conflicts — incl. Banxa). (see the numbered findings [1]-[37]; the old §A/§B scheme no longer exists).
 
 ## Suggested order
 1. `build_runner` + rebase (unblocks analyze/test and the Banxa files WIRE-5 depends on).
