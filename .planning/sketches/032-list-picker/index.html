@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 032 — List Picker · Round 2 (A fine-tunes)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+
+  /* ---- variant tab bar (verbatim from 030) ---- */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong);
+    transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary);
+    border-color: var(--brand-primary); }
+  .variant-tab.baseline { color: var(--text-secondary); }
+
+  /* ---- stage: dimmed app behind + right-edge panel (verbatim from 030) ---- */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .app-bg { position: absolute; inset: 0; background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(20,200,255,0.05), transparent 60%),
+      var(--surface-base); }
+  .app-bg .col { position: absolute; top: 24px; bottom: 24px; border-radius: var(--radius-lg);
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); opacity: .5; }
+  .app-bg .c1 { left: 24px; width: 22%; }
+  .app-bg .c2 { left: calc(24px + 23%); width: 34%; }
+  .app-bg .c3 { left: calc(24px + 58%); width: 18%; }
+  .scrim { position: absolute; inset: 0; background: var(--surface-overlay, rgba(0,0,0,.6)); }
+
+  /* ============ THE PANEL — 030 B1 "Quiet band" shell, verbatim ============ */
+  .panel { position: absolute; top: 0; bottom: 0; right: 0; width: var(--drawer-width);
+    background: var(--surface-menu); display: flex; flex-direction: column;
+    box-shadow: -24px 0 60px rgba(0,0,0,0.45); }
+
+  /* header — B1 quiet band: LEFT title, close ✕ top-right, subtle brand-tint hairline */
+  .p-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    padding: 0 12px 0 20px; height: 60px; position: relative;
+    border-bottom: 1px solid var(--border-subtle); }
+  .p-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px;
+    height: 1px; background: var(--brand-primary-subtle); }
+  .p-title { color: var(--text-primary); font: 600 18px/24px var(--font); }
+  .p-close { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70); transition: all .15s ease;
+    flex: none; }
+  .p-close:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .p-close svg { width: 18px; height: 18px; }
+
+  /* list picker has NO footer — rows fill the body. Tighter top pad, full-bleed sides. */
+  .p-body { flex: 1; overflow-y: auto; padding: 8px 20px 20px; }
+  .list { display: flex; flex-direction: column; }
+
+  /* ---- shared list-row primitives ---- */
+  .avatar { border-radius: 50%; flex: none; display: grid; place-items: center;
+    font-weight: 700; color: #000B18; }
+  .av36 { width: 36px; height: 36px; font-size: 13px; }
+  .av28 { width: 28px; height: 28px; font-size: 11px; }
+  .avatar.ring { box-shadow: 0 0 0 1px var(--border-strong); }
+  .txt { flex: 1; min-width: 0; }
+  .txt .r-sym { margin-top: 1px; }
+  .r-name { color: var(--text-primary); }
+  .r-sym { color: var(--text-secondary); }
+  .r-check { width: 22px; height: 22px; flex: none; color: var(--brand-primary);
+    display: grid; place-items: center; opacity: 0; transition: opacity .15s ease; }
+  .r-check svg { width: 20px; height: 20px; }
+
+  /* ================= A1 · COMFORTABLE ================= */
+  /* 64px rows · full-bleed hairline dividers · 36px coin dot · selected = brand-subtle fill + check */
+  .A1 .p-body { padding: 8px 0 20px; }
+  .a1-row { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 20px;
+    cursor: pointer; transition: background .12s ease; }
+  .a1-row + .a1-row { border-top: 1px solid var(--border-subtle); }
+  .a1-row:hover { background: var(--surface-elevated); }
+  .a1-row.sel { background: var(--brand-primary-subtle); }
+  .a1-row.sel .r-check { opacity: 1; }
+
+  /* ================= A2 · COMPACT + LEADING BAR ================= */
+  /* 52px rows · inset dividers (after avatar) · one-line name+symbol · selected = 3px brand bar + check, no fill */
+  .A2 .p-body { padding: 8px 0 20px; }
+  .a2-row { position: relative; display: flex; align-items: center; gap: 12px; height: 52px;
+    padding: 0 16px; cursor: pointer; transition: background .12s ease; }
+  .a2-row:not(:last-child)::after { content: ""; position: absolute; left: 56px; right: 0;
+    bottom: 0; height: 1px; background: var(--border-subtle); }
+  .a2-row:hover { background: var(--surface-elevated); }
+  .a2-row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--brand-primary); }
+  .a2-row.sel .r-check { opacity: 1; }
+  .a2-txt { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+  .a2-txt .r-sym { margin-left: auto; padding-left: 8px; }
+
+  /* ================= A3 · AIRY, NO DIVIDERS ================= */
+  /* 64px rows separated by whitespace · avatar 1px ring · selected = brand-subtle pill + brand ring + check */
+  .A3 .p-body { padding: 8px 12px 20px; }
+  .A3 .list { gap: 6px; }
+  .a3-row { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 14px;
+    cursor: pointer; border-radius: var(--radius-lg);
+    transition: background .12s ease, box-shadow .12s ease; }
+  .a3-row:hover { background: var(--surface-elevated); }
+  .a3-row.sel { background: var(--brand-primary-subtle);
+    box-shadow: 0 0 0 1px var(--brand-primary) inset; }
+  .a3-row.sel .r-check { opacity: 1; }
+
+  /* ================= BASELINE · CHOSEN A (round-1) ================= */
+  .BASE .p-body { padding: 8px 20px 20px; }
+  .base-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; cursor: pointer;
+    border-radius: var(--radius-md); transition: background .12s ease; }
+  .base-row + .base-row { border-top: 1px solid var(--border-subtle); }
+  .base-row:hover { background: var(--surface-elevated); }
+  .base-row.sel { background: var(--brand-primary-subtle); }
+  .base-row.sel .r-check { opacity: 1; }
+
+  .variant { display: none; }
+  .variant.active { display: block; }
+
+  /* annotation callouts (style from 030) */
+  .note { position: absolute; z-index: 40; font: 500 11px var(--font); color: var(--brand-primary);
+    background: rgba(20,200,255,0.10); border: 1px solid var(--brand-primary-muted);
+    border-radius: 8px; padding: 5px 9px; max-width: 214px; line-height: 1.4; pointer-events: none; }
+
+  /* toolbar (verbatim from 030) */
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font);
+    background: rgba(0,0,0,.72); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .45;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff;
+    border: 1px solid #444; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="variant-nav">
+  <span class="brand">032 · LIST · R2</span>
+  <button class="variant-tab active" onclick="show('A1',this)">A1 · Comfortable</button>
+  <button class="variant-tab" onclick="show('A2',this)">A2 · Compact + bar</button>
+  <button class="variant-tab" onclick="show('A3',this)">A3 · Airy</button>
+  <span class="sep"></span>
+  <button class="variant-tab baseline" onclick="show('BASE',this)">baseline · chosen A</button>
+</div>
+
+<!-- template stamped into each variant by JS to keep shell chrome identical -->
+<template id="tpl">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="panel">
+      <div class="p-head">
+        <div class="p-title">Select Network</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body"><div class="list"></div></div>
+    </div>
+  </div>
+</template>
+
+<div class="variant active" id="v-A1"></div>
+<div class="variant" id="v-A2"></div>
+<div class="variant" id="v-A3"></div>
+<div class="variant" id="v-BASE"></div>
+
+<div id="tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">Dark</option><option value="light">Light</option>
+    </select>
+  </label>
+</div>
+
+<div id="toast" style="position:fixed;bottom:70px;right:16px;z-index:120;background:var(--surface-elevated);
+  border:1px solid var(--border-subtle);border-left:3px solid var(--brand-primary);border-radius:10px;
+  padding:12px 16px;color:var(--text-primary);font:500 13px var(--font);box-shadow:var(--shadow-card);
+  transform:translateX(140%);transition:transform .25s ease;">Selected</div>
+
+<script>
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  // Real networks (backed by chainId in code) — solid coin-dot avatar, letter inside.
+  const NETS = [
+    { name: 'Ethereum',  sym: 'ETH',   color: '#627EEA' },
+    { name: 'Bitcoin',   sym: 'BTC',   color: '#F7931A' },
+    { name: 'Solana',    sym: 'SOL',   color: '#14F195' },
+    { name: 'BNB Chain', sym: 'BNB',   color: '#F3BA2F' },
+    { name: 'Polygon',   sym: 'MATIC', color: '#8247E5' },
+    { name: 'GNUS',      sym: 'GNUS',  color: 'var(--brand-primary)' },
+  ];
+  const SELECTED = 'ETH';   // Ethereum selected by default (chainId 1 in the real code)
+
+  const av = (n, cls) => `<div class="avatar ${cls}" style="background:${n.color}">${n.sym[0]}</div>`;
+
+  // per-variant row markup — the shell is identical, only the row density/marks differ
+  function rowHTML(v, n) {
+    const sel = n.sym === SELECTED ? ' sel' : '';
+    if (v === 'A1') return `
+      <div class="a1-row${sel}" onclick="pick(this,'${n.name}')">
+        ${av(n,'av36')}
+        <div class="txt"><div class="r-name t-title-md">${n.name}</div><div class="r-sym t-body-sm">${n.sym}</div></div>
+        <div class="r-check">${CHECK}</div>
+      </div>`;
+    if (v === 'A2') return `
+      <div class="a2-row${sel}" onclick="pick(this,'${n.name}')">
+        ${av(n,'av28')}
+        <div class="a2-txt"><span class="r-name t-title-md">${n.name}</span><span class="r-sym t-body-sm">${n.sym}</span></div>
+        <div class="r-check">${CHECK}</div>
+      </div>`;
+    if (v === 'A3') return `
+      <div class="a3-row${sel}" onclick="pick(this,'${n.name}')">
+        ${av(n,'av36 ring')}
+        <div class="txt"><div class="r-name t-title-md">${n.name}</div><div class="r-sym t-body-sm">${n.sym}</div></div>
+        <div class="r-check">${CHECK}</div>
+      </div>`;
+    return `
+      <div class="base-row${sel}" onclick="pick(this,'${n.name}')">
+        ${av(n,'av36')}
+        <div class="txt"><div class="r-name t-title-md">${n.name}</div><div class="r-sym t-body-sm">${n.sym}</div></div>
+        <div class="r-check">${CHECK}</div>
+      </div>`;
+  }
+
+  const NOTES = {
+    A1: [
+      ['top:118px;right:470px', '64px rows · full-bleed hairline dividers · 36px coin dot. Selected row fills brand-subtle with a trailing check.'],
+      ['bottom:118px;right:470px', 'Hover lifts the row to the elevated surface. The polished round-1 plain list.'],
+    ],
+    A2: [
+      ['top:118px;right:470px', '52px compact rows · inset dividers start after the avatar · name + symbol on one line, symbol muted & right-aligned.'],
+      ['bottom:118px;right:470px', 'Selected = a 3px brand leading bar + check, no fill. Densest — scales to a long token list.'],
+    ],
+    A3: [
+      ['top:118px;right:470px', '64px rows, whitespace only — no hairlines. Each avatar carries a 1px ring.'],
+      ['bottom:118px;right:470px', 'Selected row becomes a brand-subtle pill with a brand ring + check. The calmest of the three.'],
+    ],
+    BASE: [
+      ['top:118px;right:470px', 'Round-1 chosen A, for comparison — hairline dividers, brand-subtle selected fill.'],
+    ],
+  };
+
+  const tpl = document.getElementById('tpl');
+  function build(id) {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector('.panel').classList.add(id);
+    node.querySelector('.list').innerHTML = NETS.map(n => rowHTML(id, n)).join('');
+    (NOTES[id] || []).forEach(([style, text]) => {
+      const nt = document.createElement('div'); nt.className = 'note';
+      nt.style.cssText = style; nt.textContent = text;
+      node.querySelector('.stage').appendChild(nt);
+    });
+    document.getElementById('v-' + id).appendChild(node);
+  }
+  ['A1','A2','A3','BASE'].forEach(build);
+
+  // selection: move highlight + check within the tapped list, then confirm
+  function pick(el, name) {
+    el.closest('.list').querySelectorAll('.sel').forEach(r => r.classList.remove('sel'));
+    el.classList.add('sel');
+    toast(name + ' selected');
+  }
+
+  function show(id, btn) {
+    document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+    document.getElementById('v-' + id).classList.add('active');
+    document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  let t;
+  function toast(msg) { const el = document.getElementById('toast'); if (msg) el.textContent = msg;
+    el.style.transform = 'translateX(0)';
+    clearTimeout(t); t = setTimeout(() => el.style.transform = 'translateX(140%)', 1600); }
+  function close_() {
+    const p = document.querySelector('.variant.active .panel');
+    p.style.transition = 'transform .28s ease, opacity .28s ease';
+    p.style.transform = 'translateX(110%)'; p.style.opacity = '0';
+    setTimeout(() => { p.style.transform = ''; p.style.opacity = '1'; }, 900);
+  }
+</script>
+</body>
+</html>

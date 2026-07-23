@@ -531,11 +531,13 @@ Phase 13 — the boot gate and this card do not touch the same code.
 - **Layout: 016-B2 · Twin tiles.** Balance tile and Compute tile as siblings of equal rank inside
   the existing card; CTA on the card floor below both. Replaces the centred six-widget stack in
   `wallet_overview.dart:108-190`, which has no section title unlike every other dashboard panel.
+
 - **Status: 017-A · Dot + label.** One component replaces the two stacked status widgets
   (`SGNUSConnectionWidget` + `SGNUSConnectionStatusWidget`). A ring is explicitly rejected here:
   its grammar is "this will fill up", which is why the shipped UI cannot render *stalled* or
   *unavailable* without lying. The ring survives only in the 56px `GWAiFab` (design-branch
   component, unported), under the rule **no live percentage → no ring**.
+
 - **Job flow: 018-A · Drawer with vertical steps.** `ResponsiveDrawer` — a 420px right-edge panel
   on desktop, a bottom sheet on mobile. Completed steps collapse to a one-line summary and stay on
   screen, because step 3 asks the user to confirm spending money decided in step 2. `/submit_job`
@@ -553,15 +555,19 @@ out of scope — it needs a mint/job-reward aggregate no current API exposes.
 1. **The 52.5% lie.** `sgnus_connection_widget.dart:85` draws a determinate ring from
    `getInitializationStatus()`. Measured over 161 polls / 40s: it reaches `0.525` and never moves
    again. Needs a **stall detector** — same percentage across N consecutive polls flips the state.
+
 2. **The silent death.** `app_bloc.dart:193-196` cancels `_processingTimer` **permanently** on any
    exception and emits `isProcessing:false`. Nothing restarts it, so a dead feed is pixel-identical
    to a healthy idle node. Needs a **`RetryProcessingStatus` event** that re-arms the timer, plus a
    state flag separating "unavailable" from "idle".
+
 3. **The vanishing button.** `submit_job_dashboard_button.dart:25` returns `SizedBox.shrink()` when
    the selected wallet is not the SGNUS-linked one — the section's primary action disappears with no
    explanation. It already holds both addresses and discards the information.
+
 4. **Zero balance painted as failure.** `wallet_overview.dart:141-147` renders `'No funds available'`
    in `statusError` red, against this milestone's guiding principle.
+
 5. **Hardcoded `Colors.white`.** `genius_balance_display.dart:80` — the 48px balance is a literal,
    not `gw.textPrimary`, so it vanishes in light mode.
 
@@ -571,10 +577,12 @@ out of scope — it needs a mint/job-reward aggregate no current API exposes.
   (`AccountDropdownSelector._showAccountDrawer()` → `ResponsiveDrawer<Wallet>` → `selectWallet()`)
   but is **private** and mounted only in the top-bar action row (`responsive_overlay.dart:103`).
   Extract a public `AccountDrawer.show(context)`. Small, no new UI.
+
 - `View transaction ›` — `showTransactionDetails()` exists
   (`transaction_displays.dart:316`); what is missing is the **association** between a finished job
   and the mint transaction it produced. If the correlation proves expensive, drop this link rather
   than growing the block — see the height budget.
+
 - `Node ›` / `see node status ›` → `/network` (`router.dart:188`), already live. The page is raw
   `ListTile`s with `Colors.green`/`Colors.red`; re-skinning it is **out of scope here** and belongs
   to a follow-up sketch (next free number — 019 is `dashboard-separators`, 022 is the current high
@@ -618,12 +626,15 @@ and `transaction_utils.dart`, and **amends** 12-02's amount rules). Phase 5 for 
    `GeniusBreakpoints.medium` (768) because it is a *panel*; `transactions_screen.dart:26` wraps it
    in a `Center`. On a 2000px window that is a 736px column with ~630px dead on each side. The
    sibling tab `markets_screen.dart:70` caps at `xxl` (1536) and scales with width.
+
 2. **A panel title doing a page title's job.** `transactions_slim_view.dart:192` uses
    `GWSectionTitle` (18px, shared 44px min-height). Every other full page —
    `markets_screen.dart:73`, `crypto_news_screen.dart:50`, `swap_screen.dart:228` — uses
    `GWPageHeader` (24px `headlineLg`).
+
 3. **No surface.** The dashboard wraps the identical widget in `DashboardScrollContainer`
    (`dashboard_screen.dart:322`); the tab wraps it in nothing, so rows hang on `surface-base`.
+
 4. **Empty block pinned to the midpoint.** `gw_empty_state.dart:129` returns a `Center` and both
    call sites hand it an `Expanded` (`transactions_slim_view.dart:208`). In a ~1400px slot the icon
    lands 700px down, below the fold.
@@ -637,6 +648,7 @@ controls offering to filter nothing. The branch that knows this already exists (
   `DashboardScrollContainer`. The `⋯` overflow menu exists only because a 376px panel cannot show
   nine filters — a page can, so the rail **is** that menu unrolled. **The panel keeps its chips**;
   the rail is page-only. One genuinely new row: `All`, which also absorbs the footer's total count.
+
 - **Rail states — all three traced, none invented.** Rest = `_menuItem` geometry byte for byte
   (`transactions_slim_view.dart:498-551`): glyph `textSecondary` 14px, label `labelMd` 13/w500, count
   `numericBody` 13px tabular, row 40px, pad `space6`. Hover = the sketch-008 "lift chip"
@@ -646,11 +658,13 @@ controls offering to filter nothing. The branch that knows this already exists (
   at `:525`). Sketch 020's `brand-fill` background was invented and is rejected; so are a gradient
   count (the counts are computed over the *unfiltered* list on purpose, so they never move) and a
   gradient wash (~1.3:1, under the 3:1 WCAG 1.4.11 wants, and it collides with the hover fill).
+
 - **Empty state: 021-c · bounded centre.** `ConstrainedBox(maxHeight: 480)` under
   `Alignment.topCenter`, replacing the bare `Center`. A rule, not a hand-picked offset: in a short
   panel it behaves exactly as today, so nothing regresses; in a 1400px panel it settles ~240px from
   the top instead of 700. **Shared component — Assets and Markets get the same fix.** No action
   buttons. Icon → `Icons.sync_alt`.
+
 - **Filter control hidden entirely when `scoped.isEmpty`** — page rail *and* panel chips.
 - **Amounts — amends 12-02 deliberately.** `transaction_utils.dart:356-366` gives both a failed
   transaction and a processing job `amount = '—'`, demoting the real number to the small grey line.
@@ -688,3 +702,25 @@ commented-out `test/local_wallet_storage_test.dart`.
 pull-to-refresh — and `_panel`'s title row overflows below 413px, which is pre-existing and which
 this phase made 8px *better*, not worse. Also for your eye: the B2 underline tracks the word, so its
 width ranges **39.75 → 119.25px** across the labels.
+
+### Phase 16: Markets page redesign - H1 native-token hero over sortable All Markets table (sketch 103)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 16 to break down)
+
+### Phase 17: News page redesign - B2 Hero + Next up band, photo grid, hoverLift cards (sketches 100-102)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 16
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 17 to break down)

@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>103 · Markets page — structure & data density</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1500px; margin:0 auto; }
+
+  /* ---- sketch chrome ---- */
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 14px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .tabs { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; }
+  .tabs button { font:500 13px/18px var(--font); padding:6px 14px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .tabs button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:1040px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.reuse { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  /* ---- fake app window ---- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:46px; padding:0 var(--space-8);
+            background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 13px/16px var(--font); color:var(--text-secondary); }
+  .navbar .logo { width:20px; height:20px; border-radius:6px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-14px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .spacer { margin-left:auto; }
+  .navbar .chip { padding:5px 10px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .navbar .cta { padding:6px 12px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); }
+
+  .stage { padding:var(--space-8) var(--space-8) var(--space-12); }
+
+  /* ---- page header (GWPageHeader) ---- */
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-8); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+  .iconbtn { width:36px; height:36px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; }
+  .searchfield { display:flex; align-items:center; gap:var(--space-4); height:36px; padding:0 var(--space-6); min-width:240px;
+                 border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); font:400 13px/18px var(--font); }
+  .searchfield svg { width:15px; height:15px; flex:none; }
+
+  /* ---- token identity bits (shared) ---- */
+  .icn { border-radius:50%; flex:none; display:grid; place-items:center; font:800 11px/1 var(--font); color:#fff; letter-spacing:-.2px; }
+  .up { color:var(--status-success); }
+  .down { color:var(--status-error); }
+  .pill { display:inline-flex; align-items:center; padding:2px 7px; border-radius:8px; font:600 12px/16px var(--font); font-variant-numeric:tabular-nums; }
+  .pill.up { background:var(--status-success-fill); color:var(--status-success); }
+  .pill.down { background:var(--status-error-fill); color:var(--status-error); }
+  .mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+  /* card surface = GWDecorations.surface */
+  .surf { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); }
+
+  /* ============ A · faithful grid+ ============ */
+  .grid { display:grid; gap:var(--space-8); }
+  .grid.c4 { grid-template-columns:repeat(4,1fr); }
+  .grid.c3 { grid-template-columns:repeat(3,1fr); }
+  .mcard { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-8); min-height:80px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
+  .mcard:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,.28); }
+  .mcard .icn { width:34px; height:34px; }
+  .mcard .id { min-width:0; }
+  .mcard .id .nm { font:500 16px/22px var(--font); color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mcard .id .meta { font:400 12px/16px var(--font); color:var(--text-secondary); white-space:nowrap; margin-top:1px; }
+  .mcard .spark { flex:1; min-width:24px; height:34px; }         /* flexible spark eats the dead centre */
+  .mcard .rt { text-align:right; flex:none; }
+  .mcard .rt .px { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .mcard .rt .pill { margin-top:4px; }
+
+  /* ============ B · ranked table ============ */
+  table.mk { width:100%; border-collapse:collapse; }
+  table.mk th { text-align:right; font:600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary);
+                padding:var(--space-6) var(--space-8); border-bottom:1px solid var(--border-subtle); white-space:nowrap; cursor:pointer; user-select:none; }
+  table.mk th.l { text-align:left; }
+  table.mk th .ar { opacity:.4; font-size:9px; }
+  table.mk th.sorted .ar { opacity:1; color:var(--brand-primary-strong); }
+  [data-theme="dark"] table.mk th.sorted .ar { color:var(--brand-secondary); }
+  table.mk td { padding:var(--space-6) var(--space-8); border-bottom:1px solid var(--border-subtle); text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  table.mk tr { cursor:pointer; }
+  table.mk tbody tr:hover td { background:var(--surface-menu); }
+  table.mk td.rk { color:var(--text-secondary); font:400 13px/18px var(--font-mono); width:44px; }
+  table.mk td.coin { text-align:left; }
+  table.mk .coincell { display:flex; align-items:center; gap:var(--space-6); }
+  table.mk .coincell .icn { width:30px; height:30px; }
+  table.mk .coincell .nm { font:500 15px/20px var(--font); color:var(--text-primary); }
+  table.mk .coincell .tk { font:400 12px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; }
+  table.mk td.px { font:600 15px/20px var(--font); }
+  table.mk td .spark { width:110px; height:32px; display:inline-block; vertical-align:middle; }
+  table.mk .row-featured td { background:var(--brand-fill); }
+
+  /* ============ C · featured + grid ============ */
+  .hero { display:grid; grid-template-columns:minmax(0,1fr) 1.15fr; gap:var(--space-10); padding:var(--space-10); margin-bottom:var(--space-8); }
+  .hero .left .top { display:flex; align-items:center; gap:var(--space-6); }
+  .hero .left .icn { width:48px; height:48px; font-size:15px; }
+  .hero .left .nm { font:600 20px/26px var(--font); }
+  .hero .left .native { display:inline-flex; align-items:center; gap:4px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 8px; border-radius:var(--radius-pill);
+                        background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .hero .left .native { color:var(--brand-secondary); }
+  .hero .left .px { font:600 40px/48px var(--font); font-variant-numeric:tabular-nums; margin-top:var(--space-8); letter-spacing:-1px; }
+  .hero .left .sub { display:flex; align-items:center; gap:var(--space-6); margin-top:var(--space-4); }
+  .hero .left .sub .d { font:500 14px/20px var(--font); }
+  .hero .stats { display:flex; gap:var(--space-12); margin-top:var(--space-10); flex-wrap:wrap; }
+  .hero .stats .s .k { font:600 10px/14px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .hero .stats .s .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; margin-top:3px; }
+  .hero .chart { align-self:stretch; min-height:180px; }
+  .sechead { display:flex; align-items:center; margin:var(--space-8) 0 var(--space-6); }
+  .sechead .t { font:600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .sechead .rule { flex:1; height:1px; background:var(--border-subtle); margin-left:var(--space-6); }
+
+  /* ---- E/F synthesis: compact hero band ---- */
+  .heroband { display:flex; align-items:center; gap:var(--space-10); padding:var(--space-8) var(--space-10); margin-bottom:var(--space-8); }
+  .heroband .idblk { display:flex; align-items:center; gap:var(--space-6); flex:none; }
+  .heroband .icn { width:44px; height:44px; font-size:14px; }
+  .heroband .nm { font:600 18px/24px var(--font); }
+  .heroband .native { display:inline-flex; align-items:center; gap:4px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:3px 7px; border-radius:var(--radius-pill); background:var(--brand-fill); color:var(--brand-primary-strong); margin-top:4px; }
+  [data-theme="dark"] .heroband .native { color:var(--brand-secondary); }
+  .heroband .pxblk { flex:none; }
+  .heroband .pxblk .px { font:600 30px/34px var(--font); font-variant-numeric:tabular-nums; letter-spacing:-.6px; }
+  .heroband .pxblk .sub { display:flex; align-items:center; gap:var(--space-4); margin-top:4px; }
+  .heroband .chart { flex:1; min-width:80px; height:64px; }
+  .heroband .stats { display:flex; gap:var(--space-10); flex:none; }
+  .heroband .stats .k { font:600 10px/14px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .heroband .stats .v { font:600 14px/19px var(--font); font-variant-numeric:tabular-nums; margin-top:3px; }
+  .heroband .divider { width:1px; align-self:stretch; background:var(--border-subtle); }
+  @media (max-width:1100px){ .heroband{flex-wrap:wrap;} .heroband .chart{order:5;width:100%;flex-basis:100%;} }
+
+  /* ===== E2 · Signal Mesh Hero (always-dark brand moment) ===== */
+  .emesh { position:relative; overflow:hidden; padding:0; margin-bottom:var(--space-8);
+           border:1px solid rgba(255,255,255,.10); border-radius:var(--radius-lg); background:#0B0D12; color:#fff;
+           box-shadow:0 10px 40px rgba(10,174,230,.18); }
+  .emesh .mesh { position:absolute; inset:0;
+    background:
+      radial-gradient(62% 95% at 10% 6%, rgba(10,174,230,.55), transparent 62%),
+      radial-gradient(55% 90% at 88% 12%, rgba(43,245,180,.40), transparent 60%),
+      radial-gradient(75% 95% at 62% 118%, rgba(194,143,255,.32), transparent 62%),
+      #0B0D12; }
+  .emesh .scrim { position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,13,18,.30) 0%, rgba(11,13,18,.55) 55%, rgba(11,13,18,.80) 100%); }
+  .emesh .content { position:relative; padding:var(--space-10); display:flex; flex-direction:column; gap:var(--space-8); }
+  .emesh .r1 { display:flex; align-items:center; gap:var(--space-6); }
+  .emesh .icn { width:52px; height:52px; font-size:15px; box-shadow:0 0 0 4px rgba(43,245,180,.14), 0 0 34px rgba(20,200,255,.45); }
+  .emesh .nm { font:600 20px/26px var(--font); }
+  .emesh .native { display:inline-flex; align-items:center; gap:4px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+                   padding:4px 8px; border-radius:var(--radius-pill); background:rgba(43,245,180,.14); color:#2BF5B4; margin-top:5px; }
+  .emesh .statchips { margin-left:auto; display:flex; gap:var(--space-6); }
+  .emesh .statchips .c { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.10); border-radius:var(--radius-sm); padding:6px 11px; }
+  .emesh .statchips .k { font:600 9px/1 var(--font); text-transform:uppercase; letter-spacing:.5px; color:rgba(255,255,255,.55); }
+  .emesh .statchips .v { font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; margin-top:3px; }
+  .emesh .pxrow { display:flex; align-items:baseline; gap:var(--space-6); flex-wrap:wrap; }
+  .emesh .px { font:700 48px/1 var(--font); font-variant-numeric:tabular-nums; letter-spacing:-1.6px; }
+  .emesh .pill.down { background:rgba(255,77,77,.18); color:#FF6B6B; }
+  .emesh .pill.up { background:rgba(10,216,156,.18); color:#2BF5B4; }
+  .emesh .chg { font:500 15px/20px var(--font); }
+  .emesh .chg.down { color:#FF8A8A; } .emesh .chg.up { color:#2BF5B4; }
+  .emesh .rangetrack { display:flex; align-items:center; gap:var(--space-6); font:500 12px/16px var(--font); color:rgba(255,255,255,.7); font-variant-numeric:tabular-nums; }
+  .emesh .rangetrack .bar { position:relative; flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,.12); }
+  .emesh .rangetrack .bar .mk { position:absolute; top:50%; width:13px; height:13px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); box-shadow:0 0 10px rgba(255,255,255,.7); }
+  .emesh .chartwrap { position:relative; height:130px; margin:var(--space-2) calc(-1*var(--space-10)) calc(-1*var(--space-10)); }
+  .emesh .chartwrap svg { width:100%; height:100%; display:block; }
+  .emesh .dot { position:absolute; width:12px; height:12px; border-radius:50%; background:#2BF5B4; transform:translate(50%,-50%); animation:pulse 1.9s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(43,245,180,.5)} 70%{box-shadow:0 0 0 13px rgba(43,245,180,0)} 100%{box-shadow:0 0 0 0 rgba(43,245,180,0)} }
+
+  /* ===== E3 · Command Rail Hero (editorial, theme-adaptive) ===== */
+  .erail { display:grid; grid-template-columns:minmax(0,1fr) 310px; gap:0; padding:0; margin-bottom:var(--space-8); overflow:hidden; }
+  .erail .main { padding:var(--space-10); display:flex; flex-direction:column; min-height:230px; }
+  .erail .top { display:flex; align-items:center; gap:var(--space-6); }
+  .erail .icn { width:44px; height:44px; }
+  .erail .nm { font:600 18px/24px var(--font); }
+  .erail .native { display:inline-flex; align-items:center; gap:4px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:3px 7px; border-radius:var(--radius-pill); background:var(--brand-fill); color:var(--brand-primary-strong); margin-top:4px; }
+  [data-theme="dark"] .erail .native { color:var(--brand-secondary); }
+  .erail .px { font:700 46px/1 var(--font); font-variant-numeric:tabular-nums; letter-spacing:-1.8px; margin-top:var(--space-8); }
+  .erail .chg { margin-top:var(--space-6); display:flex; gap:var(--space-6); align-items:center; }
+  .erail .chg .d { font:600 14px/20px var(--font); }
+  .erail .chartband { margin-top:auto; height:74px; padding-top:var(--space-6); }
+  .erail .chartband svg { width:100%; height:100%; display:block; }
+  .erail .rail { border-left:1px solid var(--border-subtle); background:var(--surface-menu); padding:var(--space-8); display:flex; flex-direction:column; gap:var(--space-8); justify-content:center; }
+  .erail .stat .head { display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-6); }
+  .erail .stat .k { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+  .erail .stat .v { font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .erail .mbar { margin-top:7px; height:4px; border-radius:2px; background:var(--surface-sunken); position:relative; overflow:hidden; }
+  .erail .mbar > i { position:absolute; left:0; top:0; bottom:0; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .erail .mbar .marker { position:absolute; top:-3px; width:9px; height:9px; border-radius:50%; background:var(--text-primary); transform:translateX(-50%); box-shadow:0 0 0 2px var(--surface-menu); overflow:visible; }
+  @media(max-width:1100px){ .erail{grid-template-columns:1fr;} .erail .rail{border-left:0;border-top:1px solid var(--border-subtle);} .erail .main{min-height:0;} }
+
+  /* ======================= refined heroes: shared bits ======================= */
+  .tfs { display:inline-flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; }
+  .tfs button { border:0; background:transparent; color:var(--text-secondary); font:600 12px/16px var(--font); padding:5px 13px; border-radius:var(--radius-pill); cursor:pointer; }
+  .tfs button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .tfs.ghost { background:rgba(255,255,255,.07); }
+  .tfs.ghost button { color:rgba(255,255,255,.55); }
+  .tfs.ghost button[aria-pressed="true"] { background:rgba(255,255,255,.15); color:#fff; box-shadow:none; }
+  .native-chip { display:inline-flex; align-items:center; gap:4px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 8px; border-radius:var(--radius-pill); background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .native-chip { color:var(--brand-secondary); }
+
+  /* ======================= H1 · Refined split ======================= */
+  .h1 { display:grid; grid-template-columns:minmax(300px,1fr) 1.4fr; gap:var(--space-16); padding:var(--space-16); margin-bottom:var(--space-8); }
+  .h1 .L { display:flex; flex-direction:column; }
+  .h1 .idrow { display:flex; align-items:center; gap:var(--space-6); }
+  .h1 .icn { width:46px; height:46px; font-size:13px; }
+  .h1 .nm { font:600 18px/24px var(--font); }
+  .h1 .price { font:700 56px/1 var(--font); letter-spacing:-2.6px; font-variant-numeric:tabular-nums; margin-top:var(--space-10); }
+  .h1 .chgrow { display:flex; align-items:center; gap:var(--space-6); margin-top:var(--space-8); }
+  .h1 .chgrow .abs { color:var(--text-secondary); font:500 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .h1 .stats { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-10) var(--space-12); margin-top:auto; padding-top:var(--space-12); border-top:1px solid var(--border-subtle); }
+  .h1 .stats .k { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+  .h1 .stats .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; margin-top:3px; }
+  .h1 .R { display:flex; flex-direction:column; min-width:0; }
+  .h1 .chead { display:flex; justify-content:flex-end; margin-bottom:var(--space-6); }
+  .h1 .chart { flex:1; min-height:190px; position:relative; }
+  .h1 .chart svg { width:100%; height:100%; display:block; }
+  .h1 .dot { position:absolute; right:-1px; width:10px; height:10px; border-radius:50%; background:var(--brand-primary-strong); transform:translate(50%,-50%); box-shadow:0 0 0 4px var(--brand-fill); }
+  [data-theme="dark"] .h1 .dot { background:var(--brand-secondary); }
+
+  /* ======================= H2 · Dark glass spotlight ======================= */
+  .h2h { position:relative; overflow:hidden; padding:var(--space-16); margin-bottom:var(--space-8); border-radius:var(--radius-lg); color:#fff;
+         background:radial-gradient(130% 150% at 90% -20%, rgba(20,200,255,.24), transparent 52%), radial-gradient(120% 130% at 105% 120%, rgba(43,245,180,.14), transparent 55%), #0B0D12;
+         border:1px solid rgba(255,255,255,.10); box-shadow:0 24px 70px rgba(0,0,0,.5); }
+  .h2h .top { display:flex; align-items:center; gap:var(--space-6); }
+  .h2h .icn { width:48px; height:48px; font-size:14px; box-shadow:0 0 0 3px rgba(255,255,255,.06), 0 0 30px rgba(20,200,255,.45); }
+  .h2h .nm { font:600 19px/24px var(--font); }
+  .h2h .native-chip { background:rgba(43,245,180,.14); color:#2BF5B4; }
+  .h2h .tfs { margin-left:auto; }
+  .h2h .price { font:700 60px/1 var(--font); letter-spacing:-3px; font-variant-numeric:tabular-nums; margin-top:var(--space-12); }
+  .h2h .chgrow { display:flex; align-items:center; gap:var(--space-6); margin-top:var(--space-8); }
+  .h2h .chgrow .abs { color:rgba(255,255,255,.6); font:500 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .h2h .pill.down { background:rgba(255,77,77,.18); color:#FF6B6B; } .h2h .pill.up { background:rgba(10,216,156,.18); color:#2BF5B4; }
+  .h2h .lohi { display:flex; justify-content:space-between; font:500 11px/16px var(--font); color:rgba(255,255,255,.45); margin-top:var(--space-10); font-variant-numeric:tabular-nums; }
+  .h2h .chart { position:relative; height:150px; margin:var(--space-4) calc(-1*var(--space-16)) calc(-1*var(--space-16)); }
+  .h2h .chart svg { width:100%; height:100%; display:block; }
+  .h2h .dot { position:absolute; right:12px; width:11px; height:11px; border-radius:50%; background:#2BF5B4; transform:translate(0,-50%); box-shadow:0 0 12px rgba(43,245,180,.8); }
+
+  /* ======================= H3 · Editorial tearsheet ======================= */
+  .h3h { padding:var(--space-16) var(--space-16) 0; margin-bottom:var(--space-8); overflow:hidden; }
+  .h3h .eyebrow { font:700 10px/14px var(--font); letter-spacing:1.6px; text-transform:uppercase; color:var(--brand-primary-strong); }
+  [data-theme="dark"] .h3h .eyebrow { color:var(--brand-secondary); }
+  .h3h .toprow { display:flex; align-items:flex-end; gap:var(--space-8); margin-top:var(--space-6); flex-wrap:wrap; }
+  .h3h .nm { display:flex; align-items:center; gap:var(--space-6); font:600 24px/28px var(--font); letter-spacing:-.3px; }
+  .h3h .icn { width:40px; height:40px; font-size:12px; }
+  .h3h .pxcol { margin-left:auto; text-align:right; }
+  .h3h .price { font:700 60px/1 var(--font); letter-spacing:-3px; font-variant-numeric:tabular-nums; }
+  .h3h .chgrow { display:flex; align-items:center; justify-content:flex-end; gap:var(--space-6); margin-top:var(--space-6); }
+  .h3h .chgrow .abs { color:var(--text-secondary); font:500 13px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .h3h .strip { display:flex; margin-top:var(--space-12); border-top:1px solid var(--border-subtle); }
+  .h3h .cell { flex:1; padding:var(--space-8) var(--space-10); border-left:1px solid var(--border-subtle); }
+  .h3h .cell:first-child { border-left:0; padding-left:0; }
+  .h3h .cell .k { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+  .h3h .cell .v { font:600 16px/22px var(--font); font-variant-numeric:tabular-nums; margin-top:4px; }
+  .h3h .ribbon { height:84px; margin:var(--space-10) calc(-1*var(--space-16)) 0; }
+  .h3h .ribbon svg { width:100%; height:100%; display:block; }
+  @media(max-width:1100px){ .h1{grid-template-columns:1fr;} .h3h .strip{flex-wrap:wrap;} .h3h .cell{flex-basis:33%;} }
+
+  /* ============ D · segmented toolbar ============ */
+  .mtoolbar { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .mseg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .mseg button { font:500 13px/18px var(--font); padding:7px 16px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .mseg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .mtoolbar .spacer { margin-left:auto; }
+  .sortsel { height:36px; padding:0 var(--space-6); border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-primary); font:500 13px/18px var(--font); }
+  .empty { padding:var(--space-16); text-align:center; color:var(--text-secondary); font:400 14px/20px var(--font); }
+
+  .pane { display:none; }
+  .pane.on { display:block; }
+  .note { margin-top:var(--space-8); font:400 12px/19px var(--font); color:var(--text-secondary); }
+  .note b { color:var(--text-primary); }
+
+  @media (max-width:1100px){ .grid.c4{grid-template-columns:repeat(2,1fr);} .grid.c3{grid-template-columns:repeat(2,1fr);} .hero{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="toolbar">
+    <h1>103 · Markets page — structure &amp; data density</h1>
+    <div class="tabs" id="tabs">
+      <button data-p="a" aria-pressed="true">A · Grid+</button>
+      <button data-p="b" aria-pressed="false">B · Table</button>
+      <button data-p="c" aria-pressed="false">C · Featured</button>
+      <button data-p="d" aria-pressed="false">D · Segmented</button>
+      <button data-p="e" aria-pressed="false">E · Hero+Table</button>
+      <button data-p="f" aria-pressed="false">F · Band+Table</button>
+      <button data-p="e2" aria-pressed="false">E2 · Mesh</button>
+      <button data-p="e3" aria-pressed="false">E3 · Rail</button>
+      <button data-p="h1" aria-pressed="false">H1 · Split ★</button>
+      <button data-p="h2" aria-pressed="false">H2 · Glass ★</button>
+      <button data-p="h3" aria-pressed="false">H3 · Editorial ★</button>
+    </div>
+    <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div>
+  </div>
+
+  <p class="lede">
+    Same 20 coins, same real tokens, four page structures. Every card is the shipped
+    <code>CryptoSparkLineChart</code> anatomy (icon · name · price · spark · %-chip); the change is what
+    the <b>page</b> does around it and how much of <code>CoinGeckoMarketData</code> it surfaces —
+    all four now add <b>rank + market cap</b>. <span class="tag reuse">reuses existing components</span>
+  </p>
+
+  <!-- ============================== A ============================== -->
+  <div class="pane on" id="pane-a">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="grid c4" id="gridA"></div>
+      </div>
+    </div>
+    <p class="note"><b>A · Faithful grid+.</b> The minimal fix. Keeps today's 4-col card grid but the
+      sparkline is now <b>flexible-width</b> — it stretches to fill the dead centre that made the
+      current page feel empty. Adds a muted <code>#rank · $mktcap</code> line under each name, and
+      promotes the hidden search-drawer icon to a real field in the header. Ships without touching page structure.</p>
+  </div>
+
+  <!-- ============================== B ============================== -->
+  <div class="pane" id="pane-b">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="surf" style="overflow:hidden">
+          <table class="mk" id="tableB">
+            <thead><tr>
+              <th class="l" data-k="rank">#</th>
+              <th class="l" data-k="name">Coin</th>
+              <th data-k="price">Price</th>
+              <th data-k="pct">24h %</th>
+              <th data-k="mktcap" class="sorted">Market Cap <span class="ar">▼</span></th>
+              <th data-k="vol">Volume (24h)</th>
+              <th class="l" style="cursor:default">Last 7d</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>B · Ranked table.</b> Drops the grid for a CoinGecko/CMC-style table — the
+      densest use of the data model: <b>rank, price, 24h%, market cap, volume, 7d spark</b>, with
+      sortable headers (click them). Reuses the table pattern from sketch 023 and the same %-chip.
+      GENIUS AI is tinted to stay findable even when sorted down the list.</p>
+  </div>
+
+  <!-- ============================== C ============================== -->
+  <div class="pane" id="pane-c">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="surf hero" id="heroC"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="grid c3" id="gridC"></div>
+      </div>
+    </div>
+    <p class="note"><b>C · Featured + grid.</b> Gives GENIUS AI the prominence the hardcoded-first
+      ordering is already trying to signal but the flat grid hides — a hero card (big price, 7d area
+      chart, rank/mktcap/volume/ATH stats, reusing sketch 006's chart language) over the compact
+      grid for everything else.</p>
+  </div>
+
+  <!-- ============================== D ============================== -->
+  <div class="pane" id="pane-d">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+        </div>
+        <div class="mtoolbar">
+          <div class="mseg" id="segD">
+            <button data-f="all" aria-pressed="true">All</button>
+            <button data-f="gainers" aria-pressed="false">Gainers</button>
+            <button data-f="losers" aria-pressed="false">Losers</button>
+            <button data-f="fav" aria-pressed="false">Favorites</button>
+          </div>
+          <span class="spacer"></span>
+          <div class="searchfield" style="min-width:200px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+          <select class="sortsel" id="sortD">
+            <option value="cap">Market cap</option>
+            <option value="gain">Top gainers</option>
+            <option value="lose">Top losers</option>
+            <option value="price">Price</option>
+          </select>
+        </div>
+        <div class="grid c4" id="gridD"></div>
+      </div>
+    </div>
+    <p class="note"><b>D · Segmented markets.</b> Same cards as A, plus the browsing chrome a markets
+      screen expects: an <b>All / Gainers / Losers / Favorites</b> segmented control (the 008/022
+      component) with inline search + sort. The segments and sort are <b>live</b> — click them.</p>
+  </div>
+
+  <!-- ============================== E ============================== -->
+  <div class="pane" id="pane-e">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="surf hero" id="heroE"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableE"></div>
+      </div>
+    </div>
+    <p class="note"><b>E · Tall hero + table.</b> C's full showcase hero for GENIUS AI (big price, 7d
+      area chart, five stats) over B's complete sortable table. The hero claims the top ~230px, so the
+      table starts below the fold — best when the native token is the headline and the list is the
+      reference. Click any table header to sort; GENIUS AI stays tinted in the list for ranking context.</p>
+  </div>
+
+  <!-- ============================== F ============================== -->
+  <div class="pane" id="pane-f">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="surf heroband" id="heroF"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableF"></div>
+      </div>
+    </div>
+    <p class="note"><b>F · Compact band + table.</b> Same pairing, but the hero is a single
+      horizontal band (~90px) — icon · price · inline chart · stats in one row — so more of the table
+      is visible above the fold. Best when the table is the main event and the hero is a persistent
+      "native token at a glance" strip rather than a showcase.</p>
+  </div>
+
+  <!-- ============================== E2 · MESH ============================== -->
+  <div class="pane" id="pane-e2">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="emesh" id="heroE2"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableE2"></div>
+      </div>
+    </div>
+    <p class="note"><b>E2 · Signal Mesh Hero.</b> The native token is always a dark, glowing brand
+      moment — on the app's own boot-mesh gradient — regardless of light/dark theme. The 7d chart is
+      drawn in the brand gradient with a glow and a <b>pulsing live-price dot</b>; a <b>24h range track</b>
+      (low ●— high) sits above it. Everything is real data: <code>sparkline</code>, <code>high24h</code>,
+      <code>low24h</code>, <code>marketCapRank</code>, <code>marketCap</code>, <code>totalVolume</code>.
+      Buildable with a mesh <code>CustomPaint</code> (already shipped for boot) + <code>fl_chart</code>
+      area fill + an <code>AnimatedContainer</code> dot.</p>
+  </div>
+
+  <!-- ============================== E3 · RAIL ============================== -->
+  <div class="pane" id="pane-e3">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead">
+          <h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div>
+        </div>
+        <div class="surf erail" id="heroE3"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableE3"></div>
+      </div>
+    </div>
+    <p class="note"><b>E3 · Command Rail Hero.</b> An editorial, trading-desk take: an oversized price
+      on the left, a slim 7d brand-gradient band beneath it, and a right-hand <b>stat rail</b> where
+      each figure carries a <b>micro-bar</b> — the <b>24h-range marker</b> shows where price sits between
+      <code>low24h</code>/<code>high24h</code>, and <b>From ATH</b> fills to <code>currentPrice / ath</code>.
+      Data-dense but precise. Reuses <code>ath</code> + the range fields nothing else on the page shows.</p>
+  </div>
+
+  <!-- ============================== H1 · SPLIT ============================== -->
+  <div class="pane" id="pane-h1">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead"><h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div></div>
+        <div class="surf h1" id="heroH1"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableH1"></div>
+      </div>
+    </div>
+    <p class="note"><b>H1 · Refined split.</b> Calm and premium (Coinbase/Phantom register). Identity +
+      an oversized 56px price on the left with a 2×2 stat block pinned to the bottom rule; a large
+      smooth area chart with a quiet <b>timeframe selector</b> on the right. Brand-coloured chart, one
+      accent, lots of air. The safest "looks expensive" option.</p>
+  </div>
+
+  <!-- ============================== H2 · GLASS ============================== -->
+  <div class="pane" id="pane-h2">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead"><h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div></div>
+        <div class="h2h" id="heroH2"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableH2"></div>
+      </div>
+    </div>
+    <p class="note"><b>H2 · Dark glass spotlight.</b> A tasteful version of the "brand moment" — always
+      dark, ONE soft glow (not a muddy mesh), 60px price, and the chart bleeding cleanly into the
+      bottom edge with a soft end-glow. 24h low/high as quiet corner labels. Cinematic but restrained.</p>
+  </div>
+
+  <!-- ============================== H3 · EDITORIAL ============================== -->
+  <div class="pane" id="pane-h3">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+        <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+      <div class="stage">
+        <div class="pagehead"><h2>Markets</h2>
+          <div class="searchfield"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><span>Search coins…</span></div></div>
+        <div class="surf h3h" id="heroH3"></div>
+        <div class="sechead"><span class="t">All Markets</span><span class="rule"></span></div>
+        <div class="surf" style="overflow:hidden" id="tableH3"></div>
+      </div>
+    </div>
+    <p class="note"><b>H3 · Editorial tearsheet.</b> Typography-first, like a premium financial page —
+      a 60px price, a hairline-divided stat strip (Rank · Mkt Cap · Vol · 24h Range · From ATH), and a
+      full-width chart ribbon bleeding off the bottom edge. Minimal colour, maximum precision.</p>
+  </div>
+
+</div>
+
+<script>
+// ---- dataset: mirrors topCoinsByCapitalization order + the screenshot's numbers ----
+const COINS = [
+  {id:'genius-ai', nm:'GENIUS AI',   tk:'GNUS', px:0.640718, pct:-16.38, cap:64e6,   vol:2.1e6,  c1:'#0AAEE6', c2:'#2BF5B4', sym:'AI', chg24:-0.1256, h24:0.7801, l24:0.6120, ath:2.1540},
+  {id:'bitcoin',   nm:'Bitcoin',     tk:'BTC',  px:65931.00, pct:-0.53,  cap:1290e9, vol:28e9,   c1:'#F7931A', c2:'#F7931A', sym:'₿'},
+  {id:'ethereum',  nm:'Ethereum',    tk:'ETH',  px:1931.48,  pct:0.53,   cap:232e9,  vol:14e9,   c1:'#627EEA', c2:'#627EEA', sym:'Ξ'},
+  {id:'ripple',    nm:'XRP',         tk:'XRP',  px:1.14,     pct:-0.21,  cap:65e9,   vol:3.1e9,  c1:'#23292F', c2:'#4a5560', sym:'X'},
+  {id:'binancecoin',nm:'BNB',        tk:'BNB',  px:570.20,   pct:-0.40,  cap:82e9,   vol:1.6e9,  c1:'#F3BA2F', c2:'#F3BA2F', sym:'BNB'},
+  {id:'solana',    nm:'Solana',      tk:'SOL',  px:77.86,    pct:-0.13,  cap:37e9,   vol:2.4e9,  c1:'#9945FF', c2:'#14F195', sym:'SOL'},
+  {id:'tron',      nm:'TRON',        tk:'TRX',  px:0.328504, pct:-0.16,  cap:28e9,   vol:0.9e9,  c1:'#EF0027', c2:'#EF0027', sym:'T'},
+  {id:'dogecoin',  nm:'Dogecoin',    tk:'DOGE', px:0.072829, pct:-0.48,  cap:10.6e9, vol:0.7e9,  c1:'#C2A633', c2:'#C2A633', sym:'Ð'},
+  {id:'whitebit',  nm:'WhiteBIT Coin',tk:'WBT', px:57.54,    pct:-0.28,  cap:8.3e9,  vol:12e6,   c1:'#1A1A1A', c2:'#3a3a3a', sym:'W'},
+  {id:'hyperliquid',nm:'Hyperliquid',tk:'HYPE', px:58.96,    pct:-3.12,  cap:19.6e9, vol:0.3e9,  c1:'#0B0B0F', c2:'#2BF5B4', sym:'H'},
+  {id:'leo-token', nm:'LEO Token',   tk:'LEO',  px:9.69,     pct:-0.25,  cap:8.9e9,  vol:8e6,    c1:'#0A0A23', c2:'#3a3a5a', sym:'LEO'},
+  {id:'cardano',   nm:'Cardano',     tk:'ADA',  px:0.175070, pct:1.32,   cap:6.2e9,  vol:0.4e9,  c1:'#0033AD', c2:'#0033AD', sym:'A'},
+  {id:'bitcoin-cash',nm:'Bitcoin Cash',tk:'BCH',px:219.71,   pct:-1.73,  cap:4.3e9,  vol:0.3e9,  c1:'#0AC18E', c2:'#0AC18E', sym:'Ƀ'},
+  {id:'monero',    nm:'Monero',      tk:'XMR',  px:350.79,   pct:-1.05,  cap:6.5e9,  vol:0.1e9,  c1:'#FF6600', c2:'#FF6600', sym:'M'},
+  {id:'chainlink', nm:'Chainlink',   tk:'LINK', px:8.62,     pct:0.01,   cap:5.4e9,  vol:0.5e9,  c1:'#2A5ADA', c2:'#2A5ADA', sym:'LN'},
+  {id:'zcash',     nm:'Zcash',       tk:'ZEC',  px:511.66,   pct:-4.13,  cap:8.2e9,  vol:0.2e9,  c1:'#F4B728', c2:'#F4B728', sym:'Z'},
+  {id:'stellar',   nm:'Stellar',     tk:'XLM',  px:0.187990, pct:-2.03,  cap:5.8e9,  vol:0.2e9,  c1:'#7D00FF', c2:'#14C8FF', sym:'*'},
+  {id:'dai',       nm:'Dai',         tk:'DAI',  px:0.999813, pct:0.01,   cap:5.3e9,  vol:0.4e9,  c1:'#F5AC37', c2:'#F5AC37', sym:'D'},
+  {id:'litecoin',  nm:'Litecoin',    tk:'LTC',  px:47.14,    pct:0.82,   cap:3.6e9,  vol:0.3e9,  c1:'#A6A9AA', c2:'#c9cccd', sym:'Ł'},
+  {id:'near',      nm:'NEAR Protocol',tk:'NEAR', px:1.86,    pct:-3.87,  cap:2.2e9,  vol:0.2e9,  c1:'#00EC97', c2:'#00EC97', sym:'N'},
+];
+
+// ---- helpers ----
+function usd(v){ const d = v>=1?2:6; return '$'+v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function big(v){ if(v>=1e12) return '$'+(v/1e12).toFixed(2)+'T'; if(v>=1e9) return '$'+(v/1e9).toFixed(1)+'B'; if(v>=1e6) return '$'+(v/1e6).toFixed(1)+'M'; return '$'+v.toLocaleString(); }
+function pctStr(p){ return (p>=0?'+':'')+p.toFixed(2)+'%'; }
+function cls(p){ return p>=0?'up':'down'; }
+function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+// deterministic sparkline points from a seed
+function pts(seed, n){
+  let s = 0; for(let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) & 0xffff;
+  const out=[]; let v=0.5;
+  for(let i=0;i<n;i++){ s=(s*1103515245+12345)&0x7fffffff; const r=(s/0x7fffffff-0.5); v=Math.max(0.08,Math.min(0.92,v+r*0.22)); out.push(v); }
+  return out;
+}
+function sparkSVG(coin, w, h, fill){
+  const n=28, p=pts(coin.id,n);
+  // trend the endpoint toward the sign so colour + shape agree
+  const drift=(coin.pct/100); for(let i=0;i<n;i++){ p[i]=Math.max(0.06,Math.min(0.94,p[i]+drift*(i/n)*4)); }
+  const col = coin.pct>=0?cssv('--status-success'):cssv('--status-error');
+  const step=w/(n-1);
+  let d=''; p.forEach((y,i)=>{ d+=(i?'L':'M')+(i*step).toFixed(1)+','+((1-y)*(h-3)+1.5).toFixed(1)+' '; });
+  let area='';
+  if(fill){ area=`<path d="${d}L${w},${h} L0,${h} Z" fill="${col}" opacity="0.10"/>`; }
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" preserveAspectRatio="none">${area}<path d="${d}" fill="none" stroke="${col}" stroke-width="${fill?2.5:2}" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function icon(coin, size){
+  return `<div class="icn" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${coin.c1},${coin.c2})">${coin.sym}</div>`;
+}
+function rankOf(coin){ // rank by market cap (native token keeps its true small-cap rank)
+  const sorted=[...COINS].sort((a,b)=>b.cap-a.cap); return sorted.indexOf(coin)+1;
+}
+
+// ---- A / D card ----
+function card(coin){
+  return `<div class="surf mcard" title="${coin.nm}">
+    ${icon(coin,34)}
+    <div class="id">
+      <div class="nm">${coin.nm}</div>
+      <div class="meta">#${rankOf(coin)} · ${big(coin.cap)}</div>
+    </div>
+    <div class="spark">${sparkSVG(coin,80,34,false)}</div>
+    <div class="rt">
+      <div class="px">${usd(coin.px)}</div>
+      <div class="pill ${cls(coin.pct)}">${pctStr(coin.pct)}</div>
+    </div>
+  </div>`;
+}
+
+// ---- A ----
+document.getElementById('gridA').innerHTML = COINS.map(card).join('');
+
+// ---- B table ----
+let sortKey='mktcap', sortDir=-1;
+function renderTable(){
+  const rows=[...COINS].sort((a,b)=>{
+    let av,bv;
+    if(sortKey==='name'){av=a.nm;bv=b.nm;return sortDir*av.localeCompare(bv);}
+    if(sortKey==='rank'){av=rankOf(a);bv=rankOf(b);}
+    else if(sortKey==='mktcap'){av=a.cap;bv=b.cap;}
+    else if(sortKey==='vol'){av=a.vol;bv=b.vol;}
+    else if(sortKey==='price'){av=a.px;bv=b.px;}
+    else if(sortKey==='pct'){av=a.pct;bv=b.pct;}
+    else {av=a.cap;bv=b.cap;}
+    return sortDir*(av-bv);
+  });
+  document.querySelector('#tableB tbody').innerHTML = rows.map(c=>`
+    <tr class="${c.id==='genius-ai'?'row-featured':''}">
+      <td class="rk">${rankOf(c)}</td>
+      <td class="coin"><div class="coincell">${icon(c,30)}<div><div class="nm">${c.nm}</div><div class="tk">${c.tk}</div></div></div></td>
+      <td class="px mono">${usd(c.px)}</td>
+      <td><span class="pill ${cls(c.pct)}">${pctStr(c.pct)}</span></td>
+      <td class="mono">${big(c.cap)}</td>
+      <td class="mono" style="color:var(--text-secondary)">${big(c.vol)}</td>
+      <td><span class="spark">${sparkSVG(c,110,32,false)}</span></td>
+    </tr>`).join('');
+  document.querySelectorAll('#tableB th').forEach(th=>{
+    th.classList.toggle('sorted', th.dataset.k===sortKey);
+    const ar=th.querySelector('.ar'); if(ar) ar.textContent = sortDir<0?'▼':'▲';
+  });
+  // ensure the sorted th shows an arrow
+  const th=document.querySelector(`#tableB th[data-k="${sortKey}"]`);
+  if(th && !th.querySelector('.ar')){ th.insertAdjacentHTML('beforeend',' <span class="ar">'+(sortDir<0?'▼':'▲')+'</span>'); }
+}
+document.querySelectorAll('#tableB th[data-k]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const k=th.dataset.k;
+    if(k===sortKey) sortDir*=-1; else { sortKey=k; sortDir = (k==='name')?1:-1; }
+    // strip stray arrows then re-render
+    document.querySelectorAll('#tableB th .ar').forEach(a=>{ if(a.parentElement.dataset.k!==sortKey) a.remove(); });
+    renderTable();
+  });
+});
+renderTable();
+
+// ---- C hero + grid ----
+(function(){
+  const h=COINS[0]; // genius-ai
+  document.getElementById('heroC').innerHTML = `
+    <div class="left">
+      <div class="top">${icon(h,48)}<div><div class="nm">${h.nm}</div><span class="native">◆ Native token</span></div></div>
+      <div class="px">${usd(h.px)}</div>
+      <div class="sub"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span><span class="d ${cls(h.pct)}">−$0.1256 (24h)</span></div>
+      <div class="stats">
+        <div class="s"><div class="k">Rank</div><div class="v">#${rankOf(h)}</div></div>
+        <div class="s"><div class="k">Market Cap</div><div class="v">${big(h.cap)}</div></div>
+        <div class="s"><div class="k">Volume 24h</div><div class="v">${big(h.vol)}</div></div>
+        <div class="s"><div class="k">24h High</div><div class="v mono">$0.7801</div></div>
+        <div class="s"><div class="k">24h Low</div><div class="v mono">$0.6120</div></div>
+      </div>
+    </div>
+    <div class="chart">${sparkSVG(h,600,200,true)}</div>`;
+  document.getElementById('gridC').innerHTML = COINS.slice(1).map(card).join('');
+})();
+
+// ---- D segmented + sort (live) ----
+let dFilter='all', dSort='cap';
+function renderD(){
+  let list=[...COINS];
+  if(dFilter==='gainers') list=list.filter(c=>c.pct>=0);
+  else if(dFilter==='losers') list=list.filter(c=>c.pct<0);
+  else if(dFilter==='fav') list=list.filter(c=>['bitcoin','ethereum','genius-ai'].includes(c.id));
+  if(dSort==='cap') list.sort((a,b)=>b.cap-a.cap);
+  else if(dSort==='gain') list.sort((a,b)=>b.pct-a.pct);
+  else if(dSort==='lose') list.sort((a,b)=>a.pct-b.pct);
+  else if(dSort==='price') list.sort((a,b)=>b.px-a.px);
+  const g=document.getElementById('gridD');
+  g.innerHTML = list.length ? list.map(card).join('')
+    : `<div class="empty" style="grid-column:1/-1">No coins match this filter yet.<br><span style="font-size:12px">Star a coin to add it to Favorites.</span></div>`;
+}
+document.querySelectorAll('#segD button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#segD button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); dFilter=b.dataset.f; renderD();
+}));
+document.getElementById('sortD').addEventListener('change',e=>{ dSort=e.target.value; renderD(); });
+renderD();
+
+// ---- reusable sortable table (E/F reuse B's columns, own sort state) ----
+function sortableTable(containerId, coins){
+  let sk='mktcap', sd=-1;
+  const cont=document.getElementById(containerId);
+  const HEADS=[
+    {k:'rank',t:'#',l:true},{k:'name',t:'Coin',l:true},{k:'price',t:'Price'},
+    {k:'pct',t:'24h %'},{k:'mktcap',t:'Market Cap'},{k:'vol',t:'Volume (24h)'},
+    {k:null,t:'Last 7d',l:true},
+  ];
+  function val(c,k){ return k==='rank'?rankOf(c):k==='name'?c.nm:k==='price'?c.px:k==='pct'?c.pct:k==='vol'?c.vol:c.cap; }
+  function draw(){
+    const rows=[...coins].sort((a,b)=>{
+      const av=val(a,sk), bv=val(b,sk);
+      return typeof av==='string' ? sd*av.localeCompare(bv) : sd*(av-bv);
+    });
+    cont.innerHTML=`<table class="mk"><thead><tr>${HEADS.map(h=>
+      `<th class="${h.l?'l':''} ${h.k===sk?'sorted':''}" ${h.k?`data-k="${h.k}"`:'style="cursor:default"'}>${h.t}${h.k===sk?` <span class="ar">${sd<0?'▼':'▲'}</span>`:''}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(c=>`
+        <tr class="${c.id==='genius-ai'?'row-featured':''}">
+          <td class="rk">${rankOf(c)}</td>
+          <td class="coin"><div class="coincell">${icon(c,30)}<div><div class="nm">${c.nm}</div><div class="tk">${c.tk}</div></div></div></td>
+          <td class="px mono">${usd(c.px)}</td>
+          <td><span class="pill ${cls(c.pct)}">${pctStr(c.pct)}</span></td>
+          <td class="mono">${big(c.cap)}</td>
+          <td class="mono" style="color:var(--text-secondary)">${big(c.vol)}</td>
+          <td><span class="spark">${sparkSVG(c,110,32,false)}</span></td>
+        </tr>`).join('')}</tbody></table>`;
+    cont.querySelectorAll('th[data-k]').forEach(th=>th.addEventListener('click',()=>{
+      const k=th.dataset.k; if(k===sk) sd*=-1; else { sk=k; sd=(k==='name')?1:-1; } draw();
+    }));
+  }
+  draw(); return draw;
+}
+
+// ---- E: tall hero (reuse C markup) + full table ----
+function heroTall(elId, h){
+  document.getElementById(elId).innerHTML=`
+    <div class="left">
+      <div class="top">${icon(h,48)}<div><div class="nm">${h.nm}</div><span class="native">◆ Native token</span></div></div>
+      <div class="px">${usd(h.px)}</div>
+      <div class="sub"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span><span class="d ${cls(h.pct)}">−$0.1256 (24h)</span></div>
+      <div class="stats">
+        <div class="s"><div class="k">Rank</div><div class="v">#${rankOf(h)}</div></div>
+        <div class="s"><div class="k">Market Cap</div><div class="v">${big(h.cap)}</div></div>
+        <div class="s"><div class="k">Volume 24h</div><div class="v">${big(h.vol)}</div></div>
+        <div class="s"><div class="k">24h High</div><div class="v mono">$0.7801</div></div>
+        <div class="s"><div class="k">24h Low</div><div class="v mono">$0.6120</div></div>
+      </div>
+    </div>
+    <div class="chart">${sparkSVG(h,600,200,true)}</div>`;
+}
+// ---- F: compact hero band + full table ----
+function heroBand(elId, h){
+  document.getElementById(elId).innerHTML=`
+    <div class="idblk">${icon(h,44)}<div><div class="nm">${h.nm}</div><span class="native">◆ Native token</span></div></div>
+    <div class="pxblk"><div class="px">${usd(h.px)}</div><div class="sub"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span></div></div>
+    <div class="chart">${sparkSVG(h,300,64,true)}</div>
+    <div class="divider"></div>
+    <div class="stats">
+      <div><div class="k">Rank</div><div class="v">#${rankOf(h)}</div></div>
+      <div><div class="k">Mkt Cap</div><div class="v">${big(h.cap)}</div></div>
+      <div><div class="k">Vol 24h</div><div class="v">${big(h.vol)}</div></div>
+    </div>`;
+}
+const H=COINS[0];
+heroTall('heroE',H); let drawTableE=sortableTable('tableE',COINS);
+heroBand('heroF',H); let drawTableF=sortableTable('tableF',COINS);
+
+// ---- brand-gradient hero chart (E2/E3): area fill + glow + returns endpoint ----
+function brandChart(coin, w, h, uid){
+  const n=44, p=pts(coin.id,n), drift=(coin.pct/100);
+  for(let i=0;i<n;i++){ p[i]=Math.max(0.08,Math.min(0.92,p[i]+drift*(i/n)*4)); }
+  const step=w/(n-1), pad=6;
+  const yPx=y=>((1-y)*(h-pad*2)+pad);
+  let d=''; p.forEach((y,i)=>{ d+=(i?'L':'M')+(i*step).toFixed(1)+','+yPx(y).toFixed(1)+' '; });
+  const lastY=p[n-1], topPct=(yPx(lastY)/h*100);
+  const svg=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="ln${uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--brand-cta-b)"/><stop offset="1" stop-color="var(--brand-cta-a)"/></linearGradient>
+      <linearGradient id="ar${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--brand-cta-a)" stop-opacity="0.30"/><stop offset="1" stop-color="var(--brand-cta-a)" stop-opacity="0"/></linearGradient>
+    </defs>
+    <path d="${d}L${w},${h} L0,${h} Z" fill="url(#ar${uid})"/>
+    <path d="${d}" fill="none" stroke="url(#ln${uid})" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" style="filter:blur(3px)" opacity="0.55"/>
+    <path d="${d}" fill="none" stroke="url(#ln${uid})" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+  return {svg, topPct};
+}
+
+// ---- E2 mesh hero ----
+function heroMesh(elId, h){
+  const {svg,topPct}=brandChart(h,900,130,'m'+elId);
+  const rangePos=((h.px-h.l24)/(h.h24-h.l24)*100).toFixed(1);
+  document.getElementById(elId).innerHTML=`
+    <div class="mesh"></div><div class="scrim"></div>
+    <div class="content">
+      <div class="r1">
+        ${icon(h,52)}
+        <div><div class="nm">${h.nm}</div><span class="native">◆ Native token</span></div>
+        <div class="statchips">
+          <div class="c"><div class="k">Rank</div><div class="v">#${rankOf(h)}</div></div>
+          <div class="c"><div class="k">Mkt Cap</div><div class="v">${big(h.cap)}</div></div>
+          <div class="c"><div class="k">Vol 24h</div><div class="v">${big(h.vol)}</div></div>
+        </div>
+      </div>
+      <div class="pxrow">
+        <div class="px">${usd(h.px)}</div>
+        <span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span>
+        <span class="chg ${cls(h.chg24)}">${h.chg24>=0?'+':'−'}$${Math.abs(h.chg24).toFixed(4)} (24h)</span>
+      </div>
+      <div class="rangetrack">
+        <span class="lbl">${usd(h.l24)}</span>
+        <div class="bar"><div class="mk" style="left:${rangePos}%"></div></div>
+        <span class="lbl">${usd(h.h24)}</span>
+      </div>
+      <div class="chartwrap">${svg}<div class="dot" style="top:${topPct}%; right:10px"></div></div>
+    </div>`;
+}
+
+// ---- E3 command rail hero ----
+function heroRail(elId, h){
+  const {svg}=brandChart(h,640,74,'r'+elId);
+  const rangePos=((h.px-h.l24)/(h.h24-h.l24)*100).toFixed(1);
+  const athPct=(h.px/h.ath*100).toFixed(1);
+  const fromAth=((h.px/h.ath-1)*100).toFixed(1);
+  document.getElementById(elId).innerHTML=`
+    <div class="main">
+      <div class="top">${icon(h,44)}<div><div class="nm">${h.nm}</div><span class="native">◆ Native token</span></div></div>
+      <div class="px">${usd(h.px)}</div>
+      <div class="chg"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span><span class="d ${cls(h.chg24)}">${h.chg24>=0?'+':'−'}$${Math.abs(h.chg24).toFixed(4)} (24h)</span></div>
+      <div class="chartband">${svg}</div>
+    </div>
+    <div class="rail">
+      <div class="stat"><div class="head"><span class="k">Rank</span><span class="v">#${rankOf(h)}</span></div></div>
+      <div class="stat"><div class="head"><span class="k">Market Cap</span><span class="v">${big(h.cap)}</span></div></div>
+      <div class="stat"><div class="head"><span class="k">Volume 24h</span><span class="v">${big(h.vol)}</span></div></div>
+      <div class="stat"><div class="head"><span class="k">24h Range</span><span class="v mono">${usd(h.l24)} – ${usd(h.h24)}</span></div>
+        <div class="mbar"><div class="marker" style="left:${rangePos}%"></div></div></div>
+      <div class="stat"><div class="head"><span class="k">From ATH</span><span class="v down">${fromAth}%</span></div>
+        <div class="mbar"><i style="width:${athPct}%"></i></div></div>
+    </div>`;
+}
+
+heroMesh('heroE2',H); let drawTableE2=sortableTable('tableE2',COINS);
+heroRail('heroE3',H); let drawTableE3=sortableTable('tableE3',COINS);
+
+// ---- smooth (Catmull-Rom → bézier) path for premium curves ----
+function smoothPath(pts){
+  if(pts.length<2) return '';
+  let d=`M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+    const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+    d+=` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+// refined brand chart: smooth curve, area fade, crisp non-scaling stroke, optional glow
+function heroChart2(coin, w, h, uid, glow){
+  const n=48, p=pts(coin.id,n), drift=(coin.pct/100);
+  for(let i=0;i<n;i++){ p[i]=Math.max(0.12,Math.min(0.88,p[i]+drift*(i/n)*3.2)); }
+  const pad=8, step=w/(n-1), yPx=y=>((1-y)*(h-pad*2)+pad);
+  const P=p.map((y,i)=>({x:i*step,y:yPx(y)}));
+  const line=smoothPath(P), area=line+`L${w},${h} L0,${h} Z`, endTop=(P[n-1].y/h*100);
+  const svg=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="ln${uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--brand-cta-b)"/><stop offset="1" stop-color="var(--brand-cta-a)"/></linearGradient>
+      <linearGradient id="ar${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--brand-cta-a)" stop-opacity="0.26"/><stop offset="0.9" stop-color="var(--brand-cta-a)" stop-opacity="0"/></linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#ar${uid})"/>
+    ${glow?`<path d="${line}" fill="none" stroke="var(--brand-cta-a)" stroke-width="6" vector-effect="non-scaling-stroke" style="filter:blur(6px)" opacity="0.45"/>`:''}
+    <path d="${line}" fill="none" stroke="url(#ln${uid})" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+  return {svg, endTop};
+}
+const TFS = `<div class="tfs"><button aria-pressed="false">24H</button><button aria-pressed="true">7D</button><button aria-pressed="false">30D</button><button aria-pressed="false">1Y</button></div>`;
+const TFS_G = `<div class="tfs ghost"><button aria-pressed="false">24H</button><button aria-pressed="true">7D</button><button aria-pressed="false">30D</button><button aria-pressed="false">1Y</button></div>`;
+const absStr = h => `${h.chg24>=0?'+':'−'}$${Math.abs(h.chg24).toFixed(4)} · 24h`;
+
+function heroH1(elId,h){
+  const {svg,endTop}=heroChart2(h,700,190,'1'+elId,false);
+  document.getElementById(elId).innerHTML=`
+    <div class="L">
+      <div class="idrow">${icon(h,46)}<div><div class="nm">${h.nm}</div><span class="native-chip" style="margin-top:5px">◆ Native token</span></div></div>
+      <div class="price">${usd(h.px)}</div>
+      <div class="chgrow"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span><span class="abs">${absStr(h)}</span></div>
+      <div class="stats">
+        <div><div class="k">Rank</div><div class="v">#${rankOf(h)}</div></div>
+        <div><div class="k">Market Cap</div><div class="v">${big(h.cap)}</div></div>
+        <div><div class="k">Volume 24h</div><div class="v">${big(h.vol)}</div></div>
+        <div><div class="k">All-Time High</div><div class="v">${usd(h.ath)}</div></div>
+      </div>
+    </div>
+    <div class="R">
+      <div class="chead">${TFS}</div>
+      <div class="chart">${svg}<div class="dot" style="top:${endTop}%"></div></div>
+    </div>`;
+}
+function heroH2(elId,h){
+  const {svg,endTop}=heroChart2(h,900,150,'2'+elId,true);
+  document.getElementById(elId).innerHTML=`
+    <div class="top">${icon(h,48)}<div><div class="nm">${h.nm}</div><span class="native-chip" style="margin-top:5px">◆ Native token</span></div>${TFS_G}</div>
+    <div class="price">${usd(h.px)}</div>
+    <div class="chgrow"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span><span class="abs">${absStr(h)}</span></div>
+    <div class="lohi"><span>24h Low · ${usd(h.l24)}</span><span>24h High · ${usd(h.h24)}</span></div>
+    <div class="chart">${svg}<div class="dot" style="top:${endTop}%"></div></div>`;
+}
+function heroH3(elId,h){
+  const {svg}=heroChart2(h,1200,84,'3'+elId,false);
+  document.getElementById(elId).innerHTML=`
+    <div class="eyebrow">◆ Native token</div>
+    <div class="toprow">
+      <div class="nm">${icon(h,40)} ${h.nm}</div>
+      <div class="pxcol"><div class="price">${usd(h.px)}</div>
+        <div class="chgrow"><span class="pill ${cls(h.pct)}">${pctStr(h.pct)}</span><span class="abs">${absStr(h)}</span></div></div>
+    </div>
+    <div class="strip">
+      <div class="cell"><div class="k">Rank</div><div class="v">#${rankOf(h)}</div></div>
+      <div class="cell"><div class="k">Market Cap</div><div class="v">${big(h.cap)}</div></div>
+      <div class="cell"><div class="k">Volume 24h</div><div class="v">${big(h.vol)}</div></div>
+      <div class="cell"><div class="k">24h Range</div><div class="v">${usd(h.l24)} – ${usd(h.h24)}</div></div>
+      <div class="cell"><div class="k">From ATH</div><div class="v down">${((h.px/h.ath-1)*100).toFixed(1)}%</div></div>
+    </div>
+    <div class="ribbon">${svg}</div>`;
+}
+heroH1('heroH1',H); let drawTableH1=sortableTable('tableH1',COINS);
+heroH2('heroH2',H); let drawTableH2=sortableTable('tableH2',COINS);
+heroH3('heroH3',H); let drawTableH3=sortableTable('tableH3',COINS);
+
+// timeframe chips (cosmetic active-toggle)
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.tfs button'); if(!b) return;
+  b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+});
+
+// ---- tabs ----
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pane-'+b.dataset.p).classList.add('on');
+}));
+
+// ---- theme toggle: re-render sparkline colours ----
+document.querySelectorAll('#tsel button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  document.documentElement.setAttribute('data-theme', b.dataset.t);
+  // sparkline stroke is baked from CSS var at build time → re-render everything
+  document.getElementById('gridA').innerHTML = COINS.map(card).join('');
+  renderTable();
+  (function(){ document.getElementById('gridC').innerHTML = COINS.slice(1).map(card).join('');
+    const h=COINS[0]; document.querySelector('#heroC .chart').innerHTML=sparkSVG(h,600,200,true); })();
+  renderD();
+  heroTall('heroE',H); drawTableE=sortableTable('tableE',COINS);
+  heroBand('heroF',H); drawTableF=sortableTable('tableF',COINS);
+  heroMesh('heroE2',H); drawTableE2=sortableTable('tableE2',COINS);
+  heroRail('heroE3',H); drawTableE3=sortableTable('tableE3',COINS);
+  heroH1('heroH1',H); drawTableH1=sortableTable('tableH1',COINS);
+  heroH2('heroH2',H); drawTableH2=sortableTable('tableH2',COINS);
+  heroH3('heroH3',H); drawTableH3=sortableTable('tableH3',COINS);
+}));
+</script>
+</body>
+</html>

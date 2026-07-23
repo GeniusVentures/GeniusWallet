@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 034 — Receive / QR · Round 2 (A fine-tunes)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+
+  /* ===== variant tab bar (verbatim from 030) ===== */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong);
+    transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary);
+    border-color: var(--brand-primary); }
+  .variant-tab.baseline { color: var(--text-secondary); }
+
+  /* ===== stage backdrop (verbatim from 030) ===== */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .app-bg { position: absolute; inset: 0; background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(20,200,255,0.05), transparent 60%),
+      var(--surface-base); }
+  .app-bg .col { position: absolute; top: 24px; bottom: 24px; border-radius: var(--radius-lg);
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); opacity: .5; }
+  .app-bg .c1 { left: 24px; width: 22%; }
+  .app-bg .c2 { left: calc(24px + 23%); width: 34%; }
+  .app-bg .c3 { left: calc(24px + 58%); width: 18%; }
+  .scrim { position: absolute; inset: 0; background: var(--surface-overlay, rgba(0,0,0,.6)); }
+
+  /* ===== panel + B1 "Quiet band" chrome (verbatim from 030) ===== */
+  .panel { position: absolute; top: 0; bottom: 0; right: 0; width: var(--drawer-width);
+    background: var(--surface-menu); display: flex; flex-direction: column;
+    box-shadow: -24px 0 60px rgba(0,0,0,0.45); }
+  .p-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    padding: 0 12px 0 20px; height: 60px; position: relative;
+    border-bottom: 1px solid var(--border-subtle); }
+  .p-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px;
+    height: 1px; background: var(--brand-primary-subtle); }
+  .p-title { color: var(--text-primary); font: 600 18px/24px var(--font); }
+  .p-close { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70); transition: all .15s ease; flex: none; }
+  .p-close:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .p-close svg { width: 18px; height: 18px; }
+  .p-body { flex: 1; overflow-y: auto; padding: 8px 20px 20px; }
+  .p-foot { flex: none; padding: 16px 20px; border-top: 1px solid var(--border-subtle); }
+
+  .gwbtn { width: 100%; height: 48px; border: none; border-radius: var(--radius-pill);
+    font: 600 15px var(--font); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 8px; transition: all .15s ease; }
+  .gwbtn.primary { background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a));
+    color: var(--text-on-brand); }
+  .gwbtn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .gwbtn svg, .gwbtn [data-copy] svg { width: 17px; height: 17px; }
+
+  .stack > * + * { margin-top: 16px; }
+
+  /* ===== QR — CSS grid, ALWAYS black-on-white (must scan in both themes) ===== */
+  .qr-tile { background: #FFFFFF; border-radius: var(--radius-2xl); padding: 16px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.22); }
+  .qr { display: grid; width: 100%; aspect-ratio: 1 / 1; position: relative; }
+  .qr i { display: block; background: transparent; }
+  .qr i.on { background: #000000; }
+  .qr-glyph { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 22%; height: 22%; background: #fff; border-radius: 9px;
+    display: grid; place-items: center; box-shadow: 0 0 0 3px #fff; }
+  .qr-glyph svg { width: 66%; height: 66%; color: var(--brand-primary-strong); }
+  .qr-cap { color: var(--text-primary-70); font: 500 13px var(--font); letter-spacing: .02em; }
+
+  /* ===== coin / network chip ===== */
+  .net-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px;
+    border-radius: var(--radius-pill); background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle); }
+  .net-chip .dot { width: 26px; height: 26px; border-radius: 50%; flex: none;
+    background: var(--brand-primary-subtle); border: 1px solid var(--brand-primary-muted);
+    display: grid; place-items: center; color: var(--brand-primary); }
+  .net-chip .dot svg { width: 15px; height: 15px; }
+  .net-chip .nm { color: var(--text-primary); font-weight: 600; }
+  .net-chip .nt { color: var(--text-primary-70); }
+
+  /* ===== truncated address line + inline copy ===== */
+  .addr-line { display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .addr-mono { font-family: var(--font-mono); font-size: 15px; letter-spacing: .02em;
+    color: var(--text-primary); }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-md); flex: none;
+    border: 1px solid var(--border-subtle); background: transparent; color: var(--text-primary-70);
+    cursor: pointer; display: grid; place-items: center; transition: all .15s ease; }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .icon-btn:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+
+  /* ===== grouped-address block (A2 tappable / A3 full) ===== */
+  .grp { display: flex; flex-wrap: wrap; gap: 3px 8px; justify-content: center;
+    font-family: var(--font-mono); font-size: 15px; letter-spacing: .03em; line-height: 1.5; }
+  .grp .ac { color: var(--text-primary-70); }
+  .grp .ac.em { color: var(--text-primary); font-weight: 600; }
+  .grp .ac.pfx { color: var(--text-secondary); }
+
+  .addr-block { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 14px 14px 14px 16px; border-radius: var(--radius-lg); cursor: pointer;
+    background: var(--surface-elevated); border: 1px solid var(--border-strong);
+    color: inherit; font: inherit; transition: all .15s ease; }
+  .addr-block:hover { border-color: var(--brand-primary-muted);
+    background: color-mix(in srgb, var(--surface-elevated) 88%, var(--brand-primary)); }
+  .addr-block .grp { flex: 1; justify-content: flex-start; }
+  .addr-block .ci { flex: none; color: var(--text-primary-70); display: grid; place-items: center; }
+  .addr-block .ci svg { width: 17px; height: 17px; }
+  .addr-block:hover .ci { color: var(--brand-primary); }
+
+  /* ===== Short / Full segmented toggle (A3) ===== */
+  .seg2 { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-pill);
+    background: var(--surface-sunken); }
+  .seg2 button { border: none; background: transparent; cursor: pointer; min-width: 66px;
+    padding: 7px 14px; border-radius: var(--radius-pill); font: 600 13px var(--font);
+    color: var(--text-primary-70); transition: all .15s ease; }
+  .seg2 button:hover { color: var(--text-primary); }
+  .seg2 button.on { background: var(--brand-primary-subtle); color: var(--brand-primary);
+    box-shadow: inset 0 0 0 1px var(--brand-primary-muted); }
+  .addr-swap { display: flex; align-items: center; gap: 8px; justify-content: center;
+    min-height: 40px; }
+  .addr-swap .swap-full { display: none; }
+  .addr-swap.full .swap-short { display: none; }
+  .addr-swap.full .swap-full { display: flex; }
+  .addr-swap .grp { max-width: 300px; }
+
+  /* ===== warnings ===== */
+  .warn-soft { display: flex; gap: 8px; align-items: flex-start; color: var(--status-warning);
+    font: 400 12px/1.45 var(--font); text-align: left; }
+  .warn-soft svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+  .warn-band { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px;
+    border-radius: var(--radius-md); background: rgba(255,196,46,0.10);
+    border: 1px solid rgba(255,196,46,0.32); color: var(--status-warning);
+    font: 400 12.5px/1.45 var(--font); text-align: left; }
+  .warn-band svg { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+
+  .variant { display: none; }
+  .variant.active { display: block; }
+
+  .note { position: absolute; z-index: 40; font: 500 11px var(--font); color: var(--brand-primary);
+    background: rgba(20,200,255,0.10); border: 1px solid var(--brand-primary-muted);
+    border-radius: 8px; padding: 5px 9px; max-width: 220px; line-height: 1.4; pointer-events: none; }
+  .note.gap { color: var(--status-warning); background: rgba(255,196,46,0.10);
+    border-color: rgba(255,196,46,0.32); }
+
+  /* toolbar (verbatim from 030) */
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font);
+    background: rgba(0,0,0,.72); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .45;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff;
+    border: 1px solid #444; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="variant-nav">
+  <span class="brand">034 · RECEIVE · R2</span>
+  <button class="variant-tab active" onclick="show('A1',this)">A1 · Pure hero</button>
+  <button class="variant-tab" onclick="show('A2',this)">A2 · Grouped address</button>
+  <button class="variant-tab" onclick="show('A3',this)">A3 · Caption + toggle</button>
+  <span class="sep"></span>
+  <button class="variant-tab baseline" onclick="show('BASE',this)">baseline · chosen A</button>
+</div>
+
+<!-- ============ A1 · PURE HERO ============ -->
+<div class="variant active" id="v-A1">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="note" style="top:150px; right:470px;">QR stays black-on-white even in<br>dark mode — it has to scan</div>
+    <div class="note gap" style="bottom:150px; right:470px;">Respected gaps: Copy-only footer.<br>No Share, no "set as default receive".</div>
+    <div class="panel A1">
+      <div class="p-head">
+        <div class="p-title">Receive</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body">
+        <div class="stack" style="text-align:center">
+          <div>
+            <span class="net-chip">
+              <span class="dot" data-glyph></span>
+              <span class="nm t-title-md">GNUS</span>
+              <span class="nt t-body-sm">· GNUS Network</span>
+            </span>
+          </div>
+          <div class="qr-tile"><div class="qr" data-qr><div class="qr-glyph" data-glyph></div></div></div>
+          <div class="addr-line">
+            <span class="addr-mono">0x1d9b…4a87</span>
+            <button class="icon-btn" title="Copy" onclick="copyAddr()" data-copy></button>
+          </div>
+          <div class="warn-soft">
+            <span data-warn></span>
+            <span>Only send GNUS and GNUS-network assets to this address. Other assets may be lost.</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-foot">
+        <button class="gwbtn primary" onclick="copyAddr()"><span data-copy></span> Copy address</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ A2 · GROUPED ADDRESS ============ -->
+<div class="variant" id="v-A2">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="note" style="top:150px; right:470px;">Full address in 4-char chunks;<br>first & last chunks emphasized<br>for eyeball verification</div>
+    <div class="panel A2">
+      <div class="p-head">
+        <div class="p-title">Receive</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body">
+        <div class="stack" style="text-align:center">
+          <div class="qr-tile" style="max-width:214px; margin:0 auto"><div class="qr" data-qr><div class="qr-glyph" data-glyph></div></div></div>
+          <button class="addr-block" onclick="copyAddr()" title="Tap to copy">
+            <span class="grp" data-grouped></span>
+            <span class="ci" data-copy></span>
+          </button>
+          <div>
+            <span class="net-chip">
+              <span class="dot" data-glyph></span>
+              <span class="nm t-title-md">GNUS</span>
+              <span class="nt t-body-sm">· GNUS Network</span>
+            </span>
+          </div>
+          <div class="warn-band">
+            <span data-warn></span>
+            <span>Only send <strong>GNUS</strong> and GNUS-network assets to this address. Other assets may be lost.</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-foot">
+        <button class="gwbtn primary" onclick="copyAddr()"><span data-copy></span> Copy address</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ A3 · CAPTION + TOGGLE ============ -->
+<div class="variant" id="v-A3">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="note" style="top:150px; right:470px;">Short / Full toggle swaps the<br>address in place — try it</div>
+    <div class="panel A3">
+      <div class="p-head">
+        <div class="p-title">Receive</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body">
+        <div class="stack" style="text-align:center">
+          <div class="qr-tile"><div class="qr" data-qr><div class="qr-glyph" data-glyph></div></div></div>
+          <div class="qr-cap">GNUS Network</div>
+          <div>
+            <span class="seg2" role="tablist">
+              <button class="on" onclick="toggleAddr('short',this)">Short</button>
+              <button onclick="toggleAddr('full',this)">Full</button>
+            </span>
+          </div>
+          <div class="addr-swap" id="a3swap">
+            <span class="swap-short addr-line">
+              <span class="addr-mono">0x1d9b…4a87</span>
+            </span>
+            <span class="swap-full"><span class="grp" data-grouped></span></span>
+            <button class="icon-btn" title="Copy" onclick="copyAddr()" data-copy></button>
+          </div>
+          <div class="warn-soft">
+            <span data-warn></span>
+            <span>Only send GNUS and GNUS-network assets to this address. Other assets may be lost.</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-foot">
+        <button class="gwbtn primary" onclick="copyAddr()"><span data-copy></span> Copy address</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BASELINE · chosen A (round-1) ============ -->
+<div class="variant" id="v-BASE">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="note" style="top:150px; right:470px;">Round-1 chosen A, for comparison</div>
+    <div class="panel BASE">
+      <div class="p-head">
+        <div class="p-title">Receive</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body">
+        <div class="stack" style="text-align:center">
+          <div>
+            <span class="net-chip">
+              <span class="dot" data-glyph></span>
+              <span class="nm t-title-md">GNUS</span>
+              <span class="nt t-body-sm">· GNUS Network</span>
+            </span>
+          </div>
+          <div class="qr-tile"><div class="qr" data-qr><div class="qr-glyph" data-glyph></div></div></div>
+          <div class="addr-line">
+            <span class="addr-mono">0x1d9b…4a87</span>
+            <button class="icon-btn" title="Copy" onclick="copyAddr()" data-copy></button>
+          </div>
+          <div class="warn-soft">
+            <span data-warn></span>
+            <span>Only send GNUS and GNUS-network assets to this address. Other assets may be lost.</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-foot">
+        <button class="gwbtn primary" onclick="copyAddr()"><span data-copy></span> Copy address</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">Dark</option><option value="light">Light</option>
+    </select>
+  </label>
+</div>
+
+<div id="toast" style="position:fixed;bottom:70px;right:16px;z-index:120;background:var(--surface-elevated);
+  border:1px solid var(--border-subtle);border-left:3px solid var(--brand-primary);border-radius:10px;
+  padding:12px 16px;color:var(--text-primary);font:500 13px var(--font);box-shadow:var(--shadow-card);
+  transform:translateX(140%);transition:transform .25s ease;">Address copied</div>
+
+<script>
+  const ADDR = "0x1d9b7C4e2A6f83Db19aE05f3C77b0a2E4d5c4a87";
+  const GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg>';
+  const COPY  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  const WARN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+
+  // fill glyph / icon slots
+  const put = (sel, html) => document.querySelectorAll(sel).forEach(e => e.innerHTML = html);
+  put('[data-glyph]', GLYPH); put('[data-copy]', COPY); put('[data-warn]', WARN);
+
+  // ---- grouped address: 0x + ten 4-char chunks, first/last emphasized ----
+  function groupedAddr() {
+    const chunks = ADDR.slice(2).match(/.{1,4}/g);
+    let html = '<span class="ac pfx">0x</span>';
+    chunks.forEach((ch, i) => {
+      const em = (i === 0 || i === chunks.length - 1) ? ' em' : '';
+      html += `<span class="ac${em}">${ch}</span>`;
+    });
+    return html;
+  }
+  put('[data-grouped]', groupedAddr());
+
+  // ---- deterministic fake QR (25x25, real finder squares, black-on-white) ----
+  function buildQR(el) {
+    const N = 25;
+    el.style.gridTemplateColumns = `repeat(${N},1fr)`;
+    const inFinder = (r, c) => {
+      const zones = [[0,0],[0,N-7],[N-7,0]];
+      for (const [or, oc] of zones) {
+        const rr = r - or, cc = c - oc;
+        if (rr >= 0 && rr < 7 && cc >= 0 && cc < 7) {
+          const ring = rr===0||rr===6||cc===0||cc===6;
+          const core = rr>=2&&rr<=4&&cc>=2&&cc<=4;
+          return ring || core ? 'on' : 'off';
+        }
+        if (rr >= -1 && rr <= 7 && cc >= -1 && cc <= 7) return 'off'; // quiet-zone separator
+      }
+      return null;
+    };
+    let cells = '';
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const f = inFinder(r, c);
+      let on;
+      if (f !== null) on = f === 'on';
+      else on = ((r * 31 + c * 17 + r * c * 7 + ((r ^ c) * 13)) % 5) < 2;
+      cells += `<i class="${on ? 'on' : ''}"></i>`;
+    }
+    const glyph = el.querySelector('.qr-glyph');
+    el.insertAdjacentHTML('afterbegin', cells);
+    if (glyph) el.appendChild(glyph);
+  }
+  document.querySelectorAll('[data-qr]').forEach(buildQR);
+
+  // ---- variant switching ----
+  function show(id, btn) {
+    document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+    document.getElementById('v-' + id).classList.add('active');
+    document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ---- A3 Short / Full toggle (swaps address in place) ----
+  function toggleAddr(mode, btn) {
+    btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('a3swap').classList.toggle('full', mode === 'full');
+  }
+
+  // ---- actions ----
+  let t;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg || 'Address copied';
+    el.style.transform = 'translateX(0)';
+    clearTimeout(t); t = setTimeout(() => el.style.transform = 'translateX(140%)', 1700);
+  }
+  function copyAddr() {
+    if (navigator.clipboard) navigator.clipboard.writeText(ADDR).catch(() => {});
+    toast('Address copied');
+  }
+  function close_() {
+    const p = document.querySelector('.variant.active .panel');
+    p.style.transition = 'transform .28s ease, opacity .28s ease';
+    p.style.transform = 'translateX(110%)'; p.style.opacity = '0';
+    setTimeout(() => { p.style.transform = ''; p.style.opacity = '1'; }, 900);
+  }
+</script>
+</body>
+</html>

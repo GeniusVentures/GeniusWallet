@@ -12,12 +12,16 @@ stopped_at: >-
   width) which this plan fixed (commit 67e2821) and re-walked clean; the blocking mesh
   light-mode gate PASSED, GWMeshBackground is KEPT. 06-02 (shared Legal step + GAP-04's
   GWWalletCard swap) is next.
-last_updated: "2026-07-21T21:30:00.000Z"
-last_activity: 2026-07-21
+last_updated: "2026-07-23T13:40:00.000Z"
+last_activity: 2026-07-23
 last_activity_desc: >-
-  06-01 CLOSED (walked & approved) — entry screen + flow AppBars re-skinned, one walk-driven
-  Rule-1 narrow-width gutter fix landed, GWMeshBackground kept after a live light-mode gate.
-  Transitioned to 06-02.
+  Redesign track (branch redesign/transactions-tab-260722, orthogonal to Phase 06): integrated
+  Phase 16 Markets + Phase 17 News from their worktrees, reworked News search (hero band frozen,
+  matches → "Results" section), fixed a hard infinite-height freeze, unified the content page
+  frame (Transactions/Markets/News titles centred at the same X, 64px gap), added the wide-row
+  Transactions Status column. Committed as 4 logical commits (651541c/aa78eec/99a8913/5ab34bd)
+  at Jakub's explicit go. See HANDOFF-2026-07-23-news-markets-frame.md and
+  session-2026-07-23-summaries.md. Phase 06 onboarding position below is UNCHANGED.
 progress:
   total_phases: 11
   completed_phases: 4
@@ -340,6 +344,18 @@ Open decisions:
 
 ### Roadmap Evolution
 
+- Phase 17 added 2026-07-23: News page — sketches 100-102, winner **B2 · Hero + Next up** (a lead
+  hero + a "Next up" band over an even photo grid; `GWCard.hoverLift` lift-chip replaces the old
+  black scrim; frozen `pubDate`, unrendered `description` and desktop-unreachable refresh all fixed;
+  `flutter_staggered_grid_view` dropped). Implementation already built in worktree branch
+  `redesign/news-tab-260723` (not committed); `flutter analyze` clean + `gw_card_hover_test.dart` +1.
+  Pending: integration into main tree, human walk (dark+light), 3 MANIFEST rows. Context:
+  `.planning/HANDOFF-news-b2.md` + `.planning/phases/17-news-page-redesign-*/CONTEXT.md`.
+- Phase 16 added 2026-07-23: Markets page — sketch 103 **H1** (native-token hero over a sortable
+  All Markets table). Implementation already built in worktree branch `redesign/markets-tab-260723`
+  (not committed); `flutter analyze` clean + sort test 5/5. Pending: integration into main tree,
+  human walk (dark+light), macOS signing fix. Context: `.planning/HANDOFF-markets-hero.md` +
+  `.planning/phases/16-markets-page-redesign-*/CONTEXT.md`.
 - Phase 12 added 2026-07-22: Transactions redesign (design contract = sketches 010-014, all decisions locked)
 - Phase 13 added 2026-07-22: Boot & loading sequence — Signal Edge splash + one shared dashboard
   gate (design = sketch 015, approved). Grounded in spikes 001/002: the ~9.6 s main-isolate freeze

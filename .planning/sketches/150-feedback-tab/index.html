@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>150 · Feedback tab — first-class redesign</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:52px var(--space-10) var(--space-16); }
+  .wrap { max-width:1200px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #variant-nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #variant-nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+  #variant-nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .st:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  #variant-nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1040px; }
+  .lede b { color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.new { background:rgba(194,143,255,.16); color:var(--brand-tertiary); }
+  .tag.reuse { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  /* ---------- fake app window + navbar (proves "sibling to the other tabs") ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden;
+    background:var(--surface-base); box-shadow:var(--shadow-card); margin:0 auto; transition:max-width .2s ease; max-width:1180px; }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:64px; padding:0 var(--space-10);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); }
+  .brand { display:flex; align-items:center; gap:9px; font:700 15px/1 var(--font); color:var(--text-primary); margin-right:var(--space-4); }
+  .brand .g { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    display:grid; place-items:center; color:var(--text-on-brand); font:800 13px/1 var(--font); }
+  .tabs { display:flex; gap:2px; align-items:center; }
+  .tabs a { position:relative; font:500 13px/1 var(--font); color:var(--text-secondary); text-decoration:none; padding:10px 12px 12px;
+    border-radius:var(--radius-sm) var(--radius-sm) 0 0; transition:all .15s ease; cursor:pointer; }
+  .tabs a:hover { color:var(--text-primary); transform:translateY(-1px); }
+  .tabs a.active { color:var(--text-primary); font-weight:700; }
+  /* active-tab mark = sketch 022 "underline only": 2px gradient rule, label never recoloured */
+  .tabs a.active::after { content:""; position:absolute; left:12px; right:12px; bottom:-1px; height:2px; border-radius:2px;
+    background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .chip-w { display:flex; align-items:center; gap:7px; font:600 12px/1 var(--font); color:var(--text-primary);
+    padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .navbar .chip-w .d { width:8px; height:8px; border-radius:50%; background:var(--brand-secondary); }
+
+  .stage { padding:var(--space-16) var(--space-10) var(--space-16); min-height:520px;
+    background:radial-gradient(120% 90% at 50% -10%, rgba(20,200,255,.05), transparent 60%); }
+
+  /* ---------- page frame ---------- */
+  .page { margin:0 auto; }
+  .pagehead .title { font:600 28px/34px var(--font); color:var(--text-primary); }
+  .pagehead .sub { font:400 14px/22px var(--font); color:var(--text-secondary); margin-top:var(--space-3); max-width:560px; }
+  .pagehead { margin-bottom:var(--space-12); }
+
+  /* ---------- shared building blocks ---------- */
+  .surf { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+    border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); }
+  .pad { padding:var(--space-10); }
+  .cardtitle { font:600 13px/18px var(--font); color:var(--text-secondary); letter-spacing:.4px; text-transform:uppercase; }
+
+  /* message field */
+  .field { position:relative; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-menu);
+    transition:border-color .15s ease, box-shadow .15s ease; }
+  .field:focus-within { border-color:var(--brand-primary); box-shadow:0 0 0 3px var(--brand-primary-subtle); }
+  .field textarea { width:100%; background:transparent; border:0; outline:0; resize:vertical; color:var(--text-primary);
+    font:400 15px/23px var(--font); padding:14px 15px; min-height:132px; }
+  .field textarea::placeholder { color:var(--text-primary-38); }
+  .field .count { position:absolute; right:12px; bottom:9px; font:500 11px/1 var(--font); color:var(--text-primary-38);
+    font-variant-numeric:tabular-nums; pointer-events:none; }
+
+  /* attachments */
+  .attach { }
+  .attach .ah { display:flex; align-items:center; gap:8px; margin-bottom:var(--space-6); }
+  .attach .ah svg { width:16px; height:16px; color:var(--text-secondary); }
+  .attach .ah .t { font:600 13px/16px var(--font); color:var(--text-primary); }
+  .attach .ah .hint { font:400 12px/16px var(--font); color:var(--text-secondary); margin-left:auto; }
+  .chiprow { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { display:inline-flex; align-items:center; gap:8px; font:500 12px/1 var(--font); color:var(--text-primary);
+    padding:8px 11px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-elevated); }
+  .chip svg { width:14px; height:14px; color:var(--brand-primary-strong); flex:none; }
+  [data-theme="dark"] .chip svg { color:var(--brand-secondary); }
+  .chip b { font-weight:600; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .chip .trim { font:700 9px/1 var(--font); letter-spacing:.4px; text-transform:uppercase; color:var(--status-warning);
+    border:1px solid color-mix(in srgb, var(--status-warning) 40%, transparent); border-radius:3px; padding:3px 4px; }
+  .chip.muted { color:var(--text-secondary); border-style:dashed; background:transparent; }
+
+  /* status line */
+  .status { display:flex; align-items:center; gap:9px; font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .status .dot { width:9px; height:9px; border-radius:50%; flex:none; background:var(--text-secondary); }
+  .status.ok .dot { background:var(--status-success); }
+  .status.busy .dot { background:var(--brand-primary); animation:pulse 1s ease-in-out infinite; }
+  .status.warn { color:var(--status-warning); } .status.warn .dot { background:var(--status-warning); }
+  .status.err { color:var(--status-error); } .status.err .dot { background:var(--status-error); }
+  @keyframes pulse { 0%,100%{opacity:.35;transform:scale(.8)} 50%{opacity:1;transform:scale(1.15)} }
+
+  /* CTA */
+  .cta { display:inline-flex; align-items:center; justify-content:center; gap:9px; font:600 14px/1 var(--font);
+    padding:13px 20px; border:0; border-radius:var(--radius-md); cursor:pointer; transition:all .15s ease;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); }
+  .cta svg { width:17px; height:17px; }
+  .cta:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(10,174,230,.35); }
+  .cta.off { background:var(--surface-menu); color:var(--text-primary-38); cursor:not-allowed; border:1px solid var(--border-subtle); }
+  .cta.off:hover { transform:none; box-shadow:none; }
+  .cta.busy { background:var(--surface-menu); color:var(--text-secondary); cursor:progress; border:1px solid var(--border-subtle); }
+  .cta.busy:hover { transform:none; box-shadow:none; }
+  .cta.block { width:100%; }
+  .spin { width:15px; height:15px; border-radius:50%; border:2px solid var(--border-strong); border-top-color:var(--brand-primary);
+    animation:spin .7s linear infinite; } @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* success block */
+  .success-card { text-align:center; }
+  .ok-badge { width:56px; height:56px; border-radius:50%; margin:0 auto var(--space-8); display:grid; place-items:center;
+    background:var(--status-success-fill); color:var(--status-success); }
+  .ok-badge svg { width:28px; height:28px; }
+  .ok-title { font:600 20px/26px var(--font); color:var(--text-primary); }
+  .ok-sub { font:400 14px/22px var(--font); color:var(--text-secondary); margin-top:var(--space-3); max-width:420px; margin-inline:auto; }
+  .eventid { display:flex; align-items:center; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:var(--space-10);
+    padding:11px 14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .eventid .k { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .eventid code { font:600 13px/1 var(--font-mono); color:var(--text-primary); letter-spacing:.3px; }
+  .copybtn, .ghost { font:600 12px/1 var(--font); padding:8px 12px; border-radius:var(--radius-sm); cursor:pointer; transition:all .15s ease;
+    border:1px solid var(--border-subtle); background:var(--surface-elevated); color:var(--text-primary); }
+  .copybtn:hover, .ghost:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
+  .ghost { margin-top:var(--space-10); background:transparent; color:var(--text-secondary); }
+
+  /* generic row spacing */
+  .stack > * + * { margin-top:var(--space-10); }
+  .divide { height:1px; background:var(--border-subtle); }
+  .footer-row { display:flex; align-items:center; gap:var(--space-8); }
+  .footer-row .status { margin-right:auto; }
+
+  /* type chooser (variant C) */
+  .seg { display:flex; gap:6px; }
+  .seg button { flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; padding:13px 8px; cursor:pointer;
+    border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-menu); color:var(--text-secondary);
+    font:600 13px/1 var(--font); transition:all .15s ease; }
+  .seg button svg { width:20px; height:20px; }
+  .seg button:hover { color:var(--text-primary); transform:translateY(-1px); }
+  .seg button[aria-pressed="true"] { color:var(--text-primary); border-color:transparent;
+    background:linear-gradient(135deg,rgba(10,216,156,.14),rgba(10,174,230,.14)); box-shadow:inset 0 0 0 1px var(--brand-primary-muted); }
+  .seg button[aria-pressed="true"] svg { color:var(--brand-secondary); }
+
+  /* side panel (variant B) */
+  .cols { display:flex; gap:var(--space-10); align-items:flex-start; }
+  .cols .main { flex:1.7; min-width:0; }
+  .cols .side { flex:1; min-width:0; max-width:320px; }
+  .kv { display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--border-subtle); }
+  .kv:first-child { border-top:0; }
+  .kv .ki { width:20px; height:20px; flex:none; color:var(--text-secondary); }
+  .kv .ki svg { width:18px; height:18px; }
+  .kv .kk { font:400 13px/18px var(--font); color:var(--text-secondary); margin-right:auto; }
+  .kv .kvv { font:600 13px/18px var(--font); color:var(--text-primary); }
+  .note { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-6);
+    padding:10px 12px; border-radius:var(--radius-sm); background:var(--brand-primary-subtle); border:1px solid var(--brand-primary-muted); }
+
+  body.narrow .win { max-width:400px; }
+  body.narrow .cols { flex-direction:column; }
+  body.narrow .cols .main, body.narrow .cols .side { flex:none; width:100%; max-width:none; }
+
+  .variant { display:none; }
+  .variant.active { display:block; }
+
+  /* state visibility handled in JS via .s + state classes */
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); z-index:9999;
+    background:var(--surface-elevated); color:var(--text-primary); border:1px solid var(--border-subtle); box-shadow:var(--shadow-card);
+    padding:10px 16px; border-radius:var(--radius-pill); font:600 13px/1 var(--font); opacity:0; pointer-events:none; transition:all .2s ease; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body data-state="ready">
+
+<div id="variant-nav">
+  <span class="name">150 · Feedback tab</span>
+  <button class="vt active" onclick="showVariant('a',this)">A · Composer card</button>
+  <button class="vt" onclick="showVariant('b',this)">B · Context rail</button>
+  <button class="vt" onclick="showVariant('c',this)">C · Guided / typed</button>
+  <span class="sep"></span>
+  <span class="lbl">State</span>
+  <button class="st on" data-st="ready" onclick="setState('ready',this)">Ready</button>
+  <button class="st" data-st="sending" onclick="setState('sending',this)">Sending</button>
+  <button class="st" data-st="success" onclick="setState('success',this)">Success</button>
+  <button class="st" data-st="nosdk" onclick="setState('nosdk',this)">No-SDK</button>
+  <button class="st" data-st="failed" onclick="setState('failed',this)">Failed</button>
+  <span class="sep"></span>
+  <button class="st" onclick="toggleNarrow(this)">Phone</button>
+  <button class="st" onclick="toggleTheme(this)">Light</button>
+</div>
+
+<div class="wrap">
+  <p class="lede">
+    <b>Design question:</b> the Feedback tab (<code>/logs</code> → “Send Feedback”) is a bare Material form while
+    Transactions / Markets / News are full pages. What makes it a <b>first-class sibling tab</b> without changing the
+    real mechanic — <code>Sentry.captureFeedback</code> with auto-attached SDK logs, the SDK-not-initialised guard,
+    and the event-ID result? Cycle every state up top; toggle Phone to see it stack.
+    <span class="tag rec">A · recommended (smallest diff)</span>
+    <span class="tag reuse">B reuses the Transactions rail shape</span>
+    <span class="tag new">C type chooser needs a scope.setTag wire</span>
+  </p>
+
+  <!-- ============================ VARIANT A ============================ -->
+  <section id="variant-a" class="variant active">
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:600px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Tell us what’s wrong or what you’d like — your recent SDK logs ride along automatically.</div>
+          </div>
+          <div class="surf pad stack">
+            <div class="s ready sending nosdk failed stack">
+              <div class="field">
+                <textarea placeholder="Describe the issue or share your feedback here…">The compute node keeps flipping to “restarting” after a job finishes.</textarea>
+                <span class="count">62 / 2000</span>
+              </div>
+              %ATTACH%
+              <div class="divide"></div>
+              <div class="footer-row">
+                %STATUS%
+                %SEND%
+              </div>
+            </div>
+            %SUCCESS%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ VARIANT B ============================ -->
+  <section id="variant-b" class="variant">
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:940px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">A short message goes to the team. Everything we attach is listed on the right — nothing leaves without you seeing it.</div>
+          </div>
+          <div class="cols">
+            <div class="main surf pad stack">
+              <div class="s ready sending nosdk failed stack">
+                <div class="field">
+                  <textarea placeholder="Describe the issue or share your feedback here…">The compute node keeps flipping to “restarting” after a job finishes.</textarea>
+                  <span class="count">62 / 2000</span>
+                </div>
+                <div class="footer-row">
+                  %STATUS%
+                  %SEND%
+                </div>
+              </div>
+              %SUCCESS%
+            </div>
+            <aside class="side surf pad">
+              <div class="cardtitle" style="margin-bottom:var(--space-6);">What gets sent</div>
+              <div class="s ready sending success failed">
+                <div class="kv"><span class="ki">%ICON_FILE%</span><span class="kk">sgnslog.log</span><span class="kvv">312 KB</span></div>
+                <div class="kv"><span class="ki">%ICON_FILE%</span><span class="kk">sgnslog2.log <span class="chip trim" style="padding:2px 4px;">tail</span></span><span class="kvv">1.0 MB</span></div>
+                <div class="kv"><span class="ki">%ICON_CPU%</span><span class="kk">SDK</span><span class="kvv" style="color:var(--status-success)">Running</span></div>
+                <div class="kv"><span class="ki">%ICON_MAC%</span><span class="kk">Platform</span><span class="kvv">macOS</span></div>
+                <div class="note">Only the last <b>1 MiB</b> of each log is read, so large files stay lightweight. Empty logs are skipped.</div>
+              </div>
+              <div class="s nosdk">
+                <div class="kv"><span class="ki">%ICON_CPU%</span><span class="kk">SDK</span><span class="kvv" style="color:var(--status-warning)">Stopped</span></div>
+                <div class="note" style="background:color-mix(in srgb,var(--status-warning) 12%,transparent);border-color:color-mix(in srgb,var(--status-warning) 40%,transparent);">
+                  Logs are collected by the SDK. Start it and they’ll attach here automatically.</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ VARIANT C ============================ -->
+  <section id="variant-c" class="variant">
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:640px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Pick what kind of note this is, then tell us more. Your recent SDK logs attach automatically.</div>
+          </div>
+          <div class="surf pad stack">
+            <div class="s ready sending nosdk failed stack">
+              <div class="seg" id="segC">
+                <button aria-pressed="true" onclick="pickType(this)">%ICON_BUG% Bug</button>
+                <button aria-pressed="false" onclick="pickType(this)">%ICON_IDEA% Idea</button>
+                <button aria-pressed="false" onclick="pickType(this)">%ICON_Q% Question</button>
+              </div>
+              <div class="field">
+                <textarea id="taC" placeholder="What went wrong, and what did you expect to happen?">The compute node keeps flipping to “restarting” after a job finishes.</textarea>
+                <span class="count">62 / 2000</span>
+              </div>
+              %ATTACH%
+              <div class="divide"></div>
+              <div class="footer-row">
+                %STATUS%
+                %SEND%
+              </div>
+            </div>
+            %SUCCESS%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast">Copied event ID</div>
+
+<script>
+/* ---------- inline SVG icons ---------- */
+const I = {
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>',
+  cpu:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>',
+  mac:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>',
+  clip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  bug:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.5 1.5M16 2l-1.5 1.5"/><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M12 6v12M3 9h3M18 9h3M3 14h3M18 14h3M4 19l3-2M20 19l-3-2"/></svg>',
+  idea: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>',
+  q:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
+};
+
+/* ---------- shared building blocks (rendered once, injected per variant) ---------- */
+function navbar(){
+  return `<div class="navbar">
+    <div class="brand"><span class="g">G</span> GeniusWallet</div>
+    <nav class="tabs">
+      <a>Wallet</a><a>Transactions</a><a>Markets</a><a>News</a><a class="active">Feedback</a>
+    </nav>
+    <div class="right"><div class="chip-w"><span class="d"></span> 0x7a…4Bf1</div></div>
+  </div>`;
+}
+function attach(){
+  return `<div class="attach">
+    <div class="ah">${I.clip}<span class="t">Attached automatically</span><span class="hint">SDK logs · last 1 MiB of each</span></div>
+    <div class="s ready sending success failed chiprow">
+      <div class="chip">${I.file} sgnslog.log <b>312 KB</b></div>
+      <div class="chip">${I.file} sgnslog2.log <b>1.0 MB</b><span class="trim">tail</span></div>
+    </div>
+    <div class="s nosdk chiprow">
+      <div class="chip muted">Logs unavailable until the SDK starts</div>
+    </div>
+  </div>`;
+}
+function statusBlock(){
+  return `
+    <div class="status ok s ready"><span class="dot"></span> Ready to send feedback.</div>
+    <div class="status busy s sending"><span class="dot"></span> Sending feedback with 2 log attachment(s)…</div>
+    <div class="status warn s nosdk"><span class="dot"></span> SDK not initialised — start it first, then send.</div>
+    <div class="status err s failed"><span class="dot"></span> Failed to send: SocketException. Try again.</div>`;
+}
+function sendBtn(){
+  return `
+    <button class="cta s ready failed" onclick="setState('sending')">${I.send} Send feedback</button>
+    <button class="cta busy s sending" disabled><span class="spin"></span> Sending…</button>
+    <button class="cta off s nosdk" disabled>Start the SDK to send</button>`;
+}
+function successBlock(){
+  return `<div class="s success success-card">
+    <div class="ok-badge">${I.check}</div>
+    <div class="ok-title">Feedback sent</div>
+    <div class="ok-sub">Thanks — your message reached the team with 2 log attachments.</div>
+    <div class="eventid">
+      <span class="k">Event ID</span>
+      <code>a1b2c3d4e5f64789ab01cd23ef45ab67</code>
+      <button class="copybtn" onclick="copyEid()">Copy</button>
+    </div>
+    <button class="ghost" onclick="setState('ready')">Send another</button>
+  </div>`;
+}
+
+/* ---------- template expansion ---------- */
+document.querySelectorAll('.variant').forEach(sec=>{
+  sec.innerHTML = sec.innerHTML
+    .replace(/%NAVBAR%/g, navbar())
+    .replace(/%ATTACH%/g, attach())
+    .replace(/%STATUS%/g, statusBlock())
+    .replace(/%SEND%/g, sendBtn())
+    .replace(/%SUCCESS%/g, successBlock())
+    .replace(/%ICON_FILE%/g, I.file)
+    .replace(/%ICON_CPU%/g, I.cpu)
+    .replace(/%ICON_MAC%/g, I.mac)
+    .replace(/%ICON_BUG%/g, I.bug)
+    .replace(/%ICON_IDEA%/g, I.idea)
+    .replace(/%ICON_Q%/g, I.q);
+});
+
+/* ---------- state machine ---------- */
+const STATES = ['ready','sending','success','nosdk','failed'];
+function setState(st, btn){
+  document.body.dataset.state = st;
+  document.querySelectorAll('.s').forEach(el=>{
+    let show = false;
+    STATES.forEach(s=>{ if(el.classList.contains(s) && s===st) show = true; });
+    el.style.display = show ? '' : 'none';
+  });
+  document.querySelectorAll('#variant-nav .st[data-st]').forEach(b=>b.classList.toggle('on', b.dataset.st===st));
+  // sending auto-advances to success, like the real submit round-trip
+  if(st==='sending'){ clearTimeout(window._t); window._t=setTimeout(()=>setState('success'),1400); }
+}
+
+function showVariant(v, btn){
+  document.querySelectorAll('.variant').forEach(s=>s.classList.remove('active'));
+  document.getElementById('variant-'+v).classList.add('active');
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  setState(document.body.dataset.state); // re-apply visibility to the newly shown variant
+}
+
+function pickType(btn){
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  btn.setAttribute('aria-pressed','true');
+  const ta = document.getElementById('taC');
+  const t = btn.textContent.trim();
+  if(ta) ta.placeholder = t==='Bug' ? 'What went wrong, and what did you expect to happen?'
+    : t==='Idea' ? 'What would you like to see? What problem would it solve?'
+    : 'What are you trying to do?';
+}
+
+function copyEid(){
+  navigator.clipboard && navigator.clipboard.writeText('a1b2c3d4e5f64789ab01cd23ef45ab67').catch(()=>{});
+  const t=document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1300);
+}
+
+function toggleNarrow(btn){ document.body.classList.toggle('narrow'); btn.classList.toggle('on'); btn.textContent = document.body.classList.contains('narrow')?'Desktop':'Phone'; }
+function toggleTheme(btn){ const d=document.documentElement.dataset.theme==='dark'; document.documentElement.dataset.theme = d?'light':'dark'; btn.textContent = d?'Dark':'Light'; btn.classList.toggle('on'); }
+
+/* ---------- live char counter ---------- */
+document.addEventListener('input', e=>{
+  if(e.target.tagName!=='TEXTAREA') return;
+  const c = e.target.parentElement.querySelector('.count');
+  if(c) c.textContent = `${Math.min(e.target.value.length,2000)} / 2000`;
+});
+
+/* ---------- boot ---------- */
+setState('ready');
+</script>
+</body>
+</html>

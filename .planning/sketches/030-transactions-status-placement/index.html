@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>030 · Transactions — Status pill placement (design A)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-8) var(--space-10); }
+  .wrap { max-width:1440px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 19px/26px var(--font); letter-spacing:-.3px; margin:var(--space-12) 0 var(--space-4); display:flex; gap:var(--space-4); align-items:center; flex-wrap:wrap; }
+  .verdict { font:400 13px/20px var(--font); color:var(--text-secondary); margin:0 0 var(--space-6); max-width:1180px; } .verdict b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec{ color:var(--brand-secondary); }
+  .tag.n{ background:var(--surface-menu); color:var(--text-secondary); }
+
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend b { color:var(--text-primary); }
+  .legend .tok { font-family:var(--font-mono); color:var(--brand-primary-strong); } [data-theme="dark"] .legend .tok { color:#2BF5B4; }
+
+  .demo { border:1px solid var(--border-strong); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); margin-bottom:var(--space-6); }
+  .topbar { display:flex; align-items:center; height:68px; padding:0 24px; background:var(--surface-elevated); border-bottom:1px solid var(--border-subtle); gap:22px; }
+  .logo { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#0AD89C,#0AAEE6); flex:none; }
+  .nav { display:flex; gap:20px; align-items:center; }
+  .nav a { font:500 13px/18px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:6px; position:relative; padding:6px 2px; }
+  .nav a.on { color:var(--text-primary); font-weight:600; } .nav a.on::after { content:''; position:absolute; left:0; right:0; bottom:-20px; height:2px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .nav svg { width:15px; height:15px; }
+  .cluster { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  .chip { font:500 12px/16px var(--font); color:var(--text-primary); padding:8px 12px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--surface-menu); }
+  .buy { color:#000B18; background:linear-gradient(135deg,#0AD89C,#0AAEE6); border:0; font-weight:700; }
+
+  .stage { padding:32px 40px 24px; background:var(--surface-base); }
+  .h-title { font:600 28px/36px var(--font); letter-spacing:-.5px; margin-bottom:20px; }
+  .cols { display:flex; gap:20px; align-items:flex-start; }
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:14px; box-shadow:var(--shadow-card); }
+  .railcard { width:220px; flex:none; padding:14px; } .listcard { flex:1; min-width:0; }
+  .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px 6px; }
+  .ri { display:flex; align-items:center; gap:8px; height:34px; padding:0 12px; border-radius:10px; } .ri svg { width:14px; height:14px; color:var(--text-secondary); } .ri .l { font:500 13px/18px var(--font); flex:1; } .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+
+  .daylabel { font:600 12px/16px var(--font); letter-spacing:.7px; color:var(--text-secondary); padding:12px 16px 6px; }
+  .row { display:flex; align-items:center; gap:16px; padding:12px 16px; }
+  .row + .row { border-top:1px solid var(--border-subtle); }
+  .time { width:44px; flex:none; font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .coin { width:36px; height:36px; border-radius:50%; flex:none; display:grid; place-items:center; font:700 10px/1 var(--font); color:#fff; }
+  .desc { min-width:0; } .desc.grow{ flex:1 1 auto; } .desc.hug{ flex:0 1 auto; max-width:340px; }
+  .desc .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:8px; }
+  .desc .badge { font:500 11px/14px var(--font); color:var(--text-secondary); background:var(--surface-menu); border-radius:5px; padding:2px 7px; white-space:nowrap; }
+  .desc .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .spacer { flex:1 1 auto; }
+
+  .cstatus { flex:none; width:118px; }
+  .cstatus.r { text-align:right; }
+  /* A2-final: status + amount as one right-hand group with a fixed 12px (space6)
+     gap; the status box is fixed width and RIGHT-aligned so every pill's right
+     edge lands on the same vertical line, a constant 12px off the amount column. */
+  .endgroup { display:flex; align-items:center; gap:12px; flex:none; position:relative; }
+  .cstatus.rr { width:96px; text-align:right; flex:none; }
+  .amtcol { width:172px; flex:none; text-align:right; }
+  .amtcol .a { font:600 16px/21px var(--font-mono); } .amtcol .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  /* the alignment guide: dashed line on the pills' shared right edge */
+  .guide { position:absolute; top:-9px; bottom:-9px; right:184px; width:0; border-right:1px dashed rgba(43,245,180,.55); pointer-events:none; }
+  [data-theme="light"] .guide { border-color:rgba(10,174,230,.55); }
+  .pill { display:inline-flex; align-items:center; gap:6px; font:600 11px/16px var(--font); padding:4px 10px; border-radius:20px; }
+  .pill .dot { width:6px; height:6px; border-radius:50%; }
+  .st-done{ color:var(--status-success); background:rgba(10,216,156,.12); } .st-done .dot{ background:var(--status-success); }
+  .st-pend{ color:#E7A93B; background:rgba(231,169,59,.14); } .st-pend .dot{ background:#E7A93B; }
+  .st-fail{ color:var(--status-error); background:rgba(255,77,77,.14); } .st-fail .dot{ background:var(--status-error); }
+  .st-canc{ color:var(--text-secondary); background:var(--surface-menu); } .st-canc .dot{ background:var(--text-secondary); }
+
+  .amt { width:180px; flex:none; text-align:right; }
+  .amt .a { font:600 16px/21px var(--font-mono); } .amt .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .pos { color:var(--status-success); }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin:var(--space-4) 0 var(--space-8); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px; border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:12px; border-bottom:1px solid var(--border-subtle); vertical-align:top; } table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.w td { background:var(--brand-fill); } .mono { font-family:var(--font-mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="toolbar"><h1>030 · Status pill placement — design A (Status only)</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div></div>
+
+<p class="verdict"><b>Design A, three placements of the same Status pill.</b> Only the pill's position changes; everything
+  else is identical. Rendered at real size, real navbar, real rows, at ~1400px (fullscreen). Status =
+  <code>transactionStatus</code> (<span class="tok">completed·pending·failed·cancelled</span>,
+  <span class="tok">transaction.dart:14</span>). The empty band shows where the row's slack lands in each.</p>
+
+<!-- ====== A1 ====== -->
+<h2 class="sec">A1 · Status hugs the description <span class="tag n">left</span></h2>
+<div class="verdict">The pill sits <b>right after the token/action block</b> (GNUS · Processing job → Completed). Reads as a
+  property OF that transaction, close to what it describes. All the slack collects between Status and the amount, so the
+  amount still anchors the right edge. Downside: the pills don't line up in a clean vertical column — each starts wherever
+  its description ends.</div>
+<div class="demo" data-kind="a1"></div>
+
+<!-- ====== A2 ====== -->
+<h2 class="sec">A2 · Status beside the amount — FINAL alignment <span class="tag rec">chosen</span></h2>
+<div class="verdict">The amount column is a <b>fixed width sized to the largest amount</b> (all amounts right-align inside it,
+  flush to the card edge). The <b>Status pill is right-aligned</b> a constant <b>12px (<code>space6</code>, the same gap as
+  time↔coin)</b> to the left of that column — so <b>every pill's right edge lands on one vertical line</b> (the dashed guide),
+  no matter how wide the label is. Description grows to fill the middle. Left-side gaps are untouched.</div>
+<div class="demo" data-kind="a2"></div>
+
+<!-- ====== A3 ====== -->
+<h2 class="sec">A3 · Amount first, then Status <span class="tag n">far right</span></h2>
+<div class="verdict">Amount stays where it is and <b>Status moves to the very right edge</b>, past the numbers. Gives Status the
+  strongest end-of-row emphasis, but it pushes the <b>amount off the right edge</b> — the thing you just asked to be flush
+  right no longer is, and a right-aligned money column that doesn't end the row reads oddly. Shown for completeness.</div>
+<div class="demo" data-kind="a3"></div>
+
+<!-- ====== RECOMMENDATION ====== -->
+<h2 class="sec">Recommendation</h2>
+<table class="t">
+  <tr><th>Placement</th><th>Slack lands</th><th>Verdict</th></tr>
+  <tr><td>A1 · hugs description</td><td>between status &amp; amount</td><td>Status reads as a property of the tx; pills don't align into a column.</td></tr>
+  <tr class="w"><td>A2 · beside amount <span class="tag rec">rec</span></td><td>in the middle (description)</td><td>Clean status column next to the value column; amount stays flush right. Best scan.</td></tr>
+  <tr><td>A3 · after amount</td><td>in the middle</td><td>Strong status emphasis, but the amount is no longer flush right — reverses the fix you just approved.</td></tr>
+</table>
+<p class="verdict"><b>Recommendation: A2.</b> It keeps the amount flush right (the change you just made) and lines the pills into
+  a tidy column beside the numbers, so status and value read as a pair. A1 is the alternative if you want status tied
+  visually to the description instead. A3 undoes the flush-right amount, so I'd avoid it. Say A1 / A2 / A3 and I'll take it into a phase.</p>
+
+</div>
+<script>
+const G={dash:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+tx:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',swap:'<path d="M4 8h13l-3-3m6 11H7l3 3"/>',markets:'<path d="M4 18l5-6 4 3 6-8"/>',news:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/>',
+sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>',received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>',escrow:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'};
+const s=k=>`<svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${G[k]}</svg>`;
+const navlinks=`<a class="on">${s('tx')} Transactions</a><a>${s('dash')} Dashboard</a><a>${s('swap')} Swap</a><a>${s('markets')} Markets</a><a>${s('news')} News</a>`;
+const cluster=`<span class="chip">◈ 0x1d9b…4a87</span><span class="chip">◈ 0x9fF8…2e2b</span><span class="chip buy">Buy GNUS</span>`;
+const topbar=`<div class="topbar"><div class="logo"></div><div class="nav">${navlinks}</div><div class="cluster">${cluster}</div></div>`;
+
+function pill(st){const m={done:['st-done','Completed'],pend:['st-pend','Pending'],fail:['st-fail','Failed'],canc:['st-canc','Cancelled']}[st];return `<span class="pill ${m[0]}"><span class="dot"></span>${m[1]}</span>`;}
+// [time, sym, color, token, badge, subtitle, status, amount, fiat, posClass]
+const ROWS=[
+ ['09:56','GNUS','#0AD89C','GNUS','Processing job','Job 0xdevm…ck09','done','− 0.42 GNUS','$0.27 fee',''],
+ ['09:47','ETH','#627EEA','ETH','Sent','0xToMo…ed01','done','− 0.75 ETH','$1,435.44',''],
+ ['09:34','BTC','#F7931A','BTC','Received','0xFrom…ed02','done','+ 0.0042 BTC','$274.57','pos'],
+ ['21:30','ETH','#627EEA','ETH','Purchased','Card purchase','fail','+ 100.00 ETH','Not charged','pos'],
+ ['13:40','GNUS','#0AD89C','GNUS','Escrow locked','Locked in escrow','pend','− 500.00 GNUS','$321.46',''],
+ ['19:10','ETH','#627EEA','ETH','Sent','0xToMo…ed11','canc','− 3.50 ETH','Not charged',''],
+];
+
+function rowHtml(r,kind){
+  const time=`<span class="time">${r[0]}</span>`;
+  const coin=`<span class="coin" style="background:${r[2]}">${r[1].slice(0,3)}</span>`;
+  const descGrow=`<span class="desc grow"><span class="t">${r[3]} <span class="badge">${r[4]}</span></span><span class="s">${r[5]}</span></span>`;
+  const descHug=`<span class="desc hug"><span class="t">${r[3]} <span class="badge">${r[4]}</span></span><span class="s">${r[5]}</span></span>`;
+  const status=`<span class="cstatus">${pill(r[6])}</span>`;
+  const statusR=`<span class="cstatus r">${pill(r[6])}</span>`;
+  const amt=`<span class="amt"><div class="a ${r[9]}">${r[7]}</div><div class="f">${r[8]}</div></span>`;
+  const spacer=`<span class="spacer"></span>`;
+  // A2-final: status + amount in one right-hand group. Amount column fixed
+  // (sized to the largest amount), status RIGHT-aligned in a fixed box a
+  // constant 12px (space6) to its left — every pill's right edge on one line.
+  const endgroup=`<span class="endgroup"><span class="guide"></span><span class="cstatus rr">${pill(r[6])}</span><span class="amtcol"><div class="a ${r[9]}">${r[7]}</div><div class="f">${r[8]}</div></span></span>`;
+  let cols;
+  if(kind==='a1') cols=time+coin+descHug+status+spacer+amt;       // status hugs desc; slack → right of status
+  else if(kind==='a2') cols=time+coin+descGrow+endgroup;          // desc grows; status right-aligned 12px off the amount column
+  else cols=time+coin+descGrow+amt+statusR;                        // amount then status at far right
+  return `<div class="row">${cols}</div>`;
+}
+document.querySelectorAll('.demo').forEach(d=>{
+  const kind=d.dataset.kind;
+  const list = `<div class="daylabel">TODAY</div>` + ROWS.map(r=>rowHtml(r,kind)).join('');
+  const railInner='<div class="rh">Type</div>'+[['sent','Sent','3'],['received','Received','1'],['mint','Mint','1'],['job','Computing','1'],['escrow','Escrow','2']].map(t=>`<div class="ri">${s(t[0])}<span class="l">${t[1]}</span><span class="c">${t[2]}</span></div>`).join('');
+  d.innerHTML = topbar + `<div class="stage"><div class="h-title">Transactions</div><div class="cols"><div class="card railcard">${railInner}</div><div class="card listcard">${list}</div></div></div>`;
+});
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.documentElement.dataset.theme=b.dataset.t;});
+</script>
+</body>
+</html>

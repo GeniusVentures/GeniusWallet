@@ -78,10 +78,17 @@
 /* 4-pt spacing scale — genius_wallet_consts.dart */
 :root {
   --space-2: 4px;  --space-3: 6px;  --space-4: 8px;  --space-6: 12px; --space-8: 16px;
-  --space-10: 20px; --space-12: 24px; --space-16: 32px;
-  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 15px; --radius-2xl: 16px; --radius-pill: 48px;
+  --space-10: 20px; --space-12: 24px; --space-16: 32px; --space-20: 40px;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 15px; --radius-2xl: 16px;
+  --radius-3xl: 24px; --radius-pill: 48px;
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  /* Drawer-specific, additive (sketches 030-034). Non-breaking for 001-103. */
+  --status-neutral: #64748B;          /* Slate — Sent/Escrow badge fill */
+  --brand-primary-muted: rgba(20,200,255,0.24);
+  --brand-primary-subtle: rgba(20,200,255,0.12);
+  --brand-secondary-strong: #0AD89C;
+  --drawer-width: 420px;
 }
 
 /* Typography — genius_wallet_typography.dart */

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 033 — Confirm / Action · Round 2 (B fine-tunes)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+
+  /* ===================== SHELL CHROME — copied verbatim from 030 · B1 "Quiet band" ===================== */
+  /* variant tab bar */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong);
+    transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary);
+    border-color: var(--brand-primary); }
+  .variant-tab.baseline { color: var(--text-secondary); }
+
+  /* stage: dimmed app behind + right-edge panel */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .app-bg { position: absolute; inset: 0; background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(20,200,255,0.05), transparent 60%),
+      var(--surface-base); }
+  .app-bg .col { position: absolute; top: 24px; bottom: 24px; border-radius: var(--radius-lg);
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); opacity: .5; }
+  .app-bg .c1 { left: 24px; width: 22%; }
+  .app-bg .c2 { left: calc(24px + 23%); width: 34%; }
+  .app-bg .c3 { left: calc(24px + 58%); width: 18%; }
+  .scrim { position: absolute; inset: 0; background: var(--surface-overlay, rgba(0,0,0,.6)); }
+
+  /* the panel — full-height right-edge shell (chosen B) */
+  .panel { position: absolute; top: 0; bottom: 0; right: 0; width: var(--drawer-width);
+    background: var(--surface-menu); display: flex; flex-direction: column;
+    box-shadow: -24px 0 60px rgba(0,0,0,0.45); }
+
+  /* header — B1 "Quiet band": LEFT title, close ✕ top-right, 1px brand-subtle hairline */
+  .p-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    padding: 0 12px 0 20px; height: 60px; position: relative;
+    border-bottom: 1px solid var(--border-subtle); }
+  .p-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px;
+    height: 1px; background: var(--brand-primary-subtle); }
+  .p-title { color: var(--text-primary); font: 600 18px/24px var(--font); }
+  .p-close { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70); transition: all .15s ease; flex: none; }
+  .p-close:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .p-close svg { width: 18px; height: 18px; }
+
+  .p-body { flex: 1; overflow-y: auto; padding: 12px 20px 20px; }
+
+  /* footer — TWO buttons: Reject (outline) + Approve (gradient), Approve slightly wider */
+  .p-foot { flex: none; padding: 16px 20px; border-top: 1px solid var(--border-subtle);
+    display: flex; gap: 12px; }
+  .gwbtn { height: 48px; border: none; border-radius: var(--radius-pill);
+    font: 600 15px var(--font); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 8px; transition: all .15s ease; }
+  .gwbtn.primary { background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a));
+    color: var(--text-on-brand); }
+  .gwbtn.secondary { background: transparent; color: var(--text-primary);
+    border: 1px solid var(--border-strong); }
+  .gwbtn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .gwbtn.busy { pointer-events: none; filter: none; transform: none; }
+  .gwbtn svg { width: 17px; height: 17px; }
+  .p-foot .reject { flex: 1; }
+  .p-foot .approve { flex: 1.32; }
+
+  /* ===================== SIGN-EMPHASIS BODY (variant B) ===================== */
+  /* WHO — compact dApp chip, deliberately de-emphasized vs the amount */
+  .dapp { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 10px;
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill); width: fit-content; max-width: 100%; margin: 2px auto 0; }
+  /* real impl: Image.network(peer.metadata.icons[0]) with an errorBuilder fallback;
+     CSP blocks images here, so we draw the letter-fallback square directly. */
+  .dapp-fav { width: 26px; height: 26px; border-radius: 8px; flex: none; display: grid; place-items: center;
+    background: linear-gradient(135deg, #FF6FAE, #C728B4); color: #fff; font: 700 14px var(--font); }
+  .dapp-meta { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+  .dapp-name { color: var(--text-primary); font: 600 13px var(--font); white-space: nowrap; }
+  .dapp-url { color: var(--text-secondary); font: 400 12px var(--font); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .verified { display: inline-flex; align-items: center; gap: 4px; flex: none;
+    padding: 2px 8px 2px 6px; border-radius: var(--radius-pill);
+    background: var(--status-success-fill); color: var(--status-success); font: 600 11px var(--font); }
+  .verified svg { width: 12px; height: 12px; }
+
+  /* WHAT — amount hero (the star) */
+  .hero { text-align: center; padding: 18px 0 6px; }
+  .hero .cap { font: 500 11px var(--font); letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text-secondary); }
+  .hero .amt { margin-top: 6px; font: 700 34px/40px var(--font); font-variant-numeric: tabular-nums;
+    color: var(--text-primary); letter-spacing: -.01em; }
+  .hero .amt .u { font-size: 20px; font-weight: 600; color: var(--text-primary-70); margin-left: 4px; }
+  .hero .fiat { margin-top: 4px; font: 500 13px var(--font); color: var(--text-secondary);
+    font-variant-numeric: tabular-nums; cursor: help; }
+  .hero .fiat sup { color: var(--text-primary-38); font-weight: 700; margin-left: 1px; }
+
+  .sec-label { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-secondary); margin: 20px 2px 8px; }
+
+  /* destination block — emphasized, the sign-emphasis focus */
+  .to-block { background: var(--surface-elevated); border: 1px solid var(--brand-primary-muted);
+    border-radius: var(--radius-lg); padding: 14px 16px; }
+  .to-row { display: flex; align-items: center; gap: 12px; }
+  .to-addr { flex: 1; min-width: 0; font: 500 17px/24px var(--font-mono); color: var(--text-primary);
+    letter-spacing: .02em; overflow-wrap: anywhere; }
+  .copy { flex: none; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70);
+    border: 1px solid var(--border-subtle); background: transparent; transition: all .15s ease; }
+  .copy:hover { color: var(--brand-primary); border-color: var(--brand-primary-muted);
+    background: var(--brand-primary-subtle); }
+  .copy svg { width: 16px; height: 16px; }
+
+  /* B3 grouped-mono address + reveal-full expander */
+  .addr-grouped { flex: 1; min-width: 0; font: 500 17px/26px var(--font-mono); letter-spacing: .01em;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+  .addr-grouped .g { color: var(--text-primary-54); }
+  .addr-grouped .g-strong { color: var(--text-primary); font-weight: 600;
+    background: var(--brand-primary-subtle); border-radius: 5px; padding: 0 4px; }
+  .addr-grouped .dot { color: var(--text-primary-38); }
+  .reveal-btn { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    background: transparent; border: none; color: var(--brand-primary); font: 600 12px var(--font); padding: 2px 0; }
+  .reveal-btn svg { width: 13px; height: 13px; transition: transform .18s ease; }
+  .reveal-btn.open svg { transform: rotate(90deg); }
+  .full-addr { display: none; margin-top: 10px; padding: 12px 14px; border-radius: var(--radius-md);
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+    font: 400 14px/24px var(--font-mono); letter-spacing: .06em; color: var(--text-primary);
+    overflow-wrap: anywhere; }
+  .full-addr.open { display: block; }
+  .full-addr b { color: var(--brand-primary); }
+
+  /* caution rows */
+  .caution { display: flex; align-items: flex-start; gap: 10px; margin-top: 12px;
+    padding: 12px 14px; border-radius: var(--radius-md); font: 500 13px/19px var(--font); }
+  .caution svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+  .caution.info { color: var(--status-warning);
+    background: color-mix(in srgb, var(--status-warning) 11%, transparent);
+    border: 1px solid color-mix(in srgb, var(--status-warning) 34%, transparent); }
+  .caution.warn { color: var(--status-warning);
+    background: color-mix(in srgb, var(--status-warning) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--status-warning) 40%, transparent); }
+  .caution.ok { color: var(--status-success);
+    background: color-mix(in srgb, var(--status-success) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--status-success) 26%, transparent); }
+  .caution b { font-weight: 700; }
+
+  /* B2 state toggle + "needs" label */
+  .b2-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+  .b2-seg { display: inline-flex; background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill); padding: 2px; flex: none; }
+  .b2-seg button { border: none; background: transparent; cursor: pointer; border-radius: var(--radius-pill);
+    padding: 5px 12px; font: 600 11px var(--font); color: var(--text-primary-70); transition: all .15s ease; }
+  .b2-seg button.on { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .needs { font: 500 10px var(--font); letter-spacing: .02em; color: var(--text-primary-38);
+    text-align: right; max-width: 176px; line-height: 1.35; }
+
+  /* details card — Network + collapsible gas */
+  .card { background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg); padding: 2px 16px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 13px 0; }
+  .row + .gas, .row + .row { border-top: 1px solid var(--border-subtle); }
+  .row .k { color: var(--text-primary-70); font: 400 14px var(--font); }
+  .row .v { color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums;
+    white-space: nowrap; font: 500 14px var(--font); }
+  .net-v { display: inline-flex; align-items: center; gap: 7px; }
+  .net-dot { width: 8px; height: 8px; border-radius: 50%; background: #627EEA;
+    box-shadow: 0 0 0 3px rgba(98,126,234,.22); }
+
+  .gas-head { display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 13px 0; cursor: pointer; user-select: none; }
+  .gas-head .k { display: inline-flex; align-items: center; gap: 6px; color: var(--text-primary-70);
+    font: 400 14px var(--font); }
+  .gas-head .k .chev { width: 14px; height: 14px; color: var(--text-secondary); transition: transform .18s ease; }
+  .gas.open .gas-head .k .chev { transform: rotate(90deg); }
+  .gas-head .v { color: var(--text-primary); font: 500 14px var(--font); font-variant-numeric: tabular-nums; }
+  .gas-detail { display: none; padding-bottom: 6px; }
+  .gas.open .gas-detail { display: block; }
+  .gas-sub { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; }
+  .gas-sub .k { color: var(--text-secondary); font: 400 13px var(--font); }
+  .gas-sub .v { color: var(--text-primary-70); font: 500 13px var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(0,11,24,.28);
+    border-top-color: var(--text-on-brand); animation: sp .7s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  .variant { display: none; }
+  .variant.active { display: block; }
+
+  .note { position: absolute; z-index: 40; font: 500 11px var(--font); color: var(--brand-primary);
+    background: rgba(20,200,255,0.10); border: 1px solid var(--brand-primary-muted);
+    border-radius: 8px; padding: 6px 10px; max-width: 252px; line-height: 1.45; pointer-events: none; }
+
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font);
+    background: rgba(0,0,0,.72); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .45;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff;
+    border: 1px solid #444; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="variant-nav">
+  <span class="brand">033 · CONFIRM · R2</span>
+  <button class="variant-tab active" onclick="show('B1',this)">B1 · Static caution</button>
+  <button class="variant-tab" onclick="show('B2',this)">B2 · Built-check</button>
+  <button class="variant-tab" onclick="show('B3',this)">B3 · Verify-by-legibility</button>
+  <span class="sep"></span>
+  <button class="variant-tab baseline" onclick="show('BASE',this)">baseline · chosen B</button>
+</div>
+
+<div class="variant active" id="v-B1"></div>
+<div class="variant" id="v-B2"></div>
+<div class="variant" id="v-B3"></div>
+<div class="variant" id="v-BASE"></div>
+
+<div id="tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">Dark</option><option value="light">Light</option>
+    </select>
+  </label>
+</div>
+
+<div id="toast" style="position:fixed;bottom:70px;right:16px;z-index:120;background:var(--surface-elevated);
+  border:1px solid var(--border-subtle);border-left:3px solid var(--brand-primary);border-radius:10px;
+  padding:12px 16px;color:var(--text-primary);font:500 13px var(--font);box-shadow:var(--shadow-card);
+  transform:translateX(140%);transition:transform .25s ease;">Address copied</div>
+
+<script>
+  /* ---- real signing payload (send_transaction_details.dart fields) ---- */
+  const AMOUNT = '0.25', UNIT = 'ETH';
+  const FIAT   = '≈ $478.65';          // CoinGecko feed EXISTS but is NOT wired to this drawer → dim asterisk
+  const SHORT  = '0x7a9f…3C21';        // toAddress, truncated (the app truncates too)
+  const FULLG  = ['7a9f','4b2c','8e1d','6a05','f9b3','c7e2','d84a','1f0b','9e5d','3C21']; // 40-hex toAddress
+  const GAS    = '0.0012';             // totalGasFee (ETH)
+  const MAXFEE = '0.0000000321';       // maxFeePerGas (ETH)
+  const PRIO   = '0.0000000015';       // priorityFee (ETH)
+
+  const I = {
+    close:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    check:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    copy:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.2"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>',
+    chev:   '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+    revchev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z"/></svg>',
+    alert:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+    okmark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4 12 14.1l-3-3"/></svg>',
+    vcheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  };
+
+  const DAPP = `
+    <div class="dapp">
+      <div class="dapp-fav">U</div>
+      <div class="dapp-meta">
+        <span class="dapp-name">Uniswap</span>
+        <span class="dapp-url">app.uniswap.org</span>
+      </div>
+      <span class="verified">${I.vcheck}Verified</span>
+    </div>`;
+
+  const HERO = `
+    <div class="hero">
+      <div class="cap">You are sending</div>
+      <div class="amt">${AMOUNT}<span class="u">${UNIT}</span></div>
+      <div class="fiat" title="Estimated — CoinGecko price feed is not wired to this drawer yet">${FIAT}<sup>*</sup></div>
+    </div>`;
+
+  // simple emphasized destination (B1 / B2 / BASE)
+  const TO_SIMPLE = `
+    <div class="to-block">
+      <div class="to-row">
+        <div class="to-addr">${SHORT}</div>
+        <button class="copy" title="Copy address" onclick="copyAddr()">${I.copy}</button>
+      </div>
+    </div>`;
+
+  // B3 — verify-by-legibility: grouped mono, first/last emphasized, reveal-full expander
+  const TO_LEGIBLE = `
+    <div class="to-block">
+      <div class="to-row">
+        <div class="addr-grouped">
+          <span class="g-strong">0x${FULLG[0]}</span>
+          <span class="dot">·</span><span class="g">${FULLG[1]}</span>
+          <span class="dot">·</span><span class="dot">…</span>
+          <span class="dot">·</span><span class="g">${FULLG[8]}</span>
+          <span class="dot">·</span><span class="g-strong">${FULLG[9]}</span>
+        </div>
+        <button class="copy" title="Copy address" onclick="copyAddr()">${I.copy}</button>
+      </div>
+      <button class="reveal-btn" onclick="toggleReveal(this)">${I.revchev}<span>Reveal full address</span></button>
+      <div class="full-addr">0x <b>${FULLG[0]}</b> ${FULLG.slice(1,9).join(' ')} <b>${FULLG[9]}</b></div>
+    </div>`;
+
+  const DETAILS = `
+    <div class="card">
+      <div class="row"><span class="k">Network</span><span class="v net-v"><span class="net-dot"></span>Ethereum</span></div>
+      <div class="gas">
+        <div class="gas-head" onclick="this.parentNode.classList.toggle('open')">
+          <span class="k">${I.chev}Est. network fee</span>
+          <span class="v">${GAS} ${UNIT}</span>
+        </div>
+        <div class="gas-detail">
+          <div class="gas-sub"><span class="k">Gas Fee</span><span class="v">${GAS} ETH</span></div>
+          <div class="gas-sub"><span class="k">Max Fee Per Gas</span><span class="v">${MAXFEE} ETH</span></div>
+          <div class="gas-sub"><span class="k">Priority Fee</span><span class="v">${PRIO} ETH</span></div>
+        </div>
+      </div>
+    </div>`;
+
+  // caution treatments — the three honest ways to handle "is this recipient safe?"
+  const CAUTION = {
+    // B1 — static, zero new logic. NO "new address" claim.
+    B1: `<div class="caution info">${I.shield}<div>Double-check the recipient address before approving. GeniusWallet can’t undo a transfer.</div></div>`,
+    // BASE — round-1 chosen B. Its banner ASSUMES new-address detection the codebase does not have (audit gap).
+    BASE: `<div class="caution warn">${I.alert}<div>You’re sending to a <b>NEW address</b> you haven’t used before. Make sure it’s correct.</div></div>`,
+  };
+
+  // B2 — built-check: BOTH resulting states of a would-be history scan, toggleable.
+  const B2_STATES = {
+    warn: `<div class="caution warn">${I.alert}<div><b>You haven’t sent to this address before.</b> Confirm you trust the recipient.</div></div>`,
+    ok:   `<div class="caution ok">${I.okmark}<div>You’ve sent to this address before ✓ &nbsp;Matched in your transaction history.</div></div>`,
+  };
+  const B2_BODY = `
+    ${TO_SIMPLE}
+    <div id="b2-caution">${B2_STATES.warn}</div>
+    <div class="b2-tools">
+      <div class="b2-seg">
+        <button class="on" onclick="flipB2('warn',this)">Not seen before</button>
+        <button onclick="flipB2('ok',this)">Seen before</button>
+      </div>
+      <div class="needs">needs: history scan over Hive Transaction box (recipients) — not built</div>
+    </div>`;
+
+  function bodyFor(id) {
+    if (id === 'B1')   return DAPP + HERO + `<div class="sec-label">Sending to</div>` + TO_SIMPLE + CAUTION.B1 + `<div class="sec-label">Details</div>` + DETAILS;
+    if (id === 'B2')   return DAPP + HERO + `<div class="sec-label">Sending to</div>` + B2_BODY + `<div class="sec-label">Details</div>` + DETAILS;
+    if (id === 'B3')   return DAPP + HERO + `<div class="sec-label">Sending to</div>` + TO_LEGIBLE + `<div class="sec-label">Details</div>` + DETAILS;
+    /* BASE */         return DAPP + HERO + `<div class="sec-label">Sending to</div>` + TO_SIMPLE + CAUTION.BASE + `<div class="sec-label">Details</div>` + DETAILS;
+  }
+
+  function shell(cls, id) {
+    return `
+    <div class="stage">
+      <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+      <div class="scrim"></div>
+      <div class="panel ${cls}">
+        <div class="p-head">
+          <div class="p-title">Transaction Request</div>
+          <div class="p-close" onclick="close_()">${I.close}</div>
+        </div>
+        <div class="p-body">${bodyFor(id)}</div>
+        <div class="p-foot">
+          <button class="gwbtn secondary reject" onclick="close_()">Reject</button>
+          <button class="gwbtn primary approve" onclick="approve(this)">${I.shield}Approve</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const NOTES = {
+    B1:  [['top:120px;right:474px','B1 · Static caution. Neutral amber prompt — no unbacked “new address” claim. Zero backend: ships today.']],
+    B2:  [['top:120px;right:474px','B2 · Built-check. Both states of a would-be history lookup. Toggle to compare. NEEDS a scan over the Hive Transaction box (recipients) — not yet built.']],
+    B3:  [['top:120px;right:474px','B3 · Verify-by-legibility. No banner. Risk handled by making the address readable: grouped mono, reveal-full, copy. Zero new logic.']],
+    BASE:[['top:150px;right:474px','Round-1 chosen B. Its amber “NEW address” banner assumes address-history detection the codebase does not have — the audit gap the fine-tunes fix.']],
+  };
+
+  function render(id, cls) {
+    const host = document.getElementById('v-' + id);
+    host.innerHTML = shell(cls, id);
+    (NOTES[id] || []).forEach(([style, text]) => {
+      const n = document.createElement('div'); n.className = 'note'; n.style.cssText = style; n.textContent = text;
+      host.querySelector('.stage').appendChild(n);
+    });
+  }
+  render('B1','B1'); render('B2','B2'); render('B3','B3'); render('BASE','BASE');
+
+  function show(id, btn) {
+    document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+    document.getElementById('v-' + id).classList.add('active');
+    document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function flipB2(state, btn) {
+    document.getElementById('b2-caution').innerHTML = B2_STATES[state];
+    btn.parentNode.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+
+  function toggleReveal(btn) {
+    btn.classList.toggle('open');
+    const full = btn.parentNode.querySelector('.full-addr');
+    full.classList.toggle('open');
+    btn.querySelector('span').textContent = full.classList.contains('open') ? 'Hide full address' : 'Reveal full address';
+  }
+
+  let tt;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    if (msg) el.textContent = msg;
+    el.style.transform = 'translateX(0)';
+    clearTimeout(tt); tt = setTimeout(() => el.style.transform = 'translateX(140%)', 1600);
+  }
+  function copyAddr() { toast('Address copied'); }
+
+  function approve(btn) {
+    if (btn.dataset.busy) return;
+    btn.dataset.busy = '1'; btn.classList.add('busy');
+    btn.innerHTML = '<span class="spin"></span>Approving…';
+    setTimeout(() => {
+      btn.innerHTML = I.check + 'Approved';
+      toast('Transaction approved');
+      setTimeout(() => close_(), 620);
+      setTimeout(() => { btn.innerHTML = I.shield + 'Approve'; btn.classList.remove('busy'); delete btn.dataset.busy; }, 1500);
+    }, 1050);
+  }
+
+  function close_() {
+    const p = document.querySelector('.variant.active .panel');
+    p.style.transition = 'transform .28s ease, opacity .28s ease';
+    p.style.transform = 'translateX(110%)'; p.style.opacity = '0';
+    setTimeout(() => { p.style.transform = ''; p.style.opacity = '1'; }, 900);
+  }
+</script>
+</body>
+</html>

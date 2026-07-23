@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>028 · Transactions empty state (never-transacted)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-8) var(--space-10); }
+  .wrap { max-width:1360px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 19px/26px var(--font); letter-spacing:-.3px; margin:var(--space-12) 0 var(--space-4); display:flex; gap:var(--space-4); align-items:center; flex-wrap:wrap; }
+  .verdict { font:400 13px/20px var(--font); color:var(--text-secondary); margin:0 0 var(--space-6); max-width:1120px; } .verdict b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.ex{ background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec{ color:var(--brand-secondary); }
+  .tag.bad{ background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.cmp{ background:var(--surface-menu); color:var(--text-secondary); }
+
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend b { color:var(--text-primary); }
+  .legend .tok { font-family:var(--font-mono); color:var(--brand-primary-strong); } [data-theme="dark"] .legend .tok { color:#2BF5B4; }
+
+  /* the real-size window slice */
+  .demo { border:1px solid var(--border-strong); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); margin-bottom:var(--space-6); position:relative; }
+  .topbar { display:flex; align-items:center; height:68px; padding:0 24px; background:var(--surface-elevated); border-bottom:1px solid var(--border-subtle); gap:22px; }
+  .logo { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#0AD89C,#0AAEE6); flex:none; }
+  .nav { display:flex; gap:20px; align-items:center; }
+  .nav a { font:500 13px/18px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:6px; position:relative; padding:6px 2px; }
+  .nav a.on { color:var(--text-primary); font-weight:600; } .nav a.on::after { content:''; position:absolute; left:0; right:0; bottom:-20px; height:2px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .nav svg { width:15px; height:15px; }
+  .cluster { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  .chip { font:500 12px/16px var(--font); color:var(--text-primary); padding:8px 12px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--surface-menu); }
+  .buy { color:#000B18; background:linear-gradient(135deg,#0AD89C,#0AAEE6); border:0; font-weight:700; }
+
+  .stage { position:relative; padding:32px 40px 40px; background:var(--surface-base); }
+  .pagehdr { display:flex; align-items:flex-end; padding-bottom:16px; }
+  .h-title { font:600 28px/36px var(--font); letter-spacing:-.5px; }
+
+  .cols { display:flex; gap:20px; align-items:flex-start; }
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:14px; box-shadow:var(--shadow-card); }
+  .railcard { width:220px; flex:none; padding:14px; } .listcard { flex:1; min-width:0; }
+  .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px 6px; }
+  .ri { display:flex; align-items:center; gap:8px; height:36px; padding:0 12px; border-radius:10px; } .ri svg { width:14px; height:14px; color:var(--text-secondary); } .ri .l { font:500 13px/18px var(--font); flex:1; } .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .ri.zero .l, .ri.zero .c, .ri.zero svg { opacity:.4; }
+
+  /* the empty-state block itself — mirrors GWEmptyState (feedback/gw_empty_state.dart) */
+  .empty { display:flex; flex-direction:column; align-items:center; text-align:center; padding:24px; }
+  .empty .disc { width:72px; height:72px; border-radius:50%; display:grid; place-items:center; flex:none;
+                 background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); }
+  .empty .disc svg { width:32px; height:32px; color:var(--text-secondary); }
+  .empty .et { font:600 20px/26px var(--font); letter-spacing:-.2px; margin-top:16px; }
+  .empty .em { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:8px; max-width:320px; }
+
+  /* measurement chrome */
+  .void { position:relative; }
+  .void::before { content:attr(data-w); position:absolute; top:8px; left:10px; font:700 11px/1 var(--font-mono); color:var(--status-error); background:rgba(255,77,77,.12); padding:4px 7px; border-radius:5px; }
+  [data-theme="light"] .void::before { color:#c62b2b; }
+  .okw { position:relative; }
+  .okw::before { content:attr(data-w); position:absolute; top:8px; left:50%; transform:translateX(-50%); font:700 11px/1 var(--font-mono); color:#2BF5B4; background:rgba(43,245,180,.12); padding:4px 7px; border-radius:5px; z-index:2; }
+  [data-theme="light"] .okw::before { color:var(--brand-primary-strong); }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin:var(--space-4) 0 var(--space-8); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px; border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:12px; border-bottom:1px solid var(--border-subtle); vertical-align:top; } table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.w td { background:var(--brand-fill); } .mono { font-family:var(--font-mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="toolbar"><h1>028 · Transactions empty state — never-transacted wallet</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div></div>
+
+<p class="verdict"><b>The wallet has never transacted</b> (<code>scoped.isEmpty</code>) — the filter rail is
+  correctly hidden (locked 021/022: a control that filters an empty set is an offer the app can't honour).
+  What's left is the <b>list card</b>, and today it stretches full-width with a 72px icon adrift in it.
+  Rendered at real size, real navbar, real 28px page header, the real 72px <code>GWEmptyState</code> disc.</p>
+
+<div class="legend">
+  <div><b>Grounded:</b> copy is <code>emptyTransactionsTitle</code> / <code>emptyTransactionsMessage</code>
+    (<span class="tok">transactions_slim_view.dart:137</span>), icon <code>Icons.sync_alt</code>
+    (<span class="tok">:442</span>).</div>
+  <div><b>The box today:</b> the list card is <code>Expanded(ConstrainedBox(minHeight:496))</code>
+    (<span class="tok">transactions_slim_view.dart:401</span>) → full page width, ~496px tall.</div>
+</div>
+
+<!-- ===================== E0 · TODAY ===================== -->
+<h2 class="sec">E0 · Today — full-width card <span class="tag bad">the problem</span></h2>
+<div class="verdict">The rail is gone (right — nothing to filter), so <code>Expanded</code> hands the list card the
+  <b>whole page width</b>. A 72px icon and two lines of text float dead-centre in ~1280×460 of empty card.
+  It doesn't read as "ready", it reads as a <b>failed load</b> — the one thing the empty state exists to prevent.</div>
+<div class="demo" data-kind="today"></div>
+
+<!-- ===================== E-a · NARROW CARD ===================== -->
+<h2 class="sec">E-a · Narrow centred card <span class="tag rec">recommended</span></h2>
+<div class="verdict">The card stops being <code>Expanded</code> and takes a fixed <b>~520px</b> width, centred on the page.
+  The disc, title and message keep the exact proportions they already have — but now they sit in a box that
+  <b>fits them</b> instead of one sized for a hundred rows that don't exist. Reads as a tidy, deliberate "nothing here yet",
+  and it is the smallest change: swap the empty branch's <code>Expanded</code> for a centred
+  <code>ConstrainedBox(maxWidth: 520)</code>. The populated layout is untouched.</div>
+<div class="demo" data-kind="narrowcard"></div>
+
+<!-- ===================== E-b · NO CARD ===================== -->
+<h2 class="sec">E-b · No card — on the page surface</h2>
+<div class="verdict">Drop the card entirely: the disc + copy sit directly on the page, centred in the space the list
+  would have used. This is what most wallets do for a first-run zero state — nothing frames "nothing". Cleanest and airiest,
+  but it breaks the page's card rhythm: every other state of this tab (populated, filtered-empty) lives in a card, so the
+  empty state alone having no surface can read as a <b>half-loaded page</b> rather than a finished one.</div>
+<div class="demo" data-kind="nocard"></div>
+
+<!-- ===================== E-c · RAIL + BOX ===================== -->
+<h2 class="sec">E-c · Keep the rail (zeros) + narrow box <span class="tag cmp">comparison only</span></h2>
+<div class="verdict">You asked whether to keep the Type rail and just narrow the box. Here it is so the cost is visible:
+  every rail count is <b>0</b> (there is nothing to count), so the rail reads more broken, not less — and it
+  <b>reverses the locked 021/022 decision</b> to hide the filter when there's nothing to filter. Two statements in one
+  view contradict each other: a filter offering five empty buckets, beside a message saying there is nothing here.
+  <b>Not recommended</b> — shown only to close the question.</div>
+<div class="demo" data-kind="railbox"></div>
+
+<!-- ===================== RECOMMENDATION ===================== -->
+<h2 class="sec">Recommendation</h2>
+<table class="t">
+  <tr><th>Variant</th><th>Change</th><th>Verdict</th></tr>
+  <tr class="w"><td>E-a <span class="tag rec">rec</span></td><td class="mono">Expanded → ConstrainedBox(maxWidth 520), Center</td><td>Smallest change, keeps the card rhythm, box fits its contents. Reads as ready.</td></tr>
+  <tr><td>E-b</td><td class="mono">drop the card, centre on page</td><td>Airiest, but the only card-less state of the tab — can read as half-loaded.</td></tr>
+  <tr><td>E-c</td><td class="mono">keep rail (zeros) + narrow box</td><td>Reverses 021/022; a rail of zeros looks broken. Rejected.</td></tr>
+  <tr><td>E0</td><td class="mono">today</td><td>Full-width card, icon adrift — reads as a failed load.</td></tr>
+</table>
+<p class="verdict"><b>Recommendation: E-a.</b> It fixes the actual defect (a box sized for content that isn't there)
+  with the least code and no change to the populated or filtered-empty layouts. E-b is the fallback if you'd rather the
+  first-run screen carry no surface at all — say which and I'll take it into a phase. Icon/copy unchanged from what shipped.</p>
+
+</div>
+<script>
+const G={dash:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+tx:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',swap:'<path d="M4 8h13l-3-3m6 11H7l3 3"/>',markets:'<path d="M4 18l5-6 4 3 6-8"/>',news:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/>',
+sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>',received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>',escrow:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+syncalt:'<path d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8"/>'};
+const s=k=>`<svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${G[k]}</svg>`;
+const navlinks=`<a class="on">${s('tx')} Transactions</a><a>${s('dash')} Dashboard</a><a>${s('swap')} Swap</a><a>${s('markets')} Markets</a><a>${s('news')} News</a>`;
+const cluster=`<span class="chip">◈ 0x1d9b…4a87</span><span class="chip">◈ 0x9fF8…2e2b</span><span class="chip buy">Buy GNUS</span>`;
+const topbar=`<div class="topbar"><div class="logo"></div><div class="nav">${navlinks}</div><div class="cluster">${cluster}</div></div>`;
+const header=`<div class="pagehdr"><div class="h-title">Transactions</div></div>`;
+const empty=`<div class="empty"><div class="disc">${s('syncalt')}</div><div class="et">No transactions yet</div><div class="em">Your sends, receives and swaps will appear here.</div></div>`;
+
+// rail with all-zero counts (E-c comparison only)
+const ZTYPES=[['sent','Sent'],['received','Received'],['mint','Mint'],['job','Computing'],['escrow','Escrow']];
+const zeroRail='<div class="rh">Type</div>'+ZTYPES.map(t=>`<div class="ri zero">${s(t[0])}<span class="l">${t[1]}</span><span class="c">0</span></div>`).join('');
+
+function render(d){
+  const k=d.dataset.kind; let stage='';
+  if(k==='today'){
+    stage=`<div class="cols"><div class="card listcard void" data-w="≈1280 × 460 card — icon adrift" style="min-height:460px;display:grid;place-items:center">${empty}</div></div>`;
+  } else if(k==='narrowcard'){
+    stage=`<div style="display:flex;justify-content:center"><div class="card okw" data-w="520px" style="width:520px;min-height:300px;display:grid;place-items:center">${empty}</div></div>`;
+  } else if(k==='nocard'){
+    stage=`<div class="okw" data-w="no card — page surface" style="min-height:320px;display:grid;place-items:center">${empty}</div>`;
+  } else if(k==='railbox'){
+    stage=`<div class="cols"><div class="card railcard">${zeroRail}</div><div style="flex:1;display:flex;justify-content:center"><div class="card okw" data-w="520px" style="width:520px;min-height:300px;display:grid;place-items:center">${empty}</div></div></div>`;
+  }
+  d.innerHTML = topbar + `<div class="stage">${header}${stage}</div>`;
+}
+document.querySelectorAll('.demo').forEach(render);
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.documentElement.dataset.theme=b.dataset.t;});
+</script>
+</body>
+</html>
