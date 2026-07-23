@@ -106,7 +106,28 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [ ] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge
 - [ ] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details
 - [ ] **Phase 10: dApp connectivity** - Reown/WalletConnect
-- [ ] **Phase 11: Port closeout** - Full-app walk; all 37 findings signed off
+- [ ] **Phase 11: Port closeout** - Full-app walk; all 37 findings signed off (now also signs off the redesign-track surfaces 12/13/14/15/16/17 + the shadow-name baseline)
+
+### Surface ownership map (2026-07-23 — one surface, one owning phase; no overlap)
+
+After the scope reassignment, **each user-visible surface has exactly one canonical owner.** Where a
+redesign-track phase supersedes a Phase 5 first pass, Phase 5's version is historical only.
+
+| Surface | Canonical owner | Superseded / fenced |
+|---------|-----------------|---------------------|
+| Dashboard shell, balances, holdings (Assets) | **Phase 5** | — |
+| Compute / wallet-overview first card | **Phase 14** | supersedes Phase 5 (05-01/05-02) |
+| Transactions (dashboard panel) | **Phase 12** | supersedes Phase 5 (05-06) |
+| Transactions (`/transactions` tab) | **Phase 15** (extends 12) | — |
+| Markets (`/markets` tab) | **Phase 16** | supersedes Phase 5 (05-04); fenced OUT of Phase 7 |
+| News (`/news` tab) | **Phase 17** | supersedes Phase 5 (05-05) |
+| Boot / splash / loading | **Phase 13** | — |
+| Token detail, send, receive, address book | **Phase 7** | market data → 16; chart re-skin → 5 (inherited) |
+| Token-detail chart (`crypto_live_chart`) | **Phase 5** (quick `260721-dws`) | Phase 7 inherits; only the finding-24 lifecycle fix is Phase 7's |
+| Swap & bridge | **Phase 8** | page frame already unified by `99a8913` (don't re-do) |
+| Banxa | **Phase 9** | — |
+| dApp / Reown | **Phase 10** | — |
+| Shared `gw_*` primitives + tokens | **Phase 3** (extensions signed off in **Phase 11**) | 16/17 added hoverLift, GWSearchField, empty-state anchor |
 
 ## Phase Details
 
@@ -221,6 +242,18 @@ Plans:
 
 ### Phase 5: Dashboard
 
+> **SCOPE REASSIGNMENT (2026-07-23) — read before treating any Phase 5 surface as the live version.**
+> Phase 5 delivered the FIRST re-skin of every dashboard surface, but four of them were later
+> SUPERSEDED by a deeper redesign-track pass. Phase 5's *live* ownership is now narrowed to
+> **the dashboard shell + balances (hero/overview after 14) + holdings (Assets panel)**. The rest moved:
+> - **Transactions** (05-06) → **superseded by Phase 12** (redesign) + **Phase 15** (tab). Canonical owner: 12/15.
+> - **Markets** (05-04) → **superseded by Phase 16** (Markets page). Canonical owner: 16.
+> - **News** (05-05) → **superseded by Phase 17** (News page). Canonical owner: 17.
+> - **Compute / wallet-overview first section** (05-01/05-02) → **superseded by Phase 14**. Canonical owner: 14.
+>
+> Phase 5 stays CLOSED as a historical record (its plans/walks happened); do NOT re-open or re-do those
+> four surfaces here — edit them in their canonical phase above.
+
 **Goal**: The dashboard wears the redesign and keeps every behavior develop shipped
 **Depends on**: Phase 4
 **Requirements**: SCR-01, GAP-06
@@ -293,13 +326,21 @@ section for the full reasoning behind each:
 
 **Goal**: Token detail, send, receive and address book wear the redesign
 **Depends on**: Phase 5
+
+> **SCOPE FENCE (2026-07-23) — token-detail surfaces ONLY.** To keep this phase non-overlapping:
+> - **The Markets *tab* is NOT in scope** — it is **Phase 16** (`markets_screen.dart` + hero/table). "Market
+>   data" here means only the token's OWN price/data on the token-detail screen, never the `/markets` page.
+> - **The token-detail chart re-skin is already done** — `crypto_live_chart.dart` was re-skinned in Phase 5
+>   (quick task `260721-dws`). Phase 7 INHERITS it; do NOT re-skin the chart. Phase 7's only chart work is
+>   the finding-24 lifecycle fix below.
+
 **Requirements**: SCR-03
 **Success Criteria** (what must be TRUE):
 
-  1. Token info, send, receive, address book and market data render in the redesign skin and match the Release exe reference
+  1. Token info (incl. its own token-level price/data), send, receive and address book render in the redesign skin and match the Release exe reference — **NOT the Markets tab (Phase 16)**
   2. A send completes end to end and a receive QR scans with a real phone camera in both light and dark appearance
   3. Tapping "More" on a non-GNUS token does nothing (the button is disabled) rather than opening an empty drawer (finding 37)
-  4. Leaving a token chart mid-fetch, or while its refresh timer is running, throws no `setState after dispose` (finding 24)
+  4. Leaving a token chart mid-fetch, or while its refresh timer is running, throws no `setState after dispose` (finding 24) — the inherited (Phase 5) chart's lifecycle fix, not a re-skin
 
 **Plans**: TBD
 **UI hint**: yes
@@ -369,7 +410,15 @@ outright if the zoom/pan controls are removed when real timeframe ranges are wir
 ### Phase 11: Port closeout
 
 **Goal**: The redesign is confirmed landed and non-regressive across the whole app
-**Depends on**: Phases 5, 6, 7, 8, 9, 10
+**Depends on**: Phases 5, 6, 7, 8, 9, 10 — **and the redesign track 12, 13, 14, 15, 16, 17**
+
+> **EXPANDED SCOPE (2026-07-23).** Beyond the original 37 findings, closeout now also signs off the
+> redesign-track surfaces that landed in parallel: **Transactions (12/15), Boot (13), Compute (14),
+> Markets (16), News (17)** — including the **outstanding walks for 16/17** and the **incomplete
+> 13-04/13-05** — and must **resolve the shadow-name baseline** (`verify_additive_boundary.sh` is red on
+> `_TimeframeSegment`/`_SplashState` added by 16/boot). No surface may still wear develop's old skin, old
+> OR new track.
+
 **Requirements**: BEH-01
 **Success Criteria** (what must be TRUE):
 
@@ -415,6 +464,10 @@ above; tracked separately (see the per-phase detail sections below):
 | 17. News page (B2) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `651541c` |
 
 ### Phase 12: Transactions redesign
+
+> **CANONICAL OWNER of the transactions surface (2026-07-23).** Supersedes Phase 5's first-pass
+> transactions re-skin (05-06). The dashboard transactions *panel* and (with Phase 15) the `/transactions`
+> *tab* are edited here, not in Phase 5.
 
 **Goal:** The transactions surface reads as one system: every one of the seven `TransactionType`
 values renders through a single row anatomy, every type and status is reachable by a filter, and a
@@ -530,6 +583,10 @@ Plans:
 
 ### Phase 14: Compute panel & job flow — the first dashboard section
 
+> **CANONICAL OWNER of the dashboard's compute / wallet-overview first section (2026-07-23).**
+> Supersedes Phase 5's hero/wallet-overview re-skin (05-01/05-02) for that first card. Balances/holdings
+> elsewhere on the dashboard remain Phase 5's.
+
 **Goal:** The dashboard's first section stops lying. The left card becomes two labelled tiles —
 a balance readout and a compute node — one status component tells the truth in all nine states the
 node actually enters, and requesting a processing job is a visible flow instead of a flat form
@@ -612,6 +669,10 @@ Plans:
 - [ ] TBD (run /gsd-plan-phase 14 to break down)
 
 ### Phase 15: Transactions tab — page frame, filter rail, empty-state anchor, amount honesty
+
+> **CANONICAL OWNER of the `/transactions` tab (2026-07-23), with Phase 12.** Extends Phase 12's row/
+> filter rewrite onto the full-page tab. Together, 12 + 15 own the transactions surface; Phase 5's 05-06
+> is superseded.
 
 **Goal:** `/transactions` stops being the dashboard panel in a bigger window. It becomes a page with
 its own frame and a filter rail that uses the width, its empty state stops drifting to the vertical
@@ -716,6 +777,8 @@ width ranges **39.75 → 119.25px** across the labels.
 ### Phase 16: Markets page redesign - H1 native-token hero over sortable All Markets table (sketch 103)
 
 **Goal:** Re-skin `/markets` to sketch 103 **H1** — a native-token hero over a sortable All Markets table.
+**Canonical owner of the Markets tab (2026-07-23):** supersedes Phase 5's markets re-skin (05-04) AND
+owns the Markets surface that Phase 7 explicitly fences OUT of its scope. All `/markets` work lands here.
 **Status:** **IMPLEMENTED AHEAD OF PLAN** — built in a worktree and committed to `ui-redesign-port`
 in `aa78eec` (2026-07-23): `markets_hero_card.dart`, `markets_table.dart`, `markets_sort.dart`
 (+ `markets_sort_test.dart` 5/5). No GSD PLAN/SUMMARY was authored; verification and the human walk
@@ -733,6 +796,8 @@ Plans:
 **Goal:** Re-skin `/news` to sketch 100-102 **B2** — a lead hero + "Next up" band over an even photo
 grid, `GWCard.hoverLift` replacing the old scrim; fix frozen `pubDate`, unrendered `description`, and
 the desktop-unreachable refresh; drop `flutter_staggered_grid_view`.
+**Canonical owner of the News tab (2026-07-23):** supersedes Phase 5's news re-skin (05-05). All `/news`
+work lands here.
 **Status:** **IMPLEMENTED AHEAD OF PLAN** — built in a worktree and committed to `ui-redesign-port`
 in `651541c` (2026-07-23): `crypto_news_screen.dart` rewrite, `GWCard.hoverLift`, `GWSearchField`
 (`gw_text_field.dart`), `news_article.dart` (+ `gw_card_hover_test.dart`, `news_article_short_time_test.dart`).
