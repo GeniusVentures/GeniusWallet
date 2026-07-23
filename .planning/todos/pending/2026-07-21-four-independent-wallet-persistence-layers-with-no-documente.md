@@ -28,15 +28,35 @@ before the real store was found — record that so nobody repeats it.)
 **Why it matters:** `06-06`'s walk explicitly requires a cleared profile **per run**, and five Phase 6
 walks remain. Doing this by hand is slow, error-prone and — for layer 3 — irreversible.
 
-## Solution
+## Solution — RESOLVED 2026-07-22: documented recipe, NOT a code override
 
-Propose a dev-only `GW_DATA_DIR` override (dart-define, gated `kDebugMode && kShowDevTools` so it
-constant-folds out of release) pointing all four layers at a scratch directory, making a fresh
-install equal deleting one folder. Note layer 2 is set by the **native** SDK via the base path, so
-the override must reach `genius_api`'s `prepareConfigFiles()`
-(`packages/genius_api/lib/src/genius_api.dart:362-367`) and not just the Dart side.
+**`GW_DATA_DIR` was REJECTED by Jakub on 2026-07-22.** Do not propose it again. The accepted answer
+is a documented, verified manual recipe:
 
-Also record the manual four-step recipe as the interim fallback:
+### → `.planning/reference/FRESH-INSTALL-RECIPE.md`
+
+That document supersedes the four-step list below, which was **measured wrong in two places** when
+re-verified on 2026-07-22:
+
+- **Layer 4 (`shared_preferences.json`) does not exist.** The only copies on this machine belong to
+  unrelated "NoPing" software. There are three real layers on Windows, not four.
+- **Layer 2 (`SuperGNUSNode.Node.*`) is currently absent** — zero directories, not the three this
+  todo recorded. They accumulate one per SDK init, so the count is a function of how many wallets
+  have been created since the last clear.
+
+Also newly established: a **~310-byte `flutter_secure_storage.dat` is expected on a fresh profile**
+and does not mean a wallet exists. `LocalWalletStorage.init()` writes an `__account__` entry on
+every first launch regardless (`local_secure_storage_base.dart:72-77`). Size was previously read as
+a wallet signal; it is not one on its own.
+
+The accepted cost of rejecting the override: **the profile is consumed by every walk that completes
+onboarding**, so the recipe re-runs per walk. That is a known, accepted trade, not an oversight.
+
+---
+
+<details>
+<summary>Superseded four-step list (kept for the reasoning trail — use the recipe doc instead)</summary>
+
 1. Delete `%USERPROFILE%\Documents\*.hive`
 2. Delete `%USERPROFILE%\Documents\SuperGNUSNode.Node.*`
 3. Delete `%APPDATA%\com.example\genius_wallet\flutter_secure_storage.dat`
@@ -44,3 +64,5 @@ Also record the manual four-step recipe as the interim fallback:
 
 Note: `flutter_secure_storage` v9 on Windows stores in a file under `%APPDATA%`, not the Windows
 Credential Manager — do not waste time searching Credential Manager (`cmdkey`) for this data.
+
+</details>

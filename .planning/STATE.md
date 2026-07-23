@@ -384,4 +384,4 @@ Open decisions:
 - Phase 13 progress 2026-07-22 (session B): 13-01 and 13-02 CLOSED; 13-03 code-complete
   with its walk NOT closed; 13-04 (the original ask — remove per-section dashboard loaders)
   and 13-05 not started. Full state, measured facts and open review items in
-  `.planning/HANDOFF-phase13-boot.md`. Everything uncommitted.
+  `.planning/handoffs/HANDOFF-phase13-boot.md`. Everything uncommitted.

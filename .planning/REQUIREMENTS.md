@@ -122,7 +122,7 @@ numbers.
 
 ### Behavior Preservation (BEH)
 
-- [ ] **BEH-01**: The 37 findings in `.planning/REVIEW_FINDINGS_REDESIGN.md` are used as a checklist — each is confirmed non-regressed as its component lands. They are real, evidenced defects in this design-vs-develop surface (3 are blockers: wallets vanishing at startup, the Banxa KYC redirect stuck on a placeholder, WalletConnect dead on x64), each with a file:line and a fix
+- [ ] **BEH-01**: The 37 findings in `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` are used as a checklist — each is confirmed non-regressed as its component lands. They are real, evidenced defects in this design-vs-develop surface (3 are blockers: wallets vanishing at startup, the Banxa KYC redirect stuck on a placeholder, WalletConnect dead on x64), each with a file:line and a fix
 - [x] **BEH-02**: 3 verified fixes are ported with their components — `7a63b4f` (`!_dirty` crash guard → NAV), `f3fd16f` (dev-tools gating → BLD-03), `d8db88c` (assets/textures → DS-04). They sit on branch `ui-redesign-3.514-develop`, which exists only as a source for these three commits
 
 ## v2 Requirements

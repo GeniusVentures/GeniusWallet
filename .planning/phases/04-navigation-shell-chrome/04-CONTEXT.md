@@ -123,7 +123,7 @@ guard, and it renders a branded build-time-exception recovery screen (findings 1
 
 ### Milestone rules
 - `.planning/REQUIREMENTS.md` — NAV-01, NAV-02, BEH-02, GAP-02, GAP-03; the re-skin-vs-restructure test (governs the D-06 exception).
-- `.planning/REVIEW_FINDINGS_REDESIGN.md` — findings 2, 4, 5, 11, 12, 23, 27, 35 assigned to this phase.
+- `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` — findings 2, 4, 5, 11, 12, 23, 27, 35 assigned to this phase.
 
 </canonical_refs>
 

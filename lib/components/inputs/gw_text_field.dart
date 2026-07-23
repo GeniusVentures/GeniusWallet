@@ -35,6 +35,14 @@ class GWTextField extends StatelessWidget {
     this.textAlign = TextAlign.start,
     this.validator,
     this.borderless = false,
+    // IME-hardening opt-ins (06-04 §3.6). Every default below is Flutter's own
+    // TextFormField stock default, so existing call sites — including
+    // GWPasswordField and GWSearchField — behave byte-identically unless a
+    // caller explicitly opts in. Key-bearing fields pass all four as false/none.
+    this.autocorrect = true,
+    this.enableSuggestions = true,
+    this.enableIMEPersonalizedLearning = true,
+    this.textCapitalization = TextCapitalization.sentences,
   });
 
   final TextEditingController? controller;
@@ -67,6 +75,15 @@ class GWTextField extends StatelessWidget {
   /// [GWSearchField]'s gradient focus ring). Default false: every other field
   /// keeps its normal borders byte-identically.
   final bool borderless;
+
+  /// See the constructor note. [enableIMEPersonalizedLearning] is the
+  /// load-bearing one for key material — it maps to Android's
+  /// `IME_FLAG_NO_PERSONALIZED_LEARNING`, the actual switch on the keyboard's
+  /// learning store. The other three do not close that leak on their own.
+  final bool autocorrect;
+  final bool enableSuggestions;
+  final bool enableIMEPersonalizedLearning;
+  final TextCapitalization textCapitalization;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +122,10 @@ class GWTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           textAlign: textAlign,
           validator: validator,
+          autocorrect: autocorrect,
+          enableSuggestions: enableSuggestions,
+          enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
+          textCapitalization: textCapitalization,
           style: GeniusWalletTypography.bodyLg,
           cursorColor: GeniusWalletColors.brandPrimary,
           decoration: InputDecoration(

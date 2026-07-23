@@ -59,5 +59,5 @@ from the clipboard itself, and a timed clear does **not** evict an entry that hi
 captured. If that holds, option 1 is weaker than it appears and should be documented as partial
 mitigation rather than a fix.
 
-Related: `.planning/AUDIT-260721-parallel-investigation.md` (Q2),
+Related: `.planning/reference/AUDIT-260721-parallel-investigation.md` (Q2),
 `.planning/phases/06-onboarding/06-04-PLAN.md` (`T-06-04-09`).
