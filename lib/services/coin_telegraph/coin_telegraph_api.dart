@@ -5,7 +5,6 @@ import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:intl/intl.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
@@ -60,9 +59,12 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
         parsedDate = null;
       }
 
-      String formattedDate = parsedDate != null
-          ? timeago.format(parsedDate.toLocal())
-          : '';
+      // Store the INSTANT (ISO-8601), not a formatted "2 hours ago" string:
+      // the label is now rendered from this at read time (NewsArticle.relative
+      // Time), so a cached article's age advances instead of freezing at fetch.
+      // Fall back to the raw RSS date when unparseable — relativeTime shows it
+      // verbatim rather than an empty timestamp.
+      final String storedDate = parsedDate?.toUtc().toIso8601String() ?? rawDate;
 
       String? imageUrl;
 
@@ -84,7 +86,7 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
         title: title,
         link: link,
         description: description,
-        pubDate: formattedDate,
+        pubDate: storedDate,
         imageUrl: imageUrl,
       );
     }).toList();

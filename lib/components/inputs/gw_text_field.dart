@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -32,6 +34,7 @@ class GWTextField extends StatelessWidget {
     this.focusNode,
     this.textAlign = TextAlign.start,
     this.validator,
+    this.borderless = false,
   });
 
   final TextEditingController? controller;
@@ -58,6 +61,12 @@ class GWTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final TextAlign textAlign;
   final FormFieldValidator<String>? validator;
+
+  /// Suppress the field's own hairline/focus stroke while KEEPING the fill and
+  /// rounded shape — for when a parent draws the border itself (e.g.
+  /// [GWSearchField]'s gradient focus ring). Default false: every other field
+  /// keeps its normal borders byte-identically.
+  final bool borderless;
 
   @override
   Widget build(BuildContext context) {
@@ -112,14 +121,17 @@ class GWTextField extends StatelessWidget {
               horizontal: GeniusWalletConsts.space8,
               vertical: GeniusWalletConsts.space8,
             ),
-            border: _border(gw.borderSubtle),
-            enabledBorder: _border(gw.borderSubtle),
-            focusedBorder:
-                _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
-            errorBorder: _border(GeniusWalletColors.statusError),
-            focusedErrorBorder:
-                _border(GeniusWalletColors.statusError, width: 2),
-            disabledBorder: _border(gw.borderSubtle),
+            border: borderless ? _noBorder : _border(gw.borderSubtle),
+            enabledBorder: borderless ? _noBorder : _border(gw.borderSubtle),
+            focusedBorder: borderless
+                ? _noBorder
+                : _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
+            errorBorder:
+                borderless ? _noBorder : _border(GeniusWalletColors.statusError),
+            focusedErrorBorder: borderless
+                ? _noBorder
+                : _border(GeniusWalletColors.statusError, width: 2),
+            disabledBorder: borderless ? _noBorder : _border(gw.borderSubtle),
             errorText: errorText,
             errorStyle: GeniusWalletTypography.bodySm.copyWith(
               color: GeniusWalletColors.statusError,
@@ -139,6 +151,13 @@ class GWTextField extends StatelessWidget {
         borderRadius:
             BorderRadius.circular(GeniusWalletConsts.radiusLg),
         borderSide: BorderSide(color: color, width: width),
+      );
+
+  /// Keeps the rounded fill but draws NO stroke — [borderless] mode, where a
+  /// parent owns the visible border (the gradient focus ring).
+  OutlineInputBorder get _noBorder => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+        borderSide: BorderSide.none,
       );
 }
 
@@ -212,7 +231,7 @@ class _GWPasswordFieldState extends State<GWPasswordField> {
   }
 }
 
-class GWSearchField extends StatelessWidget {
+class GWSearchField extends StatefulWidget {
   const GWSearchField({
     super.key,
     this.controller,
@@ -229,29 +248,71 @@ class GWSearchField extends StatelessWidget {
   final bool autofocus;
 
   @override
+  State<GWSearchField> createState() => _GWSearchFieldState();
+}
+
+class _GWSearchFieldState extends State<GWSearchField> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode()..addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() => setState(() {});
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return GWTextField(
-      controller: controller,
-      hint: hint,
-      autofocus: autofocus,
-      onChanged: onChanged,
-      prefix: Icon(
-        Icons.search,
-        size: 20,
-        color: gw.textSecondary,
+    final focused = _focusNode.hasFocus;
+
+    // The focus highlight is the BRAND GRADIENT ring, not the flat blue the
+    // default focusedBorder draws. Standard gradient-border trick: an outer
+    // container carries the gradient (focus) / hairline (rest) as its fill, and
+    // the border-width padding around the inner borderless+filled field is the
+    // only place that fill shows — a 2px gradient ring on focus, a 1px hairline
+    // at rest. AnimatedContainer cross-fades the two.
+    return AnimatedContainer(
+      duration: GeniusWalletMotion.fast,
+      curve: GeniusWalletMotion.standard,
+      padding: EdgeInsets.all(focused ? 2 : 1),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+        gradient: focused ? GeniusWalletGradient.brandCta : null,
+        color: focused ? null : gw.borderSubtle,
       ),
-      suffix: onClear != null
-          ? IconButton(
-              tooltip: 'Clear',
-              icon: Icon(
-                Icons.close,
-                size: 18,
-                color: gw.textSecondary,
-              ),
-              onPressed: onClear,
-            )
-          : null,
+      child: GWTextField(
+        controller: widget.controller,
+        hint: widget.hint,
+        autofocus: widget.autofocus,
+        focusNode: _focusNode,
+        onChanged: widget.onChanged,
+        borderless: true,
+        prefix: Icon(
+          Icons.search,
+          size: 20,
+          color: gw.textSecondary,
+        ),
+        suffix: widget.onClear != null
+            ? IconButton(
+                tooltip: 'Clear',
+                icon: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: gw.textSecondary,
+                ),
+                onPressed: widget.onClear,
+              )
+            : null,
+      ),
     );
   }
 }
