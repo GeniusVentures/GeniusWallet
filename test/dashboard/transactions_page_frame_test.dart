@@ -11,6 +11,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// The `/transactions` PAGE FRAME: `GWPageHeader` + the `xl` width cap + the
@@ -135,25 +136,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the content stops at the 1600 cap', (tester) async {
-    // A window WIDER than the cap, so the cap actually binds. At exactly 1600
-    // the cap would not bind (1600 - 24 gutter = 1576 < 1600) and the test
-    // would silently measure the viewport instead — the class of dead assertion
-    // the plan-checker caught elsewhere in this phase.
+  testWidgets('the content stops at the xxl cap', (tester) async {
+    // A window WIDER than the cap, so the cap actually binds. At the cap itself
+    // it would not bind (xxl - 24 gutter < xxl) and the test would silently
+    // measure the viewport instead — the class of dead assertion the
+    // plan-checker caught elsewhere in this phase.
     _surface(tester, 2000);
     await tester.pumpWidget(_host());
     await tester.pumpAndSettle();
 
-    // EXACTLY 1600, not merely "wider than medium". 1600 and not 1600-24: the
-    // Padding is OUTSIDE the ConstrainedBox, so the cap binds the CONTENT and
-    // the 12px gutter is additive on top of it. Nested the other way this would
-    // read 1576, which is what makes this number the order test as well as the
-    // cap test. Sketch 024-C raised this from 1280 so the list fills more of a
-    // fullscreen window; if it drifts back, the amount column clamps again.
+    // EXACTLY xxl (1536), not merely "wider than medium". The full cap and not
+    // cap-24: the Padding is OUTSIDE the ConstrainedBox, so the cap binds the
+    // CONTENT and the 12px gutter is additive on top of it. Nested the other
+    // way this would read xxl-24, which is what makes this number the order test
+    // as well as the cap test. The cap was 1280 (xl), briefly 1600 (sketch
+    // 024-C), then narrowed to xxl (1536) to unify Transactions/Markets/News on
+    // one frame (Jakub's call, commit 99a8913) — kept in sync with
+    // transactions_screen.dart's GeniusBreakpoints.xxl.
     expect(
       _contentWidth(tester),
-      closeTo(1600, 1),
-      reason: 'expected the 1600 cap to bind at a 2000px window',
+      closeTo(GeniusBreakpoints.xxl, 1),
+      reason: 'expected the xxl cap to bind at a 2000px window',
     );
     expect(tester.takeException(), isNull);
   });
@@ -165,8 +168,8 @@ void main() {
 
     // The other end of the same property: a max-width constrains only a WIDER
     // viewport, so at 1000 the ConstrainedBox does nothing and the content is
-    // viewport minus the two 12px gutters. A frame that measured 1280 here
-    // would be overflowing the window, not filling it.
+    // viewport minus the two 12px gutters. A frame that measured the full xxl
+    // cap here would be overflowing the window, not filling it.
     expect(
       _contentWidth(tester),
       closeTo(1000 - 24, 1),
@@ -195,7 +198,7 @@ void main() {
     await tester.pumpWidget(_host(txs: const []));
     await tester.pumpAndSettle();
 
-    // At 360 the 1280 cap is inert, so this 12px is the Padding's alone. Delete
+    // At 360 the xxl cap is inert, so this 12px is the Padding's alone. Delete
     // the Padding and the content sits on the window bezel — the defect the
     // 06-01 walk found in `wallet_creation_screen.dart`.
     expect(
