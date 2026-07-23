@@ -342,7 +342,10 @@ section for the full reasoning behind each:
   3. Tapping "More" on a non-GNUS token does nothing (the button is disabled) rather than opening an empty drawer (finding 37)
   4. Leaving a token chart mid-fetch, or while its refresh timer is running, throws no `setState after dispose` (finding 24) — the inherited (Phase 5) chart's lifecycle fix, not a re-skin
 
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 07-01-PLAN.md — re-skin token-detail (ActionButton, Info/Convert cards, both drawers) + lock finding 37 + light-QR
+- [ ] 07-02-PLAN.md — finding-24 chart lifecycle mounted guards (no re-skin)
+- [ ] 07-03-PLAN.md — human walk: dark+light fidelity, QR phone-scan, disabled states, clean console
 **UI hint**: yes
 **Findings**: 24, 37.
 **Inherits from Phase 5**: `lib/chart/crypto_live_chart.dart` was ALREADY re-skinned inside
