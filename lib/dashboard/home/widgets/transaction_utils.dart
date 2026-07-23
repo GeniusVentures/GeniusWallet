@@ -197,6 +197,8 @@ class TxRowContent {
     required this.title,
     required this.action,
     required this.subtitle,
+    required this.subtitleBase,
+    required this.status,
     required this.amount,
     required this.tone,
     required this.exactAmount,
@@ -207,6 +209,12 @@ class TxRowContent {
 
   final TransactionBadgeKind badge;
 
+  /// The raw status, exposed so the WIDE transactions page can render it as a
+  /// pill column. On the narrow panel the status stays folded into [subtitle];
+  /// the pill is a wide-only affordance (sketch 030-A2), so both presentations
+  /// draw from the same source and neither can drift.
+  final TransactionStatus status;
+
   /// The headline. 010-A is token-first: the asset leads, the action follows.
   final String title;
 
@@ -216,6 +224,12 @@ class TxRowContent {
   /// One line of real context. Carries the status token if, and only if, the
   /// status is not the happy path.
   final String subtitle;
+
+  /// [subtitle] WITHOUT the ` · Status` suffix — the context alone. The WIDE
+  /// page uses this and shows [status] as its own pill instead, so the status
+  /// is stated exactly once (pill), not twice (pill + subtitle suffix). For a
+  /// completed row this equals [subtitle] (there is no suffix to strip).
+  final String subtitleBase;
 
   /// Already signed and clamped, and never empty — every type produces a real
   /// number, including a job (its fee) and a failed row (the amount it
@@ -250,9 +264,7 @@ TransactionBadgeKind _badgeForType(TransactionType? type, bool isSent) {
       return TransactionBadgeKind.swap;
     case TransactionType.transfer:
     case null:
-      return isSent
-          ? TransactionBadgeKind.sent
-          : TransactionBadgeKind.received;
+      return isSent ? TransactionBadgeKind.sent : TransactionBadgeKind.received;
   }
 }
 
@@ -348,6 +360,9 @@ TxRowContent txRowContent(
       }
   }
   // The whole of "status is rendered only when it is not the happy path".
+  // Captured BEFORE the append so the wide page can show the context alone and
+  // carry the status in its own pill.
+  final subtitleBase = subtitle;
   if (status != TransactionStatus.completed) {
     subtitle = '$subtitle $_middot ${_statusLabel(status)}';
   }
@@ -454,6 +469,8 @@ TxRowContent txRowContent(
     title: title,
     action: _actionFor(type, isSent),
     subtitle: subtitle,
+    subtitleBase: subtitleBase,
+    status: status,
     amount: amount,
     tone: tone,
     exactAmount: exactAmount,

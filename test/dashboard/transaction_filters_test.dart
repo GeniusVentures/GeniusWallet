@@ -333,7 +333,9 @@ void main() {
       // Assets and Markets. Zero is the correct count; if this ever reads 1
       // again, the header rule has been reintroduced.
       expect(find.byType(Divider), findsNothing);
-      expect(find.text('3 transactions'), findsOneWidget);
+      // No footer count any more — removed on the 023 walk, both the panel
+      // footer and the rail summary. RED if a "N transactions" line returns.
+      expect(find.textContaining(RegExp(r'\d+ transactions')), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -387,13 +389,11 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('the footer agrees in number with a single row', (
-      tester,
-    ) async {
+    testWidgets('a single row shows no footer count', (tester) async {
       await tester.pumpWidget(host([_tx(at: dayAt(0))]));
-      expect(find.text('1 transaction'), findsOneWidget);
-      // A single row has nothing to separate, and there is no header rule
-      // (sketch 019 variant B).
+      // The footer was removed on the 023 walk. A single row has nothing to
+      // separate either, so no Divider (sketch 019 variant B).
+      expect(find.textContaining(RegExp(r'\d+ transaction')), findsNothing);
       expect(find.byType(Divider), findsNothing);
     });
   });
@@ -502,7 +502,10 @@ void main() {
       await tester.tap(find.text('Show all'));
       await tester.pumpAndSettle();
       expect(find.text('Show all'), findsNothing);
-      expect(find.text('1 transaction'), findsOneWidget);
+      // Back to the unfiltered list: the one row returns and the empty state
+      // is gone. (No footer count to assert any more — removed on the walk.)
+      expect(find.byType(TransactionRow), findsOneWidget);
+      expect(find.text(emptyTransactionsTitle), findsNothing);
       expect(tester.takeException(), isNull);
     });
 

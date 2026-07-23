@@ -80,8 +80,6 @@ List<Transaction> _mixed() => [
   _tx(type: TransactionType.purchase),
 ];
 
-const int _mixedTotal = 8;
-
 /// Sets the GLOBAL appearance to [mode] and returns the matching [GWColors],
 /// restoring dark on teardown.
 ///
@@ -203,56 +201,40 @@ void main() {
     await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
     expect(tester.takeException(), isNull);
 
-    // All + seven types + two statuses. RED if a group is dropped, or if the
-    // rail is built from `Filters.primary` alone.
-    expect(rowFinder, findsNWidgets(10));
+    // NINE rows: seven types + two statuses. There is NO All element at all
+    // (sketch 023, walk 2) — no row, no summary. RED if a group is dropped, if
+    // the rail is built from `Filters.primary` alone, or if any All affordance
+    // is reinstated.
+    expect(rowFinder, findsNWidgets(9));
 
-    expect(railText('All'), findsOneWidget);
     expect(railText('Type'), findsOneWidget);
     expect(railText('Status'), findsOneWidget);
 
     for (final f in Filters.values) {
+      if (f == Filters.all) continue;
       expect(railText(f.label), findsOneWidget, reason: '${f.label} missing');
     }
+
+    // No total anywhere in the rail — the summary was removed on the walk.
+    expect(find.text('transactions'), findsNothing);
+    expect(find.textContaining(RegExp(r'\d+ transactions')), findsNothing);
   });
 
   // 2 -------------------------------------------------------------------
-  testWidgets('the All row carries the total, and the page has no footer', (
+  testWidgets('neither the page nor the panel shows a running total', (
     tester,
   ) async {
+    // Both totals were removed on the 023 walk: the rail summary AND the panel
+    // footer. This guards both presentations at once — a "N transactions" line
+    // reappearing in either is the regression.
     _surface(tester);
+
+    // PAGE.
     await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
     expect(tester.takeException(), isNull);
+    expect(find.textContaining(RegExp(r'\d+ transactions?')), findsNothing);
 
-    expect(_countOf(tester, rowFor('All')), '$_mixedTotal');
-
-    // The panel's footer must NOT survive into the page — the All row absorbed
-    // it, and two live totals on one screen is how they drift apart.
-    expect(find.text('$_mixedTotal transactions'), findsNothing);
-
-    // THEN FILTER, and read it again. This second half is the whole test.
-    // At rest `selectedFilter` is All, so the filtered list and the scoped list
-    // are the same eight transactions and `total: txs.length` is
-    // indistinguishable from `total: scoped.length` — the assertion above
-    // passes under the mutation it is supposed to catch. Only a filtered read
-    // separates them: Mint matches 1 of 8, so a filtered total reads 1.
-    await tester.tap(rowFor('Mint'));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-
-    // RED if the All count is wired to the filtered list.
-    expect(
-      _countOf(tester, rowFor('All')),
-      '$_mixedTotal',
-      reason: 'the All row must carry the SCOPED total, not the filtered one',
-    );
-    expect(_countOf(tester, rowFor('Mint')), '1');
-
-    // The footer assertion above is a NEGATIVE one, so it is only worth
-    // anything if that exact string is the string the footer actually prints —
-    // a typo would make it pass forever. Pump the same fixture as a PANEL and
-    // watch the footer appear. This is also the guard that the panel kept its
-    // footer: this plan removed it from the page, not from the dashboard.
+    // PANEL, same fixture shape.
     await tester.pumpWidget(
       _host(
         width: 900,
@@ -262,7 +244,7 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    expect(find.text('1 transaction'), findsOneWidget);
+    expect(find.textContaining(RegExp(r'\d+ transactions?')), findsNothing);
   });
 
   // 3 -------------------------------------------------------------------
@@ -321,6 +303,42 @@ void main() {
     // resting weight.
     expect(tester.widget<Text>(railText('Sent')).style!.fontWeight,
         FontWeight.w500);
+  });
+
+  // 4b ------------------------------------------------------------------
+  testWidgets('tapping the active row clears back to All', (tester) async {
+    // The rail has no All element (sketch 023, walk 2), so tapping the active
+    // row again IS the way back to unfiltered. Before this it was a no-op —
+    // `onChanged(f)` re-selected the same filter — which stranded the user on
+    // a filter with no visible route out. RED if the toggle regresses to a
+    // plain re-select: the row would stay w700 on the second tap.
+    _surface(tester);
+    await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
+
+    await tester.tap(rowFor('Mint'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Text>(railText('Mint')).style!.fontWeight,
+        FontWeight.w700, reason: 'first tap activates');
+
+    await tester.tap(rowFor('Mint'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    // Back to resting weight — nothing is selected, which is the All state.
+    expect(
+      tester.widget<Text>(railText('Mint')).style!.fontWeight,
+      FontWeight.w500,
+      reason: 'second tap on the active row must clear to All',
+    );
+    // And no row anywhere wears the active weight now.
+    for (final f in Filters.values) {
+      if (f == Filters.all) continue;
+      expect(
+        tester.widget<Text>(railText(f.label)).style!.fontWeight,
+        FontWeight.w500,
+        reason: '${f.label} should be unselected in the All state',
+      );
+    }
   });
 
   // 5 -------------------------------------------------------------------
@@ -409,7 +427,9 @@ void main() {
 
     // 40 = `space20`, the height `_menuItem` uses and the height the navbar
     // normalizes every interactive control to.
-    for (var i = 0; i < 10; i++) {
+    // Nine, not ten: the All summary is not a `_RailRow` and does not carry
+    // the 40px control height — it is a heading-weight total.
+    for (var i = 0; i < 9; i++) {
       expect(tester.getSize(rowFinder.at(i)).height, 40);
     }
 

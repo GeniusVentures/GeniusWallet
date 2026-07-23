@@ -120,6 +120,37 @@ void main() {
     }
   }
 
+  // The Status pill is a WIDE-only affordance (sketch 030-A2). On the wide page
+  // the status is a pill and the subtitle drops its ` · Status` suffix; on the
+  // narrow panel there is no pill and the suffix stays. This pins that the
+  // status is stated exactly ONCE in each presentation, never twice and never
+  // zero times — the whole point of `subtitleBase`/`status` on TxRowContent.
+  group('wide-page Status pill (030-A2)', () {
+    final failed = _tx(status: TransactionStatus.failed);
+
+    testWidgets('wide (900): status is a pill, subtitle drops the suffix', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(failed, width: 900, gw: GWColors.dark()));
+      expect(tester.takeException(), isNull);
+      // The pill states it…
+      expect(find.text('Failed'), findsOneWidget);
+      // …and the subtitle does NOT also (no ` · Failed`).
+      expect(find.textContaining('· Failed'), findsNothing);
+    });
+
+    testWidgets('narrow (320): no pill, status stays folded in the subtitle', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(failed, width: 320, gw: GWColors.dark()));
+      expect(tester.takeException(), isNull);
+      // The subtitle carries it…
+      expect(find.textContaining('· Failed'), findsOneWidget);
+      // …and there is no standalone pill label.
+      expect(find.text('Failed'), findsNothing);
+    });
+  });
+
   // Declared LAST on purpose: it opens a real Hive box, and every row test
   // above must run against the closed-box path (`const {}`) it also asserts.
   group('livePricesBySymbol against a real box', () {

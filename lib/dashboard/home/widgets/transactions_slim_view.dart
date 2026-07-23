@@ -212,6 +212,34 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   /// `FittedBox`/`AutoSizeText` — that is the 37639d5 pattern.
   static const double _railWidth = 220;
 
+  /// The rail's natural CONTENT height, used as the list card's floor so the
+  /// two cards end together when the list is short (sketch 023-V3).
+  ///
+  /// Arithmetic, not a guess — both cards sit in a `DashboardScrollContainer`
+  /// with identical padding, so matching content heights matches card heights:
+  ///   All summary  8 + 26 + 12            =  46
+  ///   rule         8 +  1 +  8            =  17
+  ///   'Type'       8 + 16 +  4            =  28
+  ///   7 type rows  7 x 40                 = 280
+  ///   rule                                =  17
+  ///   'Status'                            =  28
+  ///   2 status rows 2 x 40                =  80
+  ///                                        ----
+  ///                                         496
+  ///
+  /// A FLOOR, never a fixed height: a longer list grows past it, and the rail
+  /// then simply ends higher, which is what a sidebar is allowed to do. What
+  /// this prevents is the inverse — filtering down to one day leaving a 210px
+  /// list stub beside a 500px rail, where the rail reads as the content and the
+  /// list as a footnote.
+  ///
+  /// ponytail: a literal, so adding a tenth filter drifts it by one row height
+  /// and the cards stop ending flush. The upgrade path is to measure the rail
+  /// with a `GlobalKey` after layout — which costs a second frame and, worse,
+  /// re-introduces a height derived from live layout, the exact shape 37639d5
+  /// banned. The literal is the freeze-safe option and the drift is cosmetic.
+  static const double _listCardFloor = 496;
+
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -245,8 +273,17 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
           // width below which the title plus an expanded chip stop fitting.
           final bool compact = constraints.maxWidth < 420;
 
+          // `_panel` has two hosts with opposite height contracts. On the
+          // DASHBOARD it sits in a fixed-height card, so it must fill that card
+          // and scroll inside it. As the PAGE's narrow fallback it now sits in
+          // the page's scroll view (sketch 023-V3), where height is unbounded —
+          // and `Expanded` under an unbounded height is an assertion, not a
+          // layout. One bool, read from the widget, not from constraints.
+          final bool hug = widget.page;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: hug ? MainAxisSize.min : MainAxisSize.max,
             // GWSectionTitle owns its own space8 bottom gap, so the leading
             // title no longer needs the Column's 16px spacing above the list.
             children: [
@@ -283,27 +320,18 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
               // (dashboard_markets.dart) both do exactly this. A rule on this
               // one panel was the only thing that differed dashboard-wide.
               // Row dividers stay: those are shared with Assets and Markets.
-              Expanded(child: _body(context, gw, scoped, txs)),
-              // Footer only when there are rows — both empty branches end at
-              // the empty state, matching the sketch.
-              if (txs.isNotEmpty) ...[
-                // Restores the gap the dropped Column `spacing: 16` used to
-                // give between the list and the count footer.
-                const SizedBox(height: GeniusWalletConsts.space8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  // A FIXED style. No AutoSizeText, no textScaler-derived
-                  // fontSize — see the import-block note. Counts `txs` (what
-                  // is on screen), while the filtered-empty copy quotes
-                  // `scoped`; each number describes the list it names.
-                  child: Text(
-                    '${txs.length} transaction${txs.length == 1 ? '' : 's'}',
-                    style: GeniusWalletTypography.labelMd.copyWith(
-                      color: gw.textSecondary,
-                    ),
-                  ),
+              if (hug)
+                _body(context, gw, scoped, txs, scrollable: false)
+              else
+                Expanded(
+                  child: _body(context, gw, scoped, txs, scrollable: true),
                 ),
-              ],
+              // No footer count. It was removed on the walk: a running total
+              // pinned to the bottom-right of the panel read as chrome nobody
+              // needed, and it forced the panel to reserve space below the
+              // list. The rail's own header carried the same number on the
+              // page and that too was dropped, so neither presentation now
+              // shows a total.
             ],
           );
         },
@@ -343,7 +371,12 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         if (!wide) return _panel(context, gw, scoped, txs);
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          // start, NOT stretch. stretch forced both cards to the full window
+          // height, so eleven rows of list sat in a 1400px card and the rail's
+          // ~500px of content sat in another — two empty boxes that read worst
+          // at fullscreen. Sketch 023-V3: each card ends where its content
+          // ends, with a floor on the list so the pair stays visually paired.
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // The rail disappears with the panel's chips on an empty scope —
             // 15-03's rule, applied to this presentation. A control that
@@ -359,7 +392,6 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                     // list would read 0 for every inactive filter. Same list
                     // the panel reads at its own call site.
                     counts: filterCounts(scoped),
-                    total: scoped.length,
                     onChanged: (f) => setState(() => selectedFilter = f),
                   ),
                 ),
@@ -367,8 +399,14 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
               const SizedBox(width: GeniusWalletConsts.space6),
             ],
             Expanded(
-              child: DashboardScrollContainer(
-                child: _body(context, gw, scoped, txs),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: _listCardFloor),
+                child: DashboardScrollContainer(
+                  // NOT scrollable: the PAGE scrolls now
+                  // (`transactions_screen.dart`), so the list lays itself out
+                  // as a plain Column and the card is as tall as its rows.
+                  child: _body(context, gw, scoped, txs, scrollable: false),
+                ),
               ),
             ),
           ],
@@ -383,8 +421,13 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     BuildContext context,
     GWColors gw,
     List<Transaction> scoped,
-    List<Transaction> txs,
-  ) {
+    List<Transaction> txs, {
+    /// True for the dashboard PANEL, whose card is a fixed height, so the list
+    /// must scroll inside it. False for the PAGE, which scrolls as a whole
+    /// (sketch 023-V3) — there the list is a plain Column and the card sizes
+    /// to its rows.
+    required bool scrollable,
+  }) {
     // BRANCH 1 — this wallet has never transacted (within this scope). The one
     // branch allowed to be a dead end: there is nothing to show all of.
     if (scoped.isEmpty) {
@@ -476,6 +519,17 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
           );
         }
       }
+    }
+
+    // A Column, not a shrink-wrapped ListView: `entries` is already fully
+    // built above, so there is no laziness left to preserve and shrinkWrap
+    // would only add a second layout pass over the same widgets.
+    if (!scrollable) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: entries,
+      );
     }
 
     return ListView.builder(
@@ -818,18 +872,11 @@ class _FilterRail extends StatelessWidget {
   const _FilterRail({
     required this.selected,
     required this.counts,
-    required this.total,
     required this.onChanged,
   });
 
   final Filters selected;
   final Map<Filters, int> counts;
-
-  /// The SCOPED, UNFILTERED length — the number the panel's footer used to
-  /// print. The All row absorbs it, which is why [_page] has no footer: two
-  /// live totals on one screen is how they drift apart.
-  final int total;
-
   final ValueChanged<Filters> onChanged;
 
   @override
@@ -840,11 +887,11 @@ class _FilterRail extends StatelessWidget {
       filter: f,
       count: count,
       active: f == selected,
-      // Plainly `onChanged(f)`. Deliberately NOT the chips' tap-the-active-one-
-      // to-clear toggle (`_TransactionFilterBar._chip`): with an explicit All
-      // row the toggle is redundant, and an active row that deactivates under a
-      // second click reads as a misfire rather than as a feature.
-      onTap: () => onChanged(f),
+      // Tap the active row to clear back to All — the same toggle the panel's
+      // chips use (`_TransactionFilterBar._chip`). With no All element in the
+      // rail, this IS the way back to unfiltered, so it is a feature, not the
+      // misfire it would be if an explicit All also existed.
+      onTap: () => onChanged(f == selected ? Filters.all : f),
     );
 
     return SingleChildScrollView(
@@ -856,28 +903,35 @@ class _FilterRail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // `_menuItem` has no All — you clear by tapping the active filter
-          // again, which is invisible. A rail has the room to say it.
-          row(Filters.all, total),
+          // No All element at all (sketch 023, walk 2). It was tried as a row,
+          // then as a summary; both read as clutter above the first real group.
+          // The way back to unfiltered is the tap-the-active-row-to-clear
+          // toggle in [row] below — the same affordance the panel's chips use.
+          // The rail therefore opens straight on the first group header, and
+          // there is no leading rule to be asymmetric with.
           _groupHeader(gw, 'Type'),
           for (final f in Filters.primary) row(f, counts[f] ?? 0),
           for (final f in Filters.overflowTypes) row(f, counts[f] ?? 0),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: GeniusWalletConsts.space4,
-            ),
-            // Colour PINNED, not inherited — same reason the menu's
-            // PopupMenuDivider pins it: the app-wide `dividerTheme` is a
-            // different colour, and this hairline must match the list
-            // separators and the menu's.
-            child: Divider(height: 1, thickness: 1, color: gw.borderSubtle),
-          ),
+          _rule(gw),
           _groupHeader(gw, 'Status'),
           for (final f in Filters.overflowStatuses) row(f, counts[f] ?? 0),
         ],
       ),
     );
   }
+
+  /// The rail's group separator. Colour PINNED, not inherited — same reason the
+  /// menu's `PopupMenuDivider` pins it: the app-wide `dividerTheme` is a
+  /// different colour, and this hairline must match the list separators and the
+  /// menu's.
+  ///
+  /// Shared by BOTH boundaries. Before sketch 023 the Status boundary had one
+  /// and the All boundary did not, which is the asymmetry that made `All 11`
+  /// look wrong — one helper makes that impossible to reintroduce by omission.
+  Widget _rule(GWColors gw) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space4),
+    child: Divider(height: 1, thickness: 1, color: gw.borderSubtle),
+  );
 
   /// The same type treatment `_TransactionFilterBar._header` gives the menu's
   /// group labels. The WORDING differs from the menu's "More types" on
