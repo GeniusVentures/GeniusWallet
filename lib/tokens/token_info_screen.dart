@@ -14,7 +14,11 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/action_button.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class TokenInfoScreen extends StatelessWidget {
@@ -58,11 +62,11 @@ class TokenInfoScreen extends StatelessWidget {
         builder: (context, constraints) {
           bool isDesktop = constraints.maxWidth > GeniusBreakpoints.large;
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space10),
             primary: true,
             child: isDesktop
                 ? Row(
-                    spacing: 20,
+                    spacing: GeniusWalletConsts.space10,
                     children: [
                       if (marketData != null)
                         Expanded(
@@ -97,7 +101,7 @@ class TokenInfoScreen extends StatelessWidget {
                     ],
                   )
                 : Column(
-                    spacing: 20,
+                    spacing: GeniusWalletConsts.space10,
                     children: [
                       if (marketData != null)
                         _buildGraphSection(marketData!, null),
@@ -142,10 +146,11 @@ class TokenInfoScreen extends StatelessWidget {
     bool isGnusBridgeEnabled,
     walletDetailsCubit,
   ) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return SizedBox(
       width: 400,
       child: Row(
-        spacing: 8,
+        spacing: GeniusWalletConsts.space4,
         children: [
           ActionButton(
             text: "Receive",
@@ -157,7 +162,7 @@ class TokenInfoScreen extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(GeniusWalletConsts.space4),
                     child: SizedBox(
                       width: GeniusBreakpoints.small * 0.5,
                       child: CryptoAddressQR(
@@ -192,6 +197,7 @@ class TokenInfoScreen extends StatelessWidget {
                                 walletDetailsCubit.getCoins();
                               },
                         label: "Bridge Tokens",
+                        color: gw.textPrimary,
                       ),
                     );
                   }
@@ -212,7 +218,7 @@ class TokenInfoScreen extends StatelessWidget {
     bool? isGnusBridgeEnabled,
   ) {
     return Column(
-      spacing: 16,
+      spacing: GeniusWalletConsts.space8,
       children: [
         _MarketDataInfo(
           topSlot: CoinCardRow(
@@ -271,16 +277,15 @@ class _ConvertSectionState extends State<_ConvertSection> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
+      spacing: GeniusWalletConsts.space4,
       children: [
         Text("Convert", style: Theme.of(context).textTheme.titleMedium),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              spacing: 16,
-              children: [
-                TextField(
+        GWCard(
+          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+          child: Column(
+            spacing: GeniusWalletConsts.space8,
+            children: [
+              TextField(
                   controller: _tokenPriceController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -306,7 +311,6 @@ class _ConvertSectionState extends State<_ConvertSection> {
               ],
             ),
           ),
-        ),
       ],
     );
   }
@@ -328,11 +332,16 @@ class _MarketDataInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // Single restrained accent for every info-tile leading glyph + copy/link
+    // affordance (replaces the rainbow amber/lightBlue/orange/red set and the
+    // cs.primary reads) — appearance-aware, honours the 10% accent discipline.
+    final Color accent = GeniusWalletColors.brandPrimaryOnSurface;
     final infoTiles = <Widget>[
       if (network != null)
         ListTile(
           dense: true,
-          leading: Icon(Icons.bubble_chart, color: cs.primary),
+          leading: Icon(Icons.bubble_chart, color: accent),
           title: const Text("Network"),
           trailing: Text(
             network!,
@@ -342,7 +351,7 @@ class _MarketDataInfo extends StatelessWidget {
       if (address != null)
         ListTile(
           dense: true,
-          leading: Icon(Icons.link, color: cs.primary),
+          leading: Icon(Icons.link, color: accent),
           title: const Text("Address"),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -354,7 +363,7 @@ class _MarketDataInfo extends StatelessWidget {
                   showAppSnackBar(context, 'Address copied to clipboard');
                 },
                 tooltip: "Copy address",
-                icon: Icon(Icons.copy, size: 18, color: cs.primary),
+                icon: Icon(Icons.copy, size: 18, color: accent),
               ),
               Text(
                 address!.length > 12
@@ -367,7 +376,7 @@ class _MarketDataInfo extends StatelessWidget {
         ),
       ListTile(
         dense: true,
-        leading: Icon(Icons.pie_chart, color: Colors.amber[300]),
+        leading: Icon(Icons.pie_chart, color: accent),
         title: const Text("Market Cap"),
         trailing: Text(
           _formatCompactCurrency(marketData?.marketCap),
@@ -376,7 +385,7 @@ class _MarketDataInfo extends StatelessWidget {
       ),
       ListTile(
         dense: true,
-        leading: Icon(Icons.sync, color: Colors.lightBlue[300]),
+        leading: Icon(Icons.sync, color: accent),
         title: const Text("Circulating Supply"),
         trailing: Text(
           _formatCompactDecimal(marketData?.circulatingSupply),
@@ -385,7 +394,7 @@ class _MarketDataInfo extends StatelessWidget {
       ),
       ListTile(
         dense: true,
-        leading: Icon(Icons.storage, color: Colors.orange[300]),
+        leading: Icon(Icons.storage, color: accent),
         title: const Text("Total Supply"),
         trailing: Text(
           _formatCompactDecimal(marketData?.totalSupply),
@@ -394,7 +403,7 @@ class _MarketDataInfo extends StatelessWidget {
       ),
       ListTile(
         dense: true,
-        leading: Icon(Icons.bar_chart, color: Colors.red[300]),
+        leading: Icon(Icons.bar_chart, color: accent),
         title: const Text("Volume"),
         trailing: Text(
           _formatCompactCurrency(marketData?.totalVolume),
@@ -405,49 +414,50 @@ class _MarketDataInfo extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
+      spacing: GeniusWalletConsts.space4,
       children: [
         Text("Info", style: Theme.of(context).textTheme.titleMedium),
-        Card(
-          color: cs.surface,
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.only(bottom: 8, left: 8),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.white,
-                    backgroundImage: marketData?.imageUrl != null
-                        ? NetworkImage(marketData!.imageUrl)
-                        : null,
-                    child: marketData?.imageUrl == null
-                        ? Icon(
-                            Icons.token,
-                            color: cs.onSurfaceVariant,
-                            size: 32,
-                          )
-                        : null,
-                  ),
-                  title: Text(marketData?.name ?? "Unknown Token", maxLines: 2),
-                  subtitle: Text(
-                    (marketData?.symbol ?? "").toUpperCase(),
-                    style: TextStyle(color: cs.onSurfaceVariant),
-                  ),
+        GWCard(
+          padding: const EdgeInsets.all(GeniusWalletConsts.space4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.only(
+                  bottom: GeniusWalletConsts.space4,
+                  left: GeniusWalletConsts.space4,
                 ),
-                Column(
-                  children: [
-                    for (int i = 0; i < infoTiles.length; i++) ...[
-                      Divider(height: 1),
-                      infoTiles[i],
-                    ],
+                leading: CircleAvatar(
+                  radius: 24,
+                  // §4.4 always-light chip: the token logo needs a fixed light
+                  // backing regardless of appearance (NOT an appearance token).
+                  backgroundColor: Colors.white,
+                  backgroundImage: marketData?.imageUrl != null
+                      ? NetworkImage(marketData!.imageUrl)
+                      : null,
+                  child: marketData?.imageUrl == null
+                      ? Icon(
+                          Icons.token,
+                          color: cs.onSurfaceVariant,
+                          size: 32,
+                        )
+                      : null,
+                ),
+                title: Text(marketData?.name ?? "Unknown Token", maxLines: 2),
+                subtitle: Text(
+                  (marketData?.symbol ?? "").toUpperCase(),
+                  style: TextStyle(color: gw.textSecondary),
+                ),
+              ),
+              Column(
+                children: [
+                  for (int i = 0; i < infoTiles.length; i++) ...[
+                    Divider(height: 1),
+                    infoTiles[i],
                   ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
