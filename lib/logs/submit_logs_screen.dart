@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:io';
@@ -206,30 +210,43 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency so this subtree
+    // rebuilds on a live appearance toggle (matches the other tab screens).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Scaffold(
-      appBar: AppBar(title: const Text('Send Feedback')),
-      body: Center(
+      // No AppBar: this is a shell tab (/logs), so the shared navbar is the top
+      // chrome, exactly as on Transactions/Markets/News/Swap. The title is now
+      // a left-aligned in-body GWPageHeader instead of a Material app-bar title.
+      //
+      // topCenter, NOT Center: the form is short (mainAxisSize.min), so a plain
+      // Center would float it vertically mid-viewport and the title would NOT
+      // sit the 64px below the navbar the other tabs do. Align.topCenter pins it
+      // to the top like Swap (swap_screen.dart), so the navbar→title gap reads.
+      body: Align(
+        alignment: Alignment.topCenter,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          // top space32 (64) — the navbar→title gap, unified with the other
+          // tabs (transactions_screen.dart). Sides 16, bottom 16 kept.
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            GeniusWalletConsts.space32,
+            16,
+            16,
+          ),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small),
             child: Column(
+              // start, so the title and the form sit against the left edge of
+              // the column like every other page's title.
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.feedback_outlined,
-                  size: 64,
-                  color: Colors.greenAccent,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Send feedback to the team',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                const Text(
+                const GWPageHeader(title: 'Send Feedback'),
+                Text(
                   'Type your message below. SDK logs are attached automatically when available.',
-                  textAlign: TextAlign.center,
+                  style: GeniusWalletTypography.bodyMd.copyWith(
+                    color: gw.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 TextField(

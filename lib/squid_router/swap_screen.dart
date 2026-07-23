@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
@@ -222,7 +223,8 @@ class _SwapScreenState extends State<SwapScreen> {
             constraints: const BoxConstraints(maxWidth: 500),
             child: Column(
               children: [
-                const SizedBox(height: 24),
+                // navbar→title gap, unified with Transactions at space32 (64).
+                const SizedBox(height: GeniusWalletConsts.space32),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: GWPageHeader(
