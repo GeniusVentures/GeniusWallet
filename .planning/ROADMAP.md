@@ -115,10 +115,10 @@ redesign-track phase supersedes a Phase 5 first pass, Phase 5's version is histo
 
 | Surface | Canonical owner | Superseded / fenced |
 |---------|-----------------|---------------------|
-| Dashboard shell, balances, holdings (Assets) | **Phase 5** | — |
+| Dashboard shell + holdings/balances (Assets panel only — NOT the hero) | **Phase 5** | — |
 | Compute / wallet-overview first card | **Phase 14** | supersedes Phase 5 (05-01/05-02) |
 | Transactions (dashboard panel) | **Phase 12** | supersedes Phase 5 (05-06) |
-| Transactions (`/transactions` tab) | **Phase 15** (extends 12) | — |
+| Transactions (`/transactions` tab) | **Phase 15** (extends 12) | supersedes Phase 5 (05-06, shared `transactions_slim_view`) |
 | Markets (`/markets` tab) | **Phase 16** | supersedes Phase 5 (05-04); fenced OUT of Phase 7 |
 | News (`/news` tab) | **Phase 17** | supersedes Phase 5 (05-05) |
 | Boot / splash / loading | **Phase 13** | — |
