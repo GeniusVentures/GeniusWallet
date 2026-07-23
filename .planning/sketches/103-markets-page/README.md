@@ -8,7 +8,7 @@ tags: [markets, page-layout, grid, table, sparkline, coingecko, data-density]
 
 > **Chosen 2026-07-23: H1 · Refined split** (hero + sortable table). Implemented in worktree
 > `../GW-markets` on branch `redesign/markets-tab-260723` — see
-> `.planning/HANDOFF-markets-hero.md`. Not committed (design session; executor owns git).
+> `.planning/handoffs/HANDOFF-markets-hero.md`. Not committed (design session; executor owns git).
 
 # Sketch 103: Markets Page
 

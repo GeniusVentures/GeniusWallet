@@ -22,7 +22,7 @@ For the executor to fold into today's day summary.
 - `.planning/sketches/103-markets-page/*` (new), `.planning/sketches/MANIFEST.md` (added 103 row —
   note: MANIFEST was also edited by another session today; not re-touched after).
 - `.planning/ROADMAP.md` (+Phase 16), `.planning/STATE.md` (+Roadmap Evolution line),
-  `.planning/phases/16-markets-*/CONTEXT.md` (new), `.planning/HANDOFF-markets-hero.md` (new).
+  `.planning/phases/16-markets-*/CONTEXT.md` (new), `.planning/handoffs/HANDOFF-markets-hero.md` (new).
 
 ## Events worth noting in the summary
 - **Stopped the executor's running app.** With Jakub's go, killed main-tree `flutter run` (PID 25225)

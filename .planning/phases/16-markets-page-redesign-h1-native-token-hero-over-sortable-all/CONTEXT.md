@@ -36,4 +36,4 @@ Replace the flat Markets card grid with **sketch 103 · H1 "Refined split"**: a 
   `2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart` todo.
 - Coins with no market data are hidden (mirrors `DashboardMarkets`), not shown as a debug box.
 
-Full handoff: `.planning/HANDOFF-markets-hero.md`.
+Full handoff: `.planning/handoffs/HANDOFF-markets-hero.md`.

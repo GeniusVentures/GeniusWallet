@@ -373,11 +373,11 @@ Open decisions:
   `flutter_staggered_grid_view` dropped). **COMMITTED 2026-07-23 in `651541c`** (integrated from the
   now-removed `redesign/news-tab-260723` worktree); `flutter analyze` clean + `gw_card_hover_test.dart` +1.
   Pending: human walk (dark+light), GSD verification record. Context:
-  `.planning/HANDOFF-news-b2.md` + `.planning/phases/17-news-page-redesign-*/CONTEXT.md`.
+  `.planning/handoffs/HANDOFF-news-b2.md` + `.planning/phases/17-news-page-redesign-*/CONTEXT.md`.
 - Phase 16 added 2026-07-23: Markets page — sketch 103 **H1** (native-token hero over a sortable
   All Markets table). **COMMITTED 2026-07-23 in `aa78eec`** (integrated from the now-removed
   `redesign/markets-tab-260723` worktree); `flutter analyze` clean + sort test 5/5. Pending:
-  human walk (dark+light), GSD verification record, macOS signing fix. Context: `.planning/HANDOFF-markets-hero.md` +
+  human walk (dark+light), GSD verification record, macOS signing fix. Context: `.planning/handoffs/HANDOFF-markets-hero.md` +
   `.planning/phases/16-markets-page-redesign-*/CONTEXT.md`.
 - Phase 12 added 2026-07-22: Transactions redesign (design contract = sketches 010-014, all decisions locked)
 - Phase 13 added 2026-07-22: Boot & loading sequence — Signal Edge splash + one shared dashboard

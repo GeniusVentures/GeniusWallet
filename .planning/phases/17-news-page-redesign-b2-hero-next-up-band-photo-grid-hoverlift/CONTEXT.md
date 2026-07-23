@@ -64,4 +64,4 @@ Jakub 2026-07-23): a lead hero + a "Next up" band over an even photo grid, photo
 - **`flutter_staggered_grid_view` removed** — nothing else imported it; the grid uses
   `SliverGridDelegateWithMaxCrossAxisExtent` with a fixed `mainAxisExtent`.
 
-Full handoff: `.planning/HANDOFF-news-b2.md`.
+Full handoff: `.planning/handoffs/HANDOFF-news-b2.md`.
