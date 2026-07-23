@@ -6,13 +6,12 @@ current_phase: 06
 current_phase_name: Onboarding
 status: executing
 stopped_at: >-
-  06-01-PLAN.md (onboarding chrome: /landing_screen entry + both flow shells' AppBar) CLOSED
-  2026-07-21 — walked and APPROVED on a genuine fresh install (all four persistence layers
-  cleared). Task 3's walk found one Rule-1 defect (CTAs glued to the window bezel at narrow
-  width) which this plan fixed (commit 67e2821) and re-walked clean; the blocking mesh
-  light-mode gate PASSED, GWMeshBackground is KEPT. 06-02 (shared Legal step + GAP-04's
-  GWWalletCard swap) is next.
-last_updated: "2026-07-23T13:40:00.000Z"
+  Phase 06 is at 5/6 — 06-01..06-05 all CLOSED (each has a SUMMARY + a "close the plan" commit);
+  06-06 (phase closeout: the seed-safety gate + the fresh-install end-to-end walk of BOTH flows)
+  is the one remaining plan and is NEXT. Matches git `d81e7ea` ("Phase 06 paused at 5/6 — 06-06
+  (closeout) is next"). NOTE: the redesign track (Phases 12-17) advanced in parallel on this same
+  branch and is further along than this official-track pointer — see the dual-track note below.
+last_updated: "2026-07-23T18:00:00.000Z"
 last_activity: 2026-07-23
 last_activity_desc: >-
   Redesign track (branch redesign/transactions-tab-260722, orthogonal to Phase 06): integrated
@@ -23,11 +22,13 @@ last_activity_desc: >-
   at Jakub's explicit go. See HANDOFF-2026-07-23-news-markets-frame.md and
   session-2026-07-23-summaries.md. Phase 06 onboarding position below is UNCHANGED.
 progress:
+  # Official GSD track only (Phases 1-11). The redesign track (Phases 12-17) is counted
+  # separately — see the dual-track note in "Current Position" below.
   total_phases: 11
-  completed_phases: 4
-  total_plans: 36
-  completed_plans: 31
-  percent: 36
+  completed_phases: 4            # phases with an [x] header: 1, 2, 4, 5 (3 still walk-gated)
+  total_plans: 36               # PLAN files across phases 2-6
+  completed_plans: 35           # SUMMARY files across phases 2-6 (was 31 — Phase 06 counted 1, is 5)
+  percent: 97                   # plan-based: 35/36. (Phase-based 4/11 = 36% if you prefer that metric.)
 ---
 
 # Project State
@@ -41,9 +42,16 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 ## Current Position
 
-Phase: 06 (onboarding) — IN PROGRESS (1/6 plans complete)
-Plan: 06-01 CLOSED (walked & approved, 2026-07-21). **06-02 next** (shared Legal step + GAP-04's
-`GWWalletCard` swap).
+> **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
+> The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
+> - **Official track:** Phase 06 (Onboarding) — **5/6 plans complete**; **06-06 (closeout) is next.**
+> - **Redesign track:** Phases 12-17 landed in parallel. Committed status: 12 (5/6), 13 (2/5),
+>   15 (5/6, walk pending), **16 Markets + 17 News shipped** (`aa78eec` / `651541c`, walks pending);
+>   14 is design-only (unplanned). See ROADMAP Phases 12-17 for detail.
+
+Phase: 06 (onboarding) — IN PROGRESS (**5/6 plans complete**)
+Plan: 06-01..06-05 CLOSED. **06-06 (phase closeout: seed-safety gate + fresh-install end-to-end
+walk of both flows) is next.** Historical note preserved below records the 06-01 walk detail.
 Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
@@ -89,7 +97,7 @@ Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases 
 Last activity: 2026-07-21 — 06-01 closed (walked & approved); mesh kept after a live light-mode
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [██████████████████░░] 31/36 plans (86%)
+Progress: [███████████████████░] 35/36 plans (97%) — official track, phases 2-6
 
 ## Accumulated Context
 
@@ -176,13 +184,14 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ### Blockers/Concerns
 
-- ~~**No working automated test harness** (`flutter test` does not compile)~~ — **FALSE. CORRECTED 2026-07-21 by direct measurement.** `flutter test` compiles and runs on this branch: **14 tests pass, 1 fails.** Per-file: `assets_totals_test.dart` 1/1 ✓, `theme/nav_chip_style_test.dart` 4/4 ✓, `token_info_loader_test.dart` 9/9 ✓, `local_wallet_storage_test.dart` 0/1 ✗. **The single failure is not a compile failure** — `local_wallet_storage_test.dart` is *entirely commented out* (every line prefixed `//`, no `main()`), so Flutter reports "Missing definition of `main` method". Someone read that one message as "the harness doesn't compile" and the belief was never re-tested.
+- ~~**No working automated test harness** (`flutter test` does not compile)~~ — **FALSE. CORRECTED 2026-07-21 by direct measurement.** `flutter test` compiles and runs on this branch: **234 tests pass, 1 fails** (measured 2026-07-23;
+the redesign track added many test files since the original 14-test snapshot). **The single failure is not a compile failure** — `local_wallet_storage_test.dart` is *entirely commented out* (every line prefixed `//`, no `main()`), so Flutter reports "Missing definition of `main` method". Someone read that one message as "the harness doesn't compile" and the belief was never re-tested.
   **Cost of the error:** this constraint was carried into every phase plan, every verification report, and every agent brief in this milestone. It is why Phase 05 needed six human walks, why `verify:` blocks were written around a human being available, why "analyze is a gate, never evidence" became doctrine, and why APP-02 was deferred to v2 as if building a harness — when it is uncommenting one file. **Real test gates are available now.** Prefer them over grep gates wherever behaviour can be asserted; keep human walks for what only eyes can judge (visual fidelity, contrast in situ, feel).
   Caveats that ARE real: `token_info_loader_test.dart` makes live network calls to a GitHub URL that intermittently 404s, so it is flaky in CI-like conditions though it passed 9/9 in isolation here; and per-file invocation (`flutter test <path>`) compiles only that file's import closure, so it is the fast path for a focused gate.
   Toolchain, also previously mis-recorded as missing: Flutter **3.41.9 / Dart 3.11.5** at `C:\Users\User\Documents\Projects\GNUS\flutter\flutter\bin\flutter.bat` (off `PATH`). `flutter analyze lib` baseline = **61 issues**.
 
 - Nav shell has never been visually walked — Phase 4 addresses this
-- 37 evidenced defects in the design-vs-develop surface (`.planning/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
+- 37 evidenced defects in the design-vs-develop surface (`.planning/reference/REVIEW_FINDINGS_REDESIGN.md`, 3 blockers) are assigned per phase; Phase 11 signs off the full set
 - `analysis_options.yaml` excludes `lib/**/*.g.dart` — the compiler, not analyze, is the real gate for generated widgets
 - **Two components are dark-only by design** (2026-07-17, from the 03-07 walk) — `GWCanvasBackground` gates its grain behind `if (!isLight)`; `GWMeshBackground` never reads the appearance and washes out on a light base. Both verified byte-identical to the reference, so **neither is a port defect**. ~~Alex's design system may have no complete light mode~~ — **CORRECTED same day: FALSE.** Alex's `theme.dart` IS appearance-aware (`brightness: isLight ? Brightness.light : Brightness.dark`); light mode is a real designed feature. These two are deliberate dark-only choices *within* a working light mode. Scope of dark-only components still unknown — 03-09's both-mode walk produces the count. Do not fix before that number exists; see the todo for why removing the gate is insufficient. **UPDATE 2026-07-21 (06-01):** `GWMeshBackground` got its first real consumer (`/landing_screen`, `wallet_creation_screen.dart`) and its light-mode readability was walked LIVE, not assumed — 06-01's Task 3 hardened this into a blocking gate with a pre-named fallback (drop the mesh). It PASSED; the mesh is KEPT on this screen in light mode. This resolves nothing about the general dark-only census (still 03-09's open item) but establishes the precedent: each new consumer of a dark-only-flagged component needs its own live light-mode judgment call, not an inherited assumption either way.
 - **develop's `theme.dart` is NOT appearance-aware and Phase 4 must wire it — THIS IS NOW THE PHASE'S BIGGEST OPEN ITEM** (2026-07-17) — `ThemeData(brightness: Brightness.dark)`, hardcoded, zero `GWAppearance` references, no `textTheme:`, and `toMaterialTextTheme()` (defined `genius_wallet_typography.dart:133`) is referenced NOWHERE in `lib/`. Phase 2 deferred it (UI-SPEC §1.1 excludes `theme.dart` wholesale as a 100%-collision file). **Consequences already observed, both in 03-09:** (1) the gallery's faithfully-ported `Scaffold(backgroundColor: Colors.transparent)` fell through to the permanently-dark theme while `textPrimary` flipped to near-black ink → light mode unreadable. Worked around in the dev-only gallery (`244b71e` → `surfaceBase`); **revert to `Colors.transparent` when Phase 4 lands the real theme.** (2) `GeniusWalletTypography.*` styles carry NO color, so every `Text` using them inherits white from the dark theme unconditionally → 5 of the walk's 8 findings. **Every Phase 4+ screen mounting Alex's components will hit this until the theme is wired.** Wire it EARLY in Phase 4, before re-skinning any screen
@@ -237,7 +246,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 |------|----------|-----|
 | Original design branch | worktree `C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514` | Builds + runs as a Release exe — the visual source of truth |
 | Verified fixes | branch `ui-redesign-3.514-develop` | Read-only; source of the 3 BEH-02 fix commits |
-| Regression audit | `.planning/REVIEW_FINDINGS_REDESIGN.md` | 37 findings, assigned per phase in ROADMAP.md |
+| Regression audit | `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` | 37 findings, assigned per phase in ROADMAP.md |
 
 ## Deferred Items
 
@@ -248,7 +257,11 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ## Session Continuity
 
-Last session: 2026-07-21
+Last session: 2026-07-23 (redesign track: Phases 16/17 integrated + committed; doc reconcile)
+Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
+below is the preserved 06-01 historical narrative; read it for context, not for the next step.
+
+--- 06-01 historical detail (2026-07-21) ---
 Stopped at: **06-01-PLAN.md CLOSED (2026-07-21) — walked and APPROVED.** Onboarding chrome (the
 `/landing_screen` entry point + both flow shells' AppBar) was re-skinned across two auto tasks
 (`3e1f432`, `b9c565f`), then Task 3's blocking human-verify checkpoint was run on a genuine
@@ -268,16 +281,17 @@ in-flow back navigation were also walked and approved. Console evidence across e
 zero-inset breakpoint bug — see
 `2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`. **The fresh-install
 profile used for this walk is now CONSUMED** — a wallet was created during it; any later plan
-needing genuine first-run state must clear all four persistence layers again. Phase 06 is now 1/6
-plans complete; **06-02 is next.** Preceding history: Phase 05 (Dashboard) CLOSED 2026-07-21 with 3
+needing genuine first-run state must clear all four persistence layers again. **Since then 06-02
+through 06-05 all closed; Phase 06 is now 5/6 plans complete and 06-06 (closeout) is next.**
+Preceding history: Phase 05 (Dashboard) CLOSED 2026-07-21 with 3
 explicit user-authorized overrides (see prior entries in Decisions/Blockers above); also still open
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: None — 06-01 CLOSED 2026-07-21 (see `06-01-SUMMARY.md`). Next up is 06-02-PLAN.md
-(shared Legal step + GAP-04's `GWWalletCard` swap), which should apply the
-`space8`-outside-`ConstrainedBox` gutter pattern proactively to `legal_screen.dart` and
-`select_wallet_type_screen.dart` rather than waiting for another walk to find it. The chart-zoom-pan-row
+Resume file: None — 06-01..06-05 all CLOSED (see their SUMMARYs). **Next up is 06-06-PLAN.md**
+(phase closeout: the seed-safety gate over the finished tree + the fresh-install end-to-end walk of
+BOTH onboarding flows, no mock injectors). The `space8`-outside-`ConstrainedBox` gutter pattern was
+applied across 06-02..06-05 as planned. The chart-zoom-pan-row
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
 Phase 06.
 
@@ -347,14 +361,14 @@ Open decisions:
 - Phase 17 added 2026-07-23: News page — sketches 100-102, winner **B2 · Hero + Next up** (a lead
   hero + a "Next up" band over an even photo grid; `GWCard.hoverLift` lift-chip replaces the old
   black scrim; frozen `pubDate`, unrendered `description` and desktop-unreachable refresh all fixed;
-  `flutter_staggered_grid_view` dropped). Implementation already built in worktree branch
-  `redesign/news-tab-260723` (not committed); `flutter analyze` clean + `gw_card_hover_test.dart` +1.
-  Pending: integration into main tree, human walk (dark+light), 3 MANIFEST rows. Context:
+  `flutter_staggered_grid_view` dropped). **COMMITTED 2026-07-23 in `651541c`** (integrated from the
+  now-removed `redesign/news-tab-260723` worktree); `flutter analyze` clean + `gw_card_hover_test.dart` +1.
+  Pending: human walk (dark+light), GSD verification record. Context:
   `.planning/HANDOFF-news-b2.md` + `.planning/phases/17-news-page-redesign-*/CONTEXT.md`.
 - Phase 16 added 2026-07-23: Markets page — sketch 103 **H1** (native-token hero over a sortable
-  All Markets table). Implementation already built in worktree branch `redesign/markets-tab-260723`
-  (not committed); `flutter analyze` clean + sort test 5/5. Pending: integration into main tree,
-  human walk (dark+light), macOS signing fix. Context: `.planning/HANDOFF-markets-hero.md` +
+  All Markets table). **COMMITTED 2026-07-23 in `aa78eec`** (integrated from the now-removed
+  `redesign/markets-tab-260723` worktree); `flutter analyze` clean + sort test 5/5. Pending:
+  human walk (dark+light), GSD verification record, macOS signing fix. Context: `.planning/HANDOFF-markets-hero.md` +
   `.planning/phases/16-markets-page-redesign-*/CONTEXT.md`.
 - Phase 12 added 2026-07-22: Transactions redesign (design contract = sketches 010-014, all decisions locked)
 - Phase 13 added 2026-07-22: Boot & loading sequence — Signal Edge splash + one shared dashboard
@@ -384,4 +398,5 @@ Open decisions:
 - Phase 13 progress 2026-07-22 (session B): 13-01 and 13-02 CLOSED; 13-03 code-complete
   with its walk NOT closed; 13-04 (the original ask — remove per-section dashboard loaders)
   and 13-05 not started. Full state, measured facts and open review items in
-  `.planning/handoffs/HANDOFF-phase13-boot.md`. Everything uncommitted.
+  `.planning/handoffs/HANDOFF-phase13-boot.md`. **13-01/02/03 COMMITTED in `29b183b`** (Signal Edge
+  boot); 13-04/05 remain outstanding — the "everything uncommitted" claim was stale and is corrected.

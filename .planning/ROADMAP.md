@@ -78,9 +78,12 @@ the whole set.
 
 ### Verification reality
 
-There is **no working test harness** (`flutter test` does not compile; APP-02 defers fixing that).
-Every success criterion below is a TRUE/FALSE statement observable by **running the app** — debug
-build + visual walk. `flutter analyze` is a gate, never evidence.
+**CORRECTION (2026-07-23):** the long-held "`flutter test` does not compile / no working test harness"
+claim is **FALSE** — measured, the suite runs at **234 pass / 1 fail** (the 1 fail is the fully
+commented-out `test/local_wallet_storage_test.dart`, not a compile failure). Real test gates ARE
+available; prefer them where behaviour can be asserted. That said, many success criteria below remain
+TRUE/FALSE statements only a **human walk** can settle (visual fidelity, contrast in situ, feel) —
+debug build + visual walk. `flutter analyze` is a gate, never evidence.
 
 Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514`
 (original design branch, builds and runs as a Release exe — the visual source of truth) and branch
@@ -96,7 +99,7 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [x] **Phase 1: Adopt GSD** - Establish and commit `.planning/` infrastructure (shipped, PR #207)
 - [x] **Phase 2: Design tokens & verification loop** - Redesign token vocabulary lands invisibly; debug-build loop and dev-gating established (completed 2026-07-16)
 - [ ] **Phase 3: gw_* component library** - The 82 additive primitives + design gallery + gap treatment decided
-- [ ] **Phase 4: Navigation shell & chrome** - Shell, header chrome, Settings and SDK account manager wear the redesign
+- [x] **Phase 4: Navigation shell & chrome** - Shell, header chrome, Settings and SDK account manager wear the redesign (7/7 plans; 04-VERIFICATION.md = passed 6/6, 2026-07-18)
 - [x] **Phase 5: Dashboard** - Balances, holdings, transactions, markets, news (completed 2026-07-21)
 - [ ] **Phase 6: Onboarding** - Create, import, recovery phrase, verify, legal, select-wallet-type
 - [ ] **Phase 7: Token screens** - Token info, send, receive, address book, charts
@@ -277,10 +280,10 @@ section for the full reasoning behind each:
 **Plans**: 6 plans
 
 - [x] 06-01-PLAN.md — Onboarding chrome: `/landing_screen` entry (deepBlue trap killed, GWMeshBackground, 3 GWButton CTAs) + both flow shells' transparent AppBar — criterion 1 — CLOSED 2026-07-21, walked & approved on a genuine fresh install (mesh KEPT after a live light-mode gate; walk-driven Rule-1 narrow-width gutter fix, commit `67e2821`; see `06-01-SUMMARY.md`)
-- [ ] 06-02-PLAN.md — Shared Legal step + **GAP-04**: wallet-type row → GWWalletCard (1:1 swap, `GWWalletCard`'s first real consumer) and `wallet_routes.dart` typography-only — criteria 1, 4
-- [ ] 06-03-PLAN.md — Recovery-phrase + verify-recovery-phrase re-skin (security-critical; read-only grid, `_isVisible` default, finding-19 `mounted` guard preserved) — criteria 1, 2, 3
-- [ ] 06-04-PLAN.md — Import security + PasteField re-skin **+ the §3.6 IME hardening** (`autocorrect`/`enableSuggestions` false on the mnemonic/private-key field — a deliberate, recorded behavior addition) — criterion 1
-- [ ] 06-05-PLAN.md — Shared `screens/pin_screen.dart` re-skin **+ fixes the invoke-during-build Continue defect** (closure-wrapped `onCompleted`, type tightened to `void Function(String)` so the analyzer guards it) — criterion 1
+- [x] 06-02-PLAN.md — Shared Legal step + **GAP-04**: wallet-type row → GWWalletCard (1:1 swap, `GWWalletCard`'s first real consumer) and `wallet_routes.dart` typography-only — criteria 1, 4
+- [x] 06-03-PLAN.md — Recovery-phrase + verify-recovery-phrase re-skin (security-critical; read-only grid, `_isVisible` default, finding-19 `mounted` guard preserved) — criteria 1, 2, 3
+- [x] 06-04-PLAN.md — Import security + PasteField re-skin **+ the §3.6 IME hardening** (`autocorrect`/`enableSuggestions` false on the mnemonic/private-key field — a deliberate, recorded behavior addition) — criterion 1
+- [x] 06-05-PLAN.md — Shared `screens/pin_screen.dart` re-skin **+ fixes the invoke-during-build Continue defect** (closure-wrapped `onCompleted`, type tightened to `void Function(String)` so the analyzer guards it) — criterion 1
 - [ ] 06-06-PLAN.md — Phase close: `tool/check_onboarding_seed_safety.sh` (UI-SPEC §3's six-item gate over the finished tree) + the **fresh-install end-to-end walk of BOTH flows** (no mock injectors — the Phase 05 fixture-blindness lesson) + 5 filed todos for the deliberately-unfixed gaps — criteria 1, 2, 3, 4
 
 **UI hint**: yes
@@ -388,16 +391,28 @@ not a hard dependency chain. Each is independently landable on develop.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Adopt GSD | 1/1 | ✓ Complete | 2026-07-15 (PR #207) |
-| 2. Design tokens & verification loop | 2/5 | In Progress | - |
-| 3. gw_* component library | 0/10 | Planned | - |
-| 4. Navigation shell & chrome | 0/TBD | Not started | - |
+| 2. Design tokens & verification loop | 5/5 | ✓ Complete | 2026-07-16 |
+| 3. gw_* component library | 10/10 | Executed — walk-gated (03-VERIFICATION 3 PASS / 3 PARTIAL) | - |
+| 4. Navigation shell & chrome | 7/7 | ✓ Complete (04-VERIFICATION passed 6/6) | 2026-07-18 |
 | 5. Dashboard | 8/8 | ✓ Complete (3 overrides recorded — see 05-VERIFICATION.md) | 2026-07-21 |
-| 6. Onboarding | 1/6 | In Progress | - |
+| 6. Onboarding | 5/6 | In Progress — 06-06 (closeout) next | - |
 | 7. Token screens | 0/TBD | Not started | - |
 | 8. Swap & bridge | 0/TBD | Not started | - |
 | 9. Banxa | 0/TBD | Not started | - |
 | 10. dApp connectivity | 0/TBD | Not started | - |
 | 11. Port closeout | 0/TBD | Not started | - |
+
+**Redesign track (Phases 12-17)** — landed on this same branch in parallel with the official track
+above; tracked separately (see the per-phase detail sections below):
+
+| Phase | Plans Complete | Status | Committed |
+|-------|----------------|--------|-----------|
+| 12. Transactions redesign | 5/6 | Executed — 12-06 walk next | `8cb4222` |
+| 13. Boot & loading sequence | 2/5 | 13-01/02/03 committed; 13-04/05 outstanding | `29b183b` |
+| 14. Compute panel & job flow | 0/TBD | Design-only (sketches 016-018); unplanned | - |
+| 15. Transactions tab | 5/6 | Executed — 15-06 walk next | `8cb4222` |
+| 16. Markets page (H1) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `aa78eec` |
+| 17. News page (B2) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `651541c` |
 
 ### Phase 12: Transactions redesign
 
@@ -442,11 +457,11 @@ and `process` are unreachable by any filter today.
 
 Plans:
 
-- [ ] 12-01-PLAN.md — Badge foundation: Slate token, 9-kind glyph/colour table, `TransactionBadge`, pickaxe asset, per-appearance AA test
-- [ ] 12-02-PLAN.md — Pure derivation in `transaction_utils.dart`: clamped amount + exact-value tooltip + fiat, one row-content record for all 7 types, day grouping
-- [ ] 12-03-PLAN.md — Collapse 4 row widgets into one `TransactionRow` + one detail drawer; hairline dividers replace per-row cards
-- [ ] 12-04-PLAN.md — `Filters` coverage fix (swap/purchase/process reachable) + F1 two-tier filter bar with gradient active states
-- [ ] 12-05-PLAN.md — Panel assembly: day separators, two distinct empty states, fixed-size footer, freeze sweep; extended dev mock batch
+- [x] 12-01-PLAN.md — Badge foundation: Slate token, 9-kind glyph/colour table, `TransactionBadge`, pickaxe asset, per-appearance AA test
+- [x] 12-02-PLAN.md — Pure derivation in `transaction_utils.dart`: clamped amount + exact-value tooltip + fiat, one row-content record for all 7 types, day grouping
+- [x] 12-03-PLAN.md — Collapse 4 row widgets into one `TransactionRow` + one detail drawer; hairline dividers replace per-row cards
+- [x] 12-04-PLAN.md — `Filters` coverage fix (swap/purchase/process reachable) + F1 two-tier filter bar with gradient active states
+- [x] 12-05-PLAN.md — Panel assembly: day separators, two distinct empty states, fixed-size footer, freeze sweep; extended dev mock batch
 - [ ] 12-06-PLAN.md — End-of-phase human walk (dark rows/badges, filters + empty states, light-mode deferral record)
 
 ### Phase 13: Boot & loading sequence — Signal Edge splash and one shared dashboard gate
@@ -507,8 +522,8 @@ and it sits over the mesh, so verify it live in both themes. Also confirm whethe
 
 Plans:
 
-- [ ] 13-01-PLAN.md — Single-flight `initSDK` (E1) + make `getCoins()` a truthful, always-settling Future; one instrumented cold start MEASURES the coins leg (research open question 1)
-- [ ] 13-02-PLAN.md — Bound all three CoinGecko fetches at a shared 3s timeout (M5/SC3); plain-Dart `BootSequence` closing-run engine + its runnable check (`dart run tool/boot_sequence_check.dart`)
+- [x] 13-01-PLAN.md — Single-flight `initSDK` (E1) + make `getCoins()` a truthful, always-settling Future; one instrumented cold start MEASURES the coins leg (research open question 1)
+- [x] 13-02-PLAN.md — Bound all three CoinGecko fetches at a shared 3s timeout (M5/SC3); plain-Dart `BootSequence` closing-run engine + its runnable check (`dart run tool/boot_sequence_check.dart`)
 - [ ] 13-03-PLAN.md — Re-skin the ROUTED `lib/screens/splash.dart` to Signal Edge (D1-D8) driving `BootSequence`; boot-screen walk in BOTH themes incl. the kicker over the mesh and the H3 resume jump
 - [ ] 13-04-PLAN.md — Widen the dashboard gate as a FIRST-PAINT latch + remove all three per-section loaders (E2, incl. the chart's second, textual cue); dashboard-entry walk
 - [ ] 13-05-PLAN.md — Remove the temporary timing instrument; phase walk of SC1-SC5 in both themes and once with the network down
@@ -678,9 +693,18 @@ Plans:
 - [x] 15-05-PLAN.md — page frame: GWPageHeader, xl cap, card surfaces, flag plumbed through (TT-01)
 - [ ] 15-06-PLAN.md — human verify: walk the tab, the empty states and the amounts — DARK ONLY
 
-**Measured outcome:** content width **1280.0** at 1600/2000/2560 viewports, against **736** before —
-the defect this phase existed to fix. `dashboard_screen.dart` is byte-unchanged, so the dashboard
-panel is untouched. Suite at **222 passing / 1 failing**; the failure is the pre-existing, entirely
+**Measured outcome (as of 15-05):** content width **1280.0** at 1600/2000/2560 viewports, against
+**736** before — the defect this phase existed to fix. `dashboard_screen.dart` is byte-unchanged, so
+the dashboard panel is untouched.
+
+> **SUPERSEDED 2026-07-23 by `99a8913`.** The `xl`/1280 cap above was later replaced by a unified
+> **`xxl`/1536** frame across Transactions/Markets/News (so the three page titles land at the same X).
+> The shipped code (`transactions_screen.dart` `maxWidth: GeniusBreakpoints.xxl`) now measures **1536**,
+> not 1280 — the `1280.0` figure here no longer holds, and the page-frame test was updated to assert
+> the xxl cap. Phase 15's *structure* (page header, filter rail, card surfaces, empty-state anchor,
+> amount honesty) is unchanged; only the cap number moved.
+
+Suite at **234 passing / 1 failing** (measured 2026-07-23); the failure is the pre-existing, entirely
 commented-out `test/local_wallet_storage_test.dart`.
 
 **Deferred to the walk** (`.planning/phases/15-transactions-tab/deferred-items.md`): the
@@ -691,22 +715,33 @@ width ranges **39.75 → 119.25px** across the labels.
 
 ### Phase 16: Markets page redesign - H1 native-token hero over sortable All Markets table (sketch 103)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Re-skin `/markets` to sketch 103 **H1** — a native-token hero over a sortable All Markets table.
+**Status:** **IMPLEMENTED AHEAD OF PLAN** — built in a worktree and committed to `ui-redesign-port`
+in `aa78eec` (2026-07-23): `markets_hero_card.dart`, `markets_table.dart`, `markets_sort.dart`
+(+ `markets_sort_test.dart` 5/5). No GSD PLAN/SUMMARY was authored; verification and the human walk
+(dark+light) are **outstanding**, as is a macOS signing fix. Context: `.planning/phases/16-.../CONTEXT.md`.
+**Requirements**: TBD (retrofit from CONTEXT if a formal record is wanted)
 **Depends on:** Phase 15
-**Plans:** 0 plans
+**Plans:** none authored (implemented directly); verification/walk outstanding
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 16 to break down)
+- [ ] 16-VERIFY — human walk (dark+light) + a verification record for the already-committed code
 
 ### Phase 17: News page redesign - B2 Hero + Next up band, photo grid, hoverLift cards (sketches 100-102)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Re-skin `/news` to sketch 100-102 **B2** — a lead hero + "Next up" band over an even photo
+grid, `GWCard.hoverLift` replacing the old scrim; fix frozen `pubDate`, unrendered `description`, and
+the desktop-unreachable refresh; drop `flutter_staggered_grid_view`.
+**Status:** **IMPLEMENTED AHEAD OF PLAN** — built in a worktree and committed to `ui-redesign-port`
+in `651541c` (2026-07-23): `crypto_news_screen.dart` rewrite, `GWCard.hoverLift`, `GWSearchField`
+(`gw_text_field.dart`), `news_article.dart` (+ `gw_card_hover_test.dart`, `news_article_short_time_test.dart`).
+No GSD PLAN/SUMMARY was authored; verification and the human walk (dark+light) are **outstanding**.
+Context: `.planning/phases/17-.../CONTEXT.md`.
+**Requirements**: TBD (retrofit from CONTEXT if a formal record is wanted)
 **Depends on:** Phase 16
-**Plans:** 0 plans
+**Plans:** none authored (implemented directly); verification/walk outstanding
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 17 to break down)
+- [ ] 17-VERIFY — human walk (dark+light) + a verification record for the already-committed code

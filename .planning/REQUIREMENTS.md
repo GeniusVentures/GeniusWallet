@@ -78,7 +78,7 @@ off is worse than an obvious gap product can prioritise.
 
 - [x] **GAP-02**: Settings screen (`lib/settings/settings_screen.dart`) — re-skinned in place; structure/rows unchanged
 - [x] **GAP-03**: SDK account manager (`lib/account/sdk_account_manager.dart`) — re-skinned in place; structure unchanged
-- [ ] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — re-skinned in place; flow and routing unchanged
+- [x] **GAP-04**: Select-wallet-type onboarding step (`lib/onboarding/existing_wallet/view/select_wallet_type_screen.dart`) and `wallet_routes.dart` — re-skinned in place; flow and routing unchanged (closed by 06-02, `ba8e412`)
 - [ ] **GAP-05**: Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `screens/banxa_buy_screen.dart`) — re-skinned in place; structure unchanged
 - [x] **GAP-06**: Misc develop additions (`components/wallet_overview.dart`, `components/loading.dart`, `dashboard/home/widgets/transaction_displays.dart`) — re-skinned in place; structure unchanged
 
@@ -132,9 +132,12 @@ Deferred to future milestones.
 ### App
 
 - **APP-01**: Broader feature roadmap (new chains, staking, etc.) — scoped in a later milestone
-- **APP-02**: Establish a working automated test harness (`flutter test` does not compile; the
-  `!_dirty` bug could not be reproduced under `pumpWidget` because it mounts during a frame while
-  `runApp` does not — the class of bug a harness would need to catch)
+- **APP-02**: ~~Establish a working automated test harness~~ — **LARGELY OBSOLETE (corrected
+  2026-07-23):** `flutter test` already works (234 pass / 1 fail; the fail is the commented-out
+  `local_wallet_storage_test.dart`). The premise that it "does not compile" was false. What genuinely
+  remains under APP-02 is narrower: uncomment/repair `local_wallet_storage_test.dart` and grow
+  widget-level coverage. (The `!_dirty` bug still can't be reproduced under `pumpWidget` — it mounts
+  during a frame while `runApp` does not — so that class of bug still needs a walk, not the harness.)
 
 ## Out of Scope
 
@@ -169,7 +172,7 @@ Deferred to future milestones.
 | SCR-01 | Phase 5 — Dashboard | Complete |
 | GAP-06 | Phase 5 — Dashboard | Complete |
 | SCR-02 | Phase 6 — Onboarding | Pending |
-| GAP-04 | Phase 6 — Onboarding | Pending |
+| GAP-04 | Phase 6 — Onboarding | ✓ Complete (closed by 06-02, `ba8e412`) |
 | SCR-03 | Phase 7 — Token screens | Pending |
 | SCR-04 | Phase 8 — Swap & bridge | Pending |
 | SCR-05 | Phase 9 — Banxa | Pending |
@@ -195,9 +198,11 @@ Deferred to future milestones.
 - v1 requirements: **24 total** — corrected 2026-07-16; the previous "22" miscounted
   (1 GSD + 3 BLD + 4 DS + 2 NAV + 6 SCR + 6 GAP + 2 BEH = 24)
 
-- Complete: 2 (GSD-01, BLD-01 — Phase 1)
+- Complete: **17** (GSD-01, BLD-01, DS-01/02/03/04, BLD-02/03, NAV-01/02, BEH-02, GAP-01/02/03/04/06, SCR-01) — updated 2026-07-23
+- Pending: 7 (SCR-02, SCR-03, SCR-04, SCR-05, SCR-06, GAP-05, BEH-01)
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
-- Phases: 11 (1 complete, 10 remaining)
+- Phases (official track): 11 — **4 complete (1, 2, 4, 5)**, Phase 3 executed/walk-gated, Phase 6 in progress (5/6), 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
+- Note: WIRE-01/WIRE-02 are tracked as guard requirements outside the 24 v1 count by design (they are "do-not-port" guards, not deliverables).
 
 ---
-*Last updated: 2026-07-16 — traceability mapped to the incremental port roadmap*
+*Last updated: 2026-07-23 — coverage counts + GAP-04 reconciled against shipped code; test-harness claim corrected*
