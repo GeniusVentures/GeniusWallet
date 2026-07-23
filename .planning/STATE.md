@@ -3,34 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 06
-current_phase_name: Onboarding
+current_phase_name: onboarding
 status: executing
-stopped_at: >-
-  Phase 06 (Onboarding) is CLOSED 2026-07-23 — all 6/6 plans complete. 06-06 shipped the §3
-  seed-safety gate (tool/check_onboarding_seed_safety.sh, all six checks PASS, bec9c03), filed the
-  five deliberately-unfixed-gap todos (3d7aa07), and the fresh-install end-to-end walk was run: RUN A
-  create (dark+light) + stress passes + RUN B import all walked to /dashboard with no onboarding-screen
-  overflow and a clean seed/PIN console scan. All four ROADMAP criteria PASS (see 06-06-SUMMARY.md).
-  Next official-track phase: 07 (Token screens) — not yet planned. The redesign track (Phases 12-17)
-  also lives on this branch; 16/17 shipped, walks outstanding — see the dual-track note below.
-last_updated: "2026-07-23T20:00:00.000Z"
-last_activity: 2026-07-23
-last_activity_desc: >-
-  Redesign track (branch redesign/transactions-tab-260722, orthogonal to Phase 06): integrated
-  Phase 16 Markets + Phase 17 News from their worktrees, reworked News search (hero band frozen,
-  matches → "Results" section), fixed a hard infinite-height freeze, unified the content page
-  frame (Transactions/Markets/News titles centred at the same X, 64px gap), added the wide-row
-  Transactions Status column. Committed as 4 logical commits (651541c/aa78eec/99a8913/5ab34bd)
-  at Jakub's explicit go. See HANDOFF-2026-07-23-news-markets-frame.md and
-  session-2026-07-23-summaries.md. Phase 06 onboarding position below is UNCHANGED.
+stopped_at: Phase 07 (Token screens) context gathered — re-skin-only, Send fenced out
+last_updated: "2026-07-23T18:27:49.692Z"
+last_activity: 2026-07-21
+last_activity_desc: 06-01 closed (walked & approved); mesh kept after a live light-mode
 progress:
-  # Official GSD track only (Phases 1-11). The redesign track (Phases 12-17) is counted
-  # separately — see the dual-track note in "Current Position" below.
-  total_phases: 11
-  completed_phases: 5            # phases with an [x] header: 1, 2, 4, 5, 6 (3 still walk-gated)
-  total_plans: 36               # PLAN files across phases 2-6
-  completed_plans: 36           # SUMMARY files across phases 2-6 (Phase 06 now 6/6 — 06-06 closed 2026-07-23)
-  percent: 100                  # plan-based: 36/36 for phases 2-6. (Phase-based 5/11 = 45% if you prefer that metric.)
+  total_phases: 17
+  completed_phases: 5
+  total_plans: 53
+  completed_plans: 48
+  percent: 29
 ---
 
 # Project State
@@ -194,6 +178,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 ### Blockers/Concerns
 
 - ~~**No working automated test harness** (`flutter test` does not compile)~~ — **FALSE. CORRECTED 2026-07-21 by direct measurement.** `flutter test` compiles and runs on this branch: **234 tests pass, 1 fails** (measured 2026-07-23;
+
 the redesign track added many test files since the original 14-test snapshot). **The single failure is not a compile failure** — `local_wallet_storage_test.dart` is *entirely commented out* (every line prefixed `//`, no `main()`), so Flutter reports "Missing definition of `main` method". Someone read that one message as "the harness doesn't compile" and the belief was never re-tested.
   **Cost of the error:** this constraint was carried into every phase plan, every verification report, and every agent brief in this milestone. It is why Phase 05 needed six human walks, why `verify:` blocks were written around a human being available, why "analyze is a gate, never evidence" became doctrine, and why APP-02 was deferred to v2 as if building a harness — when it is uncommenting one file. **Real test gates are available now.** Prefer them over grep gates wherever behaviour can be asserted; keep human walks for what only eyes can judge (visual fidelity, contrast in situ, feel).
   Caveats that ARE real: `token_info_loader_test.dart` makes live network calls to a GitHub URL that intermittently 404s, so it is flaky in CI-like conditions though it passed 9/9 in isolation here; and per-file invocation (`flutter test <path>`) compiles only that file's import closure, so it is the fast path for a focused gate.
@@ -266,12 +251,12 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-23 (redesign track: Phases 16/17 integrated + committed; doc reconcile)
+Last session: 2026-07-23T18:27:49.682Z
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
 below is the preserved 06-01 historical narrative; read it for context, not for the next step.
 
 --- 06-01 historical detail (2026-07-21) ---
-Stopped at: **06-01-PLAN.md CLOSED (2026-07-21) — walked and APPROVED.** Onboarding chrome (the
+Stopped at: Phase 07 (Token screens) context gathered — re-skin-only, Send fenced out
 `/landing_screen` entry point + both flow shells' AppBar) was re-skinned across two auto tasks
 (`3e1f432`, `b9c565f`), then Task 3's blocking human-verify checkpoint was run on a genuine
 fresh-install profile (all four persistence layers cleared — took four attempts; see
@@ -297,7 +282,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: None — **Phase 06 CLOSED 6/6 (2026-07-23), all four ROADMAP criteria PASS** (see
+Resume file: .planning/phases/07-token-screens/07-CONTEXT.md
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
@@ -374,16 +359,19 @@ Open decisions:
   now-removed `redesign/news-tab-260723` worktree); `flutter analyze` clean + `gw_card_hover_test.dart` +1.
   Pending: human walk (dark+light), GSD verification record. Context:
   `.planning/handoffs/HANDOFF-news-b2.md` + `.planning/phases/17-news-page-redesign-*/CONTEXT.md`.
+
 - Phase 16 added 2026-07-23: Markets page — sketch 103 **H1** (native-token hero over a sortable
   All Markets table). **COMMITTED 2026-07-23 in `aa78eec`** (integrated from the now-removed
   `redesign/markets-tab-260723` worktree); `flutter analyze` clean + sort test 5/5. Pending:
   human walk (dark+light), GSD verification record, macOS signing fix. Context: `.planning/handoffs/HANDOFF-markets-hero.md` +
   `.planning/phases/16-markets-page-redesign-*/CONTEXT.md`.
+
 - Phase 12 added 2026-07-22: Transactions redesign (design contract = sketches 010-014, all decisions locked)
 - Phase 13 added 2026-07-22: Boot & loading sequence — Signal Edge splash + one shared dashboard
   gate (design = sketch 015, approved). Grounded in spikes 001/002: the ~9.6 s main-isolate freeze
   during `GeniusSDKInitWithMnemonic` is NOT fixable from Dart (spike 001 INVALIDATED), and the SDK
   stalls at 52.5% forever, so the dashboard must never gate on `getInitializationStatus()`.
+
 - Phase 14 added 2026-07-22: Compute panel & job flow — the dashboard's first section (design =
   sketches 016 **B2 Twin tiles**, 017 **A Dot+label**, 018 **A drawer, vertical steps**; all locked).
   Carries three bloc build items beyond the re-skin: a **stall detector** (the 52.5% freeze is
@@ -391,6 +379,7 @@ Open decisions:
   `app_bloc.dart:194` cancels permanently, and a **public `AccountDrawer.show`** so `switch wallet ›`
   has somewhere to go. Hard constraint: the card has 276px and B2's worst state is 261px — anything
   added to the compute block breaks it first.
+
 - Phase 15 added 2026-07-22: Transactions **tab** — page frame, filter rail, empty-state anchor,
   amount honesty (design = sketches 020-022, all locked). The route mounts the dashboard *panel*
   verbatim, so it renders as a 736px column on a 2000px page with a panel-sized title and no card.
@@ -404,6 +393,7 @@ Open decisions:
   load-bearing — it is the only thing stopping a full-weight `− 0.75 ETH` from claiming the balance
   changed. Jakub overruled the recommendation to drop the sign; the value line is what makes the
   override safe.
+
 - Phase 13 progress 2026-07-22 (session B): 13-01 and 13-02 CLOSED; 13-03 code-complete
   with its walk NOT closed; 13-04 (the original ask — remove per-section dashboard loaders)
   and 13-05 not started. Full state, measured facts and open review items in
