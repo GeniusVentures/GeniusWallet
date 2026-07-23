@@ -93,7 +93,6 @@ android {
         }
         externalNativeBuild {
             cmake {
-                abiFilters 'arm64-v8a', 'armeabi-v7a'
                 def cmakeArgs = System.getenv("CMAKE_ARGUMENTS")
                 def argList = []
 
@@ -120,6 +119,8 @@ android {
         targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -158,6 +159,15 @@ tasks.configureEach { task ->
 
 dependencies {
     runtimeOnly secureStorageAarDependency
+    // WorkManager and AndroidX deps needed by the securestorage AAR at runtime
+    // (AAR consumed via runtimeOnly files() does not pull transitive impl deps)
+    implementation "androidx.work:work-runtime-ktx:2.9.1"
+    implementation "androidx.core:core-ktx:1.13.1"
+    androidTestImplementation secureStorageAarDependency
+    androidTestImplementation "androidx.work:work-testing:2.9.1"
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "androidx.test:core-ktx:1.5.0"
 }
 
 flutter {
