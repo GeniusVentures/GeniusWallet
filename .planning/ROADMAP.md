@@ -343,9 +343,9 @@ section for the full reasoning behind each:
   4. Leaving a token chart mid-fetch, or while its refresh timer is running, throws no `setState after dispose` (finding 24) — the inherited (Phase 5) chart's lifecycle fix, not a re-skin
 
 **Plans**: 3 plans
-- [ ] 07-01-PLAN.md — re-skin token-detail (ActionButton, Info/Convert cards, both drawers) + lock finding 37 + light-QR
-- [ ] 07-02-PLAN.md — finding-24 chart lifecycle mounted guards (no re-skin)
-- [ ] 07-03-PLAN.md — human walk: dark+light fidelity, QR phone-scan, disabled states, clean console
+- [x] 07-01-PLAN.md — re-skin token-detail (ActionButton, Info/Convert cards, both drawers) + lock finding 37 + light-QR (executed 2026-07-23, `639fe60`/`c3141f6`/`dc0b705`, analyze 61 baseline)
+- [x] 07-02-PLAN.md — finding-24 chart lifecycle mounted guards (no re-skin) (executed 2026-07-23, `35fef28`, verify PASS)
+- [ ] 07-03-PLAN.md — human walk: dark+light fidelity, QR phone-scan, disabled states, clean console (blocking; NEXT)
 **UI hint**: yes
 **Findings**: 24, 37.
 **Inherits from Phase 5**: `lib/chart/crypto_live_chart.dart` was ALREADY re-skinned inside
