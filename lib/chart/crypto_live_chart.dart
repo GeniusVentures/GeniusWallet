@@ -93,6 +93,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
           .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
           .toList();
 
+      if (!mounted) return;
       setState(() {
         _priceData = historicalData;
         _latestPrice = _priceData.last.y;
@@ -123,6 +124,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _addNewPricePoint(double newPrice) {
+    if (!mounted) return;
     setState(() {
       final newTime = DateTime.now().millisecondsSinceEpoch / 1000.0;
       _priceData.add(FlSpot(newTime.toDouble(), newPrice));
