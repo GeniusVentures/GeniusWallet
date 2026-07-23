@@ -426,6 +426,8 @@ and the `app_screen_with_header_*` primitives. Excluding it would leave a load-b
 | "Continue" | `FilledButton`, disabled until `PinFullness.completed` | `GWButton(label: 'Continue', variant: GWButtonVariant.gradient, size: GWButtonSize.lg, onPressed: state.pinFullness == PinFullness.completed ? () => onCompleted(...) : null)` |
 | Outer layout | `Center` + `ConstrainedBox(maxWidth: small)` + `Column(spacing: 12)` | unchanged |
 
+> **Correction (2026-07-23):** use `gw.statusError` (the appearance-aware `GWColors` extension), NOT the flat `GeniusWalletColors.statusError` const — the per-mode ratios quoted in the "Incorrect PIN" row above are the extension's (light `#D92D2D` 4.81:1 / dark `#FF4D4D` 5.90:1); the flat const is a single `#FF4D4D` (~3.4:1 in light) and **fails AA in light mode.** The shipped `pin_screen.dart` correctly uses `gw.statusError`.
+
 **PIN safety, stated for completeness (not a new finding — verified clean):** `PinCubit`/`PinState`
 and `NewPinCubit`/`NewPinState` never log the PIN value (no `print`/`debugPrint` in
 `bloc/pin_cubit.dart`, `bloc/pin_state.dart`, or `onboarding/bloc/new_pin_*.dart`), and

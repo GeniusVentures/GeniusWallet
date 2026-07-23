@@ -1,8 +1,8 @@
 # Phase 16 — Markets page (sketch 103 · H1)
 
-**Status:** implementation already built in worktree, **not committed**. This phase is a
-*plan-and-integrate* phase, not a from-scratch build — most of the work exists; it needs review,
-integration into the main tree, and the human walk.
+**Status:** committed on `ui-redesign-port` in `aa78eec` (2026-07-23); human walk (dark+light) +
+GSD verification still outstanding. This was a *plan-and-integrate* phase, not a from-scratch build —
+most of the work already existed and has now been integrated into the main tree.
 
 ## Goal
 Replace the flat Markets card grid with **sketch 103 · H1 "Refined split"**: a native-token
@@ -16,7 +16,8 @@ Replace the flat Markets card grid with **sketch 103 · H1 "Refined split"**: a 
   `/token-info`; horizontal scroll below ~762px.
 
 ## Where the implementation lives
-- Worktree `../GW-markets`, branch **`redesign/markets-tab-260723`** (off `efae33a`), **not committed**.
+- Originally worktree `../GW-markets`, branch **`redesign/markets-tab-260723`** (off `efae33a`); now
+  committed into `ui-redesign-port` in `aa78eec` (2026-07-23).
 - Files: `lib/dashboard/chart/markets_hero_card.dart` (new), `markets_table.dart` (new),
   `markets_sort.dart` (new, pure/testable), `markets_screen.dart` (rewritten),
   `test/markets_sort_test.dart` (new).
@@ -27,11 +28,8 @@ Replace the flat Markets card grid with **sketch 103 · H1 "Refined split"**: a 
 - NOT run: `flutter run` (executor-only; Hive lock), full suite.
 
 ## Remaining work (what this phase must close)
-1. Integrate `redesign/markets-tab-260723` into the main tree (or cherry-pick the 5 files).
-2. **macOS signing:** the worktree's `project.pbxproj` is Manual/team `P7T32QQX5V` (fails); the main
-   tree signs with Automatic/team `9UJNVD92ZW`. Building in the main tree avoids this.
-3. Human walk — dark + light; check hero split at wide/narrow, table sort + horizontal scroll.
-4. Add sketch-103 winner row to `.planning/sketches/MANIFEST.md`.
+1. Human walk — dark + light; check hero split at wide/narrow, table sort + horizontal scroll.
+2. Add sketch-103 winner row to `.planning/sketches/MANIFEST.md`.
 
 ## Known simplifications (ponytail)
 - Timeframe selector is visual-only (only 7d `sparkline` exists) — ties to the existing

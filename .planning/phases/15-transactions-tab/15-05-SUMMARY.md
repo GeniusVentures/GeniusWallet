@@ -107,6 +107,10 @@ indistinguishable.
 
 ### Content width, by window
 
+> **SUPERSEDED 2026-07-23 by `99a8913`** — the xl/1280 cap was replaced by a unified xxl/1536
+> frame across Transactions/Markets/News; the "1280.0 measured outcome" recorded below no longer
+> holds. The shipped `transactions_screen.dart` now caps at `GeniusBreakpoints.xxl` (1536).
+
 | Window | Content box | Dead space each side |
 |---|---|---|
 | 360 | 336 (viewport − 24) | 0 — the cap is inert, the `Padding` is all of it |

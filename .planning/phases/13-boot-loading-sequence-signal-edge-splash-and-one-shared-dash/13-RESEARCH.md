@@ -335,7 +335,7 @@ class _ClosingRail extends StatelessWidget {
 }
 ```
 
-**Runnable check (CLAUDE.md: non-trivial logic leaves ONE runnable check):** The one piece of real branching here is "does the sequence wait for the LONGER of the minimum hold and the real fetch, and does it still terminate if the fetch never settles." Extract the stage-timing/race logic into a plain-Dart (no `flutter` import) class so it can be exercised without the broken `flutter test` harness (`.planning/ROADMAP.md` § "Verification reality": `flutter test` does not compile in this repo). Example shape:
+**Runnable check (CLAUDE.md: non-trivial logic leaves ONE runnable check):** The one piece of real branching here is "does the sequence wait for the LONGER of the minimum hold and the real fetch, and does it still terminate if the fetch never settles." Extract the stage-timing/race logic into a plain-Dart (no `flutter` import) class so it can be exercised with a single `dart run`, per CLAUDE.md's "no frameworks, no fixtures". **CORRECTION 2026-07-23:** the earlier claim that `flutter test` "does not compile project-wide" is FALSE — the suite runs (234 pass / 1 fail), the sole failure being `test/local_wallet_storage_test.dart`, which is entirely commented out (no `main`) and absent, not a compile failure of the harness (see this phase's own `.continue-here.md` correction). The plain-Dart check below is still the lighter, dependency-free choice for this pure-timing logic; it is not a workaround for a broken harness. Example shape:
 
 ```dart
 // tool/boot_sequence_check.dart — run via `dart run tool/boot_sequence_check.dart`
@@ -558,7 +558,7 @@ Already embedded inline under Architecture Patterns 1–5 above (this repo's own
 
 | Property | Value |
 |----------|-------|
-| Framework | `flutter_test` is present in `pubspec.yaml` but **does not compile** project-wide (`.planning/ROADMAP.md` § "Verification reality"; APP-02 defers the fix) |
+| Framework | `flutter_test` is present in `pubspec.yaml` and **works** — the suite runs (234 pass / 1 fail; the single failure is `test/local_wallet_storage_test.dart`, entirely commented out with no `main`, i.e. absent, not a harness compile failure). **The "`flutter test` does not compile project-wide" claim (`.planning/ROADMAP.md` § "Verification reality"; APP-02) is CORRECTED — see this phase's `.continue-here.md`.** Plain-Dart checks are still used here for pure-timing logic by choice, not necessity |
 | Config file | none functional for this phase |
 | Quick run command | none reliable — see runnable-check recommendation below |
 | Full suite command | Debug build + manual walk (`flutter run -d macos --dart-define=GW_DEV_TOOLS=true`, per spike 001's own "How to Run") |
@@ -581,7 +581,7 @@ Already embedded inline under Architecture Patterns 1–5 above (this repo's own
 ### Wave 0 Gaps
 
 - [ ] `tool/boot_sequence_check.dart` — new, covers the minimum-hold-vs-timeout race (Pattern 2's runnable check); no existing file covers this
-- [ ] No framework install needed — deliberately plain Dart (`dart run`), sidestepping the broken `flutter test` harness entirely, per CLAUDE.md's "no frameworks, no fixtures" instruction
+- [ ] No framework install needed — deliberately plain Dart (`dart run`) for this pure-timing logic, per CLAUDE.md's "no frameworks, no fixtures" instruction (a lighter choice than a full widget test; the `flutter test` harness itself works — 234 pass / 1 fail — contrary to the earlier "broken harness" belief)
 
 ## Security Domain
 

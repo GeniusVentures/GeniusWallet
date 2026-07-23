@@ -623,20 +623,22 @@ absence rather than assume prior fidelity confirmation exists.
 | 5 | Every un-ported screen still renders/behaves as before | **PASS** — human-walked 2026-07-17. All three shadow surfaces confirmed unchanged: boot Splash, dashboard balance area, loading spinners. Scoped to those surfaces + general navigation; see User Setup Required |
 | 6 | GAP-01 treatment decision recorded; every primitive exists in the gallery | **PARTIAL** — Part A (decision) PASS; Part B (gallery visibility) 12/15 confirmed, 2 missing, 1 deliberately undemoed |
 
-**Phase 3 does NOT close 6/6 clean.** DS-04 (criterion 2) and the drawer half of DS-03
-(criterion 4) are the two fully-earned PASSes. DS-02 (the 50-file port itself, Task 1's mechanical
-reconciliation) is solidly established. GAP-01's inventory (criterion 6 Part A) is solid. What
-remains open: **the no-visual-change walk (criterion 5) — the single most consequential
-observation in this document — plus two honestly-scoped PARTIALs** (criteria 1/3's theme-confound
-and unexplained findings, and criterion 6's 2 missing gallery sections). None of the open items are
+**Phase 3 does NOT close 6/6 clean — but zero criteria are OUTSTANDING.** Three criteria are
+fully-earned PASSes: DS-04 (criterion 2), the drawer half of DS-03 (criterion 4), and — critically —
+**criterion 5, the no-visual-change walk (human-walked 2026-07-17, all three shadow surfaces
+confirmed), the single most consequential observation in this document.** DS-02 (the 50-file port
+itself, Task 1's mechanical reconciliation) is solidly established. GAP-01's inventory (criterion 6
+Part A) is solid. What remains are **three honestly-scoped PARTIALs** — criteria 1/3's theme-confound
+and unexplained findings, and criterion 6's 2 missing gallery sections. None of the open items are
 port defects; every implicated file this phase touched is either byte-identical to the reference or
-a documented, deliberate deviation. **Per this plan's own rule, none of this is rounded up to a
-PASS.**
+a documented, deliberate deviation. **Per this plan's own rule, nothing is rounded up to a PASS —
+and the criterion-5 walk, having actually happened, is recorded as the PASS it earned.**
 
 ## REQUIREMENTS.md / ROADMAP.md — what was and was not updated
 
 Per this plan's own instruction: update traceability rows only if every criterion genuinely carries
-an observation. It does not — criterion 5 is OUTSTANDING and criteria 1/3/6 are PARTIAL. Therefore:
+an observation. Criterion 5 is now a walked PASS (2026-07-17), but criteria 1/3/6 remain PARTIAL, so
+the phase-level rows are still not all-PASS. Therefore:
 
 - **`.planning/REQUIREMENTS.md`'s DS-02/DS-03/DS-04/GAP-01 checkboxes are already marked complete**
   in the working tree, from earlier, narrower per-plan `requirements mark-complete` calls (DS-02 at
