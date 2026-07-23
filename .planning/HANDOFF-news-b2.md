@@ -1,3 +1,5 @@
+> ✅ RESOLVED 2026-07-23 — this handoff is HISTORICAL. The work it describes as uncommitted/next shipped in 651541c; the ../GW-news worktree was removed. Do NOT resume from it. Kept for history.
+
 # HANDOFF — News tab B2 built (in a worktree, uncommitted)
 
 **Session, 2026-07-23.** DESIGN/BUILD session (NOT the executor — terminal 1 owns

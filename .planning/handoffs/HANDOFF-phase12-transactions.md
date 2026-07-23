@@ -1,3 +1,5 @@
+> ✅ RESOLVED 2026-07-23 — this handoff is HISTORICAL. The work it describes as uncommitted/next shipped in 8cb4222. Do NOT resume from it. Kept for history.
+
 # HANDOFF — Phase 12 (Transactions redesign), session A
 
 **Written:** 2026-07-22 ~06:30 · **Branch:** `ui-redesign-port` · **HEAD:** `ea33561`

@@ -1,3 +1,5 @@
+> ✅ RESOLVED 2026-07-23 — this handoff is HISTORICAL. 13-01/02/03 shipped in 29b183b; 13-04/13-05 remain outstanding. Do NOT treat this as "everything uncommitted." Kept for history.
+
 # HANDOFF — Phase 13 (Boot & loading sequence), session B
 
 **Written:** 2026-07-22 · **Branch:** `ui-redesign-port`

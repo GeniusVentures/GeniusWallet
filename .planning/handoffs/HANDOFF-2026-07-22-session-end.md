@@ -1,3 +1,5 @@
+> ✅ RESOLVED 2026-07-23 — this handoff is HISTORICAL. The work it parks as UNCOMMITTED shipped in 8cb4222 (Phase 12/15), 29b183b (Phase 13 boot), and 9c51478 (freeze fix). Do NOT resume from it. Kept for history.
+
 # HANDOFF — end of 2026-07-22, session A → Braian
 
 **Branch:** `ui-redesign-port` · **HEAD:** `ea33561` · **Everything below is UNCOMMITTED, by Jakub's choice.**

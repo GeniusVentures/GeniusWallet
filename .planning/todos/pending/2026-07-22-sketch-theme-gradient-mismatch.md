@@ -9,6 +9,8 @@ files:
   - lib/theme/genius_wallet_colors.dart
 ---
 
+> RESOLVED 2026-07-22: brandCta is canonical; theme css updated (`--brand-cta-a:#0AD89C` / `--brand-cta-b:#0AAEE6` added to `.planning/sketches/themes/default.css`). Remaining scope (re-checking old sketches) is intentionally deferred.
+
 ## The mismatch
 
 `.planning/sketches/themes/default.css` defines:

@@ -41,7 +41,7 @@ Files this session actually changed:
 | `.planning/sketches/018-job-request-flow/` | New — 5 steps × 3 layouts × 3 surfaces |
 | `.planning/phases/14-compute-panel-job-flow/` | New, empty — created by `phase.add` |
 
-Nothing was committed. Nothing was pushed. No PR.
+Design committed (sketches 016/017/018, roadmap/state blocks — eca162c / 6d75556); implementation not yet built (phase dir empty, unplanned).
 
 ---
 

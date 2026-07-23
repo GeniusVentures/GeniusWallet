@@ -1,3 +1,5 @@
+> ✅ RESOLVED 2026-07-23 — this handoff is HISTORICAL. The work it describes as uncommitted/next shipped in aa78eec; the ../GW-markets worktree was removed. Do NOT resume from it. Kept for history.
+
 # Handoff — Markets page redesign (sketch 103 · H1)
 
 **Session:** markets design/build (2026-07-23) · **Role:** design session (NOT executor)
