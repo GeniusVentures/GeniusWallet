@@ -40,7 +40,6 @@ dependencies:
   webview_flutter: ^4.1.0
   webview_windows: ^0.4.0
   sentry_flutter: ^9.0.0
-  screenshot: ^3.0.0
   xml: ^6.5.0
   cached_network_image: ^3.4.1
   html_unescape: ^2.0.0

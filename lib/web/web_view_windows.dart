@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/web/web_chrome_helpers.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'package:window_manager/window_manager.dart';
@@ -25,6 +27,7 @@ class WebViewWindows extends StatefulWidget {
 class _WebViewWindowsState extends State<WebViewWindows> {
   final WebviewController _controller = WebviewController();
   final TextEditingController _urlController = TextEditingController();
+  final FocusNode _urlFocusNode = FocusNode();
   StreamSubscription<String>? _urlSubscription;
   Timer? _clipboardPoller;
   bool _isClipboardPairing = false;
@@ -40,6 +43,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     super.initState();
     WindowsWebViewShutdown.instance.register(_disposeWebViewResources);
     unawaited(windowManager.setPreventClose(true));
+    _urlFocusNode.addListener(_onUrlFocusChange);
     _initializeWebView();
 
     // Start polling clipboard for WalletConnect URIs ( auto connect on desktop workaround)
@@ -149,6 +153,30 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _controller.loadUrl(input);
   }
 
+  // The real current page URL (the last value the controller's url stream
+  // pushed into openTabs), independent of the editable field text.
+  String get _currentUrl =>
+      openTabs.isNotEmpty ? openTabs[currentTabIndex] : widget.url;
+
+  // Omnibox swaps between the static favicon+lock+host row and the editable
+  // field. On focus, seed the field with the FULL url and select-all.
+  void _onUrlFocusChange() {
+    if (_urlFocusNode.hasFocus) {
+      final full = _currentUrl;
+      _urlController.text = full;
+      _urlController.selection =
+          TextSelection(baseOffset: 0, extentOffset: full.length);
+    }
+    setState(() {});
+  }
+
+  // Same favicon service as the mobile path (fenced by D-09). tryParse so a
+  // half-typed / hostless URL degrades to an empty host rather than throwing.
+  String _getFaviconUrl(String url) {
+    final host = Uri.tryParse(url.trim())?.host ?? '';
+    return "https://www.google.com/s2/favicons?domain=$host&sz=32";
+  }
+
   @override
   void dispose() {
     WindowsWebViewShutdown.instance.unregister(_disposeWebViewResources);
@@ -169,6 +197,8 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _clipboardPoller = null;
     await _urlSubscription?.cancel();
     _urlSubscription = null;
+    _urlFocusNode.removeListener(_onUrlFocusChange);
+    _urlFocusNode.dispose();
     _urlController.dispose();
     await _controller.dispose();
   }
@@ -227,52 +257,174 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     );
   }
 
+  // ponytail: the Windows omnibox is deliberately NOT a shared widget with the
+  // mobile one — the controllers diverge (WebviewController's canGoBack() is a
+  // sync bool here vs the mobile WebViewController's async Future), so a shared
+  // widget would need generic callbacks, more code than it saves. Reuse is
+  // limited to the pure helpers (webDisplayHost/webIsSecure, web_chrome_helpers).
+  // Mirrors 18-01's 035-B omnibox: one field, nested back/forward, favicon +
+  // https lock + host, refresh, and an outside `⋯` that keeps opening the
+  // existing history dialog (Windows' only tab affordance).
   Widget _buildSearchBar() {
+    final editing = _urlFocusNode.hasFocus;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(child: _buildOmniboxField(editing)),
+        const SizedBox(width: GeniusWalletConsts.space4),
+        _buildIconButton(
+          Icons.more_horiz,
+          _showTabSwitcher,
+          color: GeniusWalletColors.textPrimary60,
+          size: 20,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOmniboxField(bool editing) {
     return Container(
-      padding: const EdgeInsets.only(left: 8, right: 16),
+      height: 40,
       decoration: BoxDecoration(
-        color: GeniusWalletColors.deepBlueCardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: GeniusWalletColors.surfaceSunken,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
+        border: Border.all(
+          color: editing
+              ? GeniusWalletColors.brandPrimary
+              : GeniusWalletColors.borderSubtle,
+          width: editing ? 2 : 1,
+        ),
+        boxShadow: editing
+            ? [
+                BoxShadow(
+                  color: GeniusWalletColors.brandPrimarySubtle,
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildIconButton(Icons.arrow_back, canGoBack() ? goBack : null),
-          // HIDE FORWARD BUTTON FOR SPACE
+          // canGoBack()/canGoForward() are synchronous here (no FutureBuilder):
+          // brand-tinted + tappable when true, muted + inert otherwise (D-02).
+          _buildIconButton(
+            Icons.arrow_back,
+            canGoBack() ? goBack : null,
+            color: canGoBack()
+                ? GeniusWalletColors.brandPrimaryOnSurface
+                : GeniusWalletColors.textPrimary38,
+            size: 18,
+          ),
           _buildIconButton(
             Icons.arrow_forward,
             canGoForward() ? goForward : null,
+            color: canGoForward()
+                ? GeniusWalletColors.brandPrimaryOnSurface
+                : GeniusWalletColors.textPrimary38,
+            size: 18,
           ),
-          _buildIconButton(Icons.refresh, _controller.reload),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _urlController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Enter URL...",
-                hintStyle: const TextStyle(color: Colors.white70),
-                filled: true,
-                fillColor: GeniusWalletColors.deepBlueTertiary,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onSubmitted: (_) => _loadUrl(),
-            ),
+          Expanded(child: _buildOmniboxCenter(editing)),
+          _buildIconButton(
+            Icons.refresh,
+            _controller.reload,
+            color: GeniusWalletColors.textPrimary,
+            size: 18,
           ),
-          _buildIconButton(Icons.tab, _showTabSwitcher),
+          const SizedBox(width: GeniusWalletConsts.space2),
         ],
       ),
     );
   }
 
-  Widget _buildIconButton(IconData icon, VoidCallback? onPressed) {
+  // Always-mounted TextField (keeps _urlFocusNode attached so the rest tap can
+  // requestFocus() it); at rest an opaque cover paints favicon + https lock +
+  // host over it.
+  Widget _buildOmniboxCenter(bool editing) {
+    final currentUrl = _currentUrl;
+    final secure = webIsSecure(currentUrl);
+    final host = webDisplayHost(currentUrl);
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        TextField(
+          controller: _urlController,
+          focusNode: _urlFocusNode,
+          style: TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14),
+          textAlignVertical: TextAlignVertical.center,
+          decoration: const InputDecoration(
+            isDense: true,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 4),
+          ),
+          onSubmitted: (_) {
+            _loadUrl();
+            _urlFocusNode.unfocus();
+          },
+        ),
+        if (!editing)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _urlFocusNode.requestFocus(),
+              child: Container(
+                color: GeniusWalletColors.surfaceSunken,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space2,
+                ),
+                child: Row(
+                  children: [
+                    Image.network(
+                      _getFaviconUrl(currentUrl),
+                      width: 16,
+                      height: 16,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.language,
+                        color: GeniusWalletColors.textPrimary60,
+                        size: 16,
+                      ),
+                    ),
+                    if (secure) ...[
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      Icon(
+                        Icons.lock,
+                        color: GeniusWalletColors.statusSuccess,
+                        size: 13,
+                      ),
+                    ],
+                    const SizedBox(width: GeniusWalletConsts.space2),
+                    Expanded(
+                      child: Text(
+                        host,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: GeniusWalletColors.textPrimary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildIconButton(
+    IconData icon,
+    VoidCallback? onPressed, {
+    Color? color,
+    double size = 24,
+  }) {
     return IconButton(
       icon: Icon(icon),
-      color: GeniusWalletColors.lightGreenPrimary,
-      iconSize: 24,
+      color: color ?? GeniusWalletColors.lightGreenPrimary,
+      iconSize: size,
+      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      padding: EdgeInsets.zero,
       onPressed: onPressed,
       hoverColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.3),
       splashColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.5),
