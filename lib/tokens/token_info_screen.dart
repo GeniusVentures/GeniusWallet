@@ -98,13 +98,37 @@ class TokenInfoScreen extends StatelessWidget {
         backgroundColor: gw.surfaceSunken,
         elevation: 0,
         titleSpacing: 0,
+        leadingWidth: 44,
+        // sketch 152 `.back`: a compact 30x30 chevron button (not Material's
+        // default 24px arrow) — text-secondary glyph, radiusSm hit area.
+        leading: Center(
+          child: InkWell(
+            onTap: () => Navigator.of(context).maybePop(),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+            child: SizedBox(
+              width: 30,
+              height: 30,
+              child: Center(
+                child: SketchIcon(
+                  SketchIcons.back,
+                  size: 18,
+                  color: gw.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ),
         // sketch 152 `.crumb`: "Markets / <name>" — "Markets" in secondary, the
         // token name in primary / w600 (the default back chevron stays).
         title: Text.rich(
           TextSpan(
             style:
                 (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
-                    .copyWith(fontSize: 13, color: gw.textSecondary),
+                    .copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: gw.textSecondary,
+            ),
             children: [
               const TextSpan(text: 'Markets  /  '),
               TextSpan(

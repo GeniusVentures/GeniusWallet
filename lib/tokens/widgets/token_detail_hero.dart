@@ -235,7 +235,7 @@ class _ChangePill extends StatelessWidget {
           // Proper icon (was an oversized Unicode ▲/▼ glyph), sized to the text.
           Icon(
             up ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-            size: 16,
+            size: 20,
             color: tone,
           ),
           Text(
