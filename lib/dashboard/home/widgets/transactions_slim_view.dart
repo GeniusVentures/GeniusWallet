@@ -266,13 +266,6 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // The ONLY value this panel derives from layout, and it is a
-          // BOOLEAN — a bounded two-value set. Commit 37639d5 froze the app
-          // with a font size derived continuously from `maxHeight`; a bool
-          // cannot thrash the paragraph cache the same way. 420 is the panel
-          // width below which the title plus an expanded chip stop fitting.
-          final bool compact = constraints.maxWidth < 420;
-
           // `_panel` has two hosts with opposite height contracts. On the
           // DASHBOARD it sits in a fixed-height card, so it must fill that card
           // and scroll inside it. As the PAGE's narrow fallback it now sits in
@@ -310,7 +303,6 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                         selected: selectedFilter,
                         counts: filterCounts(scoped),
                         onChanged: (f) => setState(() => selectedFilter = f),
-                        compact: compact,
                       ),
               ),
               // NO header rule here, deliberately (sketch 019 variant B).
@@ -587,20 +579,18 @@ LinearGradient _activeLabelShader(GWColors gw) {
 ///
 /// Every dimension here is a fixed literal or a 4-pt token. No `FittedBox`, no
 /// `AutoSizeText`: `BoxFit.scaleDown` derives a continuous scale from the
-/// available space, which is the class of thing 37639d5 banned. The `compact`
-/// bool is what makes the bar fit instead.
+/// available space, which is the class of thing 37639d5 banned. The overflow
+/// menu (`_overflowTrigger`) is what keeps the bar fitting instead.
 class _TransactionFilterBar extends StatelessWidget {
   const _TransactionFilterBar({
     required this.selected,
     required this.counts,
     required this.onChanged,
-    required this.compact,
   });
 
   final Filters selected;
   final Map<Filters, int> counts;
   final ValueChanged<Filters> onChanged;
-  final bool compact;
 
   static const double _chipSize = 32;
 

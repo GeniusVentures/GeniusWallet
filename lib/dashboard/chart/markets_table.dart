@@ -4,6 +4,7 @@ import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
@@ -36,8 +37,16 @@ const double _wCap = 118;
 const double _wVol = 118;
 const double _wSpark = 120;
 const double _wCoinMin = 172;
-const double _minTableWidth =
-    _wRank + _wCoinMin + _wPrice + _wChange + _wCap + _wVol + _wSpark;
+// _wChange * 3 = 1h + 24h + 7d change columns (1h/7d are placeholders for now).
+// + 8 inter-column gaps (Row spacing space6) between the 9 columns.
+const double _minTableWidth = _wRank +
+    _wCoinMin +
+    _wPrice +
+    _wChange * 3 +
+    _wCap +
+    _wVol +
+    _wSpark +
+    GeniusWalletConsts.space6 * 8;
 
 /// CoinGecko/CMC-style sortable markets table (sketch 103 · H1 body / B).
 class MarketsTable extends StatefulWidget {
@@ -85,9 +94,15 @@ class _MarketsTableState extends State<MarketsTable> {
       builder: (context, c) {
         if (c.maxWidth >= _minTableWidth) return table;
         // Narrow: keep columns legible and let the table scroll sideways.
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(width: _minTableWidth, child: table),
+        // scrollbars:false — the desktop ScrollBehavior draws a horizontal bar
+        // by default; hide it (the row still scrolls by trackpad/drag).
+        return ScrollConfiguration(
+          behavior:
+              ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(width: _minTableWidth, child: table),
+          ),
         );
       },
     );
@@ -113,7 +128,14 @@ class _MarketsTableState extends State<MarketsTable> {
                 style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
           if (active)
-            Text(_ascending ? ' ↑' : ' ↓', style: style),
+            // gradient-tinted sort arrow (ShaderMask — a Gradient can't be a
+            // text colour directly); the child must be white for the shader.
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  GeniusWalletGradient.brandCta.createShader(bounds),
+              child: Text(_ascending ? ' ↑' : ' ↓',
+                  style: style.copyWith(color: Colors.white)),
+            ),
         ],
       );
       final aligned = Align(
@@ -141,14 +163,22 @@ class _MarketsTableState extends State<MarketsTable> {
         border: Border(bottom: BorderSide(color: gw.borderSubtle)),
       ),
       child: Row(
+        // even breathing room between every column; the data row uses the same
+        // spacing so headers stay aligned over their values.
+        spacing: GeniusWalletConsts.space6,
         children: [
           cell('#', MarketSort.rank, _wRank, alignEnd: false),
           cell('Coin', MarketSort.name, null, alignEnd: false),
           cell('Price', MarketSort.price, _wPrice),
+          // ponytail: 1h/7d are placeholder columns — no sort, no real data yet
+          // (see the data row + backlog todo below).
+          cell('1h %', null, _wChange),
           cell('24h %', MarketSort.change, _wChange),
+          cell('7d %', null, _wChange),
           cell('Market Cap', MarketSort.marketCap, _wCap),
           cell('Volume 24h', MarketSort.volume, _wVol),
-          cell('Last 7d', null, _wSpark, alignEnd: false),
+          // right-aligned like every other value column (# and Coin stay left).
+          cell('Last 7d', null, _wSpark),
         ],
       ),
     );
@@ -171,6 +201,8 @@ class _MarketsTableState extends State<MarketsTable> {
           border: Border(bottom: BorderSide(color: gw.borderSubtle)),
         ),
         child: Row(
+          // matches the header Row's spacing so columns line up under labels.
+          spacing: GeniusWalletConsts.space6,
           children: [
             SizedBox(
               width: _wRank,
@@ -222,6 +254,14 @@ class _MarketsTableState extends State<MarketsTable> {
                 ),
               ),
             ),
+            // ponytail: 1h change is a PLACEHOLDER. CoinGeckoMarketData has no
+            // priceChangePercentage1h and the /coins/markets fetch does not
+            // request it, so this shows "-" (a marked-absent value), never a
+            // fabricated number. Ceiling: no 1h data. Upgrade path: add
+            // price_change_percentage=1h,24h,7d to the fetch + a nullable model
+            // field (Hive .g.dart regen + migration). Tracked in
+            // .planning/todos/pending/2026-07-24-markets-1h-7d-change-columns.md
+            _changePlaceholder(gw),
             SizedBox(
               width: _wChange,
               child: Align(
@@ -243,6 +283,8 @@ class _MarketsTableState extends State<MarketsTable> {
                 ),
               ),
             ),
+            // ponytail: 7d change PLACEHOLDER — same absent-data note as 1h above.
+            _changePlaceholder(gw),
             SizedBox(
               width: _wCap,
               child: Text(
@@ -261,13 +303,39 @@ class _MarketsTableState extends State<MarketsTable> {
                     .copyWith(color: gw.textSecondary),
               ),
             ),
+            // Right-align the sparkline like every numeric column (and like the
+            // "LAST 7D" header above it): a fixed-width chart pushed to the
+            // cell's right edge leaves the same left-side breathing room every
+            // other value has, instead of full-bleeding up against "Volume".
             SizedBox(
               width: _wSpark,
               height: 32,
-              child: _MiniSpark(sparkline: data.sparkline, color: changeColor),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  width: 72,
+                  child:
+                      _MiniSpark(sparkline: data.sparkline, color: changeColor),
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ponytail: renders "-" for the not-yet-wired 1h/7d change columns (see the
+  // data-row comment + backlog todo). One helper so both cells stay identical
+  // and the placeholder is trivially swappable for a real value later.
+  Widget _changePlaceholder(GWColors gw) {
+    return SizedBox(
+      width: _wChange,
+      child: Text(
+        '-',
+        textAlign: TextAlign.right,
+        style: GeniusWalletTypography.numericBody
+            .copyWith(color: gw.textSecondary),
       ),
     );
   }

@@ -95,6 +95,12 @@
   .chip .trim { font:700 9px/1 var(--font); letter-spacing:.4px; text-transform:uppercase; color:var(--status-warning);
     border:1px solid color-mix(in srgb, var(--status-warning) 40%, transparent); border-radius:3px; padding:3px 4px; }
   .chip.muted { color:var(--text-secondary); border-style:dashed; background:transparent; }
+  /* meta chip = SDK/platform folded into the same attach row (D) — neutral, not brand-tinted */
+  .chip.meta { background:transparent; border-style:dashed; color:var(--text-secondary); }
+  .chip.meta svg { color:var(--text-secondary); }
+  .chip.meta b { color:var(--text-primary); font-weight:600; }
+  /* guidance-only chooser (D/E): reuses .seg but records nothing — adapts placeholder + framing only */
+  .seg .gchip { display:block; margin-top:var(--space-6); font:400 11px/16px var(--font); color:var(--text-primary-54); }
 
   /* status line */
   .status { display:flex; align-items:center; gap:9px; font:500 13px/18px var(--font); color:var(--text-secondary); }
@@ -134,6 +140,16 @@
     border:1px solid var(--border-subtle); background:var(--surface-elevated); color:var(--text-primary); }
   .copybtn:hover, .ghost:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
   .ghost { margin-top:var(--space-10); background:transparent; color:var(--text-secondary); }
+  /* "Send another" = gradientOutline twin (gw_button.dart): gradient border + gradient label */
+  .send-another { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:0 18px;
+    margin-top:var(--space-10); border-radius:var(--radius-md); cursor:pointer; font:600 13px/1 var(--font); transition:all .15s ease;
+    position:relative; color:transparent; border:1.5px solid transparent;
+    background:linear-gradient(var(--surface-sheen-b),var(--surface-sheen-b)) padding-box,
+              linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)) border-box; }
+  .send-another .lab { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .send-another svg { width:16px; height:16px; color:var(--brand-secondary); }
+  .send-another:hover { filter:brightness(1.12); transform:translateY(-1px); }
 
   /* generic row spacing */
   .stack > * + * { margin-top:var(--space-10); }
@@ -186,6 +202,8 @@
   <button class="vt active" onclick="showVariant('a',this)">A · Composer card</button>
   <button class="vt" onclick="showVariant('b',this)">B · Context rail</button>
   <button class="vt" onclick="showVariant('c',this)">C · Guided / typed</button>
+  <button class="vt" onclick="showVariant('d',this)">D · Guided receipt ★</button>
+  <button class="vt" onclick="showVariant('e',this)">E · Guided rail</button>
   <span class="sep"></span>
   <span class="lbl">State</span>
   <button class="st on" data-st="ready" onclick="setState('ready',this)">Ready</button>
@@ -318,9 +336,89 @@
       </div>
     </div>
   </section>
+
+  <!-- ============================ VARIANT D (round 2 · recommended) ============================ -->
+  <!-- C's guided chooser + B's full transparency, folded into ONE column. Zero new logic:
+       chooser only adapts the placeholder (records no Sentry tag); SDK/platform ride in the attach row. -->
+  <section id="variant-d" class="variant">
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:640px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Describe what’s happening in as much detail as you can - the more specific, the faster we can help.</div>
+          </div>
+          <div class="surf pad stack">
+            <div class="s ready sending nosdk failed stack">
+              %CHOOSER%
+              <div class="field">
+                <textarea placeholder="What went wrong, and what did you expect to happen?">The compute node keeps flipping to “restarting” after a job finishes.</textarea>
+                <span class="count">62 / 2000</span>
+              </div>
+              %RECEIPT%
+              <div class="divide"></div>
+              <div class="footer-row">
+                %STATUS%
+                %SEND%
+              </div>
+            </div>
+            %SUCCESS%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ VARIANT E (round 2) ============================ -->
+  <!-- Same guided chooser, but B's two-column rail wearing C's richer styling — for desktop breathing room. -->
+  <section id="variant-e" class="variant">
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:940px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Choose a type, write your note, and check the receipt on the right — that’s everything we send.</div>
+          </div>
+          <div class="cols">
+            <div class="main surf pad stack">
+              <div class="s ready sending nosdk failed stack">
+                %CHOOSER%
+                <div class="field">
+                  <textarea placeholder="What went wrong, and what did you expect to happen?">The compute node keeps flipping to “restarting” after a job finishes.</textarea>
+                  <span class="count">62 / 2000</span>
+                </div>
+                <div class="footer-row">
+                  %STATUS%
+                  %SEND%
+                </div>
+              </div>
+              %SUCCESS%
+            </div>
+            <aside class="side surf pad">
+              <div class="cardtitle" style="margin-bottom:var(--space-6);">What gets sent</div>
+              <div class="s ready sending success failed">
+                <div class="kv"><span class="ki">%ICON_FILE%</span><span class="kk">sgnslog.log</span><span class="kvv">312 KB</span></div>
+                <div class="kv"><span class="ki">%ICON_FILE%</span><span class="kk">sgnslog2.log <span class="chip trim" style="padding:2px 4px;">tail</span></span><span class="kvv">1.0 MB</span></div>
+                <div class="kv"><span class="ki">%ICON_CPU%</span><span class="kk">SDK</span><span class="kvv" style="color:var(--status-success)">Running</span></div>
+                <div class="kv"><span class="ki">%ICON_MAC%</span><span class="kk">Platform</span><span class="kvv">macOS</span></div>
+                <div class="note">Only the last <b>1 MiB</b> of each log is read, so large files stay lightweight. Empty logs are skipped.</div>
+              </div>
+              <div class="s nosdk">
+                <div class="kv"><span class="ki">%ICON_CPU%</span><span class="kk">SDK</span><span class="kvv" style="color:var(--status-warning)">Stopped</span></div>
+                <div class="note" style="background:color-mix(in srgb,var(--status-warning) 12%,transparent);border-color:color-mix(in srgb,var(--status-warning) 40%,transparent);">
+                  Logs are collected by the SDK. Start it and they’ll attach here automatically.</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
-<div class="toast" id="toast">Copied event ID</div>
+<div class="toast" id="toast">Copied reference number</div>
 
 <script>
 /* ---------- inline SVG icons ---------- */
@@ -371,17 +469,44 @@ function sendBtn(){
     <button class="cta busy s sending" disabled><span class="spin"></span> Sending…</button>
     <button class="cta off s nosdk" disabled>Start the SDK to send</button>`;
 }
+function chooser(){
+  // guidance-only: adapts placeholder + framing, records NO Sentry tag (nothing new to wire)
+  return `<div class="seg">
+    <button aria-pressed="true" onclick="pickType(this)">${I.bug} Bug</button>
+    <button aria-pressed="false" onclick="pickType(this)">${I.idea} Idea</button>
+    <button aria-pressed="false" onclick="pickType(this)">${I.q} Question</button>
+  </div>`;
+}
+function receipt(){
+  // B's transparency (files + SDK + platform) folded into ONE attach row — for the single-column D
+  return `<div class="attach">
+    <div class="ah">${I.clip}<span class="t">SDK logs attached automatically</span><span class="hint">last 1 MB of each, empty ones skipped</span></div>
+    <div class="s ready sending success failed chiprow">
+      <div class="chip">${I.file} sgnslog.log <b>312 KB</b></div>
+      <div class="chip">${I.file} sgnslog2.log <b>1.0 MB</b><span class="trim">tail</span></div>
+      <div class="chip meta">${I.cpu} SDK <b style="color:var(--status-success)">Running</b></div>
+      <div class="chip meta">${I.mac} macOS</div>
+    </div>
+    <div class="s nosdk chiprow">
+      <div class="chip muted">Logs unavailable until the SDK starts</div>
+    </div>
+  </div>`;
+}
 function successBlock(){
   return `<div class="s success success-card">
     <div class="ok-badge">${I.check}</div>
     <div class="ok-title">Feedback sent</div>
-    <div class="ok-sub">Thanks — your message reached the team with 2 log attachments.</div>
+    <div class="ok-sub">Thanks for your feedback - every bit helps us make GeniusWallet better.</div>
     <div class="eventid">
-      <span class="k">Event ID</span>
+      <span class="k">Reference number</span>
       <code>a1b2c3d4e5f64789ab01cd23ef45ab67</code>
       <button class="copybtn" onclick="copyEid()">Copy</button>
     </div>
-    <button class="ghost" onclick="setState('ready')">Send another</button>
+    <div class="ok-sub" style="margin-top:var(--space-6);font-size:13px;">Keep it handy in case you follow up with support.</div>
+    <button class="send-another" onclick="setState('ready')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+      <span class="lab">Send another</span>
+    </button>
   </div>`;
 }
 
@@ -390,6 +515,8 @@ document.querySelectorAll('.variant').forEach(sec=>{
   sec.innerHTML = sec.innerHTML
     .replace(/%NAVBAR%/g, navbar())
     .replace(/%ATTACH%/g, attach())
+    .replace(/%CHOOSER%/g, chooser())
+    .replace(/%RECEIPT%/g, receipt())
     .replace(/%STATUS%/g, statusBlock())
     .replace(/%SEND%/g, sendBtn())
     .replace(/%SUCCESS%/g, successBlock())
@@ -426,7 +553,9 @@ function showVariant(v, btn){
 function pickType(btn){
   btn.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));
   btn.setAttribute('aria-pressed','true');
-  const ta = document.getElementById('taC');
+  // generic: adapt the placeholder of whichever variant this chooser lives in (C/D/E)
+  const scope = btn.closest('.variant');
+  const ta = scope && scope.querySelector('textarea');
   const t = btn.textContent.trim();
   if(ta) ta.placeholder = t==='Bug' ? 'What went wrong, and what did you expect to happen?'
     : t==='Idea' ? 'What would you like to see? What problem would it solve?'

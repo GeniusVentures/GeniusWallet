@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:intl/intl.dart';
+// hide TextDirection — intl also declares one, which would shadow the
+// flutter/ui TextDirection used by the trailing Row below (needs .rtl).
+import 'package:intl/intl.dart' hide TextDirection;
 
 class CryptoSparkLineChart extends StatelessWidget {
   final String title;
+  final String? symbol;
   final String? iconPath;
   final double high24h;
   final double low24h;
@@ -19,6 +22,7 @@ class CryptoSparkLineChart extends StatelessWidget {
   const CryptoSparkLineChart({
     super.key,
     required this.title,
+    this.symbol,
     required this.high24h,
     required this.low24h,
     required this.currentPrice,
@@ -76,14 +80,25 @@ class CryptoSparkLineChart extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       onTap: onTap,
+      // Ticker · price when a symbol is given (Jakub 2026-07-24 — "add the
+      // ticker if there's room"); ellipsis so a long pair degrades gracefully
+      // in the narrow dashboard panel rather than overflowing.
       subtitle: Text(
-        formattedPrice,
+        symbol != null && symbol!.isNotEmpty
+            ? '${symbol!.toUpperCase()} · $formattedPrice'
+            : formattedPrice,
         style: GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
       titleAlignment: ListTileTitleAlignment.center,
-      // 003-A: sparkline LEFT, % chip RIGHT — horizontal, "first the light
-      // graph, then the growth %". No fixed height; the Row sizes to content.
+      // Order: % chip, then the sparkline as the LAST (rightmost) column
+      // (Jakub 2026-07-24). textDirection.rtl flips the child order without
+      // moving the big LineChart block: the first child (sparkline) lays out on
+      // the right, the last (% chip) on the left. Each child's own text keeps
+      // the app's LTR Directionality, so "+2.4%" renders normally.
       trailing: Row(
+        textDirection: TextDirection.rtl,
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

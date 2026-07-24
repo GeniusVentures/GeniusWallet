@@ -122,6 +122,7 @@ redesign-track phase supersedes a Phase 5 first pass, Phase 5's version is histo
 | Markets (`/markets` tab) | **Phase 16** | supersedes Phase 5 (05-04); fenced OUT of Phase 7 |
 | News (`/news` tab) | **Phase 17** | supersedes Phase 5 (05-05) |
 | Boot / splash / loading | **Phase 13** | — |
+| Web tab (in-app browser chrome — address bar + tabs) | **Phase 18** | new surface; not owned by any prior phase |
 | Token detail, send, receive, address book | **Phase 7** | market data → 16; chart re-skin → 5 (inherited) |
 | Token-detail chart (`crypto_live_chart`) | **Phase 5** (quick `260721-dws`) | Phase 7 inherits; only the finding-24 lifecycle fix is Phase 7's |
 | Swap & bridge | **Phase 8** | page frame already unified by `99a8913` (don't re-do) |
@@ -343,9 +344,11 @@ section for the full reasoning behind each:
   4. Leaving a token chart mid-fetch, or while its refresh timer is running, throws no `setState after dispose` (finding 24) — the inherited (Phase 5) chart's lifecycle fix, not a re-skin
 
 **Plans**: 3 plans
+
 - [x] 07-01-PLAN.md — re-skin token-detail (ActionButton, Info/Convert cards, both drawers) + lock finding 37 + light-QR (executed 2026-07-23, `639fe60`/`c3141f6`/`dc0b705`, analyze 61 baseline)
 - [x] 07-02-PLAN.md — finding-24 chart lifecycle mounted guards (no re-skin) (executed 2026-07-23, `35fef28`, verify PASS)
 - [ ] 07-03-PLAN.md — human walk: dark+light fidelity, QR phone-scan, disabled states, clean console (blocking; NEXT)
+
 **UI hint**: yes
 **Findings**: 24, 37.
 **Inherits from Phase 5**: `lib/chart/crypto_live_chart.dart` was ALREADY re-skinned inside
@@ -606,11 +609,13 @@ Phase 13 — the boot gate and this card do not touch the same code.
 - **Layout: 016-B2 · Twin tiles.** Balance tile and Compute tile as siblings of equal rank inside
   the existing card; CTA on the card floor below both. Replaces the centred six-widget stack in
   `wallet_overview.dart:108-190`, which has no section title unlike every other dashboard panel.
+
 - **Status: 017-A · Dot + label.** One component replaces the two stacked status widgets
   (`SGNUSConnectionWidget` + `SGNUSConnectionStatusWidget`). A ring is explicitly rejected here:
   its grammar is "this will fill up", which is why the shipped UI cannot render *stalled* or
   *unavailable* without lying. The ring survives only in the 56px `GWAiFab` (design-branch
   component, unported), under the rule **no live percentage → no ring**.
+
 - **Job flow: 018-A · Drawer with vertical steps.** `ResponsiveDrawer` — a 420px right-edge panel
   on desktop, a bottom sheet on mobile. Completed steps collapse to a one-line summary and stay on
   screen, because step 3 asks the user to confirm spending money decided in step 2. `/submit_job`
@@ -628,15 +633,19 @@ out of scope — it needs a mint/job-reward aggregate no current API exposes.
 1. **The 52.5% lie.** `sgnus_connection_widget.dart:85` draws a determinate ring from
    `getInitializationStatus()`. Measured over 161 polls / 40s: it reaches `0.525` and never moves
    again. Needs a **stall detector** — same percentage across N consecutive polls flips the state.
+
 2. **The silent death.** `app_bloc.dart:193-196` cancels `_processingTimer` **permanently** on any
    exception and emits `isProcessing:false`. Nothing restarts it, so a dead feed is pixel-identical
    to a healthy idle node. Needs a **`RetryProcessingStatus` event** that re-arms the timer, plus a
    state flag separating "unavailable" from "idle".
+
 3. **The vanishing button.** `submit_job_dashboard_button.dart:25` returns `SizedBox.shrink()` when
    the selected wallet is not the SGNUS-linked one — the section's primary action disappears with no
    explanation. It already holds both addresses and discards the information.
+
 4. **Zero balance painted as failure.** `wallet_overview.dart:141-147` renders `'No funds available'`
    in `statusError` red, against this milestone's guiding principle.
+
 5. **Hardcoded `Colors.white`.** `genius_balance_display.dart:80` — the 48px balance is a literal,
    not `gw.textPrimary`, so it vanishes in light mode.
 
@@ -646,10 +655,12 @@ out of scope — it needs a mint/job-reward aggregate no current API exposes.
   (`AccountDropdownSelector._showAccountDrawer()` → `ResponsiveDrawer<Wallet>` → `selectWallet()`)
   but is **private** and mounted only in the top-bar action row (`responsive_overlay.dart:103`).
   Extract a public `AccountDrawer.show(context)`. Small, no new UI.
+
 - `View transaction ›` — `showTransactionDetails()` exists
   (`transaction_displays.dart:316`); what is missing is the **association** between a finished job
   and the mint transaction it produced. If the correlation proves expensive, drop this link rather
   than growing the block — see the height budget.
+
 - `Node ›` / `see node status ›` → `/network` (`router.dart:188`), already live. The page is raw
   `ListTile`s with `Colors.green`/`Colors.red`; re-skinning it is **out of scope here** and belongs
   to a follow-up sketch (next free number — 019 is `dashboard-separators`, 022 is the current high
@@ -697,12 +708,15 @@ and `transaction_utils.dart`, and **amends** 12-02's amount rules). Phase 5 for 
    `GeniusBreakpoints.medium` (768) because it is a *panel*; `transactions_screen.dart:26` wraps it
    in a `Center`. On a 2000px window that is a 736px column with ~630px dead on each side. The
    sibling tab `markets_screen.dart:70` caps at `xxl` (1536) and scales with width.
+
 2. **A panel title doing a page title's job.** `transactions_slim_view.dart:192` uses
    `GWSectionTitle` (18px, shared 44px min-height). Every other full page —
    `markets_screen.dart:73`, `crypto_news_screen.dart:50`, `swap_screen.dart:228` — uses
    `GWPageHeader` (24px `headlineLg`).
+
 3. **No surface.** The dashboard wraps the identical widget in `DashboardScrollContainer`
    (`dashboard_screen.dart:322`); the tab wraps it in nothing, so rows hang on `surface-base`.
+
 4. **Empty block pinned to the midpoint.** `gw_empty_state.dart:129` returns a `Center` and both
    call sites hand it an `Expanded` (`transactions_slim_view.dart:208`). In a ~1400px slot the icon
    lands 700px down, below the fold.
@@ -716,6 +730,7 @@ controls offering to filter nothing. The branch that knows this already exists (
   `DashboardScrollContainer`. The `⋯` overflow menu exists only because a 376px panel cannot show
   nine filters — a page can, so the rail **is** that menu unrolled. **The panel keeps its chips**;
   the rail is page-only. One genuinely new row: `All`, which also absorbs the footer's total count.
+
 - **Rail states — all three traced, none invented.** Rest = `_menuItem` geometry byte for byte
   (`transactions_slim_view.dart:498-551`): glyph `textSecondary` 14px, label `labelMd` 13/w500, count
   `numericBody` 13px tabular, row 40px, pad `space6`. Hover = the sketch-008 "lift chip"
@@ -725,11 +740,13 @@ controls offering to filter nothing. The branch that knows this already exists (
   at `:525`). Sketch 020's `brand-fill` background was invented and is rejected; so are a gradient
   count (the counts are computed over the *unfiltered* list on purpose, so they never move) and a
   gradient wash (~1.3:1, under the 3:1 WCAG 1.4.11 wants, and it collides with the hover fill).
+
 - **Empty state: 021-c · bounded centre.** `ConstrainedBox(maxHeight: 480)` under
   `Alignment.topCenter`, replacing the bare `Center`. A rule, not a hand-picked offset: in a short
   panel it behaves exactly as today, so nothing regresses; in a 1400px panel it settles ~240px from
   the top instead of 700. **Shared component — Assets and Markets get the same fix.** No action
   buttons. Icon → `Icons.sync_alt`.
+
 - **Filter control hidden entirely when `scoped.isEmpty`** — page rail *and* panel chips.
 - **Amounts — amends 12-02 deliberately.** `transaction_utils.dart:356-366` gives both a failed
   transaction and a processing job `amount = '—'`, demoting the real number to the small grey line.
@@ -813,3 +830,67 @@ Context: `.planning/phases/17-.../CONTEXT.md`.
 Plans:
 
 - [ ] 17-VERIFY — human walk (dark+light) + a verification record for the already-committed code
+
+### Phase 18: Web tab chrome — in-app browser address bar + tab strip (sketches 035-B, 036-A, 037-B)
+
+**Goal:** Re-skin the in-app browser (Web tab) chrome to sketch **037-B** — the consolidated winner of
+**035-B** (unified omnibox toolbar) + **036-A** (always-visible horizontal tab strip). Replace the two
+crude pieces the tab renders today:
+- **`_buildSearchBar`** — a full-width unstyled strip bolted under the redesigned navbar → becomes a
+  single omnibox toolbar: back/forward nested into the field's left edge, favicon + secure lock + host,
+  refresh at the right edge, ⋯ menu alongside. Brand focus ring on focus.
+- **`_buildTabManager` + the `1` counter** — a full-screen manager of upside-down thumbnails
+  (`Matrix4.rotationX(pi)` bug) → becomes an always-visible horizontal tab strip: favicon + title + ×,
+  active tab = surface-elevated + 2px brand underline (the navbar's active mark), `+` adds a DuckDuckGo tab.
+
+**Canonical owner of the Web tab (2026-07-24):** the Web tab was not previously owned by any redesign-track
+phase. All in-app browser chrome work lands here. Redesign-track phase, parallel to 12-17.
+**Preserve real mechanics (do not regress):** `_goBack`/`_goForward`/`canGoBack`/`canGoForward` control
+states, `_loadUrl` (URL-vs-search fallback → `google.com/search`), `_addNewTab`/`_switchTab`/`_closeTab`,
+last-tab-locked rule, `_getFaviconUrl` (`google.com/s2/favicons`), the Uniswap dark-mode/localStorage
+injection and banner-hiding JS. Windows path (`web_view_windows.dart`) mirrors the same chrome.
+**Target files:** `lib/web/web_view_mobile.dart` (macOS/iOS), `lib/web/web_view_windows.dart` (Windows).
+**Design source:** `.planning/sketches/037-web-chrome-combined/` (+ 035, 036 for the per-part rationale).
+**Requirements**: TBD (retrofit from sketch READMEs if a formal record is wanted)
+**Depends on:** Phase 4 (navigation shell & chrome — the navbar the browser chrome mounts under). Sequenced after Phase 17.
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 18-01-PLAN.md — macOS/iOS omnibox address bar (035-B) + shared web-chrome helpers & test
+- [ ] 18-02-PLAN.md — 036-A horizontal tab strip + remove full-screen tab manager & dead Screenshot code
+- [ ] 18-03-PLAN.md — Windows omnibox parity (035-B); tab strip is a stretch goal, not attempted
+
+### Phase 19: Feedback tab redesign (sketch 150 variant D)
+
+**Goal:** Re-skin the Feedback tab (`/logs` → `SubmitLogsScreen`, "Send Feedback") onto the shared shell
+as a first-class sibling of Transactions/Markets/News — **sketch 150 variant D · Guided receipt** — a
+centered `GWPageHeader` + `.surf` card with a Bug/Idea/Question chooser, message field, an "SDK logs
+attached automatically" receipt row, and honest states, **without changing the real mechanic**
+(`Sentry.captureFeedback` + auto-attached SDK logs).
+
+**Canonical owner of the Feedback tab (2026-07-24):** the `/logs` "Send Feedback" screen was not
+previously owned by any redesign-track phase. All Feedback-tab work lands here. Redesign-track phase,
+parallel to 12-18.
+**Add one honest mechanic:** `scope.setTag('feedback_type', 'bug'|'idea'|'question')` beside the existing
+`source`/`platform` tags — one line, makes type a filterable Sentry dimension (chooser also adapts the
+field placeholder).
+**Preserve real mechanics (do not regress):** `Sentry.captureFeedback(SentryFeedback(message))` at
+`level=warning`; auto-attach `sgnslog.log`+`sgnslog2.log` from `geniusApi.jsonFilePath` (whole if ≤1 MiB
+else tail-trim via `_readTailBytes`, empty files skipped — user never picks files); the
+`!geniusApi.isSdkInitialized` No-SDK guard as its own state; and the **two distinct** unhappy results —
+thrown exception vs empty `SentryId` (upload unconfirmed) — kept as separate messages.
+**Copy (short hyphens only):** subtitle problem-focused; result labelled **"Reference number"** (not
+"Event ID"); attach header "SDK logs attached automatically" · "last 1 MB of each, empty ones skipped".
+**Buttons:** "Send feedback" = `GWButton primary` gradient (near-black `#000B18` label, white fails AA);
+"Send another" = `GWButton gradientOutline` + refresh icon.
+**Target file:** `lib/logs/submit_logs_screen.dart`.
+**Design source:** `.planning/sketches/150-feedback-tab/` (winner D + `cta-options.html` +
+`send-another-options.html`); full spec in `.planning/todos/pending/2026-07-24-phase-19-feedback-tab-redesign.md`.
+**Requirements**: TBD (retrofit from sketch README if a formal record is wanted)
+**Depends on:** Phase 4 (navigation shell & chrome — the navbar/`GWPageHeader` this tab mounts under); Phase 3 (`gw_*` primitives — `GWButton`, `GWCard`). Sequenced after Phase 18.
+**Plans:** 0 plans — run `/gsd-plan-phase 19` to break down.
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 19 to break down)

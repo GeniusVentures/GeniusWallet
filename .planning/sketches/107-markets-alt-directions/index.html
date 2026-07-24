@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>107 · Markets — alt directions (radar / lanes / spotlight / aurora)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#05060A; color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .wrap { max-width:1500px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; letter-spacing:.2px; }
+  .toolbar h1 .muted { color:var(--text-secondary); font-weight:400; }
+  .tabs { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; flex-wrap:wrap; }
+  .tabs button { font:500 12.5px/18px var(--font); padding:7px 14px; border:0; border-radius:var(--radius-pill);
+                 background:transparent; color:var(--text-secondary); cursor:pointer; transition:.16s; }
+  .tabs button[aria-pressed="true"] { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));
+                 color:#00121A; font-weight:600; box-shadow:0 2px 12px rgba(20,200,255,.28); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:940px; }
+  p.lede b { color:var(--text-primary); }
+  .win { border:1px solid var(--border-subtle); border-radius:var(--radius-lg); overflow:hidden; background:#070910; box-shadow:0 24px 80px rgba(0,0,0,.55); }
+  .stage { padding:22px; }
+  .variant { display:none; } .variant.on { display:block; }
+  .vtitle { font:600 22px/28px var(--font); letter-spacing:-.4px; margin-bottom:3px; }
+  .vsub { font:400 12.5px/19px var(--font); color:var(--text-secondary); margin-bottom:18px; max-width:760px; }
+  .vsub b { color:var(--text-primary); }
+  .up { color:var(--status-success); } .dn { color:var(--status-error); }
+  .num { font-variant-numeric:tabular-nums; }
+
+  /* ============ A · RADAR ============ */
+  .radar-wrap { display:flex; gap:26px; align-items:center; flex-wrap:wrap; }
+  .radar { position:relative; width:520px; height:520px; max-width:100%; border-radius:50%; flex:none;
+    background:radial-gradient(circle at 50% 50%, #0A1420 0%, #070C14 60%, #05070C 100%);
+    box-shadow:inset 0 0 60px rgba(0,0,0,.6), 0 0 0 1px rgba(20,200,255,.10); overflow:hidden; }
+  .radar .ring { position:absolute; border:1px solid rgba(20,200,255,.10); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); }
+  .radar .cross { position:absolute; background:rgba(20,200,255,.08); }
+  .radar .sweep { position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(43,245,180,.28), rgba(43,245,180,.02) 40%, transparent 55%);
+    animation:spin 5s linear infinite; }
+  .radar .blip { position:absolute; transform:translate(-50%,-50%); border-radius:50%; display:grid; place-content:center;
+    cursor:pointer; border:1px solid rgba(255,255,255,.14); background:var(--tint); transition:transform .16s, box-shadow .16s; }
+  .radar .blip:hover { transform:translate(-50%,-50%) scale(1.22); box-shadow:0 0 20px rgba(255,255,255,.25); z-index:6; }
+  .radar .blip b { font:700 10px/1 var(--font); color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6); }
+  .radar .blip.up { box-shadow:0 0 16px rgba(10,216,156,.5); } .radar .blip.dn { box-shadow:0 0 16px rgba(255,77,77,.4); }
+  .radar .core { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:74px; height:74px; border-radius:50%;
+    display:grid; place-content:center; text-align:center; z-index:7;
+    background:radial-gradient(circle,#0A2230,#071018); border:0; }
+  .radar .core::before { content:""; position:absolute; inset:0; border-radius:50%; padding:2px;
+    background:conic-gradient(from 0deg,var(--brand-primary),var(--brand-secondary),#C28FFF,var(--brand-primary));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:spin 6s linear infinite; }
+  .radar .core::after { content:""; position:absolute; inset:-60%; border-radius:50%; z-index:-1;
+    background:radial-gradient(closest-side,rgba(20,200,255,.4),transparent); animation:pulse 3s ease-in-out infinite; }
+  .radar .core .tk { font:700 13px/1 var(--font); } .radar .core .ch { font:600 10px/1 var(--font); color:#7CFFD6; margin-top:2px; }
+  .radar-legend { flex:1; min-width:220px; }
+  .radar-legend h4 { font:600 13px/1 var(--font); margin-bottom:10px; color:var(--text-primary); }
+  .radar-legend .li { display:flex; align-items:center; gap:8px; font:400 12px/1 var(--font); color:var(--text-secondary); margin-bottom:9px; }
+  .radar-legend .dot { width:10px; height:10px; border-radius:50%; flex:none; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulse { 0%,100%{opacity:.5;transform:scale(.9);} 50%{opacity:1;transform:scale(1.08);} }
+
+  /* ============ B · MOMENTUM LANES ============ */
+  .lanes { display:flex; flex-direction:column; gap:7px; }
+  .lane { display:grid; grid-template-columns:1fr 92px 1fr; align-items:center; height:34px; }
+  .lane .name { font:700 12px/1 var(--font); text-align:center; z-index:2; }
+  .lane .name small { display:block; font:500 9px/1.3 var(--font); color:var(--text-secondary); }
+  .lane .halfL,.lane .halfR { position:relative; height:22px; }
+  .lane .bar { position:absolute; top:0; height:22px; border-radius:6px; display:flex; align-items:center; padding:0 8px; overflow:hidden; }
+  .lane .halfR .bar { left:0; background:linear-gradient(90deg, rgba(10,216,156,.9), rgba(43,245,180,.5)); box-shadow:0 0 18px rgba(10,216,156,.35); justify-content:flex-end; }
+  .lane .halfL .bar { right:0; background:linear-gradient(270deg, rgba(255,77,77,.9), rgba(179,18,46,.5)); box-shadow:0 0 18px rgba(255,77,77,.3); }
+  .lane .bar::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+    transform:translateX(-100%); animation:shine 2.6s ease-in-out infinite; }
+  .lane .bar .v { font:700 11px/1 var(--font); color:#00121A; z-index:1; font-variant-numeric:tabular-nums; }
+  .lane .halfL .bar .v { color:#fff; }
+  .lane.native .name { color:var(--brand-secondary); }
+  .lane.native .name::after { content:" ◆"; }
+  @keyframes shine { 0%{transform:translateX(-100%);} 60%,100%{transform:translateX(100%);} }
+  .axis { text-align:center; font:600 9px/1 var(--font); letter-spacing:1px; color:var(--text-secondary); margin:2px 0 12px; text-transform:uppercase; }
+
+  /* ============ C · SPOTLIGHT DECK ============ */
+  .deck { display:grid; grid-template-columns:1.6fr 1fr; gap:16px; }
+  @media (max-width:900px){ .deck{ grid-template-columns:1fr; } }
+  .hero { position:relative; border-radius:18px; padding:22px; overflow:hidden;
+    background:linear-gradient(160deg,#0C1119,#080B11); border:1px solid var(--border-subtle); }
+  .hero .glow { position:absolute; inset:-30% -10% auto auto; width:60%; height:70%; z-index:0;
+    background:radial-gradient(closest-side,rgba(20,200,255,.16),transparent); }
+  .hero .idn { display:flex; align-items:center; gap:11px; position:relative; z-index:1; }
+  .hero .mark { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); flex:none; box-shadow:0 6px 20px rgba(20,200,255,.3); }
+  .hero .idn .nm { font:600 17px/1 var(--font); } .hero .idn .sy { font:500 11px/1.4 var(--font); color:var(--text-secondary); }
+  .hero .idn .badge { margin-left:auto; font:700 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; padding:4px 7px; border-radius:6px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; }
+  .hero .price { font:600 46px/1 var(--font); letter-spacing:-1.5px; margin:16px 0 6px; position:relative; z-index:1; font-variant-numeric:tabular-nums; }
+  .hero .chg { font:600 14px/1 var(--font); position:relative; z-index:1; }
+  .hero .chart { position:relative; z-index:1; margin:14px 0 16px; height:150px; }
+  .hero .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; position:relative; z-index:1; }
+  .hero .st { background:rgba(255,255,255,.04); border:1px solid var(--border-subtle); border-radius:10px; padding:10px; }
+  .hero .st .l { font:600 8.5px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); }
+  .hero .st .v { font:600 14px/1 var(--font); margin-top:6px; font-variant-numeric:tabular-nums; }
+  .film { display:flex; flex-direction:column; gap:8px; max-height:520px; overflow:auto; padding-right:2px; }
+  .fcard { display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:12px; cursor:pointer;
+    background:#0A0E15; border:1px solid var(--border-subtle); transition:.15s; }
+  .fcard:hover { border-color:rgba(255,255,255,.22); transform:translateX(2px); }
+  .fcard.sel { border-color:transparent; background:linear-gradient(#0A0E15,#0A0E15) padding-box,
+    linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)) border-box; border:1px solid transparent; }
+  .fcard .fmk { width:30px; height:30px; border-radius:9px; flex:none; background:var(--tint); display:grid; place-content:center; font:700 10px/1 var(--font); }
+  .fcard .fnm { font:600 13px/1 var(--font); } .fcard .fsy { font:500 10px/1.4 var(--font); color:var(--text-secondary); }
+  .fcard .fpr { margin-left:auto; text-align:right; } .fcard .fpr .p { font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .fcard .fpr .c { font:600 11px/1 var(--font); font-variant-numeric:tabular-nums; margin-top:3px; }
+
+  /* ============ D · AURORA FIELD ============ */
+  .aurora { position:relative; border-radius:20px; overflow:hidden; padding:26px; min-height:560px;
+    background:#060A0E; border:1px solid var(--border-subtle); }
+  .aurora .fx { position:absolute; inset:-20%; z-index:0; filter:blur(46px); opacity:.75;
+    background:
+      radial-gradient(30% 40% at 20% 25%, rgba(10,216,156,.6), transparent 60%),
+      radial-gradient(28% 36% at 74% 30%, rgba(20,200,255,.5), transparent 60%),
+      radial-gradient(30% 40% at 50% 80%, rgba(43,245,180,.45), transparent 60%),
+      radial-gradient(24% 30% at 85% 75%, rgba(194,143,255,.3), transparent 60%);
+    animation:drift 16s ease-in-out infinite alternate; }
+  @keyframes drift { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(-4%,3%) scale(1.12);} }
+  .aurora .inner { position:relative; z-index:1; }
+  .aurora .mood { font:600 34px/1.15 var(--font); letter-spacing:-.6px; max-width:640px; }
+  .aurora .mood .rise { background:linear-gradient(90deg,var(--brand-secondary),var(--brand-primary)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .aurora .sub2 { font:400 13px/20px var(--font); color:var(--text-primary-70); margin:10px 0 22px; max-width:520px; }
+  .aurora .movers { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:22px; }
+  .aurora .chip { display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border-radius:999px;
+    background:rgba(255,255,255,.06); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.12); font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .aurora .chip.native { background:linear-gradient(135deg,rgba(20,200,255,.25),rgba(43,245,180,.25)); border-color:rgba(43,245,180,.5); }
+  .aurora .list { background:rgba(8,11,16,.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.10); border-radius:16px; overflow:hidden; }
+  .aurora .lrow { display:grid; grid-template-columns:26px 1fr auto 84px auto; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.06); }
+  .aurora .lrow:last-child { border-bottom:0; }
+  .aurora .lrow.native { background:rgba(20,200,255,.06); }
+  .aurora .lrow .rk { font:600 11px/1 var(--font); color:var(--text-secondary); }
+  .aurora .lrow .nm { font:600 13px/1 var(--font); } .aurora .lrow .nm small{ color:var(--text-secondary); font-weight:500; }
+  .aurora .lrow .pr { font:600 13px/1 var(--font); font-variant-numeric:tabular-nums; text-align:right; }
+  .aurora .lrow .ch { font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; text-align:right; }
+  .aurora svg.mini { width:80px; height:26px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>107 · Markets — alt directions &nbsp;<span class="muted">— 4 fresh, aesthetics-first</span></h1>
+    <div class="tabs" id="tabs">
+      <button aria-pressed="true"  data-v="a">A · Radar</button>
+      <button aria-pressed="false" data-v="b">B · Momentum lanes</button>
+      <button aria-pressed="false" data-v="c">C · Spotlight deck</button>
+      <button aria-pressed="false" data-v="d">D · Aurora field</button>
+    </div>
+  </div>
+  <p class="lede">Four completely different takes, all off the same fields (<b>market cap · 24h% · price · rank · ATH · 7d spark</b>).
+    GENIUS AI is the star of each. Nothing here shares DNA with round 106.</p>
+
+  <div class="win"><div class="stage">
+    <!-- A -->
+    <div class="variant on" id="va">
+      <div class="vtitle">A · Radar / sonar</div>
+      <div class="vsub">On-brand for GENIUS <b>AI</b>. Native token pings at the core; every coin is a blip - <b>distance from centre = rank</b> (big caps near the core), <b>size = market cap</b>, <b>colour = 24h move</b>. A gradient sweep rotates.</div>
+      <div class="radar-wrap">
+        <div class="radar" id="radar"></div>
+        <div class="radar-legend">
+          <h4>How to read it</h4>
+          <div class="li"><span class="dot" style="background:var(--brand-secondary)"></span>Centre = GENIUS AI, always</div>
+          <div class="li"><span class="dot" style="background:#0AD89C"></span>Green glow = up 24h</div>
+          <div class="li"><span class="dot" style="background:#FF4D4D"></span>Red glow = down 24h</div>
+          <div class="li"><span class="dot" style="background:rgba(255,255,255,.4)"></span>Nearer core = higher rank</div>
+          <div class="li"><span class="dot" style="background:rgba(255,255,255,.4)"></span>Bigger blip = larger cap</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="variant" id="vb">
+      <div class="vtitle">B · Momentum lanes</div>
+      <div class="vsub">A market equaliser. Ticker in the middle, <b>gainers push right</b> (green), <b>losers push left</b> (red), bar length = |24h%|, sorted by move. A light shimmer runs the bars so the whole board feels live.</div>
+      <div class="axis">◀ declining &nbsp;·&nbsp; 24h % &nbsp;·&nbsp; advancing ▶</div>
+      <div class="lanes" id="lanes"></div>
+    </div>
+
+    <!-- C -->
+    <div class="variant" id="vc">
+      <div class="vtitle">C · Spotlight deck</div>
+      <div class="vsub">Premium/editorial. One coin in the spotlight with a full 7d chart + stats; the rest are a filmstrip - <b>click any card to bring it into the spotlight</b>. Opens on GENIUS AI.</div>
+      <div class="deck">
+        <div class="hero" id="hero"></div>
+        <div class="film" id="film"></div>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="variant" id="vd">
+      <div class="vtitle">D · Aurora field</div>
+      <div class="vsub">Mood-first. The background aurora <b>reflects market breadth</b> - green/teal when risk-on, it would cool to red when risk-off. Frosted-glass modules float a market briefing, top movers, then an elegant list.</div>
+      <div class="aurora">
+        <div class="fx"></div>
+        <div class="inner">
+          <div class="mood">Market is <span class="rise">risk-on</span>, up 3.1% today.</div>
+          <div class="sub2">62% of assets advancing. Momentum led by SOL and your native GENIUS AI, both double-digit gainers on rising volume.</div>
+          <div class="movers" id="movers"></div>
+          <div class="list" id="alist"></div>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<script>
+const COINS = [
+  {tk:'BTC', nm:'Bitcoin',   mc:1320, pr:'$67,120', ch:+2.4, rank:1,  ath:-12, vol:'$38B', spark:[3,5,4,6,7,6,8]},
+  {tk:'ETH', nm:'Ethereum',  mc:410,  pr:'$3,412',  ch:-1.1, rank:2,  ath:-28, vol:'$14B', spark:[8,7,7,6,6,5,6]},
+  {tk:'BNB', nm:'BNB',       mc:92,   pr:'$598',    ch:+0.8, rank:4,  ath:-14, vol:'$1.2B',spark:[5,5,6,5,6,6,6]},
+  {tk:'SOL', nm:'Solana',    mc:78,   pr:'$168',    ch:+11.9,rank:5,  ath:-41, vol:'$5.1B',spark:[3,4,4,5,7,8,9]},
+  {tk:'XRP', nm:'XRP',       mc:34,   pr:'$0.62',   ch:-4.7, rank:6,  ath:-82, vol:'$1.8B',spark:[7,6,6,5,4,4,3]},
+  {tk:'DOGE',nm:'Dogecoin',  mc:23,   pr:'$0.158',  ch:+6.2, rank:8,  ath:-79, vol:'$1.1B',spark:[4,4,5,5,6,7,7]},
+  {tk:'ADA', nm:'Cardano',   mc:16,   pr:'$0.45',   ch:-2.3, rank:9,  ath:-85, vol:'$0.4B',spark:[6,6,5,5,5,4,5]},
+  {tk:'AVAX',nm:'Avalanche', mc:14,   pr:'$36.2',   ch:+4.1, rank:10, ath:-73, vol:'$0.5B',spark:[4,5,5,6,6,7,7]},
+  {tk:'LINK',nm:'Chainlink', mc:11,   pr:'$18.4',   ch:+1.2, rank:12, ath:-64, vol:'$0.3B',spark:[5,5,6,6,6,6,7]},
+  {tk:'GNUS',nm:'GENIUS AI',  mc:8,   pr:'$0.42',   ch:+8.1, rank:142,ath:-63, vol:'$21M', spark:[3,3,4,4,6,7,9], native:true},
+  {tk:'DOT', nm:'Polkadot',  mc:9,    pr:'$7.10',   ch:-3.4, rank:13, ath:-87, vol:'$0.2B',spark:[6,6,5,5,4,4,4]},
+  {tk:'UNI', nm:'Uniswap',   mc:5,    pr:'$9.80',   ch:+5.5, rank:19, ath:-78, vol:'$0.2B',spark:[4,4,5,5,6,6,7]},
+];
+const sgn = c => (c>=0?'+':'')+c.toFixed(1)+'%';
+function tint(ch){ const t=Math.max(-1,Math.min(1,ch/8));
+  if(t>=0){const a=.14+t*.34; return `linear-gradient(160deg, rgba(10,216,156,${a}), rgba(10,216,156,${a*.3}))`;}
+  const a=.14+(-t)*.34; return `linear-gradient(160deg, rgba(255,77,77,${a}), rgba(255,77,77,${a*.3}))`; }
+function areaPath(pts,w,h,pad){ const max=Math.max(...pts),min=Math.min(...pts),R=(max-min)||1,st=w/(pts.length-1);
+  const P=pts.map((p,i)=>[i*st, h-pad-((p-min)/R)*(h-2*pad)]);
+  let d='M'+P[0][0]+','+P[0][1]; for(let i=1;i<P.length;i++){const x0=P[i-1][0],y0=P[i-1][1],x1=P[i][0],y1=P[i][1],cx=(x0+x1)/2; d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
+  return {line:d, area:d+` L${w},${h} L0,${h} Z`}; }
+function miniSpark(pts,up){ const {line}=areaPath(pts,80,26,3); const c=up?'#2BF5B4':'#FF4D4D';
+  return `<svg class="mini" viewBox="0 0 80 26" preserveAspectRatio="none"><path d="${line}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+
+/* A · radar */
+(function(){ const r=document.getElementById('radar'), S=520;
+  let html='<div class="sweep"></div><div class="cross" style="left:50%;top:5%;bottom:5%;width:1px;transform:translateX(-.5px)"></div><div class="cross" style="top:50%;left:5%;right:5%;height:1px;transform:translateY(-.5px)"></div>';
+  [0.30,0.55,0.80,1.0].forEach(f=>{const d=S*f*0.92; html+=`<div class="ring" style="width:${d}px;height:${d}px"></div>`;});
+  const maxRank=145;
+  COINS.forEach((c,i)=>{ if(c.native) return;
+    const ang=(i/ (COINS.length))*Math.PI*2 + 0.4;
+    const rr=0.14 + (Math.min(c.rank,maxRank)/maxRank)*0.36; // fraction of radius from centre
+    const cx=50+Math.cos(ang)*rr*100, cy=50+Math.sin(ang)*rr*100;
+    const d=Math.max(30, Math.round(Math.sqrt(c.mc)*1.5));
+    html+=`<div class="blip ${c.ch>=0?'up':'dn'}" style="--tint:${tint(c.ch)};left:${cx}%;top:${cy}%;width:${d}px;height:${d}px" title="${c.nm} ${sgn(c.ch)}"><b>${c.tk}</b></div>`;
+  });
+  const g=COINS.find(c=>c.native);
+  html+=`<div class="core"><div class="tk">${g.tk}</div><div class="ch">${sgn(g.ch)}</div></div>`;
+  r.innerHTML=html;
+})();
+
+/* B · lanes (sorted by ch desc) */
+(function(){ const max=Math.max(...COINS.map(c=>Math.abs(c.ch)));
+  const rows=[...COINS].sort((a,b)=>b.ch-a.ch).map(c=>{ const w=(Math.abs(c.ch)/max)*100;
+    const bar=`<div class="bar" style="width:${w}%"><span class="v">${sgn(c.ch)}</span></div>`;
+    return `<div class="lane ${c.native?'native':''}">
+      <div class="halfL">${c.ch<0?bar:''}</div>
+      <div class="name">${c.tk}<small>${c.pr}</small></div>
+      <div class="halfR">${c.ch>=0?bar:''}</div></div>`; }).join('');
+  document.getElementById('lanes').innerHTML=rows;
+})();
+
+/* C · spotlight deck (interactive) */
+(function(){ const hero=document.getElementById('hero'), film=document.getElementById('film');
+  function drawHero(c){ const up=c.ch>=0; const {line,area}=areaPath(c.spark,520,150,10); const col=up?'#2BF5B4':'#FF4D4D';
+    hero.innerHTML=`<div class="glow"></div>
+      <div class="idn"><div class="mark" style="background:${c.native?'linear-gradient(135deg,var(--brand-primary),var(--brand-secondary))':tint(c.ch)}"></div>
+        <div><div class="nm">${c.nm}</div><div class="sy">${c.tk} · rank #${c.rank}</div></div>
+        ${c.native?'<span class="badge">Native</span>':''}</div>
+      <div class="price">${c.pr}</div>
+      <div class="chg ${up?'up':'dn'}">${up?'▲':'▼'} ${sgn(c.ch)} <span style="color:var(--text-secondary);font-weight:500">· 24h</span></div>
+      <div class="chart"><svg viewBox="0 0 520 150" preserveAspectRatio="none" style="width:100%;height:100%">
+        <defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+        <path d="${area}" fill="url(#ag)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="stats">
+        <div class="st"><div class="l">Rank</div><div class="v">#${c.rank}</div></div>
+        <div class="st"><div class="l">Market cap</div><div class="v">$${c.mc}B</div></div>
+        <div class="st"><div class="l">Volume 24h</div><div class="v">${c.vol}</div></div>
+        <div class="st"><div class="l">ATH gap</div><div class="v dn">${c.ath}%</div></div></div>`;
+  }
+  film.innerHTML=COINS.map((c,i)=>`<div class="fcard ${c.native?'sel':''}" data-i="${i}">
+    <div class="fmk" style="--tint:${tint(c.ch)}">${c.tk.slice(0,3)}</div>
+    <div><div class="fnm">${c.nm}</div><div class="fsy">${c.tk}</div></div>
+    <div class="fpr"><div class="p">${c.pr}</div><div class="c ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</div></div></div>`).join('');
+  drawHero(COINS.find(c=>c.native));
+  film.addEventListener('click',e=>{const card=e.target.closest('.fcard'); if(!card)return;
+    film.querySelectorAll('.fcard').forEach(x=>x.classList.remove('sel')); card.classList.add('sel');
+    drawHero(COINS[+card.dataset.i]); });
+})();
+
+/* D · aurora movers + list */
+(function(){ const movers=[...COINS].sort((a,b)=>b.ch-a.ch).slice(0,3).concat([...COINS].sort((a,b)=>a.ch-b.ch)[0]);
+  document.getElementById('movers').innerHTML=movers.map(c=>`<span class="chip ${c.native?'native':''}"><b>${c.tk}</b> <span class="${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></span>`).join('');
+  const rows=[...COINS].sort((a,b)=>a.rank-b.rank).slice(0,8).map(c=>`<div class="lrow ${c.native?'native':''}">
+     <span class="rk">#${c.rank}</span>
+     <span class="nm">${c.nm} <small>${c.tk}</small></span>
+     ${miniSpark(c.spark,c.ch>=0)}
+     <span class="pr">${c.pr}</span>
+     <span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('');
+  document.getElementById('alist').innerHTML=rows;
+})();
+
+/* tabs */
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  ['a','b','c','d'].forEach(v=>document.getElementById('v'+v).classList.toggle('on',v===b.dataset.v)); });
+</script>
+</body>
+</html>

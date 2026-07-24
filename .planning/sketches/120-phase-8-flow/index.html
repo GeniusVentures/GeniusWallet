@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>109 · Phase 8 flow — bridge + swap states + result receipt</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:52px var(--space-10) 64px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-8); max-width:940px; text-align:center; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.reuse { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); position:relative; }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:46px; padding:0 var(--space-8);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 13px/16px var(--font); color:var(--text-secondary); }
+  .navbar .logo { width:20px; height:20px; border-radius:6px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-14px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .right > * { flex:none; } .navbar .chip { padding:5px 10px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .navbar .cta { width:auto; height:auto; display:inline-block; padding:6px 12px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); }
+
+  .stage { padding:var(--space-12) var(--space-8) 56px; min-height:520px; }
+  .col { max-width:520px; margin:0 auto; padding:0 20px; }
+  .variant { display:none; } .variant.active { display:block; }
+
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-10); }
+  .pagehead .back { width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu);
+    color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; transition:all .15s ease; }
+  .pagehead .back:hover { color:var(--text-primary); transform:translateY(-1px); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; color:var(--text-primary); margin-right:auto; }
+
+  /* logos / pills */
+  .logo { border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font:800 11px/1 var(--font); position:relative; }
+  .logo.gnus { background:linear-gradient(135deg,#c9a6ff,#8b5cf6); } .logo.eth { background:linear-gradient(135deg,#8FA2F5,#627EEA); }
+  .logo.usdc { background:linear-gradient(135deg,#3E8FE0,#2775CA); } .logo.pol { background:linear-gradient(135deg,#a06bf0,#8247E5); }
+  .logo.avax { background:linear-gradient(135deg,#f16b6b,#E84142); } .logo.ftm { background:linear-gradient(135deg,#5aa9ff,#1969FF); }
+  .netchip { display:inline-flex; align-items:center; gap:7px; padding:6px 11px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); cursor:pointer; transition:all .15s ease; white-space:nowrap; font:600 15px/1 var(--font); }
+  .netchip:hover { border-color:var(--brand-primary); transform:translateY(-1px); } .netchip .cd { width:9px; height:9px; border-radius:50%; }
+  .tk { display:inline-flex; align-items:center; gap:9px; padding:6px 12px 6px 7px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); cursor:pointer; white-space:nowrap; }
+  .tk .sym { font:700 16px/1 var(--font); } .tk .cv { color:var(--text-secondary); }
+
+  .amt { background:transparent; border:none; outline:none; color:var(--text-primary); font:600 32px/1 var(--font); font-variant-numeric:tabular-nums; width:100%; letter-spacing:-.5px; }
+  .amt::placeholder { color:var(--text-primary-38); }
+  .usd { font:500 13px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .flabel { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .bal { font:500 12px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .maxbtn { font:700 10px/1 var(--font); letter-spacing:.4px; color:var(--brand-secondary); background:var(--brand-fill); border:none; border-radius:6px; padding:5px 7px; cursor:pointer; }
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); }
+  svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .cta { width:100%; height:56px; border:none; border-radius:var(--radius-md); font:600 17px/1 var(--font); cursor:pointer;
+    color:var(--text-on-brand); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); transition:all .15s ease; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .cta:hover:not(:disabled) { filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 8px 22px rgba(10,216,156,.30); }
+  .cta:disabled { cursor:not-allowed; background:var(--surface-menu); color:var(--text-primary-38); }
+  .cta.loading { background:var(--surface-menu); color:var(--text-secondary); cursor:progress; }
+  .cta.err { background:var(--status-error-fill); color:var(--status-error); }
+  .spin { width:18px; height:18px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:sp .7s linear infinite; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+
+  .route { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated); overflow:hidden; }
+  .rrow { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; font:500 13px/18px var(--font); }
+  .rrow .k { color:var(--text-secondary); } .rrow .v { color:var(--text-primary); font-variant-numeric:tabular-nums; } .rrow+.rrow { border-top:1px solid var(--border-subtle); }
+  .rrow .v.good { color:var(--status-success); }
+
+  /* network route bar (swap D language) */
+  .netbar { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:var(--radius-md); background:var(--surface-menu); margin-bottom:14px; }
+  .netbar .seg { display:flex; align-items:center; gap:7px; font:600 13px/16px var(--font); color:var(--text-primary); }
+  .netbar .cd { width:10px; height:10px; border-radius:50%; }
+  .netbar .arrow { flex:1; height:1px; background:var(--border-strong); position:relative; margin:0 4px; }
+  .netbar .arrow::after { content:""; position:absolute; right:0; top:-3px; border-left:6px solid var(--text-secondary); border-top:4px solid transparent; border-bottom:4px solid transparent; }
+  .netbar .bridge { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:var(--surface-menu); padding:2px 8px; border-radius:var(--radius-pill); font:700 9px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--brand-tertiary); }
+
+  .field { padding:16px 16px 18px; }
+  .field .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .field .mid { display:flex; align-items:flex-end; gap:12px; } .field .mid .c { flex:1; min-width:0; }
+  .field .foot { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+  .seam { position:relative; height:0; z-index:2; }
+  .flip { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:42px; height:42px; border-radius:13px;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); border:5px solid var(--surface-elevated); color:var(--text-on-brand); display:grid; place-items:center; }
+  .flip svg { width:18px; height:18px; }
+  .note { display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:var(--radius-md); font:500 13px/18px var(--font); margin-top:14px; }
+  .note.info { background:var(--brand-fill); color:var(--text-primary); } .note.info svg { color:var(--brand-primary-strong); }
+  [data-theme="dark"] .note.info svg { color:var(--brand-secondary); }
+  .note.err { background:var(--status-error-fill); color:var(--status-error); } .note svg { flex:none; margin-top:1px; }
+
+  /* state cycler control */
+  .cycler { display:flex; gap:6px; justify-content:center; margin:0 auto var(--space-8); }
+  .cycler button { font:600 12px/1 var(--font); padding:7px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .cycler button.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+
+  /* result receipt drawer (031-B language) */
+  .backdrop { background:var(--surface-sunken); border-radius:var(--radius-md); min-height:520px; position:relative; overflow:hidden; }
+  .drawer { position:absolute; top:0; right:0; bottom:0; width:420px; background:var(--surface-base); border-left:1px solid var(--border-strong); display:flex; flex-direction:column; }
+  .drawer .dhead { display:flex; align-items:center; padding:16px 18px 14px; border-bottom:1px solid var(--border-subtle); position:relative; }
+  .drawer .dhead h3 { font:600 17px/24px var(--font); margin-right:auto; } .drawer .dhead .x { width:30px; height:30px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; }
+  .drawer .dhead::after { content:""; position:absolute; left:0; bottom:-1px; width:64px; height:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .drawer .dbody { flex:1; overflow:auto; padding:22px 18px; }
+  .drawer .dfoot { padding:14px 18px; border-top:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:10px; }
+  .status-badge { width:64px; height:64px; border-radius:50%; margin:0 auto 14px; display:grid; place-items:center; }
+  .status-badge svg { width:32px; height:32px; stroke-width:2.4; }
+  .rhero { text-align:center; margin-bottom:18px; }
+  .rhero .amt2 { font:600 26px/1 var(--font); font-variant-numeric:tabular-nums; letter-spacing:-.5px; }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:var(--radius-pill); font:600 12px/16px var(--font); margin-top:12px; }
+  .pill .d { width:7px; height:7px; border-radius:50%; }
+  .sec { margin-top:16px; } .sec h4 { font:600 11px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+  .sec .box { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated); overflow:hidden; }
+  .mono { font-family:var(--font-mono); }
+  .btn-out { width:100%; height:48px; border-radius:var(--radius-md); border:1px solid var(--border-strong); background:transparent; color:var(--text-primary); font:600 14px/1 var(--font); cursor:pointer; transition:all .15s ease; }
+  .btn-out:hover { border-color:var(--brand-primary); }
+  .pairicons { display:inline-flex; align-items:center; } .pairicons .logo:last-child { margin-left:-8px; border:2px solid var(--surface-elevated); }
+
+  #picker { position:fixed; inset:0; z-index:9997; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; }
+  #picker.open { display:flex; } #picker .sheet { width:100%; max-width:420px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px 16px 22px; }
+  #picker h3 { font:600 18px/24px var(--font); margin-bottom:14px; } .prow { display:flex; align-items:center; gap:12px; padding:11px 10px; border-radius:var(--radius-md); cursor:pointer; }
+  .prow:hover { background:var(--surface-menu); } .prow .nm { font:500 15px/20px var(--font); } .prow .sub { font:400 12px/16px var(--font); color:var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">120 · Phase 8 flow</span>
+  <button class="vt active" onclick="showV('b1',event)">Bridge · B1 Swap-twin ★</button>
+  <button class="vt" onclick="showV('b2',event)">Bridge · B2 Network-forward</button>
+  <button class="vt" onclick="showV('sw',event)">Swap · states</button>
+  <button class="vt" onclick="showV('rc',event)">Result · receipt</button>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+
+  <!-- ================= BRIDGE B1 · SWAP-TWIN ================= -->
+  <div id="v-b1" class="variant active">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span>Markets</span><span>News</span>
+        <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="cta">Connect</span></div></div>
+      <div class="stage"><div class="col">
+        <div class="pagehead"><button class="back"><svg class="i" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Bridge</h2></div>
+        <div class="netbar"><span class="seg"><span class="cd" style="background:#627EEA"></span>Ethereum</span><span class="arrow"><span class="bridge">Bridge</span></span><span class="seg"><span class="cd bnet-cd" style="background:#8247E5"></span><span class="bnet-name">Polygon</span></span></div>
+        <div class="card field">
+          <div class="top"><span class="flabel">You Pay</span></div>
+          <div class="mid"><div class="c"><input class="amt bridge-in" placeholder="0.0"></div><div class="tk"><span class="logo gnus" style="width:28px;height:28px;">G</span><span class="sym">GNUS</span></div></div>
+          <div class="foot"><span class="usd bridge-usd">$0.00</span><span style="display:flex;align-items:center;gap:8px;"><span class="bal">Balance: 1,250.0 GNUS</span><button class="maxbtn" onclick="bridgeMax()">MAX</button></span></div>
+        </div>
+        <div class="seam"><div class="flip"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v13M7 4l-3 3M7 4l3 3M17 20V7M17 20l3-3M17 20l-3-3"/></svg></div></div>
+        <div class="card field" style="margin-top:6px;">
+          <div class="top"><span class="flabel">You Receive on</span></div>
+          <div class="mid"><div class="c"><div class="amt bridge-out" style="color:var(--text-primary-38)">0.0</div></div>
+            <div class="netchip" onclick="openNet()"><span class="cd bnet-cd" style="background:#8247E5"></span><span class="bnet-name">Polygon</span><span class="cv"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg></span></div></div>
+          <div class="foot"><span class="usd">GNUS bridges 1:1 (burn → mint)</span></div>
+        </div>
+        <div class="route bridge-route" style="display:none; margin-top:14px;"></div>
+        <button class="cta bridge-cta" disabled style="margin-top:14px;">Enter an amount</button>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ================= BRIDGE B2 · NETWORK-FORWARD ================= -->
+  <div id="v-b2" class="variant">
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span>Markets</span><span>News</span>
+        <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="cta">Connect</span></div></div>
+      <div class="stage"><div class="col">
+        <div class="pagehead"><button class="back"><svg class="i" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Bridge</h2></div>
+        <div class="card" style="padding:18px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <span class="logo gnus" style="width:40px;height:40px;font-size:14px;">G</span>
+            <div><div style="font:600 17px/22px var(--font)">GNUS</div><div style="font:400 12px/16px var(--font);color:var(--text-secondary)">Bridges 1:1 — burn on source, mint on destination</div></div>
+          </div>
+          <!-- big source → destination network selector -->
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:16px;">
+            <div style="padding:14px;border-radius:var(--radius-md);background:var(--surface-menu);text-align:center;">
+              <div style="font:500 11px/16px var(--font);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">From</div>
+              <span class="logo eth" style="width:34px;height:34px;margin:0 auto 6px;">E</span>
+              <div style="font:600 14px/18px var(--font)">Ethereum</div>
+            </div>
+            <span style="color:var(--brand-tertiary)"><svg class="i" viewBox="0 0 24 24" style="width:22px;height:22px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+            <div class="netcard" onclick="openNet()" style="padding:14px;border-radius:var(--radius-md);background:var(--surface-menu);text-align:center;cursor:pointer;border:1px solid transparent;transition:all .15s ease;">
+              <div style="font:500 11px/16px var(--font);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">To ▾</div>
+              <span class="logo pol bnet-logo" style="width:34px;height:34px;margin:0 auto 6px;">P</span>
+              <div style="font:600 14px/18px var(--font)" class="bnet-name">Polygon</div>
+            </div>
+          </div>
+          <div style="padding:16px;border-radius:var(--radius-md);background:var(--surface-menu);">
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span class="flabel">Amount</span><span class="bal">Balance: 1,250.0 GNUS</span></div>
+            <div style="display:flex;align-items:center;gap:12px;"><input class="amt bridge-in" placeholder="0.0" style="flex:1;"><button class="maxbtn" onclick="bridgeMax()">MAX</button></div>
+            <div class="usd bridge-usd" style="margin-top:8px;">$0.00</div>
+          </div>
+        </div>
+        <div class="route bridge-route" style="display:none; margin-top:14px;"></div>
+        <button class="cta bridge-cta" disabled style="margin-top:14px;">Enter an amount</button>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ================= SWAP · STATES ================= -->
+  <div id="v-sw" class="variant">
+    <div class="cycler">
+      <button class="on" onclick="swState('ready',this)">Ready</button>
+      <button onclick="swState('submitting',this)">Submitting</button>
+      <button onclick="swState('route-error',this)">Route error (f22)</button>
+      <button onclick="swState('insufficient',this)">Insufficient</button>
+    </div>
+    <div class="win">
+      <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span class="on">Swap</span><span>Markets</span><span>News</span>
+        <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="cta">Connect</span></div></div>
+      <div class="stage"><div class="col">
+        <div class="pagehead" style="margin-bottom:var(--space-10)"><h2 style="margin-right:auto">Swap</h2>
+          <button class="back" style="border:none;background:transparent"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button></div>
+        <div class="card field">
+          <div class="top"><span class="flabel">You Pay</span></div>
+          <div class="mid"><div class="c"><div class="amt" id="sw-pay">0.5</div></div><div class="tk"><span class="logo eth" style="width:28px;height:28px;">E</span><span class="sym">ETH</span></div></div>
+          <div class="foot"><span class="usd">$1,710.28</span><span class="bal">Balance: 1.84 ETH</span></div>
+        </div>
+        <div class="seam"><div class="flip"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v13M7 4l-3 3M7 4l3 3M17 20V7M17 20l3-3M17 20l-3-3"/></svg></div></div>
+        <div class="card field" style="margin-top:6px;">
+          <div class="top"><span class="flabel">You Receive</span></div>
+          <div class="mid"><div class="c"><div class="amt" id="sw-rec">1,708.56</div></div><div class="tk"><span class="logo usdc" style="width:28px;height:28px;">U</span><span class="sym">USDC</span></div></div>
+          <div class="foot"><span class="usd" id="sw-recusd">$1,708.56</span><span class="bal">Balance: 0.00 USDC</span></div>
+        </div>
+        <div id="sw-note"></div>
+        <div class="route" id="sw-route" style="margin-top:14px;">
+          <div class="rrow"><span class="k">Rate</span><span class="v">1 ETH = 3,420.55 USDC</span></div>
+          <div class="rrow"><span class="k">Slippage</span><span class="v">0.5%</span></div>
+          <div class="rrow"><span class="k">Price impact</span><span class="v good">0.08%</span></div>
+          <div class="rrow"><span class="k">Network + route fee</span><span class="v">$2.13</span></div>
+        </div>
+        <button class="cta" id="sw-cta" style="margin-top:14px;">Swap</button>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ================= RESULT · RECEIPT (031-B) ================= -->
+  <div id="v-rc" class="variant">
+    <div class="cycler">
+      <button class="on" onclick="rcFlow('swap',this)">Swap result</button>
+      <button onclick="rcFlow('bridge',this)">Bridge result</button>
+      <span style="width:14px"></span>
+      <button class="on" id="rc-succ" onclick="rcState('success',this)">Success</button>
+      <button onclick="rcState('pending',this)">Pending</button>
+      <button onclick="rcState('failed',this)">Failed</button>
+    </div>
+    <div class="win"><div class="backdrop">
+      <div style="padding:40px;opacity:.5;font:400 13px/20px var(--font);color:var(--text-secondary);max-width:340px;">The swap/bridge screen sits behind, dimmed. On resolve, one shared receipt slides in — the shipped <b style="color:var(--text-primary)">031-B status-led receipt</b> (030-B shell), filled from the swap or bridge result.</div>
+      <div class="drawer">
+        <div class="dhead"><h3 id="rc-title">Swap complete</h3><div class="x"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+        <div class="dbody" id="rc-body"></div>
+        <div class="dfoot" id="rc-foot"></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- network picker -->
+<div id="picker" onclick="if(event.target===this)closeNet()">
+  <div class="sheet"><h3>Destination network</h3><div id="netList"></div></div>
+</div>
+
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;background:rgba(0,0,0,0.72);color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:8px;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.45">
+  <button onclick="setTheme('dark')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Dark</button>
+  <button onclick="setTheme('light')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Light</button>
+</div>
+
+<script>
+const GNUS_PRICE=1.35;
+const NETS={ Polygon:{cls:'pol',cd:'#8247E5',gas:'0.011 ETH'}, Avalanche:{cls:'avax',cd:'#E84142',gas:'0.014 ETH'}, Fantom:{cls:'ftm',cd:'#1969FF',gas:'0.009 ETH'} };
+let destNet='Polygon';
+function fmt(n,dp){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
+
+/* ---- bridge (shared across B1/B2) ---- */
+let bridgeAmt='';
+function computeBridge(){
+  const bal=1250.0, pay=parseFloat(bridgeAmt);
+  document.querySelectorAll('.bridge-out').forEach(e=>{ e.textContent='0.0'; e.style.color='var(--text-primary-38)'; });
+  document.querySelectorAll('.bridge-usd').forEach(e=> e.textContent='$0.00');
+  document.querySelectorAll('.bridge-route').forEach(e=> e.style.display='none');
+  const setCta=(cls,txt,html)=>document.querySelectorAll('.bridge-cta').forEach(c=>{ c.className='cta bridge-cta'+(cls?' '+cls:''); c.disabled=cls!=='' ; c.innerHTML=html||txt; if(cls==='')c.disabled=false; });
+  if(!bridgeAmt||isNaN(pay)||pay<=0){ setCta('','Enter an amount'); return; }
+  document.querySelectorAll('.bridge-usd').forEach(e=> e.textContent='$'+fmt(pay*GNUS_PRICE,2));
+  if(pay>bal){ setCta('err','Insufficient GNUS balance'); return; }
+  document.querySelectorAll('.bridge-out').forEach(e=>{ e.textContent=fmt(pay,2); e.style.color='var(--text-primary)'; });
+  document.querySelectorAll('.bridge-route').forEach(e=>{ e.style.display='block';
+    e.innerHTML=`<div class="rrow"><span class="k">You receive</span><span class="v">${fmt(pay,2)} GNUS on ${destNet}</span></div>
+      <div class="rrow"><span class="k">Estimated gas cost</span><span class="v">${NETS[destNet].gas}</span></div>
+      <div class="rrow"><span class="k">Est. time</span><span class="v good">~3 min</span></div>`; });
+  setCta('','Review bridge');
+}
+function bridgeMax(){ bridgeAmt='1250.0'; document.querySelectorAll('.bridge-in').forEach(i=>i.value='1250.0'); computeBridge(); }
+document.querySelectorAll('.bridge-in').forEach(i=>i.addEventListener('input',e=>{ bridgeAmt=e.target.value; document.querySelectorAll('.bridge-in').forEach(x=>{if(x!==e.target)x.value=e.target.value;}); computeBridge(); }));
+
+function openNet(){ const l=document.getElementById('netList'); l.innerHTML=Object.keys(NETS).map(n=>`<div class="prow" onclick="chooseNet('${n}')"><span class="logo ${NETS[n].cls}" style="width:32px;height:32px;">${n[0]}</span><div><div class="nm">${n}</div><div class="sub">Gas ~ ${NETS[n].gas}</div></div></div>`).join(''); document.getElementById('picker').classList.add('open'); }
+function closeNet(){ document.getElementById('picker').classList.remove('open'); }
+function chooseNet(n){ destNet=n; document.querySelectorAll('.bnet-name').forEach(e=>e.textContent=n); document.querySelectorAll('.bnet-cd').forEach(e=>e.style.background=NETS[n].cd);
+  document.querySelectorAll('.bnet-logo').forEach(e=>{ e.className='logo '+NETS[n].cls+' bnet-logo'; e.style.width='34px'; e.style.height='34px'; e.textContent=n[0]; });
+  closeNet(); computeBridge(); }
+
+/* ---- swap states ---- */
+function swState(s,el){
+  el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on')); el.classList.add('on');
+  const note=document.getElementById('sw-note'), route=document.getElementById('sw-route'), cta=document.getElementById('sw-cta'),
+        rec=document.getElementById('sw-rec'), recusd=document.getElementById('sw-recusd');
+  note.innerHTML=''; route.style.display='block'; rec.style.color='var(--text-primary)';
+  if(s==='ready'){ rec.textContent='1,708.56'; recusd.textContent='$1,708.56'; cta.className='cta'; cta.disabled=false; cta.textContent='Swap'; }
+  if(s==='submitting'){ rec.textContent='1,708.56'; recusd.textContent='$1,708.56'; cta.className='cta loading'; cta.disabled=true; cta.innerHTML='<span class="spin"></span> Submitting swap…'; }
+  if(s==='route-error'){ rec.textContent='—'; rec.style.color='var(--text-primary-38)'; recusd.textContent='$0.00'; route.style.display='none';
+    note.innerHTML=`<div class="note err"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><b>Couldn't fetch a route.</b> Check your connection and try again — the quote above is not current.</div></div>`;
+    cta.className='cta'; cta.disabled=false; cta.textContent='Retry'; }
+  if(s==='insufficient'){ rec.textContent='1,708.56'; recusd.textContent='$1,708.56'; route.style.display='block'; cta.className='cta err'; cta.disabled=true; cta.textContent='Insufficient ETH balance'; }
+}
+
+/* ---- result receipt (031-B) ---- */
+let rcKind='swap', rcSt='success';
+const CHECK='<svg class="i" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+const XMARK='<svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+const CLOCK='<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
+function rcFlow(k,el){ rcKind=k; el.parentElement.querySelectorAll('button').forEach((b,i)=>{ if(i<2)b.classList.remove('on'); }); el.classList.add('on'); renderReceipt(); }
+function rcState(s,el){ rcSt=s; ['rc-succ'].forEach(()=>{}); el.parentElement.querySelectorAll('button').forEach((b,i)=>{ if(i>2)b.classList.remove('on'); }); el.classList.add('on'); renderReceipt(); }
+function renderReceipt(){
+  const swap = rcKind==='swap';
+  const tone = rcSt==='success'?{c:'var(--status-success)',bg:'var(--status-success-fill)',ic:CHECK,w:'complete'} :
+               rcSt==='failed'?{c:'var(--status-error)',bg:'var(--status-error-fill)',ic:XMARK,w:'failed'} :
+               {c:'var(--status-warning)',bg:'rgba(255,196,46,.14)',ic:CLOCK,w:'pending'};
+  const title=(swap?'Swap ':'Bridge ')+tone.w;
+  document.getElementById('rc-title').textContent=title;
+  const pairA = swap?'eth':'gnus', pairB = swap?'usdc':NETS[destNet].cls;
+  const heroAmt = swap?'0.5 ETH → 1,708.56 USDC':`250 GNUS → 250 GNUS`;
+  const net = swap?'Ethereum':`Ethereum → ${destNet}`;
+  const hash='0x9f3a…c21e';
+  let sec2 = swap
+    ? `<div class="rrow"><span class="k">Rate</span><span class="v">1 ETH = 3,420.55 USDC</span></div>
+       <div class="rrow"><span class="k">Slippage</span><span class="v">0.5%</span></div>
+       <div class="rrow"><span class="k">Network + route fee</span><span class="v">$2.13</span></div>`
+    : `<div class="rrow"><span class="k">Route</span><span class="v">Ethereum → ${destNet}</span></div>
+       <div class="rrow"><span class="k">Gas cost</span><span class="v">${NETS[destNet].gas}</span></div>`;
+  const pendingNote = rcSt==='pending' ? `<div class="note info" style="margin-top:16px"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><div>Your ${swap?'swap':'bridge'} is confirming on-chain. This can take a few minutes — it will show in Transactions when done.</div></div>` : '';
+  const failNote = rcSt==='failed' ? `<div class="note err" style="margin-top:16px"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>${swap?'Your swap could not be completed. No funds left your wallet.':'The bridge transaction failed. Your GNUS was not burned.'}</div></div>` : '';
+  document.getElementById('rc-body').innerHTML=`
+    <div class="status-badge" style="background:${tone.bg};color:${tone.c}">${tone.ic}</div>
+    <div class="rhero">
+      <div class="pairicons" style="margin-bottom:10px"><span class="logo ${pairA}" style="width:34px;height:34px;">${(swap?'E':'G')}</span><span class="logo ${pairB}" style="width:34px;height:34px;">${(swap?'U':destNet[0])}</span></div>
+      <div class="amt2">${heroAmt}</div>
+      <span class="pill" style="background:${tone.bg};color:${tone.c}"><span class="d" style="background:${tone.c}"></span>${title}</span>
+    </div>
+    ${failNote}${pendingNote}
+    <div class="sec"><h4>Transaction</h4><div class="box">${sec2}
+      ${rcSt!=='failed'?`<div class="rrow"><span class="k">Tx hash</span><span class="v mono" style="display:flex;align-items:center;gap:8px">${hash}<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--text-secondary);cursor:pointer"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span></div>`:''}
+    </div></div>
+    <div class="sec"><h4>Network</h4><div class="box"><div class="rrow"><span class="k">${swap?'Chain':'Route'}</span><span class="v">${net}</span></div></div></div>`;
+  const foot=document.getElementById('rc-foot');
+  if(rcSt==='failed') foot.innerHTML=`<button class="cta" style="height:48px">Try again</button><button class="btn-out">Dismiss</button>`;
+  else foot.innerHTML=`<button class="cta" style="height:48px">Go to Transactions</button>${rcSt==='success'?'<button class="btn-out">View on Explorer</button>':'<button class="btn-out">Done</button>'}`;
+}
+
+const LEDE={
+  b1:'<b>Bridge · B1 · Swap-twin</b> <span class="tag rec">recommended</span> — the GNUS bridge redesigned to mirror the Swap tab exactly: network route bar on top, two cards + connector, gas/route rows, gradient CTA with states. Kills the Material AppBar + dropdowns. Users recognise it instantly from Swap.',
+  b2:'<b>Bridge · B2 · Network-forward</b> — leads with the source→destination network selector as the hero (bridge is fundamentally about moving GNUS across chains), amount below. More distinct from Swap; heavier.',
+  sw:'<b>Swap · states</b> — the missing non-happy states on 105 A1. Cycle them: <b>Submitting</b> (in-flight), <b>Route error</b> (finding 22 — the receive amount goes to <code>—</code> with an error notice, never a stale stale quote), <b>Insufficient</b>.',
+  rc:'<b>Result · receipt</b> <span class="tag reuse">reuse 031-B</span> — swap AND bridge results land in the <b>already-shipped 031-B status-led receipt</b> (030-B shell). One receipt, filled from either flow, cycling Success / Pending / Failed. Resolves the two competing result-drawer implementations (findings 21 + 28).',
+};
+function showV(id,ev){ document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active')); document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  document.getElementById('v-'+id).classList.add('active'); if(ev)ev.target.classList.add('active'); document.getElementById('lede').innerHTML=LEDE[id]; }
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); }
+
+computeBridge(); swState('ready',document.querySelector('#v-sw .cycler button')); renderReceipt();
+document.getElementById('lede').innerHTML=LEDE.b1;
+</script>
+</body>
+</html>

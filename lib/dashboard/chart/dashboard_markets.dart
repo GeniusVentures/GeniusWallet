@@ -86,6 +86,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                       );
                     },
                     title: coin.name,
+                    symbol: coin.symbol,
                     iconPath: data.imageUrl,
                     currentPrice: data.currentPrice,
                     high24h: data.high24h,

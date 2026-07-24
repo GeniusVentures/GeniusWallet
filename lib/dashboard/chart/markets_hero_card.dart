@@ -5,8 +5,9 @@ import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
@@ -61,8 +62,6 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 5),
-                const _NativeChip(),
               ],
             ),
           ],
@@ -123,17 +122,27 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
       ],
     );
 
-    final right = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Align(alignment: Alignment.centerRight, child: _TimeframeSegment()),
-        const SizedBox(height: GeniusWalletConsts.space8),
-        SizedBox(
-          height: 180,
-          child: _HeroChart(sparkline: data.sparkline),
-        ),
-      ],
-    );
+    // Wide layout drops the chart to the BOTTOM of the row so its lower edge
+    // lines up with the Volume 24h / All-Time High stat row on the left
+    // (Jakub 2026-07-24). A plain `Spacer()` above the fixed-height chart
+    // absorbs the extra height the IntrinsicHeight row inherits from the taller
+    // `left` column. The Spacer is the ONLY flex child and it is an empty box —
+    // intrinsic height 0 — so fl_chart is never intrinsic-measured (that is
+    // what froze the embedder when the chart itself was the Expanded child).
+    // Narrow layout stacks in an unbounded Column where a Spacer would throw,
+    // so it is omitted there.
+    Widget buildRight({required bool fill}) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Align(
+              alignment: Alignment.centerRight, child: _TimeframeSegment()),
+          const SizedBox(height: GeniusWalletConsts.space8),
+          if (fill) const Spacer(),
+          SizedBox(height: 180, child: _HeroChart(sparkline: data.sparkline)),
+        ],
+      );
+    }
 
     final content = LayoutBuilder(
       builder: (context, c) {
@@ -141,7 +150,11 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         if (!wide) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [left, const SizedBox(height: GeniusWalletConsts.space12), right],
+            children: [
+              left,
+              const SizedBox(height: GeniusWalletConsts.space12),
+              buildRight(fill: false),
+            ],
           );
         }
         // IntrinsicHeight is load-bearing: this Row lives inside the page's
@@ -158,23 +171,32 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             children: [
               Expanded(flex: 5, child: left),
               const SizedBox(width: GeniusWalletConsts.space16),
-              Expanded(flex: 7, child: right),
+              Expanded(flex: 7, child: buildRight(fill: true)),
             ],
           ),
         );
       },
     );
 
-    return Semantics(
-      button: widget.onTap != null,
-      label: '${widget.coin.name} market detail',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
-        onTap: widget.onTap,
-        child: Container(
-          decoration: GWDecorations.surface(radius: GeniusWalletConsts.radiusLg),
-          padding: const EdgeInsets.all(GeniusWalletConsts.space16),
-          child: content,
+    // RepaintBoundary: this card holds an fl_chart (expensive to repaint) and a
+    // 1px hairline border at ~12% alpha. Without isolation, scrolling the page
+    // re-rasterises the whole card every frame, and at fractional sub-pixel
+    // scroll offsets the hairline edge (esp. the right/vertical border, next to
+    // the chart) drops below visibility on some frames — the flicker Jakub saw.
+    // Boundary → the card rasters once and just translates as a cached layer.
+    return RepaintBoundary(
+      child: Semantics(
+        button: widget.onTap != null,
+        label: '${widget.coin.name} market detail',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+          onTap: widget.onTap,
+          child: Container(
+            decoration:
+                GWDecorations.surface(radius: GeniusWalletConsts.radiusLg),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space16),
+            child: content,
+          ),
         ),
       ),
     );
@@ -197,36 +219,6 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
     if (v >= 1e6) return '\$${(v / 1e6).toStringAsFixed(1)}M';
     if (v >= 1e3) return '\$${(v / 1e3).toStringAsFixed(1)}K';
     return NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(v);
-  }
-}
-
-class _NativeChip extends StatelessWidget {
-  const _NativeChip();
-
-  @override
-  Widget build(BuildContext context) {
-    // Native token accent: brand fill + brand text (mint on dark, strong cyan
-    // on light — both clear the surface for AA at this weight).
-    final text = GWAppearance.isLight
-        ? GeniusWalletColors.brandPrimaryStrong
-        : GeniusWalletColors.brandSecondary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: GeniusWalletColors.brandPrimary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Text(
-        'NATIVE TOKEN',
-        style: GeniusWalletTypography.labelMd.copyWith(
-          color: text,
-          fontSize: 9,
-          height: 1,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-        ),
-      ),
-    );
   }
 }
 
@@ -317,6 +309,25 @@ class _HeroChart extends StatelessWidget {
     const gradient = LinearGradient(
       colors: [GeniusWalletColors.gradientGreen, GeniusWalletColors.gradientBlue],
     );
+
+    // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a touched
+    // point shows its time, price, and % change vs the window start. The
+    // sparkline carries no timestamps, so map each index onto the last 7 days —
+    // CoinGecko's `sparkline_in_7d` IS an evenly-spaced 7d series, and 7D is the
+    // only range wired (the timeframe tabs are visual-only), so this is honest
+    // for what is plotted.
+    // ponytail: assumes a 7d window because that is the only series fetched.
+    // Ceiling: wrong labels if a non-7d range is ever plotted here. Upgrade
+    // path: pass the real [start,end] in once timeframe ranges are wired
+    // (.planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md).
+    final double first = data.first;
+    final int n = data.length;
+    final DateTime now = DateTime.now();
+    const double windowMs = 7 * 24 * 60 * 60 * 1000;
+    final double stepMs = n > 1 ? windowMs / (n - 1) : 0;
+    DateTime timeAt(double x) =>
+        now.subtract(Duration(milliseconds: ((n - 1 - x) * stepMs).round()));
+
     return LineChart(
       LineChartData(
         lineBarsData: [
@@ -342,7 +353,69 @@ class _HeroChart extends StatelessWidget {
         titlesData: const FlTitlesData(show: false),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
-        lineTouchData: const LineTouchData(enabled: false),
+        lineTouchData: LineTouchData(
+          enabled: true,
+          handleBuiltInTouches: true,
+          getTouchedSpotIndicator: (barData, spotIndexes) {
+            return spotIndexes.map((index) {
+              return TouchedSpotIndicatorData(
+                FlLine(color: gw.borderStrong, strokeWidth: 1),
+                FlDotData(
+                  getDotPainter: (spot, percent, bar, i) => FlDotCirclePainter(
+                    radius: 4,
+                    color: GeniusWalletColors.gradientGreen,
+                    strokeWidth: 3,
+                    strokeColor:
+                        GeniusWalletColors.gradientGreen.withValues(alpha: 0.26),
+                  ),
+                ),
+              );
+            }).toList();
+          },
+          touchTooltipData: LineTouchTooltipData(
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+            tooltipBorderRadius: BorderRadius.circular(10),
+            tooltipBorder: BorderSide(color: gw.borderSubtle),
+            getTooltipColor: (touchedSpot) => gw.surfaceElevated,
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((spot) {
+                final double pct =
+                    first > 0 ? ((spot.y - first) / first) * 100 : 0;
+                final Color pctColor =
+                    pct >= 0 ? gw.statusSuccess : gw.statusError;
+                final int decimals = spot.y >= 1 ? 2 : 6;
+                return LineTooltipItem(
+                  '${DateFormat('MMM d, h:mm a').format(timeAt(spot.x))}\n',
+                  GeniusWalletTypography.labelMd.copyWith(
+                    color: gw.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: NumberFormat.currency(
+                        symbol: '\$',
+                        decimalDigits: decimals,
+                      ).format(spot.y),
+                      style: GeniusWalletTypography.numericBody.copyWith(
+                        color: gw.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    TextSpan(
+                      text:
+                          '  ${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(2)}%',
+                      style: GeniusWalletTypography.labelMd.copyWith(
+                        color: pctColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList();
+            },
+          ),
+        ),
       ),
     );
   }
@@ -367,6 +440,15 @@ class _TimeframeSegmentState extends State<_TimeframeSegment> {
   static const _labels = ['24H', '7D', '30D', '1Y'];
   int _selected = 1; // 7D — the range the sparkline actually covers.
 
+  // VISUALLY IDENTICAL to the dashboard's _TimeframeSegment/_TimeframeTab
+  // (dashboard_screen.dart): surfaceMenu "baton" with 2px-gapped tabs, the
+  // selected tab on the brandCta gradient, unselected tabs lifting onto
+  // surfaceElevated on hover. Only the labels differ (markets ranges).
+  // ponytail: still visual-only — the chart under it is a fixed 7d sparkline, so
+  // 24H/30D/1Y select but change nothing. Ceiling: no range data. Upgrade path:
+  // .planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md
+  // The two copies of this widget SHOULD be one shared GWTimeframeSegment —
+  // .planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -374,34 +456,95 @@ class _TimeframeSegmentState extends State<_TimeframeSegment> {
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: gw.surfaceMenu,
+        border: Border.all(color: gw.borderSubtle),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-        border: Border.all(color: gw.borderSubtle, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: List.generate(_labels.length, (i) {
-          final on = i == _selected;
-          return GestureDetector(
-            onTap: () => setState(() => _selected = i),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 13, vertical: 5),
-              decoration: on
-                  ? GWDecorations.surface(
-                      radius: GeniusWalletConsts.radiusPill,
-                      elevated: false,
-                    )
-                  : null,
-              child: Text(
-                _labels[i],
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: on ? gw.textPrimary : gw.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+        children: [
+          for (var i = 0; i < _labels.length; i++) ...[
+            if (i > 0) const SizedBox(width: 2),
+            _TimeframeTab(
+              label: _labels[i],
+              selected: i == _selected,
+              unselectedColor: gw.textSecondary,
+              hoverColor: gw.surfaceElevated,
+              hoverTextColor: gw.textPrimary,
+              onTap: () => setState(() => _selected = i),
             ),
-          );
-        }),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TimeframeTab extends StatefulWidget {
+  const _TimeframeTab({
+    required this.label,
+    required this.selected,
+    required this.unselectedColor,
+    required this.hoverColor,
+    required this.hoverTextColor,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final Color unselectedColor;
+  final Color hoverColor;
+  final Color hoverTextColor;
+  final VoidCallback onTap;
+
+  @override
+  State<_TimeframeTab> createState() => _TimeframeTabState();
+}
+
+class _TimeframeTabState extends State<_TimeframeTab> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.selected;
+    final Color labelColor = selected
+        ? GeniusWalletColors.textOnBrand
+        : (_hovered ? widget.hoverTextColor : widget.unselectedColor);
+    final bool lifted = _hovered && !selected;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          transformAlignment: Alignment.center,
+          transform: lifted
+              ? Matrix4.translationValues(0, -1, 0)
+              : Matrix4.identity(),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space4,
+            vertical: GeniusWalletConsts.space3,
+          ),
+          decoration: BoxDecoration(
+            gradient: selected ? GeniusWalletGradient.brandCta : null,
+            color: selected
+                ? null
+                : (lifted ? widget.hoverColor : Colors.transparent),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+            boxShadow:
+                (selected || lifted) ? GeniusWalletElevation.card : null,
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              color: labelColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1,
+            ),
+          ),
+        ),
       ),
     );
   }

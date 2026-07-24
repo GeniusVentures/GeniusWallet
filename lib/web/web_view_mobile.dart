@@ -1,9 +1,10 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:screenshot/screenshot.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/web/web_chrome_helpers.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewMobile extends StatefulWidget {
@@ -23,13 +24,11 @@ class WebViewMobile extends StatefulWidget {
 class WebViewMobileState extends State<WebViewMobile> {
   final List<WebViewController> _controllers = [];
   final List<String> _tabUrls = [];
-  final List<Uint8List?> _tabImages = [];
-  ScreenshotController screenshotController = ScreenshotController();
 
   int _currentTabIndex = 0;
-  bool _showTabManager = false;
 
   final TextEditingController _urlController = TextEditingController();
+  final FocusNode _urlFocusNode = FocusNode();
 
   Future<bool> _safeRunJavaScript(
     WebViewController controller,
@@ -53,6 +52,32 @@ class WebViewMobileState extends State<WebViewMobile> {
   void initState() {
     super.initState();
     _addNewTab(widget.url);
+    _urlFocusNode.addListener(_onUrlFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _urlFocusNode.removeListener(_onUrlFocusChange);
+    _urlFocusNode.dispose();
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  // The omnibox swaps between a static favicon+lock+host row (at rest) and the
+  // editable TextField (on focus). On focus, seed the field with the FULL url
+  // and select-all so the user edits the real address, not the collapsed host.
+  void _onUrlFocusChange() {
+    if (_urlFocusNode.hasFocus && _tabUrls.isNotEmpty) {
+      final full = _tabUrls[_currentTabIndex];
+      _urlController.text = full;
+      _urlController.selection =
+          TextSelection(baseOffset: 0, extentOffset: full.length);
+    }
+    setState(() {}); // toggle rest-display <-> editable field
+  }
+
+  void _reload() {
+    _controllers[_currentTabIndex].reload();
   }
 
   Future<void> forceDarkModeAndRemoveBanner(int tabIndex) async {
@@ -167,10 +192,6 @@ class WebViewMobileState extends State<WebViewMobile> {
               );
               await forceDarkModeAndRemoveBanner(_currentTabIndex);
             }
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              print('[DEBUG] Capturing screenshot');
-              captureScreenshot();
-            });
           },
         ),
       );
@@ -187,20 +208,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       print('[DEBUG] Add controller, set tab index');
       _controllers.add(controller!);
       _tabUrls.add(url);
-      _tabImages.add(null);
       _currentTabIndex = _controllers.length - 1;
-    });
-  }
-
-  void captureScreenshot() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.delayed(const Duration(milliseconds: 100));
-      final screenshot = await screenshotController.capture();
-      if (screenshot != null && mounted) {
-        setState(() {
-          _tabImages[_currentTabIndex] = screenshot;
-        });
-      }
     });
   }
 
@@ -237,7 +245,6 @@ class WebViewMobileState extends State<WebViewMobile> {
     setState(() {
       _controllers.removeAt(index);
       _tabUrls.removeAt(index);
-      _tabImages.removeAt(index);
       _currentTabIndex = _currentTabIndex > 0 ? _currentTabIndex - 1 : 0;
       _urlController.text = _tabUrls[_currentTabIndex];
     });
@@ -247,15 +254,11 @@ class WebViewMobileState extends State<WebViewMobile> {
     setState(() {
       _currentTabIndex = index;
       _urlController.text = _tabUrls[index];
-      _showTabManager = false;
     });
   }
 
   Widget _buildWebView(int index) {
-    return Screenshot(
-      controller: screenshotController,
-      child: WebViewWidget(controller: _controllers[index]),
-    );
+    return WebViewWidget(controller: _controllers[index]);
   }
 
   @override
@@ -263,251 +266,410 @@ class WebViewMobileState extends State<WebViewMobile> {
     return Scaffold(
       backgroundColor: GeniusWalletColors.deepBlueTertiary,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            Column(
-              children: [
-                _buildSearchBar(),
-                Expanded(child: _buildWebView(_currentTabIndex)),
-              ],
-            ),
-            if (_showTabManager)
-              Positioned.fill(
-                child: Container(
-                  color: GeniusWalletColors.deepBlueTertiary,
-                  child: Column(
-                    children: [Expanded(child: _buildTabManager())],
-                  ),
-                ),
-              ),
+            _buildTabStrip(),
+            _buildSearchBar(),
+            Expanded(child: _buildWebView(_currentTabIndex)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSearchBar() {
-    final includeBackButton = widget.includeBackButton ?? false;
+  // 036-A always-visible horizontal tab strip (~46px), between the app navbar
+  // and the omnibox (D-04/D-08). Each tab = favicon + title (getTitle() with URL
+  // fallback) + close; the active tab wears the navbar's own mark (surfaceElevated
+  // fill + a 2px brandCta gradient underline, D-05); a trailing `+` adds a
+  // DuckDuckGo tab. Tab mechanics (_switchTab / _closeTab / _addNewTab) verbatim.
+  // Tab currently under the mouse — drives the hover-only close affordance.
+  int? _hoveredTabIndex;
+
+  Widget _buildTabStrip() {
+    final canClose = webTabCanClose(_controllers.length);
     return Container(
+      height: 46,
       color: GeniusWalletColors.deepBlueCardColor,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space4,
+      ),
       child: Row(
         children: [
-          if (includeBackButton)
-            Builder(
-              builder: (context) {
-                return InkWell(
-                  borderRadius: BorderRadius.circular(4),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Icon(Icons.cancel, size: 20),
-                );
-              },
-            ),
-          if (!includeBackButton) ...[
-            IconButton(
-              icon: FutureBuilder<bool>(
-                future: _controllers[_currentTabIndex].canGoBack(),
-                builder: (context, snapshot) {
-                  final canGoBack = snapshot.data ?? false;
-                  return Icon(
-                    Icons.arrow_back,
-                    color: canGoBack
-                        ? GeniusWalletColors.lightGreenPrimary
-                        : Colors.grey,
-                    size: 20,
-                  );
-                },
-              ),
-              onPressed: _goBack,
-            ),
-            const SizedBox(width: 8),
-          ],
           Expanded(
-            child: TextField(
-              controller: _urlController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Enter URL...",
-                hintStyle: const TextStyle(color: Colors.white70),
-                filled: true,
-                fillColor: GeniusWalletColors.deepBlueTertiary,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onSubmitted: (_) => _loadUrl(),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _controllers.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(width: GeniusWalletConsts.space2),
+              itemBuilder: (context, index) =>
+                  Center(child: _buildTabChip(index, canClose)),
             ),
           ),
-          const SizedBox(width: 12),
-          TextButton(
-            onPressed: () => {
-              setState(() => _showTabManager = true),
-              captureScreenshot(),
-            },
-            style: TextButton.styleFrom(
-              minimumSize: const Size(30, 30),
-              maximumSize: const Size(30, 30),
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-                side: const BorderSide(color: Colors.white),
-              ),
-              backgroundColor: GeniusWalletColors.deepBlueTertiary,
+          const SizedBox(width: GeniusWalletConsts.space2),
+          IconButton(
+            icon: Icon(
+              Icons.add,
+              size: 20,
+              color: GeniusWalletColors.textPrimary,
             ),
-            child: Text(
-              "${_controllers.length}",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            padding: EdgeInsets.zero,
+            splashRadius: 18,
+            tooltip: 'New tab',
+            onPressed: () => _addNewTab("https://www.duckduckgo.com"),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTabManager() {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: _controllers.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () => _switchTab(index),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        child: Stack(
-                          children: [
-                            if (_tabImages[index] != null)
-                              Positioned.fill(
-                                child: Transform(
-                                  alignment: Alignment.center,
-                                  transform: Matrix4.rotationX(pi),
-                                  child: Image.memory(
-                                    _tabImages[index]!,
-                                    fit: BoxFit.fill,
-                                  ),
-                                ),
-                              )
-                            else
-                              Container(
-                                color: GeniusWalletColors.deepBlue,
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.all(8),
-                                child: Text(
-                                  _tabUrls[index],
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
+  Widget _buildTabChip(int index, bool canClose) {
+    final active = index == _currentTabIndex;
+    final hovered = index == _hoveredTabIndex;
+    final labelColor = active
+        ? GeniusWalletColors.textPrimary
+        : GeniusWalletColors.textPrimary60;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredTabIndex = index),
+      onExit: (_) => setState(() {
+        if (_hoveredTabIndex == index) _hoveredTabIndex = null;
+      }),
+      child: GestureDetector(
+      onTap: () => _switchTab(index),
+      child: Container(
+        height: 34,
+        // ~1/3 shorter than the old 190 cap (Jakub 2026-07-24).
+        constraints: const BoxConstraints(maxWidth: 128),
+        decoration: BoxDecoration(
+          color: active
+              ? GeniusWalletColors.surfaceElevated
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+          border: Border.all(
+            color: active
+                ? Colors.transparent
+                : GeniusWalletColors.borderSubtle,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: GeniusWalletConsts.space4,
+                  right: GeniusWalletConsts.space2,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.network(
+                      _getFaviconUrl(_tabUrls[index]),
+                      width: 16,
+                      height: 16,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.language,
+                        color: labelColor,
+                        size: 16,
                       ),
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: GeniusWalletColors.deepBlue,
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
+                    ),
+                    const SizedBox(width: GeniusWalletConsts.space2),
+                    Flexible(
+                      child: FutureBuilder<String?>(
+                        future: _controllers[index].getTitle(),
+                        builder: (context, snapshot) {
+                          final title = snapshot.connectionState ==
+                                  ConnectionState.waiting
+                              ? "Loading..."
+                              : (snapshot.data ?? _tabUrls[index]);
+                          return Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: labelColor,
+                              fontSize: 13,
+                              fontWeight:
+                                  active ? FontWeight.w600 : FontWeight.w400,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    // Close affordance (D-06 last-tab-locked): shown ONLY on
+                    // hover, right-aligned at the chip's trailing edge, and it
+                    // lights up (surfaceElevated pill + bright glyph) so it reads
+                    // as the live target. The lone tab never gets one.
+                    if (canClose && hovered) ...[
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(
+                          GeniusWalletConsts.radiusXs,
+                        ),
+                        onTap: () => _closeTab(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            color: GeniusWalletColors.surfaceElevated,
+                            borderRadius: BorderRadius.circular(
+                              GeniusWalletConsts.radiusXs,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 14,
+                            color: GeniusWalletColors.textPrimary,
                           ),
                         ),
-                        padding: const EdgeInsets.only(left: 10),
-                        child: Row(
-                          children: [
-                            Image.network(
-                              _getFaviconUrl(_tabUrls[index]),
-                              width: 22,
-                              height: 22,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
-                                    Icons.language,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: FutureBuilder<String?>(
-                                future: _controllers[index].getTitle(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Text(
-                                      "Loading...",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    );
-                                  }
-                                  return Text(
-                                    snapshot.data ?? _tabUrls[index],
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                              onPressed: () => _closeTab(index),
-                            ),
-                          ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            // Active mark reuses the navbar language (D-05): a 2px brandCta
+            // gradient underline under the active chip; inactive draws nothing.
+            Container(
+              height: 2,
+              decoration: BoxDecoration(
+                gradient: active ? _activeUnderlineGradient() : null,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(GeniusWalletConsts.radiusSm),
+                  bottomRight: Radius.circular(GeniusWalletConsts.radiusSm),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      ),
+    );
+  }
+
+  // The active-tab underline reuses the sketch 022 B2 active mark. Dark keeps
+  // the real brandCta stops; on the light canvas those stops fall well below
+  // WCAG 1.4.11's 3:1 (gradientBlue #0AAEE6 is 2.56:1 on white), so light
+  // degrades to the flat, light-safe brandPrimaryOnSurface (#0A6885, 6.30:1) —
+  // the exact routing transactions_slim_view._activeLabelShader uses. Keyed off
+  // surfaceMenu's luminance as the appearance proxy (not a new GWColors import),
+  // so this cannot disagree with the shipped mark.
+  LinearGradient _activeUnderlineGradient() {
+    if (GeniusWalletColors.surfaceMenu.computeLuminance() <= 0.5) {
+      return GeniusWalletGradient.brandCta;
+    }
+    final safe = GeniusWalletColors.brandPrimaryOnSurface;
+    return LinearGradient(colors: [safe, safe]);
+  }
+
+  // 035-B unified omnibox toolbar (~54px): one cohesive field — back/forward
+  // nested into the LEFT edge, favicon + https lock + host in the middle (or the
+  // editable URL when focused), refresh at the RIGHT edge — plus a `⋯` overflow
+  // affordance OUTSIDE the field. Chrome only: submit still routes through
+  // _loadUrl and no navigation mechanic changed.
+  Widget _buildSearchBar() {
+    final includeBackButton = widget.includeBackButton ?? false;
+    return Container(
+      color: GeniusWalletColors.deepBlueCardColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space6,
+        vertical: GeniusWalletConsts.space4,
+      ),
+      child: Row(
+        children: [
+          if (includeBackButton) ...[
+            InkWell(
+              borderRadius:
+                  BorderRadius.circular(GeniusWalletConsts.radiusXs),
+              onTap: () => Navigator.of(context).pop(),
+              child: Icon(
+                Icons.cancel,
+                size: 20,
+                color: GeniusWalletColors.textPrimary60,
+              ),
+            ),
+            const SizedBox(width: GeniusWalletConsts.space4),
+          ],
+          Expanded(child: _buildOmniboxField()),
+          const SizedBox(width: GeniusWalletConsts.space4),
+          // ponytail: `⋯` is a placeholder affordance only. This phase is a
+          // chrome re-skin (D-09) — no history/bookmarks feature — so it stays
+          // a no-op until a future phase gives it real menu entries.
+          IconButton(
+            icon: Icon(
+              Icons.more_horiz,
+              size: 20,
+              color: GeniusWalletColors.textPrimary60,
+            ),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            padding: EdgeInsets.zero,
+            splashRadius: 18,
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOmniboxField() {
+    final editing = _urlFocusNode.hasFocus;
+    final currentUrl = _tabUrls.isNotEmpty
+        ? _tabUrls[_currentTabIndex]
+        : widget.url;
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: GeniusWalletColors.surfaceSunken,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
+        border: Border.all(
+          color: editing
+              ? GeniusWalletColors.brandPrimary
+              : GeniusWalletColors.borderSubtle,
+          width: editing ? 2 : 1,
+        ),
+        boxShadow: editing
+            ? [
+                BoxShadow(
+                  color: GeniusWalletColors.brandPrimarySubtle,
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        children: [
+          _omniboxNavButton(
+            icon: Icons.arrow_back,
+            future: _controllers[_currentTabIndex].canGoBack(),
+            onEnabled: _goBack,
+          ),
+          _omniboxNavButton(
+            icon: Icons.arrow_forward,
+            future: _controllers[_currentTabIndex].canGoForward(),
+            onEnabled: _goForward,
+          ),
+          Expanded(child: _buildOmniboxCenter(editing, currentUrl)),
+          _omniboxGhostButton(Icons.refresh, _reload),
+          const SizedBox(width: GeniusWalletConsts.space2),
+        ],
+      ),
+    );
+  }
+
+  // Back / forward driven by the real controller state (D-02): brand-tinted and
+  // tappable only when canGoBack() / canGoForward() resolves true, muted and
+  // inert otherwise. Same FutureBuilder pattern the old back button used.
+  Widget _omniboxNavButton({
+    required IconData icon,
+    required Future<bool> future,
+    required VoidCallback onEnabled,
+  }) {
+    return FutureBuilder<bool>(
+      future: future,
+      builder: (context, snapshot) {
+        final enabled = snapshot.data ?? false;
+        return IconButton(
+          icon: Icon(
+            icon,
+            size: 18,
+            color: enabled
+                ? GeniusWalletColors.brandPrimaryOnSurface
+                : GeniusWalletColors.textPrimary38,
+          ),
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          padding: EdgeInsets.zero,
+          splashRadius: 18,
+          onPressed: enabled ? onEnabled : null,
+        );
+      },
+    );
+  }
+
+  Widget _omniboxGhostButton(IconData icon, VoidCallback onPressed) {
+    return IconButton(
+      icon: Icon(
+        icon,
+        size: 18,
+        color: GeniusWalletColors.textPrimary,
+      ),
+      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      padding: EdgeInsets.zero,
+      splashRadius: 18,
+      onPressed: onPressed,
+    );
+  }
+
+  // The TextField is ALWAYS in the tree so _urlFocusNode stays attached and the
+  // rest-display's tap can requestFocus() it. When not editing, an opaque cover
+  // paints the favicon + https lock + host over the field; focusing lifts it.
+  Widget _buildOmniboxCenter(bool editing, String currentUrl) {
+    final secure = webIsSecure(currentUrl);
+    final host = webDisplayHost(currentUrl);
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        TextField(
+          controller: _urlController,
+          focusNode: _urlFocusNode,
+          style: TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14),
+          textAlignVertical: TextAlignVertical.center,
+          decoration: const InputDecoration(
+            isDense: true,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 4),
+          ),
+          onSubmitted: (_) {
+            _loadUrl();
+            _urlFocusNode.unfocus();
+          },
+        ),
+        if (!editing)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _urlFocusNode.requestFocus(),
+              child: Container(
+                color: GeniusWalletColors.surfaceSunken,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space2,
+                ),
+                child: Row(
+                  children: [
+                    Image.network(
+                      _getFaviconUrl(currentUrl),
+                      width: 16,
+                      height: 16,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.language,
+                        color: GeniusWalletColors.textPrimary60,
+                        size: 16,
+                      ),
+                    ),
+                    if (secure) ...[
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      Icon(
+                        Icons.lock,
+                        color: GeniusWalletColors.statusSuccess,
+                        size: 13,
+                      ),
+                    ],
+                    const SizedBox(width: GeniusWalletConsts.space2),
+                    Expanded(
+                      child: Text(
+                        host,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: GeniusWalletColors.textPrimary,
+                          fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 18),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.add, color: Colors.white, size: 30),
-                onPressed: () => _addNewTab("https://www.duckduckgo.com"),
               ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 30),
-                onPressed: () => setState(() => _showTabManager = false),
-              ),
-            ],
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
       ],
     );
   }

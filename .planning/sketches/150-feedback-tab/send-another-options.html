@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>150 · "Send another" — success-state options</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:40px var(--space-10) 80px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  h1 { font:600 22px/28px var(--font); margin-bottom:6px; }
+  .sub { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:8px; }
+  .spec { color:var(--text-primary-54); font:500 12px/18px var(--font-mono); margin-bottom:28px;
+    padding:10px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-menu); }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); align-items:start; }
+  @media (max-width:1000px){ .grid { grid-template-columns:1fr; } }
+
+  .opt .lbl { display:flex; align-items:center; gap:8px; font:600 13px/18px var(--font); margin-bottom:4px; }
+  .opt .why { color:var(--text-secondary); font:400 12px/18px var(--font); margin-bottom:12px; min-height:54px; }
+  .tag { font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; white-space:nowrap; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.canon { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.std { background:rgba(20,200,255,.12); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.std { color:var(--brand-secondary); }
+
+  /* success card (from the sketch) */
+  .surf { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+    border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-10); text-align:center; }
+  .ok-badge { width:56px; height:56px; border-radius:50%; margin:0 auto var(--space-8); display:grid; place-items:center;
+    background:var(--status-success-fill); color:var(--status-success); }
+  .ok-badge svg { width:28px; height:28px; }
+  .ok-title { font:600 20px/26px var(--font); }
+  .ok-sub { font:400 13px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-3); }
+  .eventid { display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap; margin:var(--space-8) 0 0;
+    padding:10px 12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .eventid .k { font:600 9px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .eventid code { font:600 12px/1 var(--font-mono); color:var(--text-primary); }
+  .eventid .copybtn { font:600 11px/1 var(--font); padding:7px 10px; border-radius:var(--radius-sm); cursor:pointer;
+    border:1px solid var(--border-subtle); background:var(--surface-elevated); color:var(--text-primary); }
+  .hint { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-6); }
+  .actions { margin-top:var(--space-8); }
+
+  /* base button shape shared by the variants */
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:0 18px;
+    border-radius:var(--radius-md); cursor:pointer; font:600 13px/1 var(--font); transition:all .15s ease; background:transparent; border:0; }
+  .btn svg { width:16px; height:16px; }
+
+  /* A · ghost (current) */
+  .btn.ghost { color:var(--text-secondary); }
+  .btn.ghost:hover { color:var(--text-primary); background:var(--surface-elevated); }
+
+  /* B · gradient-outline twin (gw_button.dart gradientOutline) */
+  .btn.gout { position:relative; color:transparent;
+    background:linear-gradient(var(--surface-sheen-b),var(--surface-sheen-b)) padding-box,
+              linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)) border-box;
+    border:1.5px solid transparent; }
+  .btn.gout .lab { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .btn.gout svg { color:var(--brand-secondary); }
+  .btn.gout:hover { filter:brightness(1.12); transform:translateY(-1px); }
+
+  /* C · secondary outline (gw_button.dart secondary) */
+  .btn.sec { color:var(--brand-secondary); border:1.5px solid var(--brand-primary-on-surface,var(--brand-secondary)); }
+  .btn.sec svg { color:var(--brand-secondary); }
+  .btn.sec:hover { background:var(--brand-primary-subtle); transform:translateY(-1px); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>“Send another” · success-state options</h1>
+  <div class="sub">In the Success state this is the <b>only</b> action, so the question is how much presence it earns without stealing the “Feedback sent ✓” moment. All three are real GWButton variants.</div>
+  <div class="spec">grounded in gw_button.dart variants · ghost / gradientOutline / secondary · height 44 (sm floor) · radiusMd</div>
+
+  <div class="grid">
+    <!-- A -->
+    <div class="opt">
+      <div class="lbl">A · Ghost <span class="tag canon">current · zero diff</span></div>
+      <div class="why">Transparent text. Lowest emphasis - lets the success moment dominate. Risk: as the sole action it can read as “not a button”.</div>
+      <div class="surf">
+        <div class="ok-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div class="ok-title">Feedback sent</div>
+        <div class="ok-sub">Thanks for your feedback - every bit helps us make GeniusWallet better.</div>
+        <div class="eventid"><span class="k">Reference number</span><code>a1b2c3d4…45ab67</code><button class="copybtn">Copy</button></div>
+        <div class="hint">Keep it handy in case you follow up with support.</div>
+        <div class="actions">
+          <button class="btn ghost"><span class="lab">Send another</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="opt">
+      <div class="lbl">B · Gradient-outline <span class="tag rec">recommended</span></div>
+      <div class="why">The app's gradient-border twin: transparent fill, gradient border + label. Keeps brand identity in the success state and clearly reads as a button - without a heavy filled primary competing with the check.</div>
+      <div class="surf">
+        <div class="ok-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div class="ok-title">Feedback sent</div>
+        <div class="ok-sub">Thanks for your feedback - every bit helps us make GeniusWallet better.</div>
+        <div class="eventid"><span class="k">Reference number</span><code>a1b2c3d4…45ab67</code><button class="copybtn">Copy</button></div>
+        <div class="hint">Keep it handy in case you follow up with support.</div>
+        <div class="actions">
+          <button class="btn gout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+            <span class="lab">Send another</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="opt">
+      <div class="lbl">C · Secondary outline <span class="tag std">standard</span></div>
+      <div class="why">GWButton <code>secondary</code>: brand outline + brand label. Standard, AA-safe secondary. Slightly more “generic button” and less signature than the gradient twin.</div>
+      <div class="surf">
+        <div class="ok-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <div class="ok-title">Feedback sent</div>
+        <div class="ok-sub">Thanks for your feedback - every bit helps us make GeniusWallet better.</div>
+        <div class="eventid"><span class="k">Reference number</span><code>a1b2c3d4…45ab67</code><button class="copybtn">Copy</button></div>
+        <div class="hint">Keep it handy in case you follow up with support.</div>
+        <div class="actions">
+          <button class="btn sec">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+            <span class="lab">Send another</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
