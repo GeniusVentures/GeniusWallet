@@ -45,21 +45,15 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
     });
   }
 
-  /// 4-char chunks of the full address (034-A2 "grouped address" — easier to
-  /// eyeball-verify than one unbroken run).
-  List<String> _chunks(String address) {
-    final chunks = <String>[];
-    for (var i = 0; i < address.length; i += 4) {
-      final end = (i + 4) < address.length ? i + 4 : address.length;
-      chunks.add(address.substring(i, end));
-    }
-    return chunks;
-  }
+  /// Middle-truncated address for a clean single-line display (the copy action
+  /// still copies the FULL address): 0x1234…5678.
+  String _shortAddress(String address) => address.length > 16
+      ? '${address.substring(0, 8)}…${address.substring(address.length - 6)}'
+      : address;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final chunks = _chunks(widget.address);
 
     // 034-A2's "bordered amber note". GeniusWalletColors.statusWarning
     // (#FFC42E) is a FILL-ONLY token tuned for the dark badge canvas
@@ -115,8 +109,8 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(36, 36)),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
-        // Full address — tappable, 4-char-chunked mono block, copy-only
-        // (first/last chunks emphasized for eyeball-verify).
+        // Full address — a clean tap-to-copy pill: middle-truncated mono
+        // address + a Copy affordance (the whole row copies the FULL address).
         GestureDetector(
           onTap: _copyAddress,
           child: Container(
@@ -133,31 +127,30 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: GeniusWalletConsts.space2,
-                    children: [
-                      for (var i = 0; i < chunks.length; i++)
-                        Text(
-                          chunks[i],
-                          style: GeniusWalletTypography.bodySm.copyWith(
-                            fontFamily: 'JetBrainsMono',
-                            color: (i == 0 || i == chunks.length - 1)
-                                ? gw.textPrimary
-                                : gw.textSecondary,
-                            fontWeight: (i == 0 || i == chunks.length - 1)
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                          ),
-                        ),
-                    ],
+                  child: Text(
+                    _shortAddress(widget.address),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GeniusWalletTypography.bodySm.copyWith(
+                      fontFamily: 'JetBrainsMono',
+                      color: gw.textPrimary,
+                    ),
                   ),
                 ),
-                const SizedBox(width: GeniusWalletConsts.space4),
+                const SizedBox(width: GeniusWalletConsts.space6),
                 Icon(
                   _copied ? Icons.check : Icons.content_copy_rounded,
                   size: 16,
-                  color: _copied ? gw.statusSuccess : gw.textSecondary,
+                  color: _copied
+                      ? gw.statusSuccess
+                      : GeniusWalletColors.brandPrimaryOnSurface,
+                ),
+                const SizedBox(width: GeniusWalletConsts.space2),
+                Text(
+                  _copied ? "Copied" : "Copy",
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: _copied ? gw.statusSuccess : gw.textSecondary,
+                  ),
                 ),
               ],
             ),

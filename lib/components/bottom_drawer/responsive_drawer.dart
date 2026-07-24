@@ -137,7 +137,15 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
               elevation: 0,
               centerTitle: false,
               toolbarHeight: _compactToolbarHeight,
-              title: Text(title!),
+              title: Text(
+                title!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                // Smaller, non-bold, ellipsizing drawer title (long coin names).
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
               // No leading close well anymore (was a 56px-wide leading slot
               // holding a padded 48px IconButton) -- leading is fully
               // cleared so the title starts flush left.
