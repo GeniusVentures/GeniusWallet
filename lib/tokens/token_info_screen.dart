@@ -79,6 +79,13 @@ class TokenInfoScreen extends StatelessWidget {
           // ResponsiveDrawer/useDesktopLayout threshold — NOT the .large (1024)
           // breakpoint this used to read.
           bool isDesktop = constraints.maxWidth > GeniusBreakpoints.medium;
+          // Clamp the desktop chart height: a short window must not squeeze the
+          // chart's internal column below its min content (RenderFlex overflow,
+          // caught in the 07-08 re-walk). We're in a scroll view, so a floored
+          // height simply scrolls rather than overflowing.
+          final double desktopChartHeight = (constraints.maxHeight - 40) < 360
+              ? 360
+              : constraints.maxHeight - 40;
           return SingleChildScrollView(
             padding: const EdgeInsets.all(GeniusWalletConsts.space10),
             primary: true,
@@ -90,7 +97,7 @@ class TokenInfoScreen extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: SizedBox(
-                            height: constraints.maxHeight - 40,
+                            height: desktopChartHeight,
                             child: _buildGraphSection(
                               marketData!,
                               _buildStaticActions(
@@ -134,7 +141,13 @@ class TokenInfoScreen extends StatelessWidget {
                         walletDetailsCubit,
                       ),
                       if (marketData != null)
-                        _buildGraphSection(marketData!, null),
+                        // Fixed height in the scrollable stack (sketch 152 D
+                        // `min-height`): bare CryptoLiveChart has an internal
+                        // Expanded that overflows without a bounded height.
+                        SizedBox(
+                          height: 300,
+                          child: _buildGraphSection(marketData!, null),
+                        ),
                       _buildConvertSection(marketData),
                       _buildInfoSection(marketData, selectedCoin, selectedNetwork),
                     ],
