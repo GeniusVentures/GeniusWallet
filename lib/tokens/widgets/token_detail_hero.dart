@@ -51,6 +51,7 @@ class TokenDetailHero extends StatelessWidget {
           selectedNetwork: selectedNetwork,
           colors: colors,
           textTheme: textTheme,
+          stacked: stack,
         );
 
         final Widget priceBlock = _PriceBlock(
@@ -58,11 +59,13 @@ class TokenDetailHero extends StatelessWidget {
           colors: colors,
           textTheme: textTheme,
           alignEnd: !stack,
+          centered: stack,
         );
 
         if (stack) {
+          // sketch 152 D `.idcard`: identity + price centered in a full column.
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               identity,
@@ -92,12 +95,14 @@ class _Identity extends StatelessWidget {
     required this.selectedNetwork,
     required this.colors,
     required this.textTheme,
+    this.stacked = false,
   });
 
   final CoinGeckoMarketData? marketData;
   final Network? selectedNetwork;
   final GWColors colors;
   final TextTheme textTheme;
+  final bool stacked;
 
   @override
   Widget build(BuildContext context) {
@@ -105,47 +110,77 @@ class _Identity extends StatelessWidget {
         (marketData?.name.isNotEmpty ?? false) ? marketData!.name : 'unknown';
     final String symbol = (marketData?.symbol ?? '').toUpperCase();
     final String? networkName =
-        (selectedNetwork?.name?.isNotEmpty ?? false) ? selectedNetwork!.name : null;
+        (selectedNetwork?.name?.isNotEmpty ?? false)
+            ? selectedNetwork!.name
+            : null;
 
     final String subtitle = <String>[
       if (symbol.isNotEmpty) symbol,
       if (networkName != null) networkName,
     ].join(' · ');
 
+    final Widget nameText = Text(
+      name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: stacked ? TextAlign.center : TextAlign.start,
+      style: (textTheme.titleLarge ?? const TextStyle()).copyWith(
+        color: colors.textPrimary,
+        fontWeight: FontWeight.w600,
+        fontSize: 17,
+      ),
+    );
+
+    final Widget? subtitleText = subtitle.isEmpty
+        ? null
+        : Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: stacked ? TextAlign.center : TextAlign.start,
+            style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
+              color: colors.textSecondary,
+              letterSpacing: 0.4,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          );
+
+    final Widget icon =
+        buildTokenIcon(iconPath: marketData?.imageUrl, size: _iconSize);
+
+    // sketch 152 D `.idcard`: logo -> name -> "SYMBOL · Network", centered.
+    if (stacked) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(height: GeniusWalletConsts.space6),
+          nameText,
+          if (subtitleText != null) ...[
+            const SizedBox(height: GeniusWalletConsts.space2 / 2),
+            subtitleText,
+          ],
+        ],
+      );
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        buildTokenIcon(iconPath: marketData?.imageUrl, size: _iconSize),
+        icon,
         const SizedBox(width: GeniusWalletConsts.space6),
         Flexible(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: (textTheme.titleLarge ?? const TextStyle()).copyWith(
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 17,
-                ),
-              ),
-              if (subtitle.isNotEmpty) ...[
+              nameText,
+              if (subtitleText != null) ...[
                 const SizedBox(height: GeniusWalletConsts.space2 / 2),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
-                    color: colors.textSecondary,
-                    letterSpacing: 0.4,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                subtitleText,
               ],
             ],
           ),
@@ -164,12 +199,14 @@ class _PriceBlock extends StatelessWidget {
     required this.colors,
     required this.textTheme,
     required this.alignEnd,
+    this.centered = false,
   });
 
   final CoinGeckoMarketData? marketData;
   final GWColors colors;
   final TextTheme textTheme;
   final bool alignEnd;
+  final bool centered;
 
   @override
   Widget build(BuildContext context) {
@@ -180,15 +217,22 @@ class _PriceBlock extends StatelessWidget {
     final double changePct = marketData?.priceChangePercentage24h ?? 0.0;
 
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: centered
+          ? CrossAxisAlignment.center
+          : alignEnd
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           priceLabel,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+          textAlign: centered
+              ? TextAlign.center
+              : alignEnd
+                  ? TextAlign.right
+                  : TextAlign.left,
           style: (textTheme.headlineSmall ?? const TextStyle()).copyWith(
             color: colors.textPrimary,
             fontWeight: FontWeight.w600,

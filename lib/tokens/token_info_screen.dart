@@ -255,6 +255,8 @@ class TokenInfoScreen extends StatelessWidget {
                 // so Convert sits directly under the chart, above Info.
                 : Column(
                     spacing: GeniusWalletConsts.space8,
+                    // Full-width cards on mobile (stretch the stacked column).
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       GWCard(
                         radius: GeniusWalletConsts.radiusMd,
