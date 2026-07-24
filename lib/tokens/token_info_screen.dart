@@ -96,19 +96,31 @@ class TokenInfoScreen extends StatelessWidget {
                       if (marketData != null)
                         Expanded(
                           flex: 2,
-                          child: SizedBox(
-                            height: desktopChartHeight,
-                            child: _buildGraphSection(
-                              marketData!,
-                              _buildStaticActions(
-                                selectedCoin,
-                                context,
-                                selectedWallet,
-                                selectedNetwork,
-                                isGnusBridgeEnabled,
-                                walletDetailsCubit,
+                          // sketch 152 A left card: identity hero pulled up over
+                          // the chart (which carries the live price + boxed
+                          // action row).
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildIdentityHero(marketData, selectedCoin),
+                              const SizedBox(
+                                height: GeniusWalletConsts.space6,
                               ),
-                            ),
+                              SizedBox(
+                                height: desktopChartHeight,
+                                child: _buildGraphSection(
+                                  marketData!,
+                                  _buildStaticActions(
+                                    selectedCoin,
+                                    context,
+                                    selectedWallet,
+                                    selectedNetwork,
+                                    isGnusBridgeEnabled,
+                                    walletDetailsCubit,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       Expanded(
@@ -132,6 +144,9 @@ class TokenInfoScreen extends StatelessWidget {
                 : Column(
                     spacing: GeniusWalletConsts.space10,
                     children: [
+                      // sketch 152 D hero: identity + price + your holdings at
+                      // the top of the stack, above the action row.
+                      _buildIdentityHero(marketData, selectedCoin),
                       _buildStaticActions(
                         selectedCoin,
                         context,
@@ -163,6 +178,22 @@ class TokenInfoScreen extends StatelessWidget {
       coinGeckoCoinId: marketData.id,
       tokenSymbol: marketData.symbol,
       child: child,
+    );
+  }
+
+  /// sketch 152 hero: coin identity + price + 24h% + your holdings, pulled up
+  /// to the top-left (desktop A) / top of the stack (mobile D). Reuses
+  /// CoinCardRow, which _MarketDataInfo received as an unrendered topSlot.
+  Widget _buildIdentityHero(
+    CoinGeckoMarketData? marketData,
+    Coin? selectedCoin,
+  ) {
+    return CoinCardRow(
+      iconPath: marketData?.imageUrl ?? "",
+      balance: selectedCoin?.balance,
+      name: marketData?.name ?? "unknown",
+      symbol: marketData?.symbol ?? "unknown",
+      marketData: marketData,
     );
   }
 
