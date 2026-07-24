@@ -293,6 +293,7 @@ class _ConvertSectionState extends State<_ConvertSection> {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: GeniusWalletConsts.space4,
@@ -303,32 +304,65 @@ class _ConvertSectionState extends State<_ConvertSection> {
           child: Column(
             spacing: GeniusWalletConsts.space8,
             children: [
+              // Read-only display of marketData.currentPrice (sketch 152: only
+              // Token Amount is editable) — mirrors bridge_screen.dart:664's
+              // readOnly pattern. Sunken fill + a "READ-ONLY" chip visibly mark
+              // it as a display row, while the value keeps full-contrast
+              // textPrimary so it stays WCAG-legible in dark and light.
               TextField(
-                  controller: _tokenPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(labelText: "Token Price"),
-                  onChanged: (_) => _calculateTotalValue(),
+                controller: _tokenPriceController,
+                readOnly: true,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                TextField(
-                  controller: _tokenAmountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                style: TextStyle(color: gw.textPrimary),
+                decoration: InputDecoration(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: GeniusWalletConsts.space4,
+                    children: [
+                      const Text("Token Price"),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: GeniusWalletConsts.space2,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: gw.borderSubtle),
+                          borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.radiusXs,
+                          ),
+                        ),
+                        child: Text(
+                          "READ-ONLY",
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: gw.textPrimary54),
+                        ),
+                      ),
+                    ],
                   ),
-                  decoration: const InputDecoration(labelText: "Token Amount"),
-                  onChanged: (_) => _calculateTotalValue(),
+                  filled: true,
+                  fillColor: gw.surfaceSunken,
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "Total: ${NumberFormat.currency(locale: "en_US", symbol: "\$").format(_totalValue)}",
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+              ),
+              TextField(
+                controller: _tokenAmountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-              ],
-            ),
+                decoration: const InputDecoration(labelText: "Token Amount"),
+                onChanged: (_) => _calculateTotalValue(),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "Total: ${NumberFormat.currency(locale: "en_US", symbol: "\$").format(_totalValue)}",
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
           ),
+        ),
       ],
     );
   }
