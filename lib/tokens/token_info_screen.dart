@@ -96,6 +96,26 @@ class TokenInfoScreen extends StatelessWidget {
         toolbarHeight: 48,
         backgroundColor: gw.surfaceSunken,
         elevation: 0,
+        titleSpacing: 0,
+        // sketch 152 `.crumb`: "Markets / <name>" — "Markets" in secondary, the
+        // token name in primary / w600 (the default back chevron stays).
+        title: Text.rich(
+          TextSpan(
+            style:
+                (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
+                    .copyWith(fontSize: 13, color: gw.textSecondary),
+            children: [
+              const TextSpan(text: 'Markets  /  '),
+              TextSpan(
+                text: marketData?.name ?? 'Token',
+                style: TextStyle(
+                  color: gw.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: gw.borderSubtle),
@@ -108,13 +128,6 @@ class TokenInfoScreen extends StatelessWidget {
           // ResponsiveDrawer/useDesktopLayout threshold — NOT the .large (1024)
           // breakpoint this used to read.
           bool isDesktop = constraints.maxWidth > GeniusBreakpoints.medium;
-          // Clamp the desktop chart height: a short window must not squeeze the
-          // chart's internal column below its min content (RenderFlex overflow,
-          // caught in the 07-08 re-walk). We're in a scroll view, so a floored
-          // height simply scrolls rather than overflowing.
-          final double desktopChartHeight = (constraints.maxHeight - 40) < 360
-              ? 360
-              : constraints.maxHeight - 40;
           return SingleChildScrollView(
             // Desktop keeps the roomier space10 stage; mobile tightens to
             // space8 (sketch 152 `@container app (max-width:767px) .stage`).
@@ -137,11 +150,14 @@ class TokenInfoScreen extends StatelessWidget {
                       if (marketData != null)
                         Expanded(
                           flex: 2,
-                          // sketch 152 A `.leftcard`: one boxed column holding
-                          // identity+price hero -> action bar -> chart. The big
-                          // live price now lives in the hero, so the chart runs
-                          // series-only (showPriceHeader: false).
-                          child: GWCard(
+                          // sketch 152 A `.leftcard`: a fixed max height caps
+                          // the main card so it can't tower over the right
+                          // column; the chart flexes (Expanded) to fill the
+                          // space under the hero + action bar. Price is in the
+                          // hero, so the chart runs series-only.
+                          child: SizedBox(
+                            height: 480,
+                            child: GWCard(
                             radius: GeniusWalletConsts.radiusMd,
                             padding: const EdgeInsets.all(
                               GeniusWalletConsts.space8,
@@ -167,12 +183,12 @@ class TokenInfoScreen extends StatelessWidget {
                                 const SizedBox(
                                   height: GeniusWalletConsts.space8,
                                 ),
-                                SizedBox(
-                                  height: desktopChartHeight,
+                                Expanded(
                                   child: _buildGraphSection(marketData!),
                                 ),
                               ],
                             ),
+                          ),
                           ),
                         ),
                       Expanded(
@@ -214,7 +230,7 @@ class TokenInfoScreen extends StatelessWidget {
                         GWCard(
                           radius: GeniusWalletConsts.radiusMd,
                           child: SizedBox(
-                            height: 300,
+                            height: 260,
                             child: _buildGraphSection(marketData!),
                           ),
                         ),
