@@ -20,10 +20,15 @@ class TokenDetailHero extends StatelessWidget {
     super.key,
     required this.marketData,
     required this.selectedNetwork,
+    this.stacked = false,
   });
 
   final CoinGeckoMarketData? marketData;
   final Network? selectedNetwork;
+
+  /// When true, always stack identity over the price block (sketch 152 D — the
+  /// mobile "full column" layout), regardless of the available width.
+  final bool stacked;
 
   /// Below this width the hero stacks vertically instead of sitting in one Row.
   static const double _stackBreakpoint = 360.0;
@@ -39,7 +44,7 @@ class TokenDetailHero extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool stack = constraints.maxWidth < _stackBreakpoint;
+        final bool stack = stacked || constraints.maxWidth < _stackBreakpoint;
 
         final Widget identity = _Identity(
           marketData: marketData,

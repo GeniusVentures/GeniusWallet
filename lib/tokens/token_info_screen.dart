@@ -103,16 +103,16 @@ class TokenInfoScreen extends StatelessWidget {
         // sketch 152 `.appbar`: back chevron + "Markets / <name>" breadcrumb,
         // LEFT-aligned and sharing the page's centered 1200 max-width + padding
         // so the back button lines up with the page content's left edge.
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.sizeOf(context).width >
-                        GeniusBreakpoints.medium
+        title: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal:
+                MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
                     ? GeniusWalletConsts.space10
                     : GeniusWalletConsts.space8,
-              ),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
               child: Row(
                 children: [
                   // sketch `.back`: compact 30x30 chevron button.
@@ -261,6 +261,7 @@ class TokenInfoScreen extends StatelessWidget {
                         child: TokenDetailHero(
                           marketData: marketData,
                           selectedNetwork: selectedNetwork,
+                          stacked: true,
                         ),
                       ),
                       _buildActionBar(
