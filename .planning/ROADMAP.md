@@ -343,11 +343,16 @@ section for the full reasoning behind each:
   3. Tapping "More" on a non-GNUS token does nothing (the button is disabled) rather than opening an empty drawer (finding 37)
   4. Leaving a token chart mid-fetch, or while its refresh timer is running, throws no `setState after dispose` (finding 24) — the inherited (Phase 5) chart's lifecycle fix, not a re-skin
 
-**Plans**: 3 plans
+**Plans**: 8 plans (3 original + 5 gap-closure from the 07-03 walk)
 
 - [x] 07-01-PLAN.md — re-skin token-detail (ActionButton, Info/Convert cards, both drawers) + lock finding 37 + light-QR (executed 2026-07-23, `639fe60`/`c3141f6`/`dc0b705`, analyze 61 baseline)
 - [x] 07-02-PLAN.md — finding-24 chart lifecycle mounted guards (no re-skin) (executed 2026-07-23, `35fef28`, verify PASS)
-- [ ] 07-03-PLAN.md — human walk: dark+light fidelity, QR phone-scan, disabled states, clean console (blocking; NEXT)
+- [x] 07-03-PLAN.md — human walk: dark+light fidelity, QR phone-scan, disabled states, clean console (executed 2026-07-24; result gaps_found → 5 fixes below)
+- [ ] 07-04-PLAN.md — [gap 1,2] token-detail responsive layout to sketch 152 (768 switch, Convert below chart on mobile) + read-only Convert price (wave 1)
+- [ ] 07-05-PLAN.md — [gap 3] Receive QR to sketch 034-A2 (contained ~60%, network chip above, chunked copy-only address; finding-16/6 white backing kept) (wave 1)
+- [ ] 07-06-PLAN.md — [gap 4] shared ResponsiveDrawer header to sketch 030-B1 quiet band (compact, left title, small top-right ✕, 1px brand hairline; safe for all ~19 callers) (wave 1)
+- [ ] 07-07-PLAN.md — [gap 5] populate More → Bridge Tokens drawer body; keep finding-37 + /bridge behavior (wave 2, after 07-04)
+- [ ] 07-08-PLAN.md — [gap 6] re-walk: confirm gaps 1–5 + finding-24 in dark+light, QR scan, non-GNUS More-disabled; flip 07-VERIFICATION only when earned (blocking human-verify, wave 3)
 
 **UI hint**: yes
 **Findings**: 24, 37.
