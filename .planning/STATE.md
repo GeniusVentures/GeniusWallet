@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 06
-current_phase_name: onboarding
+current_phase: 07
+current_phase_name: token-screens
 status: executing
 stopped_at: Phase 07 wave 1 executed (07-01 + 07-02 committed, analyze 61); 07-03 human walk is NEXT (blocking)
-last_updated: "2026-07-23T19:35:22.697Z"
-last_activity: 2026-07-21
-last_activity_desc: 06-01 closed (walked & approved); mesh kept after a live light-mode
+last_updated: "2026-07-24T11:34:27.366Z"
+last_activity: 2026-07-24
+last_activity_desc: Phase 07 execution started
 progress:
-  total_phases: 17
-  completed_phases: 5
-  total_plans: 56
-  completed_plans: 50
-  percent: 29
+  total_phases: 19
+  completed_phases: 12
+  total_plans: 60
+  completed_plans: 59
+  percent: 63
 ---
 
 # Project State
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 06 — Onboarding
+**Current focus:** Phase 07 — token-screens
 
 ## Current Position
 
@@ -47,12 +47,12 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 06 (onboarding) — **COMPLETE (6/6 plans, closed 2026-07-23).**
-Plan: 06-01..06-06 all CLOSED. 06-06 shipped the §3 seed-safety gate + 5 gap todos, and the
+Phase: 07 (token-screens) — EXECUTING
+Plan: 1 of 3
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: **06-01 (onboarding chrome: `/landing_screen` entry + both flow shells' AppBar) CLOSED
+Status: Executing Phase 07
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -94,7 +94,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-21 — 06-01 closed (walked & approved); mesh kept after a live light-mode
+Last activity: 2026-07-24 — Phase 07 execution started
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -374,6 +374,7 @@ Open decisions:
   `_buildSearchBar` + full-screen `_buildTabManager` (fixes the `Matrix4.rotationX(pi)` upside-down
   thumbnail bug). **NOT planned yet** — run `/gsd-plan-phase 18`. Design source:
   `.planning/sketches/037-web-chrome-combined/`.
+
 - Phase 17 added 2026-07-23: News page — sketches 100-102, winner **B2 · Hero + Next up** (a lead
   hero + a "Next up" band over an even photo grid; `GWCard.hoverLift` lift-chip replaces the old
   black scrim; frozen `pubDate`, unrendered `description` and desktop-unreachable refresh all fixed;
