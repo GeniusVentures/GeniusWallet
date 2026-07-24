@@ -125,6 +125,7 @@ class _Identity extends StatelessWidget {
                 style: (textTheme.titleLarge ?? const TextStyle()).copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
+                  fontSize: 16,
                 ),
               ),
               if (subtitle.isNotEmpty) ...[
@@ -136,6 +137,7 @@ class _Identity extends StatelessWidget {
                   style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
                     color: colors.textSecondary,
                     letterSpacing: 0.4,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -185,6 +187,7 @@ class _PriceBlock extends StatelessWidget {
             color: colors.textPrimary,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
+            fontSize: 22,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
@@ -234,6 +237,7 @@ class _ChangePill extends StatelessWidget {
         style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
           color: tone,
           fontWeight: FontWeight.w600,
+          fontSize: 13,
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),

@@ -124,7 +124,12 @@ class TokenInfoScreen extends StatelessWidget {
                   : GeniusWalletConsts.space8,
             ),
             primary: true,
-            child: isDesktop
+            // Cap content width so cards don't stretch edge-to-edge on very
+            // wide screens (sketch `.wrap` max-width), centered.
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: isDesktop
                 ? Row(
                     spacing: GeniusWalletConsts.space8,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,6 +222,8 @@ class TokenInfoScreen extends StatelessWidget {
                       _buildInfoSection(marketData, selectedCoin, selectedNetwork),
                     ],
                   ),
+              ),
+            ),
           );
         },
       ),
@@ -491,79 +498,102 @@ class _MarketDataInfo extends StatelessWidget {
     // Single restrained accent for every info-tile leading glyph + copy/link
     // affordance (replaces the rainbow amber/lightBlue/orange/red set and the
     // cs.primary reads) — appearance-aware, honours the 10% accent discipline.
-    final Color accent = GeniusWalletColors.brandPrimaryOnSurface;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final textTheme = Theme.of(context).textTheme;
+    // sketch 152 `.statrow`: grayish key + primary tabular value, both compact.
+    final TextStyle keyStyle =
+        (textTheme.bodySmall ?? const TextStyle()).copyWith(
+      color: gw.textSecondary,
+      fontSize: 13,
+    );
+    final TextStyle valStyle =
+        (textTheme.bodySmall ?? const TextStyle()).copyWith(
+      color: gw.textPrimary,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    // Distinct per-row glyph colours (the sketch's multi-colour stat icons),
+    // each legible in dark AND light: appearance-aware status tones + brand
+    // steps + slate. Replaces the single restrained accent per user request.
+    Widget statRow(IconData icon, Color color, String label, Widget value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: GeniusWalletConsts.space6,
+          horizontal: GeniusWalletConsts.space2,
+        ),
+        child: Row(
+          children: [
+            SizedBox(width: 22, child: Icon(icon, size: 16, color: color)),
+            const SizedBox(width: GeniusWalletConsts.space6),
+            Expanded(child: Text(label, style: keyStyle)),
+            value,
+          ],
+        ),
+      );
+    }
+
     final infoTiles = <Widget>[
       if (network != null)
-        ListTile(
-          dense: true,
-          leading: Icon(Icons.bubble_chart, color: accent),
-          title: const Text("Network"),
-          trailing: Text(
-            network!,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+        statRow(
+          Icons.public,
+          GeniusWalletColors.brandPrimaryOnSurface,
+          "Network",
+          Text(network!, style: valStyle),
         ),
       if (address != null)
-        ListTile(
-          dense: true,
-          leading: Icon(Icons.link, color: accent),
-          title: const Text("Address"),
-          trailing: Row(
+        statRow(
+          Icons.badge_outlined,
+          GeniusWalletColors.brandPrimaryStrong,
+          "Address",
+          Row(
             mainAxisSize: MainAxisSize.min,
-            spacing: 8,
             children: [
+              Text(
+                address!.length > 12
+                    ? "${address!.substring(0, 6)}...${address!.substring(address!.length - 6)}"
+                    : address!,
+                style: valStyle,
+              ),
               IconButton(
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.only(left: 6),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: address!));
                   showAppSnackBar(context, 'Address copied to clipboard');
                 },
                 tooltip: "Copy address",
-                icon: Icon(Icons.copy, size: 18, color: accent),
-              ),
-              Text(
-                address!.length > 12
-                    ? "${address!.substring(0, 6)}...${address!.substring(address!.length - 6)}"
-                    : address!,
-                style: Theme.of(context).textTheme.titleMedium,
+                icon: Icon(Icons.copy, size: 15, color: gw.textSecondary),
               ),
             ],
           ),
         ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.pie_chart, color: accent),
-        title: const Text("Market Cap"),
-        trailing: Text(
-          _formatCompactCurrency(marketData?.marketCap),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+      statRow(
+        Icons.donut_large,
+        gw.statusSuccess,
+        "Market Cap",
+        Text(_formatCompactCurrency(marketData?.marketCap), style: valStyle),
       ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.sync, color: accent),
-        title: const Text("Circulating Supply"),
-        trailing: Text(
-          _formatCompactDecimal(marketData?.circulatingSupply),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+      statRow(
+        Icons.sync,
+        GeniusWalletColors.brandTertiary,
+        "Circulating Supply",
+        Text(_formatCompactDecimal(marketData?.circulatingSupply),
+            style: valStyle),
       ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.storage, color: accent),
-        title: const Text("Total Supply"),
-        trailing: Text(
-          _formatCompactDecimal(marketData?.totalSupply),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+      statRow(
+        Icons.storage,
+        gw.statusError,
+        "Total Supply",
+        Text(_formatCompactDecimal(marketData?.totalSupply), style: valStyle),
       ),
-      ListTile(
-        dense: true,
-        leading: Icon(Icons.bar_chart, color: accent),
-        title: const Text("Volume"),
-        trailing: Text(
-          _formatCompactCurrency(marketData?.totalVolume),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+      statRow(
+        Icons.bar_chart,
+        GeniusWalletColors.statusNeutral,
+        "Volume",
+        Text(_formatCompactCurrency(marketData?.totalVolume), style: valStyle),
       ),
     ];
 
