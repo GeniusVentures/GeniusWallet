@@ -45,12 +45,20 @@ class CryptoLiveChart extends StatefulWidget {
   final Widget? child;
   final double priceHeight;
 
+  /// When false, the chart's built-in hero price + 24h% pill header is not
+  /// rendered, leaving just the optional [child] and the plot (with its
+  /// existing zoom/pan controls). Lets a caller (e.g. the token-detail hero
+  /// card, sketch 152) own the price display without duplicating it. Defaults
+  /// to true so every existing caller renders byte-for-behavior identically.
+  final bool showPriceHeader;
+
   const CryptoLiveChart({
     super.key,
     required this.coinGeckoCoinId,
     required this.tokenSymbol,
     this.priceHeight = 48,
     this.child,
+    this.showPriceHeader = true,
   });
 
   @override
@@ -271,65 +279,73 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
               // IgnorePointer overlay behind the price — layout-neutral, so it
               // adds no height to this Column and cannot re-open the compact
               // overflow the 260720-uhe task closed.
-              Stack(
-                alignment: Alignment.center,
-                // Without Clip.none the Stack clips to the price text's tight
-                // bounds and cuts the blurred glow halo — the reason it read as
-                // absent. Clip.none lets the glow bleed out behind the price.
-                clipBehavior: Clip.none,
-                children: [
-                  // Positioned.fill keeps this layer at the price's size (so it
-                  // adds NO height — the uhe overflow guard stays intact), while
-                  // OverflowBox lets the glow paint larger (280x96) and CENTERED
-                  // behind the price. A bare Positioned(width,height) did not
-                  // reliably center and the glow rendered off the price.
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: OverflowBox(
-                        maxWidth: 280,
-                        maxHeight: 96,
-                        child: ImageFiltered(
-                          imageFilter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: RadialGradient(
-                                colors: [
-                                  GeniusWalletColors.brandPrimary.withValues(
-                                    alpha: 0.42,
-                                  ),
-                                  Colors.transparent,
-                                ],
-                                stops: const [0.0, 0.75],
+              //
+              // Gated on showPriceHeader so a caller (e.g. token-detail hero
+              // card, sketch 152) can hide the built-in price + % pill and own
+              // them itself. Default true keeps every existing caller intact.
+              if (widget.showPriceHeader)
+                Stack(
+                  alignment: Alignment.center,
+                  // Without Clip.none the Stack clips to the price text's tight
+                  // bounds and cuts the blurred glow halo — the reason it read
+                  // as absent. Clip.none lets the glow bleed out behind the
+                  // price.
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Positioned.fill keeps this layer at the price's size (so
+                    // it adds NO height — the uhe overflow guard stays intact),
+                    // while OverflowBox lets the glow paint larger (280x96) and
+                    // CENTERED behind the price. A bare Positioned(width,height)
+                    // did not reliably center and the glow rendered off the
+                    // price.
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: OverflowBox(
+                          maxWidth: 280,
+                          maxHeight: 96,
+                          child: ImageFiltered(
+                            imageFilter:
+                                ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: RadialGradient(
+                                  colors: [
+                                    GeniusWalletColors.brandPrimary.withValues(
+                                      alpha: 0.42,
+                                    ),
+                                    Colors.transparent,
+                                  ],
+                                  stops: const [0.0, 0.75],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  // Text, not AutoSizeText. `priceFontSize` is already snapped
-                  // to a bounded set by [compactPriceFontSize] (37639d5), but
-                  // that only bounded the HEIGHT-derived input: AutoSizeText
-                  // then ran its own search to fit the available WIDTH, which
-                  // a drag-resize also varies continuously — so it kept
-                  // minting a distinct TextStyle per frame and the
-                  // ParagraphCache thrash the commit set out to kill survived.
-                  // The regression guard missed it because it tests the pure
-                  // function, not this widget. Ellipsis over shrink-to-fit.
-                  Text(
-                    _hasData ? formattedPrice : 'Loading...',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: priceFontSize,
-                      fontWeight: FontWeight.bold,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                    // Text, not AutoSizeText. `priceFontSize` is already snapped
+                    // to a bounded set by [compactPriceFontSize] (37639d5), but
+                    // that only bounded the HEIGHT-derived input: AutoSizeText
+                    // then ran its own search to fit the available WIDTH, which
+                    // a drag-resize also varies continuously — so it kept
+                    // minting a distinct TextStyle per frame and the
+                    // ParagraphCache thrash the commit set out to kill survived.
+                    // The regression guard missed it because it tests the pure
+                    // function, not this widget. Ellipsis over shrink-to-fit.
+                    Text(
+                      _hasData ? formattedPrice : 'Loading...',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: priceFontSize,
+                        fontWeight: FontWeight.bold,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-              if (_hasData && !isCompact)
+                  ],
+                ),
+              if (widget.showPriceHeader && _hasData && !isCompact)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: GeniusWalletConsts.space4,

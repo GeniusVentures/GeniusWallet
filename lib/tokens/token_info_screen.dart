@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/wallet.dart';
-import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -12,14 +11,14 @@ import 'package:intl/intl.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/components/action_button.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/utils/image_utils.dart';
+import 'package:genius_wallet/tokens/widgets/token_action_bar.dart';
+import 'package:genius_wallet/tokens/widgets/token_detail_hero.dart';
 import 'package:go_router/go_router.dart';
 
 /// 07-07 gap-closure: the More -> Bridge Tokens row's tap handler, extracted
@@ -34,6 +33,23 @@ Future<void> _pushBridgeScreen(
   Navigator.of(context).pop();
   await GoRouter.of(context).push('/bridge', extra: walletDetailsCubit);
   walletDetailsCubit.getCoins();
+}
+
+/// sketch 152 `.sectitle`: a small uppercase section label (13px / w600 /
+/// letterSpacing .4 / `gw.textSecondary`) that now lives INSIDE each
+/// token-detail card (Info, Convert) rather than floating above it.
+Widget _buildSectionTitle(BuildContext context, String text) {
+  final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+  return Text(
+    text.toUpperCase(),
+    style: (Theme.of(context).textTheme.labelLarge ?? const TextStyle())
+        .copyWith(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.4,
+      color: gw.textSecondary,
+    ),
+  );
 }
 
 class TokenInfoScreen extends StatelessWidget {
@@ -66,13 +82,25 @@ class TokenInfoScreen extends StatelessWidget {
     final selectedWallet = state.selectedWallet;
     final selectedNetwork = state.selectedNetwork;
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
     final isGnusBridgeEnabled =
         (isGnusWalletConnected ?? false) &&
         selectedCoin?.symbol?.toLowerCase() == 'gnus';
 
     return Scaffold(
-      appBar: AppBar(),
+      // sketch 152 `.appbar`: a compact 48px bar on the sunken surface with a
+      // 1px hairline (gw.borderSubtle) bottom border and no Material elevation.
+      // The default back button is kept (it works).
+      appBar: AppBar(
+        toolbarHeight: 48,
+        backgroundColor: gw.surfaceSunken,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: gw.borderSubtle),
+        ),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           // sketch 152 (locked 2026-07-24): the two-panel layout switches at
@@ -88,45 +116,58 @@ class TokenInfoScreen extends StatelessWidget {
               ? 360
               : constraints.maxHeight - 40;
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(GeniusWalletConsts.space10),
+            // Desktop keeps the roomier space10 stage; mobile tightens to
+            // space8 (sketch 152 `@container app (max-width:767px) .stage`).
+            padding: EdgeInsets.all(
+              isDesktop
+                  ? GeniusWalletConsts.space10
+                  : GeniusWalletConsts.space8,
+            ),
             primary: true,
             child: isDesktop
                 ? Row(
-                    spacing: GeniusWalletConsts.space10,
+                    spacing: GeniusWalletConsts.space8,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (marketData != null)
                         Expanded(
                           flex: 2,
-                          // sketch 152 A left card: identity (icon + name +
-                          // SYMBOL · Network) -> action row -> chart (which
-                          // carries the big live price + %).
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildIdentityHero(
-                                context,
-                                marketData,
-                                selectedNetwork,
-                              ),
-                              const SizedBox(
-                                height: GeniusWalletConsts.space8,
-                              ),
-                              _buildStaticActions(
-                                selectedCoin,
-                                context,
-                                selectedWallet,
-                                selectedNetwork,
-                                isGnusBridgeEnabled,
-                                walletDetailsCubit,
-                              ),
-                              const SizedBox(
-                                height: GeniusWalletConsts.space8,
-                              ),
-                              SizedBox(
-                                height: desktopChartHeight,
-                                child: _buildGraphSection(marketData!, null),
-                              ),
-                            ],
+                          // sketch 152 A `.leftcard`: one boxed column holding
+                          // identity+price hero -> action bar -> chart. The big
+                          // live price now lives in the hero, so the chart runs
+                          // series-only (showPriceHeader: false).
+                          child: GWCard(
+                            radius: GeniusWalletConsts.radiusMd,
+                            padding: const EdgeInsets.all(
+                              GeniusWalletConsts.space8,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                TokenDetailHero(
+                                  marketData: marketData,
+                                  selectedNetwork: selectedNetwork,
+                                ),
+                                const SizedBox(
+                                  height: GeniusWalletConsts.space8,
+                                ),
+                                _buildActionBar(
+                                  context,
+                                  selectedCoin,
+                                  selectedWallet,
+                                  selectedNetwork,
+                                  isGnusBridgeEnabled,
+                                  walletDetailsCubit,
+                                ),
+                                const SizedBox(
+                                  height: GeniusWalletConsts.space8,
+                                ),
+                                SizedBox(
+                                  height: desktopChartHeight,
+                                  child: _buildGraphSection(marketData!),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       Expanded(
@@ -135,27 +176,27 @@ class TokenInfoScreen extends StatelessWidget {
                           marketData,
                           selectedCoin,
                           selectedNetwork,
-                          walletDetailsCubit,
-                          context,
-                          selectedWallet,
-                          isGnusBridgeEnabled,
                         ),
                       ),
                     ],
                   )
-                // sketch 152 D (unified stack, <768): actions -> chart (carries
-                // the hero price/% pill) -> Convert -> Info. Convert and Info
-                // render as separate siblings (not via _buildActionSection) so
-                // Convert can sit directly under the chart, above Info.
+                // sketch 152 D (unified stack, <768): identity -> actions ->
+                // chart -> Convert -> Info. Identity + chart are wrapped in a
+                // radiusMd GWCard; Convert and Info render as separate siblings
+                // so Convert sits directly under the chart, above Info.
                 : Column(
-                    spacing: GeniusWalletConsts.space10,
+                    spacing: GeniusWalletConsts.space8,
                     children: [
-                      // sketch 152 D hero: identity (icon + name + SYMBOL ·
-                      // Network) at the top of the stack, above the action row.
-                      _buildIdentityHero(context, marketData, selectedNetwork),
-                      _buildStaticActions(
-                        selectedCoin,
+                      GWCard(
+                        radius: GeniusWalletConsts.radiusMd,
+                        child: TokenDetailHero(
+                          marketData: marketData,
+                          selectedNetwork: selectedNetwork,
+                        ),
+                      ),
+                      _buildActionBar(
                         context,
+                        selectedCoin,
                         selectedWallet,
                         selectedNetwork,
                         isGnusBridgeEnabled,
@@ -165,9 +206,12 @@ class TokenInfoScreen extends StatelessWidget {
                         // Fixed height in the scrollable stack (sketch 152 D
                         // `min-height`): bare CryptoLiveChart has an internal
                         // Expanded that overflows without a bounded height.
-                        SizedBox(
-                          height: 300,
-                          child: _buildGraphSection(marketData!, null),
+                        GWCard(
+                          radius: GeniusWalletConsts.radiusMd,
+                          child: SizedBox(
+                            height: 300,
+                            child: _buildGraphSection(marketData!),
+                          ),
                         ),
                       _buildConvertSection(marketData),
                       _buildInfoSection(marketData, selectedCoin, selectedNetwork),
@@ -179,161 +223,103 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGraphSection(CoinGeckoMarketData marketData, Widget? child) {
+  Widget _buildGraphSection(CoinGeckoMarketData marketData) {
+    // sketch 152: the hero card owns the big price + % pill, so the chart
+    // renders series-only (no built-in price header).
     return CryptoLiveChart(
       coinGeckoCoinId: marketData.id,
       tokenSymbol: marketData.symbol,
-      child: child,
+      showPriceHeader: false,
     );
   }
 
-  /// sketch 152 hero identity: token icon + name + "SYMBOL · Network".
-  /// The big live price + % is provided by CryptoLiveChart just below (it owns
-  /// the price header), so the identity deliberately does NOT repeat price or
-  /// holdings — that was the wrong CoinCardRow reuse.
-  Widget _buildIdentityHero(
+  /// sketch 152 `.actions`: the compact Receive / Send / Swap / More boxes,
+  /// wired to the existing drawer behaviour. Receive opens the 034-A2 QR
+  /// receive drawer; More opens the 07-07 Bridge Tokens drawer but ONLY when
+  /// [isGnusBridgeEnabled] (else `onMore: null` renders More disabled —
+  /// finding-37). Send/Swap stay disabled (D-01/D-02).
+  Widget _buildActionBar(
     BuildContext context,
-    CoinGeckoMarketData? marketData,
+    Coin? selectedCoin,
+    Wallet? selectedWallet,
     Network? selectedNetwork,
-  ) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final textTheme = Theme.of(context).textTheme;
-    final String symbol = (marketData?.symbol ?? "").toUpperCase();
-    final String? network = selectedNetwork?.name;
-    final String subtitle = (network != null && network.isNotEmpty)
-        ? "$symbol · $network"
-        : symbol;
-    return Row(
-      children: [
-        buildTokenIcon(iconPath: marketData?.imageUrl ?? "", size: 44),
-        const SizedBox(width: GeniusWalletConsts.space6),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                marketData?.name ?? "unknown",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.titleLarge?.copyWith(color: gw.textPrimary),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodySmall?.copyWith(color: gw.textSecondary),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStaticActions(
-    selectedCoin,
-    context,
-    selectedWallet,
-    selectedNetwork,
     bool isGnusBridgeEnabled,
-    walletDetailsCubit,
+    WalletDetailsCubit walletDetailsCubit,
   ) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return SizedBox(
-      width: 400,
-      child: Row(
-        spacing: GeniusWalletConsts.space4,
-        children: [
-          ActionButton(
-            text: "Receive",
-            icon: Icons.qr_code,
-            onPressed: () {
+    return TokenActionBar(
+      onReceive: () {
+        ResponsiveDrawer.show<void>(
+          context: context,
+          title: "Receive ${selectedCoin?.name}",
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(GeniusWalletConsts.space4),
+              child: SizedBox(
+                width: GeniusBreakpoints.small * 0.5,
+                child: CryptoAddressQR(
+                  iconPath: selectedCoin?.iconPath,
+                  address: selectedWallet?.address ?? "",
+                  network: selectedNetwork?.name ?? "",
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      onMore: isGnusBridgeEnabled
+          ? () {
+              // 07-07 gap-closure (gap 5, drawer-shell/quiet-band pattern from
+              // 030-B1 + drawers-final "032 List"): the More drawer composes a
+              // short description above a proper Bridge Tokens list row (icon +
+              // label + trailing chevron) inside the 030-B1 shell delivered by
+              // 07-06 -- the isGnusBridgeEnabled outer gate (finding 37) and the
+              // inner onPressed (balance gate + /bridge push + getCoins refresh)
+              // are unchanged.
               ResponsiveDrawer.show<void>(
                 context: context,
-                title: "Receive ${selectedCoin?.name}",
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(GeniusWalletConsts.space4),
-                    child: SizedBox(
-                      width: GeniusBreakpoints.small * 0.5,
-                      child: CryptoAddressQR(
-                        iconPath: selectedCoin?.iconPath,
-                        address: selectedWallet?.address ?? "",
-                        network: selectedNetwork?.name ?? "",
+                title: "More Options",
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        GeniusWalletConsts.space12,
+                        GeniusWalletConsts.space8,
+                        GeniusWalletConsts.space12,
+                        GeniusWalletConsts.space4,
+                      ),
+                      child: Text(
+                        "Move your GNUS across chains with the bridge.",
+                        style: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(color: gw.textSecondary),
                       ),
                     ),
-                  ),
+                    SlidingDrawerButton(
+                      onPressed: selectedCoin?.balance == 0
+                          ? null
+                          : () => _pushBridgeScreen(
+                              context,
+                              walletDetailsCubit,
+                            ),
+                      label: "Bridge Tokens",
+                      icon: Icons.alt_route,
+                      // Disabled (zero-balance) row dims to a 38%-alpha tint of
+                      // the same token (Material's standard disabled-content
+                      // opacity) so the row stays visibly distinct from the
+                      // enabled state in both dark and light -- not a new color,
+                      // just a conditional pick of an existing GWColors step.
+                      color: selectedCoin?.balance == 0
+                          ? gw.textPrimary38
+                          : gw.textPrimary,
+                      showTrailingChevron: true,
+                    ),
+                  ],
                 ),
               );
-            },
-          ),
-          const ActionButton(text: "Send", icon: Icons.send),
-          const ActionButton(text: "Swap", icon: Icons.swap_horiz),
-          ActionButton(
-            text: "More",
-            icon: Icons.more_horiz,
-            onPressed: isGnusBridgeEnabled
-                ? () {
-                    // 07-07 gap-closure (gap 5, drawer-shell/quiet-band
-                    // pattern from 030-B1 + drawers-final "032 List"): the
-                    // More drawer used to render a single bare
-                    // SlidingDrawerButton floating on empty space. It now
-                    // composes a short description above a proper Bridge
-                    // Tokens list row (icon + label + trailing chevron)
-                    // inside the 030-B1 shell delivered by 07-06 -- the
-                    // isGnusBridgeEnabled outer gate (finding 37) and the
-                    // inner onPressed (balance gate + /bridge push +
-                    // getCoins refresh) are unchanged.
-                    ResponsiveDrawer.show<void>(
-                      context: context,
-                      title: "More Options",
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              GeniusWalletConsts.space12,
-                              GeniusWalletConsts.space8,
-                              GeniusWalletConsts.space12,
-                              GeniusWalletConsts.space4,
-                            ),
-                            child: Text(
-                              "Move your GNUS across chains with the bridge.",
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: gw.textSecondary),
-                            ),
-                          ),
-                          SlidingDrawerButton(
-                            onPressed: selectedCoin?.balance == 0
-                                ? null
-                                : () => _pushBridgeScreen(
-                                    context,
-                                    walletDetailsCubit,
-                                  ),
-                            label: "Bridge Tokens",
-                            icon: Icons.alt_route,
-                            // Disabled (zero-balance) row dims to a 38%-alpha
-                            // tint of the same token (Material's standard
-                            // disabled-content opacity) so the row stays
-                            // visibly distinct from the enabled state in
-                            // both dark and light -- not a new color, just a
-                            // conditional pick of an existing GWColors step.
-                            color: selectedCoin?.balance == 0
-                                ? gw.textPrimary38
-                                : gw.textPrimary,
-                            showTrailingChevron: true,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                : null,
-          ),
-        ],
-      ),
+            }
+          : null,
     );
   }
 
@@ -342,10 +328,6 @@ class TokenInfoScreen extends StatelessWidget {
     CoinGeckoMarketData? marketData,
     Coin? selectedCoin,
     Network? selectedNetwork,
-    WalletDetailsCubit? walletDetailsCubit,
-    context,
-    Wallet? selectedWallet,
-    bool? isGnusBridgeEnabled,
   ) {
     return Column(
       spacing: GeniusWalletConsts.space8,
@@ -364,13 +346,6 @@ class TokenInfoScreen extends StatelessWidget {
     Network? selectedNetwork,
   ) {
     return _MarketDataInfo(
-      topSlot: CoinCardRow(
-        iconPath: marketData?.imageUrl ?? "",
-        balance: selectedCoin?.balance,
-        name: marketData?.name ?? "unknown",
-        symbol: marketData?.symbol ?? "unknown",
-        marketData: marketData,
-      ),
       marketData: marketData,
       address: selectedCoin?.address,
       network: selectedNetwork?.name,
@@ -422,15 +397,19 @@ class _ConvertSectionState extends State<_ConvertSection> {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: GeniusWalletConsts.space4,
-      children: [
-        Text("Convert", style: Theme.of(context).textTheme.titleMedium),
-        GWCard(
-          padding: const EdgeInsets.all(GeniusWalletConsts.space8),
-          child: Column(
-            spacing: GeniusWalletConsts.space8,
+    // sketch 152 `.surf` Convert card: title INSIDE the card (sectitle style),
+    // then the read-only price + editable amount + total (inner field gap
+    // space6).
+    return GWCard(
+      radius: GeniusWalletConsts.radiusMd,
+      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(context, "Convert"),
+          const SizedBox(height: GeniusWalletConsts.space4),
+          Column(
+            spacing: GeniusWalletConsts.space6,
             children: [
               // Read-only display of marketData.currentPrice (sketch 152: only
               // Token Amount is editable) — mirrors bridge_screen.dart:664's
@@ -490,8 +469,8 @@ class _ConvertSectionState extends State<_ConvertSection> {
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -500,19 +479,15 @@ class _MarketDataInfo extends StatelessWidget {
   final CoinGeckoMarketData? marketData;
   final String? address;
   final String? network;
-  final Widget? topSlot;
 
   const _MarketDataInfo({
     this.marketData,
     this.network,
     this.address,
-    this.topSlot,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     // Single restrained accent for every info-tile leading glyph + copy/link
     // affordance (replaces the rainbow amber/lightBlue/orange/red set and the
     // cs.primary reads) — appearance-aware, honours the 10% accent discipline.
@@ -592,55 +567,28 @@ class _MarketDataInfo extends StatelessWidget {
       ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: GeniusWalletConsts.space4,
-      children: [
-        Text("Info", style: Theme.of(context).textTheme.titleMedium),
-        GWCard(
-          padding: const EdgeInsets.all(GeniusWalletConsts.space4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    // sketch 152 `.surf` Info card: the "Info" title moves INSIDE the card
+    // (sectitle style) and the duplicate token-identity header row is gone —
+    // the hero already shows identity. The first stat row carries no top
+    // divider (sketch `.statrow:first-child { border-top:0 }`).
+    return GWCard(
+      radius: GeniusWalletConsts.radiusMd,
+      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(context, "Info"),
+          const SizedBox(height: GeniusWalletConsts.space4),
+          Column(
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.only(
-                  bottom: GeniusWalletConsts.space4,
-                  left: GeniusWalletConsts.space4,
-                ),
-                leading: CircleAvatar(
-                  radius: 24,
-                  // §4.4 always-light chip: the token logo needs a fixed light
-                  // backing regardless of appearance (NOT an appearance token).
-                  backgroundColor: Colors.white,
-                  backgroundImage: marketData?.imageUrl != null
-                      ? NetworkImage(marketData!.imageUrl)
-                      : null,
-                  child: marketData?.imageUrl == null
-                      ? Icon(
-                          Icons.token,
-                          color: cs.onSurfaceVariant,
-                          size: 32,
-                        )
-                      : null,
-                ),
-                title: Text(marketData?.name ?? "Unknown Token", maxLines: 2),
-                subtitle: Text(
-                  (marketData?.symbol ?? "").toUpperCase(),
-                  style: TextStyle(color: gw.textSecondary),
-                ),
-              ),
-              Column(
-                children: [
-                  for (int i = 0; i < infoTiles.length; i++) ...[
-                    Divider(height: 1),
-                    infoTiles[i],
-                  ],
-                ],
-              ),
+              for (int i = 0; i < infoTiles.length; i++) ...[
+                if (i > 0) const Divider(height: 1),
+                infoTiles[i],
+              ],
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
