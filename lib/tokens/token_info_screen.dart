@@ -191,64 +191,56 @@ class TokenInfoScreen extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: isDesktop
-                ? Row(
-                    spacing: GeniusWalletConsts.space8,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (marketData != null)
-                        Expanded(
-                          flex: 2,
-                          // sketch 152 A `.leftcard`: a fixed max height caps
-                          // the main card so it can't tower over the right
-                          // column; the chart flexes (Expanded) to fill the
-                          // space under the hero + action bar. Price is in the
-                          // hero, so the chart runs series-only.
-                          child: SizedBox(
-                            height: 480,
-                            child: GWCard(
-                            radius: GeniusWalletConsts.radiusMd,
-                            padding: const EdgeInsets.all(
-                              GeniusWalletConsts.space8,
+                ? (constraints.maxWidth >= GeniusBreakpoints.large
+                    // >=1024: two panels side by side (main card | Info+Convert).
+                    ? Row(
+                        spacing: GeniusWalletConsts.space8,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (marketData != null)
+                            Expanded(
+                              flex: 2,
+                              child: _buildMainCard(
+                                context,
+                                selectedCoin,
+                                selectedWallet,
+                                selectedNetwork,
+                                isGnusBridgeEnabled,
+                                walletDetailsCubit,
+                              ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                TokenDetailHero(
-                                  marketData: marketData,
-                                  selectedNetwork: selectedNetwork,
-                                ),
-                                const SizedBox(
-                                  height: GeniusWalletConsts.space8,
-                                ),
-                                _buildActionBar(
-                                  context,
-                                  selectedCoin,
-                                  selectedWallet,
-                                  selectedNetwork,
-                                  isGnusBridgeEnabled,
-                                  walletDetailsCubit,
-                                ),
-                                const SizedBox(
-                                  height: GeniusWalletConsts.space8,
-                                ),
-                                Expanded(
-                                  child: _buildGraphSection(marketData!),
-                                ),
-                              ],
+                          Expanded(
+                            flex: 1,
+                            child: _buildActionSection(
+                              marketData,
+                              selectedCoin,
+                              selectedNetwork,
                             ),
                           ),
+                        ],
+                      )
+                    // 768–1024: not enough width for two panels — the main card
+                    // sits on top and Info/Convert wrap to the bottom (flex).
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: GeniusWalletConsts.space8,
+                        children: [
+                          if (marketData != null)
+                            _buildMainCard(
+                              context,
+                              selectedCoin,
+                              selectedWallet,
+                              selectedNetwork,
+                              isGnusBridgeEnabled,
+                              walletDetailsCubit,
+                            ),
+                          _buildActionSection(
+                            marketData,
+                            selectedCoin,
+                            selectedNetwork,
                           ),
-                        ),
-                      Expanded(
-                        flex: 1,
-                        child: _buildActionSection(
-                          marketData,
-                          selectedCoin,
-                          selectedNetwork,
-                        ),
-                      ),
-                    ],
-                  )
+                        ],
+                      ))
                 // sketch 152 D (unified stack, <768): identity -> actions ->
                 // chart -> Convert -> Info. Identity + chart are wrapped in a
                 // radiusMd GWCard; Convert and Info render as separate siblings
@@ -304,6 +296,47 @@ class TokenInfoScreen extends StatelessWidget {
       coinGeckoCoinId: marketData.id,
       tokenSymbol: marketData.symbol,
       showPriceHeader: false,
+    );
+  }
+
+  /// The desktop/tablet "main card" (sketch 152 A `.leftcard`): a fixed-height
+  /// GWCard with the identity+price hero, the action bar, then the chart (which
+  /// flexes to fill). Reused by the side-by-side (>=1024) and the wrapped
+  /// (768–1024, main-on-top) desktop layouts.
+  Widget _buildMainCard(
+    BuildContext context,
+    Coin? selectedCoin,
+    Wallet? selectedWallet,
+    Network? selectedNetwork,
+    bool isGnusBridgeEnabled,
+    WalletDetailsCubit walletDetailsCubit,
+  ) {
+    return SizedBox(
+      height: 480,
+      child: GWCard(
+        radius: GeniusWalletConsts.radiusMd,
+        padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TokenDetailHero(
+              marketData: marketData,
+              selectedNetwork: selectedNetwork,
+            ),
+            const SizedBox(height: GeniusWalletConsts.space8),
+            _buildActionBar(
+              context,
+              selectedCoin,
+              selectedWallet,
+              selectedNetwork,
+              isGnusBridgeEnabled,
+              walletDetailsCubit,
+            ),
+            const SizedBox(height: GeniusWalletConsts.space8),
+            Expanded(child: _buildGraphSection(marketData!)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -595,7 +628,15 @@ class _MarketDataInfo extends StatelessWidget {
               child: Center(child: SketchIcon(svg, size: 16, color: color)),
             ),
             const SizedBox(width: GeniusWalletConsts.space6),
-            Expanded(child: Text(label, style: keyStyle)),
+            Expanded(
+              child: Text(
+                label,
+                style: keyStyle,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             value,
           ],
         ),
