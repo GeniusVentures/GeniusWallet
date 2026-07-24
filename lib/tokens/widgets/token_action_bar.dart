@@ -74,7 +74,7 @@ class TokenActionBar extends StatelessWidget {
         const SizedBox(width: GeniusWalletConsts.space4),
         Expanded(
           child: _ActButton(
-            icon: Icons.north_east,
+            icon: Icons.send,
             label: 'Send',
             variant: sendLive ? _ActVariant.enabled : _ActVariant.disabled,
             onTap: sendLive ? onSend : null,

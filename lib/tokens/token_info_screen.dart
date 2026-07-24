@@ -586,7 +586,7 @@ class _MarketDataInfo extends StatelessWidget {
           ),
         ),
       statRow(
-        Icons.donut_large,
+        Icons.pie_chart,
         gw.statusSuccess,
         "Market Cap",
         Text(_formatCompactCurrency(marketData?.marketCap), style: valStyle),

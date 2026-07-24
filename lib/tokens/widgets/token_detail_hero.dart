@@ -220,27 +220,34 @@ class _ChangePill extends StatelessWidget {
     final bool up = changePct >= 0;
     final Color tone = up ? colors.statusSuccess : colors.statusError;
     final String sign = up ? '+' : '';
-    final String label =
-        '${up ? '▲' : '▼'} $sign${changePct.toStringAsFixed(2)}%';
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space4,
-        vertical: GeniusWalletConsts.space2 / 2,
-      ),
+      // sketch `.pill` padding: 3px 9px.
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
         // ~15% alpha fill mirroring the sketch `.pill` status-*-fill token.
         color: tone.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
       ),
-      child: Text(
-        label,
-        style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
-          color: tone,
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Proper icon (was an oversized Unicode ▲/▼ glyph), sized to the text.
+          Icon(
+            up ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+            size: 16,
+            color: tone,
+          ),
+          Text(
+            '$sign${changePct.toStringAsFixed(2)}%',
+            style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
+              color: tone,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
       ),
     );
   }
