@@ -6,6 +6,7 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// Sketch 034-A2 "Grouped address" (.planning/sketches/034-receive-qr,
@@ -138,13 +139,15 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
                   ),
                 ),
                 const SizedBox(width: GeniusWalletConsts.space6),
-                Icon(
-                  _copied ? Icons.check : Icons.content_copy_rounded,
-                  size: 16,
-                  color: _copied
-                      ? gw.statusSuccess
-                      : GeniusWalletColors.brandPrimaryOnSurface,
-                ),
+                // Copied → keep the Material check (sketch has no check glyph);
+                // resting → the sketch 152 `.copy` SVG, same tint as before.
+                _copied
+                    ? Icon(Icons.check, size: 16, color: gw.statusSuccess)
+                    : SketchIcon(
+                        SketchIcons.copy,
+                        size: 16,
+                        color: GeniusWalletColors.brandPrimaryOnSurface,
+                      ),
                 const SizedBox(width: GeniusWalletConsts.space2),
                 Text(
                   _copied ? "Copied" : "Copy",

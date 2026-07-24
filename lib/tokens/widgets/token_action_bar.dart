@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 
 /// Compact token-screen action bar — the redesign's `.actbtn` row from
 /// sketch 152 (`.planning/sketches/152-token-detail-responsive`). Replaces the
@@ -65,7 +66,7 @@ class TokenActionBar extends StatelessWidget {
       children: [
         Expanded(
           child: _ActButton(
-            icon: Icons.qr_code_2,
+            icon: SketchIcons.receive,
             label: 'Receive',
             variant: _ActVariant.primary,
             onTap: onReceive,
@@ -74,7 +75,7 @@ class TokenActionBar extends StatelessWidget {
         const SizedBox(width: GeniusWalletConsts.space4),
         Expanded(
           child: _ActButton(
-            icon: Icons.send,
+            icon: SketchIcons.send,
             label: 'Send',
             variant: sendLive ? _ActVariant.enabled : _ActVariant.disabled,
             onTap: sendLive ? onSend : null,
@@ -83,7 +84,7 @@ class TokenActionBar extends StatelessWidget {
         const SizedBox(width: GeniusWalletConsts.space4),
         Expanded(
           child: _ActButton(
-            icon: Icons.swap_horiz,
+            icon: SketchIcons.swap,
             label: 'Swap',
             variant: swapLive ? _ActVariant.enabled : _ActVariant.disabled,
             onTap: swapLive ? onSwap : null,
@@ -92,7 +93,7 @@ class TokenActionBar extends StatelessWidget {
         const SizedBox(width: GeniusWalletConsts.space4),
         Expanded(
           child: _ActButton(
-            icon: Icons.more_horiz,
+            icon: SketchIcons.more,
             label: 'More',
             variant: moreLive ? _ActVariant.enabled : _ActVariant.disabled,
             onTap: moreLive ? onMore : null,
@@ -111,7 +112,9 @@ enum _ActVariant { primary, enabled, disabled }
 /// rounded box. Stateful only to lift 2px on hover for the two interactive
 /// treatments (matches the sketch's `translateY(-2px)` + brand border).
 class _ActButton extends StatefulWidget {
-  final IconData icon;
+  /// The sketch-152 SVG glyph string (see [SketchIcons]), tinted via
+  /// [SketchIcon] to the resolved glyph colour.
+  final String icon;
   final String label;
   final _ActVariant variant;
   final VoidCallback? onTap;
@@ -201,7 +204,7 @@ class _ActButtonState extends State<_ActButton> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(widget.icon, size: 20, color: glyphColor),
+          SketchIcon(widget.icon, size: 20, color: glyphColor),
           const SizedBox(height: GeniusWalletConsts.space3), // 6px
           Text(
             widget.label,

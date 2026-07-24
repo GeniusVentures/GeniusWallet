@@ -17,6 +17,7 @@ import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/tokens/widgets/token_action_bar.dart';
 import 'package:genius_wallet/tokens/widgets/token_detail_hero.dart';
 import 'package:go_router/go_router.dart';
@@ -532,15 +533,17 @@ class _MarketDataInfo extends StatelessWidget {
     // Distinct per-row glyph colours (the sketch's multi-colour stat icons),
     // each legible in dark AND light: appearance-aware status tones + brand
     // steps + slate. Replaces the single restrained accent per user request.
-    Widget statRow(IconData icon, Color color, String label, Widget value) {
+    Widget statRow(String svg, Color color, String label, Widget value) {
+      // sketch 152 `.statrow`: padding 11px 12px, a 22px leading glyph box, a
+      // 16px SketchIcon tinted to the per-row colour.
       return Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: GeniusWalletConsts.space6,
-          horizontal: GeniusWalletConsts.space2,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
         child: Row(
           children: [
-            SizedBox(width: 22, child: Icon(icon, size: 16, color: color)),
+            SizedBox(
+              width: 22,
+              child: Center(child: SketchIcon(svg, size: 16, color: color)),
+            ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(child: Text(label, style: keyStyle)),
             value,
@@ -552,14 +555,14 @@ class _MarketDataInfo extends StatelessWidget {
     final infoTiles = <Widget>[
       if (network != null)
         statRow(
-          Icons.public,
+          SketchIcons.network,
           GeniusWalletColors.brandPrimaryOnSurface,
           "Network",
           Text(network!, style: valStyle),
         ),
       if (address != null)
         statRow(
-          Icons.badge_outlined,
+          SketchIcons.address,
           GeniusWalletColors.brandPrimaryStrong,
           "Address",
           Row(
@@ -586,26 +589,26 @@ class _MarketDataInfo extends StatelessWidget {
           ),
         ),
       statRow(
-        Icons.pie_chart,
+        SketchIcons.marketCap,
         gw.statusSuccess,
         "Market Cap",
         Text(_formatCompactCurrency(marketData?.marketCap), style: valStyle),
       ),
       statRow(
-        Icons.sync,
+        SketchIcons.circulating,
         GeniusWalletColors.brandTertiary,
         "Circulating Supply",
         Text(_formatCompactDecimal(marketData?.circulatingSupply),
             style: valStyle),
       ),
       statRow(
-        Icons.storage,
+        SketchIcons.totalSupply,
         gw.statusError,
         "Total Supply",
         Text(_formatCompactDecimal(marketData?.totalSupply), style: valStyle),
       ),
       statRow(
-        Icons.bar_chart,
+        SketchIcons.volume,
         GeniusWalletColors.statusNeutral,
         "Volume",
         Text(_formatCompactCurrency(marketData?.totalVolume), style: valStyle),
