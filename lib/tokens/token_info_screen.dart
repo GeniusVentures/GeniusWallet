@@ -60,7 +60,11 @@ class TokenInfoScreen extends StatelessWidget {
       appBar: AppBar(),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          bool isDesktop = constraints.maxWidth > GeniusBreakpoints.large;
+          // sketch 152 (locked 2026-07-24): the two-panel layout switches at
+          // GeniusBreakpoints.medium (768), matching the code's own
+          // ResponsiveDrawer/useDesktopLayout threshold — NOT the .large (1024)
+          // breakpoint this used to read.
+          bool isDesktop = constraints.maxWidth > GeniusBreakpoints.medium;
           return SingleChildScrollView(
             padding: const EdgeInsets.all(GeniusWalletConsts.space10),
             primary: true,
@@ -100,11 +104,13 @@ class TokenInfoScreen extends StatelessWidget {
                       ),
                     ],
                   )
+                // sketch 152 D (unified stack, <768): actions -> chart (carries
+                // the hero price/% pill) -> Convert -> Info. Convert and Info
+                // render as separate siblings (not via _buildActionSection) so
+                // Convert can sit directly under the chart, above Info.
                 : Column(
                     spacing: GeniusWalletConsts.space10,
                     children: [
-                      if (marketData != null)
-                        _buildGraphSection(marketData!, null),
                       _buildStaticActions(
                         selectedCoin,
                         context,
@@ -113,15 +119,10 @@ class TokenInfoScreen extends StatelessWidget {
                         isGnusBridgeEnabled,
                         walletDetailsCubit,
                       ),
-                      _buildActionSection(
-                        marketData,
-                        selectedCoin,
-                        selectedNetwork,
-                        walletDetailsCubit,
-                        context,
-                        selectedWallet,
-                        isGnusBridgeEnabled,
-                      ),
+                      if (marketData != null)
+                        _buildGraphSection(marketData!, null),
+                      _buildConvertSection(marketData),
+                      _buildInfoSection(marketData, selectedCoin, selectedNetwork),
                     ],
                   ),
           );
@@ -208,6 +209,7 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
+  /// Desktop (>=768, sketch 152 A) right column: Info above Convert, together.
   Widget _buildActionSection(
     CoinGeckoMarketData? marketData,
     Coin? selectedCoin,
@@ -220,21 +222,37 @@ class TokenInfoScreen extends StatelessWidget {
     return Column(
       spacing: GeniusWalletConsts.space8,
       children: [
-        _MarketDataInfo(
-          topSlot: CoinCardRow(
-            iconPath: marketData?.imageUrl ?? "",
-            balance: selectedCoin?.balance,
-            name: marketData?.name ?? "unknown",
-            symbol: marketData?.symbol ?? "unknown",
-            marketData: marketData,
-          ),
-          marketData: marketData,
-          address: selectedCoin?.address,
-          network: selectedNetwork?.name,
-        ),
-        _ConvertSection(tokenPrice: marketData?.currentPrice ?? 0.0),
+        _buildInfoSection(marketData, selectedCoin, selectedNetwork),
+        _buildConvertSection(marketData),
       ],
     );
+  }
+
+  /// The Info card alone — reused standalone on mobile (sketch 152 D) so it
+  /// can be interleaved with the graph and Convert card.
+  Widget _buildInfoSection(
+    CoinGeckoMarketData? marketData,
+    Coin? selectedCoin,
+    Network? selectedNetwork,
+  ) {
+    return _MarketDataInfo(
+      topSlot: CoinCardRow(
+        iconPath: marketData?.imageUrl ?? "",
+        balance: selectedCoin?.balance,
+        name: marketData?.name ?? "unknown",
+        symbol: marketData?.symbol ?? "unknown",
+        marketData: marketData,
+      ),
+      marketData: marketData,
+      address: selectedCoin?.address,
+      network: selectedNetwork?.name,
+    );
+  }
+
+  /// The Convert card alone — reused standalone on mobile (sketch 152 D) so it
+  /// can render directly below the chart, above the Info card.
+  Widget _buildConvertSection(CoinGeckoMarketData? marketData) {
+    return _ConvertSection(tokenPrice: marketData?.currentPrice ?? 0.0);
   }
 }
 
