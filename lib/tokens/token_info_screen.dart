@@ -21,6 +21,20 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 
+/// 07-07 gap-closure: the More -> Bridge Tokens row's tap handler, extracted
+/// to a top-level function so `.push('/bridge', extra: walletDetailsCubit)`
+/// stays on one line at the drawer body's nesting depth (unchanged
+/// behavior: pop the drawer, push /bridge with the cubit payload, refresh
+/// coins -- same three calls the inline closure made before this plan).
+Future<void> _pushBridgeScreen(
+  BuildContext context,
+  WalletDetailsCubit walletDetailsCubit,
+) async {
+  Navigator.of(context).pop();
+  await GoRouter.of(context).push('/bridge', extra: walletDetailsCubit);
+  walletDetailsCubit.getCoins();
+}
+
 class TokenInfoScreen extends StatelessWidget {
   final bool? isGnusWalletConnected;
   final CoinGeckoMarketData? marketData;
@@ -184,21 +198,56 @@ class TokenInfoScreen extends StatelessWidget {
             icon: Icons.more_horiz,
             onPressed: isGnusBridgeEnabled
                 ? () {
+                    // 07-07 gap-closure (gap 5, drawer-shell/quiet-band
+                    // pattern from 030-B1 + drawers-final "032 List"): the
+                    // More drawer used to render a single bare
+                    // SlidingDrawerButton floating on empty space. It now
+                    // composes a short description above a proper Bridge
+                    // Tokens list row (icon + label + trailing chevron)
+                    // inside the 030-B1 shell delivered by 07-06 -- the
+                    // isGnusBridgeEnabled outer gate (finding 37) and the
+                    // inner onPressed (balance gate + /bridge push +
+                    // getCoins refresh) are unchanged.
                     ResponsiveDrawer.show<void>(
                       context: context,
                       title: "More Options",
-                      child: SlidingDrawerButton(
-                        onPressed: selectedCoin?.balance == 0
-                            ? null
-                            : () async {
-                                Navigator.of(context).pop();
-                                await GoRouter.of(
-                                  context,
-                                ).push('/bridge', extra: walletDetailsCubit);
-                                walletDetailsCubit.getCoins();
-                              },
-                        label: "Bridge Tokens",
-                        color: gw.textPrimary,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              GeniusWalletConsts.space12,
+                              GeniusWalletConsts.space8,
+                              GeniusWalletConsts.space12,
+                              GeniusWalletConsts.space4,
+                            ),
+                            child: Text(
+                              "Move your GNUS across chains with the bridge.",
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: gw.textSecondary),
+                            ),
+                          ),
+                          SlidingDrawerButton(
+                            onPressed: selectedCoin?.balance == 0
+                                ? null
+                                : () => _pushBridgeScreen(
+                                    context,
+                                    walletDetailsCubit,
+                                  ),
+                            label: "Bridge Tokens",
+                            icon: Icons.alt_route,
+                            // Disabled (zero-balance) row dims to a 38%-alpha
+                            // tint of the same token (Material's standard
+                            // disabled-content opacity) so the row stays
+                            // visibly distinct from the enabled state in
+                            // both dark and light -- not a new color, just a
+                            // conditional pick of an existing GWColors step.
+                            color: selectedCoin?.balance == 0
+                                ? gw.textPrimary38
+                                : gw.textPrimary,
+                            showTrailingChevron: true,
+                          ),
+                        ],
                       ),
                     );
                   }

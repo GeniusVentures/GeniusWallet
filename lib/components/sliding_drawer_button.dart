@@ -6,6 +6,11 @@ class SlidingDrawerButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final IconData? icon; // Optional icon
   final Color? color; // Configurable color for both text and icon
+  // 07-07 gap-closure (drawer-shell/quiet-band list-row pattern, 030-B1):
+  // optional trailing chevron for rows that navigate elsewhere on tap.
+  // Defaults to false so every pre-existing caller (markets_search_bar.dart,
+  // wallet_information.g.dart, submit_job_button.dart) renders identically.
+  final bool showTrailingChevron;
 
   const SlidingDrawerButton({
     super.key,
@@ -13,6 +18,7 @@ class SlidingDrawerButton extends StatelessWidget {
     this.onPressed,
     this.color, // Color is now required for customization
     this.icon,
+    this.showTrailingChevron = false,
   });
 
   @override
@@ -48,6 +54,14 @@ class SlidingDrawerButton extends StatelessWidget {
               ),
             ),
           ),
+
+          // Only present when requested -- pre-existing callers (which never
+          // pass showTrailingChevron) get zero additional widgets, so their
+          // rendered Row is byte-for-byte identical to before this change.
+          if (showTrailingChevron) ...[
+            const Spacer(),
+            Icon(Icons.chevron_right, size: 20, color: color),
+          ],
         ],
       ),
     );
