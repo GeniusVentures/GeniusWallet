@@ -510,7 +510,6 @@ class _MarketDataInfo extends StatelessWidget {
         (textTheme.bodySmall ?? const TextStyle()).copyWith(
       color: gw.textPrimary,
       fontSize: 13,
-      fontWeight: FontWeight.w600,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
