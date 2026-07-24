@@ -181,30 +181,37 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
     // The bounded height comes from the Expanded wrapping FutureStateWidget in
     // build(); this just fills it and scrolls.
-    return SingleChildScrollView(
-      // No horizontal inset: the hero + table align with the 'Markets' page
-      // title above them (which sits at the outer 12px gutter), instead of
-      // being pushed 8px further in.
-      padding: const EdgeInsets.fromLTRB(
-        0,
-        GeniusWalletConsts.space6,
-        0,
-        GeniusWalletConsts.space20,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (hasHero) ...[
-            MarketsHeroCard(
-              coin: featuredCoin,
-              data: featuredData,
-              onTap: () => _openToken(featuredCoin!, featuredData),
-            ),
-            const SizedBox(height: GeniusWalletConsts.space12),
+    // scrollbars:false — the desktop ScrollBehavior draws a vertical bar on the
+    // page's own scroll by default; hide it (still scrolls by trackpad/drag),
+    // matching the horizontal scroll inside MarketsTable (Jakub 2026-07-24).
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: SingleChildScrollView(
+        // No horizontal inset: the hero + table align with the 'Markets' page
+        // title above them (which sits at the outer 12px gutter), instead of
+        // being pushed 8px further in.
+        padding: const EdgeInsets.fromLTRB(
+          0,
+          GeniusWalletConsts.space6,
+          0,
+          GeniusWalletConsts.space20,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasHero) ...[
+              MarketsHeroCard(
+                coin: featuredCoin,
+                data: featuredData,
+                onTap: () => _openToken(featuredCoin!, featuredData),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space12),
+            ],
+            const GWSectionTitle(title: 'All Markets'),
+            MarketsTable(
+                rows: rows, onTapRow: (r) => _openToken(r.coin, r.data)),
           ],
-          const GWSectionTitle(title: 'All Markets'),
-          MarketsTable(rows: rows, onTapRow: (r) => _openToken(r.coin, r.data)),
-        ],
+        ),
       ),
     );
   }
