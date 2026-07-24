@@ -235,18 +235,13 @@ class _UpdatedStampState extends State<_UpdatedStamp> {
           ),
         ),
         const SizedBox(width: GeniusWalletConsts.space4),
+        // A bare icon button — no fill/border box — to match the Markets
+        // header's trailing action (markets_screen.dart, the magnifying glass).
         IconButton(
           tooltip: 'Refresh',
           onPressed: widget.onRefresh,
           icon: Icon(Icons.refresh, size: 18, color: gw.textSecondary),
           visualDensity: VisualDensity.compact,
-          style: IconButton.styleFrom(
-            backgroundColor: gw.surfaceMenu,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-              side: BorderSide(color: gw.borderSubtle),
-            ),
-          ),
         ),
       ],
     );

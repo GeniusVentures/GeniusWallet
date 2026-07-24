@@ -16,11 +16,10 @@ enum BootStage { preparing, walletsReady, balancesReady, marketsReady }
 /// chart, and possibly holdings) so the boot screen hands over on whichever
 /// finishes LAST — never before the hold's floor, never capped by it.
 ///
-/// Deliberately has no Flutter dependency: `tool/boot_sequence_check.dart`
-/// exercises this under a bare `dart run`, and this repo's `flutter test`
-/// does not compile (ROADMAP.md "Verification reality" / APP-02). The
-/// rail's own tween and the widget wiring live in the splash screen
-/// (13-03), not here.
+/// Deliberately has no Flutter dependency, which keeps its minimum-hold-vs-
+/// real-work race testable in isolation: `test/boot_sequence_test.dart`
+/// exercises this directly. The rail's own tween and the widget wiring live
+/// in the splash screen (13-03), not here.
 class BootSequence {
   BootSequence({
     this.stageGap = const Duration(milliseconds: 450),

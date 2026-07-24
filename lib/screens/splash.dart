@@ -209,8 +209,11 @@ class _SplashState extends State<Splash> {
                               fontWeight: FontWeight.w600,
                               letterSpacing: 13 * 0.16,
                               // A literal, not `textPrimary38` -- that token
-                              // flips with appearance (D2/D8).
-                              color: Colors.white.withValues(alpha: 0.38),
+                              // flips with appearance (D2/D8). Alpha raised
+                              // 0.38 -> 0.85 (walk 13-03, variant C): the 38%
+                              // kicker faded into bright mesh blobs; Jakub chose
+                              // the loud, first-read weight.
+                              color: Colors.white.withValues(alpha: 0.85),
                             ),
                           ),
                           const SizedBox(width: GeniusWalletConsts.space6),
