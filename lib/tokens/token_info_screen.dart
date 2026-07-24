@@ -19,6 +19,7 @@ import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:go_router/go_router.dart';
 
 /// 07-07 gap-closure: the More -> Bridge Tokens row's tap handler, extracted
@@ -96,29 +97,34 @@ class TokenInfoScreen extends StatelessWidget {
                       if (marketData != null)
                         Expanded(
                           flex: 2,
-                          // sketch 152 A left card: identity hero pulled up over
-                          // the chart (which carries the live price + boxed
-                          // action row).
+                          // sketch 152 A left card: identity (icon + name +
+                          // SYMBOL · Network) -> action row -> chart (which
+                          // carries the big live price + %).
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _buildIdentityHero(marketData, selectedCoin),
+                              _buildIdentityHero(
+                                context,
+                                marketData,
+                                selectedNetwork,
+                              ),
                               const SizedBox(
-                                height: GeniusWalletConsts.space6,
+                                height: GeniusWalletConsts.space8,
+                              ),
+                              _buildStaticActions(
+                                selectedCoin,
+                                context,
+                                selectedWallet,
+                                selectedNetwork,
+                                isGnusBridgeEnabled,
+                                walletDetailsCubit,
+                              ),
+                              const SizedBox(
+                                height: GeniusWalletConsts.space8,
                               ),
                               SizedBox(
                                 height: desktopChartHeight,
-                                child: _buildGraphSection(
-                                  marketData!,
-                                  _buildStaticActions(
-                                    selectedCoin,
-                                    context,
-                                    selectedWallet,
-                                    selectedNetwork,
-                                    isGnusBridgeEnabled,
-                                    walletDetailsCubit,
-                                  ),
-                                ),
+                                child: _buildGraphSection(marketData!, null),
                               ),
                             ],
                           ),
@@ -144,9 +150,9 @@ class TokenInfoScreen extends StatelessWidget {
                 : Column(
                     spacing: GeniusWalletConsts.space10,
                     children: [
-                      // sketch 152 D hero: identity + price + your holdings at
-                      // the top of the stack, above the action row.
-                      _buildIdentityHero(marketData, selectedCoin),
+                      // sketch 152 D hero: identity (icon + name + SYMBOL ·
+                      // Network) at the top of the stack, above the action row.
+                      _buildIdentityHero(context, marketData, selectedNetwork),
                       _buildStaticActions(
                         selectedCoin,
                         context,
@@ -181,19 +187,48 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  /// sketch 152 hero: coin identity + price + 24h% + your holdings, pulled up
-  /// to the top-left (desktop A) / top of the stack (mobile D). Reuses
-  /// CoinCardRow, which _MarketDataInfo received as an unrendered topSlot.
+  /// sketch 152 hero identity: token icon + name + "SYMBOL · Network".
+  /// The big live price + % is provided by CryptoLiveChart just below (it owns
+  /// the price header), so the identity deliberately does NOT repeat price or
+  /// holdings — that was the wrong CoinCardRow reuse.
   Widget _buildIdentityHero(
+    BuildContext context,
     CoinGeckoMarketData? marketData,
-    Coin? selectedCoin,
+    Network? selectedNetwork,
   ) {
-    return CoinCardRow(
-      iconPath: marketData?.imageUrl ?? "",
-      balance: selectedCoin?.balance,
-      name: marketData?.name ?? "unknown",
-      symbol: marketData?.symbol ?? "unknown",
-      marketData: marketData,
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final textTheme = Theme.of(context).textTheme;
+    final String symbol = (marketData?.symbol ?? "").toUpperCase();
+    final String? network = selectedNetwork?.name;
+    final String subtitle = (network != null && network.isNotEmpty)
+        ? "$symbol · $network"
+        : symbol;
+    return Row(
+      children: [
+        buildTokenIcon(iconPath: marketData?.imageUrl ?? "", size: 44),
+        const SizedBox(width: GeniusWalletConsts.space6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                marketData?.name ?? "unknown",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.titleLarge?.copyWith(color: gw.textPrimary),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodySmall?.copyWith(color: gw.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
