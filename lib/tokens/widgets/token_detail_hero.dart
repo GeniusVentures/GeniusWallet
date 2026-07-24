@@ -185,7 +185,7 @@ class _PriceBlock extends StatelessWidget {
           textAlign: alignEnd ? TextAlign.right : TextAlign.left,
           style: (textTheme.headlineSmall ?? const TextStyle()).copyWith(
             color: colors.textPrimary,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             letterSpacing: -0.5,
             fontSize: 22,
             fontFeatures: const [FontFeature.tabularFigures()],
