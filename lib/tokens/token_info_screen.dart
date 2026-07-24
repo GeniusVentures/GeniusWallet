@@ -98,47 +98,70 @@ class TokenInfoScreen extends StatelessWidget {
         backgroundColor: gw.surfaceSunken,
         elevation: 0,
         titleSpacing: 0,
-        leadingWidth: 44,
-        // sketch 152 `.back`: a compact 30x30 chevron button (not Material's
-        // default 24px arrow) — text-secondary glyph, radiusSm hit area.
-        leading: Center(
-          child: InkWell(
-            onTap: () => Navigator.of(context).maybePop(),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-            child: SizedBox(
-              width: 30,
-              height: 30,
-              child: Center(
-                child: SketchIcon(
-                  SketchIcons.back,
-                  size: 18,
-                  color: gw.textSecondary,
-                ),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        // sketch 152 `.appbar`: back chevron + "Markets / <name>" breadcrumb,
+        // LEFT-aligned and sharing the page's centered 1200 max-width + padding
+        // so the back button lines up with the page content's left edge.
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.sizeOf(context).width >
+                        GeniusBreakpoints.medium
+                    ? GeniusWalletConsts.space10
+                    : GeniusWalletConsts.space8,
+              ),
+              child: Row(
+                children: [
+                  // sketch `.back`: compact 30x30 chevron button.
+                  InkWell(
+                    onTap: () => Navigator.of(context).maybePop(),
+                    borderRadius:
+                        BorderRadius.circular(GeniusWalletConsts.radiusSm),
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: Center(
+                        child: SketchIcon(
+                          SketchIcons.back,
+                          size: 18,
+                          color: gw.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: GeniusWalletConsts.space6),
+                  // sketch `.crumb`: "Markets / <name>".
+                  Flexible(
+                    child: Text.rich(
+                      TextSpan(
+                        style: (Theme.of(context).textTheme.bodyMedium ??
+                                const TextStyle())
+                            .copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: gw.textSecondary,
+                        ),
+                        children: [
+                          const TextSpan(text: 'Markets  /  '),
+                          TextSpan(
+                            text: marketData?.name ?? 'Token',
+                            style: TextStyle(
+                              color: gw.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ),
-        // sketch 152 `.crumb`: "Markets / <name>" — "Markets" in secondary, the
-        // token name in primary / w600 (the default back chevron stays).
-        title: Text.rich(
-          TextSpan(
-            style:
-                (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
-                    .copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: gw.textSecondary,
-            ),
-            children: [
-              const TextSpan(text: 'Markets  /  '),
-              TextSpan(
-                text: marketData?.name ?? 'Token',
-                style: TextStyle(
-                  color: gw.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
           ),
         ),
         bottom: PreferredSize(
