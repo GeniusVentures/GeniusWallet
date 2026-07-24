@@ -769,6 +769,344 @@ class NativeLibrary {
       _GeniusSDKGetTaskResultPtr.asFunction<
         GeniusArray Function(ffi.Pointer<ffi.Char>)
       >();
+
+  /// @brief     Registers this node as a child wallet under a main wallet address.
+  /// Wraps the auto-derived-sequence overload of `GeniusNode::RegisterChild` —
+  /// the registration sequence number is derived automatically from this node's
+  /// existing reg/ CRDT record; no sequence value is accepted by this function.
+  /// @param[in] main_address Null-terminated string representing the main wallet's public address.
+  /// @param[in] metadata     Registration metadata (game_id, publisher_id, dev_wallet, peers_cut).
+  /// @return @ref GENIUS_NODE_RET_OK on success, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK
+  /// is not initialized, @ref GENIUS_NODE_INVALID_ARGUMENT if `main_address` is null/empty,
+  /// or @ref GENIUS_NODE_ERROR_REGISTRATION if registration submission failed.
+  int GeniusSDKRegisterChild(
+    ffi.Pointer<ffi.Char> main_address,
+    GeniusRegistrationMetadata metadata,
+  ) {
+    return _GeniusSDKRegisterChild(main_address, metadata);
+  }
+
+  late final _GeniusSDKRegisterChildPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Pointer<ffi.Char>,
+            GeniusRegistrationMetadata,
+          )
+        >
+      >('GeniusSDKRegisterChild');
+  late final _GeniusSDKRegisterChild =
+      _GeniusSDKRegisterChildPtr.asFunction<
+        int Function(ffi.Pointer<ffi.Char>, GeniusRegistrationMetadata)
+      >();
+
+  /// @brief      Enumerates child wallets registered under a given main wallet address.
+  /// Wraps `GeniusNode::GetRegistrationsForMain`.
+  /// @param[in]  main_address Null-terminated string representing the main wallet's public address.
+  /// @param[out] out_entries  On success, set to a heap-allocated array of discovered registrations
+  /// (caller must free with @ref GeniusSDKFree); set to null on failure or
+  /// when there are zero registrations.
+  /// @param[out] out_count    On success, set to the number of entries in `*out_entries` (may be 0,
+  /// which is a valid empty result, not a failure); set to 0 on failure.
+  /// @return @ref GENIUS_NODE_RET_OK on success (including the zero-registrations case),
+  /// @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// @ref GENIUS_NODE_INVALID_ARGUMENT if `main_address`, `out_entries`, or `out_count`
+  /// is null, or @ref GENIUS_NODE_ERROR_REGISTRATION if the discovery query failed.
+  int GeniusSDKGetRegistrationsForMain(
+    ffi.Pointer<ffi.Char> main_address,
+    ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>> out_entries,
+    ffi.Pointer<ffi.Uint64> out_count,
+  ) {
+    return _GeniusSDKGetRegistrationsForMain(
+      main_address,
+      out_entries,
+      out_count,
+    );
+  }
+
+  late final _GeniusSDKGetRegistrationsForMainPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+            ffi.Pointer<ffi.Uint64>,
+          )
+        >
+      >('GeniusSDKGetRegistrationsForMain');
+  late final _GeniusSDKGetRegistrationsForMain =
+      _GeniusSDKGetRegistrationsForMainPtr.asFunction<
+        int Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+          ffi.Pointer<ffi.Uint64>,
+        )
+      >();
+
+  /// @brief Retrieves a child wallet's balance for a specific token, read from the locally-synced
+  /// CRDT UTXO view. Wraps the token-filtered overload of `GeniusNode::GetChildBalance`.
+  /// @param[in] child_address Null-terminated string representing the child wallet's public address.
+  /// @param[in] token_id      Token identifier to filter by.
+  /// @return The balance amount as a `uint64_t` value (in Minion Tokens), or 0 if the SDK is not
+  /// initialized or `child_address` is null. As with @ref GeniusSDKGetBalance, 0 is
+  /// inherently ambiguous (no balance vs. not-yet-synced).
+  int GeniusSDKGetChildBalance(
+    ffi.Pointer<ffi.Char> child_address,
+    GeniusTokenID token_id,
+  ) {
+    return _GeniusSDKGetChildBalance(child_address, token_id);
+  }
+
+  late final _GeniusSDKGetChildBalancePtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Uint64 Function(ffi.Pointer<ffi.Char>, GeniusTokenID)
+        >
+      >('GeniusSDKGetChildBalance');
+  late final _GeniusSDKGetChildBalance =
+      _GeniusSDKGetChildBalancePtr.asFunction<
+        int Function(ffi.Pointer<ffi.Char>, GeniusTokenID)
+      >();
+
+  /// @brief Retrieves a child wallet's total balance across all tokens, read from the locally-synced
+  /// CRDT UTXO view. Wraps the all-tokens overload of `GeniusNode::GetChildBalance`.
+  /// @param[in] child_address Null-terminated string representing the child wallet's public address.
+  /// @return The total balance amount as a `uint64_t` value (in Minion Tokens), or 0 if the SDK is
+  /// not initialized or `child_address` is null. Same 0-ambiguity caveat as
+  /// @ref GeniusSDKGetChildBalance applies.
+  int GeniusSDKGetChildBalanceAll(ffi.Pointer<ffi.Char> child_address) {
+    return _GeniusSDKGetChildBalanceAll(child_address);
+  }
+
+  late final _GeniusSDKGetChildBalanceAllPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<ffi.Char>)>>(
+        'GeniusSDKGetChildBalanceAll',
+      );
+  late final _GeniusSDKGetChildBalanceAll =
+      _GeniusSDKGetChildBalanceAllPtr.asFunction<
+        int Function(ffi.Pointer<ffi.Char>)
+      >();
+
+  /// @brief     Funds a registered child wallet by transferring tokens to it (in **Minion Tokens**).
+  /// Wraps the fire-and-forget overload of `GeniusNode::TransferFunds` — this is an
+  /// ordinary transfer to the child's address, no new consensus mechanics involved.
+  /// @param[in] amount        The amount to transfer in Minion Tokens.
+  /// @param[in] child_address Null-terminated string representing the child wallet's public address.
+  /// @param[in] token_id      Token identifier.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission (submitted, not confirmed by
+  /// consensus — see @ref GeniusSDKRecoverFromChild's @note for the related caveat),
+  /// @ref GENIUS_NODE_ERROR_NOT_INITIALIZED if the SDK is not initialized,
+  /// @ref GENIUS_NODE_INVALID_ARGUMENT if `child_address` is null/empty,
+  /// or @ref GENIUS_NODE_ERROR_TRANSFER on submission failure.
+  int GeniusSDKFundChild(
+    int amount,
+    ffi.Pointer<ffi.Char> child_address,
+    GeniusTokenID token_id,
+  ) {
+    return _GeniusSDKFundChild(amount, child_address, token_id);
+  }
+
+  late final _GeniusSDKFundChildPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Uint64,
+            ffi.Pointer<ffi.Char>,
+            GeniusTokenID,
+          )
+        >
+      >('GeniusSDKFundChild');
+  late final _GeniusSDKFundChild =
+      _GeniusSDKFundChildPtr.asFunction<
+        int Function(int, ffi.Pointer<ffi.Char>, GeniusTokenID)
+      >();
+
+  /// @brief     Funds a registered child wallet using a **Genius Token** string representation.
+  /// Parses `amount` via `GeniusNode::ParseTokens` then delegates to
+  /// @ref GeniusSDKFundChild, mirroring how `GeniusSDKTransferGNUS` delegates to
+  /// `GeniusSDKTransfer`.
+  /// @param[in] amount        Pointer to a `GeniusTokenValue` struct representing the amount in GNUS.
+  /// @param[in] child_address Null-terminated string representing the child wallet's public address.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED
+  /// if the SDK is not initialized, @ref GENIUS_NODE_INVALID_ARGUMENT if `amount` is null or
+  /// `child_address` is null/empty, or @ref GENIUS_NODE_ERROR_TRANSFER on submission failure.
+  int GeniusSDKFundChildGNUS(
+    ffi.Pointer<GeniusTokenValue> amount,
+    ffi.Pointer<ffi.Char> child_address,
+  ) {
+    return _GeniusSDKFundChildGNUS(amount, child_address);
+  }
+
+  late final _GeniusSDKFundChildGNUSPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Pointer<GeniusTokenValue>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('GeniusSDKFundChildGNUS');
+  late final _GeniusSDKFundChildGNUS =
+      _GeniusSDKFundChildGNUSPtr.asFunction<
+        int Function(ffi.Pointer<GeniusTokenValue>, ffi.Pointer<ffi.Char>)
+      >();
+
+  /// @brief     Recovers funds from a registered child wallet back to this node's address
+  /// (in **Minion Tokens**). Wraps the fire-and-forget overload of
+  /// `GeniusNode::RecoverFromChild`. This wrapper's own parameter order
+  /// (`amount`, `child_address`, `token_id`) mirrors @ref GeniusSDKFundChild for API
+  /// symmetry, even though `GeniusNode::RecoverFromChild`'s actual signature takes
+  /// `child_address` first.
+  /// @param[in] amount        The amount to recover in Minion Tokens.
+  /// @param[in] child_address Null-terminated string representing the child wallet's public address.
+  /// @param[in] token_id      Token identifier.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED
+  /// if the SDK is not initialized, @ref GENIUS_NODE_INVALID_ARGUMENT if `child_address` is
+  /// null/empty, or @ref GENIUS_NODE_ERROR_TRANSFER on submission failure (the same code
+  /// @ref GeniusSDKFundChild uses — no dedicated recovery error value).
+  /// @note This call is fire-and-forget and reports submission-time status only; the
+  /// destination-mismatch rejection performed by `CheckParentChildAuthority` is only
+  /// evaluated at consensus finalization and cannot be observed by this synchronous
+  /// wrapper — @ref GENIUS_NODE_RET_OK means "submitted," not "confirmed by consensus."
+  int GeniusSDKRecoverFromChild(
+    int amount,
+    ffi.Pointer<ffi.Char> child_address,
+    GeniusTokenID token_id,
+  ) {
+    return _GeniusSDKRecoverFromChild(amount, child_address, token_id);
+  }
+
+  late final _GeniusSDKRecoverFromChildPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Uint64,
+            ffi.Pointer<ffi.Char>,
+            GeniusTokenID,
+          )
+        >
+      >('GeniusSDKRecoverFromChild');
+  late final _GeniusSDKRecoverFromChild =
+      _GeniusSDKRecoverFromChildPtr.asFunction<
+        int Function(int, ffi.Pointer<ffi.Char>, GeniusTokenID)
+      >();
+
+  /// @brief     Recovers funds from a registered child wallet using a **Genius Token** string
+  /// representation. Parses `amount` via `GeniusNode::ParseTokens` then delegates to
+  /// @ref GeniusSDKRecoverFromChild, mirroring how `GeniusSDKTransferGNUS` delegates to
+  /// `GeniusSDKTransfer`.
+  /// @param[in] amount        Pointer to a `GeniusTokenValue` struct representing the amount in GNUS.
+  /// @param[in] child_address Null-terminated string representing the child wallet's public address.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED
+  /// if the SDK is not initialized, @ref GENIUS_NODE_INVALID_ARGUMENT if `amount` is null or
+  /// `child_address` is null/empty, or @ref GENIUS_NODE_ERROR_TRANSFER on submission failure.
+  /// @note Same fire-and-forget/D-21-observability limitation as @ref GeniusSDKRecoverFromChild
+  /// applies — see that function's @note.
+  int GeniusSDKRecoverFromChildGNUS(
+    ffi.Pointer<GeniusTokenValue> amount,
+    ffi.Pointer<ffi.Char> child_address,
+  ) {
+    return _GeniusSDKRecoverFromChildGNUS(amount, child_address);
+  }
+
+  late final _GeniusSDKRecoverFromChildGNUSPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Pointer<GeniusTokenValue>,
+            ffi.Pointer<ffi.Char>,
+          )
+        >
+      >('GeniusSDKRecoverFromChildGNUS');
+  late final _GeniusSDKRecoverFromChildGNUS =
+      _GeniusSDKRecoverFromChildGNUSPtr.asFunction<
+        int Function(ffi.Pointer<GeniusTokenValue>, ffi.Pointer<ffi.Char>)
+      >();
+
+  /// @brief     Creates a child-initiated Detach transaction, ending this node's own child-wallet
+  /// registration under its current main (D-35). Wraps the auto-derived-sequence
+  /// overload of `GeniusNode::DetachChild` — the registration sequence number is derived
+  /// automatically from this node's existing reg/ CRDT record; no address parameter is
+  /// required since this node acts as the child on its own registration.
+  /// @param[in] metadata Registration metadata carried forward on the lifecycle-change transaction.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED
+  /// if the SDK is not initialized, or @ref GENIUS_NODE_ERROR_REGISTRATION if submission
+  /// failed — including the case where no prior reg/ record exists for this node (the
+  /// auto-derive overload's own fail-closed behavior, not a wrapper-level argument check).
+  int GeniusSDKDetachChild(GeniusRegistrationMetadata metadata) {
+    return _GeniusSDKDetachChild(metadata);
+  }
+
+  late final _GeniusSDKDetachChildPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(GeniusRegistrationMetadata)
+        >
+      >('GeniusSDKDetachChild');
+  late final _GeniusSDKDetachChild =
+      _GeniusSDKDetachChildPtr.asFunction<
+        int Function(GeniusRegistrationMetadata)
+      >();
+
+  /// @brief     Creates a child-initiated Replace-Main transaction, changing this node's registered
+  /// main wallet address (D-37). Wraps the auto-derived-sequence overload of
+  /// `GeniusNode::ReplaceMain`.
+  /// @param[in] new_main_address Null-terminated string representing the new main wallet's public
+  /// address (128-hex).
+  /// @param[in] metadata         Registration metadata carried forward on the lifecycle-change
+  /// transaction.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED
+  /// if the SDK is not initialized, @ref GENIUS_NODE_INVALID_ARGUMENT if `new_main_address`
+  /// is null/empty, or @ref GENIUS_NODE_ERROR_REGISTRATION if submission failed — including
+  /// the no-prior-reg/-record fail-closed case, same caveat as @ref GeniusSDKDetachChild.
+  int GeniusSDKReplaceMain(
+    ffi.Pointer<ffi.Char> new_main_address,
+    GeniusRegistrationMetadata metadata,
+  ) {
+    return _GeniusSDKReplaceMain(new_main_address, metadata);
+  }
+
+  late final _GeniusSDKReplaceMainPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Pointer<ffi.Char>,
+            GeniusRegistrationMetadata,
+          )
+        >
+      >('GeniusSDKReplaceMain');
+  late final _GeniusSDKReplaceMain =
+      _GeniusSDKReplaceMainPtr.asFunction<
+        int Function(ffi.Pointer<ffi.Char>, GeniusRegistrationMetadata)
+      >();
+
+  /// @brief     Creates a main-initiated Revoke transaction against a registered child wallet
+  /// (D-36). Wraps the fire-and-forget overload of `GeniusNode::RevokeChild` — mirrors
+  /// @ref GeniusSDKRecoverFromChild's choice of the non-timeout overload.
+  /// @param[in] child_address Null-terminated string representing the registered child wallet's
+  /// public address being revoked.
+  /// @return @ref GENIUS_NODE_RET_OK on successful submission, @ref GENIUS_NODE_ERROR_NOT_INITIALIZED
+  /// if the SDK is not initialized, @ref GENIUS_NODE_INVALID_ARGUMENT if `child_address` is
+  /// null/empty, or @ref GENIUS_NODE_ERROR_REGISTRATION on submission failure.
+  /// @note This call is fire-and-forget and reports submission-time status only; unauthorized-revoke
+  /// rejection (non-main caller, sequence mismatch — enforced by the `CheckParentChildAuthority`
+  /// revoke branch and `FilterRegistration` gate 3b) is only evaluated at consensus finalization
+  /// and cannot be observed by this synchronous wrapper — @ref GENIUS_NODE_RET_OK means
+  /// "submitted," not "confirmed by consensus."
+  int GeniusSDKRevokeChild(ffi.Pointer<ffi.Char> child_address) {
+    return _GeniusSDKRevokeChild(child_address);
+  }
+
+  late final _GeniusSDKRevokeChildPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(ffi.Pointer<ffi.Char>)
+        >
+      >('GeniusSDKRevokeChild');
+  late final _GeniusSDKRevokeChild =
+      _GeniusSDKRevokeChildPtr.asFunction<
+        int Function(ffi.Pointer<ffi.Char>)
+      >();
 }
 
 typedef __u_char = ffi.UnsignedChar;
@@ -955,6 +1293,42 @@ final class GeniusTokenID extends ffi.Struct {
   external ffi.Array<ffi.UnsignedChar> data;
 }
 
+/// @brief Caller-supplied registration metadata for a child wallet, mirroring the
+/// SGTransaction::RegistrationMetadata proto fields.
+final class GeniusRegistrationMetadata extends ffi.Struct {
+  /// < Opaque game identifier string
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> game_id;
+
+  /// < Opaque publisher identifier string
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> publisher_id;
+
+  /// < Opaque developer wallet identifier bytes/string
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> dev_wallet;
+
+  /// < Peers' cut value
+  @ffi.Uint64()
+  external int peers_cut;
+}
+
+/// @brief A single child-wallet registration discovered via GeniusSDKGetRegistrationsForMain.
+final class GeniusRegistrationDiscoveryEntry extends ffi.Struct {
+  /// < Registered child wallet's public address
+  external GeniusAddress child_address;
+
+  /// < Main wallet public address the child is registered under
+  external GeniusAddress main_address;
+
+  /// < Registration sequence number
+  @ffi.Uint64()
+  external int sequence;
+
+  /// < Registration metadata submitted at registration time
+  external GeniusRegistrationMetadata metadata;
+}
+
 typedef PayAmount_t = ffi.Uint64;
 typedef DartPayAmount_t = int;
 typedef GeniusNodeReturnValue_t = ffi.Int32;
@@ -975,7 +1349,12 @@ enum GeniusNodeReturnValue {
   GENIUS_NODE_ERROR_MINT(3),
   GENIUS_NODE_INVALID_ARGUMENT(4),
   GENIUS_NODE_ERROR_TRANSFER(5),
-  GENIUS_NODE_ERROR_PAY_DEV(6);
+  GENIUS_NODE_ERROR_PAY_DEV(6),
+
+  /// < GeniusSDKRegisterChild submission failure, GeniusSDKGetRegistrationsForMain
+  /// < discovery-query failure, or GeniusSDKDetachChild/GeniusSDKReplaceMain/
+  /// < GeniusSDKRevokeChild lifecycle-change submission failure
+  GENIUS_NODE_ERROR_REGISTRATION(7);
 
   final int value;
   const GeniusNodeReturnValue(this.value);
@@ -988,6 +1367,7 @@ enum GeniusNodeReturnValue {
     4 => GENIUS_NODE_INVALID_ARGUMENT,
     5 => GENIUS_NODE_ERROR_TRANSFER,
     6 => GENIUS_NODE_ERROR_PAY_DEV,
+    7 => GENIUS_NODE_ERROR_REGISTRATION,
     _ => throw ArgumentError('Unknown value for GeniusNodeReturnValue: $value'),
   };
 }
@@ -1202,8 +1582,6 @@ const int __GLIBC_USE_DEPRECATED_GETS = 0;
 
 const int __GLIBC_USE_DEPRECATED_SCANF = 0;
 
-const int __GLIBC_USE_C2X_STRTOL = 1;
-
 const int _STDC_PREDEF_H = 1;
 
 const int __STDC_IEC_559__ = 1;
@@ -1220,7 +1598,7 @@ const int __GNU_LIBRARY__ = 6;
 
 const int __GLIBC__ = 2;
 
-const int __GLIBC_MINOR__ = 39;
+const int __GLIBC_MINOR__ = 35;
 
 const int _SYS_CDEFS_H = 1;
 
@@ -1275,8 +1653,6 @@ const int __WCHAR_MIN = -2147483648;
 const int _BITS_STDINT_INTN_H = 1;
 
 const int _BITS_STDINT_UINTN_H = 1;
-
-const int _BITS_STDINT_LEAST_H = 1;
 
 const int INT8_MIN = -128;
 
@@ -1380,12 +1756,14 @@ const int WINT_MIN = 0;
 
 const int WINT_MAX = 4294967295;
 
-const int __bool_true_false_are_defined = 1;
-
 const int true$ = 1;
 
 const int false$ = 0;
 
+const int __bool_true_false_are_defined = 1;
+
 const int GENIUS_SDK_ADDRESS_SIZE = 130;
+
+const int GENIUS_SDK_MAX_METADATA_STRING_SIZE = 128;
 
 const int GENIUS_SDK_MAX_MNEMONIC_SIZE = 216;
