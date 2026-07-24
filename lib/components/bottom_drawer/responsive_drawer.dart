@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -101,6 +102,12 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
     this.footer,
   });
 
+  // Sketch 030-B1 "Quiet band" (.planning/sketches/030-drawer-shell,
+  // drawers-final): the header is a compact zone, not a full-height
+  // kToolbarHeight (56) app bar. Header-chrome-only value -- does not affect
+  // body padding or any other caller-visible layout.
+  static const double _compactToolbarHeight = 48;
+
   @override
   Widget build(BuildContext context) {
     // Fail-soft read: registers the InheritedWidget dependency that forces
@@ -116,26 +123,52 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
       // (documented value remap, see 04-04-SUMMARY.md).
       backgroundColor: gw.surfaceMenu,
 
-      // Native Material app bar
+      // Native Material app bar -- sketch 030-B1 "Quiet band": left-aligned
+      // title, a small close ✕ at TOP-RIGHT (replacing the old big
+      // 56px-wide leading close), a faint 1px brand hairline under the
+      // header, compact toolbar height. Header chrome ONLY -- no blanket
+      // body padding is added here; that stays each caller's responsibility
+      // (see 07-06-PLAN.md prohibitions -- some of the ~19 callers already
+      // pad their own bodies).
       appBar: title != null
           ? AppBar(
               automaticallyImplyLeading: false,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              centerTitle: true,
+              centerTitle: false,
+              toolbarHeight: _compactToolbarHeight,
               title: Text(title!),
-              leadingWidth: 56,
-              leading: Padding(
-                padding: const EdgeInsets.only(
-                  left: GeniusWalletConsts.space2,
-                  top: GeniusWalletConsts.space2,
-                ),
-                child: IconButton(
+              // No leading close well anymore (was a 56px-wide leading slot
+              // holding a padded 48px IconButton) -- leading is fully
+              // cleared so the title starts flush left.
+              leading: null,
+              // Close ✕ moves into actions, top-right, small and AFTER any
+              // caller-supplied actions so it coexists with them rather than
+              // replacing them.
+              actions: [
+                ...?actions,
+                IconButton(
                   icon: const Icon(Icons.close),
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: Navigator.of(context).pop,
                 ),
+              ],
+              // Faint 1px brand-primary-subtle hairline under the header
+              // (030-B1). Decorative separator only -- not a WCAG 1.4.11
+              // graphical-object (it carries no information on its own,
+              // mirroring the existing gw.borderSubtle hairlines elsewhere
+              // in the codebase) -- reads faint-but-visible as a translucent
+              // overlay on both the dark and light surfaceMenu canvases.
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(
+                  height: 1,
+                  color: GeniusWalletColors.brandPrimarySubtle,
+                ),
               ),
-              actions: actions,
             )
           : null,
 
